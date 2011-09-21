@@ -27,10 +27,17 @@ import volatility.debug as debug
 import volatility.obj as obj
 import volatility.addrspace as addrspace
 
-class AbstractWindows(obj.Profile):
+class AbstractWindowsx86(obj.Profile):
     """ A Profile for Windows systems """
     _md_os = 'windows'
     native_types = basic.x86_native_types_32bit
+
+AbstractWindows = AbstractWindowsx86
+
+class AbstractWindowsx64(obj.Profile):
+    """ A Profile for Windows systems """
+    _md_os = 'windows'
+    native_types = basic.x86_native_types_64bit
 
 class _UNICODE_STRING(obj.CType):
     """Class representing a _UNICODE_STRING

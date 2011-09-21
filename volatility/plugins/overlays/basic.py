@@ -47,6 +47,11 @@ x86_native_types_32bit = {
     'unsigned long long' : [8, '<Q'],
     }
 
+import copy
+x86_native_types_64bit = copy.deepcopy(x86_native_types_32bit)
+x86_native_types_64bit['address'] = [8, '<Q']
+x86_native_types_64bit['pointer64'] = [8, '<Q']
+
 class String(obj.NativeType):
     """Class for dealing with Strings"""
     def __init__(self, theType, offset, vm = None,
