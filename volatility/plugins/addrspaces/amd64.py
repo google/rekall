@@ -20,6 +20,7 @@
 
 """ This is based on Jesse Kornblum's patch to clean up the standard AS's.
 """
+import volatility.plugins.overlays.basic as basic
 import volatility.plugins.addrspaces.intel as intel
 import struct
 
@@ -52,6 +53,13 @@ class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
     pae = True
     checkname = 'AMD64ValidAS'
     paging_address_space = True
+
+    def __init__(self, *args, **kwargs):
+      intel.JKIA32PagedMemoryPae.__init__(self, *args, **kwargs)
+
+      # Make sure that we only support 64 bit profiles here.
+      if self.profile._md_memory_model != "64bit":
+        raise RuntimeError("Only supporting 64 memory models.")
 
     def _cache_values(self):
         '''
@@ -157,11 +165,12 @@ class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
         # PDEs and PTEs we must test.
         for pml4e in range(0, 0x200):
             vaddr = pml4e << 39
-            if not self.entry_present(pml4e):
+            pml4e_value = self.get_pml4e(vaddr)
+            if not self.entry_present(pml4e_value):
                 continue
             for pdpte in range(0, 0x200):
                 vaddr = (pml4e << 39) | (pdpte << 30)
-                pdpte_value = self.get_pdpte(vaddr, pml4e)
+                pdpte_value = self.get_pdpte(vaddr, pml4e_value)
                 if not self.entry_present(pdpte_value):
                     continue
                 if self.page_size_flag(pdpte_value):

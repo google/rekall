@@ -346,8 +346,11 @@ class BaseObject(object):
     def dereference(self):
         return NoneObject("Can't dereference {0}".format(self.obj_name), self.obj_vm.profile.strict)
 
-    def dereference_as(self, derefType):
-        return Object(derefType, self.v(), self.obj_vm, parent = self)
+    def dereference_as(self, derefType, addr_space=None):
+      """Dereferences this object as the specified type, optionally switching
+      address space.
+      """
+      return Object(derefType, self.v(), addr_space or self.obj_vm, parent = self)
 
     def cast(self, castString):
         return Object(castString, self.obj_offset, self.obj_vm)

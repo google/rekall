@@ -30,6 +30,7 @@ import volatility.addrspace as addrspace
 class AbstractWindowsx86(obj.Profile):
     """ A Profile for Windows systems """
     _md_os = 'windows'
+    _md_memory_model = '32bit'
     native_types = basic.x86_native_types_32bit
 
 AbstractWindows = AbstractWindowsx86
@@ -37,6 +38,7 @@ AbstractWindows = AbstractWindowsx86
 class AbstractWindowsx64(obj.Profile):
     """ A Profile for Windows systems """
     _md_os = 'windows'
+    _md_memory_model = '64bit'
     native_types = basic.x86_native_types_64bit
 
 class _UNICODE_STRING(obj.CType):
@@ -362,19 +364,24 @@ class _MMVAD(obj.CType):
                   'Vadm': '_MMVAD_LONG',
                   }
 
-        ## All VADs are done in the process AS - so we might need to
-        ## switch Address spaces now. We do this by instantiating an
-        ## _EPROCESS over our parent, and having it give us the
-        ## correct AS
+        ## All VADs are done in the process AS - so we might need to switch
+        ## Address spaces now. Find the eprocess we came from and switch
+        ## AS. Note that all child traversals will be in Process AS. 
         if vm.name.startswith("Kernel"):
-            eprocess = obj.Object("_EPROCESS", offset = parent.obj_offset, vm = vm)
-            vm = eprocess.get_process_address_space()
-            if not vm:
+          eprocess = parent
+          while eprocess:
+            try:
+              vm = eprocess.get_process_address_space()
+              if not vm:
                 return vm
+              break
+
+            except AttributeError:
+              eprocess = parent.obj_parent
 
         ## What type is this struct?
         tag = vm.read(offset - 4, 4)
-        theType = switch.get(tag)
+        theType = switch.get(tag, "_MMVAD_SHORT")
 
         if not theType:
             return obj.NoneObject("Tag {0} not knowns".format(tag))
