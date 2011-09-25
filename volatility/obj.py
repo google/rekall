@@ -199,7 +199,7 @@ class NoneObject(object):
         return self
 
     def __int__(self):
-        return - 1
+        return -1
 
     def __lshift__(self, other):
         return self
@@ -346,11 +346,11 @@ class BaseObject(object):
     def dereference(self):
         return NoneObject("Can't dereference {0}".format(self.obj_name), self.obj_vm.profile.strict)
 
-    def dereference_as(self, derefType, addr_space=None):
-      """Dereferences this object as the specified type, optionally switching
-      address space.
-      """
-      return Object(derefType, self.v(), addr_space or self.obj_vm, parent = self)
+    def dereference_as(self, derefType, addr_space = None):
+        """Dereferences this object as the specified type, optionally switching
+        address space.
+        """
+        return Object(derefType, self.v(), addr_space or self.obj_vm, parent = self)
 
     def cast(self, castString):
         return Object(castString, self.obj_offset, self.obj_vm)
@@ -595,9 +595,8 @@ class Void(NativeType):
     def __nonzero__(self):
         return bool(self.dereference())
 
-    def dereference_as(self, derefType):
-        return Object(derefType, self.v(), \
-                         self.obj_vm, parent = self)
+    def dereference_as(self, derefType, addr_space = None):
+        return Object(derefType, self.v(), addr_space or self.obj_vm, parent = self)
 
 class Array(BaseObject):
     """ An array of objects of the same size """
@@ -729,13 +728,13 @@ class CType(BaseObject):
 
     def m(self, attr):
         if attr in self.members:
-          # Allow the element to be a callable rather than a list - this is
-          # useful for aliasing member names
-          element = self.members[attr]
-          if callable(element):
-            return element(self)
+            # Allow the element to be a callable rather than a list - this is
+            # useful for aliasing member names
+            element = self.members[attr]
+            if callable(element):
+                return element(self)
 
-          offset, cls = self.members[attr]
+            offset, cls = element
         elif attr.find('__') > 0 and attr[attr.find('__'):] in self.members:
             offset, cls = self.members[attr[attr.find('__'):]]
         else:

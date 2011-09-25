@@ -20,7 +20,6 @@
 
 """ This is based on Jesse Kornblum's patch to clean up the standard AS's.
 """
-import volatility.plugins.overlays.basic as basic
 import volatility.plugins.addrspaces.intel as intel
 import struct
 
@@ -55,11 +54,15 @@ class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
     paging_address_space = True
 
     def __init__(self, *args, **kwargs):
-      intel.JKIA32PagedMemoryPae.__init__(self, *args, **kwargs)
+        intel.JKIA32PagedMemoryPae.__init__(self, *args, **kwargs)
 
-      # Make sure that we only support 64 bit profiles here.
-      if self.profile._md_memory_model != "64bit":
-        raise RuntimeError("Only supporting 64 memory models.")
+        # FIXME: This makes the AS dependent upon the profile in use
+        # Code to determine whether the profile is valid or not should 
+        # go into the 'AMD64ValidAS' VolatilityMagic variable and return False if necessary.
+
+        # Make sure that we only support 64 bit profiles here.
+        if self.profile.metadata.get('memory_model', '32bit') != "64bit":
+            raise RuntimeError("Only supporting 64 memory models.")
 
     def _cache_values(self):
         '''

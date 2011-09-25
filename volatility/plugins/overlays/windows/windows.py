@@ -355,11 +355,11 @@ class _MMVAD(obj.CType):
     """Class factory for _MMVAD objects"""
 
     ## The actual type depends on this tag value.
-    tag_map = {"Vadl": '_MMVAD_LONG',
-              'VadS': '_MMVAD_SHORT',
-              'Vad ': '_MMVAD_LONG',
-              'VadF': '_MMVAD_SHORT',
-              'Vadm': '_MMVAD_LONG',
+    tag_map = {'Vadl': '_MMVAD_LONG',
+               'VadS': '_MMVAD_SHORT',
+               'Vad ': '_MMVAD_LONG',
+               'VadF': '_MMVAD_SHORT',
+               'Vadm': '_MMVAD_LONG',
               }
 
     ## parent is the containing _EPROCESS right now
@@ -368,20 +368,23 @@ class _MMVAD(obj.CType):
         ## Address spaces now. Find the eprocess we came from and switch
         ## AS. Note that all child traversals will be in Process AS. 
         if vm.name.startswith("Kernel"):
-          # Find the next _EPROCESS along our parent list
-          eprocess = parent
-          while eprocess.obj_name != "_EPROCESS":
-            eprocess = eprocess.obj_parent
+            # Find the next _EPROCESS along our parent list
+            eprocess = parent
+            while eprocess and eprocess.obj_name != "_EPROCESS":
+                eprocess = eprocess.obj_parent
 
-          # Switch to its process AS
-          vm = eprocess.get_process_address_space()
+            # Switch to its process AS
+            vm = eprocess.get_process_address_space()
 
         ## What type is this struct? Determine from the tag
         tag_offset = 4
         # scudette: Im not sure why the tag is positioned further behind on 64
         # bit systems.
-        if vm.profile._md_memory_model == "64bit":
-          tag_offset += 8
+        # FIXME: This should be coming from a profile specific value,
+        # rather than code here to read metadata and make the change
+        # If necessary, a _TAG member with a negative offset should be added to the struct
+        if vm.profile.get('memory_model', "32bit") == "64bit":
+            tag_offset += 8
 
         tag = vm.read(offset - tag_offset, 4)
         theType = cls.tag_map.get(tag, "_MMVAD_SHORT")
@@ -437,16 +440,16 @@ class _MMVAD_SHORT(obj.CType):
     def get_start(self):
         """Get the starting virtual address"""
         return self.StartingVpn << 12
-    
+
     def get_end(self):
         """Get the ending virtual address"""
         return ((self.EndingVpn + 1) << 12) - 1
-    
+
     def get_data(self):
         """Get the data in a vad region"""
-    
+
         start = self.get_start()
-        end   = self.get_end()
+        end = self.get_end()
 
         num_pages = (end - start + 1) >> 12
 
@@ -464,9 +467,11 @@ AbstractWindows.object_classes['_MMVAD_SHORT'] = _MMVAD_SHORT
 AbstractWindows.object_classes['_MMVAD_LONG'] = _MMVAD_LONG
 
 class _EX_FAST_REF(obj.CType):
-    def dereference_as(self, theType):
+    """Overrides the dereferencing of EX_FAST_REF objects"""
+
+    def dereference_as(self, theType, addr_space = None):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the specified type"""
-        return obj.Object(theType, vm = self.obj_vm, parent = self, offset = self.Object.v() & ~7)
+        return obj.Object(theType, vm = addr_space or self.obj_vm, parent = self, offset = self.Object.v() & ~7)
 
 AbstractWindows.object_classes['_EX_FAST_REF'] = _EX_FAST_REF
 
@@ -484,15 +489,20 @@ class _TCPT_OBJECT(obj.CType):
     """Provides additional functions for TCPT_OBJECTs"""
 
     def _RemoteIpAddress(self, attr):
+        """Returns the remote IP address of the TCPT_OBJECT"""
         return socket.inet_ntoa(struct.pack("<I", self.m(attr).v()))
 
     def _LocalIpAddress(self, attr):
+        """Returns the local IP address of the TCPT_OBJECT"""
         return socket.inet_ntoa(struct.pack("<I", self.m(attr).v()))
 
 AbstractWindows.object_classes['_TCPT_OBJECT'] = _TCPT_OBJECT
 
 class _ADDRESS_OBJECT(obj.CType):
+    """Provides additional functions for ADDRESS_OBJECTs"""
+
     def _LocalIpAddress(self, attr):
+        """Returns the local IP address of the ADDRESS_OBJECT"""
         return socket.inet_ntoa(struct.pack("<I", self.m(attr).v()))
 
 AbstractWindows.object_classes['_ADDRESS_OBJECT'] = _ADDRESS_OBJECT

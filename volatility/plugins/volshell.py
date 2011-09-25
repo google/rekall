@@ -295,15 +295,15 @@ class volshell(commands.command):
 
                     # Handle a potentially callable offset
                     if callable(o):
-                      o = o(objct) - objct.obj_offset
+                        o = o(objct) - objct.obj_offset
 
                     offsets.append((o, m, val))
 
                 # Deal with potentially out of order offsets
-                offsets.sort(key=lambda x: x[0])
+                offsets.sort(key = lambda x: x[0])
 
                 for o, m, val in offsets:
-                  print "{0:6}: {1:30} {2}".format(hex(o), m, val)
+                    print "{0:6}: {1:30} {2}".format(hex(o), m, val)
 
                 return objct
             else:

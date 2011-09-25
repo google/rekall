@@ -59,7 +59,7 @@ win2k3sp0x86overlays_update = {
          'KPCR': [None, ['VolatilityKPCR', dict(value = 0xffdff000, configname = 'KPCR')]],
          'KDBGHeader': [None, ['VolatilityMagic', dict(value = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x18\x03')]],
          'HiveListOffset': [None, ['VolatilityMagic', dict(value = 0x2e4)]],
-         'HiveListPoolSize': [None,['VolatilityMagic', dict(value = 0x578)]],
+         'HiveListPoolSize': [None, ['VolatilityMagic', dict(value = 0x578)]],
          }],
     }
 
@@ -100,11 +100,11 @@ class _MM_AVL_TABLE(obj.CType):
         """
         rc = self.BalancedRoot.RightChild
         if rc:
-          for c in rc.traverse():
-            yield c
+            for c in rc.traverse():
+                yield c
 
         return
-        print 
+        print
         right_child_offset = 8 # self.obj_vm.profile.get_obj_offset("_MMADDRESS_NODE", "RightChild")
 
         rc = obj.Object("Pointer", vm = self.obj_vm, offset = self.obj_offset + right_child_offset)
