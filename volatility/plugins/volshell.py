@@ -287,11 +287,25 @@ class volshell(commands.command):
             elif isinstance(objct, obj.BaseObject):
                 membs = [ (o, m) for m, (o, _c) in objct.members.items() ]
                 print repr(objct)
+                offsets = []
                 for o, m in sorted(membs):
                     val = getattr(objct, m)
                     if isinstance(val, list):
                         val = [ str(v) for v in val ]
-                    print "{0:6}: {1:30} {2}".format(hex(o), m, val)
+
+                    # Handle a potentially callable offset
+                    if callable(o):
+                      o = o(objct) - objct.obj_offset
+
+                    offsets.append((o, m, val))
+
+                # Deal with potentially out of order offsets
+                offsets.sort(key=lambda x: x[0])
+
+                for o, m, val in offsets:
+                  print "{0:6}: {1:30} {2}".format(hex(o), m, val)
+
+                return objct
             else:
                 print "ERROR: first argument not an object or known type"
                 print

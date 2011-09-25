@@ -39,26 +39,40 @@ import kdbg_vtypes
 import volatility.debug as debug #pylint: disable-msg=W0611
 import volatility.obj as obj
 
-win2k3sp0x86overlays = copy.deepcopy(xp_sp2_x86.xpsp2overlays)
+win2k3sp0x86overlays_update = {
+    '_KPCR': [None, {
+        'SelfPcr': lambda x: x.Self,
+        'PrcbData': lambda x: x.Prcb,
+        }],
+    '_MMVAD_SHORT': [None, {
+        'Flags': lambda x: x.u.VadFlags,
+        }],
+    '_CONTROL_AREA': [None, {
+        'Flags': lambda x: x.u.VadFlags,
+        }],
+    '_MMVAD_LONG': [None, {
+        'Flags': lambda x: x.u.VadFlags,
+        'Flags2': lambda x: x.u2.VadFlags2,
+        }],
+     'VOLATILITY_MAGIC': [None, {
+         'DTBSignature': [None, ['VolatilityMagic', dict(value = "\x03\x00\x1B\x00")]],
+         'KPCR': [None, ['VolatilityKPCR', dict(value = 0xffdff000, configname = 'KPCR')]],
+         'KDBGHeader': [None, ['VolatilityMagic', dict(value = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x18\x03')]],
+         'HiveListOffset': [None, ['VolatilityMagic', dict(value = 0x2e4)]],
+         'HiveListPoolSize': [None,['VolatilityMagic', dict(value = 0x578)]],
+         }],
+    }
 
-win2k3sp0x86overlays['_EPROCESS'][1]['VadRoot'][1] = ['_MM_AVL_TABLE']
-
-win2k3sp0x86overlays['_MMVAD_SHORT'][1]['Flags'][0] = lambda x: x.u.obj_offset
-win2k3sp0x86overlays['_CONTROL_AREA'][1]['Flags'][0] = lambda x: x.u.obj_offset
-win2k3sp0x86overlays['_MMVAD_LONG'][1]['Flags'][0] = lambda x: x.u.obj_offset
-win2k3sp0x86overlays['_MMVAD_LONG'][1]['Flags2'][0] = lambda x: x.u2.obj_offset
-
-win2k3sp0x86overlays['VOLATILITY_MAGIC'][1]['DTBSignature'][1] = ['VolatilityMagic', dict(value = "\x03\x00\x1B\x00")]
-win2k3sp0x86overlays['VOLATILITY_MAGIC'][1]['KPCR'][1] = ['VolatilityKPCR', dict(value = 0xffdff000, configname = 'KPCR')]
-win2k3sp0x86overlays['VOLATILITY_MAGIC'][1]['KDBGHeader'][1] = ['VolatilityMagic', dict(value = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x18\x03')]
-win2k3sp0x86overlays['VOLATILITY_MAGIC'][1]['HiveListOffset'][1] = ['VolatilityMagic', dict(value = 0x2e4)]
-win2k3sp0x86overlays['VOLATILITY_MAGIC'][1]['HiveListPoolSize'][1] = ['VolatilityMagic', dict(value = 0x578)]
 
 win2k3_sp0_x86_vtypes.ntoskrnl_types.update(crash_vtypes.crash_vtypes)
 win2k3_sp0_x86_vtypes.ntoskrnl_types.update(hibernate_vtypes.hibernate_vtypes)
 win2k3_sp0_x86_vtypes.ntoskrnl_types.update(tcpip_vtypes.tcpip_vtypes)
 win2k3_sp0_x86_vtypes.ntoskrnl_types.update(tcpip_vtypes.tcpip_vtypes_vista)
 win2k3_sp0_x86_vtypes.ntoskrnl_types.update(kdbg_vtypes.kdbg_vtypes)
+
+win2k3sp0x86overlays = windows.AbstractWindows.apply_overlay(
+    xp_sp2_x86.xpsp2overlays, win2k3sp0x86overlays_update)
+
 
 class Win2K3SP0x86(windows.AbstractWindows):
     """ A Profile for Windows 2003 SP0 x86 """
@@ -68,6 +82,7 @@ class Win2K3SP0x86(windows.AbstractWindows):
     overlay = win2k3sp0x86overlays
     object_classes = windows.AbstractWindows.object_classes.copy()
     syscalls = win2k3_sp0_x86_syscalls.syscalls
+
 
 class _MM_AVL_TABLE(obj.CType):
     def traverse(self):
@@ -83,7 +98,6 @@ class _MM_AVL_TABLE(obj.CType):
         result in a TypeError: __new__() takes exactly 5 non-keyword arguments (4 given). Therefore, we hard-code
         the offset to the RightChild and treat it as a pointer to the first real _MMADDRESS_NODE. 
         """
-
         rc = self.BalancedRoot.RightChild
         if rc:
           for c in rc.traverse():

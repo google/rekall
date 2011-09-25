@@ -159,4 +159,3 @@ class ImageInfo(kdbg.KDBGScan):
             _, procnumresult = max([(v, k) for k, v in procnumdict.items()])
 
         yield (cdsresult, procnumresult)
-

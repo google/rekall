@@ -398,7 +398,6 @@ class BaseObject(object):
         return result
 
     def __setstate__(self, state):
-        #import pdb; pdb.set_trace()
         ## What we want to do here is to instantiate a new object and then copy it into ourselves
         #new_object = Object(state['theType'], state['offset'], state['vm'], name = state['name'])
         new_object = Object(**state)
@@ -730,7 +729,13 @@ class CType(BaseObject):
 
     def m(self, attr):
         if attr in self.members:
-            offset, cls = self.members[attr]
+          # Allow the element to be a callable rather than a list - this is
+          # useful for aliasing member names
+          element = self.members[attr]
+          if callable(element):
+            return element(self)
+
+          offset, cls = self.members[attr]
         elif attr.find('__') > 0 and attr[attr.find('__'):] in self.members:
             offset, cls = self.members[attr[attr.find('__'):]]
         else:
@@ -1009,7 +1014,8 @@ class Profile(object):
         tmp = self._get_dummy_obj(name)
         return hasattr(tmp, member)
 
-    def apply_overlay(self, type_member, overlay):
+    @classmethod
+    def apply_overlay(cls, type_member, overlay):
         """ Update the overlay with the missing information from type.
 
         Basically if overlay has None in any slot it gets applied from vtype.
@@ -1022,17 +1028,17 @@ class Profile(object):
                 if k not in overlay:
                     overlay[k] = v
                 else:
-                    overlay[k] = self.apply_overlay(v, overlay[k])
+                    overlay[k] = cls.apply_overlay(v, overlay[k])
 
         elif type(overlay) == list:
-            if len(overlay) != len(type_member):
+            if callable(overlay) or len(overlay) != len(type_member):
                 return overlay
 
             for i in range(len(overlay)):
                 if overlay[i] == None:
                     overlay[i] = type_member[i]
                 else:
-                    overlay[i] = self.apply_overlay(type_member[i], overlay[i])
+                    overlay[i] = cls.apply_overlay(type_member[i], overlay[i])
 
         return overlay
 
@@ -1061,13 +1067,15 @@ class Profile(object):
         members = {}
         size = ctype[0]
         for k, v in ctype[1].items():
-            if v[0] == None:
+            if callable(v):
+              members[k] = v
+            elif v[0] == None:
                 debug.warning("{0} has no offset in object {1}. Check that vtypes has a concrete definition for it.".format(k, cname))
-            members[k] = (v[0], self.list_to_type(k, v[1], typeDict))
+            else:
+                members[k] = (v[0], self.list_to_type(k, v[1], typeDict))
 
         ## Allow the plugins to over ride the class constructor here
-        if self.object_classes and \
-               cname in self.object_classes:
+        if self.object_classes and cname in self.object_classes:
             cls = self.object_classes[cname]
         else:
             cls = CType

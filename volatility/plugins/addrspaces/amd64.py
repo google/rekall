@@ -192,4 +192,3 @@ class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
                         pte_value = self.get_pte(vaddr, pde_value)
                         if self.entry_present(pte_value):
                             yield (vaddr, 0x1000)
-

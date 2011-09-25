@@ -353,38 +353,38 @@ AbstractWindows.object_classes['_OBJECT_HEADER'] = _OBJECT_HEADER
 ## This is an object which provides access to the VAD tree.
 class _MMVAD(obj.CType):
     """Class factory for _MMVAD objects"""
+
+    ## The actual type depends on this tag value.
+    tag_map = {"Vadl": '_MMVAD_LONG',
+              'VadS': '_MMVAD_SHORT',
+              'Vad ': '_MMVAD_LONG',
+              'VadF': '_MMVAD_SHORT',
+              'Vadm': '_MMVAD_LONG',
+              }
+
     ## parent is the containing _EPROCESS right now
     def __new__(cls, theType, offset, vm, parent, **args):
-        ## Find the tag (4 bytes below the current offset). This can
-        ## not have ourselves as a target.
-        switch = {"Vadl": '_MMVAD_LONG',
-                  'VadS': '_MMVAD_SHORT',
-                  'Vad ': '_MMVAD_LONG',
-                  'VadF': '_MMVAD_SHORT',
-                  'Vadm': '_MMVAD_LONG',
-                  }
-
         ## All VADs are done in the process AS - so we might need to switch
         ## Address spaces now. Find the eprocess we came from and switch
         ## AS. Note that all child traversals will be in Process AS. 
         if vm.name.startswith("Kernel"):
+          # Find the next _EPROCESS along our parent list
           eprocess = parent
-          while eprocess:
-            try:
-              vm = eprocess.get_process_address_space()
-              if not vm:
-                return vm
-              break
+          while eprocess.obj_name != "_EPROCESS":
+            eprocess = eprocess.obj_parent
 
-            except AttributeError:
-              eprocess = parent.obj_parent
+          # Switch to its process AS
+          vm = eprocess.get_process_address_space()
 
-        ## What type is this struct?
-        tag = vm.read(offset - 4, 4)
-        theType = switch.get(tag, "_MMVAD_SHORT")
+        ## What type is this struct? Determine from the tag
+        tag_offset = 4
+        # scudette: Im not sure why the tag is positioned further behind on 64
+        # bit systems.
+        if vm.profile._md_memory_model == "64bit":
+          tag_offset += 8
 
-        if not theType:
-            return obj.NoneObject("Tag {0} not knowns".format(tag))
+        tag = vm.read(offset - tag_offset, 4)
+        theType = cls.tag_map.get(tag, "_MMVAD_SHORT")
 
         ## Note that since we were called from __new__ we can return a
         ## completely different object here (including
