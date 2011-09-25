@@ -376,25 +376,15 @@ class _MMVAD(obj.CType):
             # Switch to its process AS
             vm = eprocess.get_process_address_space()
 
-        ## What type is this struct? Determine from the tag
-        tag_offset = 4
-        # scudette: Im not sure why the tag is positioned further behind on 64
-        # bit systems.
-        # FIXME: This should be coming from a profile specific value,
-        # rather than code here to read metadata and make the change
-        # If necessary, a _TAG member with a negative offset should be added to the struct
-        if vm.profile.get('memory_model', "32bit") == "64bit":
-            tag_offset += 8
+        # Start off with an _MMVAD_LONG
+        result = obj.Object('_MMVAD_LONG', offset = offset, vm = vm,
+                            parent = parent, **args)
 
-        tag = vm.read(offset - tag_offset, 4)
-        theType = cls.tag_map.get(tag, "_MMVAD_SHORT")
-
-        ## Note that since we were called from __new__ we can return a
-        ## completely different object here (including
-        ## NoneObject). This also means that we can not add any
-        ## specialist methods to the _MMVAD class.
-        result = obj.Object(theType, offset = offset, vm = vm, parent = parent, **args)
-        result.newattr('Tag', tag)
+        # Get the tag and change the vad type if necessary
+        real_type = cls.tag_map.get(result.Tag, '_MMVAD_LONG')
+        if result.__class__.__name__ != real_type:
+            result = obj.Object(real_type, offset = offset, vm = vm,
+                                parent = parent, **args)
 
         return result
 
