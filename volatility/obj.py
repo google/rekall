@@ -752,8 +752,8 @@ class CType(BaseObject):
             ## Otherwise its relative to the start of our struct
             offset = int(offset) + int(self.obj_offset)
 
-        result = cls(offset = offset, vm = vm or self.obj_vm,
-                     parent = self, name = attr)
+        result = cls(offset = offset, vm = self.obj_vm, parent = self,
+                     name = attr)
 
         return result
 
