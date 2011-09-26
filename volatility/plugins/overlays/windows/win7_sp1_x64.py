@@ -58,8 +58,53 @@ win7sp1x64overlays_update = {
         'KPCR': [None, ['VolatilityKPCR', dict(value = 0xffdff000, configname = 'KPCR')]],
         'KDBGHeader': [None, ['VolatilityMagic', dict(value = '\x00\xf8\xff\xffKDBG\x40\x03')]],
         'HiveListOffset': [None, ['VolatilityMagic', dict(value = 0x5d8)]],
-        'HiveListPoolSize': [None,['VolatilityMagic', dict(value = 0xBF6)]],
-        }],
+        'HiveListPoolSize': [None, ['VolatilityMagic', dict(value = 0xBF6)]],
+        'PoolAlignment': [0x0, ['VolatilityMagic', dict(value = 16)]],
+        'TypeIndexMap': [0x0, ['VolatilityMagic', dict(value = {
+            2: 'Type',
+            3: 'Directory',
+            4: 'SymbolicLink',
+            5: 'Token',
+            6: 'Job',
+            7: 'Process',
+            8: 'Thread',
+            9: 'UserApcReserve',
+            10: 'IoCompletionReserve',
+            11: 'DebugObject',
+            12: 'Event',
+            13: 'EventPair',
+            14: 'Mutant',
+            15: 'Callback',
+            16: 'Semaphore',
+            17: 'Timer',
+            18: 'Profile',
+            19: 'KeyedEvent',
+            20: 'WindowStation',
+            21: 'Desktop',
+            22: 'TpWorkerFactory',
+            23: 'Adapter',
+            24: 'Controller',
+            25: 'Device',
+            26: 'Driver',
+            27: 'IoCompletion',
+            28: 'File',
+            29: 'TmTm',
+            30: 'TmTx',
+            31: 'TmRm',
+            32: 'TmEn',
+            33: 'Section',
+            34: 'Session',
+            35: 'Key',
+            36: 'ALPC Port',
+            37: 'PowerRequest',
+            38: 'WmiGuid',
+            39: 'EtwRegistration',
+            40: 'EtwConsumer',
+            41: 'FilterConnectionPort',
+            42: 'FilterCommunicationPort',
+            43: 'PcwObject',
+            })]],
+            }],
     }
 
 win7_sp1_x64_vtypes.ntkrnlmp_types.update(crash_vtypes.crash_vtypes)
@@ -77,12 +122,18 @@ win7_sp1_x64_vtypes.ntkrnlmp_types.update(tcpip_vtypes.tcpip_vtypes_7)
 # } ], \
 # })
 
+new_overlay = windows.AbstractWindowsx64.apply_overlay(
+    win7_sp1_x86.win7sp1x86overlays, win7sp1x64overlays_update)
+
+# The following overlays should be removed. They are handled well in our vtypes
+new_overlay.pop("_POOL_HEADER", None)
+
+
 class Win7SP1x64(windows.AbstractWindowsx64):
     """ A Profile for Windows 7 SP1 x64 """
     _md_major = 7
     _md_minor = 1
     abstract_types = win7_sp1_x64_vtypes.ntkrnlmp_types
-    overlay = windows.AbstractWindowsx64.apply_overlay(
-        win7_sp1_x86.win7sp1x86overlays, win7sp1x64overlays_update)
+    overlay = new_overlay
     object_classes = copy.deepcopy(win7_sp1_x86.Win7SP1x86.object_classes)
     syscalls = win7_sp0_x86_syscalls.syscalls

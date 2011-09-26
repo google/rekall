@@ -56,8 +56,6 @@ class FileScan(commands.command):
     meta_info['os'] = 'WIN_32_XP_SP2'
     meta_info['version'] = '0.1'
 
-    pool_align = 0x8
-
     def __init__(self, config, *args):
         commands.command.__init__(self, config, *args)
         self.kernel_address_space = None
@@ -89,8 +87,11 @@ class FileScan(commands.command):
 
             ## We work out the _FILE_OBJECT from the end of the
             ## allocation (bottom up).
+            pool_align = obj.Object(
+                "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
+
             file_obj = obj.Object("_FILE_OBJECT", vm = address_space,
-                     offset = offset + pool_obj.BlockSize * self.pool_align - \
+                     offset = offset + pool_obj.BlockSize * pool_align - \
                      address_space.profile.get_obj_size("_FILE_OBJECT")
                      )
 
@@ -101,6 +102,9 @@ class FileScan(commands.command):
                                    )
 
             object_obj.kas = self.kernel_address_space
+
+            print object_obj.TypeIndex, file_obj.FileName.v()
+            import pdb; pdb.set_trace()
 
             if object_obj.get_object_type() != "File":
                 continue
@@ -153,10 +157,14 @@ class DriverScan(FileScan):
 
             ## We work out the _DRIVER_OBJECT from the end of the
             ## allocation (bottom up).
+            pool_align = obj.Object(
+                "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
+
             extension_obj = obj.Object(
                 "_DRIVER_EXTENSION", vm = address_space,
-                offset = offset + pool_obj.BlockSize * self.pool_align - 4 - \
-                address_space.profile.get_obj_size("_DRIVER_EXTENSION"))
+                offset = (offset + pool_obj.BlockSize * pool_align -
+                          pool_align / 2 -
+                          address_space.profile.get_obj_size("_DRIVER_EXTENSION")))
 
             ## The _DRIVER_OBJECT is immediately below the _DRIVER_EXTENSION
             driver_obj = obj.Object(
@@ -228,8 +236,11 @@ class SymLinkScan(FileScan):
 
             ## We work out the object from the end of the
             ## allocation (bottom up).
+            pool_align = obj.Object(
+                "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
+
             link_obj = obj.Object("_OBJECT_SYMBOLIC_LINK", vm = address_space,
-                     offset = offset + pool_obj.BlockSize * self.pool_align - \
+                     offset = offset + pool_obj.BlockSize * pool_align - \
                      address_space.profile.get_obj_size("_OBJECT_SYMBOLIC_LINK")
                      )
 
@@ -289,9 +300,12 @@ class MutantScan(FileScan):
 
             ## We work out the _DRIVER_OBJECT from the end of the
             ## allocation (bottom up).
+            pool_align = obj.Object(
+                "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
+
             mutant = obj.Object(
                 "_KMUTANT", vm = address_space,
-                offset = offset + pool_obj.BlockSize * self.pool_align - \
+                offset = offset + pool_obj.BlockSize * pool_align - \
                 address_space.profile.get_obj_size("_KMUTANT"))
 
             ## The _OBJECT_HEADER is immediately below the _KMUTANT
@@ -343,23 +357,23 @@ class MutantScan(FileScan):
 class CheckProcess(scan.ScannerCheck):
     """ Check sanity of _EPROCESS """
     kernel = 0x80000000
-    pool_align = 0x8
 
     def check(self, found):
         ## The offset of the object is determined by subtracting the offset
         ## of the PoolTag member to get the start of Pool Object. This done
         ## because PoolScanners search for the PoolTag. 
-
-        pool_base = found - \
-                  self.address_space.profile.get_obj_offset('_POOL_HEADER', 'PoolTag')
+        pool_base = found - self.address_space.profile.get_obj_offset(
+            '_POOL_HEADER', 'PoolTag')
 
         pool_obj = obj.Object("_POOL_HEADER", vm = self.address_space,
                                  offset = pool_base)
 
         ## We work out the _EPROCESS from the end of the
         ## allocation (bottom up).
+        pool_align = obj.Object(
+            "VOLATILITY_MAGIC", vm = self.address_space).PoolAlignment.v()
         eprocess = obj.Object("_EPROCESS", vm = self.address_space,
-                  offset = pool_base + pool_obj.BlockSize * self.pool_align - \
+                  offset = pool_base + pool_obj.BlockSize * pool_align - \
                   self.address_space.profile.get_obj_size("_EPROCESS")
                   )
 
@@ -379,8 +393,6 @@ class CheckProcess(scan.ScannerCheck):
 
 class PoolScanProcess(scan.PoolScanner):
     """PoolScanner for File objects"""
-    pool_align = 8
-
     ## We are not using a preamble for this plugin since we are walking back
     preamble = []
 
@@ -393,16 +405,18 @@ class PoolScanProcess(scan.PoolScanner):
         ## adding the size of the preamble data structures. This done
         ## because PoolScanners search for the PoolTag. 
 
-        pool_base = found - \
-                self.buffer.profile.get_obj_offset('_POOL_HEADER', 'PoolTag')
+        pool_base = found - self.buffer.profile.get_obj_offset(
+            '_POOL_HEADER', 'PoolTag')
 
         pool_obj = obj.Object("_POOL_HEADER", vm = address_space,
                                  offset = pool_base)
 
         ## We work out the _EPROCESS from the end of the
         ## allocation (bottom up).
+        pool_align = obj.Object(
+            "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
 
-        object_base = pool_base + pool_obj.BlockSize * self.pool_align - \
+        object_base = pool_base + pool_obj.BlockSize * pool_align - \
                       self.buffer.profile.get_obj_size("_EPROCESS")
 
         return object_base

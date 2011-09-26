@@ -217,7 +217,7 @@ class InvalidOffsetError(utils.VolatilityException):
     """Simple placeholder to identify invalid offsets"""
     pass
 
-def Object(theType, offset, vm, parent = None, name = None, **kwargs):
+def Object(theType, offset = 0, vm = None, parent = None, name = None, **kwargs):
     """ A function which instantiates the object named in theType (as
     a string) from the type in profile passing optional args of
     kwargs.
@@ -929,9 +929,6 @@ class Profile(object):
         different list types for backwards compatibility.
         """
         ## This supports plugin memory objects:
-        #if typeList[0] in MemoryRegistry.OBJECT_CLASSES.objects:
-        #    print "Using plugin for %s" % 
-
         try:
             args = typeList[1]
 

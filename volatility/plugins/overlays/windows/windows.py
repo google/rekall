@@ -314,7 +314,7 @@ class _OBJECT_HEADER(obj.CType):
         """Return the object's type as a string"""
         volmagic = obj.Object("VOLATILITY_MAGIC", 0x0, self.obj_vm)
         try:
-            type_map = dict((v, k) for k, v in volmagic.TypeIndexMap.v().items())
+            type_map = volmagic.TypeIndexMap.v()
             return type_map.get(self.TypeIndex.v(), '')
         except AttributeError:
             type_obj = obj.Object("_OBJECT_TYPE", self.Type, self.kas)
