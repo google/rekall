@@ -86,7 +86,7 @@ class Handles(taskmods.DllList, filescan.FileScan):
                     if otype == "File":
                         file_obj = obj.Object("_FILE_OBJECT", h.Body.obj_offset, h.obj_vm)
                         if file_obj.FileName:
-                            name = self.parse_string(file_obj.FileName)
+                            name = file_obj.FileName.v(self.kernel_address_space)
                     elif otype == "Key":
                         key_obj = obj.Object("_CM_KEY_BODY", h.Body.obj_offset, h.obj_vm)
                         name = self.full_key_name(key_obj)
@@ -97,6 +97,6 @@ class Handles(taskmods.DllList, filescan.FileScan):
                         thrd_obj = obj.Object("_ETHREAD", h.Body.obj_offset, h.obj_vm)
                         name = "TID {0} PID {1}".format(thrd_obj.Cid.UniqueThread, thrd_obj.Cid.UniqueProcess)
                     else:
-                        name = repr(h.get_object_name())
+                        name = h._OBJECT_HEADER_NAME_INFO.Name.v(self.kernel_address_space)
 
                     yield pid, h, otype, name

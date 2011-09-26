@@ -60,17 +60,16 @@ class FileScan(commands.command):
         commands.command.__init__(self, config, *args)
         self.kernel_address_space = None
 
-    def parse_string(self, unicode_obj):
-        """Unicode string parser"""
-        ## We need to do this because the unicode_obj buffer is in
-        ## kernel_address_space
-        string_length = unicode_obj.Length
-        string_offset = unicode_obj.Buffer
+    def get_rounded_size(self, object_name, pool_align):
+        """Returns the size of the object accounting for pool alignment."""
+        size_of_obj = self.kernel_address_space.profile.get_obj_size(object_name)
 
-        string = self.kernel_address_space.read(string_offset, string_length)
-        if not string:
-            return ''
-        return repr(string[:255].decode("utf16", "ignore").encode("utf8", "xmlcharrefreplace"))
+        # Size is rounded to pool alignment
+        extra = size_of_obj % pool_align
+        if extra:
+            size_of_obj += pool_align - extra
+
+        return size_of_obj
 
     # Can't be cached until self.kernel_address_space is moved entirely within calculate
     def calculate(self):
@@ -90,27 +89,26 @@ class FileScan(commands.command):
             pool_align = obj.Object(
                 "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
 
-            file_obj = obj.Object("_FILE_OBJECT", vm = address_space,
-                     offset = offset + pool_obj.BlockSize * pool_align - \
-                     address_space.profile.get_obj_size("_FILE_OBJECT")
+            file_obj = obj.Object(
+                "_FILE_OBJECT", vm = address_space,
+                offset = (offset + pool_obj.BlockSize * pool_align -
+                          self.get_rounded_size("_FILE_OBJECT", pool_align))
                      )
 
             ## The _OBJECT_HEADER is immediately below the _FILE_OBJECT
-            object_obj = obj.Object("_OBJECT_HEADER", vm = address_space,
-                                   offset = file_obj.obj_offset - \
-                                   address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body')
-                                   )
+            object_obj = obj.Object(
+                "_OBJECT_HEADER", vm = address_space,
+                offset = (file_obj.obj_offset -
+                          address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body'))
+                )
 
             object_obj.kas = self.kernel_address_space
-
-            print object_obj.TypeIndex, file_obj.FileName.v()
-            import pdb; pdb.set_trace()
 
             if object_obj.get_object_type() != "File":
                 continue
 
             ## If the string is not reachable we skip it
-            Name = self.parse_string(file_obj.FileName)
+            Name = file_obj.FileName.v(vm = self.kernel_address_space)
             if not Name:
                 continue
 
@@ -163,14 +161,13 @@ class DriverScan(FileScan):
             extension_obj = obj.Object(
                 "_DRIVER_EXTENSION", vm = address_space,
                 offset = (offset + pool_obj.BlockSize * pool_align -
-                          pool_align / 2 -
-                          address_space.profile.get_obj_size("_DRIVER_EXTENSION")))
+                          self.get_rounded_size("_DRIVER_EXTENSION", pool_align)))
 
             ## The _DRIVER_OBJECT is immediately below the _DRIVER_EXTENSION
             driver_obj = obj.Object(
                 "_DRIVER_OBJECT", vm = address_space,
                 offset = extension_obj.obj_offset - \
-                address_space.profile.get_obj_size("_DRIVER_OBJECT")
+                    self.get_rounded_size("_DRIVER_OBJECT", pool_align)
                 )
 
             ## The _OBJECT_HEADER is immediately below the _DRIVER_OBJECT
@@ -189,9 +186,9 @@ class DriverScan(FileScan):
             if object_obj.get_object_type() != "Driver":
                 continue
 
-            object_name_string = object_obj.get_object_name()
+            object_name = object_obj._OBJECT_HEADER_NAME_INFO.Name
 
-            yield (object_obj, driver_obj, extension_obj, repr(object_name_string))
+            yield (object_obj, driver_obj, extension_obj, object_name)
 
 
     def render_text(self, outfd, data):
@@ -200,15 +197,15 @@ class DriverScan(FileScan):
                      'Offset(P)', '#Ptr', '#Hnd',
                      'Start', 'Size', 'Service key', 'Name'))
 
-        for object_obj, driver_obj, extension_obj, ObjectNameString in data:
+        for object_obj, driver_obj, extension_obj, object_name in data:
 
             outfd.write("0x{0:08x} {1:4} {2:4} 0x{3:08x} {4:6} {5:20} {6:12} {7}\n".format(
                          driver_obj.obj_offset, object_obj.PointerCount,
                          object_obj.HandleCount,
                          driver_obj.DriverStart, driver_obj.DriverSize,
-                         self.parse_string(extension_obj.ServiceKeyName),
-                         ObjectNameString,
-                         self.parse_string(driver_obj.DriverName)))
+                         extension_obj.ServiceKeyName.v(vm = self.kernel_address_space),
+                         object_name.v(self.kernel_address_space),
+                         driver_obj.DriverName.v(self.kernel_address_space)))
 
 class PoolScanSymlink(PoolScanFile):
     """ Scanner for symbolic link objects """
@@ -240,9 +237,8 @@ class SymLinkScan(FileScan):
                 "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
 
             link_obj = obj.Object("_OBJECT_SYMBOLIC_LINK", vm = address_space,
-                     offset = offset + pool_obj.BlockSize * pool_align - \
-                     address_space.profile.get_obj_size("_OBJECT_SYMBOLIC_LINK")
-                     )
+                     offset = (offset + pool_obj.BlockSize * pool_align - 
+                               self.get_rounded_size("_OBJECT_SYMBOLIC_LINK", pool_align)))
 
             ## The _OBJECT_HEADER is immediately below the _OBJECT_SYMBOLIC_LINK
             object_obj = obj.Object(
@@ -256,8 +252,8 @@ class SymLinkScan(FileScan):
             if object_obj.get_object_type() != "SymbolicLink":
                 continue
 
-            object_name_string = object_obj.get_object_name()
-            yield object_obj, link_obj, object_name_string
+            object_name = object_obj._OBJECT_HEADER_NAME_INFO.Name
+            yield object_obj, link_obj, object_name
 
     def render_text(self, outfd, data):
         """ Renders text-based output """
@@ -269,7 +265,8 @@ class SymLinkScan(FileScan):
             outfd.write("{0:#010x} {1:4} {2:4} {3:<24} {4:<20} {5}\n".format(
                         link.obj_offset, object.PointerCount, 
                         object.HandleCount, link.CreationTime or '',
-                        name, self.parse_string(link.LinkTarget)))
+                        name.v(self.kernel_address_space),
+                        link.LinkTarget.v(self.kernel_address_space)))
 
 class PoolScanMutant(PoolScanDriver):
     """ Scanner for Mutants _KMUTANT """
@@ -305,8 +302,8 @@ class MutantScan(FileScan):
 
             mutant = obj.Object(
                 "_KMUTANT", vm = address_space,
-                offset = offset + pool_obj.BlockSize * pool_align - \
-                address_space.profile.get_obj_size("_KMUTANT"))
+                offset = (offset + pool_obj.BlockSize * pool_align -
+                          self.get_rounded_size("_KMUTANT", pool_align)))
 
             ## The _OBJECT_HEADER is immediately below the _KMUTANT
             object_obj = obj.Object(
@@ -323,14 +320,13 @@ class MutantScan(FileScan):
             ## Skip unallocated objects
             ##if object_obj.Type == 0xbad0b0b0:
             ##   continue
-
-            object_name_string = object_obj.get_object_name()
+            object_name = object_obj._OBJECT_HEADER_NAME_INFO.Name
 
             if self._config.SILENT:
-                if len(object_name_string) == 0:
+                if object_name.Length == 0:
                     continue
 
-            yield (object_obj, mutant, repr(object_name_string))
+            yield (object_obj, mutant, object_name)
 
 
     def render_text(self, outfd, data):
@@ -339,7 +335,7 @@ class MutantScan(FileScan):
                      'Offset(P)', '#Ptr', '#Hnd', 'Signal',
                      'Thread', 'CID', 'Name'))
 
-        for object_obj, mutant, ObjectNameString in data:
+        for object_obj, mutant, object_name in data:
             if mutant.OwnerThread > 0x80000000:
                 thread = obj.Object("_ETHREAD", vm = self.kernel_address_space,
                                    offset = mutant.OwnerThread)
@@ -351,7 +347,7 @@ class MutantScan(FileScan):
                          mutant.obj_offset, object_obj.PointerCount,
                          object_obj.HandleCount, mutant.Header.SignalState,
                          mutant.OwnerThread, CID,
-                         ObjectNameString
+                         object_name.v(self.kernel_address_space)
                          ))
 
 class CheckProcess(scan.ScannerCheck):
@@ -416,8 +412,8 @@ class PoolScanProcess(scan.PoolScanner):
         pool_align = obj.Object(
             "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
 
-        object_base = pool_base + pool_obj.BlockSize * pool_align - \
-                      self.buffer.profile.get_obj_size("_EPROCESS")
+        object_base = (pool_base + pool_obj.BlockSize * pool_align -
+                       self.buffer.profile.get_obj_size("_EPROCESS"))
 
         return object_base
 

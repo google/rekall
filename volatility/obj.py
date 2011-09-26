@@ -152,6 +152,8 @@ class NoneObject(object):
         else:
             debug.warning("{0}".format(self.reason))
 
+        return ""
+
     def write(self, data):
         """Write procedure only ever returns False"""
         return False
@@ -355,7 +357,7 @@ class BaseObject(object):
     def cast(self, castString):
         return Object(castString, self.obj_offset, self.obj_vm)
 
-    def v(self):
+    def v(self, vm = None):
         """ Do the actual reading and decoding of this member
         """
         return NoneObject("No value for {0}".format(self.obj_name), self.obj_vm.profile.strict)
@@ -479,8 +481,8 @@ class NativeType(BaseObject, NumericProxyMixIn):
     def size(self):
         return struct.calcsize(self.format_string)
 
-    def v(self):
-        data = self.obj_vm.read(self.obj_offset, self.size())
+    def v(self, vm = None):
+        data = (vm or self.obj_vm).read(self.obj_offset, self.size())
         if not data:
             return NoneObject("Unable to read {0} bytes from {1}".format(self.size(), self.obj_offset))
 
@@ -509,8 +511,8 @@ class BitField(NativeType):
         self.end_bit = end_bit
         self.native_type = native_type # Store this for proper caching
 
-    def v(self):
-        i = NativeType.v(self)
+    def v(self, vm = None):
+        i = NativeType.v(self, vm=vm)
         return (i & ((1 << self.end_bit) - 1)) >> self.start_bit
 
     def write(self, data):
@@ -721,7 +723,7 @@ class CType(BaseObject):
 
         return result
 
-    def v(self):
+    def v(self, vm = None):
         """ When a struct is evaluated we just return our offset.
         """
         return self.obj_offset
@@ -750,7 +752,7 @@ class CType(BaseObject):
             ## Otherwise its relative to the start of our struct
             offset = int(offset) + int(self.obj_offset)
 
-        result = cls(offset = offset, vm = self.obj_vm,
+        result = cls(offset = offset, vm = vm or self.obj_vm,
                      parent = self, name = attr)
 
         return result
@@ -800,7 +802,7 @@ class VolatilityMagic(BaseObject):
                 value = configval
         self.value = value
 
-    def v(self):
+    def v(self, vm = None):
         # We explicitly want to check for None,
         # in case the user wants a value 
         # that gives not self.value = True
@@ -990,6 +992,10 @@ class Profile(object):
             name = 'dummy'
             def is_valid_address(self, _offset):
                 return True
+
+            def read(self, _offset, _value):
+                return ""
+
         tmp = self.types[name](offset = 0, name = name, vm = dummy(), parent = None)
         return tmp
 

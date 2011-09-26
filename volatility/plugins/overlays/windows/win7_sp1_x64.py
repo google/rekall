@@ -115,13 +115,6 @@ win7_sp1_x64_vtypes.ntkrnlmp_types.update(tcpip_vtypes.tcpip_vtypes_vista)
 win7_sp1_x64_vtypes.ntkrnlmp_types.update(tcpip_vtypes.tcpip_vtypes_7)
 
 
-# win7_sp1_x64_vtypes.ntkrnlmp_types.update({\
-#   '_OBJECT_HEADER_NAME_INFORMATION' : [ 0xc, {
-#   'Directory' : [ 0x0, ['pointer', ['_OBJECT_DIRECTORY']]],
-#   'Name' : [ 0x04, ['_UNICODE_STRING']],
-# } ], \
-# })
-
 new_overlay = windows.AbstractWindowsx64.apply_overlay(
     win7_sp1_x86.win7sp1x86overlays, win7sp1x64overlays_update)
 

@@ -49,12 +49,12 @@ class _UNICODE_STRING(obj.CType):
         than a pointer to an unsigned short.
       * The __str__ method returns the value of the Buffer.
     """
-    def v(self):
+    def v(self, vm = None):
         try:
             length = self.Length.v()
             if length > 1024:
                 length = 0
-            data = self.obj_vm.read(self.Buffer.v(), length)
+            data = (vm or self.obj_vm).read(self.Buffer.v(), length)
             return data.decode("utf16", "ignore").encode("ascii", 'backslashreplace')
         except Exception, _e:
             return ''
@@ -149,7 +149,7 @@ class WinTimeStamp(obj.NativeType):
     def as_windows_timestamp(self):
         return obj.NativeType.v(self)
 
-    def v(self):
+    def v(self, vm = None):
         value = self.as_windows_timestamp()
         return self.windows_to_unix_time(value)
 
@@ -280,73 +280,63 @@ class _HANDLE_TABLE(obj.CType):
         yielding all handles. We take care of recursing into the
         nested tables automatically.
         """
+        # This should work equally for 32 and 64 bit systems
+        LEVEL_MASK = 7
 
-        LEVEL_MASK = 0xfffffff8
-
-        TableCode = self.TableCode.v() & LEVEL_MASK
-        table_levels = self.TableCode.v() & ~LEVEL_MASK
+        TableCode = self.TableCode.v() & ~LEVEL_MASK
+        table_levels = self.TableCode.v() & LEVEL_MASK
         offset = TableCode
+        count = self.HandleCount.v()
 
         for h in self._make_handle_array(offset, table_levels):
             yield h
 
+            count -= 1
+            if count == 0:
+                break
+
+
 AbstractWindows.object_classes['_HANDLE_TABLE'] = _HANDLE_TABLE
 
 class _OBJECT_HEADER(obj.CType):
-    """A Volatility object to handle Windows object headers"""
+    """A Volatility object to handle Windows object headers.
+
+    This object applies only to versions below windows 7.
+    """
 
     def __init__(self, *args, **kwargs):
         # kernel AS for dereferencing pointers 
         self.kas = None
         obj.CType.__init__(self, *args, **kwargs)
 
-    def parse_string(self, unicode_obj):
-        """Unicode string parser - from FileScan"""
-        string_length = unicode_obj.Length
-        string_offset = unicode_obj.Buffer
+        # Create accessors for optional headers
+        self.find_optional_headers()
 
-        string = self.kas.read(string_offset, string_length)
-        if not string:
-            return ''
-        return string[:255].decode("utf16", "ignore").encode("utf8", "xmlcharrefreplace")
+    optional_headers = (
+        ('_OBJECT_HEADER_NAME_INFO', 'NameInfoOffset'),
+        #('_OBJECT_HEADER_HANDLE_INFO', 'HandleInfoOffset'),
+        ('_OBJECT_HEADER_QUOTA_INFO', 'QuotaInfoOffset'),
+        )
+
+    def find_optional_headers(self):
+        """Find this object's optional headers."""
+        offset = self.obj_offset
+
+        for name, info_offset in self.optional_headers:
+            header_offset = self.m(info_offset).v()
+            if header_offset:
+                o = obj.Object(name, offset-header_offset, self.obj_vm)
+            else:
+                o = obj.NoneObject("Header not set")
+
+            self.newattr(name, o)
 
     def get_object_type(self):
         """Return the object's type as a string"""
-        volmagic = obj.Object("VOLATILITY_MAGIC", 0x0, self.obj_vm)
-        try:
-            type_map = volmagic.TypeIndexMap.v()
-            return type_map.get(self.TypeIndex.v(), '')
-        except AttributeError:
-            type_obj = obj.Object("_OBJECT_TYPE", self.Type, self.kas)
-            return self.parse_string(type_obj.Name)
+        type_obj = obj.Object("_OBJECT_TYPE", self.Type, self.kas)
 
-    def get_object_name(self):
-        """Return the name of the object from the name info header"""
+        return type_obj.Name.v()
 
-        ## Account for changes to the object header for Windows 7
-        volmagic = obj.Object("VOLATILITY_MAGIC", 0x0, self.obj_vm)
-        try:
-            info_mask_to_offset = volmagic.InfoMaskToOffset.v()
-            OBJECT_HEADER_NAME_INFO = volmagic.InfoMaskMap.v()['_OBJECT_HEADER_NAME_INFO']
-            info_mask_to_offset_index = self.InfoMask & (OBJECT_HEADER_NAME_INFO | (OBJECT_HEADER_NAME_INFO - 1))
-            if info_mask_to_offset_index in info_mask_to_offset:
-                name_info_offset = info_mask_to_offset[info_mask_to_offset_index]
-            else:
-                name_info_offset = 0
-        except AttributeError:
-            # Default to old Object header
-            name_info_offset = self.NameInfoOffset
-
-        object_name_string = ""
-
-        if name_info_offset:
-            ## Now work out the OBJECT_HEADER_NAME_INFORMATION object
-            object_name_info_obj = obj.Object("_OBJECT_HEADER_NAME_INFORMATION",
-                                              vm = self.obj_vm,
-                                              offset = self.obj_offset - int(name_info_offset))
-            object_name_string = self.parse_string(object_name_info_obj.Name)
-
-        return object_name_string
 
 AbstractWindows.object_classes['_OBJECT_HEADER'] = _OBJECT_HEADER
 
