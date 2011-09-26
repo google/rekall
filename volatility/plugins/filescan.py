@@ -444,7 +444,7 @@ class PSScan(commands.command):
 
     def __init__(self, config, *args):
         commands.command.__init__(self, config, *args)
-        self.kernel_address_space = None
+        self.kernel_address_space = utils.load_as(self._config, astype = 'virtual')
 
     # Can't be cached until self.kernel_address_space is moved entirely
     # within calculate
@@ -457,14 +457,37 @@ class PSScan(commands.command):
                                offset = offset)
             yield eprocess
 
+    def guess_eprocess_virtual_address(self, eprocess):
+        """Try to guess the virtual address of the eprocess."""
+        # This is the list entry of the ProcessListEntry reflected through the
+        # next process in the list
+        list_entry = eprocess.Pcb.ProcessListEntry.Flink.dereference_as(
+            '_LIST_ENTRY', addr_space=self.kernel_address_space).Blink.dereference()
+
+        # Take us back to the _EPROCESS offset
+        list_entry_offset = self.kernel_address_space.profile.get_obj_offset(
+            '_KPROCESS', 'ProcessListEntry')
+
+        # The virtual eprocess should be the same as the physical one
+        kernel_eprocess_offset = list_entry.obj_offset - list_entry_offset
+
+        if self.kernel_address_space.vtop(kernel_eprocess_offset) == eprocess.obj_offset:
+            return kernel_eprocess_offset
+
+        return 0
+
 
     def render_text(self, outfd, data):
-        outfd.write(" Offset(P)  Name             PID    PPID   PDB        Time created             Time exited             \n" + \
-                    "---------- ---------------- ------ ------ ---------- ------------------------ ------------------------ \n")
+        outfd.write(" Offset(P) Offset(V)  Name             PID    PPID   PDB        Time created             Time exited             \n" + \
+                    "---------- --------- ---------------- ------ ------ ---------- ------------------------ ------------------------ \n")
 
         for eprocess in data:
-            outfd.write("0x{0:08x} {1:16} {2:6} {3:6} 0x{4:08x} {5:24} {6:24}\n".format(
+            # Try to guess the virtual address of the eprocess
+            eprocess_virtual_address = self.guess_eprocess_virtual_address(eprocess)
+
+            outfd.write("0x{0:08x} 0x{1:08x} {2:16} {3:6} {4:6} 0x{5:08x} {6:24} {7:24}\n".format(
                 eprocess.obj_offset,
+                eprocess_virtual_address,
                 eprocess.ImageFileName,
                 eprocess.UniqueProcessId,
                 eprocess.InheritedFromUniqueProcessId,

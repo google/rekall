@@ -126,7 +126,7 @@ class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
         The function returns either None (no valid mapping)
         or the offset in physical memory where the address maps.
         '''
-
+        vaddr = long(vaddr)
         pml4e = self.get_pml4e(vaddr)
         if not self.entry_present(pml4e):
             # Add support for paged out PML4E
