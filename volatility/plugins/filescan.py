@@ -457,12 +457,12 @@ class PSScan(commands.command):
         """Try to guess the virtual address of the eprocess."""
         # This is the list entry of the ProcessListEntry reflected through the
         # next process in the list
-        list_entry = eprocess.Pcb.ProcessListEntry.Flink.dereference_as(
+        list_entry = eprocess.ThreadListHead.Flink.dereference_as(
             '_LIST_ENTRY', addr_space=self.kernel_address_space).Blink.dereference()
 
         # Take us back to the _EPROCESS offset
         list_entry_offset = self.kernel_address_space.profile.get_obj_offset(
-            '_KPROCESS', 'ProcessListEntry')
+            '_EPROCESS', 'ThreadListHead')
 
         # The virtual eprocess should be the same as the physical one
         kernel_eprocess_offset = list_entry.obj_offset - list_entry_offset
