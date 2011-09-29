@@ -861,10 +861,11 @@ class Profile(object):
                       'CType':CType,
                       'VolatilityMagic':VolatilityMagic}
 
-    def __init__(self, strict = False):
+    def __init__(self, strict = False, config = None):
         self.types = {}
         self.typeDict = {}
         self.overlayDict = {}
+        self._config = config
         self.strict = strict
 
         # Ensure VOLATILITY_MAGIC is always present in every profile
