@@ -21,7 +21,7 @@
 @organization: Digital Forensics Solutions
 """
 
-import volatility.plugins.linux_task_list_ps as ltps
+import linux_task_list_ps as ltps
 import linux_kmem_cache
 
 # we only inherit to get the -p option
@@ -44,6 +44,3 @@ class linux_tasklist_kmem_cache(ltps.linux_task_list_ps):
 
         for _task_addr, task in data:
             print "%s" % task.comm
-
-
-

@@ -24,7 +24,7 @@
 import volatility.obj as obj
 
 import linux_common, linux_flags
-import volatility.plugins.linux_list_open_files as lof
+import linux_list_open_files as lof
 
 import socket
 
@@ -133,5 +133,3 @@ class linux_netstat(lof.linux_list_open_files):
         addr = inode - backsize
 
         return obj.Object('socket', offset = addr, vm = self.addr_space)
-
-

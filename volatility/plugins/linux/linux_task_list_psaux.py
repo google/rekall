@@ -22,7 +22,7 @@
 """
 
 import volatility.obj as obj
-import volatility.plugins.linux_task_list_ps as ltps
+import linux_task_list_ps as ltps
 import time
 
 class linux_task_list_psaux(ltps.linux_task_list_ps):
@@ -80,4 +80,3 @@ class linux_task_list_psaux(ltps.linux_task_list_ps):
             name = "[" + task.comm + "]"
 
         return name
-

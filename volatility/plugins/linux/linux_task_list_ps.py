@@ -53,7 +53,9 @@ class linux_task_list_ps(linux_common.AbstractLinuxCommand):
 
     def render_text(self, outfd, data):
 
-        outfd.write("{0:20s} {1:15s} {2:15s}\n".format("Name", "Pid", "Uid"))
+        outfd.write("{0:8s} {1:20s} {2:15s} {3:15s}\n".format(
+            "Offset", "Name", "Pid", "Uid"))
 
         for task in data:
-            outfd.write("{0:20s} {1:15s} {2:15s}\n".format(task.comm, str(task.pid), str(task.get_uid())))
+            outfd.write("0x{0:08x} {1:20s} {2:15s} {3:15s}\n".format(
+                task.obj_offset, task.comm, str(task.pid), str(task.get_uid())))

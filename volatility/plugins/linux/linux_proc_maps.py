@@ -23,7 +23,7 @@
 
 import volatility.obj as obj
 import linux_common
-import volatility.plugins.linux_task_list_ps as ltps
+import linux_task_list_ps as ltps
 import linux_flags as flags
 
 mn = linux_common.mask_number

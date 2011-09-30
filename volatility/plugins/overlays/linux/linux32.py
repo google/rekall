@@ -480,7 +480,15 @@ class VolatilityDTB(obj.VolatilityMagic):
         """Tries to locate the DTB."""
         volmag = obj.Object('VOLATILITY_MAGIC', offset = 0, vm = self.obj_vm)
 
-        yield volmag.SystemMap["swapper_pg_dir"] - 0xc0000000
+        # This is the difference between the virtual and physical addresses (aka
+        # PAGE_OFFSET). On linux there is a direct mapping between physical and
+        # virtual addressing in kernel mode:
+
+        #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
+
+        PAGE_OFFSET = volmag.SystemMap["_text"] - volmag.SystemMap["phys_startup_32"]
+
+        yield volmag.SystemMap["swapper_pg_dir"] - PAGE_OFFSET
 
 
 class Linux32(obj.Profile):
@@ -549,7 +557,7 @@ class Linux32(obj.Profile):
         for line in data.splitlines():
             (address, _, symbol) = line.strip().split()
             try:
-                sys_map[symbol] = int(address, 16)
+                sys_map[symbol] = long(address, 16)
             except ValueError:
                 pass
 

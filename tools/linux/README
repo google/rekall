@@ -24,7 +24,7 @@ debug module.
 For example, in this directory type:
 
 tools/linux$ make
-make -C //lib/modules/2.6.32-gg508-generic/build CONFIG_DEBUG_INFO=y M=.../tools/linux modules
+make -C //lib/modules/2.6.32-8-generic/build CONFIG_DEBUG_INFO=y M=.../tools/linux modules
 make[1]: Entering directory `/usr/src/linux-headers-2.6.32-8-generic'
   CC [M]  ..../tools/linux/module.o
   Building modules, stage 2.
