@@ -361,6 +361,115 @@ class DWARFParser(object):
 
 
 
+linux_overlay = {
+    'task_struct' : [None, {
+        'comm'          : [ None , ['String', dict(length = 16)]],
+        }],
+    'module'      : [None, {
+        'name'          : [ None , ['String', dict(length = 60)]],
+        }],
+    'super_block' : [None, {
+        's_id'          : [ None , ['String', dict(length = 32)]],
+        }],
+    'net_device'  : [None, {
+        'name'          : [ None , ['String', dict(length = 16)]],
+        }],
+    'sockaddr_un' : [None, {
+        'sun_path'      : [ None , ['String', dict(length =108)]],
+        }],
+    'cpuinfo_x86' : [None, {
+        'x86_model_id'  : [ None , ['String', dict(length = 64)]],
+        'x86_vendor_id' : [ None,  ['String', dict(length = 16)]],
+        }],
+    }
+
+
+# really 'file' but don't want to mess with python's version
+class linux_file(obj.CType):
+
+    def get_dentry(self):
+        if hasattr(self, "f_dentry"):
+            ret = self.f_dentry
+        else:
+            ret = self.f_path.dentry
+
+        return ret
+
+    def get_vfsmnt(self):
+        if hasattr(self, "f_vfsmnt"):
+            ret = self.f_vfsmnt
+        else:
+            ret = self.f_path.mnt
+
+        return ret
+
+class files_struct(obj.CType):
+
+    def get_fds(self):
+        if hasattr(self, "fdt"):
+            fdt = self.fdt
+            ret = fdt.fd.dereference()
+        else:
+            ret = self.fd.dereference()
+
+        return ret
+
+    def get_max_fds(self):
+        if hasattr(self, "fdt"):
+            ret = self.fdt.max_fds
+        else:
+            ret = self.max_fds
+
+        return ret
+
+class task_struct(obj.CType):
+
+    def get_uid(self):
+        if hasattr(self, "uid"):
+            ret = self.uid
+        else:
+            ret = self.cred.uid
+
+        return ret
+
+    def get_gid(self):
+        if hasattr(self, "gid"):
+            ret = self.uid
+        else:
+            ret = self.cred.gid
+
+        return ret
+
+    def get_euid(self):
+        if hasattr(self, "euid"):
+            ret = self.uid
+        else:
+            ret = self.cred.euid
+
+        return ret
+
+class linux_fs_struct(obj.CType):
+
+    def get_root_dentry(self):
+        # < 2.6.26
+        if hasattr(self, "rootmnt"):
+            ret = self.root
+        else:
+            ret = self.root.dentry
+
+        return ret
+
+    def get_root_mnt(self):
+        # < 2.6.26
+        if hasattr(self, "rootmnt"):
+            ret = self.rootmnt
+        else:
+            ret = self.root.mnt
+
+        return ret
+
+
+
 class Linux32(obj.Profile):
     """A Linux profile which works with dwarfdump output files.
 
@@ -371,14 +480,33 @@ class Linux32(obj.Profile):
     _md_memory_model = "32bit"
 
     native_types = basic.x86_native_types_32bit
+    overlay = linux_overlay
+    object_classes = obj.Profile.object_classes.copy()
+    object_classes.update(
+        dict(task_struct = task_struct, files_struct = files_struct,
+             file = linux_file, fs_struct = linux_fs_struct))
 
     def __init__(self, strict = False, config = None):
         # Parse the dwarf file and generate the vtypes
-        self.vtypes = self.parse_dwarf(config)
-
         obj.Profile.__init__(self, strict=strict, config=config)
 
+        self.abstract_types = self.parse_dwarf(config)
+        sys_map = self.parse_system_map(config)
+
+        self.abstract_types.setdefault(
+            'VOLATILITY_MAGIC', [None, {}])[1]['SystemMap'] = [
+                0, ['VolatilityDict', sys_map]]
+
+        # Calculate the DTB
+        magic = self.abstract_types['VOLATILITY_MAGIC'][1]
+        magic['DTB'] = [0, [
+            'VolatilityMagic', dict(
+                value = sys_map['swapper_pg_dir'] - 0xc0000000)]]
+
+        self.recompile()
+
     def parse_dwarf(self, config):
+        """Parse the dwarf file."""
         if config.DWARF is None:
             raise RuntimeError("DWARF file not specified.")
 
@@ -386,7 +514,23 @@ class Linux32(obj.Profile):
         for line in open(config.DWARF):
             self._parser.feed_line(line)
 
-        return self._parser.finish()
+        return self._parser.finalize()
+
+    def parse_system_map(self, config):
+        """Parse the symbol file."""
+        if config.SYSTEM_MAP is None:
+            raise RuntimeError("System map not specified.")
+
+        sys_map = {}
+        # get the system map
+        for line in open(config.SYSTEM_MAP,"r"):
+            (address, _, symbol) = line.strip().split()
+            try:
+                sys_map[symbol] = int(address, 16)
+            except ValueError:
+                pass
+
+        return sys_map
 
     @staticmethod
     def register_options(config):
@@ -394,6 +538,9 @@ class Linux32(obj.Profile):
         config.add_option("DWARF", default = None,
                           help = "The dwarf file to use for linux memory analysis.")
 
+        config.add_option("SYSTEM_MAP", default = None,
+                          help = "The system map file to use for linux"
+                          " memory analysis.")
 
 
 if __name__ == '__main__':

@@ -838,6 +838,27 @@ class VolatilityMagic(BaseObject):
         else:
             return NoneObject("No suggestions available")
 
+class VolatilityDict(BaseObject):
+    """Class to contain Volatility Magic value"""
+
+    def __init__(self, theType, offset, vm, **kw):
+        try:
+            BaseObject.__init__(self, theType, offset, vm)
+        except InvalidOffsetError:
+            pass
+
+        self.data = kw
+
+    def v(self, vm = None):
+        return self.data
+
+    def __getitem__(self, pos):
+        return self.data.__getitem__(pos)
+
+    def __str__(self):
+        return str(self.v())
+
+
 ## Profiles are the interface for creating/interpreting
 ## objects
 
@@ -859,6 +880,7 @@ class Profile(object):
                       'Void':Void,
                       'Array':Array,
                       'CType':CType,
+                      'VolatilityDict':VolatilityDict,
                       'VolatilityMagic':VolatilityMagic}
 
     def __init__(self, strict = False, config = None):
@@ -874,7 +896,8 @@ class Profile(object):
         if 'VOLATILITY_MAGIC' not in self.abstract_types:
             self.abstract_types['VOLATILITY_MAGIC'] = [0x0, {}]
 
-        self.add_types(self.abstract_types, self.overlay)
+        # Ensure the profile is compiled
+        self.recompile()
 
     @utils.classproperty
     @classmethod
@@ -888,6 +911,14 @@ class Profile(object):
 
     def has_type(self, theType):
         return theType in self.object_classes or theType in self.types
+
+    def recompile(self):
+        """Recompile our internal representation of the types.
+
+        Note that whenever, users directly change self.abstract_types,
+        self.object_classes or self.overlay, the profile must be recompiled.
+        """
+        self.add_types(self.abstract_types, self.overlay)
 
     def add_types(self, abstract_types, overlay = None):
         overlay = overlay or {}

@@ -134,10 +134,13 @@ class volshell(commands.command):
         elif self._config.IMNAME is not None:
             self.set_context(name = self._config.IMNAME)
         else:
-            # Just use the first process, whatever it is
-            for p in self.getpidlist():
-                self.set_context(offset = p.v())
-                break
+            try:
+                # Just use the first process, whatever it is
+                for p in self.getpidlist():
+                    self.set_context(offset = p.v())
+                    break
+            except AttributeError:
+                pass
 
         # Functions inside the shell
         def cc(offset = None, pid = None, name = None):
@@ -165,7 +168,7 @@ class volshell(commands.command):
             optionally specify the address space to read the data from.
             """
             if not space:
-                space = self.eproc.get_process_address_space()
+                space = self.addrspace
             #if length % 4 != 0:
             #    length = (length+4) - (length%4)
             data = space.read(address, length)
@@ -254,7 +257,7 @@ class volshell(commands.command):
                 nobj = obj.Object(objname, lst.offset - offset, vm)
                 yield nobj
 
-        def dt(objct, address = None):
+        def dt(objct, address = None, address_space = None):
             """Describe an object or show type info.
 
             Show the names and values of a complex object (struct). If the name of a
@@ -272,10 +275,10 @@ class volshell(commands.command):
                 dt('_EPROCESS', 0x81234567)
             """
 
-            profile = self.eproc.obj_vm.profile
+            profile = (address_space or self.addrspace).profile
 
             if address is not None:
-                objct = obj.Object(objct, address, self.eproc.get_process_address_space())
+                objct = obj.Object(objct, address, address_space or self.addrspace)
 
             if isinstance(objct, str):
                 size = profile.get_obj_size(objct)
@@ -326,7 +329,7 @@ class volshell(commands.command):
                 print "ERROR: Disassembly unavailable, distorm not found"
                 return
             if not space:
-                space = self.eproc.get_process_address_space()
+                space = self.addrspace
             data = space.read(address, length)
             iterable = distorm3.DecodeGenerator(address, data, distorm3.Decode32Bits)
             for (offset, size, instruction, hexdump) in iterable:
