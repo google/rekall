@@ -841,13 +841,13 @@ class VolatilityMagic(BaseObject):
 class VolatilityDict(BaseObject):
     """Class to contain Volatility Magic value"""
 
-    def __init__(self, theType, offset, vm, **kw):
+    def __init__(self, theType, offset, vm, data = None, **kw):
         try:
             BaseObject.__init__(self, theType, offset, vm)
         except InvalidOffsetError:
             pass
 
-        self.data = kw
+        self.data = data
 
     def v(self, vm = None):
         return self.data

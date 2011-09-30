@@ -29,8 +29,6 @@ class linux_lsmod(linux_common.AbstractLinuxCommand):
     ''' gathers loaded kernel modules '''
 
     def calculate(self):
-        import pdb; pdb.set_trace()
-
         modules_addr = self.smap["modules"]
 
         modules = obj.Object("list_head", vm = self.addr_space, offset = modules_addr)

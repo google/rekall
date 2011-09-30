@@ -25,6 +25,10 @@
 """
 import re
 import sys
+import zipfile
+
+from volatility import cache
+from volatility import debug
 from volatility import obj
 from volatility.plugins.overlays import basic
 
@@ -469,6 +473,15 @@ class linux_fs_struct(obj.CType):
         return ret
 
 
+class VolatilityDTB(obj.VolatilityMagic):
+    """A scanner for DTB values."""
+
+    def generate_suggestions(self):
+        """Tries to locate the DTB."""
+        volmag = obj.Object('VOLATILITY_MAGIC', offset = 0, vm = self.obj_vm)
+
+        yield volmag.SystemMap["swapper_pg_dir"] - 0xc0000000
+
 
 class Linux32(obj.Profile):
     """A Linux profile which works with dwarfdump output files.
@@ -484,46 +497,56 @@ class Linux32(obj.Profile):
     object_classes = obj.Profile.object_classes.copy()
     object_classes.update(
         dict(task_struct = task_struct, files_struct = files_struct,
-             file = linux_file, fs_struct = linux_fs_struct))
+             file = linux_file, fs_struct = linux_fs_struct,
+             VolatilityDTB = VolatilityDTB))
 
     def __init__(self, strict = False, config = None):
         # Parse the dwarf file and generate the vtypes
         obj.Profile.__init__(self, strict=strict, config=config)
 
-        self.abstract_types = self.parse_dwarf(config)
-        sys_map = self.parse_system_map(config)
+        if config.PROFILE_FILE is None:
+            raise RuntimeError("DWARF profile file not specified.")
 
-        self.abstract_types.setdefault(
-            'VOLATILITY_MAGIC', [None, {}])[1]['SystemMap'] = [
-                0, ['VolatilityDict', sys_map]]
-
-        # Calculate the DTB
-        magic = self.abstract_types['VOLATILITY_MAGIC'][1]
-        magic['DTB'] = [0, [
-            'VolatilityMagic', dict(
-                value = sys_map['swapper_pg_dir'] - 0xc0000000)]]
-
+        self.abstract_types = self.parse_profile_file(config.PROFILE_FILE)
         self.recompile()
 
-    def parse_dwarf(self, config):
-        """Parse the dwarf file."""
-        if config.DWARF is None:
-            raise RuntimeError("DWARF file not specified.")
+    @cache.CacheDecorator("address_space/profile/")
+    def parse_profile_file(self, filename):
+        """Parse the profile file into vtypes."""
+        vtypes = None
+        sys_map = None
+        profile_file = zipfile.ZipFile(filename)
+        for f in profile_file.filelist:
+            if f.filename.endswith(".dwarf"):
+                debug.info("Found dwarf file %s" % f.filename)
+                vtypes = self.parse_dwarf(profile_file.read(f.filename))
+            elif "system.map" in f.filename.lower():
+                debug.info("Found dwarf file %s" % f.filename)
+                sys_map = self.parse_system_map(profile_file.read(f.filename))
 
+        if sys_map is None or vtypes is None:
+            raise RuntimeError("DWARF profile file does not contain all required"
+                               " components.")
+
+        magic = vtypes.setdefault('VOLATILITY_MAGIC', [None, {}])[1]
+        magic['SystemMap'] = [0, ['VolatilityDict', dict(data = sys_map)]]
+        magic['DTB'] = [0, ['VolatilityDTB', dict()]]
+
+        return vtypes
+
+    def parse_dwarf(self, data):
+        """Parse the dwarf file."""
         self._parser = DWARFParser()
-        for line in open(config.DWARF):
+        for line in data.splitlines():
             self._parser.feed_line(line)
 
         return self._parser.finalize()
 
-    def parse_system_map(self, config):
+    def parse_system_map(self, data):
         """Parse the symbol file."""
-        if config.SYSTEM_MAP is None:
-            raise RuntimeError("System map not specified.")
-
         sys_map = {}
         # get the system map
-        for line in open(config.SYSTEM_MAP,"r"):
+        for line in data.splitlines():
             (address, _, symbol) = line.strip().split()
             try:
                 sys_map[symbol] = int(address, 16)
@@ -535,12 +558,8 @@ class Linux32(obj.Profile):
     @staticmethod
     def register_options(config):
         """Register profile specific options."""
-        config.add_option("DWARF", default = None,
-                          help = "The dwarf file to use for linux memory analysis.")
-
-        config.add_option("SYSTEM_MAP", default = None,
-                          help = "The system map file to use for linux"
-                          " memory analysis.")
+        config.add_option("PROFILE_FILE", default = None,
+                          help = "The profile file to use for linux memory analysis. Must contain a dwarf file and a System map file.")
 
 
 if __name__ == '__main__':
