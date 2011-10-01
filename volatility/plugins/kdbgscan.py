@@ -21,10 +21,11 @@
 import volatility.obj as obj
 import volatility.scan as scan
 import volatility.cache as cache
-import volatility.commands as commands
 import volatility.addrspace as addrspace
 import volatility.registry as registry
 import volatility.utils as utils
+from volatility.plugins import common
+
 
 class MultiStringFinderCheck(scan.ScannerCheck):
     def __init__(self, address_space, needles = None):
@@ -72,7 +73,7 @@ class KDBGScanner(scan.DiscontigScanner):
             offset = offset + val.find('KDBG') - 0x10
             yield offset
 
-class KDBGScan(commands.command):
+class KDBGScan(common.AbstractWindowsCommand):
     """Search for and dump potential KDBG values"""
 
     @staticmethod

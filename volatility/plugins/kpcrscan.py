@@ -27,10 +27,11 @@ import struct
 import volatility.utils as utils
 import volatility.scan as scan
 import volatility.cache as cache
-import volatility.commands as commands
 import volatility.obj as obj
+from volatility.plugins import common
 
-class KPCRScan(commands.command):
+
+class KPCRScan(common.AbstractWindowsCommand):
     """Search for and dump potential KPCR values"""
 
     meta_info = dict(

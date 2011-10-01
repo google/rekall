@@ -24,9 +24,12 @@
 import volatility.commands as commands
 import volatility.utils    as utils
 import volatility.obj      as obj
+from volatility import profile
+
 
 def mask_number(num):
     return num & 0xffffffff
+
 
 class AbstractLinuxCommand(commands.command):
 
@@ -36,6 +39,16 @@ class AbstractLinuxCommand(commands.command):
         self.profile = self.addr_space.profile
         vmagic = obj.Object('VOLATILITY_MAGIC', vm = self.addr_space, offset = 0x00)
         self.smap = vmagic.SystemMap.v()
+
+    @classmethod
+    def is_active(cls, config):
+        """We are only active if the profile is windows."""
+        try:
+            p = profile.get_profile_class(config)
+            return p._md_os == 'linux'
+        except profile.Error:
+            return True
+
 
 def sizeofstruct(struct_name, profile):
 

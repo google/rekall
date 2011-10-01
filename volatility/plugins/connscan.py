@@ -29,11 +29,11 @@ This module implements the fast connection scanning
 #pylint: disable-msg=C0111
 
 import volatility.scan as scan
-import volatility.commands as commands
 import volatility.cache as cache
 import volatility.utils as utils
 import volatility.obj as obj
 import volatility.debug as debug #pylint: disable-msg=W0611
+from volatility.plugins import common
 
 
 class PoolScanConnFast(scan.PoolScanner):
@@ -43,7 +43,7 @@ class PoolScanConnFast(scan.PoolScanner):
                ('CheckPoolIndex', dict(value = 0)),
                ]
 
-class ConnScan(commands.command):
+class ConnScan(common.AbstractWindowsCommand):
     """ Scan Physical memory for _TCPT_OBJECT objects (tcp connections)
     """
     meta_info = dict(

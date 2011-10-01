@@ -20,12 +20,13 @@
 
 #pylint: disable-msg=C0111
 
-import volatility.commands as commands
+from volatility.plugins import common
 import volatility.win32.network as network
 import volatility.cache as cache
 import volatility.utils as utils
 
-class Connections(commands.command):
+
+class Connections(common.AbstractWindowsCommand):
     """
     Print list of open connections [Windows XP Only]
     ---------------------------------------------
@@ -38,7 +39,7 @@ class Connections(commands.command):
     find it more effective to do conscan instead.
     """
     def __init__(self, config, *args):
-        commands.command.__init__(self, config, *args)
+        common.AbstractWindowsCommand.__init__(self, config, *args)
         config.add_option("PHYSICAL-OFFSET", short_option = 'P', default = False,
                           cache_invalidator = False,
                           help = "Physical Offset", action = "store_true")

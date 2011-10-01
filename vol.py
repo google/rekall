@@ -56,20 +56,46 @@ import volatility.utils as utils
 import volatility.constants as constants
 import volatility.debug as debug
 
-def list_plugins():
-    result = "\n\tSupported Plugin Commands:\n\n"
-    keys = MemoryRegistry.PLUGIN_COMMANDS.commands.keys()
-    keys.sort()
-    for cmdname in keys:
-        command = MemoryRegistry.PLUGIN_COMMANDS[cmdname]
-        helpline = command.help() or ''
+
+def list_profiles():
+    if config.PROFILE is not None:
+        return ""
+
+    result = "\n\tAvailable Profiles:\n\n"
+    classes = MemoryRegistry.PROFILES.classes
+    classes.sort(key = lambda x: x.__name__)
+    for profile_cls in classes:
+        helpline = profile_cls.__doc__
+
         ## Just put the title line (First non empty line) in this
         ## abbreviated display
         for line in helpline.splitlines():
             if line:
                 helpline = line
                 break
-        result += "\t\t{0:15}\t{1}\n".format(cmdname, helpline)
+
+        result += "\t\t{0:15}\t{1}\n".format(profile_cls.__name__, helpline)
+
+    return result
+
+def list_plugins():
+    if config.PROFILE is None:
+        return ''
+
+    result = "\n\tSupported Plugin Commands for profile %s:\n\n" % config.PROFILE
+    keys = MemoryRegistry.PLUGIN_COMMANDS.commands.keys()
+    keys.sort()
+    for cmdname in keys:
+        command = MemoryRegistry.PLUGIN_COMMANDS[cmdname]
+        if command.is_active(config):
+            helpline = command.help() or ''
+            ## Just put the title line (First non empty line) in this
+            ## abbreviated display
+            for line in helpline.splitlines():
+                if line:
+                    helpline = line
+                    break
+            result += "\t\t{0:15}\t{1}\n".format(cmdname, helpline)
 
     return result
 
@@ -129,6 +155,7 @@ def main():
 
 if __name__ == "__main__":
     config.set_usage(usage = "Volatility - A memory forensics analysis platform.")
+    config.add_help_hook(list_profiles)
     config.add_help_hook(list_plugins)
 
     try:

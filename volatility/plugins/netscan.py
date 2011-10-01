@@ -18,8 +18,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from volatility.plugins import common
 import volatility.utils as utils
-import volatility.commands as commands
 import volatility.scan as scan
 import volatility.obj as obj
 import volatility.cache as cache
@@ -136,7 +136,7 @@ class PoolScanTcpEndpoint(scan.PoolScanner):
                ('CheckPoolIndex', dict(value = 0)),
                ]
 
-class Netscan(commands.command):
+class Netscan(common.AbstractWindowsCommand):
     """Scan a Vista, 2008 or Windows 7 image for connections and sockets"""
 
     def enumerate_listeners(self, theObject, vspace = None):
@@ -251,4 +251,3 @@ class Netscan(commands.command):
             process = p.ImageFileName if p.UniqueProcessId < 0xFFFF else ""
             outfd.write("{0:<#10x} {1:<8} {2:<30} {3:<20} {4:<16} {5:<8} {6:<14} {7}\n".format(
                 offset, proto, lendpoint, rendpoint, state, p.UniqueProcessId, process, ctime if ctime.v() else ""))
-

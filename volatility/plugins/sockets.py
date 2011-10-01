@@ -20,15 +20,15 @@
 
 #pylint: disable-msg=C0111
 
-import volatility.commands
+from volatility.plugins import common
 import volatility.win32 as win32
 import volatility.utils as utils
 import volatility.protos as protos
 
-class Sockets(volatility.commands.command):
+class Sockets(common.AbstractWindowsCommand):
     """Print list of open sockets"""
     def __init__(self, config, *args):
-        volatility.commands.command.__init__(self, config, *args)
+        common.AbstractWindowsCommand.__init__(self, config, *args)
         config.add_option("PHYSICAL-OFFSET", short_option = 'P', default = False,
                           cache_invalidator = False,
                           help = "Physical Offset", action = "store_true")

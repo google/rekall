@@ -21,11 +21,12 @@
 import os
 import volatility.utils as utils
 import volatility.obj as obj
-import volatility.commands as commands
 import volatility.debug as debug
 import volatility.cache as cache
+from volatility.plugins import common
 
-class HibInfo(commands.command):
+
+class HibInfo(common.AbstractWindowsCommand):
     """Dump hibernation file information"""
 
     @cache.CacheDecorator("tests/hibinfo")

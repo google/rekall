@@ -27,7 +27,7 @@
 """
 
 import volatility.scan as scan
-import volatility.commands as commands
+from volatility.plugins import common
 import volatility.debug as debug #pylint: disable-msg=W0611
 import volatility.utils as utils
 import volatility.obj as obj
@@ -43,7 +43,7 @@ class PoolScanFile(scan.PoolScanner):
                ('CheckPoolIndex', dict(value = 0)),
                ]
 
-class FileScan(commands.command):
+class FileScan(common.AbstractWindowsCommand):
     """ Scan Physical memory for _FILE_OBJECT pool allocations
     """
     # Declare meta information associated with this plugin
@@ -57,7 +57,7 @@ class FileScan(commands.command):
     meta_info['version'] = '0.1'
 
     def __init__(self, config, *args):
-        commands.command.__init__(self, config, *args)
+        common.AbstractWindowsCommand.__init__(self, config, *args)
         self.kernel_address_space = None
 
     def get_rounded_size(self, object_name, pool_align):
@@ -419,7 +419,7 @@ class PoolScanProcess(scan.PoolScanner):
                ]
 
 
-class PSScan(commands.command):
+class PSScan(common.AbstractWindowsCommand):
     """ Scan Physical memory for _EPROCESS pool allocations
     """
     # Declare meta information associated with this plugin
@@ -433,7 +433,7 @@ class PSScan(commands.command):
     meta_info['version'] = '0.1'
 
     def __init__(self, config, *args):
-        commands.command.__init__(self, config, *args)
+        common.AbstractWindowsCommand.__init__(self, config, *args)
         self.kernel_address_space = utils.load_as(self._config, astype = 'virtual')
 
     # Can't be cached until self.kernel_address_space is moved entirely

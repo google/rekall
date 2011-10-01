@@ -25,11 +25,11 @@
 
 from operator import itemgetter
 from bisect import bisect_right
+from volatility.plugins import common
 
 import volatility.obj as obj
 import volatility.win32.tasks as tasks
 import volatility.win32.modules as modules
-import volatility.commands as commands
 import volatility.utils as utils
 import volatility.debug as debug #pylint: disable-msg=W0611
 from volatility.cache import CacheDecorator
@@ -75,7 +75,7 @@ def find_module(modlist, mod_addrs, addr):
     else:
         return None
 
-class SSDT(commands.command):
+class SSDT(common.AbstractWindowsCommand):
     "Display SSDT entries"
     # Declare meta information associated with this plugin
     meta_info = {

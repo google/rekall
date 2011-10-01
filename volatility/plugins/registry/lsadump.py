@@ -33,13 +33,15 @@ import volatility.win32.hashdump as hashdumpmod
 import volatility.debug as debug
 import volatility.cache as cache
 import volatility.utils as utils
-import volatility.commands as commands
+from volatility.plugins import common
 
-class LSADump(commands.command):
+
+
+class LSADump(common.AbstractWindowsCommand):
     """Dump (decrypted) LSA secrets from the registry"""
     # Declare meta information associated with this plugin
 
-    meta_info = commands.command.meta_info
+    meta_info = common.AbstractWindowsCommand.meta_info
     meta_info['author'] = 'Brendan Dolan-Gavitt'
     meta_info['copyright'] = 'Copyright (c) 2007,2008 Brendan Dolan-Gavitt'
     meta_info['contact'] = 'bdolangavitt@wesleyan.edu'
@@ -49,7 +51,7 @@ class LSADump(commands.command):
     meta_info['version'] = '1.0'
 
     def __init__(self, config, *args):
-        commands.command.__init__(self, config, *args)
+        common.AbstractWindowsCommand.__init__(self, config, *args)
         config.add_option('SYS-OFFSET', short_option = 'y', type = 'int',
                           help = 'SYSTEM hive offset (virtual)')
         config.add_option('SEC-OFFSET', short_option = 's', type = 'int',
@@ -75,11 +77,11 @@ class LSADump(commands.command):
                 outfd.write("{0:#010x}  {1:<48}  {2}\n".format(offset, hex, ''.join(chars)))
             outfd.write("\n")
 
-class HashDump(commands.command):
+class HashDump(common.AbstractWindowsCommand):
     """Dumps passwords hashes (LM/NTLM) from memory"""
 
     def __init__(self, config, *args):
-        commands.command.__init__(self, config, *args)
+        common.AbstractWindowsCommand.__init__(self, config, *args)
         config.add_option('SYS-OFFSET', short_option = 'y', type = 'int',
                           help = 'SYSTEM hive offset (virtual)')
         config.add_option('SAM-OFFSET', short_option = 's', type = 'int',
@@ -100,10 +102,10 @@ class HashDump(commands.command):
                 debug.error("Unable to read hashes from registry")
             outfd.write(d + "\n")
 
-class HiveDump(commands.command):
+class HiveDump(common.AbstractWindowsCommand):
     """Prints out a hive"""
     def __init__(self, config, *args):
-        commands.command.__init__(self, config, *args)
+        common.AbstractWindowsCommand.__init__(self, config, *args)
         config.add_option('HIVE-OFFSET', short_option = 'o', type = 'int',
                           help = 'Hive offset (virtual)')
 

@@ -60,6 +60,14 @@ class command(object):
         except (AttributeError, TypeError):
             return ""
 
+    @classmethod
+    def is_active(cls, config):
+        """Returns True if this command is compatible with the current config.
+
+        e.g. current choice of profiles.
+        """
+        return True
+
     def calculate(self):
         """ This function is responsible for performing all calculations
 

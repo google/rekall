@@ -27,6 +27,7 @@ import volatility.debug as debug
 import volatility.obj as obj
 import volatility.addrspace as addrspace
 
+
 class AbstractWindowsx86(obj.Profile):
     """ A Profile for Windows systems """
     _md_os = 'windows'

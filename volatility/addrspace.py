@@ -34,11 +34,8 @@
 
 import volatility.registry as registry
 import volatility.debug as debug
+from volatility import profile
 
-## Make sure the profiles are cached so we only parse it once. This is
-## important since it allows one module to update the profile for
-## another module.
-PROFILES = {}
 
 class ASAssertionError(AssertionError):
 
@@ -65,12 +62,12 @@ class BaseAddressSpace(object):
         """
         self.base = base
         self._config = config
-        self.profile = self._set_profile(config.PROFILE)
+        self.profile = profile.Profile(config)
 
     @staticmethod
     def register_options(config):
         ## By default load the profile that the user asked for
-        config.add_option("PROFILE", default = 'WinXPSP2x86', type = 'str',
+        config.add_option("PROFILE", default = None, type = 'str',
                           nargs = 1, action = "callback", callback = check_valid_profile,
                           help = "Name of the profile to load")
 
@@ -80,18 +77,6 @@ class BaseAddressSpace(object):
     def get_config(self):
         """Returns the config object used by the vm for use in other vms"""
         return self._config
-
-    def _set_profile(self, profile_name):
-        ## Load the required profile
-        try:
-            ret = PROFILES[profile_name]
-        except KeyError:
-            try:
-                ret = registry.PROFILES[profile_name](config=self._config)
-                PROFILES[profile_name] = ret
-            except KeyError:
-                raise ASAssertionError, "Invalid profile " + profile_name + " selected"
-        return ret
 
     def as_assert(self, assertion, error = None):
         """Duplicate for the assert command (so that optimizations don't disable them)

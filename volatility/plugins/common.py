@@ -22,6 +22,8 @@
 import volatility.scan as scan
 import volatility.obj as obj
 import volatility.debug as debug #pylint: disable-msg=W0611
+from volatility import commands
+from volatility import profile
 
 #pylint: disable-msg=C0111
 
@@ -95,3 +97,16 @@ class CheckPoolIndex(scan.ScannerCheck):
                              offset = offset - 4)
 
         return pool_hdr.PoolIndex == self.value
+
+
+class AbstractWindowsCommand(commands.command):
+    """A base class for all windows based plugins."""
+
+    @classmethod
+    def is_active(cls, config):
+        """We are only active if the profile is windows."""
+        try:
+            p = profile.get_profile_class(config)
+            return p._md_os == 'windows'
+        except profile.Error:
+            return True
