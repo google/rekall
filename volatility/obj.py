@@ -219,7 +219,7 @@ class InvalidOffsetError(utils.VolatilityException):
     """Simple placeholder to identify invalid offsets"""
     pass
 
-def Object(theType, offset = 0, vm = None, parent = None, name = None, **kwargs):
+def Object(theType, offset, vm, parent = None, name = None, **kwargs):
     """ A function which instantiates the object named in theType (as
     a string) from the type in profile passing optional args of
     kwargs.
@@ -512,7 +512,7 @@ class BitField(NativeType):
         self.native_type = native_type # Store this for proper caching
 
     def v(self, vm = None):
-        i = NativeType.v(self, vm=vm)
+        i = NativeType.v(self, vm = vm)
         return (i & ((1 << self.end_bit) - 1)) >> self.start_bit
 
     def write(self, data):
@@ -858,6 +858,9 @@ class VolatilityDict(BaseObject):
     def __str__(self):
         return str(self.v())
 
+def VolMagic(vm):
+    """Convenience function to save people typing out an actual obj.Object call"""
+    return Object("VOLATILITY_MAGIC", 0x0, vm = vm)
 
 ## Profiles are the interface for creating/interpreting
 ## objects

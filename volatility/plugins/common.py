@@ -56,8 +56,7 @@ class CheckPoolSize(scan.ScannerCheck):
                              offset = offset - 4)
 
         block_size = pool_hdr.BlockSize.v()
-        pool_align = obj.Object(
-            "VOLATILITY_MAGIC", vm = self.address_space).PoolAlignment.v()
+        pool_align = obj.VolMagic(self.address_space).PoolAlignment.v()
 
         return self.condition(block_size * pool_align)
 

@@ -86,8 +86,7 @@ class FileScan(commands.command):
 
             ## We work out the _FILE_OBJECT from the end of the
             ## allocation (bottom up).
-            pool_align = obj.Object(
-                "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
+            pool_align = obj.VolMagic(address_space).PoolAlignment.v()
 
             file_obj = obj.Object(
                 "_FILE_OBJECT", vm = address_space,
@@ -155,8 +154,7 @@ class DriverScan(FileScan):
 
             ## We work out the _DRIVER_OBJECT from the end of the
             ## allocation (bottom up).
-            pool_align = obj.Object(
-                "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
+            pool_align = obj.VolMagic(address_space).PoolAlignment.v()
 
             extension_obj = obj.Object(
                 "_DRIVER_EXTENSION", vm = address_space,
@@ -233,11 +231,10 @@ class SymLinkScan(FileScan):
 
             ## We work out the object from the end of the
             ## allocation (bottom up).
-            pool_align = obj.Object(
-                "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
+            pool_align = obj.VolMagic(address_space).PoolAlignment.v()
 
             link_obj = obj.Object("_OBJECT_SYMBOLIC_LINK", vm = address_space,
-                     offset = (offset + pool_obj.BlockSize * pool_align - 
+                     offset = (offset + pool_obj.BlockSize * pool_align -
                                self.get_rounded_size("_OBJECT_SYMBOLIC_LINK", pool_align)))
 
             ## The _OBJECT_HEADER is immediately below the _OBJECT_SYMBOLIC_LINK
@@ -263,7 +260,7 @@ class SymLinkScan(FileScan):
 
         for object, link, name in data:
             outfd.write("{0:#010x} {1:4} {2:4} {3:<24} {4:<20} {5}\n".format(
-                        link.obj_offset, object.PointerCount, 
+                        link.obj_offset, object.PointerCount,
                         object.HandleCount, link.CreationTime or '',
                         name.v(self.kernel_address_space),
                         link.LinkTarget.v(self.kernel_address_space)))
@@ -297,8 +294,7 @@ class MutantScan(FileScan):
 
             ## We work out the _DRIVER_OBJECT from the end of the
             ## allocation (bottom up).
-            pool_align = obj.Object(
-                "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
+            pool_align = obj.VolMagic(address_space).PoolAlignment.v()
 
             mutant = obj.Object(
                 "_KMUTANT", vm = address_space,
@@ -366,8 +362,7 @@ class CheckProcess(scan.ScannerCheck):
 
         ## We work out the _EPROCESS from the end of the
         ## allocation (bottom up).
-        pool_align = obj.Object(
-            "VOLATILITY_MAGIC", vm = self.address_space).PoolAlignment.v()
+        pool_align = obj.VolMagic(self.address_space).PoolAlignment.v()
         eprocess = obj.Object("_EPROCESS", vm = self.address_space,
                   offset = pool_base + pool_obj.BlockSize * pool_align - \
                   self.address_space.profile.get_obj_size("_EPROCESS")
@@ -409,8 +404,7 @@ class PoolScanProcess(scan.PoolScanner):
 
         ## We work out the _EPROCESS from the end of the
         ## allocation (bottom up).
-        pool_align = obj.Object(
-            "VOLATILITY_MAGIC", vm = address_space).PoolAlignment.v()
+        pool_align = obj.VolMagic(address_space).PoolAlignment.v()
 
         object_base = (pool_base + pool_obj.BlockSize * pool_align -
                        self.buffer.profile.get_obj_size("_EPROCESS"))
@@ -458,7 +452,7 @@ class PSScan(commands.command):
         # This is the list entry of the ProcessListEntry reflected through the
         # next process in the list
         list_entry = eprocess.ThreadListHead.Flink.dereference_as(
-            '_LIST_ENTRY', addr_space=self.kernel_address_space).Blink.dereference()
+            '_LIST_ENTRY', addr_space = self.kernel_address_space).Blink.dereference()
 
         # Take us back to the _EPROCESS offset
         list_entry_offset = self.kernel_address_space.profile.get_obj_offset(
