@@ -47,7 +47,7 @@ def Profile(config):
         ret = PROFILES[profile_name]
     except KeyError:
         try:
-            ret = registry.PROFILES[profile_name](config)
+            ret = registry.PROFILES[profile_name](config=config)
             PROFILES[profile_name] = ret
         except KeyError:
             raise Error("Invalid profile %s" % profile_name)

@@ -29,8 +29,8 @@ import linux_list_open_files as lof
 import socket
 
 class linux_netstat(lof.linux_list_open_files):
-
     ''' lists open files '''
+    __name = "netstat"
 
     def calculate(self):
     

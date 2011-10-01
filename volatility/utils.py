@@ -98,4 +98,3 @@ def Hexdump(data, width=16):
         hexdata = " ".join(["{0:02x}".format(ord(x)) for x in row_data])
     
         yield offset, hexdata, translated_data
-

@@ -184,17 +184,17 @@ class MemoryRegistry(object):
         """ Adds the class provided to our self. This is here to be
         possibly over ridden by derived classes.
         """
-        if Class not in self.classes:
-            self.classes.append(Class)
+        self.classes.append(Class)
 
-            # Register any config options required by the class
-            if hasattr(Class, 'register_options'):
-                Class.register_options(config)
+        # Register any config options required by the class
+        if hasattr(Class, 'register_options'):
+            Class.register_options(config)
 
-            try:
-                self.order.append(Class.order)
-            except AttributeError:
-                self.order.append(10)
+        try:
+            self.order.append(Class.order)
+        except AttributeError:
+            self.order.append(10)
+
 
     def check_class(self, Class):
         """ Run a set of tests on the class to ensure its ok to use.
@@ -204,11 +204,14 @@ class MemoryRegistry(object):
         prohibited_class_names = ["BufferAddressSpace", "HiveAddressSpace"]
         if Class.__name__.lower().startswith("abstract"):
             raise NotImplementedError("This class is an abstract class")
+
         if Class.__name__ in prohibited_class_names:
             raise NotImplementedError("This class name is prohibited from the Registry")
 
+
 class VolatilityCommandRegistry(MemoryRegistry):
     """ A class to manage commands """
+
     def __getitem__(self, command_name):
         """ Return the command objects by name """
         return self.commands[command_name]
@@ -217,13 +220,14 @@ class VolatilityCommandRegistry(MemoryRegistry):
         MemoryRegistry.__init__(self, ParentClass)
         self.commands = {}
 
+        # This allows multiple commands to have the same name.
         for cls in self.classes:
-            ## The name of the class is the command name
-            command = cls.__name__.split('.')[-1].lower()
-            try:
-                raise Exception("Command {0} has already been defined by {1}".format(cls, self.commands[command]))
-            except KeyError:
-                self.commands[command] = cls
+            ## The name of the class is the command name (Note that a class can
+            ## offer a different name from its class name via the __name private
+            ## member. This can not be inherited accidentally by derived
+            ## classes).
+            self.commands.setdefault(cls.name(), []).append(cls)
+
 
 class VolatilityObjectRegistry(MemoryRegistry):
     """ A class to manage objects """
@@ -258,10 +262,7 @@ class VolatilityObjectRegistry(MemoryRegistry):
         for cls in self.classes:
             ## The name of the class is the object name
             obj = cls.__name__.split('.')[-1]
-            try:
-                raise Exception("Object {0} has already been defined by {1}".format(obj, self.objects[obj]))
-            except KeyError:
-                self.objects[obj] = cls
+            self.objects[obj] = cls
 
 def print_info():
     for k, v in globals().items():

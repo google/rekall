@@ -86,16 +86,17 @@ def list_plugins():
     keys = MemoryRegistry.PLUGIN_COMMANDS.commands.keys()
     keys.sort()
     for cmdname in keys:
-        command = MemoryRegistry.PLUGIN_COMMANDS[cmdname]
-        if command.is_active(config):
-            helpline = command.help() or ''
-            ## Just put the title line (First non empty line) in this
-            ## abbreviated display
-            for line in helpline.splitlines():
-                if line:
-                    helpline = line
-                    break
-            result += "\t\t{0:15}\t{1}\n".format(cmdname, helpline)
+        for command in MemoryRegistry.PLUGIN_COMMANDS[cmdname]:
+            if command.is_active(config):
+                helpline = command.help() or ''
+                ## Just put the title line (First non empty line) in this
+                ## abbreviated display
+                for line in helpline.splitlines():
+                    if line:
+                        helpline = line
+                        break
+                result += "\t\t{0:15}\t{1}\n".format(cmdname, helpline)
+                break
 
     return result
 
@@ -140,7 +141,14 @@ def main():
 
     try:
         if module in MemoryRegistry.PLUGIN_COMMANDS.commands:
-            command = MemoryRegistry.PLUGIN_COMMANDS[module](config)
+            command = None
+            for command_cls in MemoryRegistry.PLUGIN_COMMANDS[module]:
+                if command_cls.is_active(config):
+                    command = command_cls(config)
+                    break
+
+            if command is None:
+                debug.error("Command %s is not valid for this profile." % module)
 
             ## Register the help cb from the command itself
             config.set_help_hook(obj.Curry(command_help, command))

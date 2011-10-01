@@ -34,8 +34,9 @@ class a_ent:
 # based off pykdump
 # not 100% this works, will need some testing to verify
 class linux_arp(linux_common.AbstractLinuxCommand):
-
     ''' print the ARP table '''
+    __name = "arp"
+
 
     def calculate(self):
 
@@ -91,5 +92,3 @@ class linux_arp(linux_common.AbstractLinuxCommand):
         for arp_list in data:
             for ent in arp_list:
                 outfd.write("[{0:42s}] at {1:20s} on {2:s}\n".format(ent.ip, ent.mac, ent.devname))
-
-

@@ -26,8 +26,9 @@ import linux_task_list_ps as ltps
 import time
 
 class linux_task_list_psaux(ltps.linux_task_list_ps):
-
     ''' gathers processes along with full command line and start time '''
+
+    __name = "psaux"
 
     def calculate(self):
 

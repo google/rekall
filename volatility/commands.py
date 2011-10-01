@@ -28,6 +28,11 @@ class command(object):
     # meta_info will be removed
     meta_info = {}
 
+    @classmethod
+    def name(cls):
+        """Retrieve the class name."""
+        return getattr(cls, "_%s__name" % cls.__name__, cls.__name__.lower())
+
     def __init__(self, config, *_args, **_kwargs):
         """ Constructor uses args as an initializer. It creates an instance
         of OptionParser, populates the options, and finally parses the 

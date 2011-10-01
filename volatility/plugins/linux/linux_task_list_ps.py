@@ -28,6 +28,8 @@ class linux_task_list_ps(linux_common.AbstractLinuxCommand):
 
     ''' gathers active tasks by walking the task_struct->task list '''
 
+    __name = "pslist"
+
     def __init__(self, config, *args):
         linux_common.AbstractLinuxCommand.__init__(self, config, *args)
         self._config.add_option('PID', short_option = 'p', default = None, help = 'Operate on these Process IDs (comma-separated)', action = 'store', type = 'str')
