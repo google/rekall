@@ -485,7 +485,6 @@ class VolatilityDTB(obj.VolatilityMagic):
         # virtual addressing in kernel mode:
 
         #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
-
         PAGE_OFFSET = volmag.SystemMap["_text"] - volmag.SystemMap["phys_startup_32"]
 
         yield volmag.SystemMap["swapper_pg_dir"] - PAGE_OFFSET
@@ -537,7 +536,7 @@ class Linux32(obj.Profile):
                                " components.")
 
         magic = vtypes.setdefault('VOLATILITY_MAGIC', [None, {}])[1]
-        magic['SystemMap'] = [0, ['VolatilityDict', dict(data = sys_map)]]
+        magic['SystemMap'] = [0, ['VolatilityMagic', dict(value = sys_map)]]
         magic['DTB'] = [0, ['VolatilityDTB', dict()]]
 
         return vtypes

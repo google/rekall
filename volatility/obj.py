@@ -461,6 +461,7 @@ class NumericProxyMixIn(object):
 CreateMixIn(NumericProxyMixIn)
 
 class NativeType(BaseObject, NumericProxyMixIn):
+
     def __init__(self, theType, offset, vm, parent = None,
                  format_string = None, name = None, **args):
         BaseObject.__init__(self, theType, offset, vm, parent = parent, name = name)
@@ -695,7 +696,9 @@ class Array(BaseObject):
 
 class CType(BaseObject):
     """ A CType is an object which represents a c struct """
-    def __init__(self, theType, offset, vm, parent = None, members = None, name = None, struct_size = 0):
+
+    def __init__(self, theType, offset, vm, parent = None, members = None,
+                 name = None, struct_size = 0):
         """ This must be instantiated with a dict of members. The keys
         are the offsets, the values are Curried Object classes that
         will be instantiated when accessed.
@@ -765,7 +768,7 @@ class CType(BaseObject):
 
         try:
             return object.__getattribute__(self, "_" + attr)(attr)
-        except:
+        except Exception:
             pass
 
         return self.m(attr)
@@ -787,7 +790,8 @@ class CType(BaseObject):
 class VolatilityMagic(BaseObject):
     """Class to contain Volatility Magic value"""
 
-    def __init__(self, theType, offset, vm, parent = None, value = None, name = None, configname = None):
+    def __init__(self, theType, offset, vm, parent = None, value = None,
+                 name = None, configname = None):
         try:
             BaseObject.__init__(self, theType, offset, vm, parent, name)
         except InvalidOffsetError:
@@ -816,12 +820,11 @@ class VolatilityMagic(BaseObject):
 
     def get_suggestions(self):
         """Returns a list of possible suggestions for the value
-        
+
            These should be returned in order of likelihood, 
            since the first one will be taken as the best suggestion
-           
-           This is also to avoid a complete scan of the memory address space,
-           since 
+
+           This is also to avoid a complete scan of the memory address space.
         """
         if self.value:
             yield self.value
@@ -838,25 +841,9 @@ class VolatilityMagic(BaseObject):
         else:
             return NoneObject("No suggestions available")
 
-class VolatilityDict(BaseObject):
-    """Class to contain Volatility Magic value"""
-
-    def __init__(self, theType, offset, vm, data = None, **kw):
-        try:
-            BaseObject.__init__(self, theType, offset, vm)
-        except InvalidOffsetError:
-            pass
-
-        self.data = data
-
-    def v(self, vm = None):
-        return self.data
-
     def __getitem__(self, pos):
-        return self.data.__getitem__(pos)
+        return self.value.__getitem__(pos)
 
-    def __str__(self):
-        return str(self.v())
 
 def VolMagic(vm):
     """Convenience function to save people typing out an actual obj.Object call"""
@@ -883,7 +870,6 @@ class Profile(object):
                       'Void':Void,
                       'Array':Array,
                       'CType':CType,
-                      'VolatilityDict':VolatilityDict,
                       'VolatilityMagic':VolatilityMagic}
 
     def __init__(self, strict = False, config = None):
