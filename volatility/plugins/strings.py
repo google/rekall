@@ -132,7 +132,7 @@ class Strings(taskmods.DllList):
                 if pagelist is None:
                     pagelist = [True]
                     reverse_map[kpage + i] = pagelist
-                pagelist.append(('kernel', vpage + i))
+                    pagelist.append(('kernel', vpage + i))
                 verbfd.write("\r  Kernel [{0:08x}]".format(vpage))
         verbfd.write("\n")
 

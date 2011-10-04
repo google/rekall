@@ -31,34 +31,20 @@ class linux_dump_map(linux_common.AbstractLinuxCommand):
 
     def calculate(self):
         vmas = linux_proc_maps.linux_proc_maps(self._config).calculate()
-
-        for vma in vmas:
-
+        for task, vma in vmas:
             # filter on a specific vma starting address
             if vma.vm_file:
                 path = []
-
+                yield vma
                 #(dentry, inode) = linux_common.file_info(vma.vm_file)
             else:
                 length = vma.vm_end - vma.vm_start
                 current = vma.vm_start
 
                 while current < vma.vm_end:
-
                     page = self.addr_space.read(current, 4096)
-
-
-
                     current = current + 4096
 
-
-
-            sys.exit(1)
-
     def render_text(self, outfd, data):
-
-        pass
-        #for vma in data:
-        #    outfd.write("%-8x-%-8x\n" % (vma.vm_start&0xffffffff, vma.vm_end&0xffffffff))
-
-
+        for vma in data:
+          outfd.write("%-8x-%-8x\n" % (vma.vm_start&0xffffffff, vma.vm_end&0xffffffff))

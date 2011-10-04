@@ -167,7 +167,6 @@ def IS_ROOT(dentry):
 # based on __d_path
 # TODO: (deleted) support
 def do_get_path(rdentry, rmnt, dentry, vfsmnt, addr_space):
-
     ret_path = []
 
     inode = dentry.d_inode

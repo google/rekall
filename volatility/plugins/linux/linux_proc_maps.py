@@ -44,7 +44,6 @@ class linux_proc_maps(ltps.linux_task_list_ps):
                     yield task, vma
 
     def render_text(self, outfd, data):
-
         for task, vma in data:
 
             mm = task.mm

@@ -260,7 +260,8 @@ class BaseObject(object):
         self._vol_theType = theType
 
         if not self._vol_vm.is_valid_address(self._vol_offset):
-            raise InvalidOffsetError("Invalid Address 0x{0:08X}, instantiating {1}".format(offset, name))
+            raise InvalidOffsetError("Invalid Address 0x{0:08X}, "
+                                     "instantiating {1}".format(offset, name))
 
     @property
     def obj_vm(self):
@@ -746,7 +747,7 @@ class CType(BaseObject):
             ## hmm - tough choice - should we raise or should we not
             #return NoneObject("Struct {0} has no member {1}".format(self.obj_name, attr))
             raise AttributeError("Struct {0} has no member {1}".format(self.obj_name, attr))
-
+        
         if callable(offset):
             ## If offset is specified as a callable its an absolute
             ## offset
@@ -945,7 +946,8 @@ class Profile(object):
             self.types[name] = self.convert_members(
                 name, self.typeDict, copy.deepcopy(self.overlayDict))
 
-    def list_to_type(self, name, typeList, typeDict = None):
+    # pylint: disable-msg=R0911
+    def list_to_type(self, name, typeList, typeDict = None): 
         """ Parses a specification list and returns a VType object.
 
         This function is a bit complex because we support lots of
