@@ -88,7 +88,6 @@ class linux_netstat(lof.linux_list_open_files):
 
 
     def format_ipv6(self, inet_sock):
-
         daddr = linux_common.ip62str(inet_sock.pinet6.daddr)
         saddr = linux_common.ip62str(inet_sock.pinet6.saddr)
 
@@ -96,16 +95,22 @@ class linux_netstat(lof.linux_list_open_files):
 
     # formats an ipv4 address
     def format_ipv4(self, inet_sock):
-
-        daddr = linux_common.ip2str(inet_sock.daddr.v())
-        saddr = linux_common.ip2str(inet_sock.rcv_saddr.v())
+        try:
+            daddr = linux_common.ip2str(inet_sock.daddr.v())
+            saddr = linux_common.ip2str(inet_sock.rcv_saddr.v())
+        except AttributeError:
+            daddr = linux_common.ip2str(inet_sock.inet_daddr.v())
+            saddr = linux_common.ip2str(inet_sock.inet_rcv_saddr.v())
 
         return (daddr, saddr)
 
     def format_port(self, inet_sock):
-
-        dport = socket.htons(inet_sock.dport)
-        sport = socket.htons(inet_sock.sport)
+        try:
+            dport = socket.htons(inet_sock.dport)
+            sport = socket.htons(inet_sock.sport)
+        except AttributeError:
+            dport = socket.htons(inet_sock.inet_dport)
+            sport = socket.htons(inet_sock.inet_sport)
 
         return (dport, sport)
 

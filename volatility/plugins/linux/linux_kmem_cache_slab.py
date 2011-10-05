@@ -56,7 +56,6 @@ class linux_kmem_cache_slab(object):
         bitmap = [0] * cache.num
 
         for slab in linux_common.walk_list_head("slab", "list", list_head, self.addr_space):
-
             i = slab.free.v() & 0xffffffff
 
             bitmap = [0] * cache.num
@@ -107,10 +106,3 @@ class linux_kmem_cache_slab(object):
             sys.exit(1)
 
         return ret
-
-
-
-
-
-
-
