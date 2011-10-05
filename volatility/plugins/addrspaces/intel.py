@@ -144,11 +144,11 @@ class JKIA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddr
         '''
         if entry:
             if (entry & 1):
-              return True
+                return True
 
             # The page is in transition and is actually present.
             if (entry & (1 << 11)):
-              return True
+                return True
 
         return False
 
