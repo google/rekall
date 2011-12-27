@@ -42,6 +42,7 @@
 #include <linux/miscdevice.h>
 #include <linux/init.h>
 #include <asm/io.h>
+#include <linux/io.h>
 #include <asm/uaccess.h>
 #include <asm/types.h>
 
@@ -50,6 +51,7 @@
 #include <asm/mmzone.h>
 
 static char pmem_devname[32] = "pmem";
+#define SUCCESS 0
 
 /* Checks to make sure that the page is valid. For now just checks the
    resource list for "System RAM", which is a very naive approach.
@@ -73,6 +75,7 @@ static int is_page_valid(loff_t paddr) {
 
   return 0;
 };
+
 
 /* Implement seeking behaviour. For whence=2 we need to figure out the
    size of RAM which is the end address of the last "System RAM"
@@ -130,7 +133,7 @@ static loff_t pmem_llseek(struct file *file, loff_t offset, int whence) {
 static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
 				 loff_t *poff) {
   void *vaddr;
-  unsigned long page_offset = count % PAGE_SIZE;
+  unsigned long page_offset = *poff % PAGE_SIZE;
   size_t to_read = min(PAGE_SIZE - page_offset, count);
   unsigned long pfn = (unsigned long)(*poff >> PAGE_SHIFT);
   struct page *page;
@@ -179,11 +182,50 @@ static ssize_t pmem_read(struct file *file, char *buf, size_t count,
   return count;
 }
 
+static unsigned long long zero_page = 0;
+
+static int pmem_vma_fault(struct vm_area_struct *vma,
+			  struct vm_fault *vmf)
+{
+  loff_t offset = vmf->pgoff << PAGE_SHIFT; /* Offset of faulting page */
+  unsigned long pfn = (unsigned long)(vmf->pgoff);  /* Faulting page */
+  struct page *page;
+
+  /* Refuse to read from invalid pages. Map the zero page instead. */
+  if(!is_page_valid(offset) || !pfn_valid(pfn)) {
+    page = virt_to_page(zero_page);
+  } else { 
+    /* Map the real page here. */
+    page = pfn_to_page(pfn);
+  };
+
+  get_page(page);
+  vmf->page = page;
+  return 0;
+}
+
+static struct vm_operations_struct pmem_vm_ops = {
+  .fault = pmem_vma_fault,
+};
+
+static int pmem_mmap(struct file *filp, struct vm_area_struct *vma) {
+  if(!zero_page) {
+    zero_page = get_zeroed_page(GFP_KERNEL);
+  };
+
+  /* don't do anything here: The fault handler will fill the holes */
+  vma->vm_ops = &pmem_vm_ops;
+  vma->vm_flags |= VM_RESERVED | VM_CAN_NONLINEAR;
+
+  return 0;
+};
+
 /* Set up the module methods. */
 static struct file_operations pmem_fops = {
 	.owner = THIS_MODULE,
 	.llseek = pmem_llseek,
 	.read = pmem_read,
+	.mmap = pmem_mmap,
 };
 
 static struct miscdevice pmem_dev = {
@@ -200,6 +242,10 @@ static int __init pmem_init(void)
 
 static void __exit pmem_cleanup_module(void)
 {
+  /* Free the zero page if needed. */
+  if(zero_page) {
+    free_page(zero_page);
+  };
   misc_deregister(&pmem_dev);
 }
 
