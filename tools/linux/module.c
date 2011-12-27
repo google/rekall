@@ -2,8 +2,6 @@
   This module does absolutely nothings at all. We just build it with debugging
 symbols and then read the DWARF symbols from it.
 */
-#include "version.h"
-
 #include <linux/module.h>
 
 #include <linux/fs_struct.h>
