@@ -60,4 +60,34 @@ class linux_task_list_ps(linux_common.AbstractLinuxCommand):
 
         for task in data:
             outfd.write("0x{0:08x} {1:20s} {2:15s} {3:15s}\n".format(
-                task.obj_offset, task.comm, str(task.pid), str(task.get_uid())))
+                task.obj_offset, task.comm, str(task.pid), str(task.uid)))
+
+class linux_memmap(linux_task_list_ps):
+    """Dumps the memory map for linux tasks."""
+
+    __name = "memmap"
+
+    def render_text(self, outfd, data):
+        first = True
+        for task in data:
+            if not first:
+                outfd.write("*" * 72 + "\n")
+
+            task_space = task.get_process_address_space()
+            outfd.write("{0} pid: {1:6}\n".format(task.comm, task.pid))
+            first = False
+
+            pagedata = task_space.get_available_pages()
+            if pagedata:
+                outfd.write("{0:12} {1:12} {2:12}\n".format('Virtual', 'Physical', 'Size'))
+
+                for p in pagedata:
+                    pa = task_space.vtop(p[0])
+                    # pa can be 0, according to the old memmap, but can't == None(NoneObject)
+                    if pa != None:
+                        outfd.write("0x{0:010x} 0x{1:010x} 0x{2:012x}\n".format(p[0], pa, p[1]))
+                    #else:
+                    #    outfd.write("0x{0:10x} 0x000000     0x{1:12x}\n".format(p[0], p[1]))
+            else:
+                outfd.write("Unable to read pages for task.\n")
+

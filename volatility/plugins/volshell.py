@@ -22,11 +22,12 @@
 @contact:      awalters@volatilesystems.com,bdolangavitt@wesleyan.edu
 @organization: Volatile Systems
 """
-
+import functools
 import struct
 import sys
 import volatility.commands as commands
 import volatility.win32 as win32
+import volatility.registry as MemoryRegistry
 import volatility.utils as utils
 import volatility.obj as obj
 
@@ -192,7 +193,11 @@ class volshell(commands.command):
             to read the data from.
             """
             if not space:
-                space = self.eproc.get_process_address_space()
+                if self.eproc:
+                    space = self.eproc.get_process_address_space()
+                else:
+                    space = self.addrspace
+
             # round up to multiple of 4
             if length % 4 != 0:
                 length = (length + 4) - (length % 4)
@@ -219,6 +224,20 @@ class volshell(commands.command):
             Prints a process listing with PID, PPID, image name, and offset.
             """
             self.ps()
+
+        def vol(command_name, **kwargs):
+            """Run a volatility command plugin from the shell."""
+            command_cls = None
+            for command_cls in MemoryRegistry.PLUGIN_COMMANDS.commands.get(
+                command_name):
+                if command_cls.is_active(self._config):
+                    break
+
+            if not command_cls:
+                print "Command %s: Unknown" % command
+
+            command_cls(self._config).execute()
+            
 
         def list_entry(head, objname, offset = -1, fieldname = None, forward = True):
             """Traverse a _LIST_ENTRY.
@@ -359,13 +378,24 @@ class volshell(commands.command):
                 doc = pydoc.getdoc(cmd)
                 print doc
 
+        # Add the command plugins to the local namespace so they are
+        # available directly.
+        local_variables = locals()
+
+        for command_name in MemoryRegistry.PLUGIN_COMMANDS.commands:
+            for command_cls in MemoryRegistry.PLUGIN_COMMANDS.commands[command_name]:
+                if command_cls.is_active(self._config):
+                    local_variables[command_name] = functools.partial(
+                        vol, command_name=command_name)
+                    break
+
         # Break into shell
         banner = "Welcome to volshell! Current memory image is:\n{0}\n".format(self._config.LOCATION)
         banner += "To get help, type 'hh()'"
         try:
-            from IPython.Shell import IPShellEmbed
-            shell = IPShellEmbed([], banner = banner)
-            shell()
+            from IPython import Shell
+            shell = Shell.IPShell(argv=[], user_ns=local_variables).mainloop(banner=banner)
+
         except ImportError:
             import code, inspect
 

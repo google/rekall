@@ -46,7 +46,7 @@ class linux_task_list_psaux(ltps.linux_task_list_ps):
         outfd.write("{0:64s} {1:15s} {2:15s}\n".format("Arguments", "Pid", "Uid"))
 
         for task, name, start_time in data:
-            outfd.write("{0:64s} {1:15s} {2:15s}\n".format(name, str(task.pid), str(task.get_uid())))
+            outfd.write("{0:64s} {1:15s} {2:15s}\n".format(name, str(task.pid), str(task.uid)))
 
     def calc_time(self, start_offset):
 
@@ -64,14 +64,18 @@ class linux_task_list_psaux(ltps.linux_task_list_ps):
     def get_task_name(self, task):
 
         if task.mm:
-            # becuase windows is lame!
-            tmp_dtb = self.addr_space.vtop(task.mm.pgd)
-
             # set the as with our new dtb so we can read from userland
-            proc_as = self.addr_space.__class__(self.addr_space.base, self.addr_space.get_config(), dtb = tmp_dtb)
+            proc_as = task.get_process_address_space()
 
             # read argv from userland
-            argv = proc_as.read(task.mm.arg_start.v(), task.mm.arg_end - task.mm.arg_start)
+            start = task.mm.arg_start.v()
+
+            # It seems that on 64 bit systems this parameter is
+            # shifted to the base of the stack.
+            if task.obj_vm.profile.metadata.get("memory_model") == "64bit":
+                start += 0x7fff00000000
+
+            argv = proc_as.read(start, task.mm.arg_end - task.mm.arg_start)
 
             # split the \x00 buffer into args
             name = " ".join(argv.split("\x00"))

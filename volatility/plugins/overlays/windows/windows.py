@@ -117,6 +117,7 @@ class _LIST_ENTRY(obj.CType):
 
 AbstractWindows.object_classes['_LIST_ENTRY'] = _LIST_ENTRY
 
+
 class WinTimeStamp(obj.NativeType):
     """Class for handling Windows Time Stamps"""
 

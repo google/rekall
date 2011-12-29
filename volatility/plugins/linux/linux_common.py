@@ -37,8 +37,7 @@ class AbstractLinuxCommand(commands.command):
         commands.command.__init__(self, *args, **kwargs)
         self.addr_space = utils.load_as(self._config)
         self.profile = self.addr_space.profile
-        vmagic = obj.Object('VOLATILITY_MAGIC', vm = self.addr_space, offset = 0x00)
-        self.smap = vmagic.SystemMap.v()
+        self.smap = self.profile.sys_map
 
     @classmethod
     def is_active(cls, config):

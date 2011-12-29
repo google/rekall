@@ -388,108 +388,6 @@ linux_overlay = {
     }
 
 
-# really 'file' but don't want to mess with python's version
-class linux_file(obj.CType):
-
-    def get_dentry(self):
-        if hasattr(self, "f_dentry"):
-            ret = self.f_dentry
-        else:
-            ret = self.f_path.dentry
-
-        return ret
-
-    def get_vfsmnt(self):
-        if hasattr(self, "f_vfsmnt"):
-            ret = self.f_vfsmnt
-        else:
-            ret = self.f_path.mnt
-
-        return ret
-
-class files_struct(obj.CType):
-
-    def get_fds(self):
-        if hasattr(self, "fdt"):
-            fdt = self.fdt
-            ret = fdt.fd.dereference()
-        else:
-            ret = self.fd.dereference()
-
-        return ret
-
-    def get_max_fds(self):
-        if hasattr(self, "fdt"):
-            ret = self.fdt.max_fds
-        else:
-            ret = self.max_fds
-
-        return ret
-
-class task_struct(obj.CType):
-
-    def get_uid(self):
-        if hasattr(self, "uid"):
-            ret = self.uid
-        else:
-            ret = self.cred.uid
-
-        return ret
-
-    def get_gid(self):
-        if hasattr(self, "gid"):
-            ret = self.uid
-        else:
-            ret = self.cred.gid
-
-        return ret
-
-    def get_euid(self):
-        if hasattr(self, "euid"):
-            ret = self.uid
-        else:
-            ret = self.cred.euid
-
-        return ret
-
-class linux_fs_struct(obj.CType):
-
-    def get_root_dentry(self):
-        # < 2.6.26
-        if hasattr(self, "rootmnt"):
-            ret = self.root
-        else:
-            ret = self.root.dentry
-
-        return ret
-
-    def get_root_mnt(self):
-        # < 2.6.26
-        if hasattr(self, "rootmnt"):
-            ret = self.rootmnt
-        else:
-            ret = self.root.mnt
-
-        return ret
-
-
-class VolatilityDTB(obj.VolatilityMagic):
-    """A scanner for DTB values."""
-
-    def generate_suggestions(self):
-        """Tries to locate the DTB."""
-        volmag = obj.Object('VOLATILITY_MAGIC', offset = 0, vm = self.obj_vm)
-
-        # This is the difference between the virtual and physical addresses (aka
-        # PAGE_OFFSET). On linux there is a direct mapping between physical and
-        # virtual addressing in kernel mode:
-
-        #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
-        PAGE_OFFSET = volmag.SystemMap["_text"] - volmag.SystemMap["phys_startup_32"]
-
-        yield volmag.SystemMap["swapper_pg_dir"] - PAGE_OFFSET
-
-
 class Linux32(obj.Profile):
     """A Linux profile which works with dwarfdump output files.
 
@@ -502,10 +400,9 @@ class Linux32(obj.Profile):
     native_types = basic.x86_native_types_32bit
     overlay = linux_overlay
     object_classes = obj.Profile.object_classes.copy()
-    object_classes.update(
-        dict(task_struct = task_struct, files_struct = files_struct,
-             file = linux_file, fs_struct = linux_fs_struct,
-             VolatilityDTB = VolatilityDTB))
+
+    # The system map
+    sys_map = None
 
     def __init__(self, strict = False, config = None):
         # Parse the dwarf file and generate the vtypes
@@ -521,7 +418,6 @@ class Linux32(obj.Profile):
     def parse_profile_file(self, filename):
         """Parse the profile file into vtypes."""
         vtypes = None
-        sys_map = None
         profile_file = zipfile.ZipFile(filename)
         for f in profile_file.filelist:
             if f.filename.endswith(".dwarf"):
@@ -529,14 +425,14 @@ class Linux32(obj.Profile):
                 vtypes = self.parse_dwarf(profile_file.read(f.filename))
             elif "system.map" in f.filename.lower():
                 debug.info("Found dwarf file %s" % f.filename)
-                sys_map = self.parse_system_map(profile_file.read(f.filename))
+                self.sys_map = self.parse_system_map(profile_file.read(f.filename))
 
-        if sys_map is None or vtypes is None:
+        if self.sys_map is None or vtypes is None:
             raise RuntimeError("DWARF profile file does not contain all required"
                                " components.")
 
         magic = vtypes.setdefault('VOLATILITY_MAGIC', [None, {}])[1]
-        magic['SystemMap'] = [0, ['VolatilityMagic', dict(value = sys_map)]]
+        magic['SystemMap'] = [0, ['VolatilityMagic', dict(value = self.sys_map)]]
         magic['DTB'] = [0, ['VolatilityDTB', dict()]]
 
         return vtypes
@@ -567,6 +463,179 @@ class Linux32(obj.Profile):
         """Register profile specific options."""
         config.add_option("PROFILE_FILE", default = None,
                           help = "The profile file to use for linux memory analysis. Must contain a dwarf file and a System map file.")
+
+
+
+# really 'file' but don't want to mess with python's version
+class linux_file(obj.CType):
+
+    def get_dentry(self):
+        if hasattr(self, "f_dentry"):
+            ret = self.f_dentry
+        else:
+            ret = self.f_path.dentry
+
+        return ret
+
+    def get_vfsmnt(self):
+        if hasattr(self, "f_vfsmnt"):
+            ret = self.f_vfsmnt
+        else:
+            ret = self.f_path.mnt
+
+        return ret
+
+Linux32.object_classes["linux_file"] = linux_file
+
+
+class list_head(obj.CType):
+    """A list_head makes a doubly linked list."""
+    def list_of_type(self, type, member, forward = True):
+        if not self.is_valid():
+            return
+
+        ## Get the first element
+        if forward:
+            lst = self.next.dereference()
+        else:
+            lst = self.prev.dereference()
+
+        offset = self.obj_vm.profile.get_obj_offset(type, member)
+
+        seen = set()
+        seen.add(lst.obj_offset)
+
+        while 1:
+            ## Instantiate the object
+            item = obj.Object(type, offset = lst.obj_offset - offset,
+                                    vm = self.obj_vm,
+                                    parent = self.obj_parent,
+                                    name = type)
+
+
+            if forward:
+                lst = item.m(member).next.dereference()
+            else:
+                lst = item.m(member).prev.dereference()
+
+            if not lst.is_valid() or lst.obj_offset in seen:
+                return
+            seen.add(lst.obj_offset)
+
+            yield item
+
+    def __nonzero__(self):
+        ## List entries are valid when both Flinks and Blink are valid
+        return bool(self.next) or bool(self.prev)
+
+    def __iter__(self):
+        return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
+
+Linux32.object_classes["list_head"] = list_head
+
+
+class files_struct(obj.CType):
+
+    def get_fds(self):
+        if hasattr(self, "fdt"):
+            fdt = self.fdt
+            ret = fdt.fd.dereference()
+        else:
+            ret = self.fd.dereference()
+
+        return ret
+
+    def get_max_fds(self):
+        if hasattr(self, "fdt"):
+            ret = self.fdt.max_fds
+        else:
+            ret = self.max_fds
+
+        return ret
+
+Linux32.object_classes["files_struct"] = files_struct
+
+
+class task_struct(obj.CType):
+
+    def _uid(self, _attr):
+        ret = self.members.get("uid")
+        if ret is None:
+            ret = self.cred.uid
+
+        return ret
+
+    def _gid(self):
+        ret = self.members.get("gid")
+        if ret is None:
+            ret = self.cred.gid
+
+        return ret
+
+    def _euid(self):
+        ret = self.members.get("euid")
+        if ret is None:
+            ret = self.cred.euid
+
+        return ret
+
+    def get_process_address_space(self):
+        directory_table_base = self.obj_vm.vtop(self.mm.pgd.v())
+
+        try:
+            process_as = self.obj_vm.__class__(
+                self.obj_vm.base, self.obj_vm.get_config(), dtb = directory_table_base)
+
+        except AssertionError, _e:
+            return obj.NoneObject("Unable to get process AS")
+
+        process_as.name = "Process {0}".format(self.pid)
+
+        return process_as
+
+Linux32.object_classes["task_struct"] = task_struct
+
+
+class linux_fs_struct(obj.CType):
+
+    def get_root_dentry(self):
+        # < 2.6.26
+        if hasattr(self, "rootmnt"):
+            ret = self.root
+        else:
+            ret = self.root.dentry
+
+        return ret
+
+    def get_root_mnt(self):
+        # < 2.6.26
+        if hasattr(self, "rootmnt"):
+            ret = self.rootmnt
+        else:
+            ret = self.root.mnt
+
+        return ret
+
+Linux32.object_classes["linux_fs_struct"] = linux_fs_struct
+
+
+class VolatilityDTB(obj.VolatilityMagic):
+    """A scanner for DTB values."""
+
+    def generate_suggestions(self):
+        """Tries to locate the DTB."""
+        volmag = obj.Object('VOLATILITY_MAGIC', offset = 0, vm = self.obj_vm)
+
+        # This is the difference between the virtual and physical addresses (aka
+        # PAGE_OFFSET). On linux there is a direct mapping between physical and
+        # virtual addressing in kernel mode:
+
+        #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
+        PAGE_OFFSET = volmag.SystemMap["_text"] - volmag.SystemMap["phys_startup_32"]
+
+        yield volmag.SystemMap["swapper_pg_dir"] - PAGE_OFFSET
+
+Linux32.object_classes["VolatilityDTB"] = VolatilityDTB
 
 
 if __name__ == '__main__':

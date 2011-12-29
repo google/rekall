@@ -555,6 +555,9 @@ class Pointer(NativeType):
         else:
             return NoneObject("Pointer {0} invalid".format(self.obj_name), self.obj_vm.profile.strict)
 
+    def __dir__(self):
+        return dir(self.dereference()) + self.__dict__.keys()
+
     def cdecl(self):
         return "Pointer {0}".format(self.v())
 
@@ -723,7 +726,7 @@ class CType(BaseObject):
     def d(self):
         result = self.__repr__() + "\n"
         for k in self.members.keys():
-            result += " {0} -\n {1}\n".format(k, self.m(k))
+            result += " {0} - {1}\n".format(k, self.m(k).d())
 
         return result
 
@@ -773,6 +776,10 @@ class CType(BaseObject):
             pass
 
         return self.m(attr)
+
+    def __dir__(self):
+        """This is useful for tab completion in an ipython volshell."""
+        return self.members.keys() + self.__dict__.keys()
 
     def __setattr__(self, attr, value):
         """Change underlying members"""
