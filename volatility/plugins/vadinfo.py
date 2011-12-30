@@ -66,6 +66,12 @@ class VADInfo(taskmods.DllList):
 
     def write_vad_control(self, outfd, vad):
         """Renders a text version of a (non-short) Vad's control information"""
+        
+        # even if the ControlArea is not NULL, it is only meaningful 
+        # for shared (non private) memory sections. 
+        if vad.u.VadFlags.PrivateMemory == 1:
+            return
+        
         CA = vad.get_control_area()
         if not CA:
             #debug.b()
@@ -186,8 +192,6 @@ class VADDump(VADInfo):
                 # Find the start and end range
                 start = vad.get_start()
                 end = vad.get_end()
-                if start > 0xFFFFFFFF or end > (0xFFFFFFFF << 12):
-                    continue
 
                 # Open the file and initialize the data
                 f = open(os.path.join(self._config.DUMP_DIR, "{0}.{1:x}.{2:08x}-{3:08x}.dmp".format(name, offset, start, end)), 'wb')

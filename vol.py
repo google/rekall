@@ -59,7 +59,7 @@ import volatility.debug as debug
 
 
 def list_profiles():
-    if config.PROFILE is not None:
+    if config.PROFILE is not None and config.PROFILE != "list":
         return ""
 
     result = "\n\tAvailable Profiles:\n\n"
@@ -80,7 +80,7 @@ def list_profiles():
     return result
 
 def list_plugins():
-    if config.PROFILE is None:
+    if config.PROFILE is None or config.PROFILE == "list":
         return ''
 
     result = "\n\tSupported Plugin Commands for profile %s:\n\n" % config.PROFILE

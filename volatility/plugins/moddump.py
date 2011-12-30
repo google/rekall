@@ -46,17 +46,6 @@ class ModDump(procdump.ProcExeDump):
                           help = 'Dump driver with base address OFFSET (in hex)',
                           action = 'store', type = 'int')
 
-    def find_space(self, addr_space, procs, mod_base):
-        """Search for an address space (usually looking for a GUI process)"""
-        if addr_space.is_valid_address(mod_base):
-            return addr_space
-        for proc in procs:
-            ps_ad = proc.get_process_address_space()
-            if ps_ad != None:
-                if ps_ad.is_valid_address(mod_base):
-                    return ps_ad
-        return None
-
     @cache.CacheDecorator(lambda self: "tests/moddump/regex={0}/ignore-case={1}/offset={2}".format(self._config.REGEX, self._config.IGNORE_CASE, self._config.OFFSET))
     def calculate(self):
         addr_space = utils.load_as(self._config)
@@ -76,9 +65,9 @@ class ModDump(procdump.ProcExeDump):
         procs = list(tasks.pslist(addr_space))
 
         if self._config.OFFSET:
-            try:
+            if mods.has_key(self._config.OFFSET):
                 mod_name = mods[self._config.OFFSET].BaseDllName
-            except KeyError:
+            else:
                 mod_name = "Unknown"
             yield addr_space, procs, int(self._config.OFFSET), mod_name
         else:
@@ -95,7 +84,7 @@ class ModDump(procdump.ProcExeDump):
             debug.error(self._config.DUMP_DIR + " is not a directory")
 
         for addr_space, procs, mod_base, mod_name in data:
-            space = self.find_space(addr_space, procs, mod_base)
+            space = tasks.find_space(addr_space, procs, mod_base)
             if space != None:
                 dump_file = "driver.{0:x}.sys".format(mod_base)
                 outfd.write("Dumping {0}, Base: {1:8x} output: {2}\n".format(mod_name, mod_base, dump_file))
@@ -111,4 +100,4 @@ class ModDump(procdump.ProcExeDump):
                     outfd.write("You can use -u to disable this check.\n")
                 of.close()
             else:
-                print 'Cannot dump {0} at {1:8x}'.format(mod_name, mod_base)
+                outfd.write("Cannot dump {0} at {1:8x}\n".format(mod_name, mod_base))

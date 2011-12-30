@@ -89,25 +89,23 @@ class FileScan(common.AbstractWindowsCommand):
             pool_align = obj.VolMagic(address_space).PoolAlignment.v()
 
             file_obj = obj.Object(
-                "_FILE_OBJECT", vm = address_space,
+                "_FILE_OBJECT", vm = address_space, nativevm = self.kernel_address_space,
                 offset = (offset + pool_obj.BlockSize * pool_align -
                           self.get_rounded_size("_FILE_OBJECT", pool_align))
                      )
 
             ## The _OBJECT_HEADER is immediately below the _FILE_OBJECT
             object_obj = obj.Object(
-                "_OBJECT_HEADER", vm = address_space,
+                "_OBJECT_HEADER", vm = address_space, nativevm = self.kernel_address_space,
                 offset = (file_obj.obj_offset -
                           address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body'))
                 )
-
-            object_obj.kas = self.kernel_address_space
 
             if object_obj.get_object_type() != "File":
                 continue
 
             ## If the string is not reachable we skip it
-            Name = file_obj.FileName.v(vm = self.kernel_address_space)
+            Name = file_obj.FileName.v()
             if not Name:
                 continue
 
@@ -149,7 +147,7 @@ class DriverScan(FileScan):
         self.kernel_address_space = utils.load_as(self._config)
 
         for offset in PoolScanDriver().scan(address_space):
-            pool_obj = obj.Object("_POOL_HEADER", vm = address_space,
+            pool_obj = obj.Object("_POOL_HEADER", vm = address_space, nativevm = self.kernel_address_space,
                                  offset = offset)
 
             ## We work out the _DRIVER_OBJECT from the end of the
@@ -157,29 +155,23 @@ class DriverScan(FileScan):
             pool_align = obj.VolMagic(address_space).PoolAlignment.v()
 
             extension_obj = obj.Object(
-                "_DRIVER_EXTENSION", vm = address_space,
+                "_DRIVER_EXTENSION", vm = address_space, nativevm = self.kernel_address_space,
                 offset = (offset + pool_obj.BlockSize * pool_align -
                           self.get_rounded_size("_DRIVER_EXTENSION", pool_align)))
 
             ## The _DRIVER_OBJECT is immediately below the _DRIVER_EXTENSION
             driver_obj = obj.Object(
-                "_DRIVER_OBJECT", vm = address_space,
+                "_DRIVER_OBJECT", vm = address_space, nativevm = self.kernel_address_space,
                 offset = extension_obj.obj_offset - \
                     self.get_rounded_size("_DRIVER_OBJECT", pool_align)
                 )
 
             ## The _OBJECT_HEADER is immediately below the _DRIVER_OBJECT
             object_obj = obj.Object(
-                "_OBJECT_HEADER", vm = address_space,
+                "_OBJECT_HEADER", vm = address_space, nativevm = self.kernel_address_space,
                 offset = driver_obj.obj_offset - \
                 address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body')
                 )
-
-            ## Skip unallocated objects
-            #if object_obj.Type == 0xbad0b0b0:
-            #    continue
-
-            object_obj.kas = self.kernel_address_space
 
             if object_obj.get_object_type() != "Driver":
                 continue
@@ -196,14 +188,13 @@ class DriverScan(FileScan):
                      'Start', 'Size', 'Service key', 'Name'))
 
         for object_obj, driver_obj, extension_obj, object_name in data:
-
             outfd.write("0x{0:08x} {1:4} {2:4} 0x{3:08x} {4:6} {5:20} {6:12} {7}\n".format(
                          driver_obj.obj_offset, object_obj.PointerCount,
                          object_obj.HandleCount,
                          driver_obj.DriverStart, driver_obj.DriverSize,
-                         extension_obj.ServiceKeyName.v(vm = self.kernel_address_space),
-                         object_name.v(self.kernel_address_space),
-                         driver_obj.DriverName.v(self.kernel_address_space)))
+                         extension_obj.ServiceKeyName.v(),
+                         object_name.v(),
+                         driver_obj.DriverName.v()))
 
 class PoolScanSymlink(PoolScanFile):
     """ Scanner for symbolic link objects """
@@ -234,17 +225,16 @@ class SymLinkScan(FileScan):
             pool_align = obj.VolMagic(address_space).PoolAlignment.v()
 
             link_obj = obj.Object("_OBJECT_SYMBOLIC_LINK", vm = address_space,
-                     offset = (offset + pool_obj.BlockSize * pool_align -
-                               self.get_rounded_size("_OBJECT_SYMBOLIC_LINK", pool_align)))
+                                  nativevm = self.kernel_address_space,
+                                  offset = (offset + pool_obj.BlockSize * pool_align -
+                                            self.get_rounded_size("_OBJECT_SYMBOLIC_LINK", pool_align)))
 
             ## The _OBJECT_HEADER is immediately below the _OBJECT_SYMBOLIC_LINK
             object_obj = obj.Object(
-                "_OBJECT_HEADER", vm = address_space,
-                offset = link_obj.obj_offset - \
-                address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body')
+                "_OBJECT_HEADER", vm = address_space, nativevm = self.kernel_address_space,
+                offset = (link_obj.obj_offset -
+                          address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body'))
                 )
-
-            object_obj.kas = self.kernel_address_space
 
             if object_obj.get_object_type() != "SymbolicLink":
                 continue
@@ -262,8 +252,7 @@ class SymLinkScan(FileScan):
             outfd.write("{0:#010x} {1:4} {2:4} {3:<24} {4:<20} {5}\n".format(
                         link.obj_offset, object.PointerCount,
                         object.HandleCount, link.CreationTime or '',
-                        name.v(self.kernel_address_space),
-                        link.LinkTarget.v(self.kernel_address_space)))
+                        name.v(), link.LinkTarget.v()))
 
 class PoolScanMutant(PoolScanDriver):
     """ Scanner for Mutants _KMUTANT """
@@ -289,26 +278,24 @@ class MutantScan(FileScan):
         self.kernel_address_space = utils.load_as(self._config)
 
         for offset in PoolScanMutant().scan(address_space):
-            pool_obj = obj.Object("_POOL_HEADER", vm = address_space,
-                                 offset = offset)
+            pool_obj = obj.Object("_POOL_HEADER", vm = address_space, nativevm = self.kernel_address_space,
+                                  offset = offset)
 
             ## We work out the _DRIVER_OBJECT from the end of the
             ## allocation (bottom up).
             pool_align = obj.VolMagic(address_space).PoolAlignment.v()
 
             mutant = obj.Object(
-                "_KMUTANT", vm = address_space,
+                "_KMUTANT", vm = address_space, nativevm = self.kernel_address_space,
                 offset = (offset + pool_obj.BlockSize * pool_align -
                           self.get_rounded_size("_KMUTANT", pool_align)))
 
             ## The _OBJECT_HEADER is immediately below the _KMUTANT
             object_obj = obj.Object(
-                "_OBJECT_HEADER", vm = address_space,
-                offset = mutant.obj_offset - \
-                address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body')
+                "_OBJECT_HEADER", vm = address_space,  nativevm = self.kernel_address_space,
+                offset = (mutant.obj_offset -
+                            address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body'))
                 )
-
-            object_obj.kas = self.kernel_address_space
 
             if object_obj.get_object_type() != "Mutant":
                 continue
@@ -334,7 +321,8 @@ class MutantScan(FileScan):
         for object_obj, mutant, object_name in data:
             if mutant.OwnerThread > 0x80000000:
                 thread = obj.Object("_ETHREAD", vm = self.kernel_address_space,
-                                   offset = mutant.OwnerThread)
+                                    nativevm = self.kernel_address_space,
+                                    offset = mutant.OwnerThread)
                 CID = "{0}:{1}".format(thread.Cid.UniqueProcess, thread.Cid.UniqueThread)
             else:
                 CID = ""
@@ -342,8 +330,7 @@ class MutantScan(FileScan):
             outfd.write("0x{0:08x} {1:4} {2:4} {3:6} 0x{4:08x} {5:10} {6}\n".format(
                          mutant.obj_offset, object_obj.PointerCount,
                          object_obj.HandleCount, mutant.Header.SignalState,
-                         mutant.OwnerThread, CID,
-                         object_name.v(self.kernel_address_space)
+                         mutant.OwnerThread, CID, object_name.v()
                          ))
 
 class CheckProcess(scan.ScannerCheck):
@@ -443,8 +430,9 @@ class PSScan(common.AbstractWindowsCommand):
         address_space = utils.load_as(self._config, astype = 'physical')
 
         for offset in PoolScanProcess().scan(address_space):
-            eprocess = obj.Object('_EPROCESS', vm = address_space,
-                               offset = offset)
+            eprocess = obj.Object('_EPROCESS', vm = address_space, 
+                                  nativevm = self.kernel_address_space,
+                                  offset = offset)
             yield eprocess
 
     def guess_eprocess_virtual_address(self, eprocess):
@@ -452,7 +440,7 @@ class PSScan(common.AbstractWindowsCommand):
         # This is the list entry of the ProcessListEntry reflected through the
         # next process in the list
         list_entry = eprocess.ThreadListHead.Flink.dereference_as(
-            '_LIST_ENTRY', addr_space = self.kernel_address_space).Blink.dereference()
+            '_LIST_ENTRY').Blink.dereference()
 
         # Take us back to the _EPROCESS offset
         list_entry_offset = self.kernel_address_space.profile.get_obj_offset(
@@ -484,3 +472,31 @@ class PSScan(common.AbstractWindowsCommand):
                 eprocess.Pcb.DirectoryTableBase,
                 eprocess.CreateTime or '',
                 eprocess.ExitTime or ''))
+
+    def render_dot(self, outfd, data):
+        objects = set()
+        links = set()
+
+        for eprocess in data:
+            label = "{0} | {1} |".format(eprocess.UniqueProcessId,
+                                         eprocess.ImageFileName)
+            if eprocess.ExitTime:
+                label += "exited\\n{0}".format(eprocess.ExitTime)
+                options = ' style = "filled" fillcolor = "lightgray" '
+            else:
+                label += "running"
+                options = ''
+
+            objects.add('pid{0} [label="{1}" shape="record" {2}];\n'.format(eprocess.UniqueProcessId,
+                                                                            label, options))
+            links.add("pid{0} -> pid{1} [];\n".format(eprocess.InheritedFromUniqueProcessId,
+                                                      eprocess.UniqueProcessId))
+
+        ## Now write the dot file
+        outfd.write("digraph processtree { \ngraph [rankdir = \"TB\"];\n")
+        for link in links:
+            outfd.write(link)
+
+        for item in objects:
+            outfd.write(item)
+        outfd.write("}")

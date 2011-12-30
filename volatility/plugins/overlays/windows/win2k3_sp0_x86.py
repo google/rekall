@@ -27,7 +27,6 @@ This file provides support for Windows 2003 SP0.
 
 #pylint: disable-msg=C0111
 
-import copy
 import win2k3_sp0_x86_vtypes
 import win2k3_sp0_x86_syscalls
 import xp_sp2_x86
@@ -64,11 +63,11 @@ win2k3sp0x86overlays_update = {
     }
 
 
-win2k3_sp0_x86_vtypes.ntoskrnl_types.update(crash_vtypes.crash_vtypes)
-win2k3_sp0_x86_vtypes.ntoskrnl_types.update(hibernate_vtypes.hibernate_vtypes)
-win2k3_sp0_x86_vtypes.ntoskrnl_types.update(tcpip_vtypes.tcpip_vtypes)
-win2k3_sp0_x86_vtypes.ntoskrnl_types.update(tcpip_vtypes.tcpip_vtypes_vista)
-win2k3_sp0_x86_vtypes.ntoskrnl_types.update(kdbg_vtypes.kdbg_vtypes)
+win2k3_sp0_x86_vtypes.nt_types.update(crash_vtypes.crash_vtypes)
+win2k3_sp0_x86_vtypes.nt_types.update(hibernate_vtypes.hibernate_vtypes)
+win2k3_sp0_x86_vtypes.nt_types.update(tcpip_vtypes.tcpip_vtypes)
+win2k3_sp0_x86_vtypes.nt_types.update(tcpip_vtypes.tcpip_vtypes_vista)
+win2k3_sp0_x86_vtypes.nt_types.update(kdbg_vtypes.kdbg_vtypes)
 
 win2k3sp0x86overlays = windows.AbstractWindows.apply_overlay(
     xp_sp2_x86.xpsp2overlays, win2k3sp0x86overlays_update)
@@ -78,7 +77,7 @@ class Win2K3SP0x86(windows.AbstractWindows):
     """ A Profile for Windows 2003 SP0 x86 """
     _md_major = 5
     _md_minor = 2
-    abstract_types = win2k3_sp0_x86_vtypes.ntoskrnl_types
+    abstract_types = win2k3_sp0_x86_vtypes.nt_types
     overlay = win2k3sp0x86overlays
     object_classes = windows.AbstractWindows.object_classes.copy()
     syscalls = win2k3_sp0_x86_syscalls.syscalls

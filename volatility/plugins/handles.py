@@ -26,25 +26,26 @@ import volatility.utils as utils
 import volatility.plugins.taskmods as taskmods
 import volatility.plugins.filescan as filescan
 
-# Inherit from Dlllist for command line options, FileScan for parse_string
-class Handles(taskmods.DllList, filescan.FileScan):
+# Inherit from Dlllist for command line options
+class Handles(taskmods.DllList):
     """Print list of open handles for each process"""
 
     def __init__(self, config, *args):
-        filescan.FileScan.__init__(self, config, *args)
         taskmods.DllList.__init__(self, config, *args)
         config.add_option("PHYSICAL-OFFSET", short_option = 'P', default = False,
                           help = "Physical Offset", action = "store_true")
         config.add_option("OBJECT-TYPE", short_option = 't', default = None,
                           help = 'Show these object types (comma-separated)',
                           action = 'store', type = 'str')
+        config.add_option("SILENT", short_option = 's', default = False,
+                          action = 'store_true', help = 'Suppress less meaningful results')
 
     def full_key_name(self, handle):
         """Returns the full name of a registry key based on its CM_KEY_BODY handle"""
         output = []
         kcb = handle.KeyControlBlock
         while kcb.ParentKcb:
-            if kcb.NameBlock == None:
+            if kcb.NameBlock.Name == None:
                 break
             output.append(str(kcb.NameBlock.Name))
             kcb = kcb.ParentKcb
@@ -53,8 +54,8 @@ class Handles(taskmods.DllList, filescan.FileScan):
     def render_text(self, outfd, data):
         offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"
 
-        outfd.write("{0:6}{1:6} {2:6} {3:<16} {4}\n".format(
-            "Offset", offsettype, "Pid", "Type", "Details"))
+        outfd.write("{0:6}{1:6} {2:6} {3:10} {4:<16} {5}\n".format(
+            "Offset", offsettype, "Pid", "Access", "Type", "Details"))
 
         if self._config.OBJECT_TYPE:
             object_list = [s for s in self._config.OBJECT_TYPE.split(',')]
@@ -64,13 +65,16 @@ class Handles(taskmods.DllList, filescan.FileScan):
         for pid, h, otype, name in data:
             if object_list and otype not in object_list:
                 continue
+            if self._config.SILENT:
+                if len(name.replace("'", "")) == 0:
+                    continue
             if not self._config.PHYSICAL_OFFSET:
-                offset = h.obj_offset
+                offset = h.Body.obj_offset
             else:
-                offset = h.obj_vm.vtop(h.obj_offset)
+                offset = h.obj_vm.vtop(h.Body.obj_offset)
 
-            outfd.write("{0:#010x}   {1:<6} {2:<16} {3}\n".format(
-                offset, pid, otype, name))
+            outfd.write("{0:#010x}   {1:<6} {2:<#10x} {3:<16} {4}\n".format(
+                offset, pid, h.members['GrantedAccess'], otype, name))
 
     def calculate(self):
         ## Will need the kernel AS for later:
@@ -84,9 +88,10 @@ class Handles(taskmods.DllList, filescan.FileScan):
                     h.kas = self.kernel_address_space
                     otype = h.get_object_type()
                     if otype == "File":
-                        file_obj = obj.Object("_FILE_OBJECT", h.Body.obj_offset, h.obj_vm)
+                        file_obj = obj.Object("_FILE_OBJECT", h.Body.obj_offset, vm=h.obj_vm,
+                                              nativevm=self.kernel_address_space)
                         if file_obj.FileName:
-                            name = file_obj.FileName.v(self.kernel_address_space)
+                            name = file_obj.FileName
                     elif otype == "Key":
                         key_obj = obj.Object("_CM_KEY_BODY", h.Body.obj_offset, h.obj_vm)
                         name = self.full_key_name(key_obj)
@@ -97,6 +102,6 @@ class Handles(taskmods.DllList, filescan.FileScan):
                         thrd_obj = obj.Object("_ETHREAD", h.Body.obj_offset, h.obj_vm)
                         name = "TID {0} PID {1}".format(thrd_obj.Cid.UniqueThread, thrd_obj.Cid.UniqueProcess)
                     else:
-                        name = h._OBJECT_HEADER_NAME_INFO.Name.v(self.kernel_address_space)
+                        name = h._OBJECT_HEADER_NAME_INFO.Name
 
                     yield pid, h, otype, name

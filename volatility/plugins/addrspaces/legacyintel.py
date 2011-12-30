@@ -95,8 +95,9 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddres
             if (entry & 1):
                 return True
 
-            # The page is in transition and is actually present.
-            if (entry & (1 << 11)):
+            # The page is in transition and not a prototype.
+            # Thus, we will treat it as present.
+            if (entry & (1 << 11)) and not (entry & (1 << 10)):
                 return True
 
         return False
@@ -154,36 +155,36 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddres
 
         paddr = self.vtop(vaddr)
         if paddr == None:
-            return None
+            return obj.NoneObject("No physical address found for vaddr " + str(vaddr))
 
         if length < first_block:
             stuff_read = self.base.read(paddr, length)
             if stuff_read == None:
-                return None
+                return obj.NoneObject("Base.read returned None for paddr " + str(paddr))
             return stuff_read
 
         stuff_read = self.base.read(paddr, first_block)
         if stuff_read == None:
-            return None
+            return obj.NoneObject("Base.read returned None for paddr " + str(paddr))
 
         new_vaddr = vaddr + first_block
         for _i in range(0, full_blocks):
             paddr = self.vtop(new_vaddr)
             if paddr is None:
-                return None
+                return obj.NoneObject("No physical address found for vaddr " + str(new_vaddr))
             new_stuff = self.base.read(paddr, 0x1000)
             if new_stuff is None:
-                return None
+                return obj.NoneObject("Base.read returned None for paddr " + str(paddr))
             stuff_read = stuff_read + new_stuff
             new_vaddr = new_vaddr + 0x1000
 
         if left_over > 0:
             paddr = self.vtop(new_vaddr)
             if paddr is None:
-                return None
+                return obj.NoneObject("No physical address found for vaddr " + str(new_vaddr))
             new_stuff = self.base.read(paddr, left_over)
             if new_stuff is None:
-                return None
+                return obj.NoneObject("Base.read returned None for paddr " + str(paddr))
             stuff_read = stuff_read + new_stuff
         return stuff_read
 
@@ -226,14 +227,17 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddres
     def read_long_virt(self, addr):
         string = self.read(addr, 4)
         if string is None:
-            return None
+            return obj.NoneObject("Unable to read base AS at " + str(addr))
         (longval,) = struct.unpack('=I', string)
         return longval
 
     def read_long_phys(self, addr):
-        string = self.base.read(addr, 4)
+        try:
+            string = self.base.read(addr, 4)
+        except IOError:
+            string = None
         if string is None:
-            return None
+            return obj.NoneObject("Unable to read base AS at " + str(addr))
         (longval,) = struct.unpack('=I', string)
         return longval
 
@@ -323,9 +327,12 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         return retVal
 
     def _read_long_long_phys(self, addr):
-        string = self.base.read(addr, 8)
+        try:
+            string = self.base.read(addr, 8)
+        except IOError:
+            string = None
         if string == None:
-            return None
+            return obj.NoneObject("Unable to read base AS at " + str(addr))
         (longlongval,) = struct.unpack('=Q', string)
         return longlongval
 

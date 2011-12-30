@@ -132,16 +132,20 @@ class volshell(commands.command):
 
         if not command_cls:
             print "Command %s: Unknown" % command
-
+            return None
 
         def RunCode(**kwargs):
+            """Run the command plugin and return the command instance."""
             conf_obj = self._config.get_conf_obj()
             command_cls.register_options(conf_obj)
 
             for k, v in kwargs.items():
                 setattr(conf_obj, k, v)
 
-            command_cls(conf_obj).execute()
+            cmd = command_cls(conf_obj)
+            cmd.execute()
+
+            return cmd
 
         # Add a docstring for helpfulness (so we have something smart
         # to show for command? in ipython)

@@ -40,6 +40,9 @@ import volatility.debug as debug #pylint: disable-msg=W0611
 
 win7sp0x86overlays = copy.deepcopy(vista_sp0_x86.vistasp0x86overlays)
 
+# Remove the _OBJECT_HEADER overlays since win7 handles them differently.
+win7sp0x86overlays.pop("_OBJECT_HEADER", 0)
+
 win7sp0x86overlays['VOLATILITY_MAGIC'][1]['DTBSignature'][1] = ['VolatilityMagic', dict(value = "\x03\x00\x26\x00")]
 win7sp0x86overlays['VOLATILITY_MAGIC'][1]['KPCR'][1] = ['VolatilityKPCR', dict(configname = 'KPCR')]
 win7sp0x86overlays['VOLATILITY_MAGIC'][1]['KDBGHeader'][1] = ['VolatilityMagic', dict(value = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x40\x03')]
@@ -95,12 +98,12 @@ win7sp0x86overlays['VOLATILITY_MAGIC'][1]['TypeIndexMap'] = [ 0x0, ['VolatilityM
             43: 'PcwObject',
             })]]
 
-win7_sp0_x86_vtypes.ntkrpamp_types.update(crash_vtypes.crash_vtypes)
-win7_sp0_x86_vtypes.ntkrpamp_types.update(hibernate_vtypes.hibernate_vtypes)
-win7_sp0_x86_vtypes.ntkrpamp_types.update(kdbg_vtypes.kdbg_vtypes)
-win7_sp0_x86_vtypes.ntkrpamp_types.update(tcpip_vtypes.tcpip_vtypes)
-win7_sp0_x86_vtypes.ntkrpamp_types.update(tcpip_vtypes.tcpip_vtypes_vista)
-win7_sp0_x86_vtypes.ntkrpamp_types.update(tcpip_vtypes.tcpip_vtypes_7)
+win7_sp0_x86_vtypes.nt_types.update(crash_vtypes.crash_vtypes)
+win7_sp0_x86_vtypes.nt_types.update(hibernate_vtypes.hibernate_vtypes)
+win7_sp0_x86_vtypes.nt_types.update(kdbg_vtypes.kdbg_vtypes)
+win7_sp0_x86_vtypes.nt_types.update(tcpip_vtypes.tcpip_vtypes)
+win7_sp0_x86_vtypes.nt_types.update(tcpip_vtypes.tcpip_vtypes_vista)
+win7_sp0_x86_vtypes.nt_types.update(tcpip_vtypes.tcpip_vtypes_7)
 
 win7_object_classes = copy.deepcopy(vista_sp0_x86.VistaSP0x86.object_classes)
 
@@ -135,7 +138,7 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
         for name, mask in self.optional_header_mask:
             if info_mask & mask:
                 offset -= self.obj_vm.profile.get_obj_size(name)
-                o = obj.Object(name, offset, self.obj_vm)
+                o = obj.Object(name, offset, vm=self.obj_vm, nativevm=self.obj_nativevm)
             else:
                 o = obj.NoneObject("Header not set")
 
@@ -156,7 +159,10 @@ class Win7SP0x86(windows.AbstractWindows):
     """ A Profile for Windows 7 SP0 x86 """
     _md_major = 6
     _md_minor = 1
-    abstract_types = win7_sp0_x86_vtypes.ntkrpamp_types
+    abstract_types = win7_sp0_x86_vtypes.nt_types
     overlay = win7sp0x86overlays
     object_classes = win7_object_classes
     syscalls = win7_sp0_x86_syscalls.syscalls
+    # FIXME: Temporary fix for issue 105
+    native_types = copy.deepcopy(windows.AbstractWindows.native_types)
+    native_types['pointer64'] = windows.AbstractWindows.native_types['unsigned long long']

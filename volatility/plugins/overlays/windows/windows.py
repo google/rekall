@@ -50,13 +50,13 @@ class _UNICODE_STRING(obj.CType):
         than a pointer to an unsigned short.
       * The __str__ method returns the value of the Buffer.
     """
-    def v(self, vm = None):
+    def v(self):
         try:
             length = self.Length.v()
             if length > 1024:
                 length = 0
-            data = (vm or self.obj_vm).read(self.Buffer.v(), length)
-            return data.decode("utf16", "ignore").encode("ascii", 'backslashreplace')
+            data = self.Buffer.dereference_as('String', length = length)
+            return data.v().decode("utf16", "ignore").encode("ascii", 'backslashreplace')
         except Exception, _e:
             return ''
 
@@ -94,6 +94,7 @@ class _LIST_ENTRY(obj.CType):
             item = obj.Object(type, offset = lst.obj_offset - offset,
                                     vm = self.obj_vm,
                                     parent = self.obj_parent,
+                                    nativevm = self.obj_nativevm,
                                     name = type)
 
 
@@ -121,11 +122,9 @@ AbstractWindows.object_classes['_LIST_ENTRY'] = _LIST_ENTRY
 class WinTimeStamp(obj.NativeType):
     """Class for handling Windows Time Stamps"""
 
-    def __init__(self, theType = None, offset = None, vm = None,
-                 parent = None, name = None, is_utc = False, **args):
+    def __init__(self, theType, offset, vm, is_utc = False, **kwargs):
         self.is_utc = is_utc
-        obj.NativeType.__init__(self, theType, offset, vm, parent = parent,
-                                name = name, format_string = "q")
+        obj.NativeType.__init__(self, theType, offset, vm, format_string = "q", **kwargs)
 
     def windows_to_unix_time(self, windows_time):
         """
@@ -151,7 +150,7 @@ class WinTimeStamp(obj.NativeType):
     def as_windows_timestamp(self):
         return obj.NativeType.v(self)
 
-    def v(self, vm = None):
+    def v(self):
         value = self.as_windows_timestamp()
         return self.windows_to_unix_time(value)
 
@@ -182,7 +181,8 @@ AbstractWindows.object_classes['WinTimeStamp'] = WinTimeStamp
 
 class _EPROCESS(obj.CType):
     """ An extensive _EPROCESS with bells and whistles """
-    def _Peb(self, _attr):
+    @property
+    def Peb(self):
         """ Returns a _PEB object which is using the process address space.
 
         The PEB structure is referencing back into the process address
@@ -262,6 +262,10 @@ class _HANDLE_TABLE(obj.CType):
                     if item == None:
                         continue
 
+                    # carry over the access from _HANDLE_TABLE_ENTRY and make it  
+                    # an "fake" member of _OBJECT_HEADER. see Issue 135. 
+                    item.members['GrantedAccess'] = entry.GrantedAccess
+
                     try:
                         # New object header
                         if item.TypeIndex != 0x0:
@@ -307,8 +311,6 @@ class _OBJECT_HEADER(obj.CType):
     """
 
     def __init__(self, *args, **kwargs):
-        # kernel AS for dereferencing pointers 
-        self.kas = None
         obj.CType.__init__(self, *args, **kwargs)
 
         # Create accessors for optional headers
@@ -316,7 +318,7 @@ class _OBJECT_HEADER(obj.CType):
 
     optional_headers = (
         ('_OBJECT_HEADER_NAME_INFO', 'NameInfoOffset'),
-        #('_OBJECT_HEADER_HANDLE_INFO', 'HandleInfoOffset'),
+        ('_OBJECT_HEADER_HANDLE_INFO', 'HandleInfoOffset'),
         ('_OBJECT_HEADER_QUOTA_INFO', 'QuotaInfoOffset'),
         )
 
@@ -327,7 +329,7 @@ class _OBJECT_HEADER(obj.CType):
         for name, info_offset in self.optional_headers:
             header_offset = self.m(info_offset).v()
             if header_offset:
-                o = obj.Object(name, offset-header_offset, self.obj_vm)
+                o = obj.Object(name, offset-header_offset, vm=self.obj_vm, nativevm=self.obj_nativevm)
             else:
                 o = obj.NoneObject("Header not set")
 
@@ -335,7 +337,8 @@ class _OBJECT_HEADER(obj.CType):
 
     def get_object_type(self):
         """Return the object's type as a string"""
-        type_obj = obj.Object("_OBJECT_TYPE", self.Type, self.kas)
+        # TODO: This should be put in the overlay: 'Type': [ None, ['_OBJECT_TYPE']],
+        type_obj = obj.Object("_OBJECT_TYPE", self.Type, self.obj_nativevm)
 
         return type_obj.Name.v()
 
@@ -355,7 +358,7 @@ class _MMVAD(obj.CType):
               }
 
     ## parent is the containing _EPROCESS right now
-    def __new__(cls, theType, offset, vm, parent, **args):
+    def __new__(cls, theType, offset, vm, parent, members=None, **args):
         ## All VADs are done in the process AS - so we might need to switch
         ## Address spaces now. Find the eprocess we came from and switch
         ## AS. Note that all child traversals will be in Process AS. 
@@ -451,9 +454,9 @@ AbstractWindows.object_classes['_MMVAD_LONG'] = _MMVAD_LONG
 class _EX_FAST_REF(obj.CType):
     """Overrides the dereferencing of EX_FAST_REF objects"""
 
-    def dereference_as(self, theType, addr_space = None):
+    def dereference_as(self, theType):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the specified type"""
-        return obj.Object(theType, vm = addr_space or self.obj_vm, parent = self, offset = self.Object.v() & ~7)
+        return obj.Object(theType, vm = self.obj_nativevm, parent = self, offset = self.Object.v() & ~7)
 
 AbstractWindows.object_classes['_EX_FAST_REF'] = _EX_FAST_REF
 
@@ -469,23 +472,20 @@ AbstractWindows.object_classes['ThreadCreateTimeStamp'] = ThreadCreateTimeStamp
 
 class _TCPT_OBJECT(obj.CType):
     """Provides additional functions for TCPT_OBJECTs"""
+    @property
+    def RemoteIpAddress(self):
+        return socket.inet_ntoa(struct.pack("<I", self.m('RemoteIpAddress').v()))
 
-    def _RemoteIpAddress(self, attr):
-        """Returns the remote IP address of the TCPT_OBJECT"""
-        return socket.inet_ntoa(struct.pack("<I", self.m(attr).v()))
-
-    def _LocalIpAddress(self, attr):
-        """Returns the local IP address of the TCPT_OBJECT"""
-        return socket.inet_ntoa(struct.pack("<I", self.m(attr).v()))
+    @property
+    def LocalIpAddress(self):
+        return socket.inet_ntoa(struct.pack("<I", self.m('LocalIpAddress').v()))
 
 AbstractWindows.object_classes['_TCPT_OBJECT'] = _TCPT_OBJECT
 
 class _ADDRESS_OBJECT(obj.CType):
-    """Provides additional functions for ADDRESS_OBJECTs"""
-
-    def _LocalIpAddress(self, attr):
-        """Returns the local IP address of the ADDRESS_OBJECT"""
-        return socket.inet_ntoa(struct.pack("<I", self.m(attr).v()))
+    @property
+    def LocalIpAddress(self):
+        return socket.inet_ntoa(struct.pack("<I", self.m('LocalIpAddress').v()))
 
 AbstractWindows.object_classes['_ADDRESS_OBJECT'] = _ADDRESS_OBJECT
 
@@ -544,3 +544,58 @@ class VolatilityIA32ValidAS(obj.VolatilityMagic):
         yield False
 
 AbstractWindows.object_classes['VolatilityIA32ValidAS'] = VolatilityIA32ValidAS
+
+class _IMAGE_DOS_HEADER(obj.CType):
+    """DOS header"""
+
+    def get_nt_header(self):
+        """Get the NT header"""
+
+        if self.e_magic != 0x5a4d:
+            raise ValueError('e_magic {0:04X} is not a valid DOS signature.'.format(self.e_magic))
+
+        nt_header = obj.Object("_IMAGE_NT_HEADERS",
+                          offset = self.e_lfanew + self.obj_offset,
+                          vm = self.obj_vm,
+                          nativevm = self.obj_nativevm)
+
+        if nt_header.Signature != 0x4550:
+            raise ValueError('NT header signature {0:04X} is not a valid'.format(nt_header.Signature))
+
+        return nt_header
+
+AbstractWindows.object_classes['_IMAGE_DOS_HEADER'] = _IMAGE_DOS_HEADER
+
+class _IMAGE_NT_HEADERS(obj.CType):
+    """PE header"""
+
+    def get_sections(self, unsafe):
+        """Get the PE sections"""
+        sect_size = self.obj_vm.profile.get_obj_size("_IMAGE_SECTION_HEADER")
+        start_addr = self.FileHeader.SizeOfOptionalHeader + self.OptionalHeader.obj_offset
+
+        for i in range(self.FileHeader.NumberOfSections):
+            s_addr = start_addr + (i * sect_size)
+            sect = obj.Object("_IMAGE_SECTION_HEADER", offset = s_addr, vm = self.obj_vm,
+                              parent = self, nativevm = self.obj_nativevm)
+            if not unsafe:
+                sect.sanity_check_section()
+            yield sect
+
+AbstractWindows.object_classes['_IMAGE_NT_HEADERS'] = _IMAGE_NT_HEADERS
+
+class _IMAGE_SECTION_HEADER(obj.CType):
+    """PE section"""
+
+    def sanity_check_section(self):
+        """Sanity checks address boundaries"""
+        # Note: all addresses here are RVAs
+        image_size = self.obj_parent.OptionalHeader.SizeOfImage
+        if self.VirtualAddress > image_size:
+            raise ValueError('VirtualAddress {0:08x} is past the end of image.'.format(self.VirtualAddress))
+        if self.Misc.VirtualSize > image_size:
+            raise ValueError('VirtualSize {0:08x} is larger than image size.'.format(self.Misc.VirtualSize))
+        if self.SizeOfRawData > image_size:
+            raise ValueError('SizeOfRawData {0:08x} is larger than image size.'.format(self.SizeOfRawData))
+
+AbstractWindows.object_classes['_IMAGE_SECTION_HEADER'] = _IMAGE_SECTION_HEADER
