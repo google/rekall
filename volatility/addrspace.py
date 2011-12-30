@@ -87,7 +87,7 @@ class BaseAddressSpace(object):
             ret = PROFILES[profile_name]
         except KeyError:
             try:
-                ret = registry.PROFILES[profile_name]()
+                ret = registry.PROFILES[profile_name](config=self._config)
                 PROFILES[profile_name] = ret
             except KeyError:
                 raise ASAssertionError, "Invalid profile " + profile_name + " selected"

@@ -207,7 +207,6 @@ def do_get_path(rdentry, rmnt, dentry, vfsmnt, addr_space):
     return ret_val
 
 def get_path(task, filp, addr_space):
-
     rdentry  = task.fs.get_root_dentry()
     rmnt     = task.fs.get_root_mnt()
     dentry = filp.get_dentry()

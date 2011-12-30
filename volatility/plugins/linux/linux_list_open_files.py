@@ -35,7 +35,6 @@ class linux_list_open_files(ltps.linux_task_list_ps):
         tasks = ltps.linux_task_list_ps.calculate(self)
 
         for task in tasks:
-
             fds     = task.files.get_fds()
             max_fds = task.files.get_max_fds()
 

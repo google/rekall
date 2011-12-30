@@ -485,7 +485,7 @@ class linux_file(obj.CType):
 
         return ret
 
-Linux32.object_classes["linux_file"] = linux_file
+Linux32.object_classes["file"] = linux_file
 
 
 class list_head(obj.CType):
@@ -558,21 +558,24 @@ Linux32.object_classes["files_struct"] = files_struct
 
 class task_struct(obj.CType):
 
-    def _uid(self, _attr):
+    @property
+    def uid(self):
         ret = self.members.get("uid")
         if ret is None:
             ret = self.cred.uid
 
         return ret
 
-    def _gid(self):
+    @property
+    def gid(self):
         ret = self.members.get("gid")
         if ret is None:
             ret = self.cred.gid
 
         return ret
 
-    def _euid(self):
+    @property
+    def euid(self):
         ret = self.members.get("euid")
         if ret is None:
             ret = self.cred.euid
@@ -616,7 +619,7 @@ class linux_fs_struct(obj.CType):
 
         return ret
 
-Linux32.object_classes["linux_fs_struct"] = linux_fs_struct
+Linux32.object_classes["fs_struct"] = linux_fs_struct
 
 
 class VolatilityDTB(obj.VolatilityMagic):

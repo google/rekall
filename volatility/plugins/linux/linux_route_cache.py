@@ -42,7 +42,7 @@ class linux_route_cache(linux_common.AbstractLinuxCommand):
 
             if not rth:
                 continue
-           
+
             if rth.u.dst.dev:
                 name = rth.u.dst.dev.name
             else:
