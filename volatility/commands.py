@@ -59,11 +59,32 @@ class command(object):
     def help(cls):
         """ This function returns a string that will be displayed when a
         user lists available plugins.
+
+        By default we return the doc string and a list of module
+        specific options.
         """
+        docstring = ""
         try:
-            return textwrap.dedent(cls.__doc__)
+            docstring = textwrap.dedent(cls.__doc__)
         except (AttributeError, TypeError):
-            return ""
+            pass
+
+        class HelpRegistrator(object):
+            """gives help about specific module parameters."""
+            docstring = ""
+            def add_option(self, name, default = None, help = "",**kwargs):
+                attr = name.lower().replace("-", "_")
+                self.docstring += "\n%s: \t\t%s (default %s)" % (attr, help, default)
+
+        # Generate a line for each module specific option.
+        help_registrator = HelpRegistrator()
+        cls.register_options(help_registrator)
+
+        if help_registrator.docstring:
+            docstring += "\n\nModule specific parameters\n--------------------------"
+            docstring += help_registrator.docstring
+
+        return docstring
 
     @classmethod
     def is_active(cls, config):

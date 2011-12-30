@@ -30,22 +30,23 @@ class linux_task_list_ps(linux_common.AbstractLinuxCommand):
 
     __name = "pslist"
 
-    def __init__(self, config, *args):
-        linux_common.AbstractLinuxCommand.__init__(self, config, *args)
-        self._config.add_option('PID', short_option = 'p', default = None, help = 'Operate on these Process IDs (comma-separated)', action = 'store', type = 'str')
+    @staticmethod
+    def register_options(config):
+        linux_common.AbstractLinuxCommand.register_options(config)
+        config.add_option('PID', short_option = 'p', default = None,
+                          help = 'Operate on these Process IDs (comma-separated)',
+                          action = 'store', type = 'str')
 
     def calculate(self):
         init_task_addr = self.smap["init_task"]
 
         init_task = obj.Object("task_struct", vm = self.addr_space, offset = init_task_addr)
 
-        pidlist = None
-
-        try:
-            if self._config.PID:
-                pidlist = [int(p) for p in self._config.PID.split(',')]
-        except:
-            pass
+        pidlist = self._config.PID
+        if isinstance(pidlist, str):
+            pidlist = [int(p) for p in pidlist.split(',')]
+        elif isinstance(pidlist, int):
+            pidlist = [pidlist]
 
         # walk the ->tasks list, note that this will *not* display "swapper"
         for task in linux_common.walk_list_head("task_struct", "tasks", init_task.tasks, self.addr_space):

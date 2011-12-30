@@ -26,7 +26,7 @@ import os
 import volatility.debug as debug
 import volatility.addrspace as addrspace #pylint: disable-msg=W0611
 
-config = conf.ConfObject()
+config = conf.ConfFactory()
 
 def set_location(_option, _opt_str, value, parser):
     """Sets the location variable in the parser to the filename in question"""

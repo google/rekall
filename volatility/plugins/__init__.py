@@ -2,7 +2,7 @@ import volatility.conf as conf
 import volatility.constants as constants
 import os
 
-config = conf.ConfObject()
+config = conf.ConfFactory()
 
 # Add the PLUGINPATH, in case we're frozen
 __path__.extend([constants.PLUGINPATH])

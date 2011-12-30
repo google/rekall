@@ -100,7 +100,21 @@ class PyFlagOptionParser(optparse.OptionParser):
         for cb in self.help_hooks:
             file.write(cb())
 
+
 class ConfObject(object):
+    """This configuration object can be passed to various plugins."""
+
+    def __getattr__(self, attr):
+        """Conf objects are case insensitive."""
+        return object.__getattribute__(self, attr.lower())
+
+    def add_option(self, name, default = None, **kwargs):
+        attr = name.lower().replace("-", "_")
+
+        setattr(self, attr, default)
+
+
+class ConfFactory(object):
     """ This is a singleton class to manage the configuration.
 
     This means it can be instantiated many times, but each instance
@@ -110,6 +124,9 @@ class ConfObject(object):
     NOTE: The class attributes have static dicts assigned to
     facilitate singleton behaviour. This means all future instances
     will have the same dicts.
+
+    The factory is used to create ConfObjects which can then be passed
+    to the various commands.
     """
     optparser = PyFlagOptionParser(add_help_option = False,
                                    version = False,
@@ -157,11 +174,11 @@ class ConfObject(object):
 
     def __init__(self):
         """ This is a singleton object kept in the class """
-        if not ConfObject.initialised:
+        if not ConfFactory.initialised:
             self.optparser.add_option("-h", "--help", action = "store_true", default = False,
                             help = "list all available options and their default values. Default values may be set in the configuration file (" + default_config + ")")
 
-            ConfObject.initialised = True
+            ConfFactory.initialised = True
 
     def set_usage(self, usage = None, version = None):
         if usage:
@@ -169,6 +186,33 @@ class ConfObject(object):
 
         if version:
             self.optparser.version = version
+
+    def get_conf_obj(self):
+        """Produce a ConfObject instance."""
+        result = ConfObject()
+
+        # We merge data from different sources so that more
+        # authoritative data overrides older data. This ensures the
+        # precendence is maintained (e.g. command line args override
+        # config files).
+        env_dict = {}
+        for k, v in os.environ.items():
+            if k.startswith("VOLATILITY_"):
+                env_dict[k[len("VOLATILITY_"):].lower()] = v
+
+        information_sources = [self.default_opts, self.cnf_opts, env_dict,
+                               self.optparser.values.__dict__, # Command line
+                               self.optparse_opts.__dict__,
+                               self.readonly, # Non overridable read only values.
+                               ]
+
+        # Command line option.
+        for source in information_sources:
+            for k, v in source.items():
+                if v is not None:
+                    setattr(result, k, v)
+
+        return result
 
     def add_file(self, filename, _type = 'init'):
         """ Adds a new file to parse """
@@ -198,7 +242,7 @@ class ConfObject(object):
             except IOError:
                 print "Unable to open {0}".format(f)
 
-        ConfObject._filename = filename
+        ConfFactory._filename = filename
 
     def print_help(self):
         return self.optparser.print_help()
@@ -387,12 +431,6 @@ class ConfObject(object):
         if self.opts == None:
             self.parse_options(False)
 
-        ## Maybe its a class method?
-        try:
-            return super(ConfObject, self).__getattribute__(attr)
-        except AttributeError:
-            pass
-
         ## Is it a ready only parameter (i.e. can not be overridden by
         ## the config file)
         try:
@@ -441,10 +479,11 @@ class ConfObject(object):
 
         raise AttributeError("Parameter {0} is not configured - try setting it on the command line (-h for help)".format(attr))
 
-class DummyConfig(ConfObject):
+class DummyConfig(ConfFactory):
     pass
 
-config = ConfObject()
+config = ConfFactory()
+
 if os.access(default_config, os.R_OK):
     config.add_file(default_config)
 else:

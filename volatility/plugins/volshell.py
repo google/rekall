@@ -122,6 +122,32 @@ class volshell(commands.command):
 
         self.context_display()
 
+    def make_command_function(self, command_name):
+        """Return a shell function which runs the command."""
+        command_cls = None
+        for command_cls in MemoryRegistry.PLUGIN_COMMANDS.commands.get(
+            command_name):
+            if command_cls.is_active(self._config):
+                break
+
+        if not command_cls:
+            print "Command %s: Unknown" % command
+
+
+        def RunCode(**kwargs):
+            conf_obj = self._config.get_conf_obj()
+            command_cls.register_options(conf_obj)
+
+            for k, v in kwargs.items():
+                setattr(conf_obj, k, v)
+
+            command_cls(conf_obj).execute()
+
+        # Add a docstring for helpfulness (so we have something smart
+        # to show for command? in ipython)
+        RunCode.__doc__ = command_cls.help()
+        return RunCode
+
     def render_text(self, _outfd, _data):
         self.addrspace = utils.load_as(self._config)
 
@@ -224,20 +250,6 @@ class volshell(commands.command):
             Prints a process listing with PID, PPID, image name, and offset.
             """
             self.ps()
-
-        def vol(command_name, **kwargs):
-            """Run a volatility command plugin from the shell."""
-            command_cls = None
-            for command_cls in MemoryRegistry.PLUGIN_COMMANDS.commands.get(
-                command_name):
-                if command_cls.is_active(self._config):
-                    break
-
-            if not command_cls:
-                print "Command %s: Unknown" % command
-
-            command_cls(self._config).execute()
-            
 
         def list_entry(head, objname, offset = -1, fieldname = None, forward = True):
             """Traverse a _LIST_ENTRY.
@@ -385,8 +397,7 @@ class volshell(commands.command):
         for command_name in MemoryRegistry.PLUGIN_COMMANDS.commands:
             for command_cls in MemoryRegistry.PLUGIN_COMMANDS.commands[command_name]:
                 if command_cls.is_active(self._config):
-                    local_variables[command_name] = functools.partial(
-                        vol, command_name=command_name)
+                    local_variables[command_name] = self.make_command_function(command_name)
                     break
 
         # Break into shell

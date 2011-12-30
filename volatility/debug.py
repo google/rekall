@@ -24,7 +24,7 @@ import sys
 import inspect
 import logging
 import volatility.conf
-config = volatility.conf.ConfObject()
+config = volatility.conf.ConfFactory()
 
 config.add_option("DEBUG", short_option = 'd', default = 0,
                   cache_invalidator = False,

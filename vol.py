@@ -50,7 +50,8 @@ if False:
 import textwrap
 import volatility.registry as MemoryRegistry
 import volatility.conf as conf
-config = conf.ConfObject()
+config = conf.ConfFactory()
+
 import volatility.obj as obj
 import volatility.utils as utils
 import volatility.constants as constants

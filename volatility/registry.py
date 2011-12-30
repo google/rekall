@@ -43,7 +43,7 @@ import os, sys, zipfile
 import volatility.constants as constants
 import volatility.debug as debug
 import volatility.conf as conf
-config = conf.ConfObject()
+config = conf.ConfFactory()
 
 config.add_option("INFO", default = None, action = "store_true",
                   cache_invalidator = False,

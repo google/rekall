@@ -202,7 +202,7 @@ import volatility.obj as obj
 import volatility.debug as debug
 import volatility.utils as utils
 import cPickle as pickle
-config = conf.ConfObject()
+config = conf.ConfFactory()
 
 ## Where to stick the cache
 default_cache_location = os.path.join((os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache")), "volatility")

@@ -27,7 +27,7 @@ try:
     tz_pytz = True
 except ImportError:
     tz_pytz = False
-config = conf.ConfObject()
+config = conf.ConfFactory()
 
 class OffsetTzInfo(datetime.tzinfo):
     """Timezone implementation that allows offsets specified in seconds"""
