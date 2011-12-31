@@ -76,11 +76,6 @@ class KDBGScanner(scan.DiscontigScanner):
 class KDBGScan(common.AbstractWindowsCommand):
     """Search for and dump potential KDBG values"""
 
-    @staticmethod
-    def register_options(config):
-        config.add_option('KDBG', short_option = 'g', default = None, type = 'int',
-                          help = "Specify a specific KDBG virtual address")
-
     @cache.CacheDecorator(lambda self: "tests/kdbgscan/kdbg={0}".format(self._config.KDBG))
     def calculate(self):
         """Determines the address space"""

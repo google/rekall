@@ -32,6 +32,7 @@ import volatility.obj as obj
 import volatility.debug as debug #pylint: disable-msg=W0611
 import volatility.utils as utils
 
+
 class TasksNotFound(utils.VolatilityException):
     """Thrown when a tasklist cannot be determined"""
     pass

@@ -43,8 +43,9 @@ CI_OFF_SHIFT = 0x0
 BLOCK_SIZE = 0x1000
 
 class HiveAddressSpace(addrspace.BaseAddressSpace):
-    def __init__(self, base, config, hive_addr, **kwargs):
+    def __init__(self, base, config, hive_addr=None, **kwargs):
         addrspace.BaseAddressSpace.__init__(self, base, config)
+        self.as_assert(hive_addr, "Hive offset not provided.")
         self.base = base
         self.hive = obj.Object("_HHIVE", hive_addr, base)
         self.baseblock = self.hive.BaseBlock.v()

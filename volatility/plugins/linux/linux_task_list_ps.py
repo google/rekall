@@ -41,7 +41,6 @@ class linux_task_list_ps(linux_common.AbstractLinuxCommand):
         init_task_addr = self.smap["init_task"]
 
         init_task = obj.Object("task_struct", vm = self.addr_space, offset = init_task_addr)
-
         pidlist = self._config.PID
         if isinstance(pidlist, str):
             pidlist = [int(p) for p in pidlist.split(',')]
@@ -91,4 +90,3 @@ class linux_memmap(linux_task_list_ps):
                     #    outfd.write("0x{0:10x} 0x000000     0x{1:12x}\n".format(p[0], p[1]))
             else:
                 outfd.write("Unable to read pages for task.\n")
-

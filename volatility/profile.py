@@ -26,42 +26,16 @@
 @contact:      scudette@gmail.com
 
 """
-
+import copy
+from volatility import conf
+from volatility import debug
+from volatility import obj
 from volatility import registry
+from volatility import utils
 
-## Make sure the profiles are cached so we only parse it once.
-PROFILES = {}
+
+config = conf.ConfFactory()
 
 
 class Error(Exception):
     """A generic profile error."""
-
-
-def Profile(config):
-    """A factory for profiles."""
-    profile_name = config.PROFILE
-    if not profile_name:
-        raise Error("Profile not specified.")
-
-    try:
-        ret = PROFILES[profile_name]
-    except KeyError:
-        try:
-            ret = registry.PROFILES[profile_name](config=config)
-            PROFILES[profile_name] = ret
-        except KeyError:
-            raise Error("Invalid profile %s" % profile_name)
-
-    return ret
-
-
-def get_profile_class(config):
-    """Returns the profile class without instantiating it."""
-    profile_name = config.PROFILE
-    if not profile_name:
-        raise Error("Profile not specified.")
-
-    try:
-        return registry.PROFILES[profile_name]
-    except KeyError:
-        raise Error("Invalid profile %s" % profile_name)

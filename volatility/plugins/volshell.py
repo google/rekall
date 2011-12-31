@@ -122,25 +122,21 @@ class volshell(commands.command):
 
         self.context_display()
 
-    def make_command_function(self, command_name):
+    def make_command_function(self, command_cls):
         """Return a shell function which runs the command."""
-        command_cls = None
-        for command_cls in MemoryRegistry.PLUGIN_COMMANDS.commands.get(
-            command_name):
-            if command_cls.is_active(self._config):
-                break
-
-        if not command_cls:
-            print "Command %s: Unknown" % command
-            return None
-
         def RunCode(**kwargs):
-            """Run the command plugin and return the command instance."""
             conf_obj = self._config.get_conf_obj()
             command_cls.register_options(conf_obj)
 
             for k, v in kwargs.items():
-                setattr(conf_obj, k, v)
+                # This ensures the value exist already
+                try:
+                    getattr(conf_obj, k)
+                    setattr(conf_obj, k, v)
+                except AttributeError:
+                    raise RuntimeError(
+                        "Arg %s to command %s not defined." % (
+                            k, command_cls.__name__))
 
             cmd = command_cls(conf_obj)
             cmd.execute()
@@ -150,6 +146,7 @@ class volshell(commands.command):
         # Add a docstring for helpfulness (so we have something smart
         # to show for command? in ipython)
         RunCode.__doc__ = command_cls.help()
+
         return RunCode
 
     def render_text(self, _outfd, _data):
@@ -398,11 +395,8 @@ class volshell(commands.command):
         # available directly.
         local_variables = locals()
 
-        for command_name in MemoryRegistry.PLUGIN_COMMANDS.commands:
-            for command_cls in MemoryRegistry.PLUGIN_COMMANDS.commands[command_name]:
-                if command_cls.is_active(self._config):
-                    local_variables[command_name] = self.make_command_function(command_name)
-                    break
+        for command_name, command_cls in commands.command.GetActiveClasses(self._config):
+            local_variables[command_name] = self.make_command_function(command_cls)
 
         # Break into shell
         banner = "Welcome to volshell! Current memory image is:\n{0}\n".format(self._config.LOCATION)

@@ -48,7 +48,8 @@ if False:
     import yara
 
 import textwrap
-import volatility.registry as MemoryRegistry
+from volatility import commands
+from volatility import registry
 import volatility.conf as conf
 config = conf.ConfFactory()
 
@@ -63,9 +64,7 @@ def list_profiles():
         return ""
 
     result = "\n\tAvailable Profiles:\n\n"
-    classes = MemoryRegistry.PROFILES.classes
-    classes.sort(key = lambda x: x.__name__)
-    for profile_cls in classes:
+    for profile_name, profile_cls in sorted(obj.Profile.classes.items()):
         helpline = profile_cls.__doc__
 
         ## Just put the title line (First non empty line) in this
@@ -75,90 +74,83 @@ def list_profiles():
                 helpline = line
                 break
 
-        result += "\t\t{0:15}\t{1}\n".format(profile_cls.__name__, helpline)
+        result += "\t\t{0:15}\t{1}\n".format(profile_name, helpline)
 
     return result
 
 def list_plugins():
-    if config.PROFILE is None or config.PROFILE == "list":
-        return ''
-
-    result = "\n\tSupported Plugin Commands for profile %s:\n\n" % config.PROFILE
-    keys = MemoryRegistry.PLUGIN_COMMANDS.commands.keys()
-    keys.sort()
-    for cmdname in keys:
-        for command in MemoryRegistry.PLUGIN_COMMANDS[cmdname]:
-            if command.is_active(config):
-                helpline = command.help() or ''
+    if config.PROFILE:
+        try:
+            result = "\n\tSupported Plugin Commands for profile %s:\n\n" % config.PROFILE
+            for cmdname, command_cls in sorted(commands.command.GetActiveClasses(config)):
+                helpline = command_cls.help() or ''
                 ## Just put the title line (First non empty line) in this
                 ## abbreviated display
                 for line in helpline.splitlines():
                     if line:
                         helpline = line
                         break
+
                 result += "\t\t{0:15}\t{1}\n".format(cmdname, helpline)
-                break
+        except Exception:
+            import pdb; pdb.post_mortem()
 
-    return result
+        return result
 
-def command_help(command):
+def command_help(command_cls):
     result = textwrap.dedent("""
     ---------------------------------
     Module {0}
-    ---------------------------------\n""".format(command.__class__.__name__))
+    ---------------------------------\n""".format(command_cls.__name__))
 
-    return result + command.help() + "\n\n"
+    return result + command_cls.help() + "\n\n"
 
 def main():
-
     # Get the version information on every output from the beginning
     # Exceptionally useful for debugging/telling people what's going on
     sys.stderr.write("Volatile Systems Volatility Framework {0}\n".format(constants.VERSION))
 
     # Setup the debugging format
     debug.setup()
-    # Load up modules in case they set config options
-    MemoryRegistry.Init()
-    ## Parse all the options now
-    config.parse_options(False)
+
     # Reset the logging level now we know whether debug is set or not
     debug.setup(config.DEBUG)
 
-    module = None
+    registry.PluginImporter(config.PLUGINS)
+
+    ## Parse all the options now
+    config.parse_options(False)
+    command_cls = None
+
+    # These are the modules which are currently active.
+    available_modules = dict(commands.command.GetActiveClasses(config))
+
     ## Try to find the first thing that looks like a module name
     for m in config.args:
-        if m in MemoryRegistry.PLUGIN_COMMANDS.commands:
-            module = m
+        if m in available_modules:
+            command_cls = available_modules[m]
             break
 
-    if not module:
-        config.parse_options()
+    if not command_cls:
+        config.parse_options(True)
         debug.error("You must specify something to do (try -h)")
 
-    if module not in MemoryRegistry.PLUGIN_COMMANDS.commands:
-        config.parse_options()
-        debug.error("Invalid module [{0}].".format(module))
+    # If we get here we have a valid command class. We instantiate it and have it
+    # register its options.
+    config.set_help_hook(obj.Curry(command_help, command_cls))
 
+    command_cls.register_options(config)
+
+    # Should we allow options to be registered in the constructor? If there are
+    # then we can not test for any of them in the constructor (because they are
+    # not parsed yet).
+    command_obj = command_cls(config)
+
+    # This is the final parsing - all options should be accounted for now.
+    config.parse_options(final=True)
 
     try:
-        if module in MemoryRegistry.PLUGIN_COMMANDS.commands:
-            command = None
-            for command_cls in MemoryRegistry.PLUGIN_COMMANDS[module]:
-                if command_cls.is_active(config):
-                    command = command_cls(config)
-                    break
-
-            if command is None:
-                debug.error("Command %s is not valid for this profile." % module)
-
-            ## Register the help cb from the command itself
-            config.set_help_hook(obj.Curry(command_help, command))
-            config.parse_options()
-
-            if not config.LOCATION:
-                debug.error("Please specify a location (-l) or filename (-f)")
-
-            command.execute()
+        command_obj.execute()
     except utils.VolatilityException, e:
         print e
 

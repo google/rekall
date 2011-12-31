@@ -1,13 +1,8 @@
 # Volatility
-# Copyright (C) 2007,2008 Volatile Systems
+# Copyright (C) 2011
 #
-# Derived from source in PyFlag developed by:
-# Copyright 2004: Commonwealth of Australia.
 # Michael Cohen <scudette@users.sourceforge.net> 
-# David Collett <daveco@users.sourceforge.net>
 #
-# ******************************************************
-#  Version: FLAG $Version: 0.84RC4 Date: Wed May 30 20:48:31 EST 2007$
 # ******************************************************
 #
 # * This program is free software; you can redistribute it and/or
@@ -34,9 +29,9 @@ classes which should be registered into their own lookup tables. These
 are then ordered as required. The rest of Volatility will then call onto the
 registered classes when needed.
 
-This mechanism allows us to reorganise the code according to
-functionality. For example we may include a Scanner, Report and File
-classes in the same plugin and have them all automatically loaded.
+The MetaclassRegistry automatically adds any derived class to the base
+class. This means that we do not need to go through a special initializating
+step, as soon as a module is imported, the plugin is registered.
 """
 
 import os, sys, zipfile
@@ -132,6 +127,46 @@ class PluginImporter(object):
                     print "*** Failed to import " + i + " (" + str(e.__class__.__name__) + ": " + str(e) + ")"
                     # This is too early to have had the debug filter lowered to include debugging messages
                     debug.post_mortem(2)
+
+import abc
+
+class MetaclassRegistry(abc.ABCMeta):
+    """Automatic Plugin Registration through metaclasses."""
+
+    def __init__(mcs, name, bases, env_dict):
+        abc.ABCMeta.__init__(mcs, name, bases, env_dict)
+
+        # Attach the classes dict to the baseclass and have all derived classes
+        # use the same one:
+        for base in bases:
+            try:
+                mcs.classes = base.classes
+                mcs.plugin_feature = base.plugin_feature
+                mcs.top_level_class = base.top_level_class
+                break
+            except AttributeError:
+                mcs.classes = {}
+                mcs.plugin_feature = mcs.__name__
+                # Keep a reference to the top level class
+                mcs.top_level_class = mcs
+
+        # The following should not be registered as they are abstract. Classes
+        # are abstract if the have the __abstract attribute (not this is not
+        # inheritable so each abstract class much be explicitely marked).
+        abstract_attribute = "_%s__abstract" % name
+        if getattr(mcs, abstract_attribute, None):
+            return
+
+        if not mcs.__name__.startswith("Abstract"):
+            mcs.classes[mcs.__name__] = mcs
+
+            try:
+                if mcs.top_level_class.include_plugins_as_attributes:
+                    setattr(mcs.top_level_class, mcs.__name__, mcs)
+            except AttributeError:
+                pass
+
+
 
 class MemoryRegistry(object):
     """ Main class to register classes derived from a given parent
@@ -300,7 +335,7 @@ PROFILES = None
 SCANNER_CHECKS = None
 
 ## This is required for late initialization to avoid dependency nightmare.
-def Init():
+def XXXInit():
     ## Load all the modules:
     PluginImporter(config.PLUGINS)
 
@@ -330,3 +365,5 @@ def Init():
     if config.INFO:
         print_info()
         sys.exit(0)
+
+#  LocalWords:  explicitely

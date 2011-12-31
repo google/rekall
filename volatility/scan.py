@@ -53,7 +53,7 @@ class BaseScanner(object):
         ## Build our constraints from the specified ScannerCheck
         ## classes:
         for class_name, args in self.checks:
-            check = registry.SCANNER_CHECKS[class_name](self.buffer, **args)
+            check = ScannerCheck.classes[class_name](self.buffer, **args)
             self.constraints.append(check)
 
         self.max_length = None
@@ -153,6 +153,10 @@ class ScannerCheck(object):
 
     This class is the base class for all checks.
     """
+
+    __metaclass__ = registry.MetaclassRegistry
+    __abstract = True
+
     def __init__(self, address_space, **_kwargs):
         self.address_space = address_space
 

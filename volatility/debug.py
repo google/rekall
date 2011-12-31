@@ -79,6 +79,7 @@ def log(msg, level):
 
 def _log(msg, facility, loglevel):
     """Outputs a debugging message"""
+    #print "%s: %s" % (loglevel, msg)
     logger = logging.getLogger(facility)
     logger.log(loglevel, msg)
 

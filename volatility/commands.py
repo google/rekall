@@ -18,15 +18,26 @@
 
 
 import sys, textwrap
+from volatility import registry
+
 
 class command(object):
     """ Base class for each plugin command """
     op = ""
     opts = ""
     args = ""
-    cmdname = ""
+
+    # The name of this command
+    __name = ""
+
+    # This class will not be registered. Note that this attribute is not
+    # inherited.
+    __abstract = True
+
     # meta_info will be removed
     meta_info = {}
+
+    __metaclass__ = registry.MetaclassRegistry
 
     @classmethod
     def name(cls):
@@ -71,18 +82,34 @@ class command(object):
 
         class HelpRegistrator(object):
             """gives help about specific module parameters."""
-            docstring = ""
+            def __init__(self):
+                self.options = {}
+
             def add_option(self, name, default = None, help = "",**kwargs):
                 attr = name.lower().replace("-", "_")
-                self.docstring += "\n%s: \t\t%s (default %s)" % (attr, help, default)
+                self.options[attr] = "%s (default %s)" % (help, default)
+
+            def remove_option(self, option):
+                self.options.pop(option, None)
+
+            def parse_options(self, final=False):
+                pass
+
+            def __getattr__(self, attr):
+                return None
 
         # Generate a line for each module specific option.
         help_registrator = HelpRegistrator()
+
+        # TODO: Remove the need for this line by forbidding add_option in the
+        # constructor.
+        cls(help_registrator)
         cls.register_options(help_registrator)
 
-        if help_registrator.docstring:
+        if help_registrator.options:
             docstring += "\n\nModule specific parameters\n--------------------------"
-            docstring += help_registrator.docstring
+            for attr, help in sorted(help_registrator.options.items()):
+                docstring += "\n%s:\t\t%s" % (attr, help)
 
         return docstring
 
@@ -115,7 +142,8 @@ class command(object):
         function_name = "render_{0}".format(self._config.OUTPUT)
         if self._config.OUTPUT_FILE:
             outfd = open(self._config.OUTPUT_FILE, 'w')
-            # TODO: We should probably check that this won't blat over an existing file 
+            # TODO: We should probably check that this won't blat over an
+            # existing file.
         else:
             outfd = sys.stdout
 
@@ -129,7 +157,17 @@ class command(object):
                     _a, b = x.split("_", 1)
                     result.append(b)
 
-            print "Plugin {0} is unable to produce output in format {1}. Supported formats are {2}. Please send a feature request".format(self.__class__.__name__, self._config.OUTPUT, result)
+            print ("Plugin {0} is unable to produce output in format {1}. "
+                   "Supported formats are {2}. Please send a feature "
+                   "request".format(self.__class__.__name__, 
+                                    self._config.OUTPUT, result))
             return
 
         func(outfd, data)
+
+    @classmethod
+    def GetActiveClasses(cls, config):
+        """Return the active commands."""
+        for name, command_cls in cls.classes.items():
+            if command_cls.is_active(config):
+                yield getattr(command_cls, "_%s__name" % name, name.lower()), command_cls

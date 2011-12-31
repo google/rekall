@@ -34,9 +34,22 @@ if __name__ == '__main__':
 
 import re
 import cPickle as pickle # pickle implementation must match that in volatility.cache
-import struct, copy, operator
-import volatility.debug as debug
-import volatility.utils as utils
+import struct, operator
+
+import copy
+from volatility import conf
+from volatility import debug
+from volatility import registry
+
+
+config = conf.ConfFactory()
+
+
+class classproperty(property):
+    def __get__(self, cls, owner):
+        # We don't think pylint knows what it's talking about here
+        return self.fget.__get__(None, owner)() #pylint: disable-msg=E1101
+
 
 ## Curry is now a standard python feature
 import functools
@@ -233,9 +246,13 @@ class NoneObject(object):
     __ror__ = __call__
 
 
-class InvalidOffsetError(utils.VolatilityException):
+class Error(Exception):
+    """All object related exceptions come from this one."""
+
+
+class InvalidOffsetError(Error):
     """Simple placeholder to identify invalid offsets"""
-    pass
+
 
 def Object(theType, offset, vm, name = None, **kwargs):
     """ A function which instantiates the object named in theType (as
@@ -265,8 +282,6 @@ def Object(theType, offset, vm, name = None, **kwargs):
 
     ## If we get here we have no idea what the type is supposed to be?
     ## This is a serious error.
-    import pdb; pdb.set_trace()
-
     debug.warning("Cant find object {0} in profile {1}?".format(theType, vm.profile))
 
 class BaseObject(object):
@@ -277,7 +292,7 @@ class BaseObject(object):
     def __init__(self, theType, offset, vm, nativevm = None, parent = None, name = None, **kwargs):
         if kwargs:
             debug.error("Unknown keyword args {0}".format(kwargs))
-            
+
         self._vol_theType = theType
         self._vol_offset = offset
         self._vol_vm = vm
@@ -497,6 +512,7 @@ class NumericProxyMixIn(object):
 
 CreateMixIn(NumericProxyMixIn)
 
+
 class NativeType(BaseObject, NumericProxyMixIn):
     def __init__(self, theType, offset, vm, format_string = None, **kwargs):
         BaseObject.__init__(self, theType, offset, vm, **kwargs)
@@ -554,12 +570,17 @@ class BitField(NativeType):
 
 class Pointer(NativeType):
     def __init__(self, theType, offset, vm, target = None, **kwargs):
-        # Default to profile-endian address
-        # We don't allow native_type overriding for pointers since we can't dereference invalid pointers anyway
-        # You can define a POINTER_64 in 32-bit windows, it becomes a signed pointer for use with special pointers like -1.
-        # However, in that case it's unlikely to dereference properly either
-        # We can always change this later if it becomes necessary to handle such unusual circumstances
-        NativeType.__init__(self, theType, offset, vm, format_string = vm.profile.native_types['address'][1], **kwargs)
+        # Default to profile-endian address. We don't allow native_type
+        # overriding for pointers since we can't dereference invalid pointers
+        # anyway You can define a POINTER_64 in 32-bit windows, it becomes a
+        # signed pointer for use with special pointers like -1.  However, in
+        # that case it's unlikely to dereference properly either We can always
+        # change this later if it becomes necessary to handle such unusual
+        # circumstances
+        NativeType.__init__(self, theType, offset, vm,
+                            format_string = vm.profile.native_types['address'][1],
+                            **kwargs)
+
         if theType:
             self.target = Curry(Object, theType)
         else:
@@ -584,7 +605,8 @@ class Pointer(NativeType):
                                  name = self.obj_name)
             return result
         else:
-            return NoneObject("Pointer {0} invalid".format(self.obj_name), self.obj_vm.profile.strict)
+            return NoneObject("Pointer {0} invalid".format(self.obj_name),
+                              self.obj_vm.profile.strict)
 
     def __dir__(self):
         return dir(self.dereference()) + self.__dict__.keys()
@@ -597,11 +619,13 @@ class Pointer(NativeType):
 
     def __repr__(self):
         target = self.dereference()
-        return "<{0} pointer to [0x{1:08X}]>".format(target.__class__.__name__, self.v())
+        return "<{0} pointer to [0x{1:08X}]>".format(
+            target.__class__.__name__, self.v())
 
     def d(self):
         target = self.dereference()
-        return "<{0} {1} pointer to [0x{2:08X}]>".format(target.__class__.__name__, self.obj_name or '', self.v())
+        return "<{0} {1} pointer to [0x{2:08X}]>".format(
+            target.__class__.__name__, self.obj_name or '', self.v())
 
     def __getattribute__(self, attr):
         try:
@@ -616,10 +640,12 @@ class Pointer(NativeType):
 
 class Void(NativeType):
     def __init__(self, theType, offset, vm, **kwargs):
-        # Default to profile-endian unsigned long
-        # This should never need to be overridden, but can be by changing the 'Void' value in a profile's object_classes
+        # Default to profile-endian unsigned long.  This should never need to be
+        # overridden, but can be by changing the 'Void' value in a profile's
+        # object_classes
         format_string = vm.profile.native_types['unsigned long'][1]
-        NativeType.__init__(self, theType, offset, vm, format_string = format_string, **kwargs)
+        NativeType.__init__(self, theType, offset, vm,
+                            format_string = format_string, **kwargs)
 
     def cdecl(self):
         return "0x{0:08X}".format(self.v())
@@ -628,7 +654,8 @@ class Void(NativeType):
         return "Void (0x{0:08X})".format(self.v())
 
     def d(self):
-        return "Void[{0} {1}] (0x{2:08X})".format(self.__class__.__name__, self.obj_name or '', self.v())
+        return "Void[{0} {1}] (0x{2:08X})".format(
+            self.__class__.__name__, self.obj_name or '', self.v())
 
     def __nonzero__(self):
         return bool(self.dereference())
@@ -880,6 +907,7 @@ def VolMagic(vm):
     """Convenience function to save people typing out an actual obj.Object call"""
     return Object("VOLATILITY_MAGIC", 0x0, vm = vm)
 
+
 ## Profiles are the interface for creating/interpreting
 ## objects
 
@@ -897,11 +925,15 @@ class Profile(object):
     overlay = {}
     # We initially populate this with objects in this module that will be used everywhere
     object_classes = {'BitField': BitField,
-                      'Pointer':Pointer,
-                      'Void':Void,
-                      'Array':Array,
-                      'CType':CType,
-                      'VolatilityMagic':VolatilityMagic}
+                      'Pointer': Pointer,
+                      'Void': Void,
+                      'Array': Array,
+                      'CType': CType,
+                      'VolatilityMagic': VolatilityMagic}
+
+    # This is the base class for all profiles.
+    __metaclass__ = registry.MetaclassRegistry
+    __abstract = True
 
     def __init__(self, strict = False, config = None):
         self.types = {}
@@ -919,7 +951,7 @@ class Profile(object):
         # Ensure the profile is compiled
         self.recompile()
 
-    @utils.classproperty
+    @classproperty
     @classmethod
     def metadata(cls):
         prefix = '_md_'
@@ -928,6 +960,10 @@ class Profile(object):
             if i.startswith(prefix):
                 result[i[len(prefix):]] = getattr(cls, i)
         return result
+
+    @staticmethod
+    def register_options(config):
+        """Registers options into a config object provided"""
 
     def has_type(self, theType):
         return theType in self.object_classes or theType in self.types
@@ -938,7 +974,6 @@ class Profile(object):
         Note that whenever, users directly change self.abstract_types,
         self.object_classes or self.overlay, the profile must be recompiled.
         """
-        self.add_types(self.abstract_types, self.overlay)
         self.add_types(self.abstract_types, self.overlay)
 
     def add_types(self, abstract_types, overlay = None):
@@ -982,7 +1017,7 @@ class Profile(object):
                 name, self.typeDict, copy.deepcopy(self.overlayDict))
 
     # pylint: disable-msg=R0911
-    def list_to_type(self, name, typeList, typeDict = None): 
+    def list_to_type(self, name, typeList, typeDict = None):
         """ Parses a specification list and returns a VType object.
 
         This function is a bit complex because we support lots of
@@ -1089,8 +1124,11 @@ class Profile(object):
                 else:
                     overlay[k] = cls.apply_overlay(v, overlay[k])
 
+        elif callable(overlay):
+            return overlay
+
         elif type(overlay) == list:
-            if callable(overlay) or len(overlay) != len(type_member):
+            if len(overlay) != len(type_member):
                 return overlay
 
             for i in range(len(overlay)):
@@ -1107,7 +1145,7 @@ class Profile(object):
         for later parsing.
 
         cname is the name of the struct.
-        
+
         We expect typeDict[cname] to be a list of the following format
 
         [ Size of struct, members_dict ]
@@ -1120,7 +1158,7 @@ class Profile(object):
 
         The specification list has the form specified by self.list_to_type() above.
 
-        We return a list of CTypeMember objects. 
+        We return a list of CTypeMember objects.
         """
         ctype = self.apply_overlay(typeDict[cname], overlay.get(cname))
         members = {}
@@ -1129,7 +1167,8 @@ class Profile(object):
             if callable(v):
                 members[k] = v
             elif v[0] == None:
-                debug.warning("{0} has no offset in object {1}. Check that vtypes has a concrete definition for it.".format(k, cname))
+                debug.warning("{0} has no offset in object {1}. Check that vtypes "
+                              "has a concrete definition for it.".format(k, cname))
             else:
                 members[k] = (v[0], self.list_to_type(k, v[1], typeDict))
 
@@ -1140,3 +1179,35 @@ class Profile(object):
             cls = CType
 
         return Curry(cls, cname, members = members, struct_size = size)
+
+
+def ProfileCallback(_option, _opt_str, profile_name, parser):
+    """Create a profile and set it in the config's value.
+
+    We replace the config's profile property with the profile object named by
+    this config.
+    """
+    if "profile" not in config.readonly:
+        try:
+            profile_cls = Profile.classes[profile_name]
+
+            # Prevent recursive calls by putting a place holder here.
+            config.readonly["profile"] = "dummy"
+            profile_cls.register_options(config)
+
+            # Reparse any options that the profile might have added.
+            config.parse_options()
+        except KeyError:
+            return
+
+        try:
+            config.readonly["profile"] = profile_cls(config=config)
+            print "Loaded profile %s" % profile_name
+        except Exception, e:
+            debug.warning("Failed to create profile %s: %s" % (profile_name, e))
+
+
+## By default load the profile that the user asked for
+config.add_option("PROFILE", default = None, action = "callback",
+                  callback = ProfileCallback, type=str,
+                  nargs = 1, help = "Name of the profile to load")

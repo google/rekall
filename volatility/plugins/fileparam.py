@@ -28,17 +28,13 @@ import volatility.addrspace as addrspace #pylint: disable-msg=W0611
 
 config = conf.ConfFactory()
 
-def set_location(_option, _opt_str, value, parser):
-    """Sets the location variable in the parser to the filename in question"""
-    if not os.path.exists(os.path.abspath(value)):
-        debug.error("The requested file doesn't exist")
-    if parser.values.location == None:
-        slashes = "//"
-        # Windows pathname2url decides to convert C:\blah to ///C:/blah
-        # So to keep the URLs correct, we only add file: rather than file://
-        if sys.platform.startswith('win'):
-            slashes = ""
-        parser.values.location = "file:" + slashes + urllib.pathname2url(os.path.abspath(value))
+def set_location(_option, _opt_str, filename, parser):
+    """Verify the filename actually exists."""
+    if not os.path.exists(os.path.abspath(filename)):
+        debug.error("The requested file (%s) doesn't exist" % filename)
+
+    parser.values.filename = filename
+
 
 config.add_option("FILENAME", default = None, action = "callback",
                   callback = set_location, type = 'str',

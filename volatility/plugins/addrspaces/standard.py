@@ -58,7 +58,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
 
     For this AS to be instantiated, we need
 
-    1) A valid config.LOCATION (starting with file://)
+    1) A valid config.FILENAME
 
     2) no one else has picked the AS before us
     
@@ -70,10 +70,8 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
     def __init__(self, base, config, layered = False, **kwargs):
         addrspace.BaseAddressSpace.__init__(self, base, config, **kwargs)
         self.as_assert(base == None or layered, 'Must be first Address Space')
-        self.as_assert(config.LOCATION.startswith("file://"), 'Location is not of file scheme')
 
-        path = urllib.url2pathname(config.LOCATION[7:])
-        self.as_assert(os.path.exists(path), 'Filename must be specified and exist')
+        path = config.FILENAME
         self.name = os.path.abspath(path)
         self.fname = self.name
         self.mode = 'rb'

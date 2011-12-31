@@ -113,6 +113,12 @@ class ConfObject(object):
 
         setattr(self, attr, default)
 
+    def parse_options(self, final=False):
+        """Options are already fixed. Do not change them."""
+
+    def remove_option(self, option):
+        pass
+
 
 class ConfFactory(object):
     """ This is a singleton class to manage the configuration.
@@ -209,7 +215,9 @@ class ConfFactory(object):
         # Command line option.
         for source in information_sources:
             for k, v in source.items():
-                if v is not None:
+                if v:
+                    setattr(result, k, v)
+                elif not hasattr(result, k):
                     setattr(result, k, v)
 
         return result
@@ -254,7 +262,7 @@ class ConfFactory(object):
     def set_help_hook(self, cb):
         self.optparser.help_hooks = [cb]
 
-    def parse_options(self, final = True):
+    def parse_options(self, final = False):
         """ Parses the options from command line and any conf files
         currently added.
 
@@ -346,11 +354,6 @@ class ConfFactory(object):
 
         self.optparser.remove_option("--{0}".format(option))
 
-        try:
-            self.parse_options(False)
-        except AttributeError:
-            pass
-
     def add_option(self, option, short_option = None,
                    cache_invalidator = True,
                    **args):
@@ -408,15 +411,6 @@ class ConfFactory(object):
             self.optparser.add_option("-{0}".format(short_option), "--{0}".format(option), **args)
         else:
             self.optparser.add_option("--{0}".format(option), **args)
-
-        ## update the command line parser
-
-        ## We have to do the try-catch for python 2.4 support of short
-        ## arguments. It can be removed when python 2.5 is a requirement
-        try:
-            self.parse_options(False)
-        except AttributeError:
-            pass
 
     def update(self, key, value):
         """ This can be used by scripts to force a value of an option """

@@ -34,9 +34,15 @@ class AbstractWindowsx86(obj.Profile):
     _md_memory_model = '32bit'
     native_types = basic.x86_native_types_32bit
 
+    @staticmethod
+    def register_options(config):
+        """Windows profiles use certain constants."""
+        config.add_option('KDBG', short_option = 'g', default = None, type = 'int',
+                          help = "Specify a specific KDBG virtual address")
+
 AbstractWindows = AbstractWindowsx86
 
-class AbstractWindowsx64(obj.Profile):
+class AbstractWindowsx64(AbstractWindowsx86):
     """ A Profile for Windows systems """
     _md_os = 'windows'
     _md_memory_model = '64bit'

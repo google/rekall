@@ -106,7 +106,6 @@ class AbstractWindowsCommand(commands.command):
     def is_active(cls, config):
         """We are only active if the profile is windows."""
         try:
-            p = profile.get_profile_class(config)
-            return p._md_os == 'windows'
+            return config.PROFILE and config.PROFILE._md_os == 'windows'
         except profile.Error:
             return True

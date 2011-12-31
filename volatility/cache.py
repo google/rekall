@@ -491,7 +491,8 @@ def disable_caching(_option, _opt_str, _value, _parser):
     CACHE = CacheTree(CacheStorage(), BlockingNode, invalidator = Invalidator())
     config.NO_CACHE = True
 
-config.add_option("NO-CACHE", default = False, action = 'callback',
+# Disable the cache for now.
+config.add_option("NO-CACHE", default = True, action = 'callback',
                   cache_invalidator = False,
                   callback = disable_caching,
                   help = "Disable caching")
