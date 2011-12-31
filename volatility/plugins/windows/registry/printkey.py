@@ -32,7 +32,7 @@ import volatility.win32.rawreg as rawreg
 import volatility.debug as debug
 import volatility.utils as utils
 import volatility.commands as commands
-import volatility.plugins.registry.hivelist as hivelist
+from volatility.plugins.windows.registry import hivelist
 
 def vol(k):
     return bool(k.obj_offset & 0x80000000)

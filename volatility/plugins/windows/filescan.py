@@ -27,7 +27,7 @@
 """
 
 import volatility.scan as scan
-from volatility.plugins import common
+from volatility.plugins.windows import common
 import volatility.debug as debug #pylint: disable-msg=W0611
 import volatility.utils as utils
 import volatility.obj as obj

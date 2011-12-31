@@ -146,7 +146,7 @@ class FormatSpec(object):
 
 class NoneObject(object):
     """ A magical object which is like None but swallows bad
-    dereferences, __getattribute__, iterators etc to return itself.
+    dereferences, __getattr__, iterators etc to return itself.
 
     Instantiate with the reason for the error.
     """
@@ -185,14 +185,11 @@ class NoneObject(object):
     def next(self):
         raise StopIteration()
 
-    def __getattribute__(self, attr):
+    def __getattr__(self, attr):
         # By returning self for any unknown attribute
         # and ensuring the self is callable, we cover both properties and methods
         # Override NotImplemented functions in object with self
-        try:
-            return object.__getattribute__(self, attr)
-        except AttributeError:
-            return self
+        return self
 
     def __bool__(self):
         return False
@@ -217,7 +214,7 @@ class NoneObject(object):
         return -1
 
     # These must be defined explicitly, 
-    # due to the way new style objects bypass __getattribute__ for speed
+    # due to the way new style objects bypass __getattr__ for speed
     # See http://docs.python.org/reference/datamodel.html#new-style-special-lookup
     __add__ = __call__
     __sub__ = __call__
@@ -627,16 +624,14 @@ class Pointer(NativeType):
         return "<{0} {1} pointer to [0x{2:08X}]>".format(
             target.__class__.__name__, self.obj_name or '', self.v())
 
-    def __getattribute__(self, attr):
-        try:
-            return super(Pointer, self).__getattribute__(attr)
-        except AttributeError:
-            ## We just dereference ourself
-            result = self.dereference()
+    def __getattr__(self, attr):
+        ## We just dereference ourself
+        result = self.dereference()
 
-            #if isinstance(result, CType):
-            #    return result.m(attr)
-            return result.__getattribute__(attr)
+        if isinstance(result, CType):
+            return result.m(attr)
+
+        return getattr(result, attr)
 
 class Void(NativeType):
     def __init__(self, theType, offset, vm, **kwargs):
@@ -814,18 +809,7 @@ class CType(BaseObject):
 
         return result
 
-    def __getattribute__(self, attr):
-        try:
-            return object.__getattribute__(self, attr)
-        except AttributeError:
-            pass
-
-        # This must be a try/except, since callable may fire an attribute error 
-        try:
-            return object.__getattribute__(self, "_" + attr)(attr)
-        except (AttributeError, TypeError):
-            pass
-
+    def __getattr__(self, attr):
         return self.m(attr)
 
     def __dir__(self):

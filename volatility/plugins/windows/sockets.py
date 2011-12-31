@@ -20,42 +20,34 @@
 
 #pylint: disable-msg=C0111
 
-from volatility.plugins import common
-import volatility.cache as cache
+from volatility.plugins.windows import common
 import volatility.win32 as win32
 import volatility.utils as utils
+import volatility.protos as protos
 
-class Modules(common.AbstractWindowsCommand):
-    """Print list of loaded modules"""
+class Sockets(common.AbstractWindowsCommand):
+    """Print list of open sockets"""
     def __init__(self, config, *args):
         common.AbstractWindowsCommand.__init__(self, config, *args)
         config.add_option("PHYSICAL-OFFSET", short_option = 'P', default = False,
-                          cache_invalidator = False, help = "Physical Offset", action = "store_true")
+                          cache_invalidator = False,
+                          help = "Physical Offset", action = "store_true")
 
     def render_text(self, outfd, data):
-        header = False
+        offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"
+        outfd.write(" Offset{0}  PID    Port   Proto               Address        Create Time               \n".format(offsettype) + \
+                    "---------- ------ ------ ------------------- -------------- -------------------------- \n")
 
-        for module in data:
-            if not header:
-                offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"
-                outfd.write("Offset{0}  {1:50} {2:12} {3:8} {4}\n".format(offsettype, 'File', 'Base', 'Size', 'Name'))
-                header = True
+        for sock in data:
             if not self._config.PHYSICAL_OFFSET:
-                offset = module.obj_offset
+                offset = sock.obj_offset
             else:
-                offset = module.obj_vm.vtop(module.obj_offset)
-            outfd.write("{0:#010x} {1:50} {2:#012x} {3:#08x} {4}\n".format(
-                         offset,
-                         module.FullDllName,
-                         module.DllBase,
-                         module.SizeOfImage,
-                         module.BaseDllName))
+                offset = sock.obj_vm.vtop(sock.obj_offset)
 
+            outfd.write("{0:#010x} {1:6} {2:6} {3:6} {4:14} {5:18} {6:26}\n".format(offset, sock.Pid, \
+                sock.LocalPort, sock.Protocol, protos.protos.get(sock.Protocol.v(), "-"), sock.LocalIpAddress, sock.CreateTime))
 
-    @cache.CacheDecorator("tests/lsmod")
     def calculate(self):
         addr_space = utils.load_as(self._config)
 
-        result = win32.modules.lsmod(addr_space)
-
-        return result
+        return win32.network.determine_sockets(addr_space)

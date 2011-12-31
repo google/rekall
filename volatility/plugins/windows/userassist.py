@@ -25,14 +25,16 @@
 
 #pylint: disable-msg=C0111
 
-import volatility.plugins.registry.printkey as printkey
+from volatility.plugins.windows.registry import printkey
+from volatility.plugins.windows.registry import hivelist
+
 import volatility.win32.hive as hivemod
 import volatility.win32.rawreg as rawreg
 import volatility.addrspace as addrspace
 import volatility.obj as obj
 import volatility.debug as debug
 import volatility.utils as utils
-import volatility.plugins.registry.hivelist as hivelist
+
 import datetime
 
 # for Windows 7 userassist info check out Didier Stevens' article

@@ -24,7 +24,7 @@ import volatility.cache as cache
 import volatility.addrspace as addrspace
 import volatility.registry as registry
 import volatility.utils as utils
-from volatility.plugins import common
+from volatility.plugins.windows import common
 
 
 class MultiStringFinderCheck(scan.ScannerCheck):

@@ -28,7 +28,7 @@
 # "The VAD Tree: A Process-Eye View of Physical Memory," Brendan Dolan-Gavitt
 
 import os.path
-import volatility.plugins.taskmods as taskmods
+from volatility.plugins.windows import taskmods
 import volatility.debug as debug #pylint: disable-msg=W0611
 
 # Inherit from dlllist just for the config options (__init__)

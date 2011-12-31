@@ -18,12 +18,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import os
 import volatility.utils as utils
 import volatility.obj as obj
 import volatility.debug as debug
 import volatility.cache as cache
-from volatility.plugins import common
+from volatility.plugins.windows import common
 
 
 class HibInfo(common.AbstractWindowsCommand):

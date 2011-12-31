@@ -22,39 +22,33 @@
 
 import os
 import re
-import volatility.plugins.procdump as procdump
-import volatility.win32.tasks as tasks
-import volatility.debug as debug
-import volatility.utils as utils
+import volatility.plugins.windows.procdump as procdump
 import volatility.cache as cache
+import volatility.win32.modules as modules
+import volatility.win32.tasks as tasks
+import volatility.utils as utils
+import volatility.debug as debug
 
-class DLLDump(procdump.ProcExeDump):
-    """Dump DLLs from a process address space"""
+class ModDump(procdump.ProcExeDump):
+    """Dump a kernel driver to an executable file sample"""
 
     def __init__(self, config, *args):
         procdump.ProcExeDump.__init__(self, config, *args)
+        config.remove_option("PID")
         config.remove_option("OFFSET")
         config.add_option('REGEX', short_option = 'r',
-                      help = 'Dump dlls matching REGEX',
+                      help = 'Dump modules matching REGEX',
                       action = 'store', type = 'string')
         config.add_option('IGNORE-CASE', short_option = 'i',
                       help = 'Ignore case in pattern match',
                       action = 'store_true', default = False)
         config.add_option('OFFSET', short_option = 'o', default = None,
-                          help = 'Dump DLLs for Process with physical address OFFSET',
-                          action = 'store', type = 'int')
-        config.add_option('BASE', short_option = 'b', default = None,
-                          help = 'Dump DLLS at the specified BASE offset in the process address space',
+                          help = 'Dump driver with base address OFFSET (in hex)',
                           action = 'store', type = 'int')
 
-    @cache.CacheDecorator(lambda self: "tests/dlldump/regex={0}/ignore_case={1}/offset={2}/base={3}".format(self._config.REGEX, self._config.IGNORE_CASE, self._config.OFFSET, self._config.BASE))
+    @cache.CacheDecorator(lambda self: "tests/moddump/regex={0}/ignore-case={1}/offset={2}".format(self._config.REGEX, self._config.IGNORE_CASE, self._config.OFFSET))
     def calculate(self):
         addr_space = utils.load_as(self._config)
-
-        if self._config.OFFSET != None:
-            data = [self.virtual_process_from_physical_offset(addr_space, self._config.OFFSET)]
-        else:
-            data = self.filter_tasks(tasks.pslist(addr_space))
 
         if self._config.REGEX:
             try:
@@ -65,25 +59,23 @@ class DLLDump(procdump.ProcExeDump):
             except re.error, e:
                 debug.error('Error parsing regular expression: %s' % e)
 
-        for proc in data:
-            ps_ad = proc.get_process_address_space()
-            if ps_ad == None:
-                continue
+        mods = dict((mod.DllBase.v(), mod) for mod in modules.lsmod(addr_space))
+        # We need the process list to find spaces for some drivers. Enumerate them here
+        # instead of inside the find_space function, so we only have to do it once. 
+        procs = list(tasks.pslist(addr_space))
 
-            mods = dict((mod.DllBase.v(), mod) for mod in proc.get_load_modules())
-
-            if self._config.BASE:
-                if mods.has_key(self._config.BASE):
-                    mod_name = mods[self._config.BASE].BaseDllName
-                else:
-                    mod_name = "Unknown"
-                yield proc, ps_ad, int(self._config.BASE), mod_name
+        if self._config.OFFSET:
+            if mods.has_key(self._config.OFFSET):
+                mod_name = mods[self._config.OFFSET].BaseDllName
             else:
-                for mod in mods.values():
-                    if self._config.REGEX:
-                        if not mod_re.search(str(mod.FullDllName)) and not mod_re.search(str(mod.BaseDllName)):
-                            continue
-                    yield proc, ps_ad, mod.DllBase.v(), mod.BaseDllName
+                mod_name = "Unknown"
+            yield addr_space, procs, int(self._config.OFFSET), mod_name
+        else:
+            for mod in mods.values():
+                if self._config.REGEX:
+                    if not mod_re.search(str(mod.FullDllName)) and not mod_re.search(str(mod.BaseDllName)):
+                        continue
+                yield addr_space, procs, mod.DllBase.v(), mod.BaseDllName
 
     def render_text(self, outfd, data):
         if self._config.DUMP_DIR == None:
@@ -91,14 +83,14 @@ class DLLDump(procdump.ProcExeDump):
         if not os.path.isdir(self._config.DUMP_DIR):
             debug.error(self._config.DUMP_DIR + " is not a directory")
 
-        for proc, ps_ad, mod_base, mod_name in data:
-            if ps_ad.is_valid_address(mod_base):
-                process_offset = ps_ad.vtop(proc.obj_offset)
-                dump_file = "module.{0}.{1:x}.{2:x}.dll".format(proc.UniqueProcessId, process_offset, mod_base)
-                outfd.write("Dumping {0}, Process: {1}, Base: {2:8x} output: {3}\n".format(mod_name, proc.ImageFileName, mod_base, dump_file))
+        for addr_space, procs, mod_base, mod_name in data:
+            space = tasks.find_space(addr_space, procs, mod_base)
+            if space != None:
+                dump_file = "driver.{0:x}.sys".format(mod_base)
+                outfd.write("Dumping {0}, Base: {1:8x} output: {2}\n".format(mod_name, mod_base, dump_file))
                 of = open(os.path.join(self._config.DUMP_DIR, dump_file), 'wb')
                 try:
-                    for chunk in self.get_image(outfd, ps_ad, mod_base):
+                    for chunk in self.get_image(outfd, space, mod_base):
                         offset, code = chunk
                         of.seek(offset)
                         of.write(code)
@@ -108,4 +100,4 @@ class DLLDump(procdump.ProcExeDump):
                     outfd.write("You can use -u to disable this check.\n")
                 of.close()
             else:
-                outfd.write("Cannot dump {0}@{1} at {2:8x}\n".format(proc.ImageFileName, mod_name, mod_base))
+                outfd.write("Cannot dump {0} at {1:8x}\n".format(mod_name, mod_base))

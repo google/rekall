@@ -20,8 +20,8 @@
 import datetime
 import socket, struct
 import volatility.plugins.overlays.basic as basic
-import volatility.plugins.kpcrscan as kpcr
-import volatility.plugins.kdbgscan as kdbg
+import volatility.plugins.windows.kpcrscan as kpcr
+import volatility.plugins.windows.kdbgscan as kdbg
 import volatility.timefmt as timefmt
 import volatility.debug as debug
 import volatility.obj as obj

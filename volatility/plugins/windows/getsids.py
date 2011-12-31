@@ -29,9 +29,9 @@
 """
 
 
-import volatility.obj as obj
-import volatility.plugins.taskmods as taskmods
+from volatility.plugins.windows import taskmods
 import re
+
 
 def find_sid_re(sid_string, sid_re_list):
     for reg, name in sid_re_list:

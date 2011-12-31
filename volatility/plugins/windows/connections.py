@@ -20,7 +20,7 @@
 
 #pylint: disable-msg=C0111
 
-from volatility.plugins import common
+from volatility.plugins.windows import common
 import volatility.win32.network as network
 import volatility.cache as cache
 import volatility.utils as utils

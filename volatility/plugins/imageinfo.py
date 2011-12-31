@@ -25,7 +25,7 @@ import volatility.debug as debug
 import volatility.obj as obj
 import volatility.cache as cache
 import volatility.registry as registry
-import volatility.plugins.kdbgscan as kdbg
+import volatility.plugins.windows.kdbgscan as kdbg
 
 class ImageInfo(kdbg.KDBGScan):
     """ Identify information for the image """

@@ -28,7 +28,7 @@ import volatility.utils as utils
 import volatility.scan as scan
 import volatility.cache as cache
 import volatility.obj as obj
-from volatility.plugins import common
+from volatility.plugins.windows import common
 
 
 class KPCRScan(common.AbstractWindowsCommand):

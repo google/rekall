@@ -25,7 +25,7 @@
 
 from operator import itemgetter
 from bisect import bisect_right
-from volatility.plugins import common
+from volatility.plugins.windows import common
 
 import volatility.obj as obj
 import volatility.win32.tasks as tasks

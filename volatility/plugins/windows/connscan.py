@@ -33,7 +33,7 @@ import volatility.cache as cache
 import volatility.utils as utils
 import volatility.obj as obj
 import volatility.debug as debug #pylint: disable-msg=W0611
-from volatility.plugins import common
+from volatility.plugins.windows import common
 
 
 class PoolScanConnFast(scan.PoolScanner):

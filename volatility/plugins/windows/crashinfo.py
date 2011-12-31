@@ -22,7 +22,7 @@ import os
 import volatility.utils as utils
 import volatility.cache as cache
 import volatility.debug as debug
-from volatility.plugins import common
+from volatility.plugins.windows import common
 
 
 class CrashInfo(common.AbstractWindowsCommand):

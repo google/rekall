@@ -33,7 +33,7 @@ import volatility.win32.hashdump as hashdumpmod
 import volatility.debug as debug
 import volatility.cache as cache
 import volatility.utils as utils
-from volatility.plugins import common
+from volatility.plugins.windows import common
 
 
 

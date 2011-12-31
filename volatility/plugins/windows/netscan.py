@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from volatility.plugins import common
+from volatility.plugins.windows import common
 import volatility.utils as utils
 import volatility.scan as scan
 import volatility.obj as obj

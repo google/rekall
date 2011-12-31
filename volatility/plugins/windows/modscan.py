@@ -28,7 +28,7 @@ This module implements the fast module scanning
 
 #pylint: disable-msg=C0111
 
-import volatility.plugins.filescan as filescan
+from volatility.plugins.windows import filescan
 import volatility.scan as scan
 import volatility.utils as utils
 import volatility.obj as obj

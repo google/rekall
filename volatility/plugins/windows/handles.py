@@ -23,8 +23,8 @@
 
 import volatility.obj as obj
 import volatility.utils as utils
-import volatility.plugins.taskmods as taskmods
-import volatility.plugins.filescan as filescan
+from volatility.plugins.windows import taskmods
+
 
 # Inherit from Dlllist for command line options
 class Handles(taskmods.DllList):

@@ -26,12 +26,12 @@
 
 #pylint: disable-msg=C0111
 
-import volatility.plugins.registry.hivescan as hs
+from volatility.plugins.windows.registry import hivescan
 import volatility.obj as obj
 import volatility.utils as utils
 import volatility.cache as cache
 
-class HiveList(hs.HiveScan):
+class HiveList(hivescan.HiveScan):
     """Print list of registry hives.
 
     You can supply the offset of a specific hive. Otherwise
@@ -68,7 +68,7 @@ class HiveList(hs.HiveScan):
         flat = utils.load_as(self._config, astype = 'physical')
         addr_space = utils.load_as(self._config)
 
-        hives = hs.HiveScan.calculate(self)
+        hives = hivescan.HiveScan.calculate(self)
 
         ## The first hive is normally given in physical address space
         ## - so we instantiate it using the flat address space. We

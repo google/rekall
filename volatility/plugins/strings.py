@@ -19,8 +19,8 @@
 
 
 import os
-import volatility.plugins.taskmods as taskmods
-import volatility.plugins.filescan as filescan
+from volatility.plugins.windows import taskmods 
+from volatility.plugins.windows import filescan 
 import volatility.obj as obj
 import volatility.utils as utils
 import volatility.win32 as win32

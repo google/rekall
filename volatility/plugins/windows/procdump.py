@@ -22,7 +22,7 @@
 
 import os
 import struct
-import volatility.plugins.taskmods as taskmods
+import volatility.plugins.windows.taskmods as taskmods
 import volatility.debug as debug
 import volatility.obj as obj
     

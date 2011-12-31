@@ -27,7 +27,7 @@ This module implements the fast socket scanning
 """
 
 #pylint: disable-msg=C0111
-from volatility.plugins import common
+from volatility.plugins.windows import common
 import volatility.scan as scan
 import volatility.utils as utils
 import volatility.obj as obj

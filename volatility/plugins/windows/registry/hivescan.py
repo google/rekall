@@ -29,7 +29,7 @@
 import volatility.scan as scan
 import volatility.obj as obj
 import volatility.utils as utils
-from volatility.plugins import common
+from volatility.plugins.windows import common
 import volatility.cache as cache
 
 
