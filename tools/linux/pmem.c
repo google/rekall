@@ -76,6 +76,30 @@ static int is_page_valid(loff_t paddr) {
   return 0;
 };
 
+static loff_t pmem_get_size(void) {
+  /* The size of memory is the end address of the last
+     resource.
+  */
+  struct resource *p = &iomem_resource;
+  struct resource *last_resource = NULL;
+  for(p=p->child;p;p=p->sibling) {
+    if (!strcmp(p->name, "System RAM")) {
+      last_resource=p;
+    };
+  }
+  
+  /* This should not happen - something has to be marked as
+     allocated.
+  */
+  if(!last_resource) {
+    printk(KERN_WARNING "No valid resources found.");
+    
+    return -EINVAL;
+  } else {
+    return last_resource->end;
+  };
+};
+
 
 /* Implement seeking behaviour. For whence=2 we need to figure out the
    size of RAM which is the end address of the last "System RAM"
@@ -85,44 +109,25 @@ static loff_t pmem_llseek(struct file *file, loff_t offset, int whence) {
   switch (whence) {
   case 0: {
     file->f_pos = offset;
-
-    return file->f_pos;
+    break;
   };
 
   case 1: {
     file->f_pos += offset;
-
-    return file->f_pos;
+    break;
   };
 
   case 2: {
-    /* The size of memory is the end address of the last
-       resource.
-    */
-    struct resource *p = &iomem_resource;
-    struct resource *last_resource = NULL;
-    for(p=p->child;p;p=p->sibling) {
-      if (!strcmp(p->name, "System RAM")) {
-	last_resource=p;
-      };
-    }
-    
-    /* This should not happen - something has to be marked as
-       allocated.
-    */
-    if(!last_resource) {
-      printk(KERN_WARNING "No valid resources found.");
-
-      return -EINVAL;
-    } else {
-      file->f_pos = offset + last_resource->end;
-      return file->f_pos;
-    };
+    file->f_pos = pmem_get_size() + offset;
+    break;
   };
     
   default:
     return -EINVAL;
   }
+
+
+  return file->f_pos;
 }
 
 /* This function reads as much of the page as possible - it may return
@@ -159,7 +164,11 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
 
  unmap_error:
   kunmap(page);
+
  error:
+  /* Increment the file offset. */
+  *poff += to_read;
+
   /* Error occured we zero pad the result. */
   memset(buf, 0, to_read);
   return to_read;
@@ -170,7 +179,13 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
 */
 static ssize_t pmem_read(struct file *file, char *buf, size_t count,
 			 loff_t *poff) {
-  size_t remaining = count;
+  loff_t file_size = pmem_get_size();
+  /* How much data is availanle in the entire memory range. */
+  size_t available = file_size - *poff;
+  size_t remaining = min(count, available);
+
+  if(file_size < *poff)
+    return 0;
 
   /* Just keep going until the full buffer is copied. Due to the null
      padding on error its impossible to fail here.
@@ -179,7 +194,7 @@ static ssize_t pmem_read(struct file *file, char *buf, size_t count,
     remaining -= pmem_read_partial(file, buf, remaining, poff);
   };
 
-  return count;
+  return min(count, available);
 }
 
 static unsigned long long zero_page = 0;
