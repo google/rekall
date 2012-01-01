@@ -138,7 +138,7 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
         for name, mask in self.optional_header_mask:
             if info_mask & mask:
                 offset -= self.obj_vm.profile.get_obj_size(name)
-                o = obj.Object(name, offset, vm=self.obj_vm, nativevm=self.obj_nativevm)
+                o = obj.Object(name, offset, vm=self.obj_vm, native_vm=self.obj_native_vm)
             else:
                 o = obj.NoneObject("Header not set")
 

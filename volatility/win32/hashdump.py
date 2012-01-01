@@ -255,7 +255,7 @@ def get_user_hashes(user_key, hbootkey):
         if v.Name == 'V':
             V = samaddr.read(v.Data, v.DataLength)
     if not V:
-        return None
+        return None, None
 
     lm_offset = unpack("<L", V[0x9c:0xa0])[0] + 0xCC + 4
     lm_len = unpack("<L", V[0xa0:0xa4])[0] - 4

@@ -351,7 +351,7 @@ class _OBJECT_HEADER(obj.CType):
         for name, info_offset in self.optional_headers:
             header_offset = self.m(info_offset).v()
             if header_offset:
-                o = obj.Object(name, offset-header_offset, vm=self.obj_vm, nativevm=self.obj_nativevm)
+                o = obj.Object(name, offset-header_offset, vm=self.obj_vm, native_vm=self.obj_native_vm)
             else:
                 o = obj.NoneObject("Header not set")
 
@@ -360,7 +360,7 @@ class _OBJECT_HEADER(obj.CType):
     def get_object_type(self):
         """Return the object's type as a string"""
         # TODO: This should be put in the overlay: 'Type': [ None, ['_OBJECT_TYPE']],
-        type_obj = obj.Object("_OBJECT_TYPE", self.Type, self.obj_nativevm)
+        type_obj = obj.Object("_OBJECT_TYPE", self.Type, self.obj_native_vm)
 
         return type_obj.Name.v()
 

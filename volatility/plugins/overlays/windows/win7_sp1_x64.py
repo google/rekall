@@ -114,6 +114,8 @@ win7_sp1_x64_vtypes.ntkrnlmp_types.update(tcpip_vtypes.tcpip_vtypes)
 win7_sp1_x64_vtypes.ntkrnlmp_types.update(tcpip_vtypes.tcpip_vtypes_vista)
 win7_sp1_x64_vtypes.ntkrnlmp_types.update(tcpip_vtypes.tcpip_vtypes_7)
 
+# On win7 this struct is named differently.
+win7_sp1_x64_vtypes.ntkrnlmp_types["_IMAGE_NT_HEADERS"] = win7_sp1_x64_vtypes.ntkrnlmp_types["_IMAGE_NT_HEADERS64"]
 
 new_overlay = windows.AbstractWindowsx64.apply_overlay(
     win7_sp1_x86.win7sp1x86overlays, win7sp1x64overlays_update)

@@ -628,9 +628,6 @@ class Pointer(NativeType):
         ## We just dereference ourself
         result = self.dereference()
 
-        if isinstance(result, CType):
-            return result.m(attr)
-
         return getattr(result, attr)
 
 class Void(NativeType):

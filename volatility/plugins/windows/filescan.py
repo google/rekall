@@ -73,11 +73,12 @@ class FileScan(common.AbstractWindowsCommand):
 
     # Can't be cached until self.kernel_address_space is moved entirely within calculate
     def calculate(self):
+        """Generate possible hits."""
         ## Just grab the AS and scan it using our scanner
         address_space = utils.load_as(self._config, astype = 'physical')
 
         ## Will need the kernel AS for later:
-        kernel_as = utils.load_as(self._config)
+        self.kernel_address_space = utils.load_as(self._config)
 
         for offset in PoolScanFile().scan(address_space):
 
@@ -111,6 +112,7 @@ class FileScan(common.AbstractWindowsCommand):
             yield (object_obj, file_obj)
 
     def render_text(self, outfd, data):
+        """Print the output in a table."""
         outfd.write("{0:10} {1:4} {2:4} {3:6} {4}\n".format(
                      'Offset(P)', '#Ptr', '#Hnd', 'Access', 'Name'))
 
@@ -139,11 +141,12 @@ class PoolScanDriver(PoolScanFile):
 class DriverScan(FileScan):
     "Scan for driver objects _DRIVER_OBJECT "
     def calculate(self):
+        """Generate possible hits."""
         ## Just grab the AS and scan it using our scanner
         address_space = utils.load_as(self._config, astype = 'physical')
 
         ## Will need the kernel AS for later:
-        kernel_as = utils.load_as(self._config)
+        self.kernel_address_space = utils.load_as(self._config)
 
         for offset in PoolScanDriver().scan(address_space):
             pool_obj = obj.Object("_POOL_HEADER", vm = address_space,
@@ -156,9 +159,9 @@ class DriverScan(FileScan):
 
             extension_obj = obj.Object(
                 "_DRIVER_EXTENSION", vm = address_space,
-                offset = offset + pool_obj.BlockSize * self.pool_align - 4 - \
-                address_space.profile.get_obj_size("_DRIVER_EXTENSION"),
-                native_vm = kernel_as)
+                offset = (offset + pool_obj.BlockSize * self.pool_align - 4 -
+                          address_space.profile.get_obj_size("_DRIVER_EXTENSION")),
+                native_vm = self.kernel_address_space)
 
             ## The _DRIVER_OBJECT is immediately below the _DRIVER_EXTENSION
             driver_obj = obj.Object(
@@ -212,11 +215,13 @@ class PoolScanSymlink(PoolScanFile):
 class SymLinkScan(FileScan):
     "Scan for symbolic link objects "
     def calculate(self):
+        """Generate possible hits."""
+
         ## Just grab the AS and scan it using our scanner
         address_space = utils.load_as(self._config, astype = 'physical')
 
         ## Will need the kernel AS for later:
-        kernel_as = utils.load_as(self._config)
+        self.kernel_address_space = utils.load_as(self._config)
 
         for offset in PoolScanSymlink().scan(address_space):
             pool_obj = obj.Object("_POOL_HEADER", vm = address_space,
@@ -250,10 +255,10 @@ class SymLinkScan(FileScan):
         outfd.write("{0:10} {1:4} {2:4} {3:24} {4:<20} {5}\n".format(
             'Offset(P)', '#Ptr', '#Hnd', 'CreateTime', 'From', 'To'))
 
-        for objct, link in data:
+        for o, link, name in data:
             outfd.write("{0:#010x} {1:4} {2:4} {3:<24} {4:<20} {5}\n".format(
-                        link.obj_offset, object.PointerCount,
-                        object.HandleCount, link.CreationTime or '',
+                        link.obj_offset, o.PointerCount,
+                        o.HandleCount, link.CreationTime or '',
                         name.v(), link.LinkTarget.v()))
 
 
@@ -278,7 +283,7 @@ class MutantScan(FileScan):
         address_space = utils.load_as(self._config, astype = 'physical')
 
         ## Will need the kernel AS for later:
-        kernel_as = utils.load_as(self._config)
+        self.kernel_address_space = utils.load_as(self._config)
 
         for offset in PoolScanMutant().scan(address_space):
             pool_obj = obj.Object("_POOL_HEADER", vm = address_space, native_vm = self.kernel_address_space,
@@ -342,6 +347,7 @@ class CheckProcess(scan.ScannerCheck):
     kernel = 0x80000000
 
     def check(self, found):
+        """Check a possible _EPROCESS."""
         ## The offset of the object is determined by subtracting the offset
         ## of the PoolTag member to get the start of Pool Object. This done
         ## because PoolScanners search for the PoolTag. 
@@ -430,6 +436,7 @@ class PSScan(common.AbstractWindowsCommand):
     # Can't be cached until self.kernel_address_space is moved entirely
     # within calculate
     def calculate(self):
+        """Generate possible hits."""
         ## Just grab the AS and scan it using our scanner
         address_space = utils.load_as(self._config, astype = 'physical')
 
@@ -460,6 +467,7 @@ class PSScan(common.AbstractWindowsCommand):
 
 
     def render_text(self, outfd, data):
+        """Render results in a table."""
         outfd.write(" Offset(P) Offset(V)  Name             PID    PPID   PDB        Time created             Time exited             \n" + \
                     "---------- --------- ---------------- ------ ------ ---------- ------------------------ ------------------------ \n")
 
@@ -478,6 +486,7 @@ class PSScan(common.AbstractWindowsCommand):
                 eprocess.ExitTime or ''))
 
     def render_dot(self, outfd, data):
+        """Create a dot file for visualization."""
         objects = set()
         links = set()
 

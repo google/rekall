@@ -38,23 +38,6 @@ from volatility import obj
 
 config = conf.ConfFactory()
 
-## Make sure the profiles are cached so we only parse it once. This is
-## important since it allows one module to update the profile for
-## another module.
-PROFILES = {}
-
-
-def check_valid_profile(option, _opt_str, value, parser):
-    """Checks to make sure the selected profile is valid"""
-    # PROFILES may not have been created yet,
-    # but the callback should get called once it has
-    # during the final parse of the config options
-    if registry.PROFILES:
-        try:
-            registry.PROFILES[value]
-        except KeyError:
-            debug.error("Invalid profile " + value + " selected")
-        setattr(parser.values, option.dest, value)
 
 class BaseAddressSpace(object):
     """ This is the base class of all Address Spaces. """

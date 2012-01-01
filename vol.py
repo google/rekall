@@ -48,8 +48,10 @@ if False:
     import yara
 
 import textwrap
+from volatility import addrspace
 from volatility import commands
 from volatility import registry
+from volatility import scan
 import volatility.conf as conf
 config = conf.ConfFactory()
 
@@ -104,6 +106,43 @@ def command_help(command_cls):
     ---------------------------------\n""".format(command_cls.__name__))
 
     return result + command_cls.help() + "\n\n"
+
+
+def print_info(*_):
+    """Print information about this binary and exit."""
+    print("The following information describes all the current volatility "
+          "executable's capabilities.")
+
+    for base_cls in [commands.command, addrspace.BaseAddressSpace, obj.Profile, scan.ScannerCheck]:
+        print "\n"
+        header = "{0} (proper name)".format(base_cls.__name__)
+        print header
+        print "-" * len(header)
+
+        for name, cls in sorted(base_cls.classes.items()):
+            # Try to see if they have a proper name:
+            proper_name = getattr(cls, "_%s__name" % name, None)
+
+            # Commands are available as lower cased class names.
+            if base_cls is commands.command and proper_name is None:
+                proper_name = name.lower()
+
+            if proper_name:
+                name = "%s (%s)" % (name, proper_name)
+
+            try:
+                doc = cls.__doc__.strip().splitlines()[0]
+            except AttributeError:
+                doc = 'No docs'
+
+            print "{0}:\t\t {1:15}".format(name, doc)
+
+    # Exit immediately.
+    sys.exit(0)
+
+config.add_option("INFO", default = None, action = "callback", callback=print_info,
+                  cache_invalidator = False, nargs = 0,
+                  help = "Print information about all registered objects")
 
 def main():
     # Get the version information on every output from the beginning

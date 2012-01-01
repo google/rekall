@@ -89,7 +89,7 @@ class Handles(taskmods.DllList):
                     otype = h.get_object_type()
                     if otype == "File":
                         file_obj = obj.Object("_FILE_OBJECT", h.Body.obj_offset, vm=h.obj_vm,
-                                              nativevm=self.kernel_address_space)
+                                              native_vm=kernel_as)
                         if file_obj.FileName:
                             name = file_obj.FileName
                     elif otype == "Key":
