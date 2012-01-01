@@ -155,6 +155,14 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
 # Update the win7 implementation
 win7_object_classes["_OBJECT_HEADER"] = _OBJECT_HEADER
 
+win7_sp0_x86_vtypes.nt_types.update({\
+  '_OBJECT_HEADER_NAME_INFORMATION' : [ 0xc, {
+  'Directory' : [ 0x0, ['pointer', ['_OBJECT_DIRECTORY']]],
+  'Name' : [ 0x04, ['_UNICODE_STRING']],
+} ], \
+})
+
+
 class Win7SP0x86(windows.AbstractWindows):
     """ A Profile for Windows 7 SP0 x86 """
     _md_major = 6

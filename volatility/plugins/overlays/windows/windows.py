@@ -100,7 +100,7 @@ class _LIST_ENTRY(obj.CType):
             item = obj.Object(type, offset = lst.obj_offset - offset,
                                     vm = self.obj_vm,
                                     parent = self.obj_parent,
-                                    nativevm = self.obj_nativevm,
+                                    native_vm = self.obj_native_vm,
                                     name = type)
 
 
@@ -219,6 +219,21 @@ class _EPROCESS(obj.CType):
 
         return process_as
 
+    def _get_modules(self, the_list, the_type):
+        """Generator for DLLs in one of the 3 PEB lists"""
+        if self.UniqueProcessId and the_list:
+            for l in the_list.list_of_type("_LDR_DATA_TABLE_ENTRY", the_type):
+                yield l
+
+    def get_init_modules(self):
+        return self._get_modules(self.Peb.Ldr.InInitializationOrderModuleList, "InInitializationOrderLinks")
+
+    def get_mem_modules(self):
+        return self._get_modules(self.Peb.Ldr.InMemoryOrderModuleList, "InMemoryOrderLinks")
+
+    def get_load_modules(self):
+        return self._get_modules(self.Peb.Ldr.InLoadOrderModuleList, "InLoadOrderLinks")
+
 AbstractWindows.object_classes['_EPROCESS'] = _EPROCESS
 
 class _HANDLE_TABLE(obj.CType):
@@ -231,7 +246,8 @@ class _HANDLE_TABLE(obj.CType):
 
     def get_item(self, offset):
         """Returns the OBJECT_HEADER of the associated handle at a particular offset"""
-        return obj.Object("_OBJECT_HEADER", offset, self.obj_vm,
+        return obj.Object("_OBJECT_HEADER", offset, vm = self.obj_vm,
+                                            native_vm = self.obj_native_vm,
                                             parent = self)
 
     def _make_handle_array(self, offset, level):
@@ -247,7 +263,7 @@ class _HANDLE_TABLE(obj.CType):
             targetType = "_HANDLE_TABLE_ENTRY"
 
         table = obj.Object("Array", offset = offset, vm = self.obj_vm, count = count,
-                           targetType = targetType, parent = self)
+                           targetType = targetType, parent = self, native_vm = self.obj_native_vm)
 
         if table:
             for entry in table:
@@ -442,6 +458,11 @@ class _MMVAD_SHORT(obj.CType):
         start = self.get_start()
         end = self.get_end()
 
+        # avoid potential situations that would cause num_pages to 
+        # overflow and then be too large to pass to xrange
+        if start > 0xFFFFFFFF or end > (0xFFFFFFFF << 12):
+            return ''
+
         num_pages = (end - start + 1) >> 12
 
         blank_page = '\x00' * 0x1000
@@ -462,9 +483,11 @@ class _EX_FAST_REF(obj.CType):
 
     def dereference_as(self, theType):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the specified type"""
-        return obj.Object(theType, vm = self.obj_nativevm, parent = self, offset = self.Object.v() & ~7)
+        return obj.Object(theType, vm = self.obj_native_vm, parent = self, offset = self.Object.v() & ~7)
+
 
 AbstractWindows.object_classes['_EX_FAST_REF'] = _EX_FAST_REF
+
 
 class ThreadCreateTimeStamp(WinTimeStamp):
     """Handles ThreadCreateTimeStamps which are bit shifted WinTimeStamps"""
@@ -563,7 +586,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
         nt_header = obj.Object("_IMAGE_NT_HEADERS",
                           offset = self.e_lfanew + self.obj_offset,
                           vm = self.obj_vm,
-                          nativevm = self.obj_nativevm)
+                          native_vm = self.obj_native_vm)
 
         if nt_header.Signature != 0x4550:
             raise ValueError('NT header signature {0:04X} is not a valid'.format(nt_header.Signature))
@@ -583,7 +606,7 @@ class _IMAGE_NT_HEADERS(obj.CType):
         for i in range(self.FileHeader.NumberOfSections):
             s_addr = start_addr + (i * sect_size)
             sect = obj.Object("_IMAGE_SECTION_HEADER", offset = s_addr, vm = self.obj_vm,
-                              parent = self, nativevm = self.obj_nativevm)
+                              parent = self, native_vm = self.obj_native_vm)
             if not unsafe:
                 sect.sanity_check_section()
             yield sect
