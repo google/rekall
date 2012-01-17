@@ -1,0 +1,24 @@
+  Win32dd - v1.2.1.20090106 - Kernel land physical memory acquisition
+  Copyright (c) 2007 - 2009, Matthieu Suiche <http://www.msuiche.net>
+  Copyright (c) 2008 - 2009, MoonSols <http://www.moonsols.com>
+
+Usage:
+  win32dd.exe [option] [output path]
+
+Option:
+  -r    Create a raw memory dump/snapshot. (default)
+  -l    Level for the mapping (with -r option only).
+     l 0  Open \\Device\\PhysicalMemory device (default).
+     l 1  Use Kernel API MmMapIoSpace()
+
+  -d    Create a Microsoft full memory dump file (WinDbg compliant).
+  -t    Type of MSFT dump file (with -d option only).
+     t 0  Original MmPhysicalMemoryBlock, like BSOD. (default).
+     t 1  MmPhysicalMemoryBlock (with PFN 0).
+
+  -h    Display this help.
+
+
+Sample:
+Usage: win32dd.exe -d physmem.dmp
+Usage: win32dd.exe -l 1 -r C:\dump\physmem.bin

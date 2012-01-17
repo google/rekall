@@ -1,0 +1,9 @@
+env = Environment(
+       tools = ['winddk'],
+       DDK_VERSION='7600.16385.1',
+       TARGET_OS='wnet',
+       TARGET_ARCH='x86',
+       BUILD_TYPE = 'chk')
+
+files = env.DDKBuild()
+

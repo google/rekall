@@ -1,1 +1,6 @@
 *.pyc
+buildchk_wnet_*
+objchk_wnet_*
+.scons*
+release
+*.sln

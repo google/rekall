@@ -1,0 +1,31 @@
+!IF 0
+
+Copyright (C) Matthieu Suiche, 2008
+
+Module Name:
+
+    sources.
+
+!ENDIF
+
+TARGETNAME=win32dd
+TARGETTYPE=DRIVER
+TARGETPATH=..\release
+LOCALINCLUDE=..\public\inc
+
+TARGETLIBS=$(DDK_LIB_PATH)\wdmsec.lib
+DDKROOT=$(BASEDIR)
+
+INCLUDES=$(DDK_INC_PATH);$(LOCALINCLUDE);
+
+SOURCES=\
+        win32dd.c \
+        crashdmp.c \
+        io.c \
+        mm.c \
+        ke.c \
+        kd.c \
+        file.c \
+        read.c
+
+PRECOMPILED_INCLUDE=precomp.h
