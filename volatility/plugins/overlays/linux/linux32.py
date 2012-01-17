@@ -423,6 +423,18 @@ class Linux32(obj.Profile):
             if f.filename.endswith(".dwarf"):
                 debug.info("Found dwarf file %s" % f.filename)
                 vtypes = self.parse_dwarf(profile_file.read(f.filename))
+
+            # If you dont want to keep the dwarf file you can just have the
+            # vtypes file itself in the zip profile file. You can just run this
+            # script (linux32.py foo.dwarf > foo.vtypes) to obtain a valid
+            # vtypes file (which is just a python file with a single dict
+            # "linux_types"). Note that this executes this file - so make sure
+            # its trusted.
+            elif f.filename.endswith(".vtypes"):
+                env = {}
+                exec(profile_file.read(f.filename), dict(__builtins__=None), env)
+                vtypes = env["linux_types"]
+
             elif "system.map" in f.filename.lower():
                 debug.info("Found dwarf file %s" % f.filename)
                 self.sys_map = self.parse_system_map(profile_file.read(f.filename))
