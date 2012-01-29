@@ -173,7 +173,7 @@ class NoneObject(object):
 
     ## Behave like an empty set
     def __iter__(self):
-        return self
+        return []
 
     def __len__(self):
         return 0
@@ -181,9 +181,6 @@ class NoneObject(object):
     def __format__(self, formatspec):
         spec = FormatSpec(string = formatspec, fill = "-", align = ">")
         return format('-', str(spec))
-
-    def next(self):
-        raise StopIteration()
 
     def __getattr__(self, attr):
         # By returning self for any unknown attribute

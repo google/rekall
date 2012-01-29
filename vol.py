@@ -82,22 +82,20 @@ def list_profiles():
 
 def list_plugins():
     if config.PROFILE:
-        try:
-            result = "\n\tSupported Plugin Commands for profile %s:\n\n" % config.PROFILE
-            for cmdname, command_cls in sorted(commands.command.GetActiveClasses(config)):
-                helpline = command_cls.help() or ''
-                ## Just put the title line (First non empty line) in this
-                ## abbreviated display
-                for line in helpline.splitlines():
-                    if line:
-                        helpline = line
-                        break
+        result = "\n\tSupported Plugin Commands for profile %s:\n\n" % config.PROFILE
+        for cmdname, command_cls in sorted(commands.command.GetActiveClasses(config)):
+            helpline = command_cls.help() or ''
+            ## Just put the title line (First non empty line) in this
+            ## abbreviated display
+            for line in helpline.splitlines():
+                if line:
+                    helpline = line
+                    break
 
-                result += "\t\t{0:15}\t{1}\n".format(cmdname, helpline)
-        except Exception:
-            import pdb; pdb.post_mortem()
-
+            result += "\t\t{0:15}\t{1}\n".format(cmdname, helpline)
         return result
+
+    return ""
 
 def command_help(command_cls):
     result = textwrap.dedent("""
