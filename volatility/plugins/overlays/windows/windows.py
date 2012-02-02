@@ -80,40 +80,55 @@ AbstractWindows.object_classes['_UNICODE_STRING'] = _UNICODE_STRING
 
 class _LIST_ENTRY(obj.CType):
     """ Adds iterators for _LIST_ENTRY types """
-    def list_of_type(self, type, member, forward = True):
-        if not self.is_valid():
-            return
 
-        ## Get the first element
-        if forward:
-            lst = self.Flink.dereference()
-        else:
-            lst = self.Blink.dereference()
-
+    def dereference_as(self, type, member):
         offset = self.obj_vm.profile.get_obj_offset(type, member)
 
-        seen = set()
-        seen.add(lst.obj_offset)
+        item = obj.Object(type, offset = self.obj_offset - offset,
+                          vm = self.obj_vm, parent = self.obj_parent,
+                          native_vm = self.obj_native_vm, name = type)
 
-        while 1:
-            ## Instantiate the object
-            item = obj.Object(type, offset = lst.obj_offset - offset,
-                                    vm = self.obj_vm,
-                                    parent = self.obj_parent,
-                                    native_vm = self.obj_native_vm,
-                                    name = type)
+        return item
 
+    def find_all_lists(self, seen):
+        """Follows all the list entries starting from lst.
 
-            if forward:
-                lst = item.m(member).Flink.dereference()
-            else:
-                lst = item.m(member).Blink.dereference()
+        We basically convert the list to a tree and recursively search it for
+        new nodes. From each node we follow the Flink and then the Blink. When
+        we see a node we already have, we backtrack. This allows us to find
+        nodes which do not satisfy the relation (Due to smear):
 
-            if not lst.is_valid() or lst.obj_offset in seen:
-                return
-            seen.add(lst.obj_offset)
+        x.Flink.Blink = x
+        """
+        if self in seen or not self.is_valid():
+            return
 
-            yield item
+        seen.append(self)
+
+        Flink = self.Flink.dereference()
+        if Flink.is_valid():
+            Flink.find_all_lists(seen)
+
+        Blink = self.Blink.dereference()
+        if Blink.is_valid():
+            Blink.find_all_lists(seen)
+
+    def list_of_type(self, type, member):
+        result = []
+        self.find_all_lists(result)
+
+        # We traverse all the _LIST_ENTRYs we can find, and cast them all back
+        # to the required member.
+        for lst in result:
+            # Skip ourselves in this (list_of_type is usually invoked on a list
+            # head).
+            if lst.obj_offset == self.obj_offset:
+                continue
+
+            task = lst.dereference_as(type, member)
+            if task:
+                # Only yield valid objects (In case of dangling links).
+                yield task
 
     def __nonzero__(self):
         ## List entries are valid when both Flinks and Blink are valid
