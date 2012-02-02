@@ -406,13 +406,11 @@ class Linux32(obj.Profile):
 
     def __init__(self, strict = False, config = None):
         # Parse the dwarf file and generate the vtypes
-        obj.Profile.__init__(self, strict=strict, config=config)
-
         if config.PROFILE_FILE is None:
             raise RuntimeError("DWARF profile file not specified.")
 
         self.abstract_types = self.parse_profile_file(config.PROFILE_FILE)
-        self.recompile()
+        obj.Profile.__init__(self, strict=strict, config=config)
 
     @cache.CacheDecorator("address_space/profile/")
     def parse_profile_file(self, filename):
