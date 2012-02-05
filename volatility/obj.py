@@ -167,19 +167,22 @@ class NoneObject(object):
 
         return ""
 
+    def __repr__(self):
+        return "<%s>" % self.reason
+
     def write(self, data):
         """Write procedure only ever returns False"""
         return False
 
     ## Behave like an empty set
     def __iter__(self):
-        return []
+        return iter([])
 
     def __len__(self):
         return 0
 
     def __format__(self, formatspec):
-        spec = FormatSpec(string = formatspec, fill = "-", align = ">")
+        spec = FormatSpec(string = "s", fill = "-", align = ">")
         return format('-', str(spec))
 
     def __getattr__(self, attr):
@@ -800,8 +803,11 @@ class CType(BaseObject):
             ## Otherwise its relative to the start of our struct
             offset = int(offset) + int(self.obj_offset)
 
-        result = cls(offset = offset, vm = self.obj_vm, parent = self, name = attr,
-                     native_vm = self.obj_native_vm)
+        try:
+            result = cls(offset = offset, vm = self.obj_vm, parent = self, name = attr,
+                         native_vm = self.obj_native_vm)
+        except Error, e:
+            result = NoneObject(str(e))
 
         return result
 
