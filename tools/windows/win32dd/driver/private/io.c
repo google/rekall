@@ -54,119 +54,116 @@ NTSTATUS
 IoWriteRawDump_Level0(IN PDEVICE_OBJECT DeviceObject, 
                       IN PUNICODE_STRING FilePath)
 {
-UNICODE_STRING PhysicalMemoryPath;
-OBJECT_ATTRIBUTES MemoryAttributes, DumpFileAttributes;
-HANDLE MemoryHandle, RawHandle;
-IO_STATUS_BLOCK IoStatusBlock;
-LARGE_INTEGER ViewBase;
-NTSTATUS NtStatus;
-ULONG PageIndex;
-ULONG TotalPhysicalPages;
-SIZE_T ViewSize;
-PUCHAR Buffer;
-PVOID Object = NULL;
-PCHAR NullPage;
+  PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
+  UNICODE_STRING PhysicalMemoryPath;
+  OBJECT_ATTRIBUTES MemoryAttributes, DumpFileAttributes;
+  HANDLE MemoryHandle, RawHandle;
+  IO_STATUS_BLOCK IoStatusBlock;
+  LARGE_INTEGER ViewBase;
+  NTSTATUS NtStatus;
+  ULONG PageIndex;
+  ULONG TotalPhysicalPages;
+  SIZE_T ViewSize;
+  PUCHAR Buffer;
+  PVOID Object = NULL;
+  PCHAR NullPage;
+  
+  //
+  // We copy both, path to PhysicalMemory and destination file into
+  // UNICODE_STRING types.
+  //
+  RtlInitUnicodeString(&PhysicalMemoryPath,
+                       L"\\Device\\PhysicalMemory");
 
-    //
-    // We copy both, path to PhysicalMemory and destination file into
-    // UNICODE_STRING types.
-    //
-    RtlInitUnicodeString(&PhysicalMemoryPath,
-                         L"\\Device\\PhysicalMemory");
+  //
+  // We initialize object attributes of Memory
+  //
+  InitializeObjectAttributes(&MemoryAttributes,
+                             &PhysicalMemoryPath,
+                             OBJ_KERNEL_HANDLE,
+                             (HANDLE) NULL,
+                             (PSECURITY_DESCRIPTOR) NULL);
 
-    //
-    // We initialize object attributes of Memory
-    //
-    InitializeObjectAttributes(&MemoryAttributes,
-                               &PhysicalMemoryPath,
-                               OBJ_KERNEL_HANDLE,
-                               (HANDLE) NULL,
-                               (PSECURITY_DESCRIPTOR) NULL);
+  //
+  // We initialize Memory's handle.
+  //
+  MemoryHandle = 0;
 
-    //
-    // We initialize Memory's handle.
-    //
-    MemoryHandle = 0;
+  //
+  // We define Memory's handle through ZwOpenSection()
+  //
+  NtStatus = ZwOpenSection(&MemoryHandle,
+                           SECTION_MAP_READ,
+                           &MemoryAttributes);
+  
+  //
+  // We're ready to catch errors!
+  //
+  if (!NT_SUCCESS(NtStatus))
+  {
+    DbgPrint("[win32dd] ZwOpenSection(MemoryHandle) => %08X\n", NtStatus);
+    return NtStatus;
+  }
 
-    //
-    // We define Memory's handle through ZwOpenSection()
-    //
-    NtStatus = ZwOpenSection(&MemoryHandle,
-                             SECTION_MAP_READ,
-                             &MemoryAttributes);
+  //
+  // We provides access validation on Memory's handle.
+  //
+  NtStatus = ObReferenceObjectByHandle(MemoryHandle,
+                                       SECTION_MAP_READ,
+                                       (POBJECT_TYPE) NULL,
+                                       KernelMode,
+                                       &Object,
+                                       (POBJECT_HANDLE_INFORMATION) NULL);
+  
+  //
+  // We catch error if we cannot provide access.
+  //
+  if (!NT_SUCCESS(NtStatus))
+  {
+    DbgPrint("[win32dd] ObReferenceObjectByHandle(MemoryHandle) => %08X\n", NtStatus);
+    ZwClose(MemoryHandle);
+    return NtStatus;
+  }
 
-    //
-    // We're ready to catch errors!
-    //
-    if (!NT_SUCCESS(NtStatus))
-    {
-        DbgPrint("[win32dd] ZwOpenSection(MemoryHandle) => %08X\n", NtStatus);
-        return NtStatus;
-    }
+  // Retrieve the size of the physical memory. This is not the total pages, but
+  // the base address of the last run and the number of pages in it.
+  {
+    PHYSICAL_MEMORY_RUN last_run = &ext->descriptor->Run[ext->descriptor->NumberOfRuns -1];
+    TotalPhysicalPages = last_run->BasePage + last_run->PageCount;
+  };
 
-    //
-    // We provides access validation on Memory's handle.
-    //
-    NtStatus = ObReferenceObjectByHandle(MemoryHandle,
-                                         SECTION_MAP_READ,
-                                         (POBJECT_TYPE) NULL,
-                                         KernelMode,
-                                         &Object,
-                                         (POBJECT_HANDLE_INFORMATION) NULL);
+  NtStatus = wddCreateFile(FilePath, &RawHandle);
+  if (!NT_SUCCESS(NtStatus)) {
+    ZwClose(MemoryHandle);
+    return NtStatus;
+  }
+  //
+  // Physical Memory position is set to 0x00000000
+  //
+  ViewBase.LowPart = 0;
+  ViewBase.HighPart = 0;
 
-    //
-    // We catch error if we cannot provide access.
-    //
-    if (!NT_SUCCESS(NtStatus))
-    {
-        DbgPrint("[win32dd] ObReferenceObjectByHandle(MemoryHandle) => %08X\n", NtStatus);
-        ZwClose(MemoryHandle);
-        return NtStatus;
-    }
+  //
+  // Allocate a null page.
+  //
+  NullPage = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, NULL_TAG);
 
-    //
-    // Retrieve the size of the physical memory.
-    //
-    TotalPhysicalPages = MiGetTotalPhysicalPages();
+  //
+  // We fill the buffer with null bytes.
+  //
+  RtlZeroMemory(NullPage, PAGE_SIZE);
 
-    NtStatus = wddCreateFile(FilePath, &RawHandle);
-    if (!NT_SUCCESS(NtStatus))
-    {
-        ZwClose(MemoryHandle);
-        return NtStatus;
-    }
-    //
-    // Physical Memory position is set to 0x00000000
-    //
-    ViewBase.LowPart = 0;
-    ViewBase.HighPart = 0;
+  //
+  // Here is the main loop, to copy pages.
+  //
+  for (PageIndex = 0; PageIndex < TotalPhysicalPages; PageIndex++) {
+    // We initialize variables again, again and again.
+    Buffer = NULL;
+    ViewSize = PAGE_SIZE;
 
-    //
-    // Allocate a null page.
-    //
-    NullPage = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, NULL_TAG);
-
-    //
-    // We fill the buffer with null bytes.
-    //
-    RtlZeroMemory(NullPage, PAGE_SIZE);
-
-    //
-    // Here is the main loop, to copy pages.
-    //
-    for (PageIndex = 0; PageIndex < TotalPhysicalPages; PageIndex++)
-    {
-        //
-        // We initialize variables again, again and again.
-        //
-        Buffer = NULL;
-        ViewSize = PAGE_SIZE;
-
-        //
-        // Get ready to read into Physical Memory device.
-        // Note from the developper: DONT USE PAGE_NOCACHE flag!!
-        //
-        NtStatus = ZwMapViewOfSection(MemoryHandle,
+    // Get ready to read into Physical Memory device.
+    // Note from the developper: DONT USE PAGE_NOCACHE flag!!
+    NtStatus = ZwMapViewOfSection(MemoryHandle,
                                       (HANDLE) -1,
                                       &Buffer,
                                       0L,
@@ -198,7 +195,7 @@ PCHAR NullPage;
                 //
                 break;
             }
-            
+
             //
             // We don't forget to unmap the page before continuing.
             //
@@ -212,7 +209,7 @@ PCHAR NullPage;
         else
         {
             DbgPrint("[win32dd] ZwMapViewOfSection(MemoryHandle) => %08X\n", NtStatus);
-            
+
             //
             // Here is a specific case.
             //
@@ -643,4 +640,3 @@ PUCHAR NullPage;
 
     return NtStatus;
 }
-

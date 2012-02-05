@@ -38,11 +38,30 @@ Revision History:
 #ifndef _WIN32DD_H_
 #define _WIN32DD_H_
 
+#include "mm.h"
+
 //
 // IOCTL
 //
 #define IOCTL_WRITE_RAW_DUMP CTL_CODE(FILE_DEVICE_UNKNOWN, 0x1, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
 #define IOCTL_WRITE_CRSH_DUMP CTL_CODE(FILE_DEVICE_UNKNOWN, 0x2, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+
+/* This is used to query the driver about memory stats.
+
+   In - Encode the level and method in bits 8-16.
+   Out - struct Win32MemroyInfo.
+ */
+#define IOCTL_GET_INFO CTL_CODE(FILE_DEVICE_UNKNOWN, 0x100, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+
+#pragma pack(2)
+struct Win32MemroyInfo {
+  LARGE_INTEGER CR3;
+  LARGE_INTEGER KPCR;
+  ULONG NumberOfRuns;
+
+  // A Null terminated array of ranges.
+  PHYSICAL_MEMORY_RANGE Run[1];
+};
 
 #define STATUS_DONE 'ENOD'
 #define STATUS_FAIL 'LIAF'
@@ -54,7 +73,7 @@ Revision History:
  */
 #define SILENT_OPERATION 0
 #define WIN32DD_DEVICE_NAME L"win32dd"
-
+#define WIN32DD_VERSION "v2.0RC1"
 
 /* When we are silent we do not emit any debug messages. */
 #if SILENT_OPERATION
@@ -73,10 +92,10 @@ enum WDD_ACQUISITION_MODE {
 typedef struct _DEVICE_EXTENSION {
   /* How we should acquire memory. */
   enum WDD_ACQUISITION_MODE mode;
-  LARGE_INTEGER MemorySize;
 
   /* If we read from \\Device\\PhysicalMemory, this is the handle to that. */
   HANDLE MemoryHandle;
+  PPHYSICAL_MEMORY_DESCRIPTOR descriptor;
 } DEVICE_EXTENSION, *PDEVICE_EXTENSION;
 
 

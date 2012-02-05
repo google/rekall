@@ -41,38 +41,7 @@ class ImageInfo(kdbg.KDBGScan):
     def calculate(self):
         """Calculates various information about the image"""
         print "Determining profile based on KDBG search...\n"
-        profilelist = [ p.__name__ for p in registry.PROFILES.classes ]
-
-        bestguess = None
-        suglist = [ s for s, _, _ in kdbg.KDBGScan.calculate(self)]
-        if suglist:
-            bestguess = suglist[0]
-        suggestion = ", ".join(suglist)
-
-        # Set our suggested profile first, then run through the list
-        if bestguess in profilelist:
-            profilelist = [bestguess] + profilelist
-        chosen = 'no profile'
-
-        # Save the original profile
-        origprofile = self._config.PROFILE
-        # Force user provided profile over others
-        profilelist = [origprofile] + profilelist
-
-        for profile in profilelist:
-            debug.debug('Trying profile ' + profile)
-            self._config.update('PROFILE', profile)
-            addr_space = utils.load_as(self._config, astype = 'any')
-            if hasattr(addr_space, "dtb"):
-                chosen = profile
-                break
-
-        if bestguess != chosen:
-            if not suggestion:
-                suggestion = 'No suggestion'
-            suggestion += ' (Instantiated with ' + chosen + ')'
-
-        yield ('Suggested Profile(s)', suggestion)
+        addr_space = utils.load_as(self._config, astype = 'any')
 
         tmpas = addr_space
         count = 0
@@ -115,9 +84,6 @@ class ImageInfo(kdbg.KDBGScan):
                         yield ('Image Type', csdversion)
                     except tasks.TasksNotFound:
                         pass
-
-        # Make sure to reset the profile to its original value to keep the invalidator from blocking the cache
-        self._config.update('PROFILE', origprofile)
 
     def get_image_time(self, addr_space):
         """Get the Image Datetime"""

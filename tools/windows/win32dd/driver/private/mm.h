@@ -126,4 +126,6 @@ PMMPTE MmCrashDumpPte = (MiGetPteAddress(MM_CRASH_DUMP_VA));
 */
 #define MMDBG 0
 
+int AddMemoryRanges(struct Win32MemroyInfo *info, int len);
+
 #endif

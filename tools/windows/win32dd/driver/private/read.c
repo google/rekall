@@ -64,23 +64,19 @@ static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension, LARGE_INTE
 static NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset, PCHAR buf, ULONG *count,
                            LONG (*handler)(IN PDEVICE_EXTENSION, LARGE_INTEGER, PCHAR, ULONG)
                            ) {
-  int available = extension->MemorySize.QuadPart - offset.QuadPart;
-  int remaining = min(*count, available);
+  int remaining = *count;
 
-  if(remaining <= 0) {
-    *count = 0;
-  } else {
-    while(remaining > 0) {
-      int result = handler(extension, offset, buf, remaining);
+  while(remaining > 0) {
+    int result = handler(extension, offset, buf, remaining);
 
-      /* Error Occured. */
-      if(result < 0) return result;
-      if(result==0) break;
+    /* Error Occured. */
+    if(result < 0) return result;
+    /* No data available. */
+    if(result==0) break;
 
-      offset.QuadPart += result;
-      buf += result;
-      remaining -= result;
-    }
+    offset.QuadPart += result;
+    buf += result;
+    remaining -= result;
   };
 
   return STATUS_SUCCESS;
@@ -107,7 +103,6 @@ NTSTATUS win32Read(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
   switch(extension->mode) {
     case ACQUISITION_MODE_PHYSICAL_MEMORY:
       status = DeviceRead(extension, BufOffset, Buf, &BufLen, PhysicalMemoryPartialRead);
-      DbgPrint("Wrote %u bytes\n", pIoStackIrp->Parameters.Read.Length);
       Irp->IoStatus.Information = pIoStackIrp->Parameters.Read.Length;
       break;
 

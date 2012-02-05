@@ -37,6 +37,8 @@ Revision History:
 --*/
 
 #include "precomp.h"
+#include "mm.h"
+#include "io.h"
 
 /*++
 Function Name: MmGetPhysicalMemoryBlock
@@ -159,7 +161,7 @@ Return Values:
 ULONG
 MiGetTotalPhysicalPages()
 {
-SYSTEM_BASIC_INFORMATION SystemBasicInfo;
+  SYSTEM_BASIC_INFORMATION SystemBasicInfo;
 NTSTATUS NtStatus;
 
     //
@@ -243,3 +245,65 @@ IoClosePhysicalMemory()
 
     return STATUS_SUCCESS;
 }
+
+/*
+  Gets information about the memory layout.
+
+  - The current value of CR3 which is the kernel DTB.
+  - The location of the kernel PCR block.
+  - The Physical memory address ranges.
+
+  This must be done in the context of the first CPU. See this:
+  http://www.msuiche.net/2009/01/05/multi-processors-and-kdversionblock/
+ */
+int AddMemoryRanges(struct Win32MemroyInfo *info, int len) {
+  PPHYSICAL_MEMORY_RANGE MmPhysicalMemoryRange;
+  int i = 0;
+  int required_length;
+  ULONG CR3, KPCR;
+
+  /* Make sure we run on the first CPU so the KPCR is valid. */
+
+  KeSetSystemAffinityThread(1);
+
+  _asm {
+        mov eax, cr3
+        mov CR3, eax
+
+        mov eax, fs:[0x1C]          // SelfPCR
+        mov KPCR, eax
+       }
+
+  info->KPCR.QuadPart = KPCR;
+  info->CR3.QuadPart = __readntcr3();
+  KeRevertToUserAffinityThread();
+
+  // Enumerate address ranges.
+  MmPhysicalMemoryRange = MmGetPhysicalMemoryRanges();
+
+  if (MmPhysicalMemoryRange == NULL) {
+    return -1;
+  };
+
+  /** Found out how many ranges there are. */
+  for(i=0; (MmPhysicalMemoryRange[i].BaseAddress.QuadPart) &&
+          (MmPhysicalMemoryRange[i].NumberOfBytes.QuadPart); i++) {
+    i++;
+  }
+
+  required_length = sizeof(struct Win32MemroyInfo) +
+      i * sizeof(PHYSICAL_MEMORY_RANGE);
+
+  /* Do we have enough space? */
+  if(len < required_length) {
+    return -1;
+  };
+
+  info->NumberOfRuns = i;
+  RtlCopyMemory(&info->Run[0], MmPhysicalMemoryRange,
+                i * sizeof(PHYSICAL_MEMORY_RANGE));
+
+  ExFreePool(MmPhysicalMemoryRange);
+
+  return required_length;
+};

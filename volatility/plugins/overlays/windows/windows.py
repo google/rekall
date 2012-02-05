@@ -18,6 +18,7 @@
 #
 
 import datetime
+
 import socket, struct
 import volatility.plugins.overlays.basic as basic
 import volatility.plugins.windows.kpcrscan as kpcr
@@ -100,18 +101,18 @@ class _LIST_ENTRY(obj.CType):
 
         x.Flink.Blink = x
         """
-        if self in seen or not self.is_valid():
+        if not self.is_valid():
+            return
+        elif self in seen:
             return
 
         seen.append(self)
 
         Flink = self.Flink.dereference()
-        if Flink.is_valid():
-            Flink.find_all_lists(seen)
+        Flink.find_all_lists(seen)
 
         Blink = self.Blink.dereference()
-        if Blink.is_valid():
-            Blink.find_all_lists(seen)
+        Blink.find_all_lists(seen)
 
     def list_of_type(self, type, member):
         result = []

@@ -43,6 +43,7 @@ Revision History:
 ULONG IopFinalRawDumpStatus = STATUS_PEND;
 ULONG IopFinalCrashDumpStatus = STATUS_PEND;
 
+
 /*++
 Function Name: IoUnload
 
@@ -89,10 +90,8 @@ static NTSTATUS wddCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
   PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
   DbgPrint("[win32dd] Create driver.");
-  ext->MemorySize.QuadPart = MiGetTotalPhysicalPages() * PAGE_SIZE;
   ext->MemoryHandle = 0;
-
-  DbgPrint("Physical Memory is 0x%llX\n", ext->MemorySize.QuadPart);
+  ext->descriptor = MmGetPhysicalMemoryBlock();
 
   Irp->IoStatus.Status = STATUS_SUCCESS;
   Irp->IoStatus.Information = 0;
@@ -141,7 +140,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
   ULONG IoControlCode;
   PVOID IoBuffer;
   PULONG OutputBuffer;
-
+  PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
   ULONG InputLen, OutputLen;
 
   //
@@ -167,6 +166,21 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
   IoControlCode = IrpStack->Parameters.DeviceIoControl.IoControlCode;
 
   switch ((IoControlCode & 0xFFFFFF0F)) {
+    case IOCTL_GET_INFO: {
+      struct Win32MemroyInfo *info = (void *)IoBuffer;
+      int res = AddMemoryRanges(info, OutputLen);
+
+      DbgPrint("[win32dd] Returning info on the system memory.\n");
+      if(res > 0) {
+        Irp->IoStatus.Information = res;
+        NtStatus = STATUS_SUCCESS;
+      } else {
+        NtStatus = STATUS_INFO_LENGTH_MISMATCH;
+      };
+
+      Irp->IoStatus.Status = NtStatus;
+    }; break;
+
     //
     // Generate the RAW Dump.
     //
@@ -301,7 +315,8 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   NTSTATUS NtStatus;
   PDEVICE_OBJECT DeviceObject = NULL;
 
-  DbgPrint("  Win32dd - v1.2.1.20090106 - Kernel land physical memory acquisition\n");
+  DbgPrint("  Win32dd - " WIN32DD_VERSION " - Physical memory acquisition\n");
+  DbgPrint("  Copyright (c) 2012, Michael Cohen <scudette@gmail.com>\n");
   DbgPrint("  Copyright (c) 2007 - 2009, Matthieu Suiche <http://www.msuiche.net>\n");
   DbgPrint("  Copyright (c) 2008 - 2009, MoonSols <http://www.moonsols.com>\n");
 
@@ -324,21 +339,10 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
                                   &GUID_DEVCLASS_WIN32DD_DUMPER,
                                   &DeviceObject);
 
-  /*--
-    NtStatus = IoCreateDevice (DriverObject,
-                               0,
-                               &DeviceName,
-                               FILE_DEVICE_UNKNOWN,
-                               FILE_DEVICE_SECURE_OPEN,
-                               FALSE,
-                              &DeviceObject);
-                              ++*/
-
   if (!NT_SUCCESS(NtStatus)) {
     DbgPrint ("[win32dd] IoCreateDevice failed. => %08X\n", NtStatus);
     return NtStatus;
   }
-
 
   DriverObject->MajorFunction[IRP_MJ_CREATE] = wddCreate;
   DriverObject->MajorFunction[IRP_MJ_CLOSE] = wddClose;
