@@ -51,7 +51,6 @@ class BaseAddressSpace(object):
         """
         self.base = base
         self._config = config
-        self.profile = config.PROFILE
 
     @staticmethod
     def register_options(config):
@@ -72,13 +71,6 @@ class BaseAddressSpace(object):
                 error = "Instantiation failed for unspecified reason"
             raise ASAssertionError, error
 
-    def __eq__(self, other):
-        return self.__class__ == other.__class__ and \
-               self.profile == other.profile and self.base == other.base
-
-    def __ne__(self, other):
-        return not self == other
-
     def read(self, addr, length):
         """ Read some date from a certain offset """
 
@@ -95,14 +87,6 @@ class BaseAddressSpace(object):
             return False
         raise NotImplementedError("Write support for this type of Address Space has not been implemented")
 
-    def __getstate__(self):
-        """ Serialise this address space efficiently """
-        ## FIXME: Note that types added/overridden in the config.PROFILE may bleed through
-        ## into other plugins from the cache.  This needs fixing.
-        return dict(name = self.__class__.__name__, base = self.base, config = self._config)
-
-    def __setstate__(self, state):
-        self.__init__(**state)
 
 class AbstractVirtualAddressSpace(BaseAddressSpace):
     """Base Ancestor for all Virtual address spaces, as determined by astype"""
@@ -119,8 +103,8 @@ class AbstractVirtualAddressSpace(BaseAddressSpace):
 class BufferAddressSpace(BaseAddressSpace):
     __abstract = True
 
-    def __init__(self, config, base_offset = 0, data = '', **kwargs):
-        BaseAddressSpace.__init__(self, None, config, **kwargs)
+    def __init__(self, config=None, base_offset = 0, data = '', **kwargs):
+        BaseAddressSpace.__init__(self, base=None, config=None, **kwargs)
         self.fname = "Buffer"
         self.data = data
         self.base_offset = base_offset

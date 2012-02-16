@@ -26,31 +26,7 @@ import copy
 import volatility.obj as obj
 import volatility.debug as debug #pylint: disable-msg=W0611
 import volatility.constants as constants
-
-## The following is a conversion of basic C99 types to python struct
-## format strings. NOTE: since volatility is analysing images which
-## are not necessarily the same bit size as the currently running
-## platform you may not use platform specific format specifiers here
-## like l or L - you must use i or I.
-x86_native_types_32bit = {
-    'int' : [4, '<i'],
-    'long': [4, '<i'],
-    'unsigned long' : [4, '<I'],
-    'unsigned int' : [4, '<I'],
-    'address' : [4, '<I'],
-    'char' : [1, '<c'],
-    'unsigned char' : [1, '<B'],
-    'unsigned short int' : [2, '<H'],
-    'unsigned short' : [2, '<H'],
-    'unsigned be short' : [2, '>H'],
-    'short' : [2, '<h'],
-    'long long' : [8, '<q'],
-    'unsigned long long' : [8, '<Q'],
-    }
-
-x86_native_types_64bit = copy.deepcopy(x86_native_types_32bit)
-x86_native_types_64bit['address'] = [8, '<Q']
-x86_native_types_64bit['pointer64'] = [8, '<Q']
+from volatility.plugins.overlays import native_types
 
 
 class String(obj.NativeType):
@@ -88,8 +64,6 @@ class String(obj.NativeType):
     def __radd__(self, other):
         """Set up mappings for reverse concat"""
         return other + str(self)
-
-obj.Profile.object_classes['String'] = String
 
 class Flags(obj.NativeType):
     """ This object decodes each flag into a string """
@@ -137,7 +111,6 @@ class Flags(obj.NativeType):
 
         return self.v() & mask
 
-obj.Profile.object_classes['Flags'] = Flags
 
 class Enumeration(obj.NativeType):
     """Enumeration class for handling multiple possible meanings for a single value"""
@@ -161,8 +134,6 @@ class Enumeration(obj.NativeType):
     def __format__(self, formatspec):
         return format(self.__str__(), formatspec)
 
-obj.Profile.object_classes['Enumeration'] = Enumeration
-
 
 class VOLATILITY_MAGIC(obj.CType):
     """Class representing a VOLATILITY_MAGIC namespace
@@ -177,7 +148,6 @@ class VOLATILITY_MAGIC(obj.CType):
             # so we must finish off the CType's __init__ ourselves
             self.__initialized = True
 
-obj.Profile.object_classes['VOLATILITY_MAGIC'] = VOLATILITY_MAGIC
 
 class VolatilityDTB(obj.VolatilityMagic):
 
@@ -202,4 +172,34 @@ class VolatilityDTB(obj.VolatilityMagic):
 
             offset += len(data)
 
-obj.Profile.object_classes['VolatilityDTB'] = VolatilityDTB
+
+# We define two kinds of basic profiles, a 32 bit one and a 64 bit one
+class Profile32Bits(obj.Profile):
+    """Basic profile for 32 bit systems."""
+    _md_memory_model = '32bit'
+
+    def __init__(self, **kwargs):
+        super(Profile32Bits, self).__init__(**kwargs)
+        self.add_types(native_types.x86_native_types)
+
+class Profile64Bits(obj.Profile):
+    """Basic profile for 64 bit systems."""
+    _md_memory_model = '64bit'
+
+    def __init__(self, **kwargs):
+        super(Profile64Bits, self).__init__(**kwargs)
+        self.add_types(native_types.x64_native_types)
+
+
+class BasicClassesMixin(obj.Profile):
+    """Basic profile which introduces the basic classes."""
+
+    def __init__(self, **kwargs):
+        super(BasicClassesMixin, self).__init__(**kwargs)
+        self.add_classes({
+            'String': String,
+            'Flags': Flags,
+            'Enumeration': Enumeration,
+            'VOLATILITY_MAGIC': VOLATILITY_MAGIC,
+            'VolatilityDTB': VolatilityDTB,
+            })

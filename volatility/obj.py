@@ -182,7 +182,7 @@ class NoneObject(object):
         return 0
 
     def __format__(self, formatspec):
-        spec = FormatSpec(string = "s", fill = "-", align = ">")
+        spec = FormatSpec(string = formatspec, fill = "-", align = ">")
         return format('-', str(spec))
 
     def __getattr__(self, attr):
@@ -398,7 +398,12 @@ class BaseObject(object):
         return NoneObject("Can't dereference {0}".format(self.obj_name), self.obj_vm.profile.strict)
 
     def dereference_as(self, derefType, **kwargs):
-        return Object(derefType, self.v(), self.obj_native_vm, parent = self, **kwargs)
+        # Make sure we use self.obj_native_vm to automatically
+        # dereference from the highest available VM
+        if self.obj_native_vm.is_valid_address(self.v()):
+            return Object(derefType, self.v(), self.obj_native_vm, parent = self, **kwargs)
+        else:
+            return NoneObject("Invalid offset {0} for dereferencing {1} as {2}".format(self.v(), self.obj_name, derefType))
 
     def cast(self, castString):
         return Object(castString, self.obj_offset, self.obj_vm)
@@ -906,14 +911,27 @@ class Profile(object):
     _md_major = 0
     _md_minor = 0
     _md_build = 0
-    native_types = {}
-    abstract_types = {}
-    overlay = {}
+    _md_memory_model = None
+
+    overlay = None
+
+    # These are the vtypes - they are just a dictionary describing the types
+    # using the "vtype" language. This dictionary will be compiled into
+    # executable code and placed into self.types.
+    vtypes = None
+
+    # This hold the executable code compiled from the vtypes above.
+    types = None
+
+    # This flag indicates if the profile needs to be recompiled on demand.
+    _ready = False
+    
     # We initially populate this with objects in this module that will be used everywhere
     object_classes = {'BitField': BitField,
                       'Pointer': Pointer,
                       'Void': Void,
                       'Array': Array,
+                      'NativeType': NativeType,
                       'CType': CType,
                       'VolatilityMagic': VolatilityMagic}
 
@@ -922,20 +940,9 @@ class Profile(object):
     __abstract = True
 
     def __init__(self, strict = False, config = None):
-        self.types = {}
-        self.typeDict = {}
         self.overlayDict = {}
         self._config = config
         self.strict = strict
-
-        # Ensure VOLATILITY_MAGIC is always present in every profile
-        # That way, we can still autogenerate types, and put VOLATILITY_MAGIC in overlays
-        # Otherwise the overlay won't have anything to, well, over lay.
-        if 'VOLATILITY_MAGIC' not in self.abstract_types:
-            self.abstract_types['VOLATILITY_MAGIC'] = [0x0, {}]
-
-        # Ensure the profile is compiled
-        self.recompile()
 
     @classproperty
     @classmethod
@@ -954,33 +961,37 @@ class Profile(object):
     def has_type(self, theType):
         return theType in self.object_classes or theType in self.types
 
-    def recompile(self):
-        """Recompile our internal representation of the types.
-
-        Note that whenever, users directly change self.abstract_types,
-        self.object_classes or self.overlay, the profile must be recompiled.
-        """
-        self.add_types(self.abstract_types, self.overlay)
+    def add_classes(self, classes_dict):
+        """Add the classes in the dict to our object classes mapping."""
+        self._ready = False
+        self.object_classes.update(classes_dict)
 
     def add_types(self, abstract_types, overlay = None):
+        self._ready = False
+        self.vtypes = self.vtypes or {}
+
         overlay = overlay or {}
 
-        ## we merge the abstract_types with self.typeDict and then recompile
+        ## we merge the abstract_types with self.vtypes and then recompile
         ## the whole thing again. This is essential because
         ## definitions may have changed as a result of this call, and
         ## we store curried objects (which might keep their previous
         ## definitions).
         for k, v in abstract_types.items():
-            original = self.typeDict.get(k, [0, {}])
-            original[1].update(v[1])
-            if v[0]:
-                original[0] = v[0]
-            self.typeDict[k] = original
+            if isinstance(v, list):
+                self.vtypes[k] = v
+            else:
+                original = self.vtypes.get(k, [0, {}])
+                original[1].update(v[1])
+                if v[0]:
+                    original[0] = v[0]
+
+                self.vtypes[k] = original
 
         for k, v in overlay.items():
             # Allow the overlay to add new types.
-            if k not in self.typeDict:
-                self.typeDict[k] = [0, {}]
+            if k not in self.vtypes:
+                self.vtypes[k] = [0, {}]
 
             original = self.overlayDict.get(k, [None, {}])
             original[1].update(v[1])
@@ -989,21 +1000,31 @@ class Profile(object):
 
             self.overlayDict[k] = original
 
-        # Load the native types
-        self.types = {}
-        for nt, value in self.native_types.items():
-            if type(value) == list:
-                self.types[nt] = Curry(NativeType, nt, format_string = value[1])
 
-        for name in self.typeDict.keys():
+    def compile(self):
+        """ Compiles the vtypes, overlays, object_classes, etc into a types dictionary 
+        
+            We populate as we go, so that _list_to_type can refer to existing classes 
+            rather than Curry everything.  If the compile fails, the profile will be 
+            left in a bad/unusable state
+        """
+        self.types = {}
+
+        for name in self.vtypes.keys():
             ## We need to protect our virgin overlay dict here - since
             ## the following functions modify it, we need to make a
             ## deep copy:
-            self.types[name] = self.convert_members(
-                name, self.typeDict, copy.deepcopy(self.overlayDict))
+            if isinstance(self.vtypes[name], list):
+                self.types[name] = self.list_to_type(name, self.vtypes[name], self.vtypes)
+            else:
+                self.types[name] = self.convert_members(
+                name, self.vtypes, copy.deepcopy(self.overlayDict))
+
+        # We are ready to go now.
+        self._ready = True
 
     # pylint: disable-msg=R0911
-    def list_to_type(self, name, typeList, typeDict = None):
+    def list_to_type(self, name, typeList, vtypes = None):
         """ Parses a specification list and returns a VType object.
 
         This function is a bit complex because we support lots of
@@ -1015,7 +1036,7 @@ class Profile(object):
 
             if type(kwargs) == dict:
                 ## We have a list of the form [ ClassName, dict(.. args ..) ]
-                return Curry(Object, theType = typeList[0], name = name, **kwargs)
+                return Curry(self.Object, theType = typeList[0], name = name, **kwargs)
         except (TypeError, IndexError), _e:
             pass
 
@@ -1032,13 +1053,13 @@ class Profile(object):
 
             return Curry(Pointer, None,
                          name = name,
-                         target = self.list_to_type(name, target, typeDict))
+                         target = self.list_to_type(name, target, vtypes))
 
         ## This is an array: [ 'array', count, ['foobar'] ]
         if typeList[0] == 'array':
             return Curry(Array, None,
                          name = name, count = typeList[1],
-                         target = self.list_to_type(name, typeList[2], typeDict))
+                         target = self.list_to_type(name, typeList[2], vtypes))
 
         ## This is a list which refers to a type which is already defined
         if typeList[0] in self.types:
@@ -1048,16 +1069,14 @@ class Profile(object):
         ## this case we just curry the Object function to provide
         ## it on demand. This allows us to define structures
         ## recursively.
-        ##if typeList[0] in typeDict:
-        if 1:
-            try:
-                tlargs = typeList[1]
-            except IndexError:
-                tlargs = {}
+        try:
+            tlargs = typeList[1]
+        except IndexError:
+            tlargs = {}
 
-            obj_name = typeList[0]
-            if type(tlargs) == dict:
-                return Curry(Object, obj_name, name = name, **tlargs)
+        obj_name = typeList[0]
+        if type(tlargs) == dict:
+            return Curry(Object, obj_name, name = name, **tlargs)
 
         ## If we get here we have no idea what this list is
         #raise RuntimeError("Error in parsing list {0}".format(typeList))
@@ -1094,8 +1113,17 @@ class Profile(object):
         tmp = self._get_dummy_obj(name)
         return hasattr(tmp, member)
 
-    @classmethod
-    def apply_overlay(cls, type_member, overlay):
+    def merge_overlay(self, overlay):
+        """Applies an overlay to the profile's vtypes"""
+        self._ready = False
+        for k, v in overlay.items():
+            if k not in self.vtypes:
+                import pdb; pdb.set_trace()
+                debug.warning("Overlay structure {0} not present in vtypes".format(k))
+            else:
+                self.vtypes[k] = self._apply_overlay(self.vtypes[k], v)
+
+    def _apply_overlay(self, type_member, overlay):
         """ Update the overlay with the missing information from type.
 
         Basically if overlay has None in any slot it gets applied from vtype.
@@ -1108,7 +1136,7 @@ class Profile(object):
                 if k not in overlay:
                     overlay[k] = v
                 else:
-                    overlay[k] = cls.apply_overlay(v, overlay[k])
+                    overlay[k] = self._apply_overlay(v, overlay[k])
 
         elif callable(overlay):
             return overlay
@@ -1121,18 +1149,18 @@ class Profile(object):
                 if overlay[i] == None:
                     overlay[i] = type_member[i]
                 else:
-                    overlay[i] = cls.apply_overlay(type_member[i], overlay[i])
+                    overlay[i] = self._apply_overlay(type_member[i], overlay[i])
 
         return overlay
 
-    def convert_members(self, cname, typeDict, overlay):
+    def convert_members(self, cname, vtypes, overlay):
         """ Convert the member named by cname from the c description
-        provided by typeDict into a list of members that can be used
+        provided by vtypes into a list of members that can be used
         for later parsing.
 
         cname is the name of the struct.
 
-        We expect typeDict[cname] to be a list of the following format
+        We expect vtypes[cname] to be a list of the following format
 
         [ Size of struct, members_dict ]
 
@@ -1146,7 +1174,10 @@ class Profile(object):
 
         We return a list of CTypeMember objects.
         """
-        ctype = self.apply_overlay(typeDict[cname], overlay.get(cname))
+        expression = vtypes[cname]
+        ctype = self._apply_overlay(expression, overlay.get(cname))
+        import pdb; pdb.set_trace()
+
         members = {}
         size = ctype[0]
         for k, v in ctype[1].items():
@@ -1154,9 +1185,9 @@ class Profile(object):
                 members[k] = v
             elif v[0] == None:
                 debug.warning("{0} has no offset in object {1}. Check that vtypes "
-                              "has a concrete definition for it.".format(k, cname))
+                                  "has a concrete definition for it.".format(k, cname))
             else:
-                members[k] = (v[0], self.list_to_type(k, v[1], typeDict))
+                members[k] = (v[0], self.list_to_type(k, v[1], vtypes))
 
         ## Allow the plugins to over ride the class constructor here
         if self.object_classes and cname in self.object_classes:
@@ -1165,6 +1196,40 @@ class Profile(object):
             cls = CType
 
         return Curry(cls, cname, members = members, struct_size = size)
+
+    def Object(self, theType, offset, vm, name = None, **kwargs):
+        """ A function which instantiates the object named in theType (as
+        a string) from the type in profile passing optional args of
+        kwargs.
+        """
+        # Compile on demand
+        if not self._ready: self.compile()
+
+        name = name or theType
+        offset = int(offset)
+
+        try:
+            if theType in self.types:
+                result = self.types[theType](offset = offset, vm = vm, name = name, **kwargs)
+                return result
+
+            if theType in self.object_classes:
+                result = self.object_classes[theType](theType = theType,
+                                                      offset = offset,
+                                                      vm = vm,
+                                                      name = name,
+                                                      **kwargs)
+                return result
+
+        except InvalidOffsetError:
+            ## If we cant instantiate the object here, we just error out:
+            return NoneObject("Invalid Address 0x{0:08X}, instantiating {1}".format(offset, name),
+                              strict = self.strict)
+
+        ## If we get here we have no idea what the type is supposed to be?
+        ## This is a serious error.
+        debug.warning("Cant find object {0} in profile {1}?".format(theType, self))
+
 
 
 def ProfileCallback(_option, _opt_str, profile_name, parser):
@@ -1197,3 +1262,7 @@ def ProfileCallback(_option, _opt_str, profile_name, parser):
 config.add_option("PROFILE", default = None, action = "callback",
                   callback = ProfileCallback, type=str,
                   nargs = 1, help = "Name of the profile to load")
+
+
+class ProfileModification(object):
+    pass
