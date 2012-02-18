@@ -20,8 +20,10 @@
 
 """ This is based on Jesse Kornblum's patch to clean up the standard AS's.
 """
-import volatility.plugins.addrspaces.intel as intel
 import struct
+
+from volatility.plugins.addrspaces import intel
+
 
 # WritablePagedMemory must be BEFORE base address, since it adds the concrete method get_available_addresses
 # If it's second, BaseAddressSpace's abstract version will take priority

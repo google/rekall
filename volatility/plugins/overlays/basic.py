@@ -29,9 +29,9 @@ import volatility.constants as constants
 from volatility.plugins.overlays import native_types
 
 
-class String(obj.NativeType):
+class String(obj.StringProxyMixIn, obj.NativeType):
     """Class for dealing with Strings"""
-    def __init__(self, theType, offset, length = 1, parent = None, **kwargs):
+    def __init__(self, length = 1, **kwargs):
         ## Allow length to be a callable:
         if callable(length):
             length = length(parent)
@@ -39,8 +39,9 @@ class String(obj.NativeType):
         self.length = length
 
         ## length must be an integer
-        obj.NativeType.__init__(self, theType, offset, parent = parent,
-                                format_string = "{0}s".format(length), **kwargs)
+        kwargs['format_string'] = "{0}s".format(int(length))
+        obj.NativeType.__init__(self, **kwargs)
+        obj.StringProxyMixIn.__init__(self)
 
     def proxied(self, name):
         """ Return an object to be proxied """
@@ -191,11 +192,11 @@ class Profile64Bits(obj.Profile):
         self.add_types(native_types.x64_native_types)
 
 
-class BasicClassesMixin(obj.Profile):
+class BasicWindowsClasses(obj.Profile):
     """Basic profile which introduces the basic classes."""
 
     def __init__(self, **kwargs):
-        super(BasicClassesMixin, self).__init__(**kwargs)
+        super(BasicWindowsClasses, self).__init__(**kwargs)
         self.add_classes({
             'String': String,
             'Flags': Flags,

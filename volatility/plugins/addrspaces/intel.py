@@ -22,10 +22,11 @@
 """ This is Jesse Kornblum's patch to clean up the standard AS's.
 """
 import struct
-import volatility.plugins.addrspaces.standard as standard
-import volatility.addrspace as addrspace
-import volatility.obj as obj
-import volatility.debug as debug #pylint: disable-msg=W0611
+from volatility.plugins.addrspaces import standard
+from volatility import addrspace
+from volatility import conf
+from volatility import obj
+
 
 # WritablePagedMemory must be BEFORE base address, since it adds the concrete method get_available_addresses
 # If it's second, BaseAddressSpace's abstract version will take priority
@@ -40,102 +41,48 @@ class JKIA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddr
     the base address space and a Directory Table Base (CR3 value)
     of 'dtb'.
 
-    If the 'cache' parameter is true, will cache the Page Directory Entries
-    for extra performance. The cache option requires an additional 4KB of
-    space.
-
     Comments in this class mostly come from the Intel(R) 64 and IA-32 
     Architectures Software Developer's Manual Volume 3A: System Programming 
     Guide, Part 1, revision 031, pages 4-8 to 4-15. This book is available
     for free at http://www.intel.com/products/processor/manuals/index.htm.
     Similar information is also available from Advanced Micro Devices (AMD) 
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
+
+    This is simplified from previous versions of volatility, by removing caching
+    and automated DTB searching (which is now performed by the profile in an OS
+    specific way).
     """
     order = 70
-    cache = False
     pae = False
     paging_address_space = True
     checkname = 'IA32ValidAS'
 
-    def __init__(self, base, config, dtb = 0, *args, **kwargs):
+    def __init__(self, base=None, config=None, name=None, dtb = 0, **kwargs):
+        super(JKIA32PagedMemory, self).__init__(base=base, config=config, **kwargs)
+
         ## We must be stacked on someone else:
         self.as_assert(base, "No base Address Space")
 
-        ## We allow users to disable us in favour of the old legacy
-        ## modules.
-        self.as_assert(not config.USE_OLD_AS, "Module disabled")
-        standard.AbstractWritablePagedMemory.__init__(self, base, config, *args, **kwargs)
-        addrspace.BaseAddressSpace.__init__(self, base, config, *args, **kwargs)
+        # Allow for this class to be instantiated directly.
+        if config is None:
+            config = conf.ConfObject(dtb = dtb)
 
         ## We can not stack on someone with a dtb
         try:
-            self.as_assert(not base.paging_address_space, "Can not stack over another paging address space")
+            self.as_assert(not base.paging_address_space,
+                           "Can not stack over another paging address space")
         except AttributeError:
             pass
 
-        self.dtb = dtb or self.load_dtb()
-        # No need to set the base, it's already been by the inherited class
+        self.dtb = dtb
 
         self.as_assert(self.dtb != None, "No valid DTB found")
-
-        # The caching code must be in a separate function to allow the
-        # PAE code, which inherits us, to have its own code.
-        self.cache = config.CACHE_DTB
-        if self.cache:
-            self._cache_values()
-
-        volmag = obj.VolMagic(self)
-        if hasattr(volmag, self.checkname):
-            self.as_assert(getattr(volmag, self.checkname).v(), "Failed valid Address Space check")
-
-        # Reserved for future use
-        #self.pagefile = config.PAGEFILE
-        self.name = 'Kernel AS'
+        self.name = name or 'Kernel AS'
 
     @staticmethod
     def register_options(config):
         config.add_option("DTB", type = 'int', default = 0,
                           help = "DTB Address")
-
-        config.add_option("CACHE-DTB", action = "store_false", default = True,
-                          help = "Cache virtual to physical mappings")
-
-    def __getstate__(self):
-        result = addrspace.BaseAddressSpace.__getstate__(self)
-        result['dtb'] = self.dtb
-
-        return result
-
-    def _cache_values(self):
-        '''
-        We cache the Page Directory Entries to avoid having to 
-        look them up later. There is a 0x1000 byte memory page
-        holding the four byte PDE. 0x1000 / 4 = 0x400 entries
-        '''
-        buf = self.base.read(self.dtb, 0x1000)
-        if buf is None:
-            self.cache = False
-        else:
-            self.pde_cache = struct.unpack('<' + 'I' * 0x400, buf)
-
-    def load_dtb(self):
-        """Loads the DTB as quickly as possible from the config, then the base, then searching for it"""
-        try:
-            # If the user has manually specified one, then shortcircuit to that one
-            if self._config.DTB:
-                raise AttributeError
-
-            ## Try to be lazy and see if someone else found dtb for
-            ## us:
-            return self.base.dtb
-        except AttributeError:
-            ## Ok so we need to find our dtb ourselves:
-            dtb = obj.VolMagic(self.base).DTB.v()
-            if dtb:
-                ## Make sure to save dtb for other AS's
-                ## Will this have an effect on following ASes attempts if this fails?
-                self.base.dtb = dtb
-                return dtb
 
     def entry_present(self, entry):
         '''
@@ -178,9 +125,6 @@ class JKIA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddr
         Bits 11:2 are bits 31:22 of the linear address
         Bits 1:0 are 0.
         '''
-        if self.cache:
-            return self.pde_cache[self.pde_index(vaddr)]
-
         pde_addr = (self.dtb & 0xfffff000) | ((vaddr & 0xffc00000) >> 20)
         return self.read_long_phys(pde_addr)
 
@@ -355,13 +299,6 @@ class JKIA32PagedMemoryPae(JKIA32PagedMemory):
     order = 80
     pae = True
 
-    def _cache_values(self):
-        buf = self.base.read(self.dtb, 0x20)
-        if buf is None:
-            self.cache = False
-        else:
-            self.pdpte_cache = struct.unpack('<' + 'Q' * 4, buf)
-
     def pdpte_index(self, vaddr):
         '''
         Compute the Page Directory Pointer Table index using the
@@ -374,15 +311,12 @@ class JKIA32PagedMemoryPae(JKIA32PagedMemory):
     def get_pdpte(self, vaddr):
         '''
         Return the Page Directory Pointer Table Entry for the given
-        virtual address. Uses the cache if available, otherwise:
+        virtual address.
 
         Bits 31:5 come from CR3
         Bits 4:3 come from bits 31:30 of the original linear address
         Bits 2:0 are all 0
         '''
-        if self.cache:
-            return self.pdpte_cache[self.pdpte_index(vaddr)]
-
         pdpte_addr = (self.dtb & 0xffffffe0) | ((vaddr & 0xc0000000) >> 27)
         return self._read_long_long_phys(pdpte_addr)
 

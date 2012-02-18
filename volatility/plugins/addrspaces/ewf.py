@@ -4,7 +4,7 @@
 
 from ctypes import CDLL, c_char_p, c_int, pointer, c_ulonglong, c_ulong, create_string_buffer
 import ctypes.util
-import volatility.plugins.addrspaces.standard as standard
+from volatility.plugins.addrspaces import standard
 
 possible_names = ['libewf-1', 'ewf', ]
 for name in possible_names:

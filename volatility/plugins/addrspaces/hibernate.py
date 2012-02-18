@@ -24,10 +24,12 @@
 # this code in Volatility.
 
 """ A Hiber file Address Space """
-import volatility.plugins.addrspaces.standard as standard
-import volatility.obj as obj
-import volatility.win32.xpress as xpress
 import struct
+
+from volatility.plugins.addrspaces import standard
+from volatility import obj
+from volatility.win32 import xpress
+
 
 
 #pylint: disable-msg=C0111

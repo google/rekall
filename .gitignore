@@ -4,3 +4,4 @@ objchk_wnet_*
 .scons*
 release
 *.sln
+test_data/*

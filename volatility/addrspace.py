@@ -34,7 +34,6 @@
 import volatility.registry as registry
 import volatility.debug as debug
 from volatility import conf
-from volatility import obj
 
 config = conf.ConfFactory()
 
@@ -45,7 +44,7 @@ class BaseAddressSpace(object):
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
-    def __init__(self, base, config, *_args, **_kwargs):
+    def __init__(self, base=None, config=None, *_args, **_kwargs):
         """ base is the AS we will be stacking on top of, opts are
         options which we may use.
         """
@@ -54,8 +53,11 @@ class BaseAddressSpace(object):
 
     @staticmethod
     def register_options(config):
-        config.add_option("LOCATION", default = None, short_option = 'l',
-                          help = "A URN location from which to load an address space")
+        """This method should declare the options required for this address
+        space to exit. It is recommended that these options also be accepted
+        through the **kwargs in the constructor, so the address space can be
+        instantiated programmatically.
+        """
 
     def get_config(self):
         """Returns the config object used by the vm for use in other vms"""
@@ -86,6 +88,17 @@ class BaseAddressSpace(object):
         if not self._config.WRITE:
             return False
         raise NotImplementedError("Write support for this type of Address Space has not been implemented")
+
+
+
+class DummyAddressSpace(BaseAddressSpace):
+    """An AS which always returns nulls."""
+    name = 'dummy'
+    def is_valid_address(self, _offset):
+        return True
+
+    def read(self, _offset, length):
+        return '0x00' * length
 
 
 class AbstractVirtualAddressSpace(BaseAddressSpace):
@@ -195,7 +208,7 @@ def GuessAddressSpace(config, astype = 'virtual', **kwargs):
     return base_as
 
 
-def AddressSpaceFactory(config, specification, astype = 'virtual', **kwargs):
+def AddressSpaceFactory(config = None, specification = '', astype = 'virtual', **kwargs):
     """Build the address space from the specification.
 
     Args:
@@ -205,7 +218,7 @@ def AddressSpaceFactory(config, specification, astype = 'virtual', **kwargs):
     base_as = None
     for as_name in specification.split(":"):
         as_cls = BaseAddressSpace.classes[as_name]
-        base_as = as_cls(base_as, config, astype = astype, **kwargs)
+        base_as = as_cls(base_as, config=config, astype = astype, **kwargs)
 
     return base_as
 

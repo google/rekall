@@ -104,6 +104,11 @@ class PyFlagOptionParser(optparse.OptionParser):
 class ConfObject(object):
     """This configuration object can be passed to various plugins."""
 
+    def __init__(self, **kwargs):
+        """The ConfObject can be initialized from kwargs."""
+        for k, v in kwargs.items():
+            self.add_option(k, v)
+
     def __getattr__(self, attr):
         """Conf objects are case insensitive."""
         return object.__getattribute__(self, attr.lower())

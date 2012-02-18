@@ -18,19 +18,19 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
 
-import volatility.win32.tasks as tasks
-import volatility.timefmt as timefmt
-import volatility.utils as utils
-import volatility.debug as debug
-import volatility.obj as obj
-import volatility.cache as cache
-import volatility.registry as registry
-import volatility.plugins.windows.kdbgscan as kdbg
+from volatility.win32 import tasks
+from volatility import timefmt
+from volatility import utils
+from volatility import debug
+from volatility import obj
+from volatility import cache
+from volatility import registry
+from volatility.plugins.windows import kdbgscan
 
-class ImageInfo(kdbg.KDBGScan):
+class ImageInfo(kdbgscan.KDBGScan):
     """ Identify information for the image """
     def __init__(self, config, args = None):
-        kdbg.KDBGScan.__init__(self, config, args)
+        kdbgscan.KDBGScan.__init__(self, config, args)
 
     def render_text(self, outfd, data):
         """Renders the calculated data as text to outfd"""

@@ -24,10 +24,11 @@
 
 """ These are standard address spaces supported by Volatility """
 import struct
-import volatility.addrspace as addrspace
-import volatility.debug as debug #pylint: disable-msg=W0611
 import urllib
 import os
+
+from volatility import addrspace
+from volatility import conf
 
 #pylint: disable-msg=C0111
 
@@ -67,9 +68,14 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
     """
     ## We should be the AS of last resort
     order = 100
-    def __init__(self, base, config, layered = False, **kwargs):
-        addrspace.BaseAddressSpace.__init__(self, base, config, **kwargs)
+    def __init__(self, base=None, config=None, layered = False,
+                 filename=None, write=None, **kwargs):
+        addrspace.BaseAddressSpace.__init__(self, base=base, config=config, **kwargs)
         self.as_assert(base == None or layered, 'Must be first Address Space')
+
+        # Allow for this class to be instantiated directly.
+        if config is None:
+            config = conf.ConfObject(filename=filename, write=write)
 
         path = config.FILENAME
         self.name = os.path.abspath(path)
@@ -82,9 +88,11 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
         self.fsize = self.fhandle.tell()
         self.offset = 0
 
-    # Abstract Classes cannot register options, and since this checks config.WRITE in __init__, we define the option here
-    @staticmethod
-    def register_options(config):
+    @classmethod
+    def register_options(cls, config):
+        config.add_option("FILENAME", default = None, short_option = 'f',
+                          help = "A file path from which to load an address space")
+
         config.add_option("WRITE", short_option = 'w', action = "callback", default = False,
                           help = "Enable write support", callback = write_callback)
 
