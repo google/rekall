@@ -16,27 +16,20 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
 
-"""
-@author:       AAron Walters and Brendan Dolan-Gavitt
-@license:      GNU General Public License 2.0 or later
-@contact:      awalters@volatilesystems.com,bdolangavitt@wesleyan.edu
-@organization: Volatile Systems
-"""
+__author__ = "Michael Cohen <scudette@gmail.com>"
+
 import functools
+import logging
 import struct
 import sys
-import volatility.commands as commands
-import volatility.win32 as win32
-import volatility.registry as MemoryRegistry
-import volatility.utils as utils
-import volatility.obj as obj
 
-try:
-    import distorm3 #pylint: disable-msg=F0401
-except ImportError:
-    pass
+from volatility import conf
+from volatility import session
 
-class volshell(commands.command):
+# Import and register the core plugins
+from volatility import plugins
+
+class volshell(object):
     """Shell in the memory image"""
 
     # Declare meta information associated with this plugin
@@ -391,34 +384,29 @@ class volshell(commands.command):
                 doc = pydoc.getdoc(cmd)
                 print doc
 
-        # Add the command plugins to the local namespace so they are
-        # available directly.
-        local_variables = locals()
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
 
-        for command_name, command_cls in commands.command.GetActiveClasses(self._config):
-            local_variables[command_name] = self.make_command_function(command_cls)
+    # New user session. TODO(scudette): Implement some kind of parameter parsing
+    # here.
+    conf.GLOBAL_SESSION = user_session = session.Session()
 
-        # Break into shell
-        banner = "Welcome to volshell! Current memory image is:\n{0}\n".format(self._config.LOCATION)
-        banner += "To get help, type 'hh()'"
+    # Break into shell - Use the session's locals.
+    banner = "Welcome to volshell! \nTo get help, type 'hh()'"
+    try:
+        from IPython import Shell
+        shell = Shell.IPShell(argv=[], user_ns=user_session.locals).mainloop(banner=banner)
+
+    except ImportError:
+        import code, inspect
+
+        frame = inspect.currentframe()
+
+        # Try to enable tab completion
         try:
-            from IPython import Shell
-            shell = Shell.IPShell(argv=[], user_ns=local_variables).mainloop(banner=banner)
-
+            import rlcompleter, readline #pylint: disable-msg=W0612
+            readline.parse_and_bind("tab: complete")
         except ImportError:
-            import code, inspect
+            pass
 
-            frame = inspect.currentframe()
-
-            # Try to enable tab completion
-            try:
-                import rlcompleter, readline #pylint: disable-msg=W0612
-                readline.parse_and_bind("tab: complete")
-            except ImportError:
-                pass
-
-            # evaluate commands in current namespace
-            namespace = frame.f_globals.copy()
-            namespace.update(frame.f_locals)
-
-            code.interact(banner = banner, local = namespace)
+        code.interact(banner = banner, local = user_session.locals)

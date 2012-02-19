@@ -111,7 +111,11 @@ class ConfObject(object):
 
     def __getattr__(self, attr):
         """Conf objects are case insensitive."""
-        return object.__getattribute__(self, attr.lower())
+        try:
+            return object.__getattribute__(self, attr.lower())
+        except AttributeError:
+            # Unknown config options just return None.
+            pass
 
     def add_option(self, name, default = None, **kwargs):
         attr = name.lower().replace("-", "_")
@@ -123,6 +127,20 @@ class ConfObject(object):
 
     def remove_option(self, option):
         pass
+
+    def clone(self):
+        """Make an exact copy of this config object."""
+        result = ConfObject()
+        result.__dict__.update(self.__dict__)
+
+        return result
+
+    def __str__(self):
+        result = ""
+        for k, v in self.__dict__.items():
+            result += "%s: %s" % (k, v)
+
+        return result
 
 
 class ConfFactory(object):
@@ -496,3 +514,7 @@ try:
     config.add_file(config.CONF_FILE)
 except KeyError:
     pass
+
+
+# An optional global session to fall back on.
+GLOBAL_SESSION = None

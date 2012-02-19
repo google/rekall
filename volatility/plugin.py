@@ -1,0 +1,125 @@
+# Volatility
+# Copyright (C) 2012 Michael Cohen
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details. 
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+#
+
+__author__ = "Michael Cohen <scudette@gmail.com>"
+
+"""Plugins allow the core volatility system to be extended."""
+
+from volatility import conf
+from volatility import registry
+from volatility import obj
+
+
+class Error(Exception):
+    """Raised for plugin errors."""
+
+
+class Command(object):
+    """A command can be run from the volatility command line.
+
+    Commands can be automatically imported into the shell's namespace and are
+    expected to produce textual (or other) output.
+
+    In order to define a new command simply extend this class.
+    """
+
+    # these attribute are not inherited.
+
+    # The name of this command (The command will be registered under this
+    # name). If empty, the command will not be imported into the namespace but
+    # will still be available from the Factory below.
+    __name = ""
+
+    # This class will not be registered (but extensions will). 
+    __abstract = True
+    __metaclass__ = registry.MetaclassRegistry
+
+    @obj.classproperty
+    def name(cls):
+        return getattr(cls, "_%s__name" % cls.__name__)
+
+    def __init__(self, session=None, **kwargs):
+        """The constructor for this command.
+
+        Commands can take arbitrary named args and have access to the running
+        session.
+        """
+        self.session = session or conf.GLOBAL_SESSION
+
+    @classmethod
+    def is_active(cls, config):
+        """Checks we are active.
+
+        This method will be with a configuration variable to check if this
+        specific class is active. This mechanism allows multiple implementations
+        to all share the same name, as long as only one is actually active. For
+        example, we can have a linux, windows and mac version of plugins with
+        the "pslist" name.
+        """
+        return True
+
+    @classmethod
+    def GetActiveClasses(cls, config):
+        """Return only the active commands based on config."""
+        for command_cls in cls.classes.values():
+            if command_cls.is_active(config):
+                yield command_cls
+
+
+
+def CommandFactory(command_name = None, config = None, class_name = None, **kwargs):
+    """Creates a new instance of a command.
+
+    Args:
+      command_name: The optional name as advertised by the command.
+
+      config: A configuration object which will be used to resolve the right
+         class for this name.p
+
+      command_cls: The name of the command's class (used to get specific
+         classes).
+
+      kwargs: Will be passed to the command's constructor.
+
+    Return:
+     A command instance created with the kwargs.
+    """
+    # Find the corresponding command class.
+    if command_name:
+        command_classes = []
+        for name, command_cls in Command.GetActiveClasses(config):
+            if command_cls.name == command_name:
+                command_classes.append(command_cls)
+
+        # Do we have too many active commands?
+        if len(command_classes) > 1:
+            logging.error("There are multiple active implementations for "
+                          "'%s' %s, will pick %s for now." % (
+                    command_name, [x.__name__ for x in command_classes],
+                    command_classes[0].__name__))
+
+        if command_classes:
+            command_classes[0](**kwargs)
+    
+    else:
+        try:
+            return Command.classes[class_name](**kwargs)
+        except KeyError:
+            pass
+
+    raise Error("No such plugin.")

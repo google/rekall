@@ -529,7 +529,8 @@ class _MMVAD(obj.CType):
         # Don't waste time if we're based on a NULL pointer
         # I can't think of a better check than this...
         if offset < 4:
-            return obj.NoneObject("MMVAD probably instantiated from a NULL pointer, there is no tag to read")
+            return obj.NoneObject("MMVAD probably instantiated from a NULL "
+                                  "pointer, there is no tag to read")
 
         ## All VADs are done in the process AS - so we might need to switch
         ## Address spaces now. Find the eprocess we came from and switch
@@ -776,7 +777,8 @@ class _CM_KEY_BODY(obj.CType):
 class _MMVAD_FLAGS(obj.CType):
     """This is for _MMVAD_SHORT.u.VadFlags"""
     def __str__(self):
-        return ", ".join(["%s: %s" % (name, self.m(name)) for name in sorted(self.members.keys()) if self.m(name) != 0])
+        return ", ".join(["%s: %s" % (name, self.m(name)) for name in sorted(
+                    self.members.keys()) if self.m(name) != 0])
 
 class _MMVAD_FLAGS2(_MMVAD_FLAGS):
     """This is for _MMVAD_LONG.u2.VadFlags2"""

@@ -28,15 +28,32 @@ import volatility.obj as obj
 import volatility.debug as debug
 import volatility.utils as utils
 import volatility.cache as cache
+
 from volatility.plugins.windows import common
+from volatility import plugin
 
 
-class DllList(common.AbstractWindowsCommand, cache.Testable):
+class WinPsList(plugin.Command):
+    """List processes for windows."""
+
+    __name = "pslist"
+
+    def __init__(self, kernel_address_space = None, profile = None, **kwargs):
+        """Lists the processes."""
+        super(WinPsList, self).__init__(**kwargs)
+
+        # Try to load the AS from the session if possible.
+        self.kernel_address_space = (kernel_address_space or self.session.plugins.load_as())
+        self.profile = profile or session.profile
+
+        print "Listing processes"
+
+
+class DllList(common.AbstractWindowsCommand):
     """Print list of loaded dlls for each process"""
 
-    def __init__(self, config, *args):
-        common.AbstractWindowsCommand.__init__(self, config, *args)
-        cache.Testable.__init__(self)
+    @staticmethod
+    def register_options(config):
         config.add_option('OFFSET', short_option = 'o', default = None,
                           help = 'EPROCESS offset (in hex) in the physical address space',
                           action = 'store', type = 'int')
@@ -96,7 +113,6 @@ class DllList(common.AbstractWindowsCommand, cache.Testable):
             return ethread.ThreadsProcess.dereference()
         return obj.NoneObject("Unable to bounce back from virtual _ETHREAD to virtual _EPROCESS")
 
-    @cache.CacheDecorator(lambda self: "tests/pslist/pid={0}/offset={1}".format(self._config.PID, self._config.OFFSET))
     def calculate(self):
         """Produces a list of processes, or just a single process based on an OFFSET"""
         addr_space = utils.load_as(self._config)

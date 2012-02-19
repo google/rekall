@@ -206,7 +206,7 @@ class WinXPProfileTests(unittest.TestCase):
 
         # There is an _EPROCESS in the physical AS at this physical offset
         eprocess = profile.Object("_EPROCESS", offset=0x01343790,
-                                 vm=self.physical_address_space)
+                                  vm=self.physical_address_space)
 
         self.assertEqual(eprocess.ImageFileName, 'mqtgsvc.exe')
         

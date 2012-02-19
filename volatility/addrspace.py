@@ -44,7 +44,7 @@ class BaseAddressSpace(object):
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
-    def __init__(self, base=None, config=None, *_args, **_kwargs):
+    def __init__(self, base=None, config=None, **_kwargs):
         """ base is the AS we will be stacking on top of, opts are
         options which we may use.
         """
@@ -217,7 +217,10 @@ def AddressSpaceFactory(config = None, specification = '', astype = 'virtual', *
     """
     base_as = None
     for as_name in specification.split(":"):
-        as_cls = BaseAddressSpace.classes[as_name]
+        as_cls = BaseAddressSpace.classes.get(as_name)
+        if as_cls is None:
+            raise Error("No such address space %s" % as_name)
+
         base_as = as_cls(base_as, config=config, astype = astype, **kwargs)
 
     return base_as

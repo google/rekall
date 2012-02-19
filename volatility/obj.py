@@ -19,19 +19,18 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
 
+__author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
+              "by AAron Walters and Brendan Dolan-Gavitt with contributions "
+              "by Mike Auty")
+
+# TODO(scudette): Add documentation here.
 """
-@author:       AAron Walters
-@license:      GNU General Public License 2.0 or later
-@contact:      awalters@volatilesystems.com
-@organization: Volatile Systems
+The Volatility object system.
+
 """
 
 #pylint: disable-msg=C0111,W0613
 import sys
-if __name__ == '__main__':
-    sys.path.append(".")
-    sys.path.append("..")
-
 import re
 import cPickle as pickle # pickle implementation must match that in volatility.cache
 import struct, operator
@@ -47,9 +46,9 @@ config = conf.ConfFactory()
 
 
 class classproperty(property):
+    """A property that can be called on classes."""
     def __get__(self, cls, owner):
-        # We don't think pylint knows what it's talking about here
-        return self.fget.__get__(None, owner)() #pylint: disable-msg=E1101
+        return self.fget(owner)
 
 
 ## Curry is now a standard python feature
@@ -588,7 +587,7 @@ class Pointer(NativeType):
         # Keep it around in case we need to copy outselves
         self.kwargs = kwargs
         if theType:
-            self.target = Curry(profile.Object, theType)
+            self.target = Curry(profile.Object, theType=theType)
         else:
             self.target = target
 
@@ -718,7 +717,7 @@ class Array(BaseObject):
 
         self.original_offset = offset
         if targetType:
-            self.target = Curry(Object, targetType)
+            self.target = Curry(Object, theType=targetType)
         else:
             self.target = target
 
@@ -796,7 +795,7 @@ class CType(BaseObject):
         are the offsets, the values are Curried Object classes that
         will be instantiated when accessed.
         """
-        super(CType, self).__(**kwargs)
+        super(CType, self).__init__(**kwargs)
 
         if not members:
             # Warn rather than raise an error, since some types (_HARDWARE_PTE,
@@ -877,7 +876,8 @@ class CType(BaseObject):
             obj = self.m(attr)
             if not obj.write(value):
                 raise ValueError("Error writing value to member " + attr)
-        # If you hit this, consider using obj.newattr('attr', value)
+
+        # If you hit this, cosider using obj.newattr('attr', value)
         raise ValueError("Attribute " + attr + " was set after object initialization")
 
 ## DEPRECATE this...
@@ -989,7 +989,6 @@ class Profile(object):
         self.strict = strict
 
     @classproperty
-    @classmethod
     def metadata(cls):
         prefix = '_md_'
         result = {}
@@ -1091,14 +1090,12 @@ class Profile(object):
                 raise RuntimeError("Syntax Error in pointer type defintion for name "
                                    "{0}".format(name))
 
-            return Curry(Pointer, None,
-                         name = name,
+            return Curry(Pointer, name = name,
                          target = self.list_to_type(name, target, vtypes))
 
         ## This is an array: [ 'array', count, ['foobar'] ]
         if typeList[0] == 'array':
-            return Curry(Array, None,
-                         name = name, count = typeList[1],
+            return Curry(Array, name = name, count = typeList[1],
                          target = self.list_to_type(name, typeList[2], vtypes))
 
         ## This is a list which refers to a type which is already defined
@@ -1116,7 +1113,7 @@ class Profile(object):
 
         obj_name = typeList[0]
         if type(tlargs) == dict:
-            return Curry(self.Object, obj_name, name = name, **tlargs)
+            return Curry(self.Object, theType = obj_name, name = name, **tlargs)
 
         ## If we get here we have no idea what this list is
         #raise RuntimeError("Error in parsing list {0}".format(typeList))
@@ -1233,7 +1230,7 @@ class Profile(object):
         else:
             cls = CType
 
-        return Curry(cls, cname, members = members, struct_size = size)
+        return Curry(cls, theType = cname, members = members, struct_size = size)
 
     def Object(self, theType=None, offset=0, vm=None, name = None, **kwargs):
         """ A function which instantiates the object named in theType (as

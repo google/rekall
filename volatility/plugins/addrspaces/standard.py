@@ -68,9 +68,8 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
     """
     ## We should be the AS of last resort
     order = 100
-    def __init__(self, base=None, config=None, layered = False,
-                 filename=None, write=None, **kwargs):
-        addrspace.BaseAddressSpace.__init__(self, base=base, config=config, **kwargs)
+    def __init__(self, base=None, config=None, filename=None, write=None, **kwargs):
+        super(FileAddressSpace, self).__init__(base=base, config=config, **kwargs)
         self.as_assert(base == None or layered, 'Must be first Address Space')
 
         # Allow for this class to be instantiated directly.
@@ -78,6 +77,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
             config = conf.ConfObject(filename=filename, write=write)
 
         path = config.FILENAME
+        self.as_assert(path, "Filename must be specified in session (e.g. session.filename = 'MyFile.raw').")
         self.name = os.path.abspath(path)
         self.fname = self.name
         self.mode = 'rb'
@@ -145,7 +145,8 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
     Note: Pages can be of any size
     """
     def __init__(self, base, config, *args, **kwargs):
-        self.as_assert(self.__class__.__name__ != 'AbstractPagedMemory', "Abstract Class - Never for instantiation directly")
+        self.as_assert(self.__class__.__name__ != 'AbstractPagedMemory',
+                       "Abstract Class - Never for instantiation directly")
         addrspace.AbstractVirtualAddressSpace.__init__(self, base, config, *args, **kwargs)
 
     def vtop(self, addr):
@@ -195,7 +196,8 @@ class AbstractWritablePagedMemory(AbstractPagedMemory):
     vtop().
     """
     def __init__(self, base, config, *args, **kwargs):
-        self.as_assert(self.__class__.__name__ != 'AbstractWritablePagedMemory', "Abstract Class - Never for instantiation directly")
+        self.as_assert(self.__class__.__name__ != 'AbstractWritablePagedMemory',
+                       "Abstract Class - Never for instantiation directly")
         AbstractPagedMemory.__init__(self, base, config, *args, **kwargs)
 
     def write(self, vaddr, buf):

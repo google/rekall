@@ -1,6 +1,7 @@
 # Import and register the core plugins
 from volatility.plugins import addrspaces
 from volatility.plugins import bioskbd
+from volatility.plugins import core
 from volatility.plugins import fileparam
 from volatility.plugins import imagecopy
 from volatility.plugins import imageinfo
