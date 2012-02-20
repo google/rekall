@@ -44,6 +44,9 @@ import volatility.conf as conf
 
 class BaseScanner(object):
     """ A more thorough scanner which checks every byte """
+
+    __metaclass__ = registry.MetaclassRegistry
+
     checks = []
     def __init__(self, window_size = 8):
         self.buffer = addrspace.BufferAddressSpace(conf.DummyConfig(), data = '\x00' * 1024)
@@ -87,9 +90,9 @@ class BaseScanner(object):
 
     overlap = 20
     def scan(self, address_space, offset = 0, maxlen = None):
-        self.buffer.profile = address_space.profile
         self.base_offset = offset
         self.max_length = maxlen
+
         ## Which checks also have skippers?
         skippers = [ c for c in self.constraints if hasattr(c, "skip") ]
         while 1:

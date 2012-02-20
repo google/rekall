@@ -138,7 +138,7 @@ class ConfObject(object):
     def __str__(self):
         result = ""
         for k, v in self.__dict__.items():
-            result += "%s: %s" % (k, v)
+            result += "%s: %s\n" % (k, v)
 
         return result
 

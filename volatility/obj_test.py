@@ -89,6 +89,9 @@ class ProfileTest(unittest.TestCase):
 
         ptr = test.ptr32
 
+        # Can we check the offset of members?
+        self.assertEqual(profile.get_obj_offset("Test", "invalid"), 8)
+
         # 32 bit pointers.
         self.assertEqual(ptr.size(), 4)
 
@@ -195,7 +198,7 @@ class WinXPProfileTests(unittest.TestCase):
             filename="test_data/xp-laptop-2005-06-25.img")
 
         self.kernel_address_space = addrspace.AddressSpaceFactory(
-            specification="FileAddressSpace:JKIA32PagedMemory",
+            specification="FileAddressSpace:IA32PagedMemory",
             filename="test_data/xp-laptop-2005-06-25.img",
             dtb=0x39000)
 
@@ -252,7 +255,6 @@ class WinXPProfileTests(unittest.TestCase):
         for i, (name, expected_name) in enumerate(zip(names, expected_names)):
             if expected_name is not None:
                 self.assertEqual(name, expected_name)
-        
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

@@ -385,7 +385,7 @@ class _HANDLE_TABLE(obj.CType):
             targetType = "_HANDLE_TABLE_ENTRY"
 
         table = obj.Object("Array", offset = offset, vm = self.obj_vm, count = count,
-                           targetType = targetType, parent = self, native_vm = self.obj_native_vm)
+                           targetType = targetType, parent = self)
 
         if table:
             for entry in table:
@@ -472,7 +472,7 @@ class _OBJECT_HEADER(obj.CType):
             if self.obj_vm.profile.has_type(objtype):
                 header_offset = self.m(name + 'Offset').v()
                 if header_offset:
-                    o = obj.Object(objtype, offset - header_offset, vm = self.obj_vm, native_vm = self.obj_native_vm)
+                    o = obj.Object(objtype, offset - header_offset, vm = self.obj_vm)
                 else:
                     o = obj.NoneObject("Header not set")
 
@@ -486,12 +486,12 @@ class _OBJECT_HEADER(obj.CType):
 
     def dereference_as(self, theType):
         """Instantiate an object from the _OBJECT_HEADER.Body"""
-        return obj.Object(theType, offset = self.Body.obj_offset, vm = self.obj_vm,
-                         native_vm = self.obj_native_vm, parent = self)
+        return obj.Object(theType=theType, offset = self.Body.obj_offset, vm = self.obj_vm,
+                          parent = self)
 
     def get_object_type(self):
         """Return the object's type as a string"""
-        type_obj = obj.Object("_OBJECT_TYPE", self.Type, self.obj_native_vm)
+        type_obj = obj.Object(theType="_OBJECT_TYPE", offset=self.Type)
 
         return type_obj.Name.v()
 
@@ -662,7 +662,7 @@ class IpAddress(obj.NativeType):
     def v(self):
         return socket.inet_ntoa(struct.pack("<I", obj.NativeType.v(self)))
 
-class VolatilityKPCR(obj.VolatilityMagic):
+class XXXVolatilityKPCR(obj.VolatilityMagic):
     """A scanner for KPCR data within an address space"""
 
     def generate_suggestions(self):
@@ -671,7 +671,7 @@ class VolatilityKPCR(obj.VolatilityMagic):
         for val in scanner.scan(self.obj_vm):
             yield val
 
-class VolatilityKDBG(obj.VolatilityMagic):
+class XXXXVolatilityKDBG(obj.VolatilityMagic):
     """A Scanner for KDBG data within an address space"""
 
     def generate_suggestions(self):
@@ -680,7 +680,7 @@ class VolatilityKDBG(obj.VolatilityMagic):
         for val in scanner.scan(self.obj_vm):
             yield val
 
-class VolatilityIA32ValidAS(obj.VolatilityMagic):
+class XXXXVolatilityIA32ValidAS(obj.VolatilityMagic):
     """An object to check that an address space is a valid IA32 Paged space"""
 
     def generate_suggestions(self):
@@ -721,10 +721,9 @@ class _IMAGE_DOS_HEADER(obj.CType):
         if self.e_magic != 0x5a4d:
             raise ValueError('e_magic {0:04X} is not a valid DOS signature.'.format(self.e_magic))
 
-        nt_header = obj.Object("_IMAGE_NT_HEADERS",
-                          offset = self.e_lfanew + self.obj_offset,
-                          vm = self.obj_vm,
-                          native_vm = self.obj_native_vm)
+        nt_header = self.obj_profile.Object("_IMAGE_NT_HEADERS",
+                                            offset = self.e_lfanew + self.obj_offset,
+                                            vm = self.obj_vm)
 
         if nt_header.Signature != 0x4550:
             raise ValueError('NT header signature {0:04X} is not a valid'.format(nt_header.Signature))
@@ -822,9 +821,6 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
             '_EX_FAST_REF': _EX_FAST_REF,
             'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
             'IpAddress': IpAddress,
-            'VolatilityKPCR': VolatilityKPCR,
-            'VolatilityKDBG': VolatilityKDBG,
-            'VolatilityIA32ValidAS': VolatilityIA32ValidAS,
             '_IMAGE_DOS_HEADER': _IMAGE_DOS_HEADER,
             '_IMAGE_NT_HEADERS': _IMAGE_NT_HEADERS,
             '_IMAGE_SECTION_HEADER': _IMAGE_SECTION_HEADER,

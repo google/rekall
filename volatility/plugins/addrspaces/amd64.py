@@ -27,7 +27,7 @@ from volatility.plugins.addrspaces import intel
 
 # WritablePagedMemory must be BEFORE base address, since it adds the concrete method get_available_addresses
 # If it's second, BaseAddressSpace's abstract version will take priority
-class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
+class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     """ Standard AMD 64-bit address space.
     
     Provides an address space for AMD64 paged memory, aka the x86_64 
@@ -56,7 +56,7 @@ class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
     paging_address_space = True
 
     def __init__(self, *args, **kwargs):
-        intel.JKIA32PagedMemoryPae.__init__(self, *args, **kwargs)
+        intel.IA32PagedMemoryPae.__init__(self, *args, **kwargs)
 
         # FIXME: This makes the AS dependent upon the profile in use
         # Code to determine whether the profile is valid or not should 

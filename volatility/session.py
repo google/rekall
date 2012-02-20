@@ -25,6 +25,7 @@ way for people to save their own results.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import logging
+import sys
 import time
 
 from volatility import addrspace
@@ -49,7 +50,10 @@ class PluginContainer(object):
         return self.plugins.keys()
 
     def __getattr__(self, attr):
-        return self.plugins[attr]
+        try:
+            return self.plugins[attr]
+        except KeyError:
+            raise AttributeError(attr)
 
 
 class Session(object):
@@ -66,6 +70,7 @@ class Session(object):
         # Our global config object.
         self.config = conf.ConfObject()
         self.prepare_local_namespace()
+        self.fd = sys.stdout
 
         self.ready = True
 
@@ -78,6 +83,25 @@ class Session(object):
         self.locals['addrspace'] = addrspace
         self.locals['obj'] = obj
 
+        # The handler for the vol command.
+        self.locals['vol'] = self.vol
+
+    def vol(self, plugin_cls, **kwargs):
+        """Launch a plugin and its render() method automatically.
+
+        Args:
+          plugin: A string naming the plugin, or the plugin class itself.
+        """
+        if isinstance(plugin_cls, basestring):
+            plugin_cls = getattr(self.plugins, plugin_cls)
+
+        try:
+            result = plugin_cls(session=self, **kwargs)
+            result.render(self.fd)
+        
+            return result
+        except plugin.Error, e:
+            logging.error("Failed running plugin %s: %s", plugin_cls.__name__, e)
 
     def __repr__(self):
         return str(self)

@@ -390,8 +390,8 @@ class BaseObject(object):
         vm = vm or self.obj_vm
 
         if vm.is_valid_address(self.v()):
-            return self.Object(theType=derefType, offset=self.v(), vm=vm, 
-                               parent=self, **kwargs)
+            return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm, 
+                                           parent=self, **kwargs)
         else:
             return NoneObject("Invalid offset {0} for dereferencing {1} as {2}".format(
                     self.v(), self.obj_name, derefType))
@@ -517,7 +517,7 @@ CreateMixIn(NumericProxyMixIn)
 CreateMixIn(StringProxyMixIn)
 
 
-class NativeType(NumericProxyMixIn, BaseObject):
+class NativeType(BaseObject, NumericProxyMixIn):
     def __init__(self, format_string = None, **kwargs):
         super(NativeType, self).__init__(**kwargs)
         self.format_string = format_string
@@ -983,6 +983,9 @@ class Profile(object):
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
+    # This is a dict of constants
+    constants = None
+
     def __init__(self, strict = False, config = None):
         self.overlayDict = {}
         self._config = config
@@ -1008,6 +1011,11 @@ class Profile(object):
         """Add the classes in the dict to our object classes mapping."""
         self._ready = False
         self.object_classes.update(classes_dict)
+
+    def add_constants(self, **kwargs):
+        """Add the kwargs as constants for this profile."""
+        self.constants = self.constants or {}
+        self.constants.update(kwargs)
 
     def add_types(self, abstract_types, overlay = None):
         self._ready = False
@@ -1130,7 +1138,8 @@ class Profile(object):
             def read(self, _offset, _value):
                 return ""
 
-        tmp = self.types[name](offset = 0, name = name, vm = dummy(), parent = None)
+        # Make the object on the dummy AS.
+        tmp = self.Object(theType = name, offset = 0, vm = dummy())
         return tmp
 
     def get_obj_offset(self, name, member):

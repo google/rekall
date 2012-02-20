@@ -53,10 +53,10 @@ class LoadAddressSpace(plugin.Command):
                     self.session, specification = pas_spec, astype = 'physical')
                 self.session.physical_address_space_spec = pas_spec
 
-            if vas_spec and self.session.virtual_address_space_spec != vas_spec:
-                self.session.virtual_address_space = addrspace.AddressSpaceFactory(
+            if vas_spec and self.session.kernel_address_space_spec != vas_spec:
+                self.session.kernel_address_space = addrspace.AddressSpaceFactory(
                     self.session, specification = vas_spec, astype = 'virtual')
-                self.session.virtual_address_space_spec = vas_spec
+                self.session.kernel_address_space_spec = vas_spec
 
         except addrspace.ASAssertionError, e:
             logging.error("Could not create address space: %s" % e)
@@ -100,4 +100,3 @@ class LoadAddressSpace(plugin.Command):
 
         return base_as
 
-        

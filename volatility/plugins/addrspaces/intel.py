@@ -30,7 +30,7 @@ from volatility import obj
 
 # WritablePagedMemory must be BEFORE base address, since it adds the concrete method get_available_addresses
 # If it's second, BaseAddressSpace's abstract version will take priority
-class JKIA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddressSpace):
+class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddressSpace):
     """ Standard x86 32 bit non PAE address space.
     
     Provides an address space for IA32 paged memory, aka the x86 
@@ -49,19 +49,26 @@ class JKIA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddr
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
 
     This is simplified from previous versions of volatility, by removing caching
-    and automated DTB searching (which is now performed by the profile in an OS
-    specific way).
+    and automated DTB searching (which is now performed by specific plugins in
+    an OS specific way).
     """
     order = 70
     pae = False
     paging_address_space = True
     checkname = 'IA32ValidAS'
 
-    def __init__(self, base=None, config=None, name=None, dtb = 0, **kwargs):
-        super(JKIA32PagedMemory, self).__init__(base=base, config=config, **kwargs)
+    def __init__(self, base=None, config=None, name=None, dtb = None, **kwargs):
+        """Instantiate an Intel 32 bit Address space over the layered AS.
+
+        Args:
+          dtb: The dtb address.
+        """
+        super(IA32PagedMemory, self).__init__(base=base, config=config, **kwargs)
 
         ## We must be stacked on someone else:
         self.as_assert(base, "No base Address Space")
+        self.as_assert(kwargs.get('astype') == 'virtual',
+                       "Can only create a virtual AS.")
 
         # Allow for this class to be instantiated directly.
         if config is None:
@@ -74,9 +81,11 @@ class JKIA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddr
         except AttributeError:
             pass
 
-        self.dtb = dtb
+        # Allow the dtb to be specified in the session.
+        self.dtb = dtb or config.dtb
 
-        self.as_assert(self.dtb != None, "No valid DTB found")
+        self.as_assert(self.dtb != None, "No valid DTB specified. Try the find_dtb"
+                       " plugin to search for the dtb.")
         self.name = name or 'Kernel AS'
 
     @staticmethod
@@ -219,7 +228,8 @@ class JKIA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddr
                 if pad:
                     buf = '\x00' * chunk_len
                 else:
-                    return obj.NoneObject("Could not read_chunks from addr " + str(vaddr) + " of size " + str(chunk_len))
+                    return obj.NoneObject("Could not read_chunks from addr " +
+                                          str(vaddr) + " of size " + str(chunk_len))
 
             ret += buf
             vaddr += chunk_len
@@ -282,7 +292,7 @@ class JKIA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddr
                         yield (vaddr, 0x1000)
 
 
-class JKIA32PagedMemoryPae(JKIA32PagedMemory):
+class IA32PagedMemoryPae(IA32PagedMemory):
     """ Standard x86 32 bit PAE address space.
     
     Provides an address space for IA32 paged memory, aka the x86 

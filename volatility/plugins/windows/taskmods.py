@@ -33,21 +33,107 @@ from volatility.plugins.windows import common
 from volatility import plugin
 
 
-class WinPsList(plugin.Command):
+class WinPsList(common.AbstractWindowsCommandPlugin):
     """List processes for windows."""
 
     __name = "pslist"
 
-    def __init__(self, kernel_address_space = None, profile = None, **kwargs):
-        """Lists the processes."""
+    kdbg = None
+    eprocess = None
+
+    def __init__(self, kernel_address_space=None, profile=None, kdbg=None, eprocess=None, 
+                 **kwargs):
+        """Lists the processes by following the _EPROCESS.PsActiveList.
+
+        In the windows operating system, processes are linked together through a
+        doubly linked list. This plugin follows the list around, printing
+        information about each process.
+
+        To begin, we need to find any element on the list. This can be done by:
+
+        1) Obtaining the _KDDEBUGGER_DATA64.PsActiveProcessHead - debug information.
+        2) Finding any _EPROCESS in memory (e.g. through psscan) and following its list.
+
+        This plugin supports both approaches.
+
+        Args:
+          kernel_address_space: The kernel AS we operate on, if None we use the session's.
+
+          profile: The profile. If None we use the session's.
+
+          kdbg: The location of the kernel debugger block (In the physical
+             AS). If this is specified we use the PsActiveProcessHead method.
+
+          eprocess: The location of any eprocess location (in kernel AS). This
+             can be obtained from e.g. psscan or find_dtb. If neither kdbg or
+             eprocess are specified we just do the best we have from the
+             session.
+        """
         super(WinPsList, self).__init__(**kwargs)
 
         # Try to load the AS from the session if possible.
-        self.kernel_address_space = (kernel_address_space or self.session.plugins.load_as())
-        self.profile = profile or session.profile
+        self.kernel_address_space = (kernel_address_space or 
+                                     self.session.kernel_address_space)
+        if self.kernel_address_space is None:
+            raise plugin.PluginError("kernel_address_space not specified.")
 
-        print "Listing processes"
+        self.profile = profile or self.session.profile
+        if self.profile is None:
+            raise plugin.PluginError("Profile not specified.")
 
+        if kdbg:
+            self.kdbg = kdbg
+        elif eprocess:
+            self.eprocess = eprocess
+        else:
+            self.kdbg = self.session.kdbg
+            self.eprocess = self.session.eprocess
+
+    def list_eprocess_from_kdbg(self, kdbg_offset):
+        kdbg = self.profile.Object(theType="_KDDEBUGGER_DATA64", 
+                                   offset=kdbg_offset, vm=self.kernel_address_space.base)
+
+        PsActiveList = kdbg.PsActiveProcessHead.dereference_as(
+            "_LIST_ENTRY", vm=self.kernel_address_space)
+
+        if PsActiveList:
+            return iter(PsActiveList.list_of_type("_EPROCESS", "ActiveProcessLinks"))
+
+    def list_eprocess_from_eprocess(self, eprocess_offset):
+        eprocess = self.profile.Object(theType="_EPROCESS", 
+                                       offset=eprocess_offset, vm=self.kernel_address_space)
+
+        for task in eprocess_offset.ActiveProcessLinks:
+            # Need to filter out the PsActiveProcessHead (which is not really an
+            # _EPROCESS)
+            yield task
+
+    def list_eprocess(self):
+        if self.kdbg:
+            return self.list_eprocess_from_kdbg(self.kdbg)
+        elif self.eprocess:
+            return self.list_eprocess_from_eprocess(self.eprocess)
+        else:
+            raise plugin.PluginError("I need either a kdbg address or an eprocess.")
+
+    def render(self, fd=None):
+        offsettype = "(V)"
+        fd.write(" Offset{0}  Name                 PID    PPID   Thds   Hnds   Time \n".format(offsettype) + \
+                    "---------- -------------------- ------ ------ ------ ------ ------------------- \n")
+
+        for task in self.list_eprocess():
+            # PHYSICAL_OFFSET must STRICTLY only be used in the results.  If it's used for anything else,
+            # it needs to have cache_invalidator set to True in the options
+            offset = task.obj_offset
+            fd.write("{0:#010x} {1:20} {2:6} {3:6} {4:6} {5:6} {6:26}\n".format(
+                offset,
+                task.ImageFileName,
+                task.UniqueProcessId,
+                task.InheritedFromUniqueProcessId,
+                task.ActiveThreads,
+                task.ObjectTable.HandleCount,
+                task.CreateTime))
+        
 
 class DllList(common.AbstractWindowsCommand):
     """Print list of loaded dlls for each process"""

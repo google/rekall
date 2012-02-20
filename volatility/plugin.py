@@ -29,6 +29,10 @@ class Error(Exception):
     """Raised for plugin errors."""
 
 
+class PluginError(Error):
+    """An error occured in a plugin."""
+
+
 class Command(object):
     """A command can be run from the volatility command line.
 
@@ -51,7 +55,10 @@ class Command(object):
 
     @obj.classproperty
     def name(cls):
-        return getattr(cls, "_%s__name" % cls.__name__)
+        try:
+            return getattr(cls, "_%s__name" % cls.__name__)
+        except AttributeError:
+            return ""
 
     def __init__(self, session=None, **kwargs):
         """The constructor for this command.
@@ -60,6 +67,9 @@ class Command(object):
         session.
         """
         self.session = session or conf.GLOBAL_SESSION
+
+    def render(self, fd = None):
+        """Produce results on the fd given."""
 
     @classmethod
     def is_active(cls, config):

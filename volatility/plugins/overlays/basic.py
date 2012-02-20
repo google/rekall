@@ -150,28 +150,6 @@ class VOLATILITY_MAGIC(obj.CType):
             self.__initialized = True
 
 
-class VolatilityDTB(obj.VolatilityMagic):
-
-    def generate_suggestions(self):
-        offset = 0
-        while 1:
-            data = self.obj_vm.read(offset, constants.SCAN_BLOCKSIZE)
-            found = 0
-            if not data:
-                break
-
-            while 1:
-                found = data.find(str(self.obj_parent.DTBSignature), found + 1)
-                if found >= 0:
-                    # (_type, _size) = unpack('=HH', data[found:found+4])
-                    proc = obj.Object("_EPROCESS", offset = offset + found,
-                                      vm = self.obj_vm)
-                    if 'Idle' in proc.ImageFileName.v():
-                        yield proc.Pcb.DirectoryTableBase.v()
-                else:
-                    break
-
-            offset += len(data)
 
 
 # We define two kinds of basic profiles, a 32 bit one and a 64 bit one
@@ -202,5 +180,4 @@ class BasicWindowsClasses(obj.Profile):
             'Flags': Flags,
             'Enumeration': Enumeration,
             'VOLATILITY_MAGIC': VOLATILITY_MAGIC,
-            'VolatilityDTB': VolatilityDTB,
             })

@@ -24,8 +24,120 @@ import volatility.obj as obj
 import volatility.debug as debug #pylint: disable-msg=W0611
 from volatility import commands
 from volatility import profile
+from volatility import plugin
 
 #pylint: disable-msg=C0111
+
+class AbstractWindowsCommandPlugin(plugin.Command):
+    """A base class for all windows based plugins."""
+
+    __abstract = True
+
+    @classmethod
+    def is_active(cls, config):
+        """We are only active if the profile is windows."""
+        return (getattr(config.profile, "_md_os", None) == 'windows' and
+                plugin.Command.is_active(config))
+
+
+# TODO: remove this when all the plugins have been switched over..
+class AbstractWindowsCommand(commands.command):
+    """A base class for all windows based plugins."""
+
+    @classmethod
+    def is_active(cls, config):
+        """We are only active if the profile is windows."""
+        return (getattr(config.profile, "_md_os", None) == 'windows' and
+                plugin.Command.is_active(config))
+
+
+class WinFindDTB(AbstractWindowsCommandPlugin):
+    """A plugin to search for the Directory Table Base for windows systems.
+
+    There are a number of ways to find the DTB:
+
+    - Scanner method: Scans the image for a known kernel process, and read the
+      DTB from its Process Environment Block (PEB).
+
+    - Get the DTB from the KPCR structure.
+    """
+
+    __name = "find_dtb"
+
+    # We scan this many bytes at once
+    SCAN_BLOCKSIZE = 1024 * 1024
+
+    def __init__(self, process_name = "Idle", physical_address_space = None,
+                 profile = None, **kwargs):
+        """Scans the image for the Idle process.
+
+        Args:
+          process_name: The name of the process we should look for. (If we are
+            looking for the kernel DTB, any kernel process will do here.)
+
+          physical_address_space: The address space to search. If None, we use
+            the session's physical_address_space.
+
+          profile: An optional profile to use (or we use the session's).
+        """
+        super(WinFindDTB, self).__init__(**kwargs)
+
+        self.physical_address_space = (physical_address_space or
+                                       self.session.physical_address_space)
+        if self.physical_address_space is None:
+            raise plugin.PluginError("Physical address space is not set. "
+                                     "(Try plugins.load_as)")
+
+        self.process_name = process_name
+        self.profile = profile or self.session.profile
+
+        if self.profile is None:
+            raise plugin.PluginError("session.profile is not set.")
+
+        # This is the offset from the ImageFileName member to the start of the
+        # _EPROCESS
+        self.image_name_offset = self.profile.get_obj_offset(
+            "_EPROCESS", "ImageFileName")
+
+    def generate_suggestions(self):
+        needle = self.process_name + "\x00" * (16 - len(self.process_name))
+        offset = 0
+        while 1:
+            data = self.physical_address_space.read(offset, self.SCAN_BLOCKSIZE)
+            found = 0
+            if not data:
+                break
+
+            while 1:
+                found = data.find(needle, found + 1)
+                if found >= 0:
+                    # We found something that looks like the process we want.
+                    eprocess = self.profile.Object(
+                        "_EPROCESS", offset = offset + found - self.image_name_offset,
+                        vm = self.physical_address_space)
+
+                    if self._check_dtb(eprocess):
+                        yield eprocess
+
+                else:
+                    break
+
+            offset += len(data)
+
+    def _check_dtb(self, eprocess):
+        """Check the eprocess for sanity."""
+        return True
+
+    def render(self, fd = None):
+        fd.write("_EPROCESS (P)   DTB\n")
+        for eprocess in self.generate_suggestions():
+            dtb = eprocess.Pcb.DirectoryTableBase.v()
+                    
+            fd.write("{0:#010x}  {1:#010x}\n".format(eprocess.obj_offset, dtb))
+
+
+
+
 
 ## The following are checks for pool scanners.
 
@@ -99,13 +211,41 @@ class CheckPoolIndex(scan.ScannerCheck):
         return pool_hdr.PoolIndex == self.value
 
 
-class AbstractWindowsCommand(commands.command):
-    """A base class for all windows based plugins."""
+class KDBGScan(AbstractWindowsCommandPlugin):
+    """A scanner for the kdbg structures."""
 
-    @classmethod
-    def is_active(cls, config):
-        """We are only active if the profile is windows."""
-        try:
-            return config.PROFILE and config.PROFILE._md_os == 'windows'
-        except profile.Error:
-            return True
+    __name = "kdbgscan"
+
+    def __init__(self, profile=None, physical_address_space=None, signatures=None, 
+                 **kwargs):
+        super(KDBGScan, self).__init__(**kwargs)
+
+        self.physical_address_space = (physical_address_space or
+                                       self.session.physical_address_space)
+
+        if self.physical_address_space is None:
+            raise plugin.PluginError("physical address space must be provided.")
+
+        self.signatures = signatures
+
+        # Use the signature from the profile
+        if self.signatures is None:
+            self.profile = profile or self.session.profile
+            if self.profile is None:
+                raise plugin.PluginError("Profile or signatures must be provided.")
+
+            self.signatures = [self.profile.constants['KDBGHeader']]
+
+    def generate_kdbg_hits(self):
+        scanner = scan.BaseScanner.classes['KDBGScanner'](needles = self.signatures)
+
+        for offset in scanner.scan(self.physical_address_space):
+            yield offset
+
+
+    def render(self, fd=None):
+        fd.write("Potential hits for kdbg strctures.")
+
+        fd.write("Offset (P)\n")
+        for hit in self.generate_kdbg_hits():
+            fd.write("{0:#010x}\n".format(hit))

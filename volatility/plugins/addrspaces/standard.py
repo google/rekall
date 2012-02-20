@@ -32,28 +32,6 @@ from volatility import conf
 
 #pylint: disable-msg=C0111
 
-def write_callback(option, _opt_str, _value, parser, *_args, **_kwargs):
-    """Callback function to ensure that write support is only enabled if user repeats a long string
-    
-       This call back checks whether the user really wants write support and then either enables it
-       (for all future parses) by changing the option to store_true, or disables it permanently
-       by ensuring all future attempts to store the value store_false.
-    """
-    if not hasattr(parser.values, 'write'):
-        # We don't want to use config.outfile, since this should always be seen by the user
-        option.dest = "write"
-        option.action = "store_false"
-        parser.values.write = False
-        for _ in range(3):
-            testphrase = "Yes, I want to enable write support"
-            response = raw_input("Write support requested.  Please type \"" + testphrase +
-                                 "\" below precisely (case-sensitive):\n")
-            if response == testphrase:
-                option.action = "store_true"
-                parser.values.write = True
-                return
-        print "Write support disabled."
-
 class FileAddressSpace(addrspace.BaseAddressSpace):
     """ This is a direct file AS.
 
@@ -66,10 +44,16 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
     3) base == None (we dont operate on anyone else so we need to be
     right at the bottom of the AS stack.)
     """
+
+    __name = "file"
+
     ## We should be the AS of last resort
     order = 100
-    def __init__(self, base=None, config=None, filename=None, write=None, **kwargs):
-        super(FileAddressSpace, self).__init__(base=base, config=config, **kwargs)
+    def __init__(self, base=None, config=None, filename=None, write=None, astype=None,
+                 **kwargs):
+        super(FileAddressSpace, self).__init__(base=base, config=config, astype=astype,
+                                               **kwargs)
+
         self.as_assert(base == None or layered, 'Must be first Address Space')
 
         # Allow for this class to be instantiated directly.
@@ -77,12 +61,15 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
             config = conf.ConfObject(filename=filename, write=write)
 
         path = config.FILENAME
-        self.as_assert(path, "Filename must be specified in session (e.g. session.filename = 'MyFile.raw').")
+        self.as_assert(path, "Filename must be specified in session (e.g. "
+                       "session.filename = 'MyFile.raw').")
+
         self.name = os.path.abspath(path)
         self.fname = self.name
         self.mode = 'rb'
         if config.WRITE:
             self.mode += '+'
+
         self.fhandle = open(self.fname, self.mode)
         self.fhandle.seek(0, 2)
         self.fsize = self.fhandle.tell()
