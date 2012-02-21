@@ -38,10 +38,6 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     Create a new AMD64 address space to sit on top of the base address 
     space and a Directory Table Base (CR3 value) of 'dtb'.
 
-    If the 'cache' parameter is true, will cache the Page Directory Entries
-    for extra performance. The cache option requires an additional 4KB of
-    space.
-
     Comments in this class mostly come from the Intel(R) 64 and IA-32 
     Architectures Software Developer's Manual Volume 3A: System Programming 
     Guide, Part 1, revision 031, pages 4-8 to 4-15. This book is available
@@ -50,7 +46,6 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
     """
     order = 60
-    cache = False
     pae = True
     checkname = 'AMD64ValidAS'
     paging_address_space = True
@@ -65,19 +60,6 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         # Make sure that we only support 64 bit profiles here.
         if self.profile.metadata.get('memory_model', '32bit') != "64bit":
             raise RuntimeError("Only supporting 64 memory models.")
-
-    def _cache_values(self):
-        '''
-        We cache the Page Map Level 4 Entries to avoid having to 
-        look them up later. There are 0x200 entries of 64-bits each
-        This means there are 0x1000 bytes of data
-        '''
-        buf = self.base.read(self.dtb, 0x1000)
-        self.cache = False
-        if buf is None:
-            self.cache = False
-        else:
-            self.pml4e_cache = struct.unpack('<' + 'Q' * 0x200, buf)
 
     def pml4e_index(self, vaddr):
         ''' 
@@ -95,9 +77,6 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         Bits 11:3 are bits 47:39 of the linear address
         Bits 2:0 are 0.
         '''
-        if self.cache:
-            return self.pml4e_cache[self.pml4e_index(vaddr)]
-
         pml4e_addr = (self.dtb & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
         return self._read_long_long_phys(pml4e_addr)
 

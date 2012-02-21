@@ -28,8 +28,13 @@ from volatility import plugin
 
 #pylint: disable-msg=C0111
 
-class AbstractWindowsCommandPlugin(plugin.Command):
-    """A base class for all windows based plugins."""
+class AbstractWindowsCommandPlugin(plugin.PhysicalASMixin,
+                                   plugin.ProfileCommand):
+    """A base class for all windows based plugins.
+
+    Windows based plugins require at a minimum a working profile, and a valid
+    physical address space.
+    """
 
     __abstract = True
 
@@ -82,17 +87,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
         """
         super(WinFindDTB, self).__init__(**kwargs)
 
-        self.physical_address_space = (physical_address_space or
-                                       self.session.physical_address_space)
-        if self.physical_address_space is None:
-            raise plugin.PluginError("Physical address space is not set. "
-                                     "(Try plugins.load_as)")
-
         self.process_name = process_name
-        self.profile = profile or self.session.profile
-
-        if self.profile is None:
-            raise plugin.PluginError("session.profile is not set.")
 
         # This is the offset from the ImageFileName member to the start of the
         # _EPROCESS
@@ -123,6 +118,10 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
                     break
 
             offset += len(data)
+
+    def dtb_hits(self):
+        for x in self.generate_suggestions():
+            yield x.Pcb.DirectoryTableBase.v()
 
     def _check_dtb(self, eprocess):
         """Check the eprocess for sanity."""
@@ -236,7 +235,7 @@ class KDBGScan(AbstractWindowsCommandPlugin):
 
             self.signatures = [self.profile.constants['KDBGHeader']]
 
-    def generate_kdbg_hits(self):
+    def hits(self):
         scanner = scan.BaseScanner.classes['KDBGScanner'](needles = self.signatures)
 
         for offset in scanner.scan(self.physical_address_space):
@@ -247,5 +246,5 @@ class KDBGScan(AbstractWindowsCommandPlugin):
         fd.write("Potential hits for kdbg strctures.")
 
         fd.write("Offset (P)\n")
-        for hit in self.generate_kdbg_hits():
+        for hit in self.hits():
             fd.write("{0:#010x}\n".format(hit))

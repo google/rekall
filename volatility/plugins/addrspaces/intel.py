@@ -21,7 +21,9 @@
 
 """ This is Jesse Kornblum's patch to clean up the standard AS's.
 """
+import logging
 import struct
+
 from volatility.plugins.addrspaces import standard
 from volatility import addrspace
 from volatility import conf
@@ -83,6 +85,14 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddres
 
         # Allow the dtb to be specified in the session.
         self.dtb = dtb or config.dtb
+        if self.dtb is None:
+            logging.debug("DTB is not specified, about to search for it.")
+            for dtb in config.plugins.find_dtb(session=config).dtb_hits():
+                # Found it!
+                logging.debug("A DTB value is found, hope its right. "
+                              "If not, set it manualy using plugin.find_dtb.")
+                self.dtb = config.dtb = dtb
+                break
 
         self.as_assert(self.dtb != None, "No valid DTB specified. Try the find_dtb"
                        " plugin to search for the dtb.")

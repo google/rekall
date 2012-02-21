@@ -54,7 +54,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
         super(FileAddressSpace, self).__init__(base=base, config=config, astype=astype,
                                                **kwargs)
 
-        self.as_assert(base == None or layered, 'Must be first Address Space')
+        self.as_assert(base == None, 'Must be first Address Space')
 
         # Allow for this class to be instantiated directly.
         if config is None:

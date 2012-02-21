@@ -1269,7 +1269,6 @@ class Profile(object):
                 return result
 
         except InvalidOffsetError, e:
-            import pdb; pdb.post_mortem()
             ## If we cant instantiate the object here, we just error out:
             return NoneObject("Invalid Address 0x{0:08X}, instantiating {1}".format(offset, name),
                               strict = self.strict)

@@ -182,7 +182,7 @@ class _LIST_ENTRY(obj.CType):
     def dereference_as(self, type, member):
         offset = self.obj_profile.get_obj_offset(type, member)
 
-        item = self.obj_profile.Object(type, offset = self.obj_offset - offset,
+        item = self.obj_profile.Object(theType=type, offset = self.obj_offset - offset,
                                        vm = self.obj_vm, parent = self.obj_parent,
                                        name = type)
 
@@ -306,8 +306,8 @@ class _EPROCESS(obj.CType):
         process_ad = self.get_process_address_space()
         if process_ad:
             offset = self.m("Peb").v()
-            peb = obj.Object("_PEB", offset, vm = process_ad,
-                                    name = "Peb", parent = self)
+            peb = self.obj_profile.Object(theType="_PEB", offset=offset, vm = process_ad,
+                                          name = "Peb", parent = self)
 
             if peb.is_valid():
                 return peb
@@ -319,7 +319,8 @@ class _EPROCESS(obj.CType):
         directory_table_base = self.Pcb.DirectoryTableBase.v()
 
         try:
-            process_as = self.obj_vm.__class__(self.obj_vm.base, self.obj_vm.get_config(), dtb = directory_table_base)
+            process_as = self.obj_vm.__class__(self.obj_vm.base, self.obj_vm.get_config(),
+                                               dtb = directory_table_base, astype='virtual')
         except AssertionError, _e:
             return obj.NoneObject("Unable to get process AS")
 
@@ -334,13 +335,16 @@ class _EPROCESS(obj.CType):
                 yield l
 
     def get_init_modules(self):
-        return self._get_modules(self.Peb.Ldr.InInitializationOrderModuleList, "InInitializationOrderLinks")
+        return self._get_modules(self.Peb.Ldr.InInitializationOrderModuleList, 
+                                 "InInitializationOrderLinks")
 
     def get_mem_modules(self):
-        return self._get_modules(self.Peb.Ldr.InMemoryOrderModuleList, "InMemoryOrderLinks")
+        return self._get_modules(self.Peb.Ldr.InMemoryOrderModuleList, 
+                                 "InMemoryOrderLinks")
 
     def get_load_modules(self):
-        return self._get_modules(self.Peb.Ldr.InLoadOrderModuleList, "InLoadOrderLinks")
+        return self._get_modules(self.Peb.Ldr.InLoadOrderModuleList,
+                                 "InLoadOrderLinks")
 
 class _ETHREAD(obj.CType):
     """ A class for threads """
@@ -367,7 +371,8 @@ class _HANDLE_TABLE(obj.CType):
         is the _HANDLE_TABLE_ENTRY so that an object can be linked to its 
         GrantedAccess.
         """
-        return entry.Object.dereference_as("_OBJECT_HEADER", parent = entry, handle_value = handle_value)
+        return entry.Object.dereference_as("_OBJECT_HEADER", parent = entry,
+                                           handle_value = handle_value)
 
     def _make_handle_array(self, offset, level, depth = 0):
         """ Returns an array of _HANDLE_TABLE_ENTRY rooted at offset,
@@ -378,14 +383,15 @@ class _HANDLE_TABLE(obj.CType):
         # by the size of the data type contained within the page. For more information
         # see http://blogs.technet.com/b/markrussinovich/archive/2009/09/29/3283844.aspx
         if level > 0:
-            count = 0x1000 / self.obj_vm.profile.get_obj_size("address")
+            count = 0x1000 / self.obj_profile.get_obj_size("address")
             targetType = "address"
         else:
-            count = 0x1000 / self.obj_vm.profile.get_obj_size("_HANDLE_TABLE_ENTRY")
+            count = 0x1000 / self.obj_profile.get_obj_size("_HANDLE_TABLE_ENTRY")
             targetType = "_HANDLE_TABLE_ENTRY"
 
-        table = obj.Object("Array", offset = offset, vm = self.obj_vm, count = count,
-                           targetType = targetType, parent = self)
+        table = self.obj_profile.Object(theType="Array", offset = offset, vm = self.obj_vm, 
+                                        count = count, targetType = targetType,
+                                        parent = self)
 
         if table:
             for entry in table:
@@ -404,7 +410,7 @@ class _HANDLE_TABLE(obj.CType):
                     # Calculate the starting handle value for this level. 
                     handle_level_base = depth * count * handle_multiplier
                     # The size of a handle table entry.
-                    handle_entry_size = self.obj_vm.profile.get_obj_size("_HANDLE_TABLE_ENTRY")
+                    handle_entry_size = self.obj_profile.get_obj_size("_HANDLE_TABLE_ENTRY")
                     # Finally, compute the handle value for this object. 
                     handle_value = ((entry.obj_offset - offset) /
                                    (handle_entry_size / handle_multiplier)) + handle_level_base
@@ -469,10 +475,12 @@ class _OBJECT_HEADER(obj.CType):
         offset = self.obj_offset
 
         for name, objtype in self.optional_headers:
-            if self.obj_vm.profile.has_type(objtype):
+            if self.obj_profile.has_type(objtype):
                 header_offset = self.m(name + 'Offset').v()
                 if header_offset:
-                    o = obj.Object(objtype, offset - header_offset, vm = self.obj_vm)
+                    o = self.obj_profile.Object(theType=objtype,
+                                                offset=offset - header_offset,
+                                                vm = self.obj_vm)
                 else:
                     o = obj.NoneObject("Header not set")
 
@@ -486,12 +494,12 @@ class _OBJECT_HEADER(obj.CType):
 
     def dereference_as(self, theType):
         """Instantiate an object from the _OBJECT_HEADER.Body"""
-        return obj.Object(theType=theType, offset = self.Body.obj_offset, vm = self.obj_vm,
-                          parent = self)
+        return self.obj_profile.Object(theType=theType, offset = self.Body.obj_offset,
+                                       vm = self.obj_vm, parent = self)
 
     def get_object_type(self):
         """Return the object's type as a string"""
-        type_obj = obj.Object(theType="_OBJECT_TYPE", offset=self.Type)
+        type_obj = self.obj_profile.Object(theType="_OBJECT_TYPE", offset=self.Type)
 
         return type_obj.Name.v()
 
@@ -503,9 +511,11 @@ class _FILE_OBJECT(obj.CType):
         of the device object to which the file belongs"""
         name = ""
         if self.DeviceObject:
-            object_hdr = obj.Object("_OBJECT_HEADER",
-                            self.DeviceObject - self.obj_vm.profile.get_obj_offset("_OBJECT_HEADER", "Body"),
-                            self.obj_native_vm)
+            object_hdr = self.obj_profile.Object(
+                theType="_OBJECT_HEADER", offset=(
+                    self.DeviceObject - self.obj_profile.get_obj_offset(
+                        "_OBJECT_HEADER", "Body")),
+                vm=self.obj_vm)
             if object_hdr:
                 name = "\\Device\\{0}".format(object_hdr.NameInfo.Name.v())
         if self.FileName:
@@ -558,8 +568,8 @@ class _MMVAD(obj.CType):
         args.pop('members', None)
 
         # Start off with an _MMVAD_LONG
-        result = obj.Object('_MMVAD_LONG', offset = offset, vm = vm,
-                            parent = parent, **args)
+        result = self.obj_profile.Object(theType='_MMVAD_LONG', offset = offset, vm = vm,
+                                         parent = parent, **args)
 
         # Get the tag and change the vad type if necessary
         real_type = cls.tag_map.get(str(result.Tag), None)
@@ -567,8 +577,8 @@ class _MMVAD(obj.CType):
             return obj.NoneObject("Tag {0} not known".format(str(result.Tag)))
 
         if result.__class__.__name__ != real_type:
-            result = obj.Object(real_type, offset = offset, vm = vm,
-                                parent = parent, **args)
+            result = self.obj_profile.Object(theType=real_type, offset = offset, vm = vm,
+                                             parent = parent, **args)
 
         return result
 
@@ -641,9 +651,11 @@ class _MMVAD_LONG(_MMVAD_SHORT):
     pass
 
 class _EX_FAST_REF(obj.CType):
-    def dereference_as(self, theType, parent = None, **kwargs):
+    def dereference_as(self, theType, parent = None, vm=None, **kwargs):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the specified type"""
-        return obj.Object(theType, self.Object.v() & ~7, self.obj_native_vm, parent = parent or self, **kwargs)
+        return self.obj_profile.Object(theType=theType, offset=self.Object.v() & ~7,
+                                       vm=vm or self.obj_vm,
+                                       parent = parent or self, **kwargs)
 
 class ThreadCreateTimeStamp(WinTimeStamp):
     """Handles ThreadCreateTimeStamps which are bit shifted WinTimeStamps"""
@@ -721,7 +733,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
         if self.e_magic != 0x5a4d:
             raise ValueError('e_magic {0:04X} is not a valid DOS signature.'.format(self.e_magic))
 
-        nt_header = self.obj_profile.Object("_IMAGE_NT_HEADERS",
+        nt_header = self.obj_profile.Object(theType="_IMAGE_NT_HEADERS",
                                             offset = self.e_lfanew + self.obj_offset,
                                             vm = self.obj_vm)
 
@@ -735,13 +747,14 @@ class _IMAGE_NT_HEADERS(obj.CType):
 
     def get_sections(self, unsafe):
         """Get the PE sections"""
-        sect_size = self.obj_vm.profile.get_obj_size("_IMAGE_SECTION_HEADER")
+        sect_size = self.obj_profile.get_obj_size("_IMAGE_SECTION_HEADER")
         start_addr = self.FileHeader.SizeOfOptionalHeader + self.OptionalHeader.obj_offset
 
         for i in range(self.FileHeader.NumberOfSections):
             s_addr = start_addr + (i * sect_size)
-            sect = obj.Object("_IMAGE_SECTION_HEADER", offset = s_addr, vm = self.obj_vm,
-                              parent = self, native_vm = self.obj_native_vm)
+            sect = self.obj_profile.Object(theType="_IMAGE_SECTION_HEADER",
+                                           offset = s_addr, vm = self.obj_vm,
+                                           parent = self)
             if not unsafe:
                 sect.sanity_check_section()
             yield sect

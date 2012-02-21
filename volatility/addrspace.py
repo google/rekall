@@ -93,7 +93,9 @@ class BaseAddressSpace(object):
 
 class DummyAddressSpace(BaseAddressSpace):
     """An AS which always returns nulls."""
-    name = 'dummy'
+    __name = 'dummy'
+    __abstract = True
+
     def is_valid_address(self, _offset):
         return True
 
@@ -103,6 +105,8 @@ class DummyAddressSpace(BaseAddressSpace):
 
 class AbstractVirtualAddressSpace(BaseAddressSpace):
     """Base Ancestor for all Virtual address spaces, as determined by astype"""
+    __abstract = True
+
     def __init__(self, base, config, astype = 'virtual', *args, **kwargs):
         BaseAddressSpace.__init__(self, base, config, astype = astype, *args, **kwargs)
         self.as_assert(astype == 'virtual' or astype == 'any', "User requested non-virtual AS")

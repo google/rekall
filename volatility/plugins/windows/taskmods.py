@@ -21,8 +21,9 @@
 #
 
 #pylint: disable-msg=C0111
-
+import logging
 import os
+
 import volatility.win32 as win32
 import volatility.obj as obj
 import volatility.debug as debug
@@ -33,7 +34,7 @@ from volatility.plugins.windows import common
 from volatility import plugin
 
 
-class WinPsList(common.AbstractWindowsCommandPlugin):
+class WinPsList(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
     """List processes for windows."""
 
     __name = "pslist"
@@ -41,8 +42,7 @@ class WinPsList(common.AbstractWindowsCommandPlugin):
     kdbg = None
     eprocess = None
 
-    def __init__(self, kernel_address_space=None, profile=None, kdbg=None, eprocess=None, 
-                 **kwargs):
+    def __init__(self, kdbg=None, eprocess=None, **kwargs):
         """Lists the processes by following the _EPROCESS.PsActiveList.
 
         In the windows operating system, processes are linked together through a
@@ -71,16 +71,6 @@ class WinPsList(common.AbstractWindowsCommandPlugin):
         """
         super(WinPsList, self).__init__(**kwargs)
 
-        # Try to load the AS from the session if possible.
-        self.kernel_address_space = (kernel_address_space or 
-                                     self.session.kernel_address_space)
-        if self.kernel_address_space is None:
-            raise plugin.PluginError("kernel_address_space not specified.")
-
-        self.profile = profile or self.session.profile
-        if self.profile is None:
-            raise plugin.PluginError("Profile not specified.")
-
         if kdbg:
             self.kdbg = kdbg
         elif eprocess:
@@ -103,7 +93,7 @@ class WinPsList(common.AbstractWindowsCommandPlugin):
         eprocess = self.profile.Object(theType="_EPROCESS", 
                                        offset=eprocess_offset, vm=self.kernel_address_space)
 
-        for task in eprocess_offset.ActiveProcessLinks:
+        for task in eprocess.ActiveProcessLinks:
             # Need to filter out the PsActiveProcessHead (which is not really an
             # _EPROCESS)
             yield task
@@ -114,25 +104,61 @@ class WinPsList(common.AbstractWindowsCommandPlugin):
         elif self.eprocess:
             return self.list_eprocess_from_eprocess(self.eprocess)
         else:
-            raise plugin.PluginError("I need either a kdbg address or an eprocess.")
+            logging.info("KDBG not provided - Volatility will try to automatically scan "
+                         "for it now using plugin.kdbgscan.")
+            for kdbg in self.session.plugins.kdbgscan().hits():
+                # Just return the first one
+                logging.info("Found a KDBG hit @0x%X. Hope it works. If not try setting it "
+                             "manually.", kdbg)
+
+                # Cache this for next time in the session.
+                self.kdbg = self.session.kdbg = kdbg
+                return self.list_eprocess_from_kdbg(kdbg)
+
+    def get_processes_from_pids(self, pids):
+        """Returns an _EPROCESS object from a pid."""
+        pids = set(pids)
+        for eprocess in self.list_eprocess():
+            if eprocess.UniqueProcessId in pids:
+                yield eprocess
 
     def render(self, fd=None):
-        offsettype = "(V)"
-        fd.write(" Offset{0}  Name                 PID    PPID   Thds   Hnds   Time \n".format(offsettype) + \
-                    "---------- -------------------- ------ ------ ------ ------ ------------------- \n")
+        fd.write(" Offset(V) Offset(P)  Name                 PID    PPID   Thds   Hnds   Time\n" + \
+                 "---------- ---------- -------------------- ------ ------ ------ ------ ------------------- \n")
 
         for task in self.list_eprocess():
-            # PHYSICAL_OFFSET must STRICTLY only be used in the results.  If it's used for anything else,
-            # it needs to have cache_invalidator set to True in the options
             offset = task.obj_offset
-            fd.write("{0:#010x} {1:20} {2:6} {3:6} {4:6} {5:6} {6:26}\n".format(
+            fd.write("{0:#010x} {1:#010x} {2:20} {3:6} {4:6} {5:6} {6:6} {7:26}\n".format(
                 offset,
+                task.obj_vm.vtop(offset),
                 task.ImageFileName,
                 task.UniqueProcessId,
                 task.InheritedFromUniqueProcessId,
                 task.ActiveThreads,
                 task.ObjectTable.HandleCount,
                 task.CreateTime))
+
+
+class WinDllList(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
+    
+    __name = "dlllist"
+
+    def render(self, outfd):
+        for task in self.session.plugins.pslist(session=self.session).list_eprocess():
+            pid = task.UniqueProcessId
+
+            outfd.write("*" * 72 + "\n")
+            outfd.write("{0} pid: {1:6}\n".format(task.ImageFileName, pid))
+
+            if task.Peb:
+                outfd.write("Command line : {0}\n".format(task.Peb.ProcessParameters.CommandLine))
+                outfd.write("{0}\n".format(task.Peb.CSDVersion))
+                outfd.write("\n")
+                outfd.write("{0:12} {1:12} {2}\n".format('Base', 'Size', 'Path'))
+                for m in task.get_load_modules():
+                    outfd.write("0x{0:08x}   0x{1:06x}     {2}\n".format(m.DllBase, m.SizeOfImage, m.FullDllName))
+            else:
+                outfd.write("Unable to read PEB for task.\n")
         
 
 class DllList(common.AbstractWindowsCommand):
@@ -209,35 +235,6 @@ class DllList(common.AbstractWindowsCommand):
             tasks = self.filter_tasks(win32.tasks.pslist(addr_space))
 
         return tasks
-
-class PSList(DllList):
-    """ print all running processes by following the EPROCESS lists """
-    def __init__(self, config, *args):
-        DllList.__init__(self, config, *args)
-        config.add_option("PHYSICAL-OFFSET", short_option = 'P', default = False,
-                          cache_invalidator = False, help = "Physical Offset", action = "store_true")
-
-    def render_text(self, outfd, data):
-
-        offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"
-        outfd.write(" Offset{0}  Name                 PID    PPID   Thds   Hnds   Time \n".format(offsettype) + \
-                    "---------- -------------------- ------ ------ ------ ------ ------------------- \n")
-
-        for task in data:
-            # PHYSICAL_OFFSET must STRICTLY only be used in the results.  If it's used for anything else,
-            # it needs to have cache_invalidator set to True in the options
-            if not self._config.PHYSICAL_OFFSET:
-                offset = task.obj_offset
-            else:
-                offset = task.obj_vm.vtop(task.obj_offset)
-            outfd.write("{0:#010x} {1:20} {2:6} {3:6} {4:6} {5:6} {6:26}\n".format(
-                offset,
-                task.ImageFileName,
-                task.UniqueProcessId,
-                task.InheritedFromUniqueProcessId,
-                task.ActiveThreads,
-                task.ObjectTable.HandleCount,
-                task.CreateTime))
 
 
 # Inherit from files just for the config options (__init__)

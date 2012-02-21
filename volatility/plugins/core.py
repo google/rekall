@@ -24,6 +24,32 @@ import logging
 
 from volatility import addrspace
 from volatility import plugin
+from volatility import obj
+
+
+class Info(plugin.Command):
+    """Print information about various subsystems."""
+
+    __name = "info"
+
+    def plugins(self):
+        for name, cls in plugin.Command.classes.items():
+            yield dict(name=name, function=cls.name, definition=cls.__module__,
+                       doc=cls.__doc__.splitlines()[0])
+
+    def address_spaces(self):
+        for name, cls in addrspaces.BaseAddressSpace.classes.items():
+            yield dict(name=name, function=cls.name, definition=cls.__module__)
+
+    def render(self, fd):
+        fd.write("Volatility 3.0 alpha\n\n")
+        fd.write("Plugins\n"
+                 "-------\n"
+                 "Function   Provider Class       Definition\n"
+                 "---------- -------------------- ----------\n")
+        for info in self.plugins():
+            fd.write("{function:10} {name:20} {definition}\n  ({doc})\n\n".format(**info))
+        
 
 
 class LoadAddressSpace(plugin.Command):
@@ -31,7 +57,7 @@ class LoadAddressSpace(plugin.Command):
 
     __name = "load_as"
 
-    def __init__(self, vas_spec = None, pas_spec = None, **kwargs):
+    def __init__(self, vas_spec = "auto", pas_spec = "auto", **kwargs):
         """Tries to create the address spaces and assigns them to the session.
 
         An address space specification is a column delimited list of AS
@@ -43,53 +69,56 @@ class LoadAddressSpace(plugin.Command):
         a virtual AS is obtained.
 
         Args:
-          vas_spec: A Virtual address space specification - a column delimited list of ASs.
+          vas_spec: A Virtual address space specification - a column delimited
+            list of ASs.
           pas_spec: A Physical address space specification.
         """
         super(LoadAddressSpace, self).__init__(**kwargs)
         try:
-            if pas_spec and self.session.physical_address_space_spec != pas_spec:
+            # Try to get a physical address space.
+            if pas_spec == "auto":
+                self.session.physical_address_space = self.GuessAddressSpace(
+                    astype = 'physical', **kwargs)
+            else:
                 self.session.physical_address_space = addrspace.AddressSpaceFactory(
                     self.session, specification = pas_spec, astype = 'physical')
-                self.session.physical_address_space_spec = pas_spec
 
-            if vas_spec and self.session.kernel_address_space_spec != vas_spec:
-                self.session.kernel_address_space = addrspace.AddressSpaceFactory(
+            if vas_spec == "auto":
+                self.session.kernel_address_space = self.GuessAddressSpace(
+                    astype = 'virtual', **kwargs)
+            else:
+                self.kernel_address_space = addrspace.AddressSpaceFactory(
                     self.session, specification = vas_spec, astype = 'virtual')
-                self.session.kernel_address_space_spec = vas_spec
 
         except addrspace.ASAssertionError, e:
             logging.error("Could not create address space: %s" % e)
 
 
-    def GuessAddressSpace(self, astype = 'virtual', **kwargs):
+    def GuessAddressSpace(self, astype = 'physical', **kwargs):
         """Loads an address space by stacking valid ASes on top of each other
-        (priority order first)"""
+        (priority order first).        
+        """
+        logging.debug("Guess %s address space", astype)
+
         base_as = obj.NoneObject("Address space not found.")
 
-        # Register all the parameters of all address spaces since we are going to
-        # try them all.
-        for cls in BaseAddressSpace.classes.values():
-            cls.register_options(config)
-        config.parse_options()
-
-        error = AddrSpaceError()
+        error = addrspace.AddrSpaceError()
         while 1:
-            debug.debug("Voting round")
+            logging.debug("Voting round")
             found = False
-            for cls in BaseAddressSpace.classes.values():
-                debug.debug("Trying {0} ".format(cls))
+            for cls in addrspace.BaseAddressSpace.classes.values():
+                logging.debug("Trying %s ", cls)
                 try:
-                    base_as = cls(base_as, config, astype=astype, **kwargs)
-                    debug.debug("Succeeded instantiating {0}".format(base_as))
+                    base_as = cls(base_as, self.session, astype=astype, **kwargs)
+                    logging.debug("Succeeded instantiating %s", base_as)
                     found = True
                     break
-                except ASAssertionError, e:
-                    debug.debug("Failed instantiating {0}: {1}".format(cls.__name__, e), 2)
+                except addrspace.ASAssertionError, e:
+                    logging.debug("Failed instantiating %s: %s", cls.__name__, e)
                     error.append_reason(cls.__name__, e)
                     continue
                 except Exception, e:
-                    debug.debug("Failed instantiating (exception): {0}".format(e))
+                    logging.debug("Failed instantiating (exception): %s", e)
                     error.append_reason(cls.__name__ + " - EXCEPTION", e)
                     continue
 
@@ -97,6 +126,16 @@ class LoadAddressSpace(plugin.Command):
             ## selecting us means we are done:
             if not found:
                 break
+
+        # Virtual AS's must have a dtb:
+        if astype == 'virtual' and not getattr(base_as, "dtb", None):
+            base_as = None
+
+        if base_as:
+            logging.info("Autodetected %s address space %s\n", astype, base_as)
+        else:
+            logging.info("Failed to autodetect %s address space. Try running "
+                         "plugin.load_as with a spec.\n", astype)
 
         return base_as
 

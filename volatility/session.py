@@ -43,7 +43,10 @@ class PluginContainer(object):
 
         # Now add the commands that are available based on self.config
         for command_cls in plugin.Command.GetActiveClasses(self.config):
-            self.plugins[command_cls.name] = command_cls
+            if command_cls.name:
+                self.plugins[command_cls.name] = command_cls
+
+        logging.debug("Reloading active plugins %s", self.plugins.keys())
 
     def __dir__(self):
         """Support ipython command expansion."""
@@ -124,7 +127,9 @@ Config:
                 setattr(self.config, attr, value)
 
             # This may affect which plugins are available for the user.
-            self.locals['plugins'] = PluginContainer(self.config)
+            plugins = PluginContainer(self.config)
+            self.locals['plugins'] = plugins
+            object.__setattr__(self, 'plugins', plugins)
         else:
             object.__setattr__(self, attr, value)
 

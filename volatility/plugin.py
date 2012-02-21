@@ -92,6 +92,61 @@ class Command(object):
 
 
 
+class ProfileCommand(Command):
+    """A baseclass for all commands which require a profile."""
+
+    def __init__(self, profile=None, **kwargs):
+        super(ProfileCommand, self).__init__(**kwargs)
+
+        # Require a valid profile.
+        self.profile = profile or self.session.profile
+        if self.profile is None:
+            raise PluginError("Profile not specified. (use vol(plugins.info) "
+                              "to see available profiles.).")
+
+
+class KernelASMixin(object):
+    """A mixin for those plugins which require a valid kernel address space.
+
+    This class ensures a valid kernel AS exists or an exception is raised.
+    """
+    def __init__(self, kernel_address_space=None, **kwargs):
+        super(KernelASMixin, self).__init__(**kwargs)
+
+        # Try to load the AS from the session if possible.
+        self.kernel_address_space = (kernel_address_space or 
+                                     self.session.kernel_address_space)
+
+        if self.kernel_address_space is None:
+            # Try to guess the AS
+            self.session.plugins.load_as(session=self.session)
+            self.kernel_address_space = self.session.kernel_address_space
+
+        if self.kernel_address_space is None:
+            raise PluginError("kernel_address_space not specified.")
+
+
+class PhysicalASMixin(object):
+    """A mixin for those plugins which require a valid physical address space.
+
+    This class ensures a valid physical AS exists or an exception is raised.
+    """
+    def __init__(self, physical_address_space=None, **kwargs):
+        super(PhysicalASMixin, self).__init__(**kwargs)
+
+        self.physical_address_space = (physical_address_space or
+                                       self.session.physical_address_space)
+
+        if self.physical_address_space is None:
+            # Try to guess the AS
+            self.session.plugins.load_as(session=self.session)
+            self.physical_address_space = self.session.physical_address_space
+
+        if self.physical_address_space is None:
+            raise plugin.PluginError("Physical address space is not set. "
+                                     "(Try plugins.load_as)")
+
+
 def CommandFactory(command_name = None, config = None, class_name = None, **kwargs):
     """Creates a new instance of a command.
 
