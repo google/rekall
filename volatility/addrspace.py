@@ -78,7 +78,7 @@ class BaseAddressSpace(object):
 
     def get_available_addresses(self):
         """ Return a generator of address ranges as (offset, size) covered by this AS """
-        raise StopIteration
+        return []
 
     def is_valid_address(self, _addr):
         """ Tell us if the address is valid """

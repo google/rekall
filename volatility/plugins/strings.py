@@ -26,7 +26,7 @@ import volatility.utils as utils
 import volatility.win32 as win32
 import volatility.debug as debug
 
-class Strings(taskmods.DllList):
+class Strings(object):
     """Match physical offsets to virtual addresses (may take a while, VERY verbose)"""
     def __init__(self, config, *args):
         taskmods.DllList.__init__(self, config, *args)

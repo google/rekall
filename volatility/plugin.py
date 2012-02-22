@@ -67,6 +67,8 @@ class Command(object):
         session.
         """
         self.session = session or conf.GLOBAL_SESSION
+        if kwargs:
+            logging.warning("Unknown kwargs %s ignored.", kwargs.keys())
 
     def render(self, fd = None):
         """Produce results on the fd given."""
@@ -94,6 +96,8 @@ class Command(object):
 
 class ProfileCommand(Command):
     """A baseclass for all commands which require a profile."""
+
+    __abstract = True
 
     def __init__(self, profile=None, **kwargs):
         super(ProfileCommand, self).__init__(**kwargs)

@@ -30,6 +30,7 @@ The Volatility object system.
 """
 
 #pylint: disable-msg=C0111,W0613
+import logging
 import sys
 import re
 import cPickle as pickle # pickle implementation must match that in volatility.cache
@@ -281,7 +282,7 @@ class BaseObject(object):
              the vtype language definition.
         """
         if kwargs:
-            debug.error("Unknown keyword args {0}".format(kwargs))
+            logging.error("Unknown keyword args {0}".format(kwargs))
 
         self._vol_theType = theType
         self._vol_offset = offset
@@ -601,11 +602,15 @@ class Pointer(NativeType):
         """ Returns if what we are pointing to is valid """
         return self.obj_vm.is_valid_address(self.v())
 
-    def dereference(self):
+    def dereference(self, vm=None):
         offset = self.v()
-        if self.obj_vm.is_valid_address(offset):
+
+        # Casts into the correct AS:
+        vm = vm or self.obj_vm
+
+        if vm.is_valid_address(offset):
             result = self.target(offset = offset,
-                                 vm = self.obj_vm,
+                                 vm = vm,
                                  parent = self.obj_parent,
                                  name = self.obj_name)
             return result

@@ -179,12 +179,21 @@ class _UNICODE_STRING(obj.CType):
 class _LIST_ENTRY(obj.CType):
     """ Adds iterators for _LIST_ENTRY types """
 
-    def dereference_as(self, type, member):
+    def dereference_as(self, type, member, address_space=None):
+        """Recasts the list entry as a member in a type, and return the type.
+        
+        Args:
+           type: The name of this CType type.
+           member: The name of the member of this CType.
+           address_space: An optional address space to switch during
+              deferencing.
+        """
         offset = self.obj_profile.get_obj_offset(type, member)
 
-        item = self.obj_profile.Object(theType=type, offset = self.obj_offset - offset,
-                                       vm = self.obj_vm, parent = self.obj_parent,
-                                       name = type)
+        item = self.obj_profile.Object(
+            theType=type, offset = self.obj_offset - offset,
+            vm = address_space or self.obj_vm, parent = self.obj_parent,
+            name = type)
 
         return item
 

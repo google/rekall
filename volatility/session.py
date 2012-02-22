@@ -46,7 +46,8 @@ class PluginContainer(object):
             if command_cls.name:
                 self.plugins[command_cls.name] = command_cls
 
-        logging.debug("Reloading active plugins %s", self.plugins.keys())
+        logging.debug("Reloading active plugins %s", 
+                      ["%s <- %s" % (x, y.__name__) for x,y in self.plugins.items()])
 
     def __dir__(self):
         """Support ipython command expansion."""

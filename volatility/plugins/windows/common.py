@@ -28,6 +28,9 @@ from volatility import plugin
 
 #pylint: disable-msg=C0111
 
+# We require both a physical AS set and a valid profile for
+# AbstractWindowsCommandPlugins.
+
 class AbstractWindowsCommandPlugin(plugin.PhysicalASMixin,
                                    plugin.ProfileCommand):
     """A base class for all windows based plugins.
@@ -215,8 +218,8 @@ class KDBGScan(AbstractWindowsCommandPlugin):
 
     __name = "kdbgscan"
 
-    def __init__(self, profile=None, physical_address_space=None, signatures=None, 
-                 **kwargs):
+    def __init__(self, profile=None, physical_address_space=None, 
+                 signatures=None, **kwargs):
         super(KDBGScan, self).__init__(**kwargs)
 
         self.physical_address_space = (physical_address_space or
@@ -236,7 +239,8 @@ class KDBGScan(AbstractWindowsCommandPlugin):
             self.signatures = [self.profile.constants['KDBGHeader']]
 
     def hits(self):
-        scanner = scan.BaseScanner.classes['KDBGScanner'](needles = self.signatures)
+        scanner = scan.BaseScanner.classes['KDBGScanner'](
+            needles = self.signatures)
 
         for offset in scanner.scan(self.physical_address_space):
             yield offset
@@ -248,3 +252,81 @@ class KDBGScan(AbstractWindowsCommandPlugin):
         fd.write("Offset (P)\n")
         for hit in self.hits():
             fd.write("{0:#010x}\n".format(hit))
+
+
+class WinProcessFilter(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
+    """A class for filtering processes."""
+
+    __abstract = True
+
+    def __init__(self, phys_eprocess=None, pids=None, **kwargs):
+        """Lists information about all the dlls mapped by a process.
+        
+        Args:
+           physical_eprocess: One or more EPROCESS structs or offsets defined in
+              the physical AS.
+           
+           pids: A list of pids.
+
+        Returns:
+           A List of _EPROCESS objects cast in the kernel AS.
+        """
+        super(WinProcessFilter, self).__init__(**kwargs)
+
+        if isinstance(phys_eprocess, int):
+            phys_eprocess = [phys_eprocess]
+        elif phys_eprocess is None:
+            phys_eprocess = []
+
+        self.phys_eprocess = phys_eprocess
+
+        if isinstance(pids, int):
+            pids = [pids]
+        elif pids is None:
+            pids = []
+
+        self.pids = pids
+
+    def filter_processes(self):
+        """Filters eprocess list using phys_eprocess and pids lists."""
+        # No filtering required:
+        if not self.phys_eprocess and not self.pids:
+            for eprocess in self.session.plugins.pslist(
+                session=self.session).list_eprocess():
+                yield eprocess
+        else:
+            # We need to filter by phys_eprocess
+            for offset in self.phys_eprocess:
+                yield self.virtual_process_from_physical_offset(offset)
+
+            # We need to filter by pids
+            for eprocess in self.session.plugins.pslist(
+                session=self.session).list_eprocess():
+                if int(eprocess.UniqueProcessId) in self.pids:
+                    yield eprocess
+
+    def virtual_process_from_physical_offset(self, physical_offset):
+        """Tries to return an eprocess in virtual space from a physical offset.
+
+        We do this by reflecting off the list elements.
+
+        Args:
+           physical_offset: The physcial offset of the process.
+
+        Returns:
+           an _EPROCESS object or a NoneObject on failure.
+        """
+        physical_eprocess = self.profile.Object(
+            theType="_EPROCESS", offset=int(physical_offset),
+            vm=self.kernel_address_space.base)
+
+        # We cast our list entry in the kernel AS by following Flink into the
+        # kernel AS and then the Blink. Note the address space switch upon
+        # dereferencing the pointer.
+        our_list_entry = physical_eprocess.ActiveProcessLinks.Flink.dereference(
+            vm=self.kernel_address_space).Blink.dereference()
+
+        # Now we get the EPROCESS object from the list entry.
+        return our_list_entry.dereference_as("_EPROCESS", "ActiveProcessLinks")
+
+
