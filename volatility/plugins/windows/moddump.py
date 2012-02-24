@@ -22,7 +22,7 @@
 
 import os
 import re
-import volatility.plugins.windows.procdump as procdump
+from volatility.plugins.windows import procdump
 import volatility.cache as cache
 import volatility.win32.modules as modules
 import volatility.win32.tasks as tasks

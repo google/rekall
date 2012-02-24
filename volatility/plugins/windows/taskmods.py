@@ -191,7 +191,7 @@ class WinMemMap(common.WinProcessFilter):
                 continue
 
             ## This page is right after the last page in the range
-            if coalesce and (va - last_va) == (pa - last_pa):
+            if coalesce and va == last_va + last_len and pa == last_pa + last_len:
                 last_len += length
             else:
                 if last_len > 0:

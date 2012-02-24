@@ -27,7 +27,7 @@ from volatility.plugins.windows import taskmods
 
 
 # Inherit from Dlllist for command line options
-class Handles(taskmods.DllList):
+class Handles(object):
     """Print list of open handles for each process"""
 
     def __init__(self, config, *args):

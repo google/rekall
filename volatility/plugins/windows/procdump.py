@@ -22,11 +22,11 @@
 
 import os
 import struct
-import volatility.plugins.windows.taskmods as taskmods
+from volatility.plugins.windows import taskmods
 import volatility.debug as debug
 import volatility.obj as obj
     
-class ProcExeDump(taskmods.DllList):
+class ProcExeDump(object):
     """Dump a process to an executable file sample"""
     def __init__(self, config, *args):
         taskmods.DllList.__init__(self, config, *args)

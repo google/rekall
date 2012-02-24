@@ -32,7 +32,7 @@ from volatility.plugins.windows import taskmods
 import volatility.debug as debug #pylint: disable-msg=W0611
 
 # Inherit from dlllist just for the config options (__init__)
-class VADInfo(taskmods.DllList):
+class VADInfo(object):
     """Dump the VAD info"""
 
     def render_text(self, outfd, data):

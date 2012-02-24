@@ -130,7 +130,7 @@ well_known_sids = {
   'S-1-16-28672': 'Secure Process Mandatory Level',
 }
 
-class GetSIDs(taskmods.DllList):
+class GetSIDs(object):
     """Print the SIDs owning each process"""
 
     # Declare meta information associated with this plugin
