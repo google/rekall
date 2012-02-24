@@ -153,7 +153,7 @@ class NoneObject(object):
     Instantiate with the reason for the error.
     """
     def __init__(self, reason = '', strict = False):
-        debug.debug("None object instantiated: " + reason, 2)
+        logging.debug("None object instantiated: %s", reason)
         self.reason = reason
         self.strict = strict
         if strict:
@@ -578,6 +578,7 @@ class BitField(NativeType):
 
 
 class Pointer(NativeType):
+
     def __init__(self, theType=None, profile = None, target = None, **kwargs):
         # Just use the same size as the address for this arch.
         kwargs.update(profile.vtypes["address"][1])
@@ -658,7 +659,11 @@ class Pointer(NativeType):
         kwargs = self.kwargs
         kwargs['offset'] = self.obj_offset + int(other) * self.target_size
         kwargs['target'] = self.target
-        return Pointer(**kwargs)
+
+        try:
+            return Pointer(**kwargs)
+        except InvalidOffsetError, e:
+            return NoneObject(e)
 
     def __sub__(self, other):
         return self.__add__(-other)
@@ -729,7 +734,7 @@ class Array(BaseObject):
         self.current = self.target(offset = offset, vm = vm, parent = self, name = name)
         if self.current.size() == 0:
             ## It is an error to have a zero sized element
-            debug.debug("Array with 0 sized members???", level = 10)
+            logging.debug("Array with 0 sized members???")
             debug.b()
 
     def __getstate__(self):
@@ -795,18 +800,19 @@ class Array(BaseObject):
 
 class CType(BaseObject):
     """ A CType is an object which represents a c struct """
-    def __init__(self, members = None, struct_size = 0, **kwargs):
+    def __init__(self, theType=None, name=None, members = None, struct_size = 0,
+                 **kwargs):
         """ This must be instantiated with a dict of members. The keys
         are the offsets, the values are Curried Object classes that
         will be instantiated when accessed.
         """
-        super(CType, self).__init__(**kwargs)
+        super(CType, self).__init__(theType = theType, name = name, **kwargs)
 
         if not members:
             # Warn rather than raise an error, since some types (_HARDWARE_PTE,
             # for example) are generated without members
-            debug.debug("No members specified for CType {0} named {1}".format(
-                    theType, name), level = 2)
+            logging.debug("No members specified for CType %s named %s",
+                          theType, name)
             members = {}
 
         self.members = members

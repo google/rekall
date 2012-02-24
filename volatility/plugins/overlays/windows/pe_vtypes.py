@@ -1,4 +1,6 @@
-import volatility.obj as obj
+from volatility.plugins.overlays import basic
+from volatility import obj
+
 
 pe_vtypes = {
     '_IMAGE_EXPORT_DIRECTORY': [ 0x28, {
@@ -30,7 +32,93 @@ pe_vtypes = {
     'Hint' : [ 0x0, ['unsigned short']],
     'Name' : [ 0x2, ['String', dict(length = 128)]],
     }],
-}
+
+    '__unnamed_156e' : [ 0x4, {
+            'PhysicalAddress' : [ 0x0, ['unsigned long']],
+            'VirtualSize' : [ 0x0, ['unsigned long']],
+            } ],
+
+    '_IMAGE_SECTION_HEADER' : [ 0x28, {
+            'Name' : [ 0x0, ['array', 8, ['unsigned char']]],
+            'Misc' : [ 0x8, ['__unnamed_156e']],
+            'VirtualAddress' : [ 0xc, ['unsigned long']],
+            'SizeOfRawData' : [ 0x10, ['unsigned long']],
+            'PointerToRawData' : [ 0x14, ['unsigned long']],
+            'PointerToRelocations' : [ 0x18, ['unsigned long']],
+            'PointerToLinenumbers' : [ 0x1c, ['unsigned long']],
+            'NumberOfRelocations' : [ 0x20, ['unsigned short']],
+            'NumberOfLinenumbers' : [ 0x22, ['unsigned short']],
+            'Characteristics' : [ 0x24, ['unsigned long']],
+            } ],
+    '_IMAGE_DOS_HEADER' : [ 0x40, {
+            'e_magic' : [ 0x0, ['unsigned short']],
+            'e_cblp' : [ 0x2, ['unsigned short']],
+            'e_cp' : [ 0x4, ['unsigned short']],
+            'e_crlc' : [ 0x6, ['unsigned short']],
+            'e_cparhdr' : [ 0x8, ['unsigned short']],
+            'e_minalloc' : [ 0xa, ['unsigned short']],
+            'e_maxalloc' : [ 0xc, ['unsigned short']],
+            'e_ss' : [ 0xe, ['unsigned short']],
+            'e_sp' : [ 0x10, ['unsigned short']],
+            'e_csum' : [ 0x12, ['unsigned short']],
+            'e_ip' : [ 0x14, ['unsigned short']],
+            'e_cs' : [ 0x16, ['unsigned short']],
+            'e_lfarlc' : [ 0x18, ['unsigned short']],
+            'e_ovno' : [ 0x1a, ['unsigned short']],
+            'e_res' : [ 0x1c, ['array', 4, ['unsigned short']]],
+            'e_oemid' : [ 0x24, ['unsigned short']],
+            'e_oeminfo' : [ 0x26, ['unsigned short']],
+            'e_res2' : [ 0x28, ['array', 10, ['unsigned short']]],
+            'e_lfanew' : [ 0x3c, ['long']],
+            } ],
+    '_IMAGE_NT_HEADERS' : [ 0xf8, {
+            'Signature' : [ 0x0, ['unsigned long']],
+            'FileHeader' : [ 0x4, ['_IMAGE_FILE_HEADER']],
+            'OptionalHeader' : [ 0x18, ['_IMAGE_OPTIONAL_HEADER']],
+            } ],
+  '_IMAGE_OPTIONAL_HEADER' : [ 0xe0, {
+    'Magic' : [ 0x0, ['unsigned short']],
+    'MajorLinkerVersion' : [ 0x2, ['unsigned char']],
+    'MinorLinkerVersion' : [ 0x3, ['unsigned char']],
+    'SizeOfCode' : [ 0x4, ['unsigned long']],
+    'SizeOfInitializedData' : [ 0x8, ['unsigned long']],
+    'SizeOfUninitializedData' : [ 0xc, ['unsigned long']],
+    'AddressOfEntryPoint' : [ 0x10, ['unsigned long']],
+    'BaseOfCode' : [ 0x14, ['unsigned long']],
+    'BaseOfData' : [ 0x18, ['unsigned long']],
+    'ImageBase' : [ 0x1c, ['unsigned long']],
+    'SectionAlignment' : [ 0x20, ['unsigned long']],
+    'FileAlignment' : [ 0x24, ['unsigned long']],
+    'MajorOperatingSystemVersion' : [ 0x28, ['unsigned short']],
+    'MinorOperatingSystemVersion' : [ 0x2a, ['unsigned short']],
+    'MajorImageVersion' : [ 0x2c, ['unsigned short']],
+    'MinorImageVersion' : [ 0x2e, ['unsigned short']],
+    'MajorSubsystemVersion' : [ 0x30, ['unsigned short']],
+    'MinorSubsystemVersion' : [ 0x32, ['unsigned short']],
+    'Win32VersionValue' : [ 0x34, ['unsigned long']],
+    'SizeOfImage' : [ 0x38, ['unsigned long']],
+    'SizeOfHeaders' : [ 0x3c, ['unsigned long']],
+    'CheckSum' : [ 0x40, ['unsigned long']],
+    'Subsystem' : [ 0x44, ['unsigned short']],
+    'DllCharacteristics' : [ 0x46, ['unsigned short']],
+    'SizeOfStackReserve' : [ 0x48, ['unsigned long']],
+    'SizeOfStackCommit' : [ 0x4c, ['unsigned long']],
+    'SizeOfHeapReserve' : [ 0x50, ['unsigned long']],
+    'SizeOfHeapCommit' : [ 0x54, ['unsigned long']],
+    'LoaderFlags' : [ 0x58, ['unsigned long']],
+    'NumberOfRvaAndSizes' : [ 0x5c, ['unsigned long']],
+    'DataDirectory' : [ 0x60, ['array', 16, ['_IMAGE_DATA_DIRECTORY']]],
+} ],
+  '_IMAGE_FILE_HEADER' : [ 0x14, {
+    'Machine' : [ 0x0, ['unsigned short']],
+    'NumberOfSections' : [ 0x2, ['unsigned short']],
+    'TimeDateStamp' : [ 0x4, ['unsigned long']],
+    'PointerToSymbolTable' : [ 0x8, ['unsigned long']],
+    'NumberOfSymbols' : [ 0xc, ['unsigned long']],
+    'SizeOfOptionalHeader' : [ 0x10, ['unsigned short']],
+    'Characteristics' : [ 0x12, ['unsigned short']],
+} ],
+    }
 
 pe_vtypes_64 = {
     '_IMAGE_THUNK_DATA' : [ 0x8, {
@@ -74,7 +162,7 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
         """
         return obj.Object("String",
                       offset = self.obj_parent.DllBase + name_rva,
-                      vm = self.obj_native_vm, length = 128)
+                      vm = self.obj_vm, length = 128)
 
     def _exported_functions(self):
         """
@@ -100,23 +188,22 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
         # and zero (non-paged but invalid RVA). 
 
         # Array of RVAs to function code 
-        address_of_functions = obj.Object('Array',
-                                    offset = mod_base + self.AddressOfFunctions,
-                                    targetType = 'unsigned int',
-                                    count = self.NumberOfFunctions,
-                                    vm = self.obj_native_vm)
+        address_of_functions = self.obj_profile.Object(
+            'Array', offset = mod_base + self.AddressOfFunctions,
+            targetType = 'unsigned int', count = self.NumberOfFunctions,
+            vm = self.obj_vm)
+
         # Array of RVAs to function names 
-        address_of_names = obj.Object('Array',
-                                    offset = mod_base + self.AddressOfNames,
-                                    targetType = 'unsigned int',
-                                    count = self.NumberOfNames,
-                                    vm = self.obj_native_vm)
+        address_of_names = self.obj_profile.Object(
+            'Array', offset = mod_base + self.AddressOfNames,
+            targetType = 'unsigned int', count = self.NumberOfNames,
+            vm = self.obj_vm)
+
         # Array of RVAs to function ordinals 
-        address_of_name_ordinals = obj.Object('Array',
-                                    offset = mod_base + self.AddressOfNameOrdinals,
-                                    targetType = 'unsigned short',
-                                    count = self.NumberOfNames,
-                                    vm = self.obj_native_vm)
+        address_of_name_ordinals = self.obj_profile.Object(
+            'Array', offset = mod_base + self.AddressOfNameOrdinals,
+            targetType = 'unsigned short', count = self.NumberOfNames,
+            vm = self.obj_vm)
 
         # When functions are exported by Name, it will increase
         # NumberOfNames by 1 and NumberOfFunctions by 1. When 
@@ -182,6 +269,7 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
                 # There is no name RVA 
                 yield ordinal, func_rva, obj.NoneObject("Name RVA not accessible")
 
+
 class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
     """Handles IID entries for imported functions"""
 
@@ -199,9 +287,9 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
     def _name(self, name_rva):
         """Return a String object for the name at the given RVA"""
 
-        return obj.Object("String",
-                      offset = self.obj_parent.DllBase + name_rva,
-                      vm = self.obj_native_vm, length = 128)
+        return self.obj_profile.Object(
+            "String", offset = self.obj_parent.DllBase + name_rva,
+            vm = self.obj_vm, length = 128)
 
     def dll_name(self):
         """Returns the name of the DLL for this IID"""
@@ -227,11 +315,12 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
 
         i = 0
         while 1:
-            thunk = obj.Object('_IMAGE_THUNK_DATA',
-                       offset = self.obj_parent.DllBase + self.OriginalFirstThunk +
-                       i * self.obj_vm.profile.get_obj_size('_IMAGE_THUNK_DATA'),
-                       vm = self.obj_native_vm)
-
+            thunk = self.obj_profile.Object(
+                '_IMAGE_THUNK_DATA',
+                offset = self.obj_parent.DllBase + self.OriginalFirstThunk +
+                i * self.obj_profile.get_obj_size('_IMAGE_THUNK_DATA'),
+                vm = self.obj_vm)
+            
             # We've reached the end when the element is zero 
             if thunk == None or thunk.AddressOfData == 0:
                 break
@@ -247,18 +336,20 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
             if thunk.OrdinalBit == 1:
                 o = thunk.Ordinal & 0xFFFF
             else:
-                iibn = obj.Object("_IMAGE_IMPORT_BY_NAME",
-                                  offset = self.obj_parent.DllBase +
-                                  thunk.AddressOfData,
-                                  vm = self.obj_native_vm)
+                iibn = self.obj_profile.Object("_IMAGE_IMPORT_BY_NAME",
+                                               offset = self.obj_parent.DllBase +
+                                               thunk.AddressOfData,
+                                               vm = self.obj_vm)
                 o = iibn.Hint
                 n = iibn.Name
 
             # See if the import is bound (i.e. resolved)
-            first_thunk = obj.Object('_IMAGE_THUNK_DATA',
-                            offset = self.obj_parent.DllBase + self.FirstThunk +
-                            i * self.obj_vm.profile.get_obj_size('_IMAGE_THUNK_DATA'),
-                            vm = self.obj_native_vm)
+            first_thunk = self.obj_profile.Object(
+                '_IMAGE_THUNK_DATA',
+                offset = self.obj_parent.DllBase + self.FirstThunk +
+                i * self.obj_profile.get_obj_size('_IMAGE_THUNK_DATA'),
+                vm = self.obj_vm)
+
             if first_thunk:
                 f = first_thunk.Function.v()
 
@@ -269,7 +360,7 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
         """Returns True if we've reached the list end"""
         data = self.obj_vm.zread(
                         self.obj_offset,
-                        self.obj_vm.profile.get_obj_size('_IMAGE_IMPORT_DESCRIPTOR')
+                        self.obj_profile.get_obj_size('_IMAGE_IMPORT_DESCRIPTOR')
                         )
         return data.count(chr(0)) == len(data)
 
@@ -287,8 +378,8 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
     def _nt_header(self):
         """Return the _IMAGE_NT_HEADERS object"""
 
-        dos_header = obj.Object("_IMAGE_DOS_HEADER", offset = self.DllBase,
-                                vm = self.obj_native_vm)
+        dos_header = self.obj_profile.Object("_IMAGE_DOS_HEADER", offset = self.DllBase,
+                                             vm = self.obj_vm)
 
         return dos_header.get_nt_header()
 
@@ -339,13 +430,13 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
 
         i = 0
 
-        desc_size = self.obj_vm.profile.get_obj_size('_IMAGE_IMPORT_DESCRIPTOR')
+        desc_size = self.obj_profile.get_obj_size('_IMAGE_IMPORT_DESCRIPTOR')
 
         while 1:
-            desc = obj.Object('_IMAGE_IMPORT_DESCRIPTOR',
-                      vm = self.obj_native_vm,
-                      offset = self.DllBase + data_dir.VirtualAddress + (i * desc_size),
-                      parent = self)
+            desc = self.obj_profile.Object(
+                '_IMAGE_IMPORT_DESCRIPTOR', vm = self.obj_vm,
+                offset = self.DllBase + data_dir.VirtualAddress + (i * desc_size),
+                parent = self)
 
             # Stop if the IID is paged or all zeros
             if desc == None or desc.is_list_end():
@@ -370,10 +461,9 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
         except ValueError, why:
             raise StopIteration(why)
 
-        expdir = obj.Object('_IMAGE_EXPORT_DIRECTORY',
-                            offset = self.DllBase + data_dir.VirtualAddress,
-                            vm = self.obj_native_vm,
-                            parent = self)
+        expdir = self.obj_profile.Object(
+            '_IMAGE_EXPORT_DIRECTORY', offset = self.DllBase + data_dir.VirtualAddress,
+            vm = self.obj_vm, parent = self)
 
         if expdir.valid(self._nt_header()):
             # Ordinal, Function RVA, and Name Object 
@@ -398,7 +488,90 @@ class WinPEObjectClasses(obj.ProfileModification):
     conditions = {'os': lambda x : x == 'windows'}
     def modification(self, profile):
         profile.object_classes.update({
-            '_IMAGE_EXPORT_DIRECTORY': _IMAGE_EXPORT_DIRECTORY,
-            '_IMAGE_IMPORT_DESCRIPTOR': _IMAGE_IMPORT_DESCRIPTOR,
-            '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
             })
+
+
+# The following adds a profile to deal with PE files. Since PE files are not
+# actually related to the kernel version, they get their own domain specific
+# profile.
+class _IMAGE_DOS_HEADER(obj.CType):
+    """DOS header"""
+
+    def get_nt_header(self):
+        """Get the NT header"""
+
+        if self.e_magic != 0x5a4d:
+            raise ValueError('e_magic {0:04X} is not a valid DOS signature.'.format(
+                    self.e_magic))
+
+        nt_header = self.obj_profile.Object(theType="_IMAGE_NT_HEADERS",
+                                            offset = self.e_lfanew + self.obj_offset,
+                                            vm = self.obj_vm)
+
+        if nt_header.Signature != 0x4550:
+            raise ValueError('NT header signature {0:04X} is not a valid'.format(
+                    nt_header.Signature))
+
+        return nt_header
+
+
+class _IMAGE_NT_HEADERS(obj.CType):
+    """PE header"""
+
+    def get_sections(self, unsafe):
+        """Get the PE sections"""
+        sect_size = self.obj_profile.get_obj_size("_IMAGE_SECTION_HEADER")
+        start_addr = self.FileHeader.SizeOfOptionalHeader + self.OptionalHeader.obj_offset
+
+        for i in range(self.FileHeader.NumberOfSections):
+            s_addr = start_addr + (i * sect_size)
+            sect = self.obj_profile.Object(theType="_IMAGE_SECTION_HEADER",
+                                           offset = s_addr, vm = self.obj_vm,
+                                           parent = self)
+            if not unsafe:
+                sect.sanity_check_section()
+            yield sect
+
+
+class _IMAGE_SECTION_HEADER(obj.CType):
+    """PE section"""
+
+    def sanity_check_section(self):
+        """Sanity checks address boundaries"""
+        # Note: all addresses here are RVAs
+        image_size = self.obj_parent.OptionalHeader.SizeOfImage
+        if self.VirtualAddress > image_size:
+            raise ValueError('VirtualAddress {0:08x} is past the end of '
+                             'image.'.format(self.VirtualAddress))
+
+        if self.Misc.VirtualSize > image_size:
+            raise ValueError('VirtualSize {0:08x} is larger than image '
+                             'size.'.format(self.Misc.VirtualSize))
+
+        if self.SizeOfRawData > image_size:
+            raise ValueError('SizeOfRawData {0:08x} is larger than image '
+                             'size.'.format(self.SizeOfRawData))    
+
+
+class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
+    """A profile for PE files."""
+
+    def __init__(self, **kwargs):
+        self.add_types(pe_vtypes)
+        self.add_classes({
+                '_IMAGE_DOS_HEADER': _IMAGE_DOS_HEADER,
+                '_IMAGE_NT_HEADERS': _IMAGE_NT_HEADERS,
+                '_IMAGE_SECTION_HEADER': _IMAGE_SECTION_HEADER,
+                '_IMAGE_EXPORT_DIRECTORY': _IMAGE_EXPORT_DIRECTORY,
+                '_IMAGE_IMPORT_DESCRIPTOR': _IMAGE_IMPORT_DESCRIPTOR,
+                '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
+                })
+        self.merge_overlay({
+                '_IMAGE_SECTION_HEADER' : [ None, {
+                        'Name' : [ 0x0, ['String', dict(length = 8)]],
+                        }],
+                })
+
+        super(PEProfile, self).__init__(**kwargs)
+
+        

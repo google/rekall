@@ -2918,22 +2918,6 @@ nt_types = {
     'Cell' : [ 0x0, ['unsigned long']],
     'CachedSecurity' : [ 0x4, ['pointer', ['_CM_KEY_SECURITY_CACHE']]],
 } ],
-  '__unnamed_156e' : [ 0x4, {
-    'PhysicalAddress' : [ 0x0, ['unsigned long']],
-    'VirtualSize' : [ 0x0, ['unsigned long']],
-} ],
-  '_IMAGE_SECTION_HEADER' : [ 0x28, {
-    'Name' : [ 0x0, ['array', 8, ['unsigned char']]],
-    'Misc' : [ 0x8, ['__unnamed_156e']],
-    'VirtualAddress' : [ 0xc, ['unsigned long']],
-    'SizeOfRawData' : [ 0x10, ['unsigned long']],
-    'PointerToRawData' : [ 0x14, ['unsigned long']],
-    'PointerToRelocations' : [ 0x18, ['unsigned long']],
-    'PointerToLinenumbers' : [ 0x1c, ['unsigned long']],
-    'NumberOfRelocations' : [ 0x20, ['unsigned short']],
-    'NumberOfLinenumbers' : [ 0x22, ['unsigned short']],
-    'Characteristics' : [ 0x24, ['unsigned long']],
-} ],
   '__unnamed_1574' : [ 0x4, {
     'Level' : [ 0x0, ['unsigned long']],
 } ],

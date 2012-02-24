@@ -222,33 +222,35 @@ class WinMemMap(common.WinProcessFilter):
                         virtual_address, phys_address, length))
 
 
-class MemDump(object):
+class WinMemDump(WinMemMap):
     """Dump the addressable memory for a process"""
 
-    def __init__(self, config, *args):
-        MemMap.__init__(self, config, *args)
-        config.add_option('DUMP-DIR', short_option = 'D', default = None,
-                          cache_invalidator = False,
-                          help = 'Directory in which to dump memory')
+    __name = "memdump"
 
-    def render_text(self, outfd, data):
-        if self._config.DUMP_DIR == None:
-            debug.error("Please specify a dump directory (--dump-dir)")
-        if not os.path.isdir(self._config.DUMP_DIR):
-            debug.error(self._config.DUMP_DIR + " is not a directory")
+    def __init__(self, dump_dir=None, **args):
+        """Dump all addressable memory for a process.
 
-        for pid, task, pagedata in data:
+        Args:
+          dump_dir: The Directory in which to dump memory. Files of the form
+            pid.dmp will be created there.
+        """
+        super(WinMemDump, self).__init__(**args)
+        self.dump_dir = dump_dir
+
+    def dump_process(self, eprocess, fd):
+        for va, pa, length in self.get_pages_for_eprocess(eprocess):
+            fd.write(self.physical_address_space.read(pa, length))
+
+    def render(self, outfd):
+        if self.dump_dir is None:
+            raise plugin.PluginError("Dump directory not specified.")
+
+        for task in self.filter_processes():
             outfd.write("*" * 72 + "\n")
+            filename = "{0}_{1:d}.dmp".format(task.ImageFileName, task.UniqueProcessId)
 
-            task_space = task.get_process_address_space()
-            outfd.write("Writing {0} [{1:6}] to {2}.dmp\n".format(
-                    task.ImageFileName, pid, str(pid)))
+            outfd.write("Writing {0} {1:6} to {2}\n".format(
+                    task.ImageFileName, task, filename))
 
-            f = open(os.path.join(self._config.DUMP_DIR, str(pid) + ".dmp"), 'wb')
-            if pagedata:
-                for p in pagedata:
-                    data = task_space.read(p[0], p[1])
-                    f.write(data)
-            else:
-                outfd.write("Unable to read pages for task.\n")
-            f.close()
+            with open(os.path.join(self.dump_dir, filename), 'wb') as fd:
+                self.dump_process(task, fd)
