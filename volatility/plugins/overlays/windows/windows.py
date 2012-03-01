@@ -662,72 +662,26 @@ class _EX_FAST_REF(obj.CType):
                                        vm=vm or self.obj_vm,
                                        parent = parent or self, **kwargs)
 
+
 class ThreadCreateTimeStamp(WinTimeStamp):
     """Handles ThreadCreateTimeStamps which are bit shifted WinTimeStamps"""
-    def __init__(self, *args, **kwargs):
-        WinTimeStamp.__init__(self, *args, **kwargs)
-
     def as_windows_timestamp(self):
         return obj.NativeType.v(self) >> 3
+
 
 class IpAddress(obj.NativeType):
     """Provides proper output for IpAddress objects"""
 
-    def __init__(self, theType, offset, vm, **kwargs):
-        obj.NativeType.__init__(self, theType, offset, vm, format_string = vm.profile.native_types['unsigned long'][1], **kwargs)
+    def __init__(self, **kwargs):
+        super(IpAddress, self).__init__(**kwargs)
+
+        # IpAddress is always a 32 bit int.
+        self.format_string = "<I"
 
     def v(self):
-        return socket.inet_ntoa(struct.pack("<I", obj.NativeType.v(self)))
+        value = super(IpAddress, self).v()
+        return socket.inet_ntoa(struct.pack("<I", value))
 
-class XXXVolatilityKPCR(obj.VolatilityMagic):
-    """A scanner for KPCR data within an address space"""
-
-    def generate_suggestions(self):
-        """Returns the results of KCPRScanner for an adderss space"""
-        scanner = kpcrscan.KPCRScanner()
-        for val in scanner.scan(self.obj_vm):
-            yield val
-
-class XXXXVolatilityKDBG(obj.VolatilityMagic):
-    """A Scanner for KDBG data within an address space"""
-
-    def generate_suggestions(self):
-        """Generates a list of possible KDBG structure locations"""
-        scanner = kdbgscan.KDBGScanner(needles = [obj.VolMagic(self.obj_vm).KDBGHeader.v()])
-        for val in scanner.scan(self.obj_vm):
-            yield val
-
-class XXXXVolatilityIA32ValidAS(obj.VolatilityMagic):
-    """An object to check that an address space is a valid IA32 Paged space"""
-
-    def generate_suggestions(self):
-        """Generates a single response of True or False depending on whether the space is a valid Windows AS"""
-        # This constraint looks for self referential values within
-        # the paging tables
-        try:
-            if self.obj_vm.pae:
-                pde_base = 0xc0600000
-                pd = self.obj_vm.get_pdpte(0) & 0xffffffffff000
-            else:
-                pde_base = 0xc0300000
-                pd = self.obj_vm.dtb
-            if (self.obj_vm.vtop(pde_base) == pd):
-                yield True
-                raise StopIteration
-
-        except addrspace.ASAssertionError, _e:
-            pass
-        debug.debug("Failed to pass the Moyix Valid IA32 AS test", 3)
-
-        # This constraint verifies that _KUSER_ SHARED_DATA is shared
-        # between user and kernel address spaces.
-        if (self.obj_vm.vtop(0xffdf0000)) == (self.obj_vm.vtop(0x7ffe0000)):
-            if self.obj_vm.vtop(0xffdf0000) != None:
-                yield True
-                raise StopIteration
-        debug.debug("Failed to pass the labarum_x Valid IA32 AS test", 3)
-
-        yield False
 
 class _CM_KEY_BODY(obj.CType):
     """Registry key"""

@@ -1289,38 +1289,5 @@ class Profile(object):
         debug.warning("Cant find object {0} in profile {1}?".format(theType, self))
 
 
-
-def ProfileCallback(_option, _opt_str, profile_name, parser):
-    """Create a profile and set it in the config's value.
-
-    We replace the config's profile property with the profile object named by
-    this config.
-    """
-    if "profile" not in config.readonly:
-        try:
-            profile_cls = Profile.classes[profile_name]
-
-            # Prevent recursive calls by putting a place holder here.
-            config.readonly["profile"] = "dummy"
-            profile_cls.register_options(config)
-
-            # Reparse any options that the profile might have added.
-            config.parse_options()
-        except KeyError:
-            return
-
-        try:
-            config.readonly["profile"] = profile_cls(config=config)
-            print "Loaded profile %s" % profile_name
-        except Exception, e:
-            debug.warning("Failed to create profile %s: %s" % (profile_name, e))
-
-
-## By default load the profile that the user asked for
-config.add_option("PROFILE", default = None, action = "callback",
-                  callback = ProfileCallback, type=str,
-                  nargs = 1, help = "Name of the profile to load")
-
-
 class ProfileModification(object):
     pass

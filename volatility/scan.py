@@ -32,11 +32,12 @@
 @contact:      awalters@volatilesystems.com
 @organization: Volatile Systems.
 """
-import volatility.debug as debug
-import volatility.registry as registry
-import volatility.addrspace as addrspace
-import volatility.constants as constants
-import volatility.conf as conf
+import logging
+
+from volatility import registry
+from volatility import addrspace
+from volatility import constants
+from volatility import conf
 
 ########### Following is the new implementation of the scanning
 ########### framework. The old framework was based on PyFlag's
@@ -48,15 +49,24 @@ class BaseScanner(object):
     __metaclass__ = registry.MetaclassRegistry
 
     checks = []
-    def __init__(self, window_size = 8):
+    def __init__(self, profile=None, window_size = 8):
+        """The base scanner.
+
+        Args:
+           profile: The kernel profile to use for this scan.
+           window_size: The size of the overlap window between each buffer read.
+        """
+        # Make a temporary buffer address space to run the checkers on.
         self.buffer = addrspace.BufferAddressSpace(conf.DummyConfig(), data = '\x00' * 1024)
         self.window_size = window_size
         self.constraints = []
+        self.profile = profile
 
         ## Build our constraints from the specified ScannerCheck
         ## classes:
         for class_name, args in self.checks:
-            check = ScannerCheck.classes[class_name](self.buffer, **args)
+            check = ScannerCheck.classes[class_name](
+                profile=profile, address_space=self.buffer, **args)
             self.constraints.append(check)
 
         self.max_length = None
@@ -73,13 +83,8 @@ class BaseScanner(object):
         """
         cnt = 0
         for check in self.constraints:
-            ## constraints can raise for an error
-            try:
-                val = check.check(found)
-            except Exception:
-                debug.b()
-                val = False
-
+            # Ask the check if this offset is possible.
+            val = check.check(found)
             if not val:
                 cnt = cnt + 1
 
@@ -96,8 +101,6 @@ class BaseScanner(object):
         ## Which checks also have skippers?
         skippers = [ c for c in self.constraints if hasattr(c, "skip") ]
         while 1:
-            #if not address_space.is_valid_address(self.base_offset):
-            #    break
             if (self.max_length != None):
                 l = min(constants.SCAN_BLOCKSIZE + self.overlap, self.max_length)
             else:
@@ -160,13 +163,15 @@ class ScannerCheck(object):
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
-    def __init__(self, address_space, **_kwargs):
+    def __init__(self, profile=None, address_space=None, **_kwargs):
+        """The profile that this scanner check should use."""
+        self.profile = profile
         self.address_space = address_space
 
-    def object_offset(self, offset, address_space):
+    def object_offset(self, offset):
         return offset
 
-    def check(self, _offset):
+    def check(self, offset):
         return False
 
     ## If you want to speed up the scanning define this method - it
@@ -174,8 +179,8 @@ class ScannerCheck(object):
     ## match. You will need to return the number of bytes from offset
     ## to skip to. We take the maximum number of bytes to guarantee
     ## that all checks have a chance of passing.
-    #def skip(self, data, offset):
-    #    return -1
+    def skip(self, data, offset):
+        return -1
 
 class PoolScanner(DiscontigScanner):
     ## These are the objects that follow the pool tags
@@ -185,12 +190,14 @@ class PoolScanner(DiscontigScanner):
         """ This returns the offset of the object contained within
         this pool allocation.
         """
-
         ## The offset of the object is determined by subtracting the offset
         ## of the PoolTag member to get the start of Pool Object and then
         ## adding the size of the preamble data structures. This done 
         ## because PoolScanners search for the PoolTag.
-        return found + sum([self.buffer.profile.get_obj_size(c) for c in self.preamble]) - self.buffer.profile.get_obj_offset('_POOL_HEADER', 'PoolTag')
+        total_preamble_size = sum([self.profile.get_obj_size(c) for c in self.preamble])
+        pool_tag_relative_offset = self.profile.get_obj_offset('_POOL_HEADER', 'PoolTag')
+
+        return found + total_preamble_size - pool_tag_relative_offset
 
     def scan(self, address_space, offset = 0, maxlen = None):
         for i in DiscontigScanner.scan(self, address_space, offset, maxlen):

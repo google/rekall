@@ -43,7 +43,7 @@ class PoolScanConnFast(scan.PoolScanner):
                ('CheckPoolIndex', dict(value = 0)),
                ]
 
-class ConnScan(common.AbstractWindowsCommand):
+class ConnScan(common.AbstractWindowsCommandPlugin):
     """ Scan Physical memory for _TCPT_OBJECT objects (tcp connections)
     """
     meta_info = dict(
@@ -56,24 +56,28 @@ class ConnScan(common.AbstractWindowsCommand):
         version = '1.0',
         )
 
-    @cache.CacheDecorator("scans/connscan2")
-    def calculate(self):
-        ## Just grab the AS and scan it using our scanner
-        address_space = utils.load_as(self._config, astype = 'physical')
+    __name = "connscan"
 
-        scanner = PoolScanConnFast()
-        for offset in scanner.scan(address_space):
+    def generate_hits(self):
+        """Search the physical address space for _TCPT_OBJECTs.
+
+        Yields:
+          _TCPT_OBJECT instantiated on the physical address space.
+        """
+        scanner = PoolScanConnFast(profile=self.profile)
+        for offset in scanner.scan(self.physical_address_space):
             ## This yields the pool offsets - we want the actual object
-            tcp_obj = obj.Object('_TCPT_OBJECT', vm = address_space,
-                                offset = offset)
+            tcp_obj = self.profile.Object('_TCPT_OBJECT', vm = self.physical_address_space,
+                                          offset = offset)
             yield tcp_obj
 
-    def render_text(self, outfd, data):
+    def render(self, outfd):
         outfd.write(" Offset(P)  Local Address             Remote Address            Pid   \n" + \
                     "---------- ------------------------- ------------------------- ------ \n")
 
         ## We make a new scanner
-        for tcp_obj in data:
+        for tcp_obj in self.generate_hits():
             local = "{0}:{1}".format(tcp_obj.LocalIpAddress, tcp_obj.LocalPort)
             remote = "{0}:{1}".format(tcp_obj.RemoteIpAddress, tcp_obj.RemotePort)
-            outfd.write("{0:#010x} {1:25} {2:25} {3:6}\n".format(tcp_obj.obj_offset, local, remote, tcp_obj.Pid))
+            outfd.write("{0:#010x} {1:25} {2:25} {3:6}\n".format(
+                    tcp_obj.obj_offset, local, remote, tcp_obj.Pid))

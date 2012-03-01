@@ -57,7 +57,9 @@ class WinXPSP2x86(windows.BaseWindowsProfile, basic.Profile32Bits):
     _md_minor = 1
 
     def __init__(self, **kwargs):
-        self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02')
+        self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02',
+                           PoolAlignment = 8,
+                           )
 
         # Import the actual vtypes on demand here to reduce memory usage.
         from volatility.plugins.overlays.windows import xp_sp2_x86_vtypes
@@ -73,7 +75,9 @@ class WinXPSP3x86(windows.BaseWindowsProfile, basic.Profile32Bits):
     _md_minor = 1
 
     def __init__(self, **kwargs):
-        self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02')
+        self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02',
+                           PoolAlignment = 8,
+                           )
 
         # Import the actual vtypes on demand here to reduce memory usage.
         from volatility.plugins.overlays.windows import xp_sp3_x86_vtypes

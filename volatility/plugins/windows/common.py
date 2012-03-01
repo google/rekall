@@ -139,14 +139,12 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
 
 
-
-
 ## The following are checks for pool scanners.
 
 class PoolTagCheck(scan.ScannerCheck):
     """ This scanner checks for the occurance of a pool tag """
-    def __init__(self, address_space, tag = None, **kwargs):
-        scan.ScannerCheck.__init__(self, address_space, **kwargs)
+    def __init__(self, tag = None, **kwargs):
+        super(PoolTagCheck, self).__init__(**kwargs)
         self.tag = tag
 
     def skip(self, data, offset):
@@ -161,33 +159,33 @@ class PoolTagCheck(scan.ScannerCheck):
         data = self.address_space.read(offset, len(self.tag))
         return data == self.tag
 
+
 class CheckPoolSize(scan.ScannerCheck):
     """ Check pool block size """
-    def __init__(self, address_space, condition = (lambda x: x == 8), **kwargs):
-        scan.ScannerCheck.__init__(self, address_space, **kwargs)
+    def __init__(self, condition = (lambda x: x == 8), **kwargs):
+        super(CheckPoolSize, self).__init__(**kwargs)
         self.condition = condition
+        self.pool_align = self.profile.constants['PoolAlignment']
 
     def check(self, offset):
-        pool_hdr = obj.Object('_POOL_HEADER', vm = self.address_space,
-                             offset = offset - 4)
-
+        pool_hdr = self.profile.Object('_POOL_HEADER', vm = self.address_space,
+                                       offset = offset - 4)
         block_size = pool_hdr.BlockSize.v()
-        pool_align = obj.VolMagic(self.address_space).PoolAlignment.v()
 
-        return self.condition(block_size * pool_align)
+        return self.condition(block_size * self.pool_align)
+
 
 class CheckPoolType(scan.ScannerCheck):
     """ Check the pool type """
-    def __init__(self, address_space, paged = False,
-                 non_paged = False, free = False, **kwargs):
-        scan.ScannerCheck.__init__(self, address_space, **kwargs)
+    def __init__(self, paged=False, non_paged=False, free=False, **kwargs):
+        super(CheckPoolType, self).__init__(**kwargs)
         self.non_paged = non_paged
         self.paged = paged
         self.free = free
 
     def check(self, offset):
-        pool_hdr = obj.Object('_POOL_HEADER', vm = self.address_space,
-                             offset = offset - 4)
+        pool_hdr = self.profile.Object('_POOL_HEADER', vm = self.address_space,
+                                       offset = offset - 4)
 
         ptype = pool_hdr.PoolType.v()
 
@@ -200,15 +198,16 @@ class CheckPoolType(scan.ScannerCheck):
         if self.paged and (ptype % 2) == 0 and ptype > 0:
             return True
 
+
 class CheckPoolIndex(scan.ScannerCheck):
     """ Checks the pool index """
-    def __init__(self, address_space, value = 0, **kwargs):
-        scan.ScannerCheck.__init__(self, address_space, **kwargs)
+    def __init__(self, value = 0, **kwargs):
+        super(CheckPoolIndex, self).__init__(**kwargs)
         self.value = value
 
     def check(self, offset):
-        pool_hdr = obj.Object('_POOL_HEADER', vm = self.address_space,
-                             offset = offset - 4)
+        pool_hdr = self.profile.Object('_POOL_HEADER', vm = self.address_space,
+                                       offset = offset - 4)
 
         return pool_hdr.PoolIndex == self.value
 

@@ -23,9 +23,8 @@
 OS's
 """
 import copy
-import volatility.obj as obj
-import volatility.debug as debug #pylint: disable-msg=W0611
-import volatility.constants as constants
+from volatility import obj
+from volatility import constants
 from volatility.plugins.overlays import native_types
 
 
