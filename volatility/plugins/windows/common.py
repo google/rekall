@@ -267,9 +267,6 @@ class WinProcessFilter(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
               the physical AS.
            
            pids: A list of pids.
-
-        Returns:
-           A List of _EPROCESS objects cast in the kernel AS.
         """
         super(WinProcessFilter, self).__init__(**kwargs)
 

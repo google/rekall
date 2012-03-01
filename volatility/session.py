@@ -25,6 +25,7 @@ way for people to save their own results.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import logging
+import os
 import sys
 import time
 
@@ -60,6 +61,29 @@ class PluginContainer(object):
             raise AttributeError(attr)
 
 
+class Pager(object):
+    """A file like object which can be swapped with a pager."""
+
+    def __init__(self, session):
+        self.make_pager(session)
+        
+    def make_pager(self, session):
+        # More is the least common denominator of pagers :-(. Less is better,
+        # but most is best!
+        pager = session.pager or os.environ.get("PAGER")
+        try:
+            self.pager = os.popen(pager, 'w', 0)
+        except Exception:
+            self.pager = sys.stdout
+
+    def write(self, data):
+        try:
+            self.pager.write(data)
+        except IOError:
+            self.pager = sys.stdout
+            self.pager.write(data)
+
+
 class Session(object):
     """The session allows for storing of arbitrary values and configuration."""
 
@@ -82,6 +106,7 @@ class Session(object):
         self.plugins = PluginContainer(self.config)
         # These are the local variables and methods.
         self.locals = dict(session=self, plugins=self.plugins, hh=self.help)
+                           
 
         # Prepopulate the namespace with our most important modules.
         self.locals['addrspace'] = addrspace
@@ -89,8 +114,9 @@ class Session(object):
 
         # The handler for the vol command.
         self.locals['vol'] = self.vol
+        self.locals['info'] = lambda *args, **kwargs: self.vol(self.plugins.info, *args, **kwargs)
 
-    def vol(self, plugin_cls, **kwargs):
+    def vol(self, plugin_cls, *args, **kwargs):
         """Launch a plugin and its render() method automatically.
 
         Args:
@@ -100,9 +126,11 @@ class Session(object):
             plugin_cls = getattr(self.plugins, plugin_cls)
 
         try:
-            result = plugin_cls(session=self, **kwargs)
-            result.render(self.fd)
-        
+            fd = Pager(self)
+            kwargs['session'] = self
+            result = plugin_cls(*args, **kwargs)
+            result.render(fd)
+            
             return result
         except plugin.Error, e:
             logging.error("Failed running plugin %s: %s", plugin_cls.__name__, e)

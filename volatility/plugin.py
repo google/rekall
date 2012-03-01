@@ -65,6 +65,11 @@ class Command(object):
 
         Commands can take arbitrary named args and have access to the running
         session.
+
+        Args:
+          session: The session we will use. Many options are taken from the
+            session by default, if not provided. This allows users to omit
+            specifying many options.
         """
         self.session = session or conf.GLOBAL_SESSION
         if kwargs:
@@ -100,6 +105,11 @@ class ProfileCommand(Command):
     __abstract = True
 
     def __init__(self, profile=None, **kwargs):
+        """Baseclass for all plugins which accept a profile.
+
+        Args:
+          profile: The kernel profile to use for this command.
+        """
         super(ProfileCommand, self).__init__(**kwargs)
 
         # Require a valid profile.
@@ -115,6 +125,12 @@ class KernelASMixin(object):
     This class ensures a valid kernel AS exists or an exception is raised.
     """
     def __init__(self, kernel_address_space=None, **kwargs):
+        """A mixin for plugins which require a valid kernel address space.
+
+        Args:
+          kernel_address_space: The kernel address space to use. If not
+            specified, we use the session.
+        """
         super(KernelASMixin, self).__init__(**kwargs)
 
         # Try to load the AS from the session if possible.
@@ -136,6 +152,14 @@ class PhysicalASMixin(object):
     This class ensures a valid physical AS exists or an exception is raised.
     """
     def __init__(self, physical_address_space=None, **kwargs):
+        """A mixin for those plugins requiring a physical address space.
+
+        Args:
+          physical_address_space: The physical address space to use. If not
+            specified we use the following options: 1)
+            session.physical_address_space, 2) Guess using the load_as() plugin,
+            3) Use session.kernel_address_space.base.
+        """
         super(PhysicalASMixin, self).__init__(**kwargs)
 
         self.physical_address_space = (physical_address_space or

@@ -19,10 +19,11 @@
 """This module implements core plugins."""
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
-
+import inspect
 import logging
 
 from volatility import addrspace
+from volatility import registry
 from volatility import plugin
 from volatility import obj
 
@@ -31,6 +32,10 @@ class Info(plugin.Command):
     """Print information about various subsystems."""
 
     __name = "info"
+
+    def __init__(self, item=None, **kwargs):
+        super(Info, self).__init__(**kwargs)
+        self.item = item
 
     def plugins(self):
         for name, cls in plugin.Command.classes.items():
@@ -42,6 +47,53 @@ class Info(plugin.Command):
             yield dict(name=name, function=cls.name, definition=cls.__module__)
 
     def render(self, fd):
+        if self.item is None:
+            return self.render_general_info(fd)
+        else:
+            return self.render_item_info(self.item, fd)
+
+    def render_item_info(self, item, fd):
+        """Render information about the specific item."""
+        fd.write("%s:\n\n" % item)
+
+        if isinstance(item, registry.MetaclassRegistry):
+            # show the args it takes. Relies of the docstring to be formatted
+            # properly.
+            if item.__init__.__doc__:
+                doc_string = inspect.cleandoc(
+                    item.__init__.__doc__).split("Args:")[0]
+
+                fd.write("%s\n\n" % doc_string)
+
+            doc_strings = []
+            fd.write("Constructor args:\n" 
+                     "-----------------\n")
+            for cls in item.mro():
+                try:
+                    doc_string = inspect.cleandoc(
+                        cls.__init__.__doc__).split("Args:")[1]
+
+                    if doc_string not in doc_strings:
+                        doc_strings.append(doc_string)
+                        fd.write("\nDefined by %s (%s):\n%s\n" % (
+                                cls.__name__, inspect.getfile(cls),
+                                doc_string))
+                except (IndexError, AttributeError):
+                    pass
+
+            fd.write("\n\n"
+                     "Plugin methods:\n"
+                     "---------------\n")
+            for name, function in inspect.getmembers(
+                item, lambda x: inspect.ismethod(x)):
+                if name.startswith("_"): continue
+
+                fd.write("   %s:\n" % name)
+                if function.__doc__:
+                    fd.write("%s\n\n" % inspect.cleandoc(function.__doc__))
+
+
+    def render_general_info(self, fd):
         fd.write("Volatility 3.0 alpha\n\n")
         fd.write("Plugins\n"
                  "-------\n"

@@ -60,11 +60,6 @@ class WinPsList(common.WinProcessFilter):
         This plugin supports both approaches.
 
         Args:
-          kernel_address_space: The kernel AS we operate on, if None we use the
-            session's.
-
-          profile: The profile. If None we use the session's.
-
           kdbg: The location of the kernel debugger block (In the physical
              AS). If this is specified we use the PsActiveProcessHead method.
 
