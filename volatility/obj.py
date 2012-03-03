@@ -583,17 +583,16 @@ class BitField(NativeType):
 
 class Pointer(NativeType):
 
-    def __init__(self, theType=None, profile = None, target = None, **kwargs):
-        # Just use the same size as the address for this arch.
-        kwargs.update(profile.vtypes["address"][1])
-        kwargs['profile'] = profile
+    def __init__(self, target = None, **kwargs):
+        # The format string comes from the address field:
+        super(Pointer, self).__init__(**kwargs)
 
-        NativeType.__init__(self, **kwargs)
+        self.format_string = self.obj_profile.vtypes["address"][1]["format_string"]
 
         # Keep it around in case we need to copy outselves
         self.kwargs = kwargs
-        if theType:
-            self.target = Curry(profile.Object, theType=theType)
+        if self.obj_type:
+            self.target = Curry(self.obj_profile.Object, theType=self.obj_type)
         else:
             self.target = target
 
@@ -703,6 +702,11 @@ class Void(Pointer):
         kwargs['theType'] = 'unsigned long'
         super(Void, self).__init__(**kwargs)
 
+    def size(self):
+        logging.warning("Void objects have no size! Are you doing pointer arithmetic "
+                        "on a pointer to void?")
+        return 1
+
     def cdecl(self):
         return "0x{0:08X}".format(self.v())
 
@@ -735,7 +739,7 @@ class Array(BaseObject):
         super(Array, self).__init__(**kwargs)
 
         if callable(count):
-            count = count(parent)
+            count = count(self.obj_parent)
 
         self.count = int(count)
 
@@ -744,8 +748,9 @@ class Array(BaseObject):
         else:
             self.target = target
 
-        self.current = self.target(offset = self.obj_offset, vm = self.obj_vm, 
-                                   parent = self, name = self.obj_name)
+        self.current = self.target(offset=self.obj_offset, vm=self.obj_vm, 
+                                   parent=self, name=self.obj_name,
+                                   profile=self.obj_profile)
 
         if self.current.size() == 0:
             ## It is an error to have a zero sized element
@@ -803,7 +808,8 @@ class Array(BaseObject):
         ## Check if the offset is valid
         offset = self.obj_offset + pos * self.current.size()
 
-        return self.target(offset = offset, vm = self.obj_vm, parent = self,
+        return self.target(offset=offset, vm=self.obj_vm, parent=self,
+                           profile=self.obj_profile,
                            name = "{0} {1}".format(self.obj_name, pos))
 
 

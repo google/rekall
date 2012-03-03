@@ -67,8 +67,11 @@ class Pager(object):
     # Default encoding is utf8
     encoding = "utf8"
 
-    def __init__(self, session):
+    def __init__(self, session=None, default_fd=None):
+        # Default fd if not pager can be found.
+        self.default_fd = default_fd or sys.stdout
         self.make_pager(session)
+
         
     def make_pager(self, session):
         # More is the least common denominator of pagers :-(. Less is better,
@@ -77,7 +80,7 @@ class Pager(object):
         try:
             self.pager = os.popen(pager, 'w', 0)
         except Exception:
-            self.pager = sys.stdout
+            self.pager = self.default_fd
 
         # Determine the output encoding
         try:
@@ -92,6 +95,7 @@ class Pager(object):
         try:
             self.pager.write(data)
         except IOError:
+            # In case the pipe closed we just write to stdout
             self.pager = sys.stdout
             self.pager.write(data)
 
@@ -144,8 +148,8 @@ class Session(object):
             plugin_cls = getattr(self.plugins, plugin_cls)
 
         try:
-            if fd is None:
-                fd = Pager(self)
+            # Wrap the file descriptor with a pager that takes care of encoding.
+            fd = Pager(session=self, default_fd=fd)
 
             kwargs['session'] = self
             result = plugin_cls(**kwargs)
