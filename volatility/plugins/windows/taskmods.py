@@ -34,7 +34,7 @@ from volatility import plugin
 
 
 
-class WinPsList(common.WinProcessFilter):
+class WinPsList(common.KDBGMixin, common.WinProcessFilter):
     """List processes for windows."""
 
     __name = "pslist"
@@ -42,7 +42,7 @@ class WinPsList(common.WinProcessFilter):
     kdbg = None
     eprocess = None
 
-    def __init__(self, kdbg=None, eprocess=None, **kwargs):
+    def __init__(self, eprocess=None, **kwargs):
         """Lists the processes by following the _EPROCESS.PsActiveList.
 
         In the windows operating system, processes are linked together through a
@@ -60,30 +60,16 @@ class WinPsList(common.WinProcessFilter):
         This plugin supports both approaches.
 
         Args:
-          kdbg: The location of the kernel debugger block (In the physical
-             AS). If this is specified we use the PsActiveProcessHead method.
-
           eprocess: The location of any eprocess location (in kernel AS). This
              can be obtained from e.g. psscan or find_dtb. If neither kdbg or
              eprocess are specified we just do the best we have from the
              session.
         """
         super(WinPsList, self).__init__(**kwargs)
+        self.eprocess = eprocess
 
-        if kdbg:
-            self.kdbg = kdbg
-        elif eprocess:
-            self.eprocess = eprocess
-        else:
-            self.kdbg = self.session.kdbg
-            self.eprocess = self.session.eprocess
-
-    def list_eprocess_from_kdbg(self, kdbg_offset):
+    def list_eprocess_from_kdbg(self, kdbg):
         """List the eprocess using the kdbg method."""
-        kdbg = self.profile.Object(
-            theType="_KDDEBUGGER_DATA64", 
-            offset=kdbg_offset, vm=self.kernel_address_space.base)
-
         PsActiveList = kdbg.PsActiveProcessHead.dereference_as(
             "_LIST_ENTRY", vm=self.kernel_address_space)
 
@@ -106,17 +92,9 @@ class WinPsList(common.WinProcessFilter):
             return self.list_eprocess_from_kdbg(self.kdbg)
         elif self.eprocess:
             return self.list_eprocess_from_eprocess(self.eprocess)
-        else:
-            logging.info("KDBG not provided - Volatility will try to "
-                         "automatically scan for it now using plugin.kdbgscan.")
-            for kdbg in self.session.plugins.kdbgscan().hits():
-                # Just return the first one
-                logging.info("Found a KDBG hit @0x%X. Hope it works. If not try "
-                             "setting it manually.", kdbg)
 
-                # Cache this for next time in the session.
-                self.kdbg = self.session.kdbg = kdbg
-                return self.list_eprocess_from_kdbg(kdbg)
+        logging.debug("Unable to list processes using any method.")
+        return []
 
     def render(self, fd=None):
         fd.write(" Offset(V) Offset(P)  Name                 PID    PPID   Thds   Hnds   Time\n" + \

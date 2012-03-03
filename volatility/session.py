@@ -126,7 +126,10 @@ class Session(object):
 
         # The handler for the vol command.
         self.locals['vol'] = self.vol
-        self.locals['info'] = lambda *args, **kwargs: self.vol(self.plugins.info, *args, **kwargs)
+        self.locals['info'] = self.info
+
+    def info(self, plugin_cls=None, fd=None):
+        self.vol(self.plugins.info, item=plugin_cls, fd=fd)
 
     def vol(self, plugin_cls=None, fd=None, debug=False, **kwargs):
         """Launch a plugin and its render() method automatically.

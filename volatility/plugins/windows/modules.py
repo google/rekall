@@ -21,41 +21,38 @@
 #pylint: disable-msg=C0111
 
 from volatility.plugins.windows import common
-import volatility.cache as cache
-import volatility.win32 as win32
-import volatility.utils as utils
-
-class Modules(common.AbstractWindowsCommand):
-    """Print list of loaded modules"""
-    def __init__(self, config, *args):
-        common.AbstractWindowsCommand.__init__(self, config, *args)
-        config.add_option("PHYSICAL-OFFSET", short_option = 'P', default = False,
-                          cache_invalidator = False, help = "Physical Offset", action = "store_true")
-
-    def render_text(self, outfd, data):
-        header = False
-
-        for module in data:
-            if not header:
-                offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"
-                outfd.write("Offset{0}  {1:50} {2:12} {3:8} {4}\n".format(offsettype, 'File', 'Base', 'Size', 'Name'))
-                header = True
-            if not self._config.PHYSICAL_OFFSET:
-                offset = module.obj_offset
-            else:
-                offset = module.obj_vm.vtop(module.obj_offset)
-            outfd.write("{0:#010x} {1:50} {2:#012x} {3:#08x} {4}\n".format(
-                         offset,
-                         module.FullDllName,
-                         module.DllBase,
-                         module.SizeOfImage,
-                         module.BaseDllName))
 
 
-    @cache.CacheDecorator("tests/lsmod")
-    def calculate(self):
-        addr_space = utils.load_as(self._config)
+class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
+    """Print list of loaded modules."""
 
-        result = win32.modules.lsmod(addr_space)
+    __name = "modules"
 
-        return result
+    def __init__(self, **kwargs):
+        """List kernel modules by walking the PsLoadedModuleList."""
+        super(Modules, self).__init__(**kwargs)
+
+    def lsmod(self):
+        """ A Generator for modules (uses _KPCR symbols) """
+        ## Try to iterate over the process list in PsActiveProcessHead
+        ## (its really a pointer to a _LIST_ENTRY)
+        PsLoadedModuleList = self.kdbg.PsLoadedModuleList.dereference_as(
+            "_LIST_ENTRY", vm=self.kernel_address_space)
+
+        for l in PsLoadedModuleList.list_of_type("_LDR_DATA_TABLE_ENTRY",
+                                                 "InLoadOrderLinks"):
+            yield l
+
+
+    def render(self, outfd):
+        outfd.write("Offset(V)  Offset(P)  {0:50} {1:12} {2:8} {3}\n".format(
+                'File', 'Base', 'Size', 'Name'))
+
+        for module in self.lsmod():
+            offset = module.obj_offset
+            outfd.write("{0:#010x} {1:#10x} {2:50} {3:#012x} {4:#08x} {5}\n".format(
+                    offset, module.obj_vm.vtop(offset),
+                    module.FullDllName,
+                    module.DllBase,
+                    module.SizeOfImage,
+                    module.BaseDllName))

@@ -33,9 +33,16 @@ class Info(plugin.Command):
 
     __name = "info"
 
-    def __init__(self, item=None, **kwargs):
+    def __init__(self, item=None, verbosity=0, **kwargs):
+        """Display information about a plugin.
+
+        Args:
+          item: The plugin class to examine.
+          verbosity: How much information to display.
+        """
         super(Info, self).__init__(**kwargs)
         self.item = item
+        self.verbosity = verbosity
 
     def plugins(self):
         for name, cls in plugin.Command.classes.items():
@@ -63,11 +70,11 @@ class Info(plugin.Command):
                 doc_string = inspect.cleandoc(
                     item.__init__.__doc__).split("Args:")[0]
 
-                fd.write("%s\n\n" % doc_string)
+                fd.write("%s\n\n" % doc_string.strip())
 
             doc_strings = []
             fd.write("Constructor args:\n" 
-                     "-----------------\n")
+                     "-----------------")
             for cls in item.mro():
                 try:
                     doc_string = inspect.cleandoc(
@@ -75,9 +82,12 @@ class Info(plugin.Command):
 
                     if doc_string not in doc_strings:
                         doc_strings.append(doc_string)
-                        fd.write("\nDefined by %s (%s):\n%s\n" % (
-                                cls.__name__, inspect.getfile(cls),
-                                doc_string))
+                        if self.verbosity > 0:
+                            fd.write("Defined by %s (%s):" % (
+                                    cls.__name__, inspect.getfile(cls)))
+
+                        fd.write("%s" % doc_string)
+
                 except (IndexError, AttributeError):
                     pass
 

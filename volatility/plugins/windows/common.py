@@ -19,9 +19,10 @@
 #
 
 """ This plugin contains CORE classes used by lots of other plugins """
-import volatility.scan as scan
-import volatility.obj as obj
-import volatility.debug as debug #pylint: disable-msg=W0611
+import logging
+
+from volatility import scan
+from volatility import obj
 from volatility import commands
 from volatility import profile
 from volatility import plugin
@@ -251,6 +252,40 @@ class KDBGScan(AbstractWindowsCommandPlugin):
         fd.write("Offset (P)\n")
         for hit in self.hits():
             fd.write("{0:#010x}\n".format(hit))
+
+
+class KDBGMixin(plugin.KernelASMixin):
+    """A plugin mixin to make sure the kdbg is set correctly."""
+
+    def __init__(self, kdbg=None, **kwargs):
+        """Ensure there is a valid KDBG object.
+
+        Args:
+          kdbg: The location of the kernel debugger block (In the physical
+             AS).
+        """
+        super(KDBGMixin, self).__init__(**kwargs)
+
+        self.kdbg = kdbg or self.session.kdbg
+        if self.kdbg is None:
+            logging.info("KDBG not provided - Volatility will try to "
+                         "automatically scan for it now using plugin.kdbgscan.")
+            for kdbg in self.session.plugins.kdbgscan().hits():
+                # Just return the first one
+                logging.info("Found a KDBG hit @0x%X. Hope it works. If not try "
+                             "setting it manually.", kdbg)
+
+                # Cache this for next time in the session.
+                self.kdbg = self.session.kdbg = kdbg
+                break
+
+        # Prepare an actual kdbg object for use.
+        if self.kdbg:
+            self.kdbg = self.profile.Object(
+                theType="_KDDEBUGGER_DATA64", 
+                offset=self.kdbg, vm=self.kernel_address_space.base)
+        else:
+            self.kdbg = obj.NoneObject("Could not guess kdbg offset")
 
 
 class WinProcessFilter(plugin.KernelASMixin, AbstractWindowsCommandPlugin):

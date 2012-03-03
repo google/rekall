@@ -26,7 +26,7 @@ import volatility.cache as cache
 import volatility.utils as utils
 
 
-class Connections(common.AbstractWindowsCommand):
+class Connections(common.WinProcessFilter):
     """
     Print list of open connections [Windows XP Only]
     ---------------------------------------------
@@ -38,11 +38,6 @@ class Connections(common.AbstractWindowsCommand):
     because Windows closes all sockets before hibernating. You might
     find it more effective to do conscan instead.
     """
-    def __init__(self, config, *args):
-        common.AbstractWindowsCommand.__init__(self, config, *args)
-        config.add_option("PHYSICAL-OFFSET", short_option = 'P', default = False,
-                          cache_invalidator = False,
-                          help = "Physical Offset", action = "store_true")
 
     def render_text(self, outfd, data):
         offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"

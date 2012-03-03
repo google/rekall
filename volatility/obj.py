@@ -297,6 +297,8 @@ class BaseObject(object):
             raise InvalidOffsetError("Invalid Address 0x{0:08X}, instantiating {1}".format(
                 offset, self.obj_name))
 
+    # Note entirely sure what the benefit of making these read only is. It costs
+    # one more function call though?
     @property
     def obj_vm(self):
         return self._vol_vm
