@@ -293,7 +293,7 @@ class WinProcessFilter(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
 
     __abstract = True
 
-    def __init__(self, phys_eprocess=None, pids=None, **kwargs):
+    def __init__(self, phys_eprocess=None, pids=None, pid=None, **kwargs):
         """Lists information about all the dlls mapped by a process.
         
         Args:
@@ -301,6 +301,7 @@ class WinProcessFilter(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
               the physical AS.
            
            pids: A list of pids.
+           pid: A single pid.
         """
         super(WinProcessFilter, self).__init__(**kwargs)
 
@@ -311,10 +312,11 @@ class WinProcessFilter(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
 
         self.phys_eprocess = phys_eprocess
 
-        if isinstance(pids, int):
-            pids = [pids]
-        elif pids is None:
+        if pids is None:
             pids = []
+
+        if pid is not None:
+            pids.append(pid)
 
         self.pids = pids
 
