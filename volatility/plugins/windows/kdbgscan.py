@@ -28,8 +28,8 @@ from volatility.plugins.windows import common
 
 
 class MultiStringFinderCheck(scan.ScannerCheck):
-    def __init__(self, address_space, needles = None):
-        scan.ScannerCheck.__init__(self, address_space)
+    def __init__(self, needles = None, **kwargs):
+        super(MultiStringFinderCheck, self).__init__(**kwargs)
         if not needles:
             needles = []
         self.needles = needles
@@ -57,10 +57,10 @@ class MultiStringFinderCheck(scan.ScannerCheck):
 class KDBGScanner(scan.DiscontigScanner):
     checks = [ ]
 
-    def __init__(self, window_size = 8, needles = None):
+    def __init__(self, needles = None, **kwargs):
         self.needles = needles
         self.checks = [ ("MultiStringFinderCheck", {'needles':needles})]
-        scan.DiscontigScanner.__init__(self, window_size)
+        super(KDBGScanner, self).__init__(**kwargs)
 
     def scan(self, address_space, offset = 0, maxlen = None):
         for offset in scan.DiscontigScanner.scan(self, address_space, offset, maxlen):

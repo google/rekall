@@ -153,7 +153,9 @@ class NoneObject(object):
     Instantiate with the reason for the error.
     """
     def __init__(self, reason = '', strict = False):
-        logging.debug("None object instantiated: %s", reason)
+        # Often None objects are instantiated on purpose so its not really that
+        # important to see their reason.
+        logging.log(logging.DEBUG / 2, "None object instantiated: %s", reason)
         self.reason = reason
         self.strict = strict
         if strict:
@@ -611,7 +613,7 @@ class Pointer(NativeType):
 
         if vm.is_valid_address(offset):
             result = self.target(offset = offset,
-                                 vm = vm,
+                                 vm = vm, profile = self.obj_profile,
                                  parent = self.obj_parent,
                                  name = self.obj_name)
             return result
@@ -689,7 +691,8 @@ class Pointer(NativeType):
         """Dereference ourselves into another type, or address space."""
         vm = vm or self.obj_vm
 
-        return self.obj_profile.Object(derefType, self.v(), vm, parent=self, **kwargs)
+        return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm,
+                                       parent=self, **kwargs)
 
 
 
@@ -714,24 +717,34 @@ class Void(Pointer):
 
 class Array(BaseObject):
     """ An array of objects of the same size """
-    def __init__(self, theType=None, offset=0, vm=None, parent = None,
-                 count = 1, targetType = None, target = None, name = None, **kwargs):
-        ## Instantiate the first object on the offset:
-        BaseObject.__init__(self, theType, offset, vm,
-                            parent = parent, name = name, **kwargs)
+    def __init__(self, count = 1, targetType = None, target = None, **kwargs):
+        """Instantiate an array of like items.
+
+        Args:
+          count: How many items belong to the array (not strictly enforced -
+            i.e. it is possible to read past the end).
+
+          targetType: The string type of each element.
+
+          target: A callable which will be instantiated on each point. The size
+            of the object returned by this should be the same for all members of
+            the array.
+        """
+        super(Array, self).__init__(**kwargs)
 
         if callable(count):
             count = count(parent)
 
         self.count = int(count)
 
-        self.original_offset = offset
         if targetType:
-            self.target = Curry(Object, theType=targetType)
+            self.target = Curry(self.obj_profile.Object, theType=targetType)
         else:
             self.target = target
 
-        self.current = self.target(offset = offset, vm = vm, parent = self, name = name)
+        self.current = self.target(offset = self.obj_offset, vm = self.obj_vm, 
+                                   parent = self, name = self.obj_name)
+
         if self.current.size() == 0:
             ## It is an error to have a zero sized element
             logging.debug("Array with 0 sized members???")
@@ -786,27 +799,20 @@ class Array(BaseObject):
             return [self[i] for i in xrange(start, stop, step)]
 
         ## Check if the offset is valid
-        offset = self.original_offset + pos * self.current.size()
+        offset = self.obj_offset + pos * self.current.size()
 
-        if pos <= self.count and self.obj_vm.is_valid_address(offset):
-            # Ensure both the true VM and offsetlayer are copied across
-            return self.target(offset = offset,
-                               vm = self.obj_vm,
-                               parent = self,
-                               name = "{0} {1}".format(self.obj_name, pos))
-        else:
-            return NoneObject("Array {0} invalid member {1}".format(self.obj_name, pos),
-                              self.obj_profile.strict)
+        return self.target(offset = offset, vm = self.obj_vm, parent = self,
+                           name = "{0} {1}".format(self.obj_name, pos))
+
 
 class CType(BaseObject):
     """ A CType is an object which represents a c struct """
-    def __init__(self, theType=None, name=None, members = None, struct_size = 0,
-                 **kwargs):
+    def __init__(self, members = None, struct_size = 0, **kwargs):
         """ This must be instantiated with a dict of members. The keys
         are the offsets, the values are Curried Object classes that
         will be instantiated when accessed.
         """
-        super(CType, self).__init__(theType = theType, name = name, **kwargs)
+        super(CType, self).__init__(**kwargs)
 
         if not members:
             # Warn rather than raise an error, since some types (_HARDWARE_PTE,

@@ -184,7 +184,20 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(test.void, 8)
         self.assertEqual(test.void.dereference(), 0x33445566)
 
+    def testArray(self):
+        # Create an address space from a buffer for testing
+        address_space = addrspace.BufferAddressSpace(
+            config=None, data="abcdefghijklmnopqrstuvwxyz")
         
+        profile = obj.Profile.classes['Profile32Bits']()
+        test = profile.Object("Array", vm=address_space, offset=0,
+                              targetType="int", count=0)
+
+        self.assertEqual(test[0], 0x64636261)
+        self.assertEqual(test[1], 0x68676665)
+
+        # Can read past the end of the array but this returns a None object.
+        self.assertEqual(test[100], None)
 
 
 class WinXPProfileTests(unittest.TestCase):

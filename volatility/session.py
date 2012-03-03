@@ -25,6 +25,7 @@ way for people to save their own results.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import logging
+import pdb
 import os
 import sys
 import time
@@ -63,6 +64,8 @@ class PluginContainer(object):
 
 class Pager(object):
     """A file like object which can be swapped with a pager."""
+    # Default encoding is utf8
+    encoding = "utf8"
 
     def __init__(self, session):
         self.make_pager(session)
@@ -76,7 +79,16 @@ class Pager(object):
         except Exception:
             self.pager = sys.stdout
 
+        # Determine the output encoding
+        try:
+            encoding = self.pager.encoding
+            if encoding: self.encoding = encoding
+        except AttributeError:
+            pass
+
     def write(self, data):
+        # Encode the data according to the output encoding.
+        data = data.encode(self.encoding)
         try:
             self.pager.write(data)
         except IOError:
@@ -116,24 +128,36 @@ class Session(object):
         self.locals['vol'] = self.vol
         self.locals['info'] = lambda *args, **kwargs: self.vol(self.plugins.info, *args, **kwargs)
 
-    def vol(self, plugin_cls, *args, **kwargs):
+    def vol(self, plugin_cls=None, fd=None, debug=False, **kwargs):
         """Launch a plugin and its render() method automatically.
 
         Args:
           plugin: A string naming the plugin, or the plugin class itself.
+          fd: A file descriptor to write the rendered result to. If not set we
+            use the pager class.
+          debug: If set we break into the debugger if anything goes wrong.
         """
         if isinstance(plugin_cls, basestring):
             plugin_cls = getattr(self.plugins, plugin_cls)
 
         try:
-            fd = Pager(self)
+            if fd is None:
+                fd = Pager(self)
+
             kwargs['session'] = self
-            result = plugin_cls(*args, **kwargs)
+            result = plugin_cls(**kwargs)
             result.render(fd)
             
             return result
         except plugin.Error, e:
             logging.error("Failed running plugin %s: %s", plugin_cls.__name__, e)
+        except Exception:
+            # If anything goes wrong, we break into a debugger here.
+            if debug:
+                pdb.post_mortem()
+            else:
+                raise
+
 
     def __repr__(self):
         return str(self)

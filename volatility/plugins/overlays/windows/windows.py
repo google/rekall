@@ -153,11 +153,12 @@ class _UNICODE_STRING(obj.CType):
         than a pointer to an unsigned short.
       * The __str__ method returns the value of the Buffer.
     """
+
     def v(self):
         length = self.Length.v()
         if length > 0 and length <= 1024:
-            data = self.Buffer.dereference_as('String', length = length)
-            return data.v().decode("utf16", "ignore").encode("ascii", 'backslashreplace')
+            data = self.Buffer.dereference_as('UnicodeString', length=length)
+            return data.v()
         else:
             return ''
 
@@ -383,7 +384,6 @@ class _HANDLE_TABLE(obj.CType):
         """ Returns an array of _HANDLE_TABLE_ENTRY rooted at offset,
         and iterates over them.
         """
-
         # The counts below are calculated by taking the size of a page and dividing 
         # by the size of the data type contained within the page. For more information
         # see http://blogs.technet.com/b/markrussinovich/archive/2009/09/29/3283844.aspx
@@ -457,6 +457,7 @@ class _HANDLE_TABLE(obj.CType):
         for h in self._make_handle_array(offset, table_levels):
             yield h
 
+
 class _OBJECT_HEADER(obj.CType):
     """A Volatility object to handle Windows object headers.
 
@@ -467,11 +468,10 @@ class _OBJECT_HEADER(obj.CType):
                         ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO'),
                         ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO')]
 
-    def __init__(self, *args, **kwargs):
-        # Usually we don't add members to objects like this, but its an
-        # exception due to lack of better options. See Issue #135. 
-        self.HandleValue = kwargs.get("handle_value", 0)
-        obj.CType.__init__(self, *args, **kwargs)
+    def __init__(self, handle_value=0, **kwargs):
+        self.HandleValue = handle_value
+        super(_OBJECT_HEADER, self).__init__(**kwargs)
+
         # Create accessors for optional headers
         self.find_optional_headers()
 
@@ -499,12 +499,13 @@ class _OBJECT_HEADER(obj.CType):
 
     def dereference_as(self, theType):
         """Instantiate an object from the _OBJECT_HEADER.Body"""
-        return self.obj_profile.Object(theType=theType, offset = self.Body.obj_offset,
-                                       vm = self.obj_vm, parent = self)
+        return self.obj_profile.Object(theType=theType, offset=self.Body.obj_offset,
+                                       vm=self.obj_vm, parent=self)
 
     def get_object_type(self):
         """Return the object's type as a string"""
-        type_obj = self.obj_profile.Object(theType="_OBJECT_TYPE", offset=self.Type)
+        type_obj = self.obj_profile.Object(theType="_OBJECT_TYPE", vm=self.obj_vm,
+                                           offset=self.Type)
 
         return type_obj.Name.v()
 
@@ -518,13 +519,16 @@ class _FILE_OBJECT(obj.CType):
         if self.DeviceObject:
             object_hdr = self.obj_profile.Object(
                 theType="_OBJECT_HEADER", offset=(
-                    self.DeviceObject - self.obj_profile.get_obj_offset(
+                    self.DeviceObject.v() - self.obj_profile.get_obj_offset(
                         "_OBJECT_HEADER", "Body")),
                 vm=self.obj_vm)
-            if object_hdr:
-                name = "\\Device\\{0}".format(object_hdr.NameInfo.Name.v())
+
+            if object_hdr.NameInfo:
+                name = u"\\Device\\{0}".format(object_hdr.NameInfo.Name)
+
         if self.FileName:
             name += self.FileName.v()
+
         return name
 
 ## This is an object which provides access to the VAD tree.
@@ -654,6 +658,7 @@ class _MMVAD_SHORT(obj.CType):
 class _MMVAD_LONG(_MMVAD_SHORT):
     """Subclasses _MMVAD_LONG based on _MMVAD_SHORT"""
     pass
+
 
 class _EX_FAST_REF(obj.CType):
     def dereference_as(self, theType, parent = None, vm=None, **kwargs):

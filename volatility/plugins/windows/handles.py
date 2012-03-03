@@ -21,24 +21,26 @@
 
 #pylint: disable-msg=C0111
 
-import volatility.obj as obj
-import volatility.utils as utils
-from volatility.plugins.windows import taskmods
+from volatility import obj
+from volatility.plugins.windows import common
 
 
 # Inherit from Dlllist for command line options
-class Handles(object):
+class Handles(common.WinProcessFilter):
     """Print list of open handles for each process"""
 
-    def __init__(self, config, *args):
-        taskmods.DllList.__init__(self, config, *args)
-        config.add_option("PHYSICAL-OFFSET", short_option = 'P', default = False,
-                          help = "Physical Offset", action = "store_true")
-        config.add_option("OBJECT-TYPE", short_option = 't', default = None,
-                          help = 'Show these object types (comma-separated)',
-                          action = 'store', type = 'str')
-        config.add_option("SILENT", short_option = 's', default = False,
-                          action = 'store_true', help = 'Suppress less meaningful results')
+    __name = "handles"
+
+    def __init__(self, object_type=None, silent=None, **kwargs):
+        """Lists the handles for processes.
+
+        Args:
+          object_type: Show these object types (comma-separated)
+          silent: Suppress less meaningful results
+        """
+        super(Handles, self).__init__(**kwargs)
+        self.object_type = object_type
+        self.silent = silent
 
     def full_key_name(self, handle):
         """Returns the full name of a registry key based on its CM_KEY_BODY handle"""
@@ -51,57 +53,52 @@ class Handles(object):
             kcb = kcb.ParentKcb
         return "\\".join(reversed(output))
 
-    def render_text(self, outfd, data):
-        offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"
+    def enumerate_handles(self, task):
+        if task.ObjectTable.HandleTableList:
+            for handle in task.ObjectTable.handles():
+                name = ""
+                object_type = handle.get_object_type()
+                if object_type == "File":
+                    file_obj = handle.dereference_as("_FILE_OBJECT")
+                    name = file_obj.file_name_with_device()
+                elif object_type == "Key":
+                    key_obj = handle.dereference_as("_CM_KEY_BODY")
+                    name = key_obj.full_key_name()
+                elif object_type == "Process":
+                    proc_obj = handle.dereference_as("_EPROCESS")
+                    name = u"{0}({1})".format(proc_obj.ImageFileName, proc_obj.UniqueProcessId)
+                elif object_type == "Thread":
+                    thrd_obj = handle.dereference_as("_ETHREAD")
+                    name = u"TID {0} PID {1}".format(thrd_obj.Cid.UniqueThread, thrd_obj.Cid.UniqueProcess)
 
-        outfd.write("{0:6}{1:6} {2:6} {3:10} {4:<16} {5}\n".format(
+                elif handle.NameInfo.Name == None:
+                    name = ""
+                else:
+                    name = handle.NameInfo.Name
+
+                yield handle, object_type, name
+        
+    def render(self, outfd):
+        offsettype = "(V)"
+
+        outfd.write(u"{0:6}{1:6} {2:6} {3:10} {4:<16} {5}\n".format(
             "Offset", offsettype, "Pid", "Access", "Type", "Details"))
 
-        if self._config.OBJECT_TYPE:
-            object_list = [s for s in self._config.OBJECT_TYPE.split(',')]
+        if self.object_type:
+            object_list = self.object_type.split(',')
         else:
             object_list = []
 
-        for pid, h, otype, name in data:
-            if object_list and otype not in object_list:
-                continue
-            if self._config.SILENT:
-                if len(name.replace("'", "")) == 0:
+        for task in self.filter_processes():
+            for handle, otype, name in self.enumerate_handles(task):
+                if object_list and otype not in object_list:
                     continue
-            if not self._config.PHYSICAL_OFFSET:
-                offset = h.Body.obj_offset
-            else:
-                offset = h.obj_vm.vtop(h.Body.obj_offset)
+                if self.silent:
+                    if len(name.replace("'", "")) == 0:
+                        continue
 
-            outfd.write("{0:#010x}   {1:<6} {2:<#10x} {3:<16} {4}\n".format(
-                offset, pid, h.members['GrantedAccess'], otype, name))
+                offset = handle.obj_vm.vtop(handle.Body.obj_offset)
+                outfd.write(u"{0:#010x}   {1:<6} {2:<#10x} {3:<16} {4}\n".format(
+                        offset, task.UniqueProcessId, handle.GrantedAccess,
+                        otype, name))
 
-    def calculate(self):
-        ## Will need the kernel AS for later:
-        kernel_as = utils.load_as(self._config)
-
-        for task in taskmods.DllList.calculate(self):
-            pid = task.UniqueProcessId
-            if task.ObjectTable.HandleTableList:
-                for h in task.ObjectTable.handles():
-                    name = ""
-                    h.set_native_vm(kernel_as)
-                    otype = h.get_object_type()
-                    if otype == "File":
-                        file_obj = obj.Object("_FILE_OBJECT", h.Body.obj_offset, vm=h.obj_vm,
-                                              native_vm=kernel_as)
-                        if file_obj.FileName:
-                            name = file_obj.FileName
-                    elif otype == "Key":
-                        key_obj = obj.Object("_CM_KEY_BODY", h.Body.obj_offset, h.obj_vm)
-                        name = self.full_key_name(key_obj)
-                    elif otype == "Process":
-                        proc_obj = obj.Object("_EPROCESS", h.Body.obj_offset, h.obj_vm)
-                        name = "{0}({1})".format(proc_obj.ImageFileName, proc_obj.UniqueProcessId)
-                    elif otype == "Thread":
-                        thrd_obj = obj.Object("_ETHREAD", h.Body.obj_offset, h.obj_vm)
-                        name = "TID {0} PID {1}".format(thrd_obj.Cid.UniqueThread, thrd_obj.Cid.UniqueProcess)
-                    else:
-                        name = h._OBJECT_HEADER_NAME_INFO.Name
-
-                    yield pid, h, otype, name

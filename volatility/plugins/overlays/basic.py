@@ -29,30 +29,39 @@ from volatility.plugins.overlays import native_types
 
 
 class String(obj.StringProxyMixIn, obj.NativeType):
-    """Class for dealing with Strings"""
+    """Class for dealing with Null terminated C Strings.
+
+    Note that these strings are _not_ text strings - they are effectively bytes
+    arrays and therefore are not encoded in any particular unicode encoding.
+    """
     def __init__(self, length = 1, **kwargs):
+        super(String, self).__init__(**kwargs)
+
         ## Allow length to be a callable:
         if callable(length):
-            length = length(parent)
+            length = length(self.obj_parent)
 
         self.length = length
 
         ## length must be an integer
-        kwargs['format_string'] = "{0}s".format(int(length))
-        obj.NativeType.__init__(self, **kwargs)
-        obj.StringProxyMixIn.__init__(self)
+        self.format_string = "{0}s".format(int(length))
 
     def proxied(self, name):
         """ Return an object to be proxied """
         return self.__str__()
 
     def __str__(self):
-        data = self.v()
         ## Make sure its null terminated:
-        result = data.split("\x00")[0]
-        if not result:
-            return ""
-        return result
+        return self.v().split("\x00")[0]
+
+    def __unicode__(self):
+        # This should never happen and it does not make any sense. If this
+        # memory location really represents a unicode sting, then the profile
+        # overlay must be updated to have a UnicodeString type and not String
+        # type. If we really want to print out a raw region we always need to
+        # hex encode it or something.
+        logging.debug("A raw string decoded as unicode!")
+        return self.v().decode("utf8", "ignore")
 
     def __format__(self, formatspec):
         return format(self.__str__(), formatspec)
@@ -64,6 +73,32 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def __radd__(self, other):
         """Set up mappings for reverse concat"""
         return other + str(self)
+
+
+class UnicodeString(String):
+    """A class for dealing with encoded text strings.
+
+    Text strings are always encoded in some way in memory. The specific way of
+    encoding them is called the "encoding" - for example usually (but not
+    always) in windows the encoding is called "utf16", while on linux its
+    usually "utf8".
+
+    By default we take the encoding from the profile constant
+    "default_text_encoding".
+    """
+    def __init__(self, encoding=None, **kwargs):
+        super(UnicodeString, self).__init__(**kwargs)
+        if encoding is None:
+            self.encoding = self.obj_profile.constants['default_text_encoding']
+
+    def v(self):
+        """Note this returns a unicode object."""
+        return super(UnicodeString, self).v().decode(self.encoding, "ignore")
+
+    def __str__(self):
+        """This function returns an encoded string in utf8."""
+        return self.v().encode("utf8")
+
 
 class Flags(obj.NativeType):
     """ This object decodes each flag into a string """
@@ -176,7 +211,9 @@ class BasicWindowsClasses(obj.Profile):
         super(BasicWindowsClasses, self).__init__(**kwargs)
         self.add_classes({
             'String': String,
+            'UnicodeString': UnicodeString,
             'Flags': Flags,
             'Enumeration': Enumeration,
-            'VOLATILITY_MAGIC': VOLATILITY_MAGIC,
             })
+
+        self.add_constants(default_text_encoding="utf16")
