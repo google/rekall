@@ -566,7 +566,7 @@ class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
                 '_IMAGE_IMPORT_DESCRIPTOR': _IMAGE_IMPORT_DESCRIPTOR,
                 '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
                 })
-        self.merge_overlay({
+        self.add_overlay({
                 '_IMAGE_SECTION_HEADER' : [ None, {
                         'Name' : [ 0x0, ['String', dict(length = 8)]],
                         }],

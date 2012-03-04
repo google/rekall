@@ -729,6 +729,7 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
 
     def __init__(self, **kwargs):
         super(BaseWindowsProfile, self).__init__(**kwargs)
+
         self.add_types(crash_vtypes.crash_vtypes)
         self.add_types(hibernate_vtypes.hibernate_vtypes)
         self.add_types(kdbg_vtypes.kdbg_vtypes)
@@ -755,7 +756,7 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
             '_MMSECTION_FLAGS': _MMSECTION_FLAGS,
             })
 
-        self.merge_overlay(windows_overlay)
+        self.add_overlay(windows_overlay)
 
 
 class AbstractKDBGMod(obj.ProfileModification):

@@ -4,3 +4,4 @@
 from volatility.plugins.overlays.windows import pe_vtypes
 from volatility.plugins.overlays.windows import windows
 from volatility.plugins.overlays.windows import xp
+from volatility.plugins.overlays.windows import win7

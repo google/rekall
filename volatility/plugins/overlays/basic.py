@@ -194,6 +194,8 @@ class Profile32Bits(obj.Profile):
     def __init__(self, **kwargs):
         super(Profile32Bits, self).__init__(**kwargs)
         self.add_types(native_types.x86_native_types)
+        self.add_constants(PoolAlignment=8)
+
 
 class Profile64Bits(obj.Profile):
     """Basic profile for 64 bit systems."""
@@ -202,6 +204,7 @@ class Profile64Bits(obj.Profile):
     def __init__(self, **kwargs):
         super(Profile64Bits, self).__init__(**kwargs)
         self.add_types(native_types.x64_native_types)
+        self.add_constants(PoolAlignment=16)
 
 
 class BasicWindowsClasses(obj.Profile):

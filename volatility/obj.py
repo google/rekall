@@ -1015,6 +1015,7 @@ class Profile(object):
         self.overlayDict = {}
         self._config = config
         self.strict = strict
+        self.overlays = []
 
     @classproperty
     def metadata(cls):
@@ -1081,10 +1082,11 @@ class Profile(object):
         """ Compiles the vtypes, overlays, object_classes, etc into a types dictionary."""
         self.types = {}
 
+        # Marge all the overlays in order
+        for overlay in self.overlays:
+            self._merge_overlay(overlay)
+
         for name in self.vtypes.keys():
-            ## We need to protect our virgin overlay dict here - since
-            ## the following functions modify it, we need to make a
-            ## deep copy:
             if isinstance(self.vtypes[name][0], str):
                 self.types[name] = self.list_to_type(name, self.vtypes[name], self.vtypes)
             else:
@@ -1116,7 +1118,7 @@ class Profile(object):
             return Curry(Void, profile=self, name = name)
 
         ## This is of the form [ 'pointer' , [ 'foobar' ]]
-        if typeList[0] == 'pointer':
+        if typeList[0] == 'pointer' or typeList == 'pointer64':
             try:
                 target = typeList[1]
             except IndexError:
@@ -1147,6 +1149,10 @@ class Profile(object):
         obj_name = typeList[0]
         if type(tlargs) == dict:
             return Curry(self.Object, theType = obj_name, name = name, **tlargs)
+
+        # This is of the form ['class_name', ['arg1', 'arg2']]
+        if typeList[0] in self.object_classes:
+            return Curry(self.object_classes[typeList[0]], *typeList[1:])
 
         ## If we get here we have no idea what this list is
         #raise RuntimeError("Error in parsing list {0}".format(typeList))
@@ -1184,14 +1190,19 @@ class Profile(object):
         tmp = self._get_dummy_obj(name)
         return hasattr(tmp, member)
 
-    def merge_overlay(self, overlay):
-        """Applies an overlay to the profile's vtypes"""
+    def add_overlay(self, overlay):
+        """Add an overlay to the current overlay stack."""
         self._ready = False
+
+        self.overlays.append(overlay)
+
+    def _merge_overlay(self, overlay):
+        """Applies an overlay to the profile's vtypes"""
         for k, v in overlay.items():
-            if k not in self.vtypes:
-                debug.warning("Overlay structure {0} not present in vtypes".format(k))
-            else:
+            if k in self.vtypes:
                 self.vtypes[k] = self._apply_overlay(self.vtypes[k], v)
+            else:
+                debug.warning("Overlay structure {0} not present in vtypes".format(k))
 
     def _apply_overlay(self, type_member, overlay):
         """ Update the overlay with the missing information from type.

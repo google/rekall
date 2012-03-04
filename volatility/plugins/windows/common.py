@@ -98,7 +98,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
         self.image_name_offset = self.profile.get_obj_offset(
             "_EPROCESS", "ImageFileName")
 
-    def generate_suggestions(self):
+    def scan_for_process(self):
+        """Scan the image for the idle process."""
         needle = self.process_name + "\x00" * (16 - len(self.process_name))
         offset = 0
         while 1:
@@ -111,24 +112,30 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
                 found = data.find(needle, found + 1)
                 if found >= 0:
                     # We found something that looks like the process we want.
-                    eprocess = self.profile.Object(
+                    self.eprocess = self.profile.Object(
                         "_EPROCESS", offset = offset + found - self.image_name_offset,
                         vm = self.physical_address_space)
 
-                    if self._check_dtb(eprocess):
-                        yield eprocess
-
+                    yield self.eprocess
                 else:
                     break
 
             offset += len(data)
 
     def dtb_hits(self):
-        for x in self.generate_suggestions():
+        for x in self.scan_for_process():
             yield x.Pcb.DirectoryTableBase.v()
 
-    def _check_dtb(self, eprocess):
+    def verify_address_space(self, address_space):
         """Check the eprocess for sanity."""
+
+        # Reflect through the address space at ourselves.
+        list_head = self.eprocess.ActiveProcessLinks.Flink
+
+        me = list_head.dereference(vm=address_space).Blink.dereference()
+        if me != list_head:
+            raise AssertionError("Unable to reflect _EPROCESS through this address space.")
+
         return True
 
     def render(self, fd = None):
@@ -137,7 +144,6 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
             dtb = eprocess.Pcb.DirectoryTableBase.v()
                     
             fd.write("{0:#010x}  {1:#010x}\n".format(eprocess.obj_offset, dtb))
-
 
 
 ## The following are checks for pool scanners.
