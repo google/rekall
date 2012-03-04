@@ -57,7 +57,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         # go into the 'AMD64ValidAS' VolatilityMagic variable and return False if necessary.
 
         # Make sure that we only support 64 bit profiles here.
-        if self._config.profile.metadata.get('memory_model', '32bit') != "64bit":
+        if self._config.profile.metadata('memory_model', '32bit') != "64bit":
             raise RuntimeError("Only supporting 64 memory models.")
 
     def pml4e_index(self, vaddr):

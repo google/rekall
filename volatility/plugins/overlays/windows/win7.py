@@ -114,8 +114,8 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
 
         for name, struct, mask in self.optional_header_mask:
             if info_mask & mask:
-                offset -= self.obj_vm.profile.get_obj_size(struct)
-                o = obj.Object(struct, offset, self.obj_vm, native_vm = self.obj_native_vm)
+                offset -= self.obj_profile.get_obj_size(struct)
+                o = self.obj_profile.Object(theType=struct, offset=offset, vm=self.obj_vm)
             else:
                 o = obj.NoneObject("Header not set")
 
@@ -125,14 +125,7 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
         """Return the object's type as a string"""
         return self.type_map.get(self.TypeIndex.v(), '')
 
-class Win7ObjectClasses(obj.ProfileModification):
-    before = ['WindowsOverlay', 'WindowsObjectClasses']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x >= 1}
 
-    def modification(self, profile):
-        profile.object_classes.update({'_OBJECT_HEADER': _OBJECT_HEADER})
 
 class Win7SP0x86(obj.Profile):
     """ A Profile for Windows 7 SP0 x86 """
@@ -201,3 +194,17 @@ class Win7SP1x86(basic.Profile32Bits, Win7BaseProfile):
 
         self.add_types(win7_sp1_x86_vtypes.nt_types)
 
+
+class Win7SP1x64(basic.Profile64Bits, Win7BaseProfile):
+    """ A Profile for Windows 7 SP1 x64 """
+    _md_major = 6
+    _md_minor = 1
+
+    def __init__(self, **kwargs):
+        super(Win7SP1x64, self).__init__(**kwargs)
+        self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG')
+
+        # Import the actual vtypes on demand here to reduce memory usage.
+        from volatility.plugins.overlays.windows import win7_sp1_x64_vtypes
+
+        self.add_types(win7_sp1_x64_vtypes.ntkrnlmp_types)

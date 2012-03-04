@@ -176,7 +176,7 @@ class _UNICODE_STRING(obj.CType):
 class _LIST_ENTRY(obj.CType):
     """ Adds iterators for _LIST_ENTRY types """
 
-    def dereference_as(self, type, member, address_space=None):
+    def dereference_as(self, type, member, vm=None):
         """Recasts the list entry as a member in a type, and return the type.
         
         Args:
@@ -189,7 +189,7 @@ class _LIST_ENTRY(obj.CType):
 
         item = self.obj_profile.Object(
             theType=type, offset = self.obj_offset - offset,
-            vm = address_space or self.obj_vm, parent = self.obj_parent,
+            vm = vm or self.obj_vm, parent = self.obj_parent,
             name = type)
 
         return item
@@ -210,7 +210,6 @@ class _LIST_ENTRY(obj.CType):
             return
 
         seen.append(self)
-
         Flink = self.Flink.dereference()
         Flink.find_all_lists(seen)
 
@@ -234,12 +233,34 @@ class _LIST_ENTRY(obj.CType):
                 # Only yield valid objects (In case of dangling links).
                 yield task
 
+    def reflect(self):
+        """Reflect this list element by following its Flink and Blink.
+
+        This is basically the same as Flink.Blink except that it also checks
+        Blink.Flink. It also ensures that Flink and Blink are dereferences to
+        the correct type in case the vtypes do not specify them as pointers.
+
+        Returns:
+          the result of Flink.Blink.
+        """
+        result1 = self.Flink.dereference_as(self.obj_type).Blink.dereference_as(
+            self.obj_type)
+        
+        result2 = self.Blink.dereference_as(self.obj_type).Flink.dereference_as(
+            self.obj_type)
+
+        if result1 != result2:
+            return obj.NoneObject("Flink and Blink not consistent.")
+
+        return result1
+
     def __nonzero__(self):
         ## List entries are valid when both Flinks and Blink are valid
         return bool(self.Flink) or bool(self.Blink)
 
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
+
 
 class WinTimeStamp(obj.NativeType):
     """Class for handling Windows Time Stamps"""
@@ -497,10 +518,10 @@ class _OBJECT_HEADER(obj.CType):
             return self.obj_parent.GrantedAccess
         return obj.NoneObject("No parent known")
 
-    def dereference_as(self, theType):
+    def dereference_as(self, theType, vm=None):
         """Instantiate an object from the _OBJECT_HEADER.Body"""
         return self.obj_profile.Object(theType=theType, offset=self.Body.obj_offset,
-                                       vm=self.obj_vm, parent=self)
+                                       vm=vm or self.obj_vm, parent=self)
 
     def get_object_type(self):
         """Return the object's type as a string"""
@@ -738,6 +759,8 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
         self.add_classes({
             '_UNICODE_STRING': _UNICODE_STRING,
             '_LIST_ENTRY': _LIST_ENTRY,
+            'LIST_ENTRY32': _LIST_ENTRY,
+            'LIST_ENTRY64': _LIST_ENTRY,
             'WinTimeStamp': WinTimeStamp,
             '_EPROCESS': _EPROCESS,
             '_ETHREAD': _ETHREAD,

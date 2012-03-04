@@ -432,12 +432,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         return longlongval
 
     def get_available_pages(self):
-        '''
-        Return a list of lists of available memory pages.
-        Each entry in the list is the starting virtual address 
-        and the size of the memory page.
-        '''
-
+        """A generator of address, length tuple for all valid memory regions."""
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
         # PDEs and PTEs we must test.
@@ -446,6 +441,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
             pdpte_value = self.get_pdpte(vaddr)
             if not self.entry_present(pdpte_value):
                 continue
+
             for pde in range(0, 0x200):
                 vaddr = pdpte << 30 | (pde << 21)
                 pde_value = self.get_pde(vaddr, pdpte_value)

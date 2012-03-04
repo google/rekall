@@ -128,12 +128,13 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
     def verify_address_space(self, address_space):
         """Check the eprocess for sanity."""
-
-        # Reflect through the address space at ourselves.
-        list_head = self.eprocess.ActiveProcessLinks.Flink
+        # Reflect through the address space at ourselves. Note that the Idle
+        # process is not usually in the PsActiveProcessHead list, so we use the
+        # ThreadListHead instead.
+        list_head = self.eprocess.ThreadListHead.Flink
 
         me = list_head.dereference(vm=address_space).Blink.dereference()
-        if me != list_head:
+        if me.v() != list_head.v():
             raise AssertionError("Unable to reflect _EPROCESS through this address space.")
 
         return True
@@ -155,12 +156,12 @@ class PoolTagCheck(scan.ScannerCheck):
         self.tag = tag
 
     def skip(self, data, offset):
-        try:
-            nextval = data.index(self.tag, offset + 1)
-            return nextval - offset
-        except ValueError:
-            ## Substring is not found - skip to the end of this data buffer
+        nextval = data.find(self.tag, offset + 1)
+        if nextval < 0:
+            # Substring is not found - skip to the end of this data buffer
             return len(data) - offset
+
+        return nextval - offset
 
     def check(self, offset):
         data = self.address_space.read(offset, len(self.tag))
@@ -219,47 +220,6 @@ class CheckPoolIndex(scan.ScannerCheck):
         return pool_hdr.PoolIndex == self.value
 
 
-class KDBGScan(AbstractWindowsCommandPlugin):
-    """A scanner for the kdbg structures."""
-
-    __name = "kdbgscan"
-
-    def __init__(self, profile=None, physical_address_space=None, 
-                 signatures=None, **kwargs):
-        super(KDBGScan, self).__init__(**kwargs)
-
-        self.physical_address_space = (physical_address_space or
-                                       self.session.physical_address_space)
-
-        if self.physical_address_space is None:
-            raise plugin.PluginError("physical address space must be provided.")
-
-        self.signatures = signatures
-
-        # Use the signature from the profile
-        if self.signatures is None:
-            self.profile = profile or self.session.profile
-            if self.profile is None:
-                raise plugin.PluginError("Profile or signatures must be provided.")
-
-            self.signatures = [self.profile.constants['KDBGHeader']]
-
-    def hits(self):
-        scanner = scan.BaseScanner.classes['KDBGScanner'](
-            needles = self.signatures)
-
-        for offset in scanner.scan(self.physical_address_space):
-            yield offset
-
-
-    def render(self, fd=None):
-        fd.write("Potential hits for kdbg strctures.")
-
-        fd.write("Offset (P)\n")
-        for hit in self.hits():
-            fd.write("{0:#010x}\n".format(hit))
-
-
 class KDBGMixin(plugin.KernelASMixin):
     """A plugin mixin to make sure the kdbg is set correctly."""
 
@@ -271,30 +231,32 @@ class KDBGMixin(plugin.KernelASMixin):
              AS).
         """
         super(KDBGMixin, self).__init__(**kwargs)
-
         self.kdbg = kdbg or self.session.kdbg
         if self.kdbg is None:
             logging.info("KDBG not provided - Volatility will try to "
                          "automatically scan for it now using plugin.kdbgscan.")
             for kdbg in self.session.plugins.kdbgscan().hits():
                 # Just return the first one
-                logging.info("Found a KDBG hit @0x%X. Hope it works. If not try "
+                logging.info("Found a KDBG hit %r. Hope it works. If not try "
                              "setting it manually.", kdbg)
 
                 # Cache this for next time in the session.
-                self.kdbg = self.session.kdbg = kdbg
+                self.session.kdbg = self.kdbg = kdbg
                 break
 
-        # Prepare an actual kdbg object for use.
-        if self.kdbg:
+        # Allow kdbg to be an actual object.
+        if isinstance(self.kdbg, obj.BaseObject):
+            return
+        # Or maybe its an integer representing the offset.
+        elif self.kdbg:
             self.kdbg = self.profile.Object(
-                theType="_KDDEBUGGER_DATA64", 
-                offset=self.kdbg, vm=self.kernel_address_space.base)
+                theType="_KDDEBUGGER_DATA64", offset=int(self.kdbg),
+                vm=self.kernel_address_space)
         else:
             self.kdbg = obj.NoneObject("Could not guess kdbg offset")
 
 
-class WinProcessFilter(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
+class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
     """A class for filtering processes."""
 
     __abstract = True
@@ -331,7 +293,7 @@ class WinProcessFilter(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
         # No filtering required:
         if not self.phys_eprocess and not self.pids:
             for eprocess in self.session.plugins.pslist(
-                session=self.session).list_eprocess():
+                session=self.session, kdbg=self.kdbg).list_eprocess():
                 yield eprocess
         else:
             # We need to filter by phys_eprocess
@@ -340,7 +302,7 @@ class WinProcessFilter(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
 
             # We need to filter by pids
             for eprocess in self.session.plugins.pslist(
-                session=self.session).list_eprocess():
+                session=self.session, kdbg=self.kdbg).list_eprocess():
                 if int(eprocess.UniqueProcessId) in self.pids:
                     yield eprocess
 

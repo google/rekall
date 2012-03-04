@@ -143,6 +143,7 @@ class BaseScanner(object):
             if (self.max_length != None):
                 self.max_length -= min(constants.SCAN_BLOCKSIZE, l)
 
+
 class DiscontigScanner(BaseScanner):
     def scan(self, address_space, offset = 0, maxlen = None):
         for (o, l) in address_space.get_available_addresses():
@@ -150,6 +151,7 @@ class DiscontigScanner(BaseScanner):
             if (o + l > offset) and ((maxlen == None) or (o < offset + maxlen)):
                 for match in BaseScanner.scan(self, address_space, o, l):
                     yield match
+
 
 class ScannerCheck(object):
     """ A scanner check is a special class which is invoked on an AS to check for a specific condition.

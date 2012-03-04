@@ -274,8 +274,8 @@ class Connections(common.AbstractWindowsCommandPlugin):
 
     def determine_connections(self):
         """Determines active connections in tcpip.sys"""        
-        version = (self.profile.metadata.get('major', 0), 
-                   self.profile.metadata.get('minor', 0))
+        version = (self.profile.metadata('major', 0), 
+                   self.profile.metadata('minor', 0))
 
         if version <= (5, 1):
             module_versions = module_versions_xp
@@ -346,8 +346,8 @@ class Sockets(common.AbstractWindowsCommandPlugin):
 
     def determine_sockets(self):
         """Determines all active sockets in tcpip.sys"""        
-        version = (self.profile.metadata.get('major', 0), 
-                   self.profile.metadata.get('minor', 0))
+        version = (self.profile.metadata('major', 0), 
+                   self.profile.metadata('minor', 0))
 
         if version <= (5, 1):
             module_versions = module_versions_xp

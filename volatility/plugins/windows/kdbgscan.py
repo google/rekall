@@ -18,17 +18,20 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
 
-import volatility.obj as obj
-import volatility.scan as scan
-import volatility.cache as cache
-import volatility.addrspace as addrspace
-import volatility.registry as registry
-import volatility.utils as utils
+
+from volatility import scan
+from volatility import plugin
 from volatility.plugins.windows import common
 
 
 class MultiStringFinderCheck(scan.ScannerCheck):
+    """A scanner checker for multiple strings."""
+
     def __init__(self, needles = None, **kwargs):
+        """
+        Args:
+          needles: A list of strings we search for.
+        """
         super(MultiStringFinderCheck, self).__init__(**kwargs)
         if not needles:
             needles = []
@@ -37,7 +40,8 @@ class MultiStringFinderCheck(scan.ScannerCheck):
         for needle in needles:
             self.maxlen = max(self.maxlen, len(needle))
         if not self.maxlen:
-            raise RuntimeError("No needles of any length were found for the MultiStringFinderCheck")
+            raise RuntimeError("No needles of any length were found for the "
+                               "MultiStringFinderCheck")
 
     def check(self, offset):
         verify = self.address_space.read(offset, self.maxlen)
@@ -54,73 +58,86 @@ class MultiStringFinderCheck(scan.ScannerCheck):
                 nextval = min(nextval, dindex)
         return nextval - offset
 
-class KDBGScanner(scan.DiscontigScanner):
-    checks = [ ]
 
-    def __init__(self, needles = None, **kwargs):
-        self.needles = needles
-        self.checks = [ ("MultiStringFinderCheck", {'needles':needles})]
-        super(KDBGScanner, self).__init__(**kwargs)
+class KDBGScanner(scan.DiscontigScanner):
+    """Scans for _KDDEBUGGER_DATA64 structures.
+
+    Note that this does not rely on signatures, as validity of hits is
+    calculated through list reflection.
+    """
+    checks = [ ("MultiStringFinderCheck", dict(needles=["KDBG"])) ]
 
     def scan(self, address_space, offset = 0, maxlen = None):
+        # How far into the struct the OwnerTag is.
+        owner_tag_offset = self.profile.get_obj_offset("_DBGKD_DEBUG_DATA_HEADER64",
+                                                       "OwnerTag")
+
+        # Depending on the memory model this behaves slightly differently.
+        memory_model = self.profile.metadata("memory_model", "32bit")
+
+        # This basical iterates over all hits on the string "KDBG".
         for offset in scan.DiscontigScanner.scan(self, address_space, offset, maxlen):
-            # Compensate for KDBG appearing within the searched for structure
-            # (0x10 should really be the offset of OwnerTag from with the structure,
-            #  however we don't know which profile to read it from, so it's hardwired)
-            # NOTE: this will not work correctly for _KDDEBUGGER_DATA32 structures
-            #       however they're only necessary for NT or older
-            val = address_space.read(offset, max([len(needle) for needle in self.needles]))
-            offset = offset + val.find('KDBG') - 0x10
-            yield offset
+            # For each hit we overlay a _DBGKD_DEBUG_DATA_HEADER64 on it and
+            # reflect through the "List" member.
+            result = self.profile.Object("_KDDEBUGGER_DATA64", 
+                                         offset=offset - owner_tag_offset,
+                                         vm=address_space)
 
-class KDBGScan(common.AbstractWindowsCommand):
-    """Search for and dump potential KDBG values"""
+            # We verify this hit by reflecting through its header list.
+            list_entry = result.Header.List
 
-    @cache.CacheDecorator(lambda self: "tests/kdbgscan/kdbg={0}".format(self._config.KDBG))
-    def calculate(self):
-        """Determines the address space"""
-        profilelist = [ p.__name__ for p in registry.PROFILES.classes ]
+            # On 32 bit systems the Header.List member seems to actually be a
+            # LIST_ENTRY32 instead of a LIST_ENTRY64, but it is still padded to
+            # take the same space:
+            if memory_model == "32bit":
+                list_entry = list_entry.cast("LIST_ENTRY32")
 
-        proflens = {}
-        maxlen = 0
-        origprofile = self._config.PROFILE
-        for p in profilelist:
-            self._config.update('PROFILE', p)
-            buf = addrspace.BufferAddressSpace(self._config)
-            proflens[p] = str(obj.VolMagic(buf).KDBGHeader)
-            maxlen = max(maxlen, len(proflens[p]))
-        self._config.update('PROFILE', origprofile)
+            if list_entry.reflect():
+                yield result
 
-        proflens.update({'WinXPSP0x64':'\x00\xf8\xff\xffKDBG\x90\x02',
-                         'Win7SP0x64':'\x00\xf8\xff\xffKDBG\x40\x03',
-                         'Win2003SP0x64':'\x00\xf8\xff\xffKDBG\x18\x03',
-                         'Win2008SP0x64':'\x00\xf8\xff\xffKDBG\x30\x03',
-                         'VistaSP0x64':'\x00\xf8\xff\xffKDBG\x28\x03'})
 
-        scanner = KDBGScanner(needles = proflens.values())
+class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
+    """A scanner for the kdbg structures."""
 
-        aspace = utils.load_as(self._config, astype = 'any')
+    __name = "kdbgscan"
 
-        for offset in scanner.scan(aspace):
-            val = aspace.read(offset, maxlen + 0x10)
-            for l in proflens:
-                if val.find(proflens[l]) >= 0:
-                    if hasattr(aspace, 'vtop'):
-                        yield l, aspace.vtop(offset), offset
-                    else:
-                        yield l, offset, None
+    def __init__(self, **kwargs):
+        """Scan for possible _KDDEBUGGER_DATA64 structures.
 
-        #XP = '\x90\x02'
-        #vista = '\x28\x03'
-        #win7 = '\x40\x03'
-        #w2k3 = '\x18\x03'
-        #w2k8 = '\x30\x03'
+        The scanner is detailed here:
+        http://moyix.blogspot.com/2008/04/finding-kernel-global-variables-in.html
 
-    def render_text(self, outfd, data):
-        """Renders the KPCR values as text"""
+        The relevant structures are detailed here:
+        http://doxygen.reactos.org/d3/ddf/include_2psdk_2wdbgexts_8h_source.html
 
-        outfd.write("Potential KDBG structure addresses (P = Physical, V = Virtual):\n")
-        for n, o, v in data:
-            if v is not None:
-                outfd.write(" _KDBG: V {1:#010x}  ({2})\n".format(o, v, n))
-            outfd.write(" _KDBG: P {0:#010x}  ({2})\n".format(o, v, n))
+        We can see that _KDDEBUGGER_DATA64.Header is:
+
+        typedef struct _DBGKD_DEBUG_DATA_HEADER64 {
+            LIST_ENTRY64    List;
+            ULONG           OwnerTag;
+            ULONG           Size;
+        }
+
+        We essentially search for an owner tag of "KDBG", then overlay the
+        _KDDEBUGGER_DATA64 struct on it. We test for validity by reflecting
+        through the Header.List member.
+        """
+        super(KDBGScan, self).__init__(**kwargs)
+
+    def hits(self):
+        scanner = scan.BaseScanner.classes['KDBGScanner'](profile=self.profile)
+
+        # Yield actual objects here
+        for kdbg in scanner.scan(self.kernel_address_space):
+            yield kdbg
+
+    def render(self, fd=None):
+        fd.write("Potential hits for kdbg strctures.\n")
+
+        fd.write("  Offset (V)         Offset (P)\n"
+                 "----------------  ----------------\n")
+
+        for hit in self.hits():
+            offset = hit.obj_offset
+            fd.write("{0:#016x}   {1:#016x}\n".format(
+                    offset, hit.obj_vm.vtop(offset)))

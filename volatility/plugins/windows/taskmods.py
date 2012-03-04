@@ -34,7 +34,7 @@ from volatility import plugin
 
 
 
-class WinPsList(common.KDBGMixin, common.WinProcessFilter):
+class WinPsList(common.WinProcessFilter):
     """List processes for windows."""
 
     __name = "pslist"
@@ -71,11 +71,10 @@ class WinPsList(common.KDBGMixin, common.WinProcessFilter):
     def list_eprocess_from_kdbg(self, kdbg):
         """List the eprocess using the kdbg method."""
         PsActiveList = kdbg.PsActiveProcessHead.dereference_as(
-            "_LIST_ENTRY", vm=self.kernel_address_space)
+            "_LIST_ENTRY")
 
-        if PsActiveList:
-            return iter(PsActiveList.list_of_type(
-                    "_EPROCESS", "ActiveProcessLinks"))
+        return iter(PsActiveList.list_of_type(
+                "_EPROCESS", "ActiveProcessLinks"))
 
     def list_eprocess_from_eprocess(self, eprocess_offset):
         eprocess = self.profile.Object(

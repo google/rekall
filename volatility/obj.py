@@ -261,7 +261,7 @@ class BaseObject(object):
     # Benefit is objects will never fail with duff parameters
     # Downside is typos won't show up and be difficult to diagnose
     def __init__(self, theType=None, offset=0, vm=None, profile = None,
-                 parent = None, name = None, **kwargs):
+                 parent = None, name = '', type_name=None, **kwargs):
         """Constructor for Base object.
 
         Args:
@@ -280,13 +280,17 @@ class BaseObject(object):
 
           name: The name of this object.
 
+          type_name: The name of this type. This name will override the class
+            name and could mean something more meaningful (e.g. NativeType is not
+            meaningful).
+
           kwargs: Arbitrary args this object may accept - these can be passed in
              the vtype language definition.
         """
         if kwargs:
             logging.error("Unknown keyword args {0}".format(kwargs))
 
-        self._vol_theType = theType
+        self._vol_theType = type_name or theType
         self._vol_offset = offset
         self._vol_vm = vm
         self._vol_parent = parent
@@ -378,6 +382,9 @@ class BaseObject(object):
         return self.v() == other or ((self.__class__ == other.__class__) and
                                      (self.obj_offset == other.obj_offset) and (self.obj_vm == other.obj_vm))
 
+    def __ne__(self, other):
+        return not self == other
+
     def __hash__(self):
         # This should include the critical components of self.obj_vm
         return hash(self.obj_name) ^ hash(self.obj_offset)
@@ -394,15 +401,12 @@ class BaseObject(object):
     def dereference_as(self, derefType, vm=None, **kwargs):
         vm = vm or self.obj_vm
 
-        if vm.is_valid_address(self.v()):
-            return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm, 
-                                           parent=self, **kwargs)
-        else:
-            return NoneObject("Invalid offset {0} for dereferencing {1} as {2}".format(
-                    self.v(), self.obj_name, derefType))
+        return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm, 
+                                       parent=self, name=self.obj_name, **kwargs)
 
-    def cast(self, castString):
-        return self.Object(castString, self.obj_offset, self.obj_vm)
+    def cast(self, castString, **kwargs):
+        return self.obj_profile.Object(theType=castString, offset=self.obj_offset,
+                                       vm=self.obj_vm, **kwargs)
 
     def v(self):
         """ Do the actual reading and decoding of this member
@@ -416,7 +420,7 @@ class BaseObject(object):
         return str(self.v())
 
     def __repr__(self):
-        return "[{0} {1}] @ 0x{2:08X}".format(self.__class__.__name__, self.obj_name or '',
+        return "[{0} {1}] @ 0x{2:08X}".format(self.__class__.__name__, self.obj_name,
                                               self.obj_offset)
 
     def d(self):
@@ -837,8 +841,8 @@ class CType(BaseObject):
         return self.struct_size
 
     def __repr__(self):
-        return "[{0} {1}] @ 0x{2:08X}".format(self.__class__.__name__, self.obj_name or '',
-                                     self.obj_offset)
+        return "[{0} {1}] @ 0x{2:08X}".format(self.obj_type, self.obj_name or '',
+                                              self.obj_offset)
     def d(self):
         result = self.__repr__() + "\n"
         for k in self.members.keys():
@@ -1017,14 +1021,11 @@ class Profile(object):
         self.strict = strict
         self.overlays = []
 
-    @classproperty
-    def metadata(cls):
+    @classmethod
+    def metadata(cls, name, default=None):
+        """Obtain metadata about this profile."""
         prefix = '_md_'
-        result = {}
-        for i in dir(cls):
-            if i.startswith(prefix):
-                result[i[len(prefix):]] = getattr(cls, i)
-        return result
+        return getattr(cls, prefix + name, default)
 
     @staticmethod
     def register_options(config):
@@ -1109,7 +1110,8 @@ class Profile(object):
 
             if type(kwargs) == dict:
                 ## We have a list of the form [ ClassName, dict(.. args ..) ]
-                return Curry(self.Object, theType = typeList[0], name = name, **kwargs)
+                return Curry(self.Object, theType = typeList[0], name = name,
+                             type_name = name, **kwargs)
         except (TypeError, IndexError), _e:
             pass
 
