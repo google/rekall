@@ -156,14 +156,13 @@ class LoadAddressSpace(plugin.Command):
             logging.error("Could not create address space: %s" % e)
 
 
-    def GuessAddressSpace(self, astype = 'physical', **kwargs):
+    def GuessAddressSpace(self, session=None, astype = 'physical', **kwargs):
         """Loads an address space by stacking valid ASes on top of each other
         (priority order first).        
         """
         logging.debug("Guess %s address space", astype)
 
         base_as = obj.NoneObject("Address space not found.")
-
         error = addrspace.AddrSpaceError()
         while 1:
             logging.debug("Voting round")
@@ -171,7 +170,8 @@ class LoadAddressSpace(plugin.Command):
             for cls in addrspace.BaseAddressSpace.classes.values():
                 logging.debug("Trying %s ", cls)
                 try:
-                    base_as = cls(base_as, self.session, astype=astype, **kwargs)
+                    base_as = cls(base=base_as, session=self.session,
+                                  astype=astype, **kwargs)
                     logging.debug("Succeeded instantiating %s", base_as)
                     found = True
                     break
@@ -190,7 +190,7 @@ class LoadAddressSpace(plugin.Command):
                 break
 
         # Virtual AS's must have a dtb:
-        if astype == 'virtual' and not getattr(base_as, "dtb", None):
+        if astype == 'virtual' and getattr(base_as, "dtb", None) is None:
             base_as = None
 
         if base_as:

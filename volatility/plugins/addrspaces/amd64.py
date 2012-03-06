@@ -49,15 +49,15 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     pae = True
     paging_address_space = True
 
-    def __init__(self, *args, **kwargs):
-        super(AMD64PagedMemory, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(AMD64PagedMemory, self).__init__(**kwargs)
 
         # FIXME: This makes the AS dependent upon the profile in use
         # Code to determine whether the profile is valid or not should 
         # go into the 'AMD64ValidAS' VolatilityMagic variable and return False if necessary.
 
         # Make sure that we only support 64 bit profiles here.
-        if self._config.profile.metadata('memory_model', '32bit') != "64bit":
+        if self.session.profile.metadata('memory_model', '32bit') != "64bit":
             raise RuntimeError("Only supporting 64 memory models.")
 
     def pml4e_index(self, vaddr):

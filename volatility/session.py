@@ -31,7 +31,6 @@ import sys
 import time
 
 from volatility import addrspace
-from volatility import conf
 from volatility import plugin
 from volatility import obj
 
@@ -39,17 +38,20 @@ from volatility import obj
 class PluginContainer(object):
     """A container for holding plugins."""
 
-    def __init__(self, config):
+    def __init__(self, session):
         self.plugins = {}
-        self.config = config
+        self.session = session
 
-        # Now add the commands that are available based on self.config
-        for command_cls in plugin.Command.GetActiveClasses(self.config):
+        # Now add the commands that are available based on self.session
+        for command_cls in plugin.Command.GetActiveClasses(self.session):
             if command_cls.name:
                 self.plugins[command_cls.name] = command_cls
 
         logging.debug("Reloading active plugins %s", 
                       ["%s <- %s" % (x, y.__name__) for x,y in self.plugins.items()])
+
+    def reset(self):
+        self.__init__(self.session)
 
     def __dir__(self):
         """Support ipython command expansion."""
@@ -104,33 +106,32 @@ class Session(object):
     """The session allows for storing of arbitrary values and configuration."""
 
     # This is used for setattr in __init__.
-    ready = False
+    _ready = False
 
-    def __init__(self):
+    def __init__(self, env=None):
         # These are the command plugins which we exported to the local
         # namespace.
-        self.start_time = time.time()
+        self._start_time = time.time()
+        self._locals = env or {}
+        self.plugins = PluginContainer(self)
+        self._ready = True
 
-        # Our global config object.
-        self.config = conf.ConfObject()
-        self.prepare_local_namespace()
-        self.fd = sys.stdout
+    def reset(self):
+        """Reset the current session by making a new session."""
+        self._prepare_local_namespace()
 
-        self.ready = True
-
-    def prepare_local_namespace(self):
-        self.plugins = PluginContainer(self.config)
-        # These are the local variables and methods.
-        self.locals = dict(session=self, plugins=self.plugins, hh=self.help)
-                           
+    def _prepare_local_namespace(self):
+        session = self._locals['session'] = Session(self._locals)
 
         # Prepopulate the namespace with our most important modules.
-        self.locals['addrspace'] = addrspace
-        self.locals['obj'] = obj
+        self._locals['addrspace'] = addrspace
+        self._locals['obj'] = obj
+        self._locals['plugins'] = session.plugins
 
         # The handler for the vol command.
-        self.locals['vol'] = self.vol
-        self.locals['info'] = self.info
+        self._locals['vol'] = session.vol
+        self._locals['info'] = session.info
+        self._locals['help'] = session.help
 
     def info(self, plugin_cls=None, fd=None):
         self.vol(self.plugins.info, item=plugin_cls, fd=fd)
@@ -165,55 +166,59 @@ class Session(object):
             else:
                 raise
 
-
-    def __repr__(self):
-        return str(self)
-
     def __str__(self):
-        return """Volatility session Started on %s.
+        result = """Volatility session Started on %s.
 
 Config:
-%s
-""" % (time.ctime(self.start_time), self.config)
+""" % (time.ctime(self.start_time))
+        for name in dir(self):
+            value = getattr(self, name)
+            result += " %s:  %r\n" % (name, value)
+
+        return result
 
     def __setattr__(self, attr, value):
         """Allow the user to set configuration information directly."""
-        if self.ready:
-            # Allow for hooks to override special options.
-            hook = getattr(self, "set_%s" % attr)
-            if hook:
-                hook(value)
-            else:
-                setattr(self.config, attr, value)
-
-            # This may affect which plugins are available for the user.
-            plugins = PluginContainer(self.config)
-            self.locals['plugins'] = plugins
-            object.__setattr__(self, 'plugins', plugins)
+        # Allow for hooks to override special options.
+        hook = getattr(self, "_set_%s" % attr, None)
+        if hook:
+            hook(value)
         else:
             object.__setattr__(self, attr, value)
 
+        # This may affect which plugins are available for the user.
+        if self.plugins:
+            self.plugins.reset()
+
     def __getattr__(self, attr):
-        return getattr(self.config, attr)
+        """This will only get called if the attribute does not exist."""
+        return None
 
     def __dir__(self):
-        return dir(self.config)
+        items = self.__dict__.keys() + dir(self.__class__)
 
-    def set_profile(self, name):
+        return [x for x in items if not x.startswith("_")]
+
+    def _set_profile(self, profile):
         """A Hook for setting profiles."""
-        # First try to find this profile.
-        try:
-            profile = obj.Profile.classes[name]
-        except KeyError:
-            logging.error("Profile %s is not known." % name)
-            logging.info("Known profiles are:")
+        # Profile is a string - we try to make a profile object.
+        if isinstance(profile, basestring):
+            # First try to find this profile.
+            try:
+                profile = obj.Profile.classes[profile]()
+            except KeyError:
+                logging.error("Profile %s is not known." % name)
+                logging.info("Known profiles are:")
+            
+                for name in obj.Profile.classes:
+                    logging.info("  %s" % name)
 
-            for name in obj.Profile.classes:
-                logging.info("  %s" % name)
-
-            return
-
-        self.config.profile = profile()
+                return
+        if isinstance(profile, obj.Profile):
+            self.__dict__['profile'] = profile
+            self.plugins.reset()
+        else:
+            raise RuntimeError("A profile must be a string.")
 
     def help(self, item=None):
         """Prints some helpful information."""

@@ -43,9 +43,6 @@ from volatility import debug
 from volatility import registry
 
 
-config = conf.ConfFactory()
-
-
 class classproperty(property):
     """A property that can be called on classes."""
     def __get__(self, cls, owner):
@@ -186,6 +183,7 @@ class NoneObject(object):
         return 0
 
     def __format__(self, formatspec):
+        formatspec = formatspec.lower().replace("x", "s")
         spec = FormatSpec(string = formatspec, fill = "-", align = ">")
         return format('-', str(spec))
 
@@ -396,7 +394,7 @@ class BaseObject(object):
         return self.obj_vm.is_valid_address(self.obj_offset)
 
     def dereference(self):
-        return NoneObject("Can't dereference {0}".format(self.obj_name), self.obj_profile.strict)
+        return NoneObject("Can't dereference {0}".format(self.obj_name), self.obj_profile)
 
     def dereference_as(self, derefType, vm=None, **kwargs):
         vm = vm or self.obj_vm
@@ -411,7 +409,7 @@ class BaseObject(object):
     def v(self):
         """ Do the actual reading and decoding of this member
         """
-        return NoneObject("No value for {0}".format(self.obj_name), self.obj_profile.strict)
+        return NoneObject("No value for {0}".format(self.obj_name), self.obj_profile)
 
     def __format__(self, formatspec):
         return format(self.v(), formatspec)
@@ -465,6 +463,13 @@ class BaseObject(object):
         ## but must update the current object instead. I'm sure ikelos
         ## will object!!! I am open to suggestions ...
         self.__dict__ = new_object.__dict__
+
+    def __dir__(self):
+        """Hide any members with _."""
+        result = self.__dict__.keys() + dir(self.__class__)
+
+        return result
+
 
 def CreateMixIn(mixin):
     def make_method(name):
@@ -623,11 +628,10 @@ class Pointer(NativeType):
                                  name = self.obj_name)
             return result
         else:
-            return NoneObject("Pointer {0} invalid".format(self.obj_name),
-                              self.obj_profile.strict)
+            return NoneObject("Pointer {0} invalid".format(self.obj_name))
 
     def __dir__(self):
-        return dir(self.dereference()) + self.__dict__.keys()
+        return dir(self.dereference())
 
     def cdecl(self):
         return "Pointer {0}".format(self.v())
@@ -892,7 +896,9 @@ class CType(BaseObject):
 
     def __dir__(self):
         """This is useful for tab completion in an ipython volshell."""
-        return self.members.keys() + self.__dict__.keys()
+        result = self.members.keys() + super(CType, self).__dir__()
+
+        return result
 
     def __setattr__(self, attr, value):
         """Change underlying members"""
@@ -999,15 +1005,6 @@ class Profile(object):
     # This flag indicates if the profile needs to be recompiled on demand.
     _ready = False
     
-    # We initially populate this with objects in this module that will be used everywhere
-    object_classes = {'BitField': BitField,
-                      'Pointer': Pointer,
-                      'Void': Void,
-                      'Array': Array,
-                      'NativeType': NativeType,
-                      'CType': CType,
-                      'VolatilityMagic': VolatilityMagic}
-
     # This is the base class for all profiles.
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
@@ -1015,21 +1012,26 @@ class Profile(object):
     # This is a dict of constants
     constants = None
 
-    def __init__(self, strict = False, config = None):
+    def __init__(self):
         self.overlayDict = {}
-        self._config = config
-        self.strict = strict
         self.overlays = []
+        self.vtypes = {}
+        self.constants = {}
+
+        # We initially populate this with objects in this module that will be used everywhere
+        self.object_classes = {'BitField': BitField,
+                               'Pointer': Pointer,
+                               'Void': Void,
+                               'Array': Array,
+                               'NativeType': NativeType,
+                               'CType': CType,
+                               'VolatilityMagic': VolatilityMagic}
 
     @classmethod
     def metadata(cls, name, default=None):
         """Obtain metadata about this profile."""
         prefix = '_md_'
         return getattr(cls, prefix + name, default)
-
-    @staticmethod
-    def register_options(config):
-        """Registers options into a config object provided"""
 
     def has_type(self, theType):
         return theType in self.object_classes or theType in self.types
@@ -1041,14 +1043,11 @@ class Profile(object):
 
     def add_constants(self, **kwargs):
         """Add the kwargs as constants for this profile."""
-        self.constants = self.constants or {}
         self.constants.update(kwargs)
 
-    def add_types(self, abstract_types, overlay = None):
+    def add_types(self, abstract_types):
         self._ready = False
-        self.vtypes = self.vtypes or {}
-
-        overlay = overlay or {}
+        abstract_types = copy.deepcopy(abstract_types)
 
         ## we merge the abstract_types with self.vtypes and then recompile
         ## the whole thing again. This is essential because
@@ -1065,19 +1064,6 @@ class Profile(object):
                     original[0] = v[0]
 
                 self.vtypes[k] = original
-
-        for k, v in overlay.items():
-            # Allow the overlay to add new types.
-            if k not in self.vtypes:
-                self.vtypes[k] = [0, {}]
-
-            original = self.overlayDict.get(k, [None, {}])
-            original[1].update(v[1])
-            if v[0]:
-                original[0] = v[0]
-
-            self.overlayDict[k] = original
-
 
     def compile(self):
         """ Compiles the vtypes, overlays, object_classes, etc into a types dictionary."""
@@ -1195,8 +1181,7 @@ class Profile(object):
     def add_overlay(self, overlay):
         """Add an overlay to the current overlay stack."""
         self._ready = False
-
-        self.overlays.append(overlay)
+        self.overlays.append(copy.deepcopy(overlay))
 
     def _merge_overlay(self, overlay):
         """Applies an overlay to the profile's vtypes"""
@@ -1308,8 +1293,8 @@ class Profile(object):
 
         except InvalidOffsetError, e:
             ## If we cant instantiate the object here, we just error out:
-            return NoneObject("Invalid Address 0x{0:08X}, instantiating {1}".format(offset, name),
-                              strict = self.strict)
+            return NoneObject("Invalid Address 0x{0:08X}, instantiating {1}".format(
+                    offset, name))
 
         ## If we get here we have no idea what the type is supposed to be?
         ## This is a serious error.

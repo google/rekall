@@ -37,7 +37,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
 
     For this AS to be instantiated, we need
 
-    1) A valid config.FILENAME
+    1) A valid config.filename
 
     2) no one else has picked the AS before us
     
@@ -49,39 +49,25 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
 
     ## We should be the AS of last resort
     order = 100
-    def __init__(self, base=None, config=None, filename=None, write=None, astype=None,
-                 **kwargs):
-        super(FileAddressSpace, self).__init__(base=base, config=config, astype=astype,
-                                               **kwargs)
+    def __init__(self, filename=None, **kwargs):
+        super(FileAddressSpace, self).__init__(**kwargs)
 
-        self.as_assert(base == None, 'Must be first Address Space')
+        self.as_assert(self.base == None, 'Must be first Address Space')
 
-        # Allow for this class to be instantiated directly.
-        if config is None:
-            config = conf.ConfObject(filename=filename, write=write)
-
-        path = config.FILENAME
+        path = self.session.filename or filename
         self.as_assert(path, "Filename must be specified in session (e.g. "
                        "session.filename = 'MyFile.raw').")
 
         self.name = os.path.abspath(path)
         self.fname = self.name
         self.mode = 'rb'
-        if config.WRITE:
+        if self.writeable:
             self.mode += '+'
 
         self.fhandle = open(self.fname, self.mode)
         self.fhandle.seek(0, 2)
         self.fsize = self.fhandle.tell()
         self.offset = 0
-
-    @classmethod
-    def register_options(cls, config):
-        config.add_option("FILENAME", default = None, short_option = 'f',
-                          help = "A file path from which to load an address space")
-
-        config.add_option("WRITE", short_option = 'w', action = "callback", default = False,
-                          help = "Enable write support", callback = write_callback)
 
     def fread(self, length):
         return self.fhandle.read(length)
@@ -112,18 +98,21 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
         self.fhandle.close()
 
     def write(self, addr, data):
-        if not self._config.WRITE:
+        if not self.writeable:
             return False
+
         try:
             self.fhandle.seek(addr)
             self.fhandle.write(data)
         except IOError:
             return False
+
         return True
 
     def __eq__(self, other):
-        return self.__class__ == other.__class__ and self.base == other.base and self.fname == other.fname
-
+        return (self.__class__ == other.__class__ and 
+                self.base == other.base and 
+                self.fname == other.fname)
 
 
 class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
@@ -131,10 +120,7 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
         
     Note: Pages can be of any size
     """
-    def __init__(self, base, config, *args, **kwargs):
-        self.as_assert(self.__class__.__name__ != 'AbstractPagedMemory',
-                       "Abstract Class - Never for instantiation directly")
-        addrspace.AbstractVirtualAddressSpace.__init__(self, base, config, *args, **kwargs)
+    __abstract = True
 
     def vtop(self, addr):
         """Abstract function that converts virtual (paged) addresses to physical addresses"""
@@ -182,13 +168,11 @@ class AbstractWritablePagedMemory(AbstractPagedMemory):
     to any standard address space that supports write() and
     vtop().
     """
-    def __init__(self, base, config, *args, **kwargs):
-        self.as_assert(self.__class__.__name__ != 'AbstractWritablePagedMemory',
-                       "Abstract Class - Never for instantiation directly")
-        AbstractPagedMemory.__init__(self, base, config, *args, **kwargs)
+
+    __abstract = True
 
     def write(self, vaddr, buf):
-        if not self._config.WRITE:
+        if not self.writeable:
             return False
 
         length = len(buf)
@@ -224,7 +208,7 @@ class AbstractWritablePagedMemory(AbstractPagedMemory):
             return self.base.write(paddr, buf)
 
     def write_long_phys(self, addr, val):
-        if not self._config.WRITE:
+        if not self.writeable:
             return False
         buf = struct.pack('=I', val)
         return self.base.write(addr, buf)

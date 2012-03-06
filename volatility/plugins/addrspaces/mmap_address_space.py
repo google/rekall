@@ -21,11 +21,11 @@
 
 """ These are standard address spaces supported by Volatility """
 import struct
-import volatility.addrspace as addrspace
-import volatility.debug as debug #pylint: disable-msg=W0611
-import urllib
 import os
 import mmap
+
+from volatility import addrspace
+
 
 class MmapFileAddressSpace(addrspace.BaseAddressSpace):
     """ This is an AS which uses an mmap of a file.
@@ -42,20 +42,20 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
     ## We should be the AS of last resort but before the FileAddressSpace
     order = 90
 
-    def __init__(self, base, config, layered = False, **kwargs):
-        addrspace.BaseAddressSpace.__init__(self, base, config, **kwargs)
-        self.as_assert(base == None or layered, 'Must be first Address Space')
-        self.as_assert(config.LOCATION.startswith("file://"),
-                       'Location is not of file scheme')
+    def __init__(self, filename=None, **kwargs):
+        super(MmapFileAddressSpace, self).__init__(**kwargs)
 
-        path = urllib.url2pathname(config.LOCATION[7:])
+        self.as_assert(self.base == None , 'Must be first Address Space')
+
+        path = self.session.filename or filename
         self.as_assert(os.path.exists(path), 
                        'Filename must be specified and exist')
-        self.name = os.path.abspath(path)
-        self.fname = self.name
+
+        self.fname = self.name = os.path.abspath(path)
         self.mode = 'rb'
-        if config.WRITE:
+        if self.writeable:
             self.mode += '+'
+
         self.fhandle = open(self.fname, self.mode)
         self.fhandle.seek(0, 2)
         self.fsize = self.fhandle.tell()
@@ -66,13 +66,6 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
         # 32 bit systems by segmenting into several smallish maps.
         self.map = mmap.mmap(self.fhandle.fileno(), self.fsize,
                              access=mmap.ACCESS_READ)
-
-    # Abstract Classes cannot register options, and since this checks
-    # config.WRITE in __init__, we define the option here
-    @staticmethod
-    def register_options(config):
-        config.add_option("WRITE", short_option = 'w', action = "store_true",
-                          default = False, help = "Enable write support")
 
     def read(self, addr, length):
         return self.map[addr:addr+length]
@@ -94,12 +87,14 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
         self.fhandle.close()
 
     def write(self, addr, data):
-        if not self._config.WRITE:
+        if not self.writeable:
             return False
+
         try:
             self.map[addr:addr+len(data)] = data
         except IOError:
             return False
+
         return True
 
     def __eq__(self, other):

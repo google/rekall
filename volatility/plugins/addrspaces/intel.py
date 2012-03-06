@@ -30,8 +30,9 @@ from volatility import conf
 from volatility import obj
 
 
-# WritablePagedMemory must be BEFORE base address, since it adds the concrete method get_available_addresses
-# If it's second, BaseAddressSpace's abstract version will take priority
+# WritablePagedMemory must be BEFORE base address, since it adds the concrete
+# method get_available_addresses If it's second, BaseAddressSpace's abstract
+# version will take priority
 class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddressSpace):
     """ Standard x86 32 bit non PAE address space.
     
@@ -57,55 +58,47 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddres
     order = 70
     pae = False
     paging_address_space = True
-    checkname = 'IA32ValidAS'
 
-    def __init__(self, base=None, config=None, name=None, dtb = None, **kwargs):
+    def __init__(self, name=None, dtb = None, **kwargs):
         """Instantiate an Intel 32 bit Address space over the layered AS.
 
         Args:
           dtb: The dtb address.
         """
-        super(IA32PagedMemory, self).__init__(base=base, config=config, **kwargs)
+        super(IA32PagedMemory, self).__init__(**kwargs)
 
         ## We must be stacked on someone else:
-        self.as_assert(base, "No base Address Space")
-        self.as_assert(kwargs.get('astype') == 'virtual',
-                       "Can only create a virtual AS.")
+        self.as_assert(self.base, "No base Address Space")
 
-        # Allow for this class to be instantiated directly.
-        if config is None:
-            config = conf.ConfObject(dtb = dtb)
+        self.as_assert(self.astype == 'virtual',
+                       "Can only create a virtual AS.")
 
         ## We can not stack on someone with a dtb
         try:
-            self.as_assert(not base.paging_address_space,
+            self.as_assert(not self.base.paging_address_space,
                            "Can not stack over another paging address space")
         except AttributeError:
             pass
 
         # Allow the dtb to be specified in the session.
-        self.dtb = dtb or config.dtb
+        self.dtb = dtb or self.session.dtb
         if self.dtb is None:
             logging.debug("DTB is not specified, about to search for it.")
-            find_dtb = config.plugins.find_dtb(session=config)
+            find_dtb = self.session.plugins.find_dtb(session=self.session)
             for dtb in find_dtb.dtb_hits():
                 # Found it!
                 logging.debug("A DTB value is found, hope its right. "
                               "If not, set it manualy using plugin.find_dtb.")
-                self.dtb = config.dtb = dtb
+                self.dtb = dtb
 
                 # Ask the find_dtb plugin to make sure this dtb works with us.
                 find_dtb.verify_address_space(self)
+                self.session.dtb = dtb
                 break
 
         self.as_assert(self.dtb != None, "No valid DTB specified. Try the find_dtb"
                        " plugin to search for the dtb.")
         self.name = name or 'Kernel AS'
-
-    @staticmethod
-    def register_options(config):
-        config.add_option("DTB", type = 'int', default = 0,
-                          help = "DTB Address")
 
     def entry_present(self, entry):
         '''

@@ -57,6 +57,8 @@ class WinXPSP2x86(windows.BaseWindowsProfile, basic.Profile32Bits):
     _md_minor = 1
 
     def __init__(self, **kwargs):
+        super(WinXPSP2x86, self).__init__(**kwargs)
+
         self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02',
                            PoolAlignment = 8,
                            )
@@ -66,8 +68,6 @@ class WinXPSP2x86(windows.BaseWindowsProfile, basic.Profile32Bits):
 
         self.add_types(xp_sp2_x86_vtypes.nt_types)
 
-        super(WinXPSP2x86, self).__init__(**kwargs)
-
 
 class WinXPSP3x86(windows.BaseWindowsProfile, basic.Profile32Bits):
     """ A Profile for Windows XP SP3 x86 """
@@ -75,6 +75,8 @@ class WinXPSP3x86(windows.BaseWindowsProfile, basic.Profile32Bits):
     _md_minor = 1
 
     def __init__(self, **kwargs):
+        super(WinXPSP3x86, self).__init__(**kwargs)
+
         self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02',
                            PoolAlignment = 8,
                            )
@@ -83,7 +85,3 @@ class WinXPSP3x86(windows.BaseWindowsProfile, basic.Profile32Bits):
         from volatility.plugins.overlays.windows import xp_sp3_x86_vtypes
 
         self.add_types(xp_sp3_x86_vtypes.nt_types)
-
-        super(WinXPSP3x86, self).__init__(**kwargs)
-
-

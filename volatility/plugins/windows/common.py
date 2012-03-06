@@ -76,8 +76,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
     # We scan this many bytes at once
     SCAN_BLOCKSIZE = 1024 * 1024
 
-    def __init__(self, process_name = "Idle", physical_address_space = None,
-                 profile = None, **kwargs):
+    def __init__(self, process_name = "Idle", **kwargs):
         """Scans the image for the Idle process.
 
         Args:
@@ -124,7 +123,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
     def dtb_hits(self):
         for x in self.scan_for_process():
-            yield x.Pcb.DirectoryTableBase.v()
+            result = x.Pcb.DirectoryTableBase.v()
+            yield result
 
     def verify_address_space(self, address_space):
         """Check the eprocess for sanity."""
@@ -235,7 +235,7 @@ class KDBGMixin(plugin.KernelASMixin):
         if self.kdbg is None:
             logging.info("KDBG not provided - Volatility will try to "
                          "automatically scan for it now using plugin.kdbgscan.")
-            for kdbg in self.session.plugins.kdbgscan().hits():
+            for kdbg in self.session.plugins.kdbgscan(session=self.session).hits():
                 # Just return the first one
                 logging.info("Found a KDBG hit %r. Hope it works. If not try "
                              "setting it manually.", kdbg)

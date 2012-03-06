@@ -57,7 +57,7 @@ class BaseScanner(object):
            window_size: The size of the overlap window between each buffer read.
         """
         # Make a temporary buffer address space to run the checkers on.
-        self.buffer = addrspace.BufferAddressSpace(conf.DummyConfig(), data = '\x00' * 1024)
+        self.buffer = addrspace.BufferAddressSpace(data = '\x00' * 1024)
         self.window_size = window_size
         self.constraints = []
         self.profile = profile

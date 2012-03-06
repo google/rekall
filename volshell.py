@@ -392,11 +392,21 @@ if __name__ == '__main__':
     conf.GLOBAL_SESSION = user_session = session.Session()
 
     # Break into shell - Use the session's locals.
-    banner = "Welcome to volshell! \nTo get help, type 'hh()'"
+    banner = "Welcome to volshell! \nTo get help, type 'help()'"
     try:
+        from IPython import genutils
         from IPython import Shell
-        shell = Shell.IPShell(argv=[], user_ns=user_session.locals).mainloop(banner=banner)
 
+        # Fix a bug in IPython which prevents a custom __dir__ handler by
+        # polluting it with additional crap.
+        genutils.dir2 = dir
+
+        shell = Shell.IPShellEmbed(argv=[], user_ns=user_session._locals, banner=banner)
+
+        # This must be run here because the IPython shell messes with our user
+        # namespace above (by adding its own help function).
+        user_session._prepare_local_namespace()
+        shell(local_ns=user_session._locals)
     except ImportError:
         import code, inspect
 
@@ -409,4 +419,4 @@ if __name__ == '__main__':
         except ImportError:
             pass
 
-        code.interact(banner = banner, local = user_session.locals)
+        code.interact(banner = banner, local = user_session._locals)
