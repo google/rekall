@@ -141,7 +141,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
     def render(self, fd = None):
         fd.write("_EPROCESS (P)   DTB\n")
-        for eprocess in self.generate_suggestions():
+        for eprocess in self.scan_for_process():
             dtb = eprocess.Pcb.DirectoryTableBase.v()
                     
             fd.write("{0:#010x}  {1:#010x}\n".format(eprocess.obj_offset, dtb))

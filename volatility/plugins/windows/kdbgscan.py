@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
-
+import logging
 
 from volatility import scan
 from volatility import plugin
@@ -93,6 +93,9 @@ class KDBGScanner(scan.DiscontigScanner):
                 list_entry = list_entry.cast("LIST_ENTRY32")
 
             if list_entry.reflect():
+                yield result
+            elif list_entry.Flink == list_entry.Blink and not list_entry.Flink.dereference():
+                logging.debug("KDBG list_head is not mapped, assuming its valid.")
                 yield result
 
 

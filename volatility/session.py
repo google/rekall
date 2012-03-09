@@ -123,6 +123,10 @@ class Session(object):
     def _prepare_local_namespace(self):
         session = self._locals['session'] = Session(self._locals)
 
+        # Fill the session with helpful defaults.
+        session.__dict__['logging'] = self.logging or "INFO"
+        session.pager = obj.NoneObject("Set this to your favourite pager.")
+
         # Prepopulate the namespace with our most important modules.
         self._locals['addrspace'] = addrspace
         self._locals['obj'] = obj
@@ -219,6 +223,16 @@ Config:
             self.plugins.reset()
         else:
             raise RuntimeError("A profile must be a string.")
+
+    def _set_logging(self, value):
+        if value is None: return
+
+        level = value
+        if isinstance(value, basestring):
+            level = getattr(logging, value, logging.INFO)
+
+        logging.log(level, "Logging level set to %s", value)
+        logging.getLogger().setLevel(int(level))
 
     def help(self, item=None):
         """Prints some helpful information."""

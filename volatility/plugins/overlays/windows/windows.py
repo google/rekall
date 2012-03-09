@@ -245,7 +245,10 @@ class _LIST_ENTRY(obj.CType):
         """
         result1 = self.Flink.dereference_as(self.obj_type).Blink.dereference_as(
             self.obj_type)
-        
+
+        if not result1:
+            return obj.NoneObject("Flink not valid.")
+
         result2 = self.Blink.dereference_as(self.obj_type).Flink.dereference_as(
             self.obj_type)
 

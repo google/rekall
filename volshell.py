@@ -385,7 +385,7 @@ class volshell(object):
                 print doc
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     # New user session. TODO(scudette): Implement some kind of parameter parsing
     # here.
