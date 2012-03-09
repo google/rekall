@@ -28,9 +28,8 @@
 
 import volatility.scan as scan
 from volatility.plugins.windows import common
-import volatility.debug as debug #pylint: disable-msg=W0611
-import volatility.utils as utils
-import volatility.obj as obj
+from volatility import utils
+
 
 class PoolScanFile(scan.PoolScanner):
     """PoolScanner for File objects"""
@@ -43,7 +42,8 @@ class PoolScanFile(scan.PoolScanner):
                ('CheckPoolIndex', dict(value = 0)),
                ]
 
-class FileScan(common.AbstractWindowsCommand):
+
+class FileScan(common.PoolScannerPlugin):
     """ Scan Physical memory for _FILE_OBJECT pool allocations
     """
     # Declare meta information associated with this plugin
@@ -56,67 +56,62 @@ class FileScan(common.AbstractWindowsCommand):
     meta_info['os'] = 'WIN_32_XP_SP2'
     meta_info['version'] = '0.1'
 
-    def __init__(self, config, *args):
-        common.AbstractWindowsCommand.__init__(self, config, *args)
-        self.kernel_address_space = None
+    __name = "filescan"
 
-    def get_rounded_size(self, object_name, pool_align):
+    def __init__(self, **kwargs):
+        """Scan memory for _FILE_OBJECT pool allocations."""
+        super(FileScan, self).__init__(**kwargs)
+        self.pool_align = self.profile.constants['PoolAlignment']
+
+    def get_rounded_size(self, object_name):
         """Returns the size of the object accounting for pool alignment."""
-        size_of_obj = self.kernel_address_space.profile.get_obj_size(object_name)
+        size_of_obj = self.profile.get_obj_size(object_name)
 
         # Size is rounded to pool alignment
-        extra = size_of_obj % pool_align
+        extra = size_of_obj % self.pool_align
         if extra:
-            size_of_obj += pool_align - extra
+            size_of_obj += self.pool_align - extra
 
         return size_of_obj
 
-    # Can't be cached until self.kernel_address_space is moved entirely within calculate
-    def calculate(self):
+    def generate_hits(self):
         """Generate possible hits."""
-        ## Just grab the AS and scan it using our scanner
-        address_space = utils.load_as(self._config, astype = 'physical')
+        address_space = self.physical_address_space
 
-        ## Will need the kernel AS for later:
-        self.kernel_address_space = utils.load_as(self._config)
-
-        for offset in PoolScanFile().scan(address_space):
-
-            pool_obj = obj.Object("_POOL_HEADER", vm = address_space,
-                                 offset = offset)
+        for offset in PoolScanFile(profile=self.profile).scan(address_space):
+            pool_obj = self.profile.Object("_POOL_HEADER", vm=address_space,
+                                           offset=offset)
 
             ## We work out the _FILE_OBJECT from the end of the
             ## allocation (bottom up).
-            pool_align = obj.VolMagic(address_space).PoolAlignment.v()
-
-            file_obj = obj.Object(
-                "_FILE_OBJECT", vm = address_space, native_vm = self.kernel_address_space,
-                offset = (offset + pool_obj.BlockSize * pool_align -
-                          self.get_rounded_size("_FILE_OBJECT", pool_align))
-                     )
-
-            ## The _OBJECT_HEADER is immediately below the _FILE_OBJECT
-            object_obj = obj.Object(
-                "_OBJECT_HEADER", vm = address_space, native_vm = self.kernel_address_space,
-                offset = (file_obj.obj_offset -
-                          address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body'))
+            file_obj = self.profile.Object(
+                "_FILE_OBJECT", vm=address_space, offset = (
+                    offset + pool_obj.BlockSize * self.pool_align -
+                    self.get_rounded_size("_FILE_OBJECT"))
                 )
 
-            if object_obj.get_object_type() != "File":
+            ## The _OBJECT_HEADER is immediately below the _FILE_OBJECT
+            object_obj = self.profile.Object(
+                "_OBJECT_HEADER", vm=address_space, offset=(
+                    file_obj.obj_offset - self.profile.get_obj_offset(
+                        '_OBJECT_HEADER', 'Body'))
+                )
+
+            if object_obj.get_object_type(self.kernel_address_space) != "File":
                 continue
 
             ## If the string is not reachable we skip it
-            if not file_obj.FileName.v():
+            if not file_obj.FileName.v(vm=self.kernel_address_space):
                 continue
 
             yield (object_obj, file_obj)
 
-    def render_text(self, outfd, data):
+    def render(self, outfd):
         """Print the output in a table."""
         outfd.write("{0:10} {1:4} {2:4} {3:6} {4}\n".format(
                      'Offset(P)', '#Ptr', '#Hnd', 'Access', 'Name'))
 
-        for object_obj, file_obj in data:
+        for object_obj, file_obj in self.generate_hits():
             ## Make a nicely formatted ACL string
             AccessStr = ((file_obj.ReadAccess > 0 and "R") or '-') + \
                         ((file_obj.WriteAccess > 0  and "W") or '-') + \
@@ -125,9 +120,10 @@ class FileScan(common.AbstractWindowsCommand):
                         ((file_obj.SharedWrite > 0 and "w") or '-') + \
                         ((file_obj.SharedDelete > 0 and "d") or '-')
 
-            outfd.write("{0:#010x} {1:4} {2:4} {3:6} {4}\n".format(
-                         file_obj.obj_offset, object_obj.PointerCount,
-                         object_obj.HandleCount, AccessStr, repr(file_obj.FileName.v())))
+            outfd.write(u"{0:#010x} {1:4} {2:4} {3:6} {4}\n".format(
+                    file_obj.obj_offset, object_obj.PointerCount,
+                    object_obj.HandleCount, AccessStr, 
+                    file_obj.FileName.v(vm=self.kernel_address_space)))
 
 class PoolScanDriver(PoolScanFile):
     """ Scanner for _DRIVER_OBJECT """
@@ -140,65 +136,57 @@ class PoolScanDriver(PoolScanFile):
 
 class DriverScan(FileScan):
     "Scan for driver objects _DRIVER_OBJECT "
-    def calculate(self):
+
+    __name = "driverscan"
+
+    def generate_hits(self):
         """Generate possible hits."""
-        ## Just grab the AS and scan it using our scanner
-        address_space = utils.load_as(self._config, astype = 'physical')
+        address_space = self.physical_address_space
+        for offset in PoolScanDriver(profile=self.profile).scan(address_space):
+            pool_obj = self.profile.Object("_POOL_HEADER", vm=address_space,
+                                           offset=offset)
 
-        ## Will need the kernel AS for later:
-        self.kernel_address_space = utils.load_as(self._config)
-
-        for offset in PoolScanDriver().scan(address_space):
-            pool_obj = obj.Object("_POOL_HEADER", vm = address_space,
-                                  native_vm = self.kernel_address_space,
-                                  offset = offset)
-
-            ## We work out the _DRIVER_OBJECT from the end of the
-            ## allocation (bottom up).
-            pool_align = obj.VolMagic(address_space).PoolAlignment.v()
-
-            extension_obj = obj.Object(
+            extension_obj = self.profile.Object(
                 "_DRIVER_EXTENSION", vm = address_space,
-                offset = (offset + pool_obj.BlockSize * self.pool_align - 4 -
-                          address_space.profile.get_obj_size("_DRIVER_EXTENSION")),
-                native_vm = self.kernel_address_space)
+                offset = (offset + pool_obj.BlockSize * self.pool_align -
+                          self.get_rounded_size("_DRIVER_EXTENSION")))
 
             ## The _DRIVER_OBJECT is immediately below the _DRIVER_EXTENSION
-            driver_obj = obj.Object(
-                "_DRIVER_OBJECT", vm = address_space, native_vm = self.kernel_address_space,
-                offset = (extension_obj.obj_offset -
-                          self.get_rounded_size("_DRIVER_OBJECT", pool_align))
+            driver_obj = self.profile.Object(
+                "_DRIVER_OBJECT", vm=address_space, offset=(
+                    extension_obj.obj_offset -
+                    self.get_rounded_size("_DRIVER_OBJECT"))
                 )
 
             ## The _OBJECT_HEADER is immediately below the _DRIVER_OBJECT
-            object_obj = obj.Object(
-                "_OBJECT_HEADER", vm = address_space, native_vm = self.kernel_address_space,
+            object_obj = self.profile.Object(
+                "_OBJECT_HEADER", vm=address_space,
                 offset = (driver_obj.obj_offset -
-                          address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body')),
+                          self.profile.get_obj_offset('_OBJECT_HEADER', 'Body')),
                 )
 
-            if object_obj.get_object_type() != "Driver":
+            if object_obj.get_object_type(self.kernel_address_space) != "Driver":
                 continue
 
-            object_name = object_obj._OBJECT_HEADER_NAME_INFO.Name
+            object_name = object_obj.NameInfo.Name.v(vm=self.kernel_address_space)
 
             yield (object_obj, driver_obj, extension_obj, object_name)
 
 
-    def render_text(self, outfd, data):
+    def render(self, outfd):
         """Renders the text-based output"""
         outfd.write("{0:10} {1:4} {2:4} {3:10} {4:>6} {5:20} {6}\n".format(
                      'Offset(P)', '#Ptr', '#Hnd',
                      'Start', 'Size', 'Service key', 'Name'))
 
-        for object_obj, driver_obj, extension_obj, object_name in data:
-            outfd.write("0x{0:08x} {1:4} {2:4} 0x{3:08x} {4:6} {5:20} {6:12} {7}\n".format(
+        for object_obj, driver_obj, extension_obj, object_name in self.generate_hits():
+            outfd.write(u"0x{0:08x} {1:4} {2:4} 0x{3:08x} {4:6} {5:20} {6:12} {7}\n".format(
                          driver_obj.obj_offset, object_obj.PointerCount,
                          object_obj.HandleCount,
                          driver_obj.DriverStart, driver_obj.DriverSize,
-                         extension_obj.ServiceKeyName.v(),
-                         object_name.v(),
-                         driver_obj.DriverName.v()))
+                         extension_obj.ServiceKeyName.v(vm=self.kernel_address_space),
+                         object_name,
+                         driver_obj.DriverName.v(vm=self.kernel_address_space)))
 
 
 class PoolScanSymlink(PoolScanFile):
@@ -214,52 +202,46 @@ class PoolScanSymlink(PoolScanFile):
 
 class SymLinkScan(FileScan):
     "Scan for symbolic link objects "
-    def calculate(self):
+
+    __name = "symlinkscan"
+
+    def generate_hits(self):
         """Generate possible hits."""
+        address_space = self.physical_address_space
+        for offset in PoolScanSymlink(profile=self.profile).scan(address_space):
+            pool_obj = self.profile.Object("_POOL_HEADER", vm=address_space,
+                                           offset=offset)
 
-        ## Just grab the AS and scan it using our scanner
-        address_space = utils.load_as(self._config, astype = 'physical')
-
-        ## Will need the kernel AS for later:
-        self.kernel_address_space = utils.load_as(self._config)
-
-        for offset in PoolScanSymlink().scan(address_space):
-            pool_obj = obj.Object("_POOL_HEADER", vm = address_space,
-                                 offset = offset)
-
-            ## We work out the object from the end of the
-            ## allocation (bottom up).
-            pool_align = obj.VolMagic(address_space).PoolAlignment.v()
-
-            link_obj = obj.Object("_OBJECT_SYMBOLIC_LINK", vm = address_space,
-                                  native_vm = self.kernel_address_space,
-                                  offset = (offset + pool_obj.BlockSize * pool_align -
-                                            self.get_rounded_size("_OBJECT_SYMBOLIC_LINK", pool_align)))
+            link_obj = self.profile.Object("_OBJECT_SYMBOLIC_LINK", vm = address_space,
+                                           offset = (
+                    offset + pool_obj.BlockSize * self.pool_align -
+                    self.get_rounded_size("_OBJECT_SYMBOLIC_LINK")))
 
             ## The _OBJECT_HEADER is immediately below the _OBJECT_SYMBOLIC_LINK
-            object_obj = obj.Object(
-                "_OBJECT_HEADER", vm = address_space, native_vm = self.kernel_address_space,
+            object_obj = self.profile.Object(
+                "_OBJECT_HEADER", vm=address_space,
                 offset = (link_obj.obj_offset -
-                          address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body'))
+                          self.profile.get_obj_offset('_OBJECT_HEADER', 'Body'))
                 )
 
-            if object_obj.get_object_type() != "SymbolicLink":
+            if object_obj.get_object_type(self.kernel_address_space) != "SymbolicLink":
                 continue
 
-            object_name = object_obj._OBJECT_HEADER_NAME_INFO.Name
+            object_name = object_obj.NameInfo.Name.v(vm=self.kernel_address_space)
+
             yield object_obj, link_obj, object_name
 
-    def render_text(self, outfd, data):
+    def render(self, outfd):
         """ Renders text-based output """
 
         outfd.write("{0:10} {1:4} {2:4} {3:24} {4:<20} {5}\n".format(
             'Offset(P)', '#Ptr', '#Hnd', 'CreateTime', 'From', 'To'))
 
-        for o, link, name in data:
-            outfd.write("{0:#010x} {1:4} {2:4} {3:<24} {4:<20} {5}\n".format(
+        for o, link, name in self.generate_hits():
+            outfd.write(u"{0:#010x} {1:4} {2:4} {3:<24} {4:<20} {5}\n".format(
                         link.obj_offset, o.PointerCount,
                         o.HandleCount, link.CreationTime or '',
-                        name.v(), link.LinkTarget.v()))
+                        name, link.LinkTarget.v(vm=self.kernel_address_space)))
 
 
 class PoolScanMutant(PoolScanDriver):
@@ -273,74 +255,71 @@ class PoolScanMutant(PoolScanDriver):
 
 class MutantScan(FileScan):
     "Scan for mutant objects _KMUTANT "
-    def __init__(self, config, *args):
-        FileScan.__init__(self, config, *args)
-        config.add_option("SILENT", short_option = 's', default = False,
-                          action = 'store_true', help = 'Suppress less meaningful results')
 
-    def calculate(self):
-        ## Just grab the AS and scan it using our scanner
-        address_space = utils.load_as(self._config, astype = 'physical')
+    __name = "mutantscan"
 
-        ## Will need the kernel AS for later:
-        self.kernel_address_space = utils.load_as(self._config)
+    def __init__(self, silent=None, **kwargs):
+        """Scan for mutant objects _KMUTANT.
 
-        for offset in PoolScanMutant().scan(address_space):
-            pool_obj = obj.Object("_POOL_HEADER", vm = address_space, native_vm = self.kernel_address_space,
-                                  offset = offset)
+        Args:
+           silent: Suppress less meaningful results.
+        """
+        super(MutantScan, self).__init__(**kwargs)
+        self.silent = silent
 
-            ## We work out the _DRIVER_OBJECT from the end of the
-            ## allocation (bottom up).
-            pool_align = obj.VolMagic(address_space).PoolAlignment.v()
+    def generate_hits(self):
+        address_space = self.physical_address_space
+        for offset in PoolScanMutant(profile=self.profile).scan(address_space):
+            pool_obj = self.profile.Object("_POOL_HEADER", vm=address_space,
+                                           offset=offset)
 
-            mutant = obj.Object(
-                "_KMUTANT", vm = address_space, native_vm = self.kernel_address_space,
-                offset = (offset + pool_obj.BlockSize * pool_align -
-                          self.get_rounded_size("_KMUTANT", pool_align)))
+            mutant = self.profile.Object(
+                "_KMUTANT", vm=address_space,
+                offset = (offset + pool_obj.BlockSize * self.pool_align -
+                          self.get_rounded_size("_KMUTANT")))
 
             ## The _OBJECT_HEADER is immediately below the _KMUTANT
-            object_obj = obj.Object(
-                "_OBJECT_HEADER", vm = address_space,  native_vm = self.kernel_address_space,
+            object_obj = self.profile.Object(
+                "_OBJECT_HEADER", vm=address_space,
                 offset = (mutant.obj_offset -
-                            address_space.profile.get_obj_offset('_OBJECT_HEADER', 'Body'))
+                          self.profile.get_obj_offset('_OBJECT_HEADER', 'Body'))
                 )
 
-            if object_obj.get_object_type() != "Mutant":
+            if object_obj.get_object_type(self.kernel_address_space) != "Mutant":
                 continue
 
             ## Skip unallocated objects
             ##if object_obj.Type == 0xbad0b0b0:
             ##   continue
-            object_name = object_obj._OBJECT_HEADER_NAME_INFO.Name
+            object_name = object_obj.NameInfo.Name.v(vm=self.kernel_address_space)
 
-            if self._config.SILENT:
+            if self.silent:
                 if object_name.Length == 0:
                     continue
 
             yield (object_obj, mutant, object_name)
 
 
-    def render_text(self, outfd, data):
+    def render(self, outfd):
         """Renders the output"""
         outfd.write("{0:10} {1:4} {2:4} {3:6} {4:10} {5:10} {6}\n".format(
                      'Offset(P)', '#Ptr', '#Hnd', 'Signal',
                      'Thread', 'CID', 'Name'))
 
-        for object_obj, mutant, object_name in data:
+        for object_obj, mutant, object_name in self.generate_hits():
             if mutant.OwnerThread > 0x80000000:
-                thread = obj.Object("_ETHREAD", vm = self.kernel_address_space,
-                                    native_vm = self.kernel_address_space,
-                                    offset = mutant.OwnerThread)
+                thread = self.profile.Object("_ETHREAD", vm=self.kernel_address_space,
+                                             offset=mutant.OwnerThread)
                 CID = "{0}:{1}".format(thread.Cid.UniqueProcess, thread.Cid.UniqueThread)
             else:
                 CID = ""
 
-            outfd.write("0x{0:08x} {1:4} {2:4} {3:6} 0x{4:08x} {5:10} {6}\n".format(
+            outfd.write(u"0x{0:08x} {1:4} {2:4} {3:6} 0x{4:08x} {5:10} {6}\n".format(
                          mutant.obj_offset, object_obj.PointerCount,
                          object_obj.HandleCount, mutant.Header.SignalState,
                          mutant.OwnerThread, CID,
-                         repr(object_obj.get_object_name())
-                         ))
+                         object_obj.NameInfo.Name.v(vm=self.kernel_address_space))
+                        )
 
 class CheckProcess(scan.ScannerCheck):
     """ Check sanity of _EPROCESS """
@@ -351,19 +330,18 @@ class CheckProcess(scan.ScannerCheck):
         ## The offset of the object is determined by subtracting the offset
         ## of the PoolTag member to get the start of Pool Object. This done
         ## because PoolScanners search for the PoolTag. 
-        pool_base = found - self.address_space.profile.get_obj_offset(
+        pool_base = found - self.profile.get_obj_offset(
             '_POOL_HEADER', 'PoolTag')
 
-        pool_obj = obj.Object("_POOL_HEADER", vm = self.address_space,
-                                 offset = pool_base)
+        pool_obj = self.profile.Object("_POOL_HEADER", vm = self.address_space,
+                                       offset = pool_base)
+        pool_align = self.profile.constants['PoolAlignment']
 
-        ## We work out the _EPROCESS from the end of the
-        ## allocation (bottom up).
-        pool_align = obj.VolMagic(self.address_space).PoolAlignment.v()
-        eprocess = obj.Object("_EPROCESS", vm = self.address_space,
-                  offset = pool_base + pool_obj.BlockSize * pool_align - \
-                  self.address_space.profile.get_obj_size("_EPROCESS")
-                  )
+        eprocess = self.profile.Object(
+            "_EPROCESS", vm = self.address_space,
+            offset = pool_base + pool_obj.BlockSize * pool_align - \
+                self.profile.get_obj_size("_EPROCESS")
+            )
 
         if (eprocess.Pcb.DirectoryTableBase == 0):
             return False
@@ -384,7 +362,7 @@ class PoolScanProcess(scan.PoolScanner):
     ## We are not using a preamble for this plugin since we are walking back
     preamble = []
 
-    def object_offset(self, found, address_space):
+    def object_offset(self, found):
         """ This returns the offset of the object contained within
         this pool allocation.
         """
@@ -393,18 +371,18 @@ class PoolScanProcess(scan.PoolScanner):
         ## adding the size of the preamble data structures. This done
         ## because PoolScanners search for the PoolTag. 
 
-        pool_base = found - self.buffer.profile.get_obj_offset(
+        pool_base = found - self.profile.get_obj_offset(
             '_POOL_HEADER', 'PoolTag')
 
-        pool_obj = obj.Object("_POOL_HEADER", vm = address_space,
-                                 offset = pool_base)
+        pool_obj = self.profile.Object("_POOL_HEADER", vm = self.address_space,
+                                       offset = pool_base)
 
         ## We work out the _EPROCESS from the end of the
         ## allocation (bottom up).
-        pool_align = obj.VolMagic(address_space).PoolAlignment.v()
+        pool_align = self.profile.constants['PoolAlignment']
 
         object_base = (pool_base + pool_obj.BlockSize * pool_align -
-                       self.buffer.profile.get_obj_size("_EPROCESS"))
+                       self.profile.get_obj_size("_EPROCESS"))
 
         return object_base
 
@@ -416,7 +394,7 @@ class PoolScanProcess(scan.PoolScanner):
                ]
 
 
-class PSScan(common.AbstractWindowsCommand):
+class PSScan(common.PoolScannerPlugin):
     """ Scan Physical memory for _EPROCESS pool allocations
     """
     # Declare meta information associated with this plugin
@@ -429,21 +407,21 @@ class PSScan(common.AbstractWindowsCommand):
     meta_info['os'] = ['Win7SP0x86', 'WinXPSP3x86']
     meta_info['version'] = '0.1'
 
-    def __init__(self, config, *args):
-        common.AbstractWindowsCommand.__init__(self, config, *args)
-        self.kernel_address_space = utils.load_as(self._config, astype = 'virtual')
+    __name = "psscan"
+
+    def __init__(self, **kwargs):
+        """Scan Physical memory for _EPROCESS pool allocations."""
+        super(PSScan, self).__init__(**kwargs)
 
     # Can't be cached until self.kernel_address_space is moved entirely
     # within calculate
     def calculate(self):
         """Generate possible hits."""
         ## Just grab the AS and scan it using our scanner
-        address_space = utils.load_as(self._config, astype = 'physical')
-
-        for offset in PoolScanProcess().scan(address_space):
-            eprocess = obj.Object('_EPROCESS', vm = address_space, 
-                                  native_vm = self.kernel_address_space,
-                                  offset = offset)
+        address_space = self.physical_address_space
+        for offset in PoolScanProcess(profile=self.profile).scan(address_space):
+            eprocess = self.profile.Object('_EPROCESS', vm=address_space,
+                                           offset = offset)
             yield eprocess
 
     def guess_eprocess_virtual_address(self, eprocess):
@@ -451,10 +429,10 @@ class PSScan(common.AbstractWindowsCommand):
         # This is the list entry of the ProcessListEntry reflected through the
         # next process in the list
         list_entry = eprocess.ThreadListHead.Flink.dereference_as(
-            '_LIST_ENTRY').Blink.dereference()
+            '_LIST_ENTRY', vm=self.kernel_address_space).Blink.dereference()
 
         # Take us back to the _EPROCESS offset
-        list_entry_offset = self.kernel_address_space.profile.get_obj_offset(
+        list_entry_offset = self.profile.get_obj_offset(
             '_EPROCESS', 'ThreadListHead')
 
         # The virtual eprocess should be the same as the physical one
@@ -466,16 +444,16 @@ class PSScan(common.AbstractWindowsCommand):
         return 0
 
 
-    def render_text(self, outfd, data):
+    def render(self, outfd):
         """Render results in a table."""
         outfd.write(" Offset(P) Offset(V)  Name             PID    PPID   PDB        Time created             Time exited             \n" + \
                     "---------- --------- ---------------- ------ ------ ---------- ------------------------ ------------------------ \n")
 
-        for eprocess in data:
+        for eprocess in self.calculate():
             # Try to guess the virtual address of the eprocess
             eprocess_virtual_address = self.guess_eprocess_virtual_address(eprocess)
 
-            outfd.write("0x{0:08x} 0x{1:08x} {2:16} {3:6} {4:6} 0x{5:08x} {6:24} {7:24}\n".format(
+            outfd.write(u"0x{0:08x} 0x{1:08x} {2:16} {3:6} {4:6} 0x{5:08x} {6:24} {7:24}\n".format(
                 eprocess.obj_offset,
                 eprocess_virtual_address,
                 eprocess.ImageFileName,
@@ -485,12 +463,12 @@ class PSScan(common.AbstractWindowsCommand):
                 eprocess.CreateTime or '',
                 eprocess.ExitTime or ''))
 
-    def render_dot(self, outfd, data):
+    def render_dot(self, outfd):
         """Create a dot file for visualization."""
         objects = set()
         links = set()
 
-        for eprocess in data:
+        for eprocess in self.calculate():
             label = "{0} | {1} |".format(eprocess.UniqueProcessId,
                                          eprocess.ImageFileName)
             if eprocess.ExitTime:

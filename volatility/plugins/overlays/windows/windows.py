@@ -154,10 +154,10 @@ class _UNICODE_STRING(obj.CType):
       * The __str__ method returns the value of the Buffer.
     """
 
-    def v(self):
-        length = self.Length.v()
+    def v(self, vm=None):
+        length = self.Length.v(vm=vm)
         if length > 0 and length <= 1024:
-            data = self.Buffer.dereference_as('UnicodeString', length=length)
+            data = self.Buffer.dereference_as('UnicodeString', length=length, vm=vm)
             return data.v()
         else:
             return ''
@@ -296,7 +296,7 @@ class WinTimeStamp(obj.NativeType):
     def as_windows_timestamp(self):
         return obj.NativeType.v(self)
 
-    def v(self):
+    def v(self, vm=None):
         value = self.as_windows_timestamp()
         return self.windows_to_unix_time(value)
 
@@ -527,10 +527,10 @@ class _OBJECT_HEADER(obj.CType):
         return self.obj_profile.Object(theType=theType, offset=self.Body.obj_offset,
                                        vm=vm or self.obj_vm, parent=self)
 
-    def get_object_type(self):
+    def get_object_type(self, kernel_address_space):
         """Return the object's type as a string"""
-        type_obj = self.obj_profile.Object(theType="_OBJECT_TYPE", vm=self.obj_vm,
-                                           offset=self.Type)
+        type_obj = self.obj_profile.Object(
+            theType="_OBJECT_TYPE", vm=kernel_address_space, offset=self.Type)
 
         return type_obj.Name.v()
 
@@ -708,8 +708,8 @@ class IpAddress(obj.NativeType):
         # IpAddress is always a 32 bit int.
         self.format_string = "<I"
 
-    def v(self):
-        value = super(IpAddress, self).v()
+    def v(self, vm=None):
+        value = super(IpAddress, self).v(vm=vm)
         return socket.inet_ntoa(struct.pack("<I", value))
 
 

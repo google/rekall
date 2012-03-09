@@ -406,7 +406,7 @@ class BaseObject(object):
         return self.obj_profile.Object(theType=castString, offset=self.obj_offset,
                                        vm=self.obj_vm, **kwargs)
 
-    def v(self):
+    def v(self, vm=None):
         """ Do the actual reading and decoding of this member
         """
         return NoneObject("No value for {0}".format(self.obj_name), self.obj_profile)
@@ -547,7 +547,7 @@ class NativeType(BaseObject, NumericProxyMixIn):
     def size(self):
         return struct.calcsize(self.format_string)
 
-    def v(self):
+    def v(self, vm=None):
         data = self.obj_vm.read(self.obj_offset, self.size())
         if not data:
             return NoneObject("Unable to read {0} bytes from {1}".format(
@@ -581,8 +581,8 @@ class BitField(NativeType):
         self.end_bit = end_bit
         self.native_type = native_type # Store this for proper caching
 
-    def v(self):
-        i = NativeType.v(self)
+    def v(self, vm=None):
+        i = NativeType.v(self, vm=vm)
         return (i & ((1 << self.end_bit) - 1)) >> self.start_bit
 
     def write(self, data):
@@ -854,7 +854,7 @@ class CType(BaseObject):
 
         return result
 
-    def v(self):
+    def v(self, vm=None):
         """ When a struct is evaluated we just return our offset.
         """
         return self.obj_offset
@@ -915,68 +915,6 @@ class CType(BaseObject):
         # If you hit this, cosider using obj.newattr('attr', value)
         raise ValueError("Attribute " + attr + " was set after object initialization")
 
-## DEPRECATE this...
-class VolatilityMagic(BaseObject):
-    """Class to contain Volatility Magic value"""
-
-    def __init__(self, theType, offset, vm, value = None, configname = None, **kwargs):
-        try:
-            BaseObject.__init__(self, theType, offset, vm, **kwargs)
-        except InvalidOffsetError:
-            pass
-        # If we've been given a configname override,
-        # then override the value with the one from the config
-        self.configname = configname
-        if self.configname:
-            configval = getattr(self.obj_vm.get_config(), self.configname)
-            # Check the configvalue is actually set to something
-            if configval:
-                value = configval
-        self.value = value
-
-    def v(self):
-        # We explicitly want to check for None,
-        # in case the user wants a value 
-        # that gives not self.value = True
-        if self.value is None:
-            return self.get_best_suggestion()
-        else:
-            return self.value
-
-    def __str__(self):
-        return self.v()
-
-    def get_suggestions(self):
-        """Returns a list of possible suggestions for the value
-        
-           These should be returned in order of likelihood, 
-           since the first one will be taken as the best suggestion
-
-           This is also to avoid a complete scan of the memory address space.
-        """
-        if self.value:
-            yield self.value
-        for x in self.generate_suggestions():
-            yield x
-
-    def generate_suggestions(self):
-        raise StopIteration("No suggestions available")
-
-    def get_best_suggestion(self):
-        """Returns the best suggestion for a list of possible suggestsions"""
-        for val in self.get_suggestions():
-            return val
-        else:
-            return NoneObject("No suggestions available")
-
-    def __getitem__(self, pos):
-        return self.value.__getitem__(pos)
-
-
-def VolMagic(vm):
-    """Convenience function to save people typing out an actual obj.Object call"""
-    return Object("VOLATILITY_MAGIC", 0x0, vm = vm)
-
 
 ## Profiles are the interface for creating/interpreting
 ## objects
@@ -1024,8 +962,7 @@ class Profile(object):
                                'Void': Void,
                                'Array': Array,
                                'NativeType': NativeType,
-                               'CType': CType,
-                               'VolatilityMagic': VolatilityMagic}
+                               'CType': CType}
 
     @classmethod
     def metadata(cls, name, default=None):

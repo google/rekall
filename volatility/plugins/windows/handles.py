@@ -57,7 +57,7 @@ class Handles(common.WinProcessFilter):
         if task.ObjectTable.HandleTableList:
             for handle in task.ObjectTable.handles():
                 name = ""
-                object_type = handle.get_object_type()
+                object_type = handle.get_object_type(self.kernel_address_space)
                 if object_type == "File":
                     file_obj = handle.dereference_as("_FILE_OBJECT")
                     name = file_obj.file_name_with_device()

@@ -33,10 +33,11 @@ def SmartStr(string, encoding="utf8"):
 
 def SmartUnicode(string, encoding="utf8"):
     """Forces the string into a unicode object."""
-    if isinstance(string, unicode):
-        return string
-
-    return str(string).decode(encoding)
+    try:
+        # Allow the object to have a __unicode__ method.
+        return unicode(string)
+    except UnicodeError:
+        return str(string).decode(encoding, "ignore")
 
 
 class VolatilityException(Exception):

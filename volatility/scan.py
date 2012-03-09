@@ -188,7 +188,7 @@ class PoolScanner(DiscontigScanner):
     ## These are the objects that follow the pool tags
     preamble = [ '_POOL_HEADER', ]
 
-    def object_offset(self, found, address_space):
+    def object_offset(self, found):
         """ This returns the offset of the object contained within
         this pool allocation.
         """
@@ -202,5 +202,6 @@ class PoolScanner(DiscontigScanner):
         return found + total_preamble_size - pool_tag_relative_offset
 
     def scan(self, address_space, offset = 0, maxlen = None):
-        for i in DiscontigScanner.scan(self, address_space, offset, maxlen):
-            yield self.object_offset(i, address_space)
+        self.address_space = address_space
+        for i in super(PoolScanner, self).scan(address_space, offset, maxlen):
+            yield self.object_offset(i)

@@ -220,6 +220,11 @@ class CheckPoolIndex(scan.ScannerCheck):
         return pool_hdr.PoolIndex == self.value
 
 
+class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
+    """A base class for all pool scanner plugins."""
+    __abstract = True 
+
+
 class KDBGMixin(plugin.KernelASMixin):
     """A plugin mixin to make sure the kdbg is set correctly."""
 

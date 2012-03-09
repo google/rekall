@@ -91,7 +91,7 @@ class UnicodeString(String):
         if encoding is None:
             self.encoding = self.obj_profile.constants['default_text_encoding']
 
-    def v(self):
+    def v(self, vm=None):
         """Note this returns a unicode object."""
         return super(UnicodeString, self).v().decode(self.encoding, "ignore")
 
@@ -119,8 +119,8 @@ class Flags(obj.NativeType):
         self.target_obj = obj.Object(target, offset = offset, vm = vm, parent = parent)
         obj.NativeType.__init__(self, theType, offset, vm, parent, **kwargs)
 
-    def v(self):
-        return self.target_obj.v()
+    def v(self, vm=None):
+        return self.target_obj.v(vm=vm)
 
     def __str__(self):
         result = []
@@ -157,8 +157,8 @@ class Enumeration(obj.NativeType):
         self.target_obj = obj.Object(target, offset = offset, vm = vm, parent = parent)
         obj.NativeType.__init__(self, theType, offset, vm, parent, **kwargs)
 
-    def v(self):
-        return self.target_obj.v()
+    def v(self, vm=None):
+        return self.target_obj.v(vm=vm)
 
     def __str__(self):
         value = self.v()
