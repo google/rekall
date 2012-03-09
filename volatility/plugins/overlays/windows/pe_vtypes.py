@@ -557,6 +557,7 @@ class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
     """A profile for PE files."""
 
     def __init__(self, **kwargs):
+        super(PEProfile, self).__init__(**kwargs)
         self.add_types(pe_vtypes)
         self.add_classes({
                 '_IMAGE_DOS_HEADER': _IMAGE_DOS_HEADER,
@@ -572,6 +573,6 @@ class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
                         }],
                 })
 
-        super(PEProfile, self).__init__(**kwargs)
+
 
         

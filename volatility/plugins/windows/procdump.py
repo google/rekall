@@ -42,19 +42,22 @@ class ProcExeDump(common.WinProcessFilter):
           unsafe: Bypasses certain sanity checks when creating image
         """
         super(ProcExeDump, self).__init__(**kwargs)
-        self.dump_dir = dump_dir
+        self.dump_dir = dump_dir or self.session.dump_dir
         self.unsafe = unsafe
 
         # Get the pe profile.
         self.pe_profile = self.profile.classes['PEProfile']()
 
-    def render(self, outfd):
-        """Renders the tasks to disk images, outputting progress as they go"""
+    def _check_dump_dir(self):
         if not self.dump_dir:
             raise plugin.PluginError("Please specify a dump directory.")
 
         if not os.path.isdir(self.dump_dir):
             raise plugin.PluginError("%s is not a directory" % self.dump_dir)
+
+    def render(self, outfd):
+        """Renders the tasks to disk images, outputting progress as they go"""
+        self._check_dump_dir()
 
         for task in self.filter_processes():
             pid = task.UniqueProcessId

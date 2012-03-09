@@ -23,24 +23,29 @@ import volatility.addrspace as addrspace
 
 #pylint: disable-msg=C0111
 
-def load_as(config, astype = 'virtual', **kwargs):
-    """Loads an address space"""
-    if astype == 'virtual':
-        return config.VIRTUAL_ADDRESS_SPACE or addrspace.GuessAddressSpace(
-            config, astype=astype, **kwargs)
-    elif astype == 'physical':
-        return config.PHYSICAL_ADDRESS_SPACE or addrspace.GuessAddressSpace(
-            config, astype=astype, **kwargs)
+def SmartStr(string, encoding="utf8"):
+    """Forces the string to be an encoded byte string."""
+    if isinstance(string, unicode):
+        return string.encode(encoding)
 
-    return addrspace.GuessAddressSpace(config, astype=astype, **kwargs)
+    return str(string)
+
+
+def SmartUnicode(string, encoding="utf8"):
+    """Forces the string into a unicode object."""
+    if isinstance(string, unicode):
+        return string
+
+    return str(string).decode(encoding)
+
 
 class VolatilityException(Exception):
     """Generic Volatility Specific exception, to help differentiate from other exceptions"""
 
 
-
 class CacheRelativeURLException(VolatilityException):
     """Exception for gracefully not saving Relative URLs in the cache"""
+
 
 def Hexdump(data, width = 16):
     """ Hexdump function shared by various plugins """

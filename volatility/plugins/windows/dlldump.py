@@ -3,7 +3,7 @@
 # Copyright (c) 2008 Brendan Dolan-Gavitt <bdolangavitt@wesleyan.edu>
 #
 # Additional Authors:
-# Mike Auty <mike.auty@gmail.com>
+# Michael Cohen <scudette@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,82 +23,67 @@
 import os
 import re
 from volatility.plugins.windows import procdump
-import volatility.win32.tasks as tasks
-import volatility.debug as debug
-import volatility.utils as utils
-import volatility.cache as cache
+from volatility import utils
+
 
 class DLLDump(procdump.ProcExeDump):
     """Dump DLLs from a process address space"""
 
-    def __init__(self, config, *args):
-        procdump.ProcExeDump.__init__(self, config, *args)
-        config.remove_option("OFFSET")
-        config.add_option('REGEX', short_option = 'r',
-                      help = 'Dump dlls matching REGEX',
-                      action = 'store', type = 'string')
-        config.add_option('IGNORE-CASE', short_option = 'i',
-                      help = 'Ignore case in pattern match',
-                      action = 'store_true', default = False)
-        config.add_option('OFFSET', short_option = 'o', default = None,
-                          help = 'Dump DLLs for Process with physical address OFFSET',
-                          action = 'store', type = 'int')
-        config.add_option('BASE', short_option = 'b', default = None,
-                          help = 'Dump DLLS at the specified BASE offset in the process address space',
-                          action = 'store', type = 'int')
+    __name = "dlldump"
 
-    @cache.CacheDecorator(lambda self: "tests/dlldump/regex={0}/ignore_case={1}/offset={2}/base={3}".format(self._config.REGEX, self._config.IGNORE_CASE, self._config.OFFSET, self._config.BASE))
-    def calculate(self):
-        addr_space = utils.load_as(self._config)
+    def __init__(self, regex=None, base=None, **kwargs):
+        """Dump a dll linked into a process.
 
-        if self._config.OFFSET != None:
-            data = [self.virtual_process_from_physical_offset(addr_space, self._config.OFFSET)]
-        else:
-            data = self.filter_tasks(tasks.pslist(addr_space))
+        Args:
+          regex: A regular expression to match the dlls to dump.
+          base: Dump DLLS at the specified BASE offset in the process address
+             space.
+        """
+        super(DLLDump, self).__init__(**kwargs)
+        self.regex = regex
+        self.base = base
 
-        if self._config.REGEX:
-            try:
-                if self._config.IGNORE_CASE:
-                    mod_re = re.compile(self._config.REGEX, re.I)
-                else:
-                    mod_re = re.compile(self._config.REGEX)
-            except re.error, e:
-                debug.error('Error parsing regular expression: %s' % e)
+    def get_module(self, regex=None):
+        """Search the modules of the filtered processes.
 
-        for proc in data:
+        Args:
+          regex: A regular expression to match the dlls to dump.
+        """
+        # If not specified match all dlls.
+        mod_re = re.compile(self.regex or regex or ".*")
+        for proc in self.filter_processes():
             ps_ad = proc.get_process_address_space()
             if ps_ad == None:
                 continue
 
             mods = dict((mod.DllBase.v(), mod) for mod in proc.get_load_modules())
-
-            if self._config.BASE:
-                if mods.has_key(self._config.BASE):
-                    mod_name = mods[self._config.BASE].BaseDllName
+            if self.base:
+                if mods.has_key(self.base):
+                    mod_name = mods[self.base].BaseDllName
                 else:
                     mod_name = "Unknown"
-                yield proc, ps_ad, int(self._config.BASE), mod_name
+                yield proc, ps_ad, int(self.base), mod_name
             else:
                 for mod in mods.values():
-                    if self._config.REGEX:
-                        if not mod_re.search(str(mod.FullDllName)) and not mod_re.search(str(mod.BaseDllName)):
-                            continue
-                    yield proc, ps_ad, mod.DllBase.v(), mod.BaseDllName
+                    if mod_re.search(utils.SmartStr(mod.FullDllName)) or mod_re.search(
+                        utils.SmartStr(mod.BaseDllName)):
+                        yield proc, ps_ad, mod.DllBase.v(), mod.BaseDllName
 
-    def render_text(self, outfd, data):
-        if self._config.DUMP_DIR == None:
-            debug.error("Please specify a dump directory (--dump-dir)")
-        if not os.path.isdir(self._config.DUMP_DIR):
-            debug.error(self._config.DUMP_DIR + " is not a directory")
+    def render(self, outfd):
+        self._check_dump_dir()
 
-        for proc, ps_ad, mod_base, mod_name in data:
+        for proc, ps_ad, mod_base, mod_name in self.get_module():
             if ps_ad.is_valid_address(mod_base):
                 process_offset = ps_ad.vtop(proc.obj_offset)
-                dump_file = "module.{0}.{1:x}.{2:x}.dll".format(proc.UniqueProcessId, process_offset, mod_base)
-                outfd.write("Dumping {0}, Process: {1}, Base: {2:8x} output: {3}\n".format(mod_name, proc.ImageFileName, mod_base, dump_file))
-                of = open(os.path.join(self._config.DUMP_DIR, dump_file), 'wb')
+                dump_file = "module.{0}.{1:x}.{2:x}.dll".format(
+                    proc.UniqueProcessId, process_offset, mod_base)
+
+                outfd.write("Dumping {0}, Process: {1}, Base: {2:8x} output: {3}\n".format(
+                        mod_name, proc.ImageFileName, mod_base, dump_file))
+
+                of = open(os.path.join(self.dump_dir, dump_file), 'wb')
                 try:
-                    for chunk in self.get_image(outfd, ps_ad, mod_base):
+                    for chunk in self.get_image(ps_ad, mod_base):
                         offset, code = chunk
                         of.seek(offset)
                         of.write(code)
@@ -108,4 +93,5 @@ class DLLDump(procdump.ProcExeDump):
                     outfd.write("You can use -u to disable this check.\n")
                 of.close()
             else:
-                outfd.write("Cannot dump {0}@{1} at {2:8x}\n".format(proc.ImageFileName, mod_name, mod_base))
+                outfd.write("Cannot dump {0}@{1} at {2:8x}\n".format(
+                        proc.ImageFileName, mod_name, mod_base))
