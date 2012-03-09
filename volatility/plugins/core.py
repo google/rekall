@@ -61,7 +61,7 @@ class Info(plugin.Command):
 
     def render_item_info(self, item, fd):
         """Render information about the specific item."""
-        fd.write("%s:\n\n" % item)
+        fd.write("%s:\n%s\n\n" % (item, item.__doc__))
 
         if isinstance(item, registry.MetaclassRegistry):
             # show the args it takes. Relies of the docstring to be formatted

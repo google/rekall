@@ -194,7 +194,7 @@ class Profile32Bits(obj.Profile):
     def __init__(self, **kwargs):
         super(Profile32Bits, self).__init__(**kwargs)
         self.add_types(native_types.x86_native_types)
-        self.add_constants(PoolAlignment=8)
+        self.add_constants(PoolAlignment=8, MAX_FAST_REF=7)
 
 
 class Profile64Bits(obj.Profile):
@@ -204,7 +204,7 @@ class Profile64Bits(obj.Profile):
     def __init__(self, **kwargs):
         super(Profile64Bits, self).__init__(**kwargs)
         self.add_types(native_types.x64_native_types)
-        self.add_constants(PoolAlignment=16)
+        self.add_constants(PoolAlignment=16, MAX_FAST_REF=15)
 
 
 class BasicWindowsClasses(obj.Profile):

@@ -22,47 +22,40 @@
 """
 
 import volatility.obj as obj
-import linux_common
+from volatility.plugins.linux import common
 
-class linux_task_list_ps(linux_common.AbstractLinuxCommand):
 
-    ''' gathers active tasks by walking the task_struct->task list '''
+class LinuxPsList(common.AbstractLinuxCommandPlugin):
+    """Gathers active tasks by walking the task_struct->task list."""
 
     __name = "pslist"
 
-    @staticmethod
-    def register_options(config):
-        linux_common.AbstractLinuxCommand.register_options(config)
-        config.add_option('PID', short_option = 'p', default = None,
-                          help = 'Operate on these Process IDs (comma-separated)',
-                          action = 'store', type = 'str')
+    def __init__(self, **kwargs):
+        super(LinuxPsList, self).__init__(**kwargs)
 
-    def calculate(self):
-        init_task_addr = self.smap["init_task"]
+    def pslist(self):
+        """A generator of task_struct objects for all running tasks."""
+        init_task_addr = self.profile.constants["init_task"]
 
-        init_task = obj.Object("task_struct", vm = self.addr_space, offset = init_task_addr)
-        pidlist = self._config.PID
-        if isinstance(pidlist, str):
-            pidlist = [int(p) for p in pidlist.split(',')]
-        elif isinstance(pidlist, int):
-            pidlist = [pidlist]
+        init_task = self.profile.Object(theType="task_struct", 
+                                        vm=self.kernel_address_space,
+                                        offset=init_task_addr)
 
         # walk the ->tasks list, note that this will *not* display "swapper"
-        for task in linux_common.walk_list_head("task_struct", "tasks", init_task.tasks, self.addr_space):
+        for task in init_task.tasks:
+            yield task
 
-            if not pidlist or task.pid in pidlist:
-                yield task
-
-    def render_text(self, outfd, data):
-
+    def render(self, outfd):
         outfd.write("{0:8s} {1:20s} {2:15s} {3:15s}\n".format(
             "Offset", "Name", "Pid", "Uid"))
 
-        for task in data:
+        for task in self.pslist():
             outfd.write("0x{0:08x} {1:20s} {2:15s} {3:15s}\n".format(
                 task.obj_offset, task.comm, str(task.pid), str(task.uid)))
 
-class linux_memmap(linux_task_list_ps):
+
+
+class linux_memmap(object):
     """Dumps the memory map for linux tasks."""
 
     __name = "memmap"

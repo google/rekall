@@ -112,18 +112,11 @@ class FileScan(common.PoolScannerPlugin):
                      'Offset(P)', '#Ptr', '#Hnd', 'Access', 'Name'))
 
         for object_obj, file_obj in self.generate_hits():
-            ## Make a nicely formatted ACL string
-            AccessStr = ((file_obj.ReadAccess > 0 and "R") or '-') + \
-                        ((file_obj.WriteAccess > 0  and "W") or '-') + \
-                        ((file_obj.DeleteAccess > 0 and "D") or '-') + \
-                        ((file_obj.SharedRead > 0 and "r") or '-') + \
-                        ((file_obj.SharedWrite > 0 and "w") or '-') + \
-                        ((file_obj.SharedDelete > 0 and "d") or '-')
-
             outfd.write(u"{0:#010x} {1:4} {2:4} {3:6} {4}\n".format(
                     file_obj.obj_offset, object_obj.PointerCount,
-                    object_obj.HandleCount, AccessStr, 
+                    object_obj.HandleCount, file_obj.AccessString, 
                     file_obj.FileName.v(vm=self.kernel_address_space)))
+
 
 class PoolScanDriver(PoolScanFile):
     """ Scanner for _DRIVER_OBJECT """

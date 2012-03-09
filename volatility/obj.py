@@ -252,6 +252,9 @@ class Error(Exception):
 class InvalidOffsetError(Error):
     """Simple placeholder to identify invalid offsets"""
 
+class ProfileError(Error):
+    """Errors in setting the profile."""
+
 
 class BaseObject(object):
 
@@ -950,7 +953,10 @@ class Profile(object):
     # This is a dict of constants
     constants = None
 
-    def __init__(self):
+    def __init__(self, session=None, **kwargs):
+        if kwargs:
+            logging.error("Unknown keyword args {0}".format(kwargs))
+        self.session = session
         self.overlayDict = {}
         self.overlays = []
         self.vtypes = {}
@@ -1200,6 +1206,16 @@ class Profile(object):
             cls = CType
 
         return Curry(cls, theType = cname, members = members, struct_size = size)
+
+    def get_constant(self, constant):
+        # Compile on demand
+        if not self._ready: self.compile()
+        result = self.constants.get(constant)
+        if result is None:
+            result = NoneObject("Constant %s does not exist in profile." % constant)
+            logging.error("Constant %s does not exist in profile.", constant)
+
+        return result
 
     def Object(self, theType=None, offset=0, vm=None, name = None, **kwargs):
         """ A function which instantiates the object named in theType (as

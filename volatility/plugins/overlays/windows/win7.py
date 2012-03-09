@@ -32,23 +32,6 @@ from volatility.plugins.overlays import basic
 from volatility.plugins.overlays.windows import windows
 
 
-class Win7Pointer64(obj.ProfileModification):
-    before = ['WindowsOverlay', 'WindowsVTypes']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x >= 6,
-                  'memory_model': lambda x: x == '32bit'}
-
-    def modification(self, profile):
-        profile.native_types.update({'pointer64': [8, '<Q']})
-
-class Win7KDBG(windows.AbstractKDBGMod):
-    before = ['WindowsOverlay', 'VistaKDBG']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x == 1}
-    kdbgsize = 0x340
-
-
 class _OBJECT_HEADER(windows._OBJECT_HEADER):
     """A Volatility object to handle Windows 7 object headers.
 
@@ -187,7 +170,7 @@ class Win7SP1x86(basic.Profile32Bits, Win7BaseProfile):
 
     def __init__(self, **kwargs):
         super(Win7SP1x86, self).__init__(**kwargs)
-        self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG')
+        self.add_constants(kdbgsize=0x340)
 
         # Import the actual vtypes on demand here to reduce memory usage.
         from volatility.plugins.overlays.windows import win7_sp1_x86_vtypes
@@ -202,7 +185,7 @@ class Win7SP1x64(basic.Profile64Bits, Win7BaseProfile):
 
     def __init__(self, **kwargs):
         super(Win7SP1x64, self).__init__(**kwargs)
-        self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG')
+        self.add_constants(kdbgsize=0x340)
 
         # Import the actual vtypes on demand here to reduce memory usage.
         from volatility.plugins.overlays.windows import win7_sp1_x64_vtypes

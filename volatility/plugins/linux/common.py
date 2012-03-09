@@ -24,12 +24,60 @@
 import volatility.commands as commands
 import volatility.utils    as utils
 import volatility.obj      as obj
-from volatility import profile
+
+from volatility import plugin
 
 
-def mask_number(num):
-    return num & 0xffffffff
+class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
+                                 plugin.KernelASMixin,
+                                 plugin.ProfileCommand):
+    """A base class for all linux based plugins."""
+    __abstract = True
 
+    @classmethod
+    def is_active(cls, config):
+        """We are only active if the profile is linux."""
+        return (getattr(config.profile, "_md_os", None) == 'linux' and
+                plugin.Command.is_active(config))
+
+
+class LinuxFindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
+    """A scanner for DTB values.
+
+    For linux, the dtb values are taken directly from the symbol file. Linux has
+    a direct mapping between the kernel virtual address space and the physical
+    memory.  This is the difference between the virtual and physical addresses
+    (aka PAGE_OFFSET). This is defined by the __va macro:
+
+    #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
+
+    This one plugin handles both 32 and 64 bits.
+    """
+
+    __name = "find_dtb"
+
+    def dtb_hits(self):
+        """Tries to locate the DTB."""
+        if self.profile.metadata("memory_model") == "32bit":
+            PAGE_OFFSET = (self.profile.get_constant("_text") - 
+                           self.profile.get_constant("phys_startup_32"))
+            
+            yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
+        else:
+            PAGE_OFFSET = (self.profile.get_constant("_text") - 
+                           self.profile.get_constant("phys_startup_64"))
+
+            yield self.profile.get_constant("init_level4_pgt") - PAGE_OFFSET
+
+    def verify_address_space(self, address_space):
+        # There is not really much we can do if the address space is wrong, so
+        # we just keep going.
+        return True
+
+    def render(self, fd = None):
+        fd.write("DTB\n")
+        for dtb in self.dtb_hits():
+            fd.write("{0:#010x}\n".format(dtb))
 
 class AbstractLinuxCommand(commands.command):
 

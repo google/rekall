@@ -23,13 +23,14 @@
 @contact:      brendandg@gatech.edu
 @organization: Georgia Institute of Technology
 """
+import logging
 import re
 import sys
 import zipfile
 
-from volatility import cache
-from volatility import debug
 from volatility import obj
+from volatility import plugin
+
 from volatility.plugins.overlays import basic
 
 
@@ -388,94 +389,6 @@ linux_overlay = {
     }
 
 
-class Linux32(obj.Profile):
-    """A Linux profile which works with dwarfdump output files.
-
-    To generate a suitable dwarf file:
-    dwarfdump -di vmlinux > output.dwarf
-    """
-    _md_os = "linux"
-    _md_memory_model = "32bit"
-
-    native_types = basic.x86_native_types_32bit
-    overlay = linux_overlay
-    object_classes = obj.Profile.object_classes.copy()
-
-    # The system map
-    sys_map = None
-
-    def __init__(self, strict = False, config = None):
-        # Parse the dwarf file and generate the vtypes
-        if config.PROFILE_FILE is None:
-            raise RuntimeError("DWARF profile file not specified.")
-
-        self.abstract_types = self.parse_profile_file(config.PROFILE_FILE)
-        obj.Profile.__init__(self, strict=strict, config=config)
-
-    @cache.CacheDecorator("address_space/profile/")
-    def parse_profile_file(self, filename):
-        """Parse the profile file into vtypes."""
-        vtypes = None
-        profile_file = zipfile.ZipFile(filename)
-        for f in profile_file.filelist:
-            if f.filename.endswith(".dwarf"):
-                debug.info("Found dwarf file %s" % f.filename)
-                vtypes = self.parse_dwarf(profile_file.read(f.filename))
-
-            # If you dont want to keep the dwarf file you can just have the
-            # vtypes file itself in the zip profile file. You can just run this
-            # script (linux32.py foo.dwarf > foo.vtypes) to obtain a valid
-            # vtypes file (which is just a python file with a single dict
-            # "linux_types"). Note that this executes this file - so make sure
-            # its trusted.
-            elif f.filename.endswith(".vtypes"):
-                env = {}
-                exec(profile_file.read(f.filename), dict(__builtins__=None), env)
-                vtypes = env["linux_types"]
-
-            elif "system.map" in f.filename.lower():
-                debug.info("Found dwarf file %s" % f.filename)
-                self.sys_map = self.parse_system_map(profile_file.read(f.filename))
-
-        if self.sys_map is None or vtypes is None:
-            raise RuntimeError("DWARF profile file does not contain all required"
-                               " components.")
-
-        magic = vtypes.setdefault('VOLATILITY_MAGIC', [None, {}])[1]
-        magic['SystemMap'] = [0, ['VolatilityMagic', dict(value = self.sys_map)]]
-        magic['DTB'] = [0, ['VolatilityDTB', dict()]]
-
-        return vtypes
-
-    def parse_dwarf(self, data):
-        """Parse the dwarf file."""
-        self._parser = DWARFParser()
-        for line in data.splitlines():
-            self._parser.feed_line(line)
-
-        return self._parser.finalize()
-
-    def parse_system_map(self, data):
-        """Parse the symbol file."""
-        sys_map = {}
-        # get the system map
-        for line in data.splitlines():
-            (address, _, symbol) = line.strip().split()
-            try:
-                sys_map[symbol] = long(address, 16)
-            except ValueError:
-                pass
-
-        return sys_map
-
-    @staticmethod
-    def register_options(config):
-        """Register profile specific options."""
-        config.add_option("PROFILE_FILE", default = None,
-                          help = "The profile file to use for linux memory analysis. Must contain a dwarf file and a System map file.")
-
-
-
 # really 'file' but don't want to mess with python's version
 class linux_file(obj.CType):
 
@@ -495,8 +408,6 @@ class linux_file(obj.CType):
 
         return ret
 
-Linux32.object_classes["file"] = linux_file
-
 
 class list_head(obj.CType):
     """A list_head makes a doubly linked list."""
@@ -510,17 +421,17 @@ class list_head(obj.CType):
         else:
             lst = self.prev.dereference()
 
-        offset = self.obj_vm.profile.get_obj_offset(type, member)
+        offset = self.obj_profile.get_obj_offset(type, member)
 
         seen = set()
         seen.add(lst.obj_offset)
 
         while 1:
             ## Instantiate the object
-            item = obj.Object(type, offset = lst.obj_offset - offset,
-                                    vm = self.obj_vm,
-                                    parent = self.obj_parent,
-                                    name = type)
+            item = self.obj_profile.Object(theType=type, offset=lst.obj_offset - offset,
+                                           vm = self.obj_vm,
+                                           parent = self.obj_parent,
+                                           name = type)
 
 
             if forward:
@@ -541,8 +452,6 @@ class list_head(obj.CType):
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
 
-Linux32.object_classes["list_head"] = list_head
-
 
 class files_struct(obj.CType):
 
@@ -562,8 +471,6 @@ class files_struct(obj.CType):
             ret = self.max_fds
 
         return ret
-
-Linux32.object_classes["files_struct"] = files_struct
 
 
 class task_struct(obj.CType):
@@ -597,7 +504,8 @@ class task_struct(obj.CType):
 
         try:
             process_as = self.obj_vm.__class__(
-                self.obj_vm.base, self.obj_vm.get_config(), dtb = directory_table_base)
+                base=self.obj_vm.base, session=self.obj_vm.session, 
+                dtb = directory_table_base)
 
         except AssertionError, _e:
             return obj.NoneObject("Unable to get process AS")
@@ -605,8 +513,6 @@ class task_struct(obj.CType):
         process_as.name = "Process {0}".format(self.pid)
 
         return process_as
-
-Linux32.object_classes["task_struct"] = task_struct
 
 
 class linux_fs_struct(obj.CType):
@@ -629,26 +535,93 @@ class linux_fs_struct(obj.CType):
 
         return ret
 
-Linux32.object_classes["fs_struct"] = linux_fs_struct
+
+class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
+    """A Linux profile which works with dwarfdump output files.
+
+    To generate a suitable dwarf file:
+    dwarfdump -di vmlinux > output.dwarf
+    """
+    _md_os = "linux"
+    _md_memory_model = "32bit"
+
+    def __init__(self, profile_file=None, **kwargs):
+        super(Linux32, self).__init__(**kwargs)
+        self.profile_file = profile_file or self.session.profile_file
+        self.add_classes(dict(file=linux_file, list_head=list_head,
+                              files_struct=files_struct, task_struct=task_struct,
+                              fs_struct=linux_fs_struct))
+        self.add_overlay(linux_overlay)
+
+    def compile(self):
+        """Delay checking the profile as much as possible.
+
+        This allows the user to set the profile file after setting the profile.
+        """
+        if not self.profile_file:
+            raise obj.ProfileError("No profile dwarf pack specified (session.profile_file).")
+        
+        self.parse_profile_file(self.profile_file)
+        super(Linux32, self).compile()
+
+    def parse_profile_file(self, filename):
+        """Parse the profile file into vtypes."""
+        vtypes = None
+        sys_map = None
+
+        profile_file = zipfile.ZipFile(filename)
+        for f in profile_file.filelist:
+            if f.filename.endswith(".dwarf"):
+                logging.info("Found dwarf file %s" % f.filename)
+                vtypes = self.parse_dwarf(profile_file.read(f.filename))
+
+            # If you dont want to keep the dwarf file you can just have the
+            # vtypes file itself in the zip profile file. You can just run this
+            # script (linux32.py foo.dwarf > foo.vtypes) to obtain a valid
+            # vtypes file (which is just a python file with a single dict
+            # "linux_types"). Note that this executes this file - so make sure
+            # its trusted.
+            elif f.filename.endswith(".vtypes"):
+                env = {}
+                exec(profile_file.read(f.filename), dict(__builtins__=None), env)
+                vtypes = env["linux_types"]
+
+            elif "system.map" in f.filename.lower():
+                logging.info("Found dwarf file %s" % f.filename)
+                sys_map = self.parse_system_map(profile_file.read(f.filename))
+                self.add_constants(**sys_map)
+
+        if sys_map is None or vtypes is None:
+            raise obj.ProfileError("DWARF profile file does not contain all required"
+                                   " components.")
+
+        self.add_types(vtypes)
+
+    def parse_dwarf(self, data):
+        """Parse the dwarf file."""
+        self._parser = DWARFParser()
+        for line in data.splitlines():
+            self._parser.feed_line(line)
+
+        return self._parser.finalize()
+
+    def parse_system_map(self, data):
+        """Parse the symbol file."""
+        sys_map = {}
+        # get the system map
+        for line in data.splitlines():
+            (address, _, symbol) = line.strip().split()
+            try:
+                sys_map[symbol] = long(address, 16)
+            except ValueError:
+                pass
+
+        return sys_map
 
 
-class VolatilityDTB(obj.VolatilityMagic):
-    """A scanner for DTB values."""
-
-    def generate_suggestions(self):
-        """Tries to locate the DTB."""
-        volmag = obj.Object('VOLATILITY_MAGIC', offset = 0, vm = self.obj_vm)
-
-        # This is the difference between the virtual and physical addresses (aka
-        # PAGE_OFFSET). On linux there is a direct mapping between physical and
-        # virtual addressing in kernel mode:
-
-        #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
-        PAGE_OFFSET = volmag.SystemMap["_text"] - volmag.SystemMap["phys_startup_32"]
-
-        yield volmag.SystemMap["swapper_pg_dir"] - PAGE_OFFSET
-
-Linux32.object_classes["VolatilityDTB"] = VolatilityDTB
+class Linux64(basic.Profile64Bits, Linux32):
+    """Support for 64 bit linux systems."""
+    _md_memory_model = "64bit"
 
 
 if __name__ == '__main__':

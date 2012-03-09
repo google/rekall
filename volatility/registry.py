@@ -37,10 +37,6 @@ step, as soon as a module is imported, the plugin is registered.
 import abc
 import os
 import zipfile
-from volatility import constants
-from volatility import debug
-from volatility import conf
-config = conf.ConfFactory()
 
 
 class MetaclassRegistry(abc.ABCMeta):
@@ -64,8 +60,8 @@ class MetaclassRegistry(abc.ABCMeta):
                 mcs.top_level_class = mcs
 
         # The following should not be registered as they are abstract. Classes
-        # are abstract if the have the __abstract attribute (not this is not
-        # inheritable so each abstract class much be explicitely marked).
+        # are abstract if the have the __abstract attribute (note this is not
+        # inheritable so each abstract class must be explicitely marked).
         abstract_attribute = "_%s__abstract" % name
         if getattr(mcs, abstract_attribute, None):
             return

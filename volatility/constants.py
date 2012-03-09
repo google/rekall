@@ -16,22 +16,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
 #
 
-# Blocksize was chosen to make it aligned
-# on 8 bytes
-# Optimized by Michael Cohen
-
 import os, sys
 
-VERSION = "2.1_alpha"
-
+VERSION = "3.0_alpha"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
-
-PLUGINPATH = os.path.dirname(__file__)
-# If we're in a pyinstaller executable 
-if hasattr(sys, "frozen"):
-    try:
-        import iu, _mountzlib #pylint: disable=W0611,F0401
-        PLUGINPATH = os.environ["_MEIPASS2"]
-    except ImportError:
-        pass
-PLUGINPATH = os.path.join(PLUGINPATH, 'plugins')

@@ -537,6 +537,16 @@ class _OBJECT_HEADER(obj.CType):
 class _FILE_OBJECT(obj.CType):
     """Class for file objects"""
 
+    @property
+    def AccessString(self):
+        """Make a nicely formatted ACL string."""
+        return (((self.ReadAccess > 0 and "R") or '-') +
+                ((self.WriteAccess > 0  and "W") or '-') +
+                ((self.DeleteAccess > 0 and "D") or '-') +
+                ((self.SharedRead > 0 and "r") or '-') +
+                ((self.SharedWrite > 0 and "w") or '-') +
+                ((self.SharedDelete > 0 and "d") or '-'))
+
     def file_name_with_device(self):
         """Return the name of the file, prefixed with the name
         of the device object to which the file belongs"""
@@ -688,7 +698,9 @@ class _MMVAD_LONG(_MMVAD_SHORT):
 class _EX_FAST_REF(obj.CType):
     def dereference_as(self, theType, parent = None, vm=None, **kwargs):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the specified type"""
-        return self.obj_profile.Object(theType=theType, offset=self.Object.v() & ~7,
+        MAX_FAST_REF = self.obj_profile.constants['MAX_FAST_REF']
+        return self.obj_profile.Object(theType=theType, 
+                                       offset=self.Object.v() & ~MAX_FAST_REF,
                                        vm=vm or self.obj_vm,
                                        parent = parent or self, **kwargs)
 
@@ -784,18 +796,6 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
             })
 
         self.add_overlay(windows_overlay)
-
-
-class AbstractKDBGMod(obj.ProfileModification):
-    kdbgsize = 0x290
-
-    def modification(self, profile):
-        signature = '\x00\x00\x00\x00\x00\x00\x00\x00' if profile.metadata.get('memory_model', '32bit') == '32bit' else '\x00\xf8\xff\xff'
-        signature += 'KDBG' + struct.pack('<H', self.kdbgsize)
-        profile.merge_overlay({'VOLATILITY_MAGIC': [ None, {
-                                'KDBGHeader': [ None, ['VolatilityMagic', dict(value = signature)]]
-                                                            }
-                                                    ]})
 
 ### DEPRECATED FEATURES ###
 #

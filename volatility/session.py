@@ -209,15 +209,16 @@ Config:
         if isinstance(profile, basestring):
             # First try to find this profile.
             try:
-                profile = obj.Profile.classes[profile]()
+                profile = obj.Profile.classes[profile](session=self)
             except KeyError:
-                logging.error("Profile %s is not known." % name)
+                logging.error("Profile %s is not known." % profile)
                 logging.info("Known profiles are:")
             
-                for name in obj.Profile.classes:
-                    logging.info("  %s" % name)
+                for profile in obj.Profile.classes:
+                    logging.info("  %s" % profile)
 
                 return
+
         if isinstance(profile, obj.Profile):
             self.__dict__['profile'] = profile
             self.plugins.reset()
