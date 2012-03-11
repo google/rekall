@@ -552,6 +552,7 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
                               files_struct=files_struct, task_struct=task_struct,
                               fs_struct=linux_fs_struct))
         self.add_overlay(linux_overlay)
+        self.add_constants(default_text_encoding="utf8")
 
     def compile(self):
         """Delay checking the profile as much as possible.

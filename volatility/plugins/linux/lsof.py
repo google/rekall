@@ -62,7 +62,8 @@ class Lsof(common.LinProcessFilter):
 
         inode = dentry.d_inode
         while 1:
-            dname = dentry.d_name.name.dereference_as("String").v()
+            # Filenames can be unicode with a maximum length.
+            dname = dentry.d_name.name.dereference_as("UnicodeString", length=1024).v()
 
             if dname != '/':
                 ret_path.append(dname)

@@ -92,11 +92,13 @@ class UnicodeString(String):
     def __init__(self, encoding=None, **kwargs):
         super(UnicodeString, self).__init__(**kwargs)
         if encoding is None:
-            self.encoding = self.obj_profile.constants['default_text_encoding']
+            self.encoding = self.obj_profile.get_constant('default_text_encoding')
 
     def v(self, vm=None):
         """Note this returns a unicode object."""
-        return super(UnicodeString, self).v().decode(self.encoding, "ignore")
+        # Null terminate the string
+        data = super(UnicodeString, self).v().decode(self.encoding, "ignore")
+        return data.split("\x00")[0]
 
     def __str__(self):
         """This function returns an encoded string in utf8."""
