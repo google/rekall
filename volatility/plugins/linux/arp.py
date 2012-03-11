@@ -21,11 +21,10 @@
 @organization: Digital Forensics Solutions
 """
 
-import volatility.obj as obj
-import linux_common
+from volatility.plugins.linux import common
 
-class a_ent:
-    
+
+class a_ent:    
     def __init__(self, ip, mac, devname):
         self.ip      = ip
         self.mac     = mac
@@ -33,16 +32,20 @@ class a_ent:
 
 # based off pykdump
 # not 100% this works, will need some testing to verify
-class linux_arp(linux_common.AbstractLinuxCommand):
-    ''' print the ARP table '''
+class Arp(common.AbstractLinuxCommandPlugin):
+    """print the ARP table."""
+
+    # This plugin seems broken now.
+    __abstract = True
     __name = "arp"
 
+    def get_handle_tables(self):
+        ntables_ptr = self.profile.Object(
+            theType="Pointer",
+            offset=self.profile.get_constant("neigh_tables"),
+            vm=self.kernel_address_space)
 
-    def calculate(self):
-
-        ntables_ptr = obj.Object("Pointer", offset=self.smap["neigh_tables"], vm=self.addr_space)
-
-        for ntable in linux_common.walk_internal_list("neigh_table", "next", ntables_ptr, self.addr_space):
+        for ntable in common.walk_internal_list("neigh_table", "next", ntables_ptr, self.addr_space):
             yield self.handle_table(ntable)
         
     def handle_table(self, ntable):
@@ -87,8 +90,7 @@ class linux_arp(linux_common.AbstractLinuxCommand):
 
         return ret
             
-    def render_text(self, outfd, data):
-
-        for arp_list in data:
+    def render(self, outfd):
+        for arp_list in self.get_handle_tables():
             for ent in arp_list:
                 outfd.write("[{0:42s}] at {1:20s} on {2:s}\n".format(ent.ip, ent.mac, ent.devname))

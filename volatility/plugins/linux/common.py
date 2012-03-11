@@ -79,6 +79,86 @@ class LinuxFindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
         for dtb in self.dtb_hits():
             fd.write("{0:#010x}\n".format(dtb))
 
+
+class LinProcessFilter(AbstractLinuxCommandPlugin):
+    """A class for filtering processes."""
+
+    __abstract = True
+
+    def __init__(self, phys_task_struct=None, pids=None, pid=None, **kwargs):
+        """Lists information about all the dlls mapped by a process.
+        
+        Args:
+           phys_task_struct: One or more task structs or offsets defined in
+              the physical AS.
+           
+           pids: A list of pids.
+           pid: A single pid.
+        """
+        super(LinProcessFilter, self).__init__(**kwargs)
+
+        if isinstance(phys_task_struct, int):
+            phys_task_struct = [phys_task_struct]
+        elif phys_task_struct is None:
+            phys_task_struct = []
+
+        self.phys_task_struct = phys_task_struct
+
+        if pids is None:
+            pids = []
+
+        if pid is not None:
+            pids.append(pid)
+
+        self.pids = pids
+
+    def filter_processes(self):
+        """Filters eprocess list using phys_eprocess and pids lists."""
+        # No filtering required:
+        if not self.phys_task_struct and not self.pids:
+            for task in self.session.plugins.pslist(
+                session=self.session).pslist():
+                yield task
+        else:
+            # We need to filter by phys_task_struct
+            for offset in self.phys_task_struct:
+                yield self.virtual_process_from_physical_offset(offset)
+
+            # We need to filter by pids
+            for task in self.session.plugins.pslist(
+                session=self.session).pslist():
+                if int(task.pid) in self.pids:
+                    yield task
+
+    def virtual_process_from_physical_offset(self, physical_offset):
+        """Tries to return an eprocess in virtual space from a physical offset.
+
+        We do this by reflecting off the list elements.
+
+        Args:
+           physical_offset: The physcial offset of the process.
+
+        Returns:
+           an _EPROCESS object or a NoneObject on failure.
+        """
+        physical_task = self.profile.Object(
+            theType="task_struct", offset=int(physical_offset),
+            vm=self.kernel_address_space.base)
+
+        # We cast our list entry in the kernel AS by following Flink into the
+        # kernel AS and then the Blink. Note the address space switch upon
+        # dereferencing the pointer.
+        our_list_entry = physical_task.tasks.next.dereference(
+            vm=self.kernel_address_space).prev.dereference()
+
+        # Now we get the EPROCESS object from the list entry.
+        return our_list_entry.dereference_as("task_struct", "tasks")
+
+
+
+
+
+# TODO: Deprecate this when all plugins have been converted.
 class AbstractLinuxCommand(commands.command):
 
     def __init__(self, *args, **kwargs):
@@ -110,46 +190,6 @@ def bit_is_set(bmap, pos):
     mask = 1 << pos
     return bmap & mask
     
-# returns a list of online cpus (the processor numbers)
-def online_cpus(smap, addr_space):
-
-    #later kernels..
-    if "cpu_online_bits" in smap:
-        bmap = obj.Object("unsigned long", offset=smap["cpu_online_bits"], vm=addr_space)
-
-    elif "cpu_present_map" in smap:
-        bmap = obj.Object("unsigned long",  offset=smap["cpu_present_map"], vm=addr_space)
-
-    else:
-        raise AttributeError, "Unable to determine number of online CPUs for memory capture"
-
-    cpus = []
-    for i in xrange(0, 8):
-        if bit_is_set(bmap, i):
-            cpus.append(i)
-            
-    return cpus    
-
-def walk_per_cpu_var(obj_ref, per_var, var_type):
-        
-    cpus = online_cpus(obj_ref.smap, obj_ref.addr_space)
-    
-    # get the highest numbered cpu
-    max_cpu = cpus[-1]
- 
-    per_offsets = obj.Object(theType='Array', targetType='unsigned long', count=max_cpu, offset=obj_ref.smap["__per_cpu_offset"], vm=obj_ref.addr_space)
-    i = 0
-
-    for i in cpus:
-           
-        offset = per_offsets[i]
-
-        addr = obj_ref.smap["per_cpu__" + per_var] + offset.v()
-        var = obj.Object(var_type, offset=addr, vm=obj_ref.addr_space)
-
-        yield i, var
- 
- 
 
 # similar to for_each_process for this usage
 def walk_list_head(struct_name, list_member, list_head_ptr, addr_space):

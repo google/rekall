@@ -21,7 +21,6 @@
 @organization: Digital Forensics Solutions
 """
 
-import volatility.obj as obj
 from volatility.plugins.linux import common
 
 
@@ -54,32 +53,26 @@ class LinuxPsList(common.AbstractLinuxCommandPlugin):
                 task.obj_offset, task.comm, str(task.pid), str(task.uid)))
 
 
-
-class linux_memmap(object):
+class LinuxMemMap(common.LinProcessFilter):
     """Dumps the memory map for linux tasks."""
 
     __name = "memmap"
 
-    def render_text(self, outfd, data):
-        first = True
-        for task in data:
-            if not first:
-                outfd.write("*" * 72 + "\n")
+    def render(self, outfd):
+        outfd.write("*" * 72 + "\n")
 
+        for task in self.filter_processes():
             task_space = task.get_process_address_space()
-            outfd.write("{0} pid: {1:6}\n".format(task.comm, task.pid))
-            first = False
+            outfd.write("Process '{0}' pid: {1:6}\n".format(
+                    task.comm, task.pid))
 
-            pagedata = task_space.get_available_pages()
-            if pagedata:
-                outfd.write("{0:12} {1:12} {2:12}\n".format('Virtual', 'Physical', 'Size'))
+            outfd.write("{0:12} {1:12} {2:12}\n".format(
+                    'Virtual', 'Physical', 'Size'))
 
-                for p in pagedata:
-                    pa = task_space.vtop(p[0])
-                    # pa can be 0, according to the old memmap, but can't == None(NoneObject)
-                    if pa != None:
-                        outfd.write("0x{0:010x} 0x{1:010x} 0x{2:012x}\n".format(p[0], pa, p[1]))
-                    #else:
-                    #    outfd.write("0x{0:10x} 0x000000     0x{1:12x}\n".format(p[0], p[1]))
-            else:
-                outfd.write("Unable to read pages for task.\n")
+            for va, length in task_space.get_available_pages():
+                pa = task_space.vtop(va)
+                if pa == None:
+                    continue
+
+                outfd.write("0x{0:010x} 0x{1:010x} 0x{2:012x}\n".format(
+                        va, pa, length))

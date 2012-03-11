@@ -21,26 +21,32 @@
 @organization: Digital Forensics Solutions
 """
 
-import volatility.obj as obj
+import sys
 import linux_common
+import linux_proc_maps
 
-class linux_dmesg(linux_common.AbstractLinuxCommand):
+#TODO: This seems broken now.
 
-    ''' gathers dmesg buffer '''
+class linux_dump_map(linux_common.AbstractLinuxCommand):
+
+    ''' gathers process maps '''
 
     def calculate(self):
+        vmas = linux_proc_maps.linux_proc_maps(self._config).calculate()
+        for task, vma in vmas:
+            # filter on a specific vma starting address
+            if vma.vm_file:
+                path = []
+                yield vma
+                #(dentry, inode) = linux_common.file_info(vma.vm_file)
+            else:
+                length = vma.vm_end - vma.vm_start
+                current = vma.vm_start
 
-        ptr_addr = self.smap["log_buf"]
-        log_buf_addr = obj.Object("long", offset = ptr_addr, vm = self.addr_space)
-        log_buf_len = obj.Object("int", self.smap["log_buf_len"], vm = self.addr_space)
-
-        yield linux_common.get_string(log_buf_addr, self.addr_space, log_buf_len)
+                while current < vma.vm_end:
+                    page = self.addr_space.read(current, 4096)
+                    current = current + 4096
 
     def render_text(self, outfd, data):
-
-        for buf in data:
-            outfd.write("{0:s}\n".format(buf))
-
-
-
-
+        for vma in data:
+          outfd.write("%-8x-%-8x\n" % (vma.vm_start&0xffffffff, vma.vm_end&0xffffffff))

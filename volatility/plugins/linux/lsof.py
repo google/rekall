@@ -25,6 +25,8 @@ import volatility.obj as obj
 import linux_common
 import linux_task_list_ps as ltps
 
+from volatility.plugins.linux import common
+
 mn = linux_common.mask_number
 
 class linux_list_open_files(ltps.linux_task_list_ps):

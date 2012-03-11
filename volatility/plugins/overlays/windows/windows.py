@@ -18,7 +18,7 @@
 #
 
 import datetime
-import socket, struct
+
 from volatility import timefmt
 from volatility import debug
 from volatility import obj
@@ -711,20 +711,6 @@ class ThreadCreateTimeStamp(WinTimeStamp):
         return obj.NativeType.v(self) >> 3
 
 
-class IpAddress(obj.NativeType):
-    """Provides proper output for IpAddress objects"""
-
-    def __init__(self, **kwargs):
-        super(IpAddress, self).__init__(**kwargs)
-
-        # IpAddress is always a 32 bit int.
-        self.format_string = "<I"
-
-    def v(self, vm=None):
-        value = super(IpAddress, self).v(vm=vm)
-        return socket.inet_ntoa(struct.pack("<I", value))
-
-
 class _CM_KEY_BODY(obj.CType):
     """Registry key"""
 
@@ -788,7 +774,6 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
             '_MMVAD_LONG': _MMVAD_LONG,
             '_EX_FAST_REF': _EX_FAST_REF,
             'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
-            'IpAddress': IpAddress,
             '_CM_KEY_BODY': _CM_KEY_BODY,
             '_MMVAD_FLAGS': _MMVAD_FLAGS,
             '_MMVAD_FLAGS2': _MMVAD_FLAGS2,

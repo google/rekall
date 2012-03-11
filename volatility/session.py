@@ -140,17 +140,31 @@ class Session(object):
     def info(self, plugin_cls=None, fd=None):
         self.vol(self.plugins.info, item=plugin_cls, fd=fd)
 
-    def vol(self, plugin_cls=None, fd=None, debug=False, **kwargs):
+    def vol(self, plugin_cls=None, fd=None, debug=False, output=None, **kwargs):
         """Launch a plugin and its render() method automatically.
 
         Args:
           plugin: A string naming the plugin, or the plugin class itself.
+
           fd: A file descriptor to write the rendered result to. If not set we
             use the pager class.
+
           debug: If set we break into the debugger if anything goes wrong.
+
+          output: If set we open and write the output to this filename. If
+            session.overwrite is set to True, we will overwrite this
+            file. Otherwise the output is redirected to stdout.
         """
         if isinstance(plugin_cls, basestring):
             plugin_cls = getattr(self.plugins, plugin_cls)
+
+        if output is not None:
+            if os.access(output, os.F_OK) and not self.overwrite:
+                logging.error("Output file '%s' exists but session.overwrite is "
+                              "not set - using stdout." % output)
+                fd = None
+            else:
+                fd = open(output, "w")
 
         try:
             # Wrap the file descriptor with a pager that takes care of encoding.

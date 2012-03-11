@@ -177,7 +177,7 @@ class WinMemMap(common.WinProcessFilter):
         for task in self.filter_processes():
             outfd.write("*" * 72 + "\n")
             task_space = task.get_process_address_space()
-            outfd.write("{0} pid: {1:6}\n".format(
+            outfd.write("Process: '{0}' pid: {1:6}\n".format(
                     task.ImageFileName, task.UniqueProcessId))
 
             outfd.write("{0:12} {1:12} {2:12}\n".format(

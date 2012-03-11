@@ -23,6 +23,9 @@
 OS's
 """
 import copy
+import socket
+import struct
+
 from volatility import obj
 from volatility import constants
 from volatility.plugins.overlays import native_types
@@ -150,12 +153,12 @@ class Flags(obj.NativeType):
 class Enumeration(obj.NativeType):
     """Enumeration class for handling multiple possible meanings for a single value"""
 
-    def __init__(self, theType = None, offset = 0, vm = None, parent = None,
-                 choices = None, target = "unsigned long", **kwargs):
+    def __init__(self, choices = None, target = "unsigned long", **kwargs):
+        super(Enumeration, self).__init__(**kwargs)
         self.choices = choices or {}
         self.target = target
-        self.target_obj = obj.Object(target, offset = offset, vm = vm, parent = parent)
-        obj.NativeType.__init__(self, theType, offset, vm, parent, **kwargs)
+        self.target_obj = self.obj_profile.Object(
+            target, offset=self.offset, vm=self.obj_vm)
 
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
@@ -169,7 +172,21 @@ class Enumeration(obj.NativeType):
     def __format__(self, formatspec):
         return format(self.__str__(), formatspec)
 
+class IpAddress(obj.NativeType):
+    """Provides proper output for IpAddress objects"""
 
+    def __init__(self, **kwargs):
+        super(IpAddress, self).__init__(**kwargs)
+
+        # IpAddress is always a 32 bit int.
+        self.format_string = "<I"
+
+    def v(self, vm=None):
+        value = super(IpAddress, self).v(vm=vm)
+        return socket.inet_ntoa(struct.pack("<I", value))    
+
+
+# TODO: Remove this hack.
 class VOLATILITY_MAGIC(obj.CType):
     """Class representing a VOLATILITY_MAGIC namespace
     
@@ -217,6 +234,7 @@ class BasicWindowsClasses(obj.Profile):
             'UnicodeString': UnicodeString,
             'Flags': Flags,
             'Enumeration': Enumeration,
+            'IpAddress': IpAddress,
             })
 
         self.add_constants(default_text_encoding="utf16")

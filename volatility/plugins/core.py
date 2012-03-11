@@ -201,3 +201,50 @@ class LoadAddressSpace(plugin.Command):
 
         return base_as
 
+
+class HexDumper(plugin.Command):
+    """Hexdump a region of memory."""
+
+    __name = "hexdump"
+
+    fd = None
+
+    def __init__(self, offset=0, vm=None, width=16, length=25, **kwargs):
+        """Hexdump a region of memory.
+
+        Note that this plugin can be reused to keep dumping from where it was left off last time. Each call to render() resumes from the last place. This is useful for the shell:
+
+        In[0]: vol plugins.hexdump, offset=10
+
+        ....
+        In[1]: _.render()
+        ....  Resumes to dump another page.
+
+        Args:
+          - offset: Where to start from.
+          - vm: The address space to use. If not specified we use session.kernel_address_space.
+          - width: The width of the hexdump.
+          - length: The number of lines to dump.
+        """
+        super(HexDumper, self).__init__(**kwargs)
+        self.offset = offset
+        self.vm = vm or self.session.kernel_address_space
+        self.width = width
+        self.length = length
+
+    def render(self, fd=None):
+        if fd is None:
+            fd = self.fd
+
+        self.fd = fd
+        for row in xrange(self.length):
+            row_data = self.vm.zread(self.offset, self.width)
+
+            translated_data = [x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data]
+            translated_data = "".join(translated_data)
+
+            hexdata = " ".join(["{0:02x}".format(ord(x)) for x in row_data])
+
+            fd.write("{0:016X} | {1} | {2}\n".format(
+                    self.offset, hexdata, translated_data))
+            self.offset += self.width
