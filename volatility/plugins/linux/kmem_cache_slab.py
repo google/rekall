@@ -49,6 +49,7 @@ class linux_kmem_cache_slab(object):
             if setobj:
                 # fill the hash table with an institated object from the address found int he cache    
                 htab[obj_addr] = objt
+               
 
     def process_slab_list(self, struct_name, cache, list_head, htab, allocated):
 
@@ -56,6 +57,7 @@ class linux_kmem_cache_slab(object):
         bitmap = [0] * cache.num
 
         for slab in linux_common.walk_list_head("slab", "list", list_head, self.addr_space):
+
             i = slab.free.v() & 0xffffffff
 
             bitmap = [0] * cache.num
@@ -76,11 +78,11 @@ class linux_kmem_cache_slab(object):
     def process_slab(self, struct_name, cache, l3, htab, allocated):
 
         self.process_slab_list(struct_name, cache, l3.slabs_full, htab, allocated)
-        # partial, free
         self.process_slab_list(struct_name, cache, l3.slabs_partial, htab, allocated)
-
+        self.process_slab_list(struct_name, cache, l3.slabs_free, htab, allocated)
+    
     # returns a hash table keyed by the pointer to each structure
-    def walk_kmem_cache(self, struct_name, cache_address, allocated = 1, deref = 1):
+    def walk_kmem_cache(self, struct_name, cache_address, allocated, deref=1):
 
         ret = {}
 
@@ -95,14 +97,21 @@ class linux_kmem_cache_slab(object):
         cache_obj = obj.Object("kmem_cache", offset = cache_address.v(), vm = self.addr_space)
 
         # for_each_online_node / node_sates for NUMA only?
-        # TODO SMP
+        # TODO SMP hACK!
       
-        l3 = cache_obj.nodelists[0]
+        for i in xrange(0, 4):
+            l3 = cache_obj.nodelists[0]
 
-        if l3:
-            self.process_slab(struct_name, cache_obj, l3, ret, allocated)
-        else:
-            print "No nodelist[0]???"
-            sys.exit(1)
+            if l3:
+                self.process_slab(struct_name, cache_obj, l3, ret, allocated)
+            else:
+                break
 
         return ret
+
+
+
+
+
+
+

@@ -24,29 +24,52 @@
 import sys
 import linux_common
 import linux_proc_maps
+import volatility.plugins.linux_task_list_ps as ltps
 
-#TODO: This seems broken now.
-
-class linux_dump_map(linux_common.AbstractLinuxCommand):
+class linux_dump_map(ltps.linux_task_list_ps):
 
     ''' gathers process maps '''
+    def __init__(self, config, *args):
+        #linux_coimmon.AbstractLinuxCommand.__init__(self, config, *args)
+        ltps.linux_task_list_ps.__init__(self, config, *args)
+
+        self._config.add_option('VMA',        short_option = 's', default = None, help = 'Filter by VMA starting address', action = 'store', type = 'long')
+        self._config.add_option('OUTPUTFILE', short_option = 'O', default = None, help = 'Output File', action = 'store', type = 'str')
+    
+    def read_addr_range(self, task, start, end):
+
+        pagesize = 4096 # TODO 64bit
+
+        tmp_dtb = self.addr_space.vtop(task.mm.pgd)
+
+        # set the as with our new dtb so we can read from userland
+        proc_as = self.addr_space.__class__(self.addr_space.base, self.addr_space.get_config(), dtb = tmp_dtb)
+
+        # xrange doesn't support longs :(
+        while start < end:
+            
+            page  = proc_as.read(start, pagesize)
+
+            yield page
+
+            start = start + pagesize
 
     def calculate(self):
         vmas = linux_proc_maps.linux_proc_maps(self._config).calculate()
-        for task, vma in vmas:
-            # filter on a specific vma starting address
-            if vma.vm_file:
-                path = []
-                yield vma
-                #(dentry, inode) = linux_common.file_info(vma.vm_file)
-            else:
-                length = vma.vm_end - vma.vm_start
-                current = vma.vm_start
 
-                while current < vma.vm_end:
-                    page = self.addr_space.read(current, 4096)
-                    current = current + 4096
+        outfile = open(self._config.OUTPUTFILE, "wb+")
+
+        for (task, vma) in vmas:
+
+            if not self._config.VMA or vma.vm_start == self._config.VMA:
+            
+                for page in self.read_addr_range(task, vma.vm_start, vma.vm_end):
+                    outfile.write(page)
+
+        outfile.close()
 
     def render_text(self, outfd, data):
-        for vma in data:
-          outfd.write("%-8x-%-8x\n" % (vma.vm_start&0xffffffff, vma.vm_end&0xffffffff))
+
+        pass
+
+

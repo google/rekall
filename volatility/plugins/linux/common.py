@@ -176,10 +176,6 @@ class AbstractLinuxCommand(commands.command):
             return True
 
 
-def sizeofstruct(struct_name, profile):
-
-    return profile.typeDict[struct_name][0]
-
 def offsetof(struct_name, list_member, profile):
 
     offset = profile.typeDict[struct_name][1][list_member][0]
@@ -190,6 +186,44 @@ def bit_is_set(bmap, pos):
     mask = 1 << pos
     return bmap & mask
     
+# returns a list of online cpus (the processor numbers)
+def online_cpus(smap, addr_space):
+
+    #later kernels..
+    if "cpu_online_bits" in smap:
+        bmap = obj.Object("unsigned long", offset=smap["cpu_online_bits"], vm=addr_space)
+
+    elif "cpu_present_map" in smap:
+        bmap = obj.Object("unsigned long",  offset=smap["cpu_present_map"], vm=addr_space)
+
+    else:
+        raise AttributeError, "Unable to determine number of online CPUs for memory capture"
+
+    cpus = []
+    for i in xrange(0, 8):
+        if bit_is_set(bmap, i):
+            cpus.append(i)
+            
+    return cpus    
+
+def walk_per_cpu_var(obj_ref, per_var, var_type):
+        
+    cpus = online_cpus(obj_ref.smap, obj_ref.addr_space)
+    
+    # get the highest numbered cpu
+    max_cpu = cpus[-1]
+ 
+    per_offsets = obj.Object(theType='Array', targetType='unsigned long', count=max_cpu, offset=obj_ref.smap["__per_cpu_offset"], vm=obj_ref.addr_space)
+    i = 0
+
+    for i in cpus:
+           
+        offset = per_offsets[i]
+
+        addr = obj_ref.smap["per_cpu__" + per_var] + offset.v()
+        var = obj.Object(var_type, offset=addr, vm=obj_ref.addr_space)
+
+        yield i, var
 
 # similar to for_each_process for this usage
 def walk_list_head(struct_name, list_member, list_head_ptr, addr_space):
@@ -253,6 +287,7 @@ def IS_ROOT(dentry):
 # based on __d_path
 # TODO: (deleted) support
 def do_get_path(rdentry, rmnt, dentry, vfsmnt, addr_space):
+
     ret_path = []
 
     inode = dentry.d_inode
@@ -294,6 +329,7 @@ def do_get_path(rdentry, rmnt, dentry, vfsmnt, addr_space):
     return ret_val
 
 def get_path(task, filp, addr_space):
+
     rdentry  = task.fs.get_root_dentry()
     rmnt     = task.fs.get_root_mnt()
     dentry = filp.get_dentry()
@@ -326,4 +362,15 @@ def ip62str(in6addr):
 
         ctr = ctr + 1
 
-    return ret          
+    return ret      
+    
+def S_ISDIR(mode):
+    return (mode & linux_flags.S_IFMT) == linux_flags.S_IFDIR
+
+def S_ISREG(mode):
+    return (mode & linux_flags.S_IFMT) == linux_flags.S_IFREG
+
+
+
+
+

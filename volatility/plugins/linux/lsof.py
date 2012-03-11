@@ -21,34 +21,83 @@
 @organization: Digital Forensics Solutions
 """
 
-import volatility.obj as obj
-import linux_common
-import linux_task_list_ps as ltps
-
 from volatility.plugins.linux import common
 
-mn = linux_common.mask_number
 
-class linux_list_open_files(ltps.linux_task_list_ps):
+class Lsof(common.LinProcessFilter):
+    '''Lists open files.'''
 
-    ''' lists open files '''
+    __name = "lsof"
 
-    def calculate(self):
-        tasks = ltps.linux_task_list_ps.calculate(self)
-
-        for task in tasks:
+    def lsof(self):
+        for task in self.filter_processes():
             fds     = task.files.get_fds()
             max_fds = task.files.get_max_fds()
 
-            fds = obj.Object(theType = 'Array', offset = fds.obj_offset, vm = self.addr_space, targetType = 'Pointer', count = max_fds)
+            fds = self.profile.Object(
+                theType = 'Array',
+                offset = fds.obj_offset,
+                vm = self.kernel_address_space,
+                targetType = 'Pointer', count = max_fds)
 
             for i in xrange(0, max_fds):
-
                 if fds[i]:
-                    filp = obj.Object('file', offset = fds[i], vm = self.addr_space)
+                    filp = self.profile.Object(
+                        'file', offset = fds[i], vm = self.kernel_address_space)
 
-                    yield (task, filp, i, self.addr_space)
+                    yield (task, filp, i)
 
-    def render_text(self, outfd, data):
-        for (task, filp, fd, _addr_space) in data:
-            outfd.write("{0:5d} -> {1:s}\n".format(fd, linux_common.get_path(task, filp, self.addr_space)))
+    def get_path(self, task, filep):
+        rdentry  = task.fs.get_root_dentry()
+        rmnt     = task.fs.get_root_mnt()
+        dentry = filep.get_dentry()
+        vfsmnt = filep.get_vfsmnt()
+
+        return self.do_get_path(rdentry, rmnt, dentry, vfsmnt)
+
+    # based on __d_path
+    # TODO: (deleted) support
+    def do_get_path(self, rdentry, rmnt, dentry, vfsmnt):
+        ret_path = []
+
+        inode = dentry.d_inode
+        while 1:
+            dname = dentry.d_name.name.dereference_as("String").v()
+
+            if dname != '/':
+                ret_path.append(dname)
+
+            if dentry == rdentry and vfsmnt == rmnt:
+                break
+
+            if dentry == vfsmnt.mnt_root or dentry == dentry.d_parent:
+                if vfsmnt.mnt_parent == vfsmnt:
+                    break
+                dentry = vfsmnt.mnt_mountpoint
+                vfsmnt = vfsmnt.mnt_parent
+                continue
+
+            parent = dentry.d_parent
+
+            dentry = parent
+
+        ret_path.reverse()
+
+        ret_val = "/".join(ret_path)
+
+        if ret_val.startswith(("socket:", "pipe:")):
+            if ret_val.find("]") == -1:
+                ret_val = ret_val[:-1] + "[{0}]".format(inode.i_ino)
+            else:
+                ret_val = ret_val.replace("/","")
+
+        elif ret_val != "inotify":
+            ret_val = '/' + ret_val
+
+        return ret_val
+
+    def render(self, outfd):
+        for (task, filp, fd) in self.lsof():
+            outfd.write("{0:s}({1}): {2:5d} -> {3:s}\n".format(
+                    task.comm, task.pid, fd, self.get_path(
+                        task, filp)))

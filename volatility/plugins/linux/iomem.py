@@ -21,28 +21,35 @@
 @organization: Digital Forensics Solutions
 """
 
-from volatility.plugins.linux import common
+import volatility.obj as obj
 
-class Lsmod(common.AbstractLinuxCommandPlugin):
-    '''Gathers loaded kernel modules.'''
-    __name = "lsmod"
+import linux_common
 
+class linux_iomem(linux_common.AbstractLinuxCommand):
 
-    def get_module_list(self):
-        modules = self.profile.Object(
-            "list_head", offset = self.profile.get_constant("modules"),
-            vm=self.kernel_address_space)
+    ''' mimics /proc/iomem '''
+    
+    def print_resource(self, io_ptr, ischild=0):
 
-        # walk the modules list
-        for module in modules.list_of_type("module", "list"):
-            yield module
+        if not io_ptr:
+            #print "null"
+            return
 
-    def render(self, outfd):
-        outfd.write("{0:12} {1:12} {2:12}\n".format(
-                'Virtual', 'Physical', 'Name'))
+        io_res = obj.Object("resource", offset=io_ptr, vm=self.addr_space)
 
-        for module in self.get_module_list():
-            outfd.write("0x{0:12X} 0x{1:12X} {2:12}\n".format(
-                    module.obj_offset,
-                    module.obj_vm.vtop(module.obj_offset),
-                    module.name))
+        name = linux_common.get_string(io_res.name, self.addr_space)
+
+        print "\t" * ischild + name
+
+        self.print_resource(io_res.child, 1)
+        self.print_resource(io_res.sibling, 0)
+
+    def calculate(self):
+
+        io_ptr = self.smap["iomem_resource"]
+
+        self.print_resource(io_ptr)
+
+    def render_text(self, outfd, data):
+
+        pass 

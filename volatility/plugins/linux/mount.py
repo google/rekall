@@ -20,36 +20,40 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+from volatility.plugins.linux import common
+from volatility.plugins.linux import flags
 
-import volatility.obj as obj
-import linux_common, linux_flags
 
-class fake_root:
+class fake_root(object):
     def __init__(self, dentry, vfsmnt):
         self.dentry = dentry
         self.mnt = vfsmnt
 
-class linux_mount(linux_common.AbstractLinuxCommand):
 
-    ''' gathers mounted fs/devices '''
+
+class Mount(common.LinProcessFilter):
+    '''Gathers mounted fs/devices.'''
 
     def calculate(self):
 
-        mntptr = obj.Object("Pointer", offset = self.smap["mount_hashtable"], vm = self.addr_space)
+        mntptr = self.profile.Object(
+            "Pointer", offset = self.profile.get_constant("mount_hashtable"),
+            vm = self.kernel_address_space)
 
-        mnt_list = obj.Object(theType = "Array", offset = mntptr.v(), vm = self.addr_space, targetType = "list_head", count = 512)
+        mnt_list = self.profile.Object(
+            theType = "Array", offset = mntptr.v(), vm = self.kernel_address_space,
+            targetType = "list_head", count = 512)
 
         # get each list_head out of the array
         for outerlist in mnt_list:
 
-            for vfsmnt in linux_common.walk_list_head("vfsmount", "mnt_hash", outerlist, self.addr_space):
+            for vfsmnt in outerlist.list_of_type("vfsmount", "mnt_hash"):
                 yield vfsmnt
 
+    def render(self, outfd):
 
-    def render_text(self, outfd, data):
-
-        for vfsmnt in data:
-            dev_name = linux_common.get_string(vfsmnt.mnt_devname, self.addr_space)
+        for vfsmnt in self.calculate():
+            dev_name = vfsmnt.mnt_devname.v()
 
             path = linux_common.do_get_path(vfsmnt.mnt_sb.s_root, vfsmnt.mnt_parent, vfsmnt.mnt_root, vfsmnt, self.addr_space)
 

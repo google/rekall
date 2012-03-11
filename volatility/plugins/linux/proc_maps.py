@@ -40,8 +40,13 @@ class linux_proc_maps(ltps.linux_task_list_ps):
 
         for task in tasks:
             if task.mm:
-                for vma in linux_common.walk_internal_list("vm_area_struct", "vm_next", task.mm.mmap, self.addr_space):
-                    yield task, vma
+                for vinfo in self.get_vma_info(task):
+                    yield vinfo
+
+    def get_vma_info(self, task):
+
+        for vma in linux_common.walk_internal_list("vm_area_struct", "vm_next", task.mm.mmap, self.addr_space):
+            yield task, vma
 
     def render_text(self, outfd, data):
         for task, vma in data:

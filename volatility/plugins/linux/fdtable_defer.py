@@ -21,28 +21,34 @@
 @organization: Digital Forensics Solutions
 """
 
-from volatility.plugins.linux import common
+import volatility.obj as obj
+import linux_common, linux_flags
 
-class Lsmod(common.AbstractLinuxCommandPlugin):
-    '''Gathers loaded kernel modules.'''
-    __name = "lsmod"
+class fake_root:
+    def __init__(self, dentry, vfsmnt):
+        self.dentry = dentry
+        self.mnt = vfsmnt
+
+class linux_fdtable_defer(linux_common.AbstractLinuxCommand):
+
+    ''' gathers de-allocated fdtables '''
+
+    def calculate(self):
+        
+        for i, fdt_defer in linux_common.walk_per_cpu_var(self, "fdtable_defer_list", "fdtable_defer"):
+            print "%x" % fdt_defer.next.v()
+         
+    def render_text(self, outfd, data):
+        pass
 
 
-    def get_module_list(self):
-        modules = self.profile.Object(
-            "list_head", offset = self.profile.get_constant("modules"),
-            vm=self.kernel_address_space)
 
-        # walk the modules list
-        for module in modules.list_of_type("module", "list"):
-            yield module
 
-    def render(self, outfd):
-        outfd.write("{0:12} {1:12} {2:12}\n".format(
-                'Virtual', 'Physical', 'Name'))
 
-        for module in self.get_module_list():
-            outfd.write("0x{0:12X} 0x{1:12X} {2:12}\n".format(
-                    module.obj_offset,
-                    module.obj_vm.vtop(module.obj_offset),
-                    module.name))
+
+
+
+
+
+
+
