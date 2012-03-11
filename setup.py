@@ -5,6 +5,7 @@
 # Authors:
 # AAron Walters <awalters@volatilesystems.com>
 # Mike Auty <mike.auty@gmail.com>
+# Michael Cohen <scudette@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -51,8 +52,8 @@ opts = {}
 opts['name'] = "volatility"
 opts['version'] = volatility.constants.VERSION
 opts['description'] = "Volatility -- Volatile memory framwork"
-opts['author'] = "AAron Walters"
-opts['author_email'] = "awalters@volatilesystems.com"
+opts['author'] = "The volatility team"
+opts['author_email'] = "vol-dev@volatilesystems.com"
 opts['url'] = "http://www.volatilesystems.com"
 opts['license'] = "GPL"
 opts['scripts'] = ["vol.py"]
