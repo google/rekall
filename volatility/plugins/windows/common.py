@@ -151,21 +151,29 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
 class PoolTagCheck(scan.ScannerCheck):
     """ This scanner checks for the occurance of a pool tag """
-    def __init__(self, tag = None, **kwargs):
+    def __init__(self, tag = None, tags = None, **kwargs):
         super(PoolTagCheck, self).__init__(**kwargs)
-        self.tag = tag
+        self.tags = tags or [tag]
 
     def skip(self, data, offset):
-        nextval = data.find(self.tag, offset + 1)
-        if nextval < 0:
-            # Substring is not found - skip to the end of this data buffer
+        nextvals = []
+        for tag in self.tags:
+            nextval = data.find(tag, offset + 1)
+            if nextval >= 0:
+                nextvals.append(nextval)
+
+        # No tag was found
+        if not nextvals:
+            # Substrings are not found - skip to the end of this data buffer
             return len(data) - offset
 
-        return nextval - offset
+        return min(nextvals) - offset
 
     def check(self, offset):
-        data = self.address_space.read(offset, len(self.tag))
-        return data == self.tag
+        for tag in self.tags:
+            data = self.address_space.read(offset, len(tag))
+            if data == tag:
+                return True
 
 
 class CheckPoolSize(scan.ScannerCheck):

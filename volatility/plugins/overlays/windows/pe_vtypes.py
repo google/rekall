@@ -160,9 +160,9 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
         a larger value which frequently causes us to cross page 
         boundaries and return a NoneObject anyway.  
         """
-        return obj.Object("String",
-                      offset = self.obj_parent.DllBase + name_rva,
-                      vm = self.obj_vm, length = 128)
+        return self.obj_profile.Object("String",
+                                       offset = self.obj_parent.DllBase.v() + name_rva,
+                                       vm = self.obj_vm, length = 128)
 
     def _exported_functions(self):
         """
@@ -178,7 +178,7 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
         forwarded function name including the DLL (ntdll.EtwLogTraceEvent). 
         """
 
-        mod_base = self.obj_parent.DllBase
+        mod_base = self.obj_parent.DllBase.v()
         exp_dir = self.obj_parent.export_dir()
 
         # PE files with a large number of functions will have arrays
@@ -288,7 +288,7 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
         """Return a String object for the name at the given RVA"""
 
         return self.obj_profile.Object(
-            "String", offset = self.obj_parent.DllBase + name_rva,
+            "String", offset = self.obj_parent.DllBase.v() + name_rva,
             vm = self.obj_vm, length = 128)
 
     def dll_name(self):
@@ -317,7 +317,7 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
         while 1:
             thunk = self.obj_profile.Object(
                 '_IMAGE_THUNK_DATA',
-                offset = self.obj_parent.DllBase + self.OriginalFirstThunk +
+                offset = self.obj_parent.DllBase.v() + self.OriginalFirstThunk +
                 i * self.obj_profile.get_obj_size('_IMAGE_THUNK_DATA'),
                 vm = self.obj_vm)
             
@@ -337,7 +337,7 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
                 o = thunk.Ordinal & 0xFFFF
             else:
                 iibn = self.obj_profile.Object("_IMAGE_IMPORT_BY_NAME",
-                                               offset = self.obj_parent.DllBase +
+                                               offset = self.obj_parent.DllBase.v() +
                                                thunk.AddressOfData,
                                                vm = self.obj_vm)
                 o = iibn.Hint
@@ -346,7 +346,7 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
             # See if the import is bound (i.e. resolved)
             first_thunk = self.obj_profile.Object(
                 '_IMAGE_THUNK_DATA',
-                offset = self.obj_parent.DllBase + self.FirstThunk +
+                offset = self.obj_parent.DllBase.v() + self.FirstThunk +
                 i * self.obj_profile.get_obj_size('_IMAGE_THUNK_DATA'),
                 vm = self.obj_vm)
 
@@ -378,7 +378,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
     def _nt_header(self):
         """Return the _IMAGE_NT_HEADERS object"""
 
-        dos_header = self.obj_profile.Object("_IMAGE_DOS_HEADER", offset = self.DllBase,
+        dos_header = self.obj_profile.Object("_IMAGE_DOS_HEADER", offset = self.DllBase.v(),
                                              vm = self.obj_vm)
 
         return dos_header.get_nt_header()
@@ -435,7 +435,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
         while 1:
             desc = self.obj_profile.Object(
                 '_IMAGE_IMPORT_DESCRIPTOR', vm = self.obj_vm,
-                offset = self.DllBase + data_dir.VirtualAddress + (i * desc_size),
+                offset = self.DllBase.v() + data_dir.VirtualAddress + (i * desc_size),
                 parent = self)
 
             # Stop if the IID is paged or all zeros
@@ -462,7 +462,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
             raise StopIteration(why)
 
         expdir = self.obj_profile.Object(
-            '_IMAGE_EXPORT_DIRECTORY', offset = self.DllBase + data_dir.VirtualAddress,
+            '_IMAGE_EXPORT_DIRECTORY', offset = self.DllBase.v() + data_dir.VirtualAddress,
             vm = self.obj_vm, parent = self)
 
         if expdir.valid(self._nt_header()):
@@ -558,8 +558,13 @@ class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
 
     def __init__(self, **kwargs):
         super(PEProfile, self).__init__(**kwargs)
-        self.add_types(pe_vtypes)
-        self.add_classes({
+        self.update_profile(self)
+
+    @staticmethod
+    def update_profile(profile):
+        """Update the profile with the pe specific types."""
+        profile.add_types(pe_vtypes)
+        profile.add_classes({
                 '_IMAGE_DOS_HEADER': _IMAGE_DOS_HEADER,
                 '_IMAGE_NT_HEADERS': _IMAGE_NT_HEADERS,
                 '_IMAGE_SECTION_HEADER': _IMAGE_SECTION_HEADER,
@@ -567,7 +572,7 @@ class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
                 '_IMAGE_IMPORT_DESCRIPTOR': _IMAGE_IMPORT_DESCRIPTOR,
                 '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
                 })
-        self.add_overlay({
+        profile.add_overlay({
                 '_IMAGE_SECTION_HEADER' : [ None, {
                         'Name' : [ 0x0, ['String', dict(length = 8)]],
                         }],

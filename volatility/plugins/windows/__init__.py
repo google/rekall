@@ -9,6 +9,7 @@ from volatility.plugins.windows import handles
 from volatility.plugins.windows import hibinfo
 from volatility.plugins.windows import kdbgscan
 from volatility.plugins.windows import kpcrscan
+from volatility.plugins.windows import malware
 from volatility.plugins.windows import moddump
 from volatility.plugins.windows import modscan
 from volatility.plugins.windows import modules

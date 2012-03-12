@@ -20,6 +20,8 @@
 
 #pylint: disable-msg=C0111
 
+import bisect
+
 from volatility.plugins.windows import common
 
 
@@ -27,6 +29,10 @@ class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
     """Print list of loaded modules."""
 
     __name = "modules"
+
+    # A local cache for find_modules.
+    mod_lookup = None
+    modlist = None
 
     def __init__(self, **kwargs):
         """List kernel modules by walking the PsLoadedModuleList."""
@@ -42,6 +48,28 @@ class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
         for l in PsLoadedModuleList.list_of_type("_LDR_DATA_TABLE_ENTRY",
                                                  "InLoadOrderLinks"):
             yield l
+
+    def find_module(self, addr):
+        """Uses binary search to find what module a given address resides in.
+
+        This is much faster than a series of linear checks if you have
+        to do it many times. Note that modlist and mod_addrs must be sorted
+        in order of the module base address."""
+        if self.mod_lookup is None:
+            self.mod_lookup = dict([(x.DllBase.v(), x) for x in self.lsmod()])
+            self.modlist = sorted(self.mod_lookup.keys())
+
+        pos = bisect.bisect_right(self.modlist, addr) - 1
+        if pos == -1:
+            return None
+        mod = self.mod_lookup[self.modlist[pos]]
+
+        if (addr >= mod.DllBase.v() and
+            addr < mod.DllBase.v() + mod.SizeOfImage.v()):
+            return mod
+        else:
+            return None
+
 
 
     def render(self, outfd):

@@ -49,7 +49,7 @@ class BaseAddressSpace(object):
         """
         self.base = base
         self.session = session
-        self.writeable = self.session.writable_address_space or write
+        self.writeable = (self.session and self.session.writable_address_space) or write
 
     def get_config(self):
         """Returns the config object used by the vm for use in other vms"""
