@@ -201,7 +201,7 @@ class ScannerGroup(BaseScanner):
         base_offset = offset
         available_length = (maxlen or sys.maxint)
 
-        while available_length:
+        while available_length > 0:
             to_read = min(constants.SCAN_BLOCKSIZE + self.overlap, available_length)
 
             data = address_space.read(base_offset, to_read)
@@ -211,8 +211,6 @@ class ScannerGroup(BaseScanner):
                 break
 
             self.buffer.assign_buffer(data, base_offset)
-            base_offset += len(data)
-
             # Now feed all the scanners from the buffer address space.
             for name, scanner in self.scanners.items():
                 for hit in scanner.scan(self.buffer, offset=self.buffer.base_offset,
@@ -221,11 +219,15 @@ class ScannerGroup(BaseScanner):
                     self.result.setdefault(name, []).append(hit)
                     yield name, hit
 
+            # Move to the next scan block.
+            base_offset += constants.SCAN_BLOCKSIZE
+            available_length -= constants.SCAN_BLOCKSIZE
+
 
 class DiscontigScannerGroup(ScannerGroup):
     """A scanner group which works over a virtual address space."""
 
-    def scan(self, address_space, offset = 0):
+    def scan(self, address_space, **kwargs):
         for (offset, length) in address_space.get_available_addresses():
             for match in super(DiscontigScannerGroup, self).scan(
                 address_space, offset, maxlen=length):

@@ -9,16 +9,17 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 """Plugins allow the core volatility system to be extended."""
+import logging
 
 from volatility import conf
 from volatility import registry
@@ -49,7 +50,7 @@ class Command(object):
     # will still be available from the Factory below.
     __name = ""
 
-    # This class will not be registered (but extensions will). 
+    # This class will not be registered (but extensions will).
     __abstract = True
     __metaclass__ = registry.MetaclassRegistry
 
@@ -134,7 +135,7 @@ class KernelASMixin(object):
         super(KernelASMixin, self).__init__(**kwargs)
 
         # Try to load the AS from the session if possible.
-        self.kernel_address_space = (kernel_address_space or 
+        self.kernel_address_space = (kernel_address_space or
                                      self.session.kernel_address_space)
 
         if self.kernel_address_space is None:
@@ -208,7 +209,7 @@ def CommandFactory(command_name = None, config = None, class_name = None, **kwar
 
         if command_classes:
             command_classes[0](**kwargs)
-    
+
     else:
         try:
             return Command.classes[class_name](**kwargs)
