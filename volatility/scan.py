@@ -1,10 +1,5 @@
 # Volatility
-# Copyright (C) 2007,2008 Volatile Systems
-#
-# Derived from source in PyFlag developed by:
-# Copyright 2004: Commonwealth of Australia.
-# Michael Cohen <scudette@users.sourceforge.net>
-# David Collett <daveco@users.sourceforge.net>
+# Copyright (C) 2012
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,27 +16,18 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 #
-# Special thanks to Michael Cohen for ideas and comments!
-#
-
-#pylint: disable-msg=C0111
-
 """
-@author:       AAron Walters
+@author:       Michael Cohen (scudette@gmail.com)
 @license:      GNU General Public License 2.0 or later
-@contact:      awalters@volatilesystems.com
-@organization: Volatile Systems.
 """
 import logging
+import sys
 
 from volatility import registry
 from volatility import addrspace
 from volatility import constants
 from volatility import conf
 
-########### Following is the new implementation of the scanning
-########### framework. The old framework was based on PyFlag's
-########### scanning framework which is probably too complex for this.
 
 class BaseScanner(object):
     """ A more thorough scanner which checks every byte """
@@ -49,7 +35,7 @@ class BaseScanner(object):
     __metaclass__ = registry.MetaclassRegistry
 
     checks = []
-    def __init__(self, profile=None, window_size = 8):
+    def __init__(self, profile=None, window_size=8):
         """The base scanner.
 
         Args:
@@ -59,98 +45,83 @@ class BaseScanner(object):
         # Make a temporary buffer address space to run the checkers on.
         self.buffer = addrspace.BufferAddressSpace(data = '\x00' * 1024)
         self.window_size = window_size
-        self.constraints = []
+        self.constraints = None
         self.profile = profile
-
-        ## Build our constraints from the specified ScannerCheck
-        ## classes:
-        for class_name, args in self.checks:
-            check = ScannerCheck.classes[class_name](
-                profile=profile, address_space=self.buffer, **args)
-            self.constraints.append(check)
-
         self.max_length = None
         self.base_offset = None
-        self.error_count = 0
+        self.constraints = []
+        for class_name, args in self.checks:
+            check = ScannerCheck.classes[class_name](
+                profile=self.profile, address_space=self.buffer, **args)
+            self.constraints.append(check)
 
-    def check_addr(self, found):
-        """ This calls all our constraints on the offset found and
-        returns the number of contraints that matched.
+        self.skippers = [ c for c in self.constraints if hasattr(c, "skip") ]
+        self.hits = None
 
-        We shortcut the loop as soon as its obvious that there will
-        not be sufficient matches to fit the criteria. This allows for
-        an early exit and a speed boost.
+    def check_addr(self, offset):
+        """Calls our constraints on the offset and returns if any contraints did
+        not match.
         """
-        cnt = 0
         for check in self.constraints:
             # Ask the check if this offset is possible.
-            val = check.check(found)
+            val = check.check(offset)
             if not val:
-                cnt = cnt + 1
-
-            if cnt > self.error_count:
                 return False
 
         return True
 
+    def skip(self, data, offset):
+        """Skip uninteresting regions.
+
+        Where should we go next? By default we go 1 byte ahead, but if some of
+        the checkers have skippers, we may actually go much farther. Checkers
+        with skippers basically tell us that there is no way they can match
+        anything before the skipped result, so there is no point in trying them
+        on all the data in between. This optimization is useful to really speed
+        things up. FIXME - currently skippers assume that the check must match,
+        therefore we can skip the unmatchable region, but its possible that a
+        scanner needs to match only some checkers.
+        """
+        skip = 1
+        for s in self.skippers:
+            skip = max(skip, s.skip(data, offset))
+
+        return skip
+
     overlap = 20
     def scan(self, address_space, offset = 0, maxlen = None):
         self.base_offset = offset
-        self.max_length = maxlen
+        available_length = maxlen or sys.maxint
 
-        ## Which checks also have skippers?
-        skippers = [ c for c in self.constraints if hasattr(c, "skip") ]
-        while 1:
-            if (self.max_length != None):
-                l = min(constants.SCAN_BLOCKSIZE + self.overlap, self.max_length)
-            else:
-                l = constants.SCAN_BLOCKSIZE + self.overlap
+        while available_length:
+            to_read = min(constants.SCAN_BLOCKSIZE + self.overlap, available_length)
+            data = address_space.read(self.base_offset, to_read)
 
-            data = address_space.read(self.base_offset, l)
+            # Ran out of contiguous region to read.
             if not data:
                 break
-
-            length = min(constants.SCAN_BLOCKSIZE, len(data))
 
             self.buffer.assign_buffer(data, self.base_offset)
             i = 0
             ## Find all occurances of the pool tag in this buffer and
             ## check them:
-            while i < length:
+            while i < len(data):
                 if self.check_addr(i + self.base_offset):
                     ## yield the offset to the start of the memory
                     ## (after the pool tag)
                     yield i + self.base_offset
 
-                ## Where should we go next? By default we go 1 byte
-                ## ahead, but if some of the checkers have skippers,
-                ## we may actually go much farther. Checkers with
-                ## skippers basically tell us that there is no way
-                ## they can match anything before the skipped result,
-                ## so there is no point in trying them on all the data
-                ## in between. This optimization is useful to really
-                ## speed things up. FIXME - currently skippers assume
-                ## that the check must match, therefore we can skip
-                ## the unmatchable region, but its possible that a
-                ## scanner needs to match only some checkers.
-                skip = 1
-                for s in skippers:
-                    skip = max(skip, s.skip(data, i))
+                # Allow us to skip uninteresting regions.
+                i += self.skip(data, i)
 
-                i += skip
-
-            self.base_offset += min(constants.SCAN_BLOCKSIZE, l)
-            if (self.max_length != None):
-                self.max_length -= min(constants.SCAN_BLOCKSIZE, l)
+            available_length -= min(constants.SCAN_BLOCKSIZE, to_read)
 
 
 class DiscontigScanner(BaseScanner):
     def scan(self, address_space, offset = 0, maxlen = None):
         for (o, l) in address_space.get_available_addresses():
-            # Rely on shortcutting
-            if (o + l > offset) and ((maxlen == None) or (o < offset + maxlen)):
-                for match in BaseScanner.scan(self, address_space, o, l):
-                    yield match
+            for match in BaseScanner.scan(self, address_space, o, l):
+                yield match
 
 
 class ScannerCheck(object):
@@ -208,3 +179,54 @@ class PoolScanner(DiscontigScanner):
         self.address_space = address_space
         for i in super(PoolScanner, self).scan(address_space, offset, maxlen):
             yield self.object_offset(i)
+
+
+class ScannerGroup(BaseScanner):
+    """Runs a bunch of scanners in one pass over the image."""
+
+    def __init__(self, profile=None, window_size=8, **scanners):
+        """Create a new scanner group.
+
+        Args:
+          scanners: A dict of BaseScanner instances. Keys will be used to refer
+          to the scanner, while the value is the scanner instance.
+        """
+        super(ScannerGroup, self).__init__(profile=profile)
+        self.scanners = scanners
+
+        # A dict to hold all hits for each scanner.
+        self.result = {}
+
+    def scan(self, address_space, offset = 0, maxlen = None):
+        base_offset = offset
+        available_length = (maxlen or sys.maxint)
+
+        while available_length:
+            to_read = min(constants.SCAN_BLOCKSIZE + self.overlap, available_length)
+
+            data = address_space.read(base_offset, to_read)
+
+            # Ran out of contiguous region to read.
+            if not data:
+                break
+
+            self.buffer.assign_buffer(data, base_offset)
+            base_offset += len(data)
+
+            # Now feed all the scanners from the buffer address space.
+            for name, scanner in self.scanners.items():
+                for hit in scanner.scan(self.buffer, offset=self.buffer.base_offset,
+                                        maxlen=available_length):
+                    # Yield the result as well as cache it.
+                    self.result.setdefault(name, []).append(hit)
+                    yield name, hit
+
+
+class DiscontigScannerGroup(ScannerGroup):
+    """A scanner group which works over a virtual address space."""
+
+    def scan(self, address_space, offset = 0):
+        for (offset, length) in address_space.get_available_addresses():
+            for match in super(DiscontigScannerGroup, self).scan(
+                address_space, offset, maxlen=length):
+                yield match

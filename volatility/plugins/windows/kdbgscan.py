@@ -11,11 +11,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 import logging
 
@@ -79,7 +79,7 @@ class KDBGScanner(scan.DiscontigScanner):
         for offset in scan.DiscontigScanner.scan(self, address_space, offset, maxlen):
             # For each hit we overlay a _DBGKD_DEBUG_DATA_HEADER64 on it and
             # reflect through the "List" member.
-            result = self.profile.Object("_KDDEBUGGER_DATA64", 
+            result = self.profile.Object("_KDDEBUGGER_DATA64",
                                          offset=offset - owner_tag_offset,
                                          vm=address_space)
 
