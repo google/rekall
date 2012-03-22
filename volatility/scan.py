@@ -3,7 +3,7 @@
 #
 # Derived from source in PyFlag developed by:
 # Copyright 2004: Commonwealth of Australia.
-# Michael Cohen <scudette@users.sourceforge.net> 
+# Michael Cohen <scudette@users.sourceforge.net>
 # David Collett <daveco@users.sourceforge.net>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -14,11 +14,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 #
 # Special thanks to Michael Cohen for ideas and comments!
@@ -154,7 +154,8 @@ class DiscontigScanner(BaseScanner):
 
 
 class ScannerCheck(object):
-    """ A scanner check is a special class which is invoked on an AS to check for a specific condition.
+    """ A scanner check is a special class which is invoked on an AS to check
+    for a specific condition.
 
     The main method is def check(self, offset):
     This will return True if the condition is true or False otherwise.
@@ -194,10 +195,12 @@ class PoolScanner(DiscontigScanner):
         """
         ## The offset of the object is determined by subtracting the offset
         ## of the PoolTag member to get the start of Pool Object and then
-        ## adding the size of the preamble data structures. This done 
+        ## adding the size of the preamble data structures. This done
         ## because PoolScanners search for the PoolTag.
-        total_preamble_size = sum([self.profile.get_obj_size(c) for c in self.preamble])
-        pool_tag_relative_offset = self.profile.get_obj_offset('_POOL_HEADER', 'PoolTag')
+        total_preamble_size = sum(
+            [self.profile.get_obj_size(c) for c in self.preamble])
+        pool_tag_relative_offset = self.profile.get_obj_offset('_POOL_HEADER',
+                                                               'PoolTag')
 
         return found + total_preamble_size - pool_tag_relative_offset
 

@@ -9,11 +9,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
@@ -161,7 +161,7 @@ class Win7BaseProfile(windows.BaseWindowsProfile):
                 })
         self.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
                               pointer64=obj.Pointer))
-        
+
 
 class Win7SP1x86(basic.Profile32Bits, Win7BaseProfile):
     """ A Profile for Windows 7 SP1 x86 """
@@ -175,7 +175,7 @@ class Win7SP1x86(basic.Profile32Bits, Win7BaseProfile):
         # Import the actual vtypes on demand here to reduce memory usage.
         from volatility.plugins.overlays.windows import win7_sp1_x86_vtypes
 
-        self.add_types(win7_sp1_x86_vtypes.nt_types)
+        self.add_types(win7_sp1_x86_vtypes.ntkrnlmp_types)
 
 
 class Win7SP1x64(basic.Profile64Bits, Win7BaseProfile):

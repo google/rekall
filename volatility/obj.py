@@ -12,11 +12,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
@@ -77,7 +77,7 @@ class FormatSpec(object):
 
     def from_specs(self, fill = None, align = None, sign = None, altform = None,
                    minwidth = None, precision = None, formtype = None):
-        ## Allow setting individual elements using kwargs 
+        ## Allow setting individual elements using kwargs
         if fill is not None:
             self.fill = fill
         if align is not None:
@@ -215,7 +215,7 @@ class NoneObject(object):
     def __int__(self):
         return -1
 
-    # These must be defined explicitly, 
+    # These must be defined explicitly,
     # due to the way new style objects bypass __getattr__ for speed
     # See http://docs.python.org/reference/datamodel.html#new-style-special-lookup
     __add__ = __call__
@@ -374,7 +374,7 @@ class BaseObject(object):
 
         or if X is None: .....
 
-        the later form is not going to work when X is a NoneObject. 
+        the later form is not going to work when X is a NoneObject.
         """
         result = self.obj_vm.is_valid_address(self.obj_offset)
         return result
@@ -402,7 +402,7 @@ class BaseObject(object):
     def dereference_as(self, derefType, vm=None, **kwargs):
         vm = vm or self.obj_vm
 
-        return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm, 
+        return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm,
                                        parent=self, name=self.obj_name, **kwargs)
 
     def cast(self, castString, **kwargs):
@@ -643,7 +643,7 @@ class Pointer(NativeType):
         """This method is used in comparison operations.
 
         This ideas here is to make it possible to easily write a condition such as:
-       
+
         while ptr:
            ...
            ptr += 1
@@ -652,7 +652,7 @@ class Pointer(NativeType):
         point to is not mapped in. This is very subtle and might be the wrong
         choice. Note that if the kernel actually maps the zero page in (which
         can happen in some situations), then a null pointer is actually valid.
-        """        
+        """
         return bool(self.is_valid())
 
     def __repr__(self):
@@ -759,7 +759,7 @@ class Array(BaseObject):
         else:
             self.target = target
 
-        self.current = self.target(offset=self.obj_offset, vm=self.obj_vm, 
+        self.current = self.target(offset=self.obj_offset, vm=self.obj_vm,
                                    parent=self, name=self.obj_name,
                                    profile=self.obj_profile)
 
@@ -797,7 +797,7 @@ class Array(BaseObject):
 
     def d(self):
         result = [ x.__str__() for x in self ]
-        return "<Array[{0} {1}] {2}>".format(self.__class__.__name__, 
+        return "<Array[{0} {1}] {2}>".format(self.__class__.__name__,
                                              self.obj_name or '', ",".join(result))
 
     def __eq__(self, other):
@@ -945,7 +945,7 @@ class Profile(object):
 
     # This flag indicates if the profile needs to be recompiled on demand.
     _ready = False
-    
+
     # This is the base class for all profiles.
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
@@ -1049,7 +1049,7 @@ class Profile(object):
             return Curry(Void, profile=self, name = name)
 
         ## This is of the form [ 'pointer' , [ 'foobar' ]]
-        if typeList[0] == 'pointer' or typeList == 'pointer64':
+        if typeList[0] == 'pointer' or typeList[0] == 'pointer64':
             try:
                 target = typeList[1]
             except IndexError:

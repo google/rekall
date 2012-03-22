@@ -10,11 +10,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 import datetime
@@ -65,19 +65,23 @@ windows_overlay = {
     }],
 
     '_KUSER_SHARED_DATA' : [ None, {
-    'SystemTime' : [ None, ['WinTimeStamp', {}]],
+    'SystemTime' : [ None, ['WinTimeStamp', dict(is_utc = True)]],
     'TimeZoneBias' : [ None, ['WinTimeStamp', {}]],
     }],
 
-    # The DTB is really an array of 2 ULONG_PTR but we only need the first one 
-    # which is the value loaded into CR3. The second one, according to procobj.c 
-    # of the wrk-v1.2, contains the PTE that maps something called hyper space. 
+    # The DTB is really an array of 2 ULONG_PTR but we only need the first one
+    # which is the value loaded into CR3. The second one, according to procobj.c
+    # of the wrk-v1.2, contains the PTE that maps something called hyper space.
     '_KPROCESS' : [ None, {
     'DirectoryTableBase' : [ None, ['unsigned long']],
     }],
 
     '_HANDLE_TABLE_ENTRY' : [ None, {
     'Object' : [ None, ['_EX_FAST_REF']],
+    }],
+
+    '_IMAGE_SECTION_HEADER' : [ None, {
+    'Name' : [ 0x0, ['String', dict(length = 8)]],
     }],
 
     '_DBGKD_GET_VERSION64' : [  None, {
@@ -178,7 +182,7 @@ class _LIST_ENTRY(obj.CType):
 
     def dereference_as(self, type, member, vm=None):
         """Recasts the list entry as a member in a type, and return the type.
-        
+
         Args:
            type: The name of this CType type.
            member: The name of the member of this CType.
@@ -349,7 +353,7 @@ class _EPROCESS(obj.CType):
         directory_table_base = self.Pcb.DirectoryTableBase.v()
 
         try:
-            process_as = self.obj_vm.__class__(base=self.obj_vm.base, 
+            process_as = self.obj_vm.__class__(base=self.obj_vm.base,
                                                session=self.obj_vm.get_config(),
                                                dtb = directory_table_base, astype='virtual')
         except AssertionError, _e:
@@ -366,16 +370,60 @@ class _EPROCESS(obj.CType):
                 yield l
 
     def get_init_modules(self):
-        return self._get_modules(self.Peb.Ldr.InInitializationOrderModuleList, 
+        return self._get_modules(self.Peb.Ldr.InInitializationOrderModuleList,
                                  "InInitializationOrderLinks")
 
     def get_mem_modules(self):
-        return self._get_modules(self.Peb.Ldr.InMemoryOrderModuleList, 
+        return self._get_modules(self.Peb.Ldr.InMemoryOrderModuleList,
                                  "InMemoryOrderLinks")
 
     def get_load_modules(self):
-        return self._get_modules(self.Peb.Ldr.InLoadOrderModuleList,
-                                 "InLoadOrderLinks")
+        return self._get_modules(self.Peb.Ldr.InLoadOrderModuleList, "InLoadOrderLinks")
+
+    def get_vads(self):
+        """Generator for MMVADs that does not rely on named AS"""
+        procspace = self.get_process_address_space()
+
+        # Potentially get_process_address_space will return obj.NoneObject
+        if procspace:
+            vadroot = obj.Object('_MMVAD', offset = self.VadRoot, vm = procspace)
+
+            if vadroot:
+                for v in vadroot.traverse():
+                    yield v
+
+    def get_token(self):
+        """Return the process's TOKEN object if its valid"""
+
+        # The dereference checks if the address is valid  
+        # and returns obj.NoneObject if it fails 
+        token = self.Token.dereference_as("_TOKEN")
+
+        # This check fails if the above dereference failed 
+        # or if any of the _TOKEN specific validity tests failed. 
+        if token.is_valid():
+            return token
+
+        return obj.NoneObject("Cannot get process Token")
+
+class _TOKEN(obj.CType):
+    """A class for Tokens"""
+
+    def is_valid(self):
+        """Override BaseObject.is_valid with some additional
+        checks specific to _TOKEN objects."""
+        return obj.CType.is_valid(self) and self.TokenInUse in (0, 1) and self.SessionId < 10
+
+    def get_sids(self):
+        """Generator for process SID strings"""
+        if self.UserAndGroupCount < 0xFFFF:
+            for sa in self.UserAndGroups.dereference():
+                sid = sa.Sid.dereference_as('_SID')
+                for i in sid.IdentifierAuthority.Value:
+                    id_auth = i
+                yield "S-" + "-".join(str(i) for i in (sid.Revision, id_auth) +
+                                      tuple(sid.SubAuthority))
+
 
 class _ETHREAD(obj.CType):
     """ A class for threads """
@@ -390,16 +438,16 @@ class _ETHREAD(obj.CType):
         return self.Tcb.ApcState.Process.dereference_as("_EPROCESS")
 
 class _HANDLE_TABLE(obj.CType):
-    """ A class for _HANDLE_TABLE. 
-    
-    This used to be a member of _EPROCESS but it was isolated per issue 
-    91 so that it could be subclassed and used to service other handle 
+    """ A class for _HANDLE_TABLE.
+
+    This used to be a member of _EPROCESS but it was isolated per issue
+    91 so that it could be subclassed and used to service other handle
     tables, such as the _KDDEBUGGER_DATA64.PspCidTable.
     """
 
     def get_item(self, entry, handle_value = 0):
         """Returns the OBJECT_HEADER of the associated handle. The parent
-        is the _HANDLE_TABLE_ENTRY so that an object can be linked to its 
+        is the _HANDLE_TABLE_ENTRY so that an object can be linked to its
         GrantedAccess.
         """
         return entry.Object.dereference_as("_OBJECT_HEADER", parent = entry,
@@ -409,7 +457,7 @@ class _HANDLE_TABLE(obj.CType):
         """ Returns an array of _HANDLE_TABLE_ENTRY rooted at offset,
         and iterates over them.
         """
-        # The counts below are calculated by taking the size of a page and dividing 
+        # The counts below are calculated by taking the size of a page and dividing
         # by the size of the data type contained within the page. For more information
         # see http://blogs.technet.com/b/markrussinovich/archive/2009/09/29/3283844.aspx
         if level > 0:
@@ -419,7 +467,7 @@ class _HANDLE_TABLE(obj.CType):
             count = 0x1000 / self.obj_profile.get_obj_size("_HANDLE_TABLE_ENTRY")
             targetType = "_HANDLE_TABLE_ENTRY"
 
-        table = self.obj_profile.Object(theType="Array", offset = offset, vm = self.obj_vm, 
+        table = self.obj_profile.Object(theType="Array", offset = offset, vm = self.obj_vm,
                                         count = count, targetType = targetType,
                                         parent = self)
 
@@ -435,13 +483,13 @@ class _HANDLE_TABLE(obj.CType):
                     depth += 1
                 else:
 
-                    # All handle values are multiples of four, on both x86 and x64. 
+                    # All handle values are multiples of four, on both x86 and x64.
                     handle_multiplier = 4
-                    # Calculate the starting handle value for this level. 
+                    # Calculate the starting handle value for this level.
                     handle_level_base = depth * count * handle_multiplier
                     # The size of a handle table entry.
                     handle_entry_size = self.obj_profile.get_obj_size("_HANDLE_TABLE_ENTRY")
-                    # Finally, compute the handle value for this object. 
+                    # Finally, compute the handle value for this object.
                     handle_value = ((entry.obj_offset - offset) /
                                    (handle_entry_size / handle_multiplier)) + handle_level_base
 
@@ -588,7 +636,7 @@ class _MMVAD(obj.CType):
 
         ## All VADs are done in the process AS - so we might need to switch
         ## Address spaces now. Find the eprocess we came from and switch
-        ## AS. Note that all child traversals will be in Process AS. 
+        ## AS. Note that all child traversals will be in Process AS.
         if vm.name.startswith("Kernel"):
             # Find the next _EPROCESS along our parent list
             eprocess = parent
@@ -677,7 +725,7 @@ class _MMVAD_SHORT(obj.CType):
         start = self.get_start()
         end = self.get_end()
 
-        # avoid potential situations that would cause num_pages to 
+        # avoid potential situations that would cause num_pages to
         # overflow and then be too large to pass to xrange
         if start > 0xFFFFFFFF or end > (0xFFFFFFFF << 12):
             return ''
@@ -699,7 +747,7 @@ class _EX_FAST_REF(obj.CType):
     def dereference_as(self, theType, parent = None, vm=None, **kwargs):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the specified type"""
         MAX_FAST_REF = self.obj_profile.constants['MAX_FAST_REF']
-        return self.obj_profile.Object(theType=theType, 
+        return self.obj_profile.Object(theType=theType,
                                        offset=self.Object.v() & ~MAX_FAST_REF,
                                        vm=vm or self.obj_vm,
                                        parent = parent or self, **kwargs)
