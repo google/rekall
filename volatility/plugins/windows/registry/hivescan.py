@@ -10,11 +10,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
@@ -47,7 +47,7 @@ class CheckHiveSig(scan.ScannerCheck):
         sig = obj.Object('_HHIVE', vm = self.address_space, offset = offset).Signature
         return sig == 0xbee0bee0
 
-class PoolScanHiveFast2(scan.PoolScanner):
+class PoolScanHiveFast2(common.PoolScanner):
     checks = [ ('PoolTagCheck', dict(tag = "CM10")),
                # Dummy condition, since this will be changed during initialization
                ('CheckPoolSize', dict(condition = lambda x: x == 0x638)),
@@ -57,7 +57,7 @@ class PoolScanHiveFast2(scan.PoolScanner):
 
     def __init__(self, poolsize):
         self.checks[1] = ('CheckPoolSize', dict(condition = lambda x: x >= poolsize))
-        scan.PoolScanner.__init__(self)
+        super(PoolScanHiveFast2, self).__init__()
 
 class HiveScan(common.AbstractWindowsCommand):
     """ Scan Physical memory for _CMHIVE objects (registry hives)

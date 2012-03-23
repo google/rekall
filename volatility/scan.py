@@ -35,17 +35,19 @@ class BaseScanner(object):
     __metaclass__ = registry.MetaclassRegistry
 
     checks = []
-    def __init__(self, profile=None, window_size=8):
+    def __init__(self, profile=None, address_space=None, window_size=8):
         """The base scanner.
 
         Args:
            profile: The kernel profile to use for this scan.
+           address_space: The address space we use for scanning.
            window_size: The size of the overlap window between each buffer read.
         """
         # Make a temporary buffer address space to run the checkers on.
         self.buffer = addrspace.BufferAddressSpace(data = '\x00' * 1024)
         self.window_size = window_size
         self.constraints = None
+        self.address_space = address_space
         self.profile = profile
         self.max_length = None
         self.base_offset = None
@@ -84,43 +86,42 @@ class BaseScanner(object):
         """
         skip = 1
         for s in self.skippers:
-            skip = max(skip, s.skip(data, offset))
+            skip_value = s.skip(data, offset)
+            skip = max(skip, skip_value)
 
         return skip
 
     overlap = 20
-    def scan(self, address_space, offset = 0, maxlen = None):
-        self.base_offset = offset
+    def scan(self, offset = 0, maxlen = None):
+        base_offset = offset
         available_length = maxlen or sys.maxint
 
-        while available_length:
+        while available_length > 0:
             to_read = min(constants.SCAN_BLOCKSIZE + self.overlap, available_length)
-            data = address_space.read(self.base_offset, to_read)
+            data = self.address_space.read(base_offset, to_read)
 
             # Ran out of contiguous region to read.
             if not data:
                 break
 
-            self.buffer.assign_buffer(data, self.base_offset)
+            self.buffer.assign_buffer(data, base_offset)
             i = 0
-            ## Find all occurances of the pool tag in this buffer and
-            ## check them:
+            # Check each byte.
             while i < len(data):
-                if self.check_addr(i + self.base_offset):
-                    ## yield the offset to the start of the memory
-                    ## (after the pool tag)
-                    yield i + self.base_offset
+                if self.check_addr(i + base_offset):
+                    yield i + base_offset
 
                 # Allow us to skip uninteresting regions.
                 i += self.skip(data, i)
 
-            available_length -= min(constants.SCAN_BLOCKSIZE, to_read)
+            base_offset += constants.SCAN_BLOCKSIZE
+            available_length -= constants.SCAN_BLOCKSIZE
 
 
 class DiscontigScanner(BaseScanner):
-    def scan(self, address_space, offset = 0, maxlen = None):
-        for (o, l) in address_space.get_available_addresses():
-            for match in BaseScanner.scan(self, address_space, o, l):
+    def scan(self, offset = 0, maxlen = None):
+        for (o, l) in self.address_space.get_available_addresses():
+            for match in BaseScanner.scan(self, o, l):
                 yield match
 
 
@@ -156,55 +157,34 @@ class ScannerCheck(object):
     def skip(self, data, offset):
         return -1
 
-class PoolScanner(DiscontigScanner):
-    ## These are the objects that follow the pool tags
-    preamble = [ '_POOL_HEADER', ]
-
-    def object_offset(self, found):
-        """ This returns the offset of the object contained within
-        this pool allocation.
-        """
-        ## The offset of the object is determined by subtracting the offset
-        ## of the PoolTag member to get the start of Pool Object and then
-        ## adding the size of the preamble data structures. This done
-        ## because PoolScanners search for the PoolTag.
-        total_preamble_size = sum(
-            [self.profile.get_obj_size(c) for c in self.preamble])
-        pool_tag_relative_offset = self.profile.get_obj_offset('_POOL_HEADER',
-                                                               'PoolTag')
-
-        return found + total_preamble_size - pool_tag_relative_offset
-
-    def scan(self, address_space, offset = 0, maxlen = None):
-        self.address_space = address_space
-        for i in super(PoolScanner, self).scan(address_space, offset, maxlen):
-            yield self.object_offset(i)
-
-
 class ScannerGroup(BaseScanner):
     """Runs a bunch of scanners in one pass over the image."""
 
-    def __init__(self, profile=None, window_size=8, **scanners):
+    def __init__(self, profile=None, window_size=8, address_space=None,
+                 **scanners):
         """Create a new scanner group.
 
         Args:
           scanners: A dict of BaseScanner instances. Keys will be used to refer
           to the scanner, while the value is the scanner instance.
         """
-        super(ScannerGroup, self).__init__(profile=profile)
+        super(ScannerGroup, self).__init__(
+            profile=profile, address_space=address_space)
         self.scanners = scanners
+        for scanner in scanners.values():
+            scanner.address_space = self.buffer
 
         # A dict to hold all hits for each scanner.
         self.result = {}
 
-    def scan(self, address_space, offset = 0, maxlen = None):
+    def scan(self, offset = 0, maxlen = None):
         base_offset = offset
         available_length = (maxlen or sys.maxint)
 
         while available_length > 0:
             to_read = min(constants.SCAN_BLOCKSIZE + self.overlap, available_length)
 
-            data = address_space.read(base_offset, to_read)
+            data = self.address_space.read(base_offset, to_read)
 
             # Ran out of contiguous region to read.
             if not data:
@@ -213,7 +193,7 @@ class ScannerGroup(BaseScanner):
             self.buffer.assign_buffer(data, base_offset)
             # Now feed all the scanners from the buffer address space.
             for name, scanner in self.scanners.items():
-                for hit in scanner.scan(self.buffer, offset=self.buffer.base_offset,
+                for hit in scanner.scan(offset=self.buffer.base_offset,
                                         maxlen=available_length):
                     # Yield the result as well as cache it.
                     self.result.setdefault(name, []).append(hit)
@@ -227,8 +207,19 @@ class ScannerGroup(BaseScanner):
 class DiscontigScannerGroup(ScannerGroup):
     """A scanner group which works over a virtual address space."""
 
-    def scan(self, address_space, **kwargs):
-        for (offset, length) in address_space.get_available_addresses():
+    def scan(self, **kwargs):
+        for (offset, length) in self.address_space.get_available_addresses():
             for match in super(DiscontigScannerGroup, self).scan(
-                address_space, offset, maxlen=length):
+                offset, maxlen=length):
                 yield match
+
+
+class DebugChecker(ScannerCheck):
+    """A check that breaks into the debugger when a condition is met.
+
+    Insert this check inside the check stack and we will break into the debugger
+    when all the conditions below us are met.
+    """
+    def check(self, offset):
+        import pdb; pdb.set_trace()
+        return True

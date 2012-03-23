@@ -10,11 +10,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
@@ -28,15 +28,13 @@ This module implements the fast connection scanning
 
 #pylint: disable-msg=C0111
 
-import volatility.scan as scan
-import volatility.cache as cache
 import volatility.utils as utils
 import volatility.obj as obj
 import volatility.debug as debug #pylint: disable-msg=W0611
 from volatility.plugins.windows import common
 
 
-class PoolScanConnFast(scan.PoolScanner):
+class PoolScanConnFast(common.PoolScanner):
     checks = [ ('PoolTagCheck', dict(tag = "TCPT")),
                ('CheckPoolSize', dict(condition = lambda x: x >= 0x198)),
                ('CheckPoolType', dict(non_paged = True, free = True)),

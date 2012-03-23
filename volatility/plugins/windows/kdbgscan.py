@@ -67,7 +67,7 @@ class KDBGScanner(scan.DiscontigScanner):
     """
     checks = [ ("MultiStringFinderCheck", dict(needles=["KDBG"])) ]
 
-    def scan(self, address_space, offset = 0, maxlen = None):
+    def scan(self, offset = 0, maxlen = None):
         # How far into the struct the OwnerTag is.
         owner_tag_offset = self.profile.get_obj_offset("_DBGKD_DEBUG_DATA_HEADER64",
                                                        "OwnerTag")
@@ -76,12 +76,12 @@ class KDBGScanner(scan.DiscontigScanner):
         memory_model = self.profile.metadata("memory_model", "32bit")
 
         # This basical iterates over all hits on the string "KDBG".
-        for offset in scan.DiscontigScanner.scan(self, address_space, offset, maxlen):
+        for offset in super(KDBGScanner, self).scan(offset, maxlen):
             # For each hit we overlay a _DBGKD_DEBUG_DATA_HEADER64 on it and
             # reflect through the "List" member.
             result = self.profile.Object("_KDDEBUGGER_DATA64",
                                          offset=offset - owner_tag_offset,
-                                         vm=address_space)
+                                         vm=self.address_space)
 
             # We verify this hit by reflecting through its header list.
             list_entry = result.Header.List
@@ -128,10 +128,11 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
         super(KDBGScan, self).__init__(**kwargs)
 
     def hits(self):
-        scanner = scan.BaseScanner.classes['KDBGScanner'](profile=self.profile)
+        scanner = scan.BaseScanner.classes['KDBGScanner'](
+            profile=self.profile, address_space=self.kernel_address_space)
 
         # Yield actual objects here
-        for kdbg in scanner.scan(self.kernel_address_space):
+        for kdbg in scanner.scan():
             yield kdbg
 
     def render(self, fd=None):

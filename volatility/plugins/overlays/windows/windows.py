@@ -395,12 +395,12 @@ class _EPROCESS(obj.CType):
     def get_token(self):
         """Return the process's TOKEN object if its valid"""
 
-        # The dereference checks if the address is valid  
-        # and returns obj.NoneObject if it fails 
+        # The dereference checks if the address is valid
+        # and returns obj.NoneObject if it fails
         token = self.Token.dereference_as("_TOKEN")
 
-        # This check fails if the above dereference failed 
-        # or if any of the _TOKEN specific validity tests failed. 
+        # This check fails if the above dereference failed
+        # or if any of the _TOKEN specific validity tests failed.
         if token.is_valid():
             return token
 
@@ -537,12 +537,14 @@ class _OBJECT_HEADER(obj.CType):
     This object applies only to versions below windows 7.
     """
 
-    optional_headers = [('NameInfo', '_OBJECT_HEADER_NAME_INFO'),
-                        ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO'),
-                        ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO')]
+    optional_headers = [
+        ('NameInfo', 'NameInfoOffset', '_OBJECT_HEADER_NAME_INFO'),
+        ('HandleInfo', 'HandleInfoOffset', '_OBJECT_HEADER_HANDLE_INFO'),
+        ('HandleInfo', 'QuotaInfoOffset', '_OBJECT_HEADER_QUOTA_INFO')]
 
     def __init__(self, handle_value=0, **kwargs):
         self.HandleValue = handle_value
+        self._preamble_size = 0
         super(_OBJECT_HEADER, self).__init__(**kwargs)
 
         # Create accessors for optional headers
@@ -552,9 +554,9 @@ class _OBJECT_HEADER(obj.CType):
         """Find this object's optional headers."""
         offset = self.obj_offset
 
-        for name, objtype in self.optional_headers:
+        for name, name_offset, objtype in self.optional_headers:
             if self.obj_profile.has_type(objtype):
-                header_offset = self.m(name + 'Offset').v()
+                header_offset = self.m(name_offset).v()
                 if header_offset:
                     o = self.obj_profile.Object(theType=objtype,
                                                 offset=offset - header_offset,
@@ -563,6 +565,18 @@ class _OBJECT_HEADER(obj.CType):
                     o = obj.NoneObject("Header not set")
 
                 self.newattr(name, o)
+
+                # Optional headers stack before this _OBJECT_HEADER.
+                if o:
+                    self._preamble_size += o.size()
+
+    def preamble_size(self):
+        return self._preamble_size
+
+    def size(self):
+        """The size of the object header is actually the position of the Body
+        element."""
+        return self.obj_profile.get_obj_offset("_OBJECT_HEADER", "Body")
 
     @property
     def GrantedAccess(self):
@@ -581,6 +595,8 @@ class _OBJECT_HEADER(obj.CType):
             theType="_OBJECT_TYPE", vm=kernel_address_space, offset=self.Type)
 
         return type_obj.Name.v()
+
+
 
 class _FILE_OBJECT(obj.CType):
     """Class for file objects"""

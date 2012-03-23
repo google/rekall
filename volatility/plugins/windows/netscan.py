@@ -20,7 +20,6 @@
 
 from volatility.plugins.windows import common
 import volatility.utils as utils
-import volatility.scan as scan
 import volatility.obj as obj
 import volatility.cache as cache
 import socket
@@ -47,7 +46,7 @@ AF_INET = 2
 AF_INET6 = 0x17
 
 # Compensate for Windows python not supporting socket.inet_ntop and some
-# Linux systems (i.e. OpenSuSE 11.2 w/ Python 2.6) not supporting IPv6. 
+# Linux systems (i.e. OpenSuSE 11.2 w/ Python 2.6) not supporting IPv6.
 
 def inet_ntop(address_family, packed_ip):
 
@@ -102,7 +101,7 @@ def inet_ntop(address_family, packed_ip):
 inaddr_any = inet_ntop(socket.AF_INET, '\0' * 4)
 inaddr6_any = inet_ntop(socket.AF_INET6, '\0' * 16)
 
-class PoolScanUdpEndpoint(scan.PoolScanner):
+class PoolScanUdpEndpoint(common.PoolScanner):
     """PoolScanner for Udp Endpoints"""
     checks = [ ('PoolTagCheck', dict(tag = "UdpA")),
                # Seen as 0xa8 on Vista SP0, 0xb0 on Vista SP2, and 0xb8 on 7
@@ -111,7 +110,7 @@ class PoolScanUdpEndpoint(scan.PoolScanner):
                ('CheckPoolIndex', dict(value = 0)),
                ]
 
-class PoolScanTcpListener(scan.PoolScanner):
+class PoolScanTcpListener(common.PoolScanner):
     """PoolScanner for Tcp Listeners"""
     checks = [ ('PoolTagCheck', dict(tag = "TcpL")),
                ('CheckPoolSize', dict(condition = lambda x: x == 0xa8)),
@@ -127,7 +126,7 @@ class PoolScanTcpListener(scan.PoolScanner):
 #               ('CheckPoolIndex', dict(value = 0)),
 #               ]
 
-class PoolScanTcpEndpoint(scan.PoolScanner):
+class PoolScanTcpEndpoint(common.PoolScanner):
     """PoolScanner for TCP Endpoints"""
     checks = [ ('PoolTagCheck', dict(tag = "TcpE")),
                # Seen as 0x1f0 on Vista SP0, 0x1f8 on Vista SP2 and 0x210 on 7

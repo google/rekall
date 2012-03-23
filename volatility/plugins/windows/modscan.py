@@ -10,11 +10,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
@@ -27,15 +27,15 @@ This module implements the fast module scanning
 """
 
 #pylint: disable-msg=C0111
-
+from volatility.plugins.windows import common
 from volatility.plugins.windows import filescan
 import volatility.scan as scan
 import volatility.utils as utils
 import volatility.obj as obj
 import volatility.debug as debug #pylint: disable-msg=W0611
 
-class PoolScanModuleFast(scan.PoolScanner):
-    preamble = ['_POOL_HEADER', ]
+class PoolScanModuleFast(common.PoolScanner):
+    allocation = ['_POOL_HEADER', ]
 
     checks = [ ('PoolTagCheck', dict(tag = 'MmLd')),
                ('CheckPoolSize', dict(condition = lambda x: x > 0x4c)),
@@ -47,7 +47,7 @@ class ModScan(filescan.FileScan):
     """ Scan Physical memory for _LDR_DATA_TABLE_ENTRY objects
     """
 
-    # Declare meta information associated with this plugin    
+    # Declare meta information associated with this plugin
     meta_info = dict(
         author = 'Brendan Dolan-Gavitt',
         copyright = 'Copyright (c) 2007,2008 Brendan Dolan-Gavitt',
@@ -122,9 +122,9 @@ class CheckThreads(scan.ScannerCheck):
 
         return True
 
-class PoolScanThreadFast(scan.PoolScanner):
+class PoolScanThreadFast(common.PoolScanner):
     """ Carve out threat objects using the pool tag """
-    preamble = ['_POOL_HEADER', '_OBJECT_HEADER' ]
+    allocation = ['_POOL_HEADER', '_OBJECT_HEADER' ]
 
     def object_offset(self, found, address_space):
         """ This returns the offset of the object contained within
@@ -134,7 +134,7 @@ class PoolScanThreadFast(scan.PoolScanner):
         ## The offset of the object is determined by subtracting the offset
         ## of the PoolTag member to get the start of Pool Object and then
         ## adding the size of the preamble data structures. This done
-        ## because PoolScanners search for the PoolTag. 
+        ## because PoolScanners search for the PoolTag.
 
         pool_base = found - self.buffer.profile.get_obj_offset('_POOL_HEADER', 'PoolTag')
 

@@ -844,6 +844,17 @@ class CType(BaseObject):
         self.struct_size = struct_size
         self.__initialized = True
 
+    def preamble_size(self):
+        """The number of bytes before the object which are part of the object.
+
+        Some objects are preceeded with data before obj_offset which is still
+        considered part of the object. Note that in that case the size of the
+        object includes the preamble_size - hence
+
+        object_end = obj_offset + obj.size() - obj.preamble_size()
+        """
+        return 0
+
     def size(self):
         return self.struct_size
 
