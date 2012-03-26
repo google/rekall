@@ -8,11 +8,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
 @author:       Andrew Case
@@ -29,22 +29,22 @@ import linux_list_open_files as lof
 import socket
 
 class linux_netstat(lof.linux_list_open_files):
-    ''' lists open files '''
+    ''' lists open sockets '''
     __name = "netstat"
 
     def calculate(self):
-    
+
         if not self.profile.has_type("inet_sock"):
             # ancient (2.6.9) centos kernels do not have inet_sock in debug info
             raise AttributeError, "Given profile does not have inet_sock, please file a bug if the kernel version is > 2.6.11"
 
         openfiles = lof.linux_list_open_files.calculate(self)
-    
+
         for (task, filp, _i, _addr_space) in openfiles:
 
             # its a socket!
             if filp.f_op == self.smap["socket_file_ops"] or filp.get_dentry().d_op == self.smap["sockfs_dentry_operations"]:
-            
+
                 iaddr = filp.get_dentry().d_inode
                 skt = self.SOCKET_I(iaddr)
                 inet_sock = obj.Object("inet_sock", offset = skt.sk, vm = self.addr_space)
@@ -56,24 +56,24 @@ class linux_netstat(lof.linux_list_open_files):
         for task, inet_sock in data:
 
             proto = self.get_proto_str(inet_sock)
-            
+
             if proto in ("TCP", "UDP", "IP"):
 
                 state = self.get_state_str(inet_sock) if proto == "TCP" else ""
                 family = inet_sock.sk.__sk_common.skc_family
 
                 if family == 1: #AF_UNIX
-                    
+
                     unix_sock = obj.Object("unix_sock", offset=inet_sock.sk.v(), vm=self.addr_space)
-                    
+
                     if unix_sock.addr:
-    
+
                         name = obj.Object("sockaddr_un", offset=unix_sock.addr.name.obj_offset, vm=self.addr_space)
-                        
+
                         # only print out sockets with paths
                         if name.sun_path != "":
                             outfd.write("UNIX {0:s}\n".format(name.sun_path))
-                             
+
                 elif family in (2, 10):
 
                     if family == 2: #AF_INET
@@ -91,7 +91,7 @@ class linux_netstat(lof.linux_list_open_files):
         daddr = linux_common.ip62str(inet_sock.pinet6.daddr)
         saddr = linux_common.ip62str(inet_sock.pinet6.saddr)
 
-        return (daddr, saddr)        
+        return (daddr, saddr)
 
     # formats an ipv4 address
     def format_ipv4(self, inet_sock):

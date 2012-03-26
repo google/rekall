@@ -12,17 +12,18 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """ This file defines some basic types which might be useful for many
 OS's
 """
 import copy
+import logging
 import socket
 import struct
 
@@ -58,16 +59,10 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return self.v().split("\x00")[0]
 
     def __unicode__(self):
-        # This should never happen and it does not make any sense. If this
-        # memory location really represents a unicode sting, then the profile
-        # overlay must be updated to have a UnicodeString type and not String
-        # type. If we really want to print out a raw region we always need to
-        # hex encode it or something.
-        logging.debug("A raw string decoded as unicode!")
-        return self.v().decode("utf8", "ignore")
+        return self.v().decode("utf8", "replace").split("\x00")[0]
 
     def __format__(self, formatspec):
-        return format(self.__str__(), formatspec)
+        return format(unicode(self), formatspec)
 
     def __add__(self, other):
         """Set up mappings for concat"""
@@ -185,13 +180,13 @@ class IpAddress(obj.NativeType):
 
     def v(self, vm=None):
         value = super(IpAddress, self).v(vm=vm)
-        return socket.inet_ntoa(struct.pack("<I", value))    
+        return socket.inet_ntoa(struct.pack("<I", value))
 
 
 # TODO: Remove this hack.
 class VOLATILITY_MAGIC(obj.CType):
     """Class representing a VOLATILITY_MAGIC namespace
-    
+
        Needed to ensure that the address space is not verified as valid for constants
     """
     def __init__(self, theType, offset, vm, **kwargs):

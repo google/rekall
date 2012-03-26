@@ -9,11 +9,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """This module implements the volatility session.
@@ -35,6 +35,23 @@ from volatility import plugin
 from volatility import obj
 
 
+class ProfileContainer(object):
+    """A utility class for intantiating profiles."""
+
+    def __init__(self, session=None):
+        self.session = session
+
+    def __dir__(self):
+        """Show all available profiles."""
+        return obj.Profile.classes.keys()
+
+    def __getattr__(self, attr):
+        if attr not in obj.Profile.classes:
+            raise AttributeError("%s is not a valid profile" % attr)
+
+        return attr
+
+
 class PluginContainer(object):
     """A container for holding plugins."""
 
@@ -47,7 +64,7 @@ class PluginContainer(object):
             if command_cls.name:
                 self.plugins[command_cls.name] = command_cls
 
-        logging.debug("Reloading active plugins %s", 
+        logging.debug("Reloading active plugins %s",
                       ["%s <- %s" % (x, y.__name__) for x,y in self.plugins.items()])
 
     def reset(self):
@@ -74,14 +91,14 @@ class Pager(object):
         self.default_fd = default_fd or sys.stdout
         self.make_pager(session)
 
-        
+
     def make_pager(self, session):
         # More is the least common denominator of pagers :-(. Less is better,
         # but most is best!
         pager = session.pager or os.environ.get("PAGER")
         try:
             self.pager = os.popen(pager, 'w', 0)
-        except Exception:
+        except Exception, e:
             self.pager = self.default_fd
 
         # Determine the output encoding
@@ -126,11 +143,15 @@ class Session(object):
         # Fill the session with helpful defaults.
         session.__dict__['logging'] = self.logging or "INFO"
         session.pager = obj.NoneObject("Set this to your favourite pager.")
+        session.profile = obj.NoneObject("Set this a valid profile (e.g. type profiles. and tab).")
+        session.profile_file = obj.NoneObject("Some profiles accept a data file (e.g. Linux).")
+        session.filename = obj.NoneObject("Set this to the image filename.")
 
         # Prepopulate the namespace with our most important modules.
         self._locals['addrspace'] = addrspace
         self._locals['obj'] = obj
         self._locals['plugins'] = session.plugins
+        self._locals['profiles'] = ProfileContainer(self)
 
         # The handler for the vol command.
         self._locals['vol'] = session.vol
@@ -173,11 +194,12 @@ class Session(object):
             kwargs['session'] = self
             result = plugin_cls(**kwargs)
             result.render(fd)
-            
+
             return result
         except plugin.Error, e:
             logging.error("Failed running plugin %s: %s", plugin_cls.__name__, e)
-        except Exception:
+        except Exception, e:
+            logging.error("Error: %s", e)
             # If anything goes wrong, we break into a debugger here.
             if debug:
                 pdb.post_mortem()
@@ -219,6 +241,10 @@ Config:
 
     def _set_profile(self, profile):
         """A Hook for setting profiles."""
+        if profile == None:
+            self.__dict__['profile'] = profile
+            return
+
         # Profile is a string - we try to make a profile object.
         if isinstance(profile, basestring):
             # First try to find this profile.
@@ -227,7 +253,7 @@ Config:
             except KeyError:
                 logging.error("Profile %s is not known." % profile)
                 logging.info("Known profiles are:")
-            
+
                 for profile in obj.Profile.classes:
                     logging.info("  %s" % profile)
 

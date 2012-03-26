@@ -13,11 +13,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 import logging
@@ -78,7 +78,7 @@ class WinPsList(common.WinProcessFilter):
 
     def list_eprocess_from_eprocess(self, eprocess_offset):
         eprocess = self.profile.Object(
-            theType="_EPROCESS", 
+            theType="_EPROCESS",
             offset=eprocess_offset, vm=self.kernel_address_space)
 
         for task in eprocess.ActiveProcessLinks:
@@ -101,7 +101,7 @@ class WinPsList(common.WinProcessFilter):
 
         for task in self.filter_processes():
             offset = task.obj_offset
-            fd.write("{0:#010x} {1:#010x} {2:20} {3:6} {4:6} {5:6} {6:6} {7:26}\n".format(
+            fd.write(u"{0:#010x} {1:#010x} {2:20} {3:6} {4:6} {5:6} {6:6} {7:26}\n".format(
                 offset,
                 task.obj_vm.vtop(offset),
                 task.ImageFileName,
@@ -171,7 +171,7 @@ class WinMemMap(common.WinProcessFilter):
 
                 last_va, last_pa, last_len = va, pa, length
 
-        yield (last_va, last_pa, last_len)                
+        yield (last_va, last_pa, last_len)
 
     def render(self, outfd):
         for task in self.filter_processes():

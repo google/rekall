@@ -82,6 +82,7 @@ class ModScan(filescan.FileScan):
                          ldr_entry.SizeOfImage,
                          repr(ldr_entry.BaseDllName.v())))
 
+
 class CheckThreads(scan.ScannerCheck):
     """ Check sanity of _ETHREAD """
     kernel = 0x80000000
@@ -121,6 +122,7 @@ class CheckThreads(scan.ScannerCheck):
             return False
 
         return True
+
 
 class PoolScanThreadFast(common.PoolScanner):
     """ Carve out threat objects using the pool tag """
@@ -162,6 +164,8 @@ class PoolScanThreadFast(common.PoolScanner):
                ('CheckPoolIndex', dict(value = 0)),
                ('CheckThreads', {}),
                ]
+
+
 
 class ThrdScan(ModScan):
     """Scan physical memory for _ETHREAD objects"""
