@@ -34,22 +34,13 @@ from volatility.plugins.overlays import basic
 from volatility.plugins.overlays.windows import windows
 
 
-class XPOverlay(obj.ProfileModification):
-    before = ['WindowsOverlay']
-    conditions = {'os': lambda x : x == 'windows',
-                  'major': lambda x: x == 5,
-                  'minor': lambda x: x == 1}
+# Windows XP specific overlays.
+win_xp_overlays = {
+    '_EPROCESS'        : [ None, {
+            'VadRoot'      : [ None, ['pointer', ['_MMVAD']]]
+            }]
+    }
 
-    def modification(self, profile):
-        overlay = {'VOLATILITY_MAGIC': [ None, {
-                        'DTBSignature' : [ None, ['VolatilityMagic', dict(value = "\x03\x00\x1b\x00")]],
-                        'KDBGHeader'   : [ None, ['VolatilityMagic', dict(value = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02')]],
-                                                }],
-                   '_EPROCESS'        : [ None, {
-                        'VadRoot'      : [ None, ['pointer', ['_MMVAD']]]
-                                                }]
-                      }
-        profile.merge_overlay(overlay)
 
 class WinXPSP2x86(windows.BaseWindowsProfile, basic.Profile32Bits):
     """ A Profile for Windows XP SP2 x86 """
@@ -62,6 +53,8 @@ class WinXPSP2x86(windows.BaseWindowsProfile, basic.Profile32Bits):
         self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02',
                            PoolAlignment = 8,
                            )
+
+        self.add_overlay(win_xp_overlays)
 
         # Import the actual vtypes on demand here to reduce memory usage.
         from volatility.plugins.overlays.windows import xp_sp2_x86_vtypes
@@ -80,6 +73,7 @@ class WinXPSP3x86(windows.BaseWindowsProfile, basic.Profile32Bits):
         self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02',
                            PoolAlignment = 8,
                            )
+        self.add_overlay(win_xp_overlays)
 
         # Import the actual vtypes on demand here to reduce memory usage.
         from volatility.plugins.overlays.windows import xp_sp3_x86_vtypes

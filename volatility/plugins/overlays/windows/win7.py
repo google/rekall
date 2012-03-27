@@ -32,6 +32,30 @@ from volatility.plugins.overlays import basic
 from volatility.plugins.overlays.windows import windows
 
 
+# In windows 7 the VadRoot is actually composed from _MMADDRESS_NODEs instead of
+# _MMVAD structs.
+win7_overlays = {
+    '_EPROCESS': [ None, {
+            'VadRoot': [ None, ['_MMADDRESS_NODE']]
+            }],
+    '_MMADDRESS_NODE': [ None, {
+            'Tag': [-12, ['String', dict(length=4)]],
+            }],
+
+    '_MMVAD_SHORT': [ None, {
+            'Tag': [-12 , ['String', dict(length = 4)]],
+            }],
+
+    '_MMVAD_LONG': [ None, {
+            'Tag': [-12 , ['String', dict(length = 4)]],
+            }],
+
+    "_CONTROL_AREA": [None, {
+            'FilePointer': [None, ['_EX_FAST_REF', dict(target="_FILE_OBJECT")]],
+            }],
+    }
+
+
 class _OBJECT_HEADER(windows._OBJECT_HEADER):
     """A Volatility object to handle Windows 7 object headers.
 
@@ -109,6 +133,26 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
         return self.type_map.get(self.TypeIndex.v(), '')
 
 
+class _MMADDRESS_NODE(windows._MMVAD):
+    """In win7 the base class of all Vad objects in _MMADDRESS_NODE."""
+    @property
+    def Parent(self):
+        return self.u1.Parent
+
+
+class _MMVAD_SHORT(_MMADDRESS_NODE):
+    pass
+
+
+class _MMVAD(_MMVAD_SHORT):
+    @property
+    def ControlArea(self):
+        return self.Subsection.ControlArea
+
+
+class _MMVAD_LONG(_MMVAD):
+    pass
+
 
 class Win7SP0x86(obj.Profile):
     """ A Profile for Windows 7 SP0 x86 """
@@ -159,7 +203,12 @@ class Win7BaseProfile(windows.BaseWindowsProfile):
         self.add_types({
                 'pointer64': ['NativeType', dict(format_string='<Q')]
                 })
+        self.add_overlay(win7_overlays)
+
         self.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
+                              _MMADDRESS_NODE=_MMADDRESS_NODE,
+                              _MMVAD=_MMVAD, _MMVAD_LONG=_MMVAD_LONG,
+                              _MMVAD_SHORT=_MMVAD_SHORT,
                               pointer64=obj.Pointer))
 
 

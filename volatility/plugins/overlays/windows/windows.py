@@ -53,7 +53,6 @@ windows_overlay = {
     'InheritedFromUniqueProcessId' : [ None, ['unsigned int']],
     'ImageFileName' : [ None, ['String', dict(length = 16)]],
     'UniqueProcessId' : [ None, ['unsigned int']],
-    'VadRoot': [None, ['pointer', ['_MMVAD']]],
     }],
 
     '_ETHREAD' : [ None, {
@@ -649,7 +648,7 @@ class _MMVAD(obj.CType):
         # Get the tag and return the correct vad type if necessary
         real_type = self.tag_map.get(self.Tag.v(), None)
         if not real_type:
-            return self
+            return None
 
         return self.obj_profile.Object(
             theType=real_type, offset=self.obj_offset, profile=self.obj_profile,
@@ -686,6 +685,13 @@ class _MMVAD(obj.CType):
         """Get the ending virtual address"""
         return ((self.EndingVpn + 1) << 12) - 1
 
+    @property
+    def Parent(self):
+        try:
+            return self.m("Parent")
+        except AttributeError:
+            return obj.NoneObject("No parent known")
+
 
 class _MMVAD_SHORT(_MMVAD):
     """Class with convenience functions for _MMVAD_SHORT functions"""
@@ -696,6 +702,17 @@ class _MMVAD_LONG(_MMVAD):
 
 
 class _EX_FAST_REF(obj.CType):
+    """This type allows instantiating an object from its .Object member."""
+
+    def __init__(self, target=None, **kwargs):
+        self.target = target
+        super(_EX_FAST_REF, self).__init__(**kwargs)
+
+    def dereference(self, vm=None):
+        if self.target is None:
+            raise TypeError("No target specified for dereferencing an _EX_FAST_REF.")
+
+        return self.dereference_as(self.target)
 
     def dereference_as(self, theType, parent = None, vm=None, **kwargs):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the

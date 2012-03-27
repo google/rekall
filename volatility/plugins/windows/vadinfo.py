@@ -95,12 +95,17 @@ class VADInfo(common.WinProcessFilter):
             outfd.write("Pid: {0:6}\n".format(task.UniqueProcessId))
 
             for vad in task.VadRoot.traverse():
+                vad = vad.dereference()
                 if vad and vad != 0:
-                    vad = vad.dereference()
-
-                    self.write_vad_short(outfd, vad)
-                    self.write_vad_control(outfd, vad)
-                    self.write_vad_ext(outfd, vad)
+                    try:
+                        self.write_vad_short(outfd, vad)
+                    except AttributeError: pass
+                    try:
+                        self.write_vad_control(outfd, vad)
+                    except AttributeError: pass
+                    try:
+                        self.write_vad_ext(outfd, vad)
+                    except AttributeError: pass
 
                 outfd.write("\n")
 
@@ -124,7 +129,6 @@ class VADInfo(common.WinProcessFilter):
 
     def write_vad_control(self, outfd, vad):
         """Renders a text version of a (non-short) Vad's control information"""
-
         # even if the ControlArea is not NULL, it is only meaningful
         # for shared (non private) memory sections.
         if vad.u.VadFlags.PrivateMemory == 1:
@@ -156,7 +160,7 @@ class VADInfo(common.WinProcessFilter):
 
         outfd.write("Control Flags: {0}\n".format(str(control_area.u.Flags)))
 
-        file_object = vad.ControlArea.FilePointer
+        file_object = vad.ControlArea.FilePointer.dereference()
         if file_object and file_object != 0:
             outfd.write("FileObject @{0:08x} FileBuffer @ {1:08x}          , "
                         "Name: {2}\n".format(
@@ -181,42 +185,40 @@ class VADTree(VADInfo):
 
     def render(self, outfd):
         for task in self.filter_processes():
-            outfd.write("*" * 72 + "\n")
-            outfd.write("Pid: {0:6}\n".format(task.UniqueProcessId))
+            outfd.write(u"*" * 72 + "\n")
+            outfd.write(u"Pid: {0:6}\n".format(task.UniqueProcessId))
             levels = {}
             for vad in task.VadRoot.traverse():
+                vad = vad.dereference()
                 if vad:
-                    vad = vad.dereference()
-
                     level = levels.get(vad.Parent.v(), -1) + 1
                     levels[vad.obj_offset] = level
-                    outfd.write(" " * level + "{0:08x} - {1:08x}\n".format(
+                    outfd.write(u" " * level + u"{0:08x} - {1:08x}\n".format(
                                 vad.get_start(),
                                 vad.get_end()))
 
     def render_dot(self, outfd):
         for task in self.filter_processes():
-            outfd.write("/" + "*" * 72 + "/\n")
-            outfd.write("/* Pid: {0:6} */\n".format(task.UniqueProcessId))
-            outfd.write("digraph processtree {\n")
-            outfd.write("graph [rankdir = \"TB\"];\n")
+            outfd.write(u"/" + "*" * 72 + "/\n")
+            outfd.write(u"/* Pid: {0:6} */\n".format(task.UniqueProcessId))
+            outfd.write(u"digraph processtree {\n")
+            outfd.write(u"graph [rankdir = \"TB\"];\n")
             for vad in task.VadRoot.traverse():
+                vad = vad.dereference()
                 if vad:
-                    vad = vad.dereference()
-
                     if vad.Parent and vad.Parent.dereference():
-                        outfd.write("vad_{0:08x} -> vad_{1:08x}\n".format(
+                        outfd.write(u"vad_{0:08x} -> vad_{1:08x}\n".format(
                                 vad.Parent.v() or 0, vad.obj_offset))
 
                     outfd.write(
-                        "vad_{0:08x} [label = \"{{ {1}\\n{2:08x} - {3:08x} }}\""
+                        u"vad_{0:08x} [label = \"{{ {1}\\n{2:08x} - {3:08x} }}\""
                         "shape = \"record\" color = \"blue\"];\n".format(
                             vad.obj_offset,
                             vad.Tag,
                             vad.get_start(),
                             vad.get_end()))
 
-            outfd.write("}\n")
+            outfd.write(u"}\n")
 
 
 class VADWalk(VADInfo):
@@ -226,14 +228,15 @@ class VADWalk(VADInfo):
 
     def render(self, outfd):
         for task in self.filter_processes():
-            outfd.write("*" * 72 + "\n")
-            outfd.write("Pid: {0:6}\n".format(task.UniqueProcessId))
-            outfd.write("Address  Parent   Left     Right    Start    End      Tag\n")
+            outfd.write(u"*" * 72 + "\n")
+            outfd.write(u"Pid: {0:6}\n".format(task.UniqueProcessId))
+            outfd.write(u"{0:16s} {1:16s} {2:16s} {3:16s} {4:16s} {5:16s} {6:4}\n".format(
+                    "Address", "Parent", "Left", "Right", "Start", "End", "Tag"))
             for vad in task.VadRoot.traverse():
                 # Ignore Vads with bad tags (which we explicitly include as None)
+                vad = vad.dereference()
                 if vad:
-                    vad = vad.dereference()
-                    outfd.write("{0:08x} {1:08x} {2:08x} {3:08x} {4:08x} {5:08x} {6:4}\n".format(
+                    outfd.write(u"{0:016x} {1:016x} {2:016x} {3:016x} {4:016x} {5:016x} {6:4}\n".format(
                         vad.obj_offset,
                         vad.Parent.v() or 0,
                         vad.LeftChild.dereference().obj_offset or 0,
@@ -281,6 +284,7 @@ class VADDump(VADInfo):
             outfd.write("*" * 72 + "\n")
             for vad in task.VadRoot.traverse():
                 vad = vad.dereference()
+                if not vad: continue
 
                 # Ignore Vads with bad tags
                 if vad.obj_type == "_MMVAD":
