@@ -53,6 +53,7 @@ windows_overlay = {
     'InheritedFromUniqueProcessId' : [ None, ['unsigned int']],
     'ImageFileName' : [ None, ['String', dict(length = 16)]],
     'UniqueProcessId' : [ None, ['unsigned int']],
+    'VadRoot': [None, ['pointer', ['_MMVAD']]],
     }],
 
     '_ETHREAD' : [ None, {
@@ -136,15 +137,17 @@ windows_overlay = {
     'UniqueThread' : [ None, ['unsigned int']],
     }],
 
-    '_MMVAD_SHORT': [ None, {
+    '_MMVAD': [ None, {
     # This is the location of the MMVAD type which controls how to parse the
     # node. It is located before the structure.
     'Tag': [-4 , ['String', dict(length = 4)]],
     }],
 
+    '_MMVAD_SHORT': [ None, {
+    'Tag': [-4 , ['String', dict(length = 4)]],
+    }],
+
     '_MMVAD_LONG': [ None, {
-    # This is the location of the MMVAD type which controls how to parse the
-    # node. It is located before the structure.
     'Tag': [-4 , ['String', dict(length = 4)]],
     }],
 }
@@ -356,8 +359,8 @@ class _EPROCESS(obj.CType):
             process_as = self.obj_vm.__class__(base=self.obj_vm.base,
                                                session=self.obj_vm.get_config(),
                                                dtb = directory_table_base, astype='virtual')
-        except AssertionError, _e:
-            return obj.NoneObject("Unable to get process AS")
+        except AssertionError, e:
+            return obj.NoneObject("Unable to get process AS: %s" % e)
 
         process_as.name = "Process {0}".format(self.UniqueProcessId)
 
@@ -379,18 +382,6 @@ class _EPROCESS(obj.CType):
 
     def get_load_modules(self):
         return self._get_modules(self.Peb.Ldr.InLoadOrderModuleList, "InLoadOrderLinks")
-
-    def get_vads(self):
-        """Generator for MMVADs that does not rely on named AS"""
-        procspace = self.get_process_address_space()
-
-        # Potentially get_process_address_space will return obj.NoneObject
-        if procspace:
-            vadroot = obj.Object('_MMVAD', offset = self.VadRoot, vm = procspace)
-
-            if vadroot:
-                for v in vadroot.traverse():
-                    yield v
 
     def get_token(self):
         """Return the process's TOKEN object if its valid"""
@@ -642,56 +633,28 @@ class _MMVAD(obj.CType):
                'Vadm': '_MMVAD_LONG',
               }
 
-    ## parent is the containing _EPROCESS right now
-    def __new__(cls, theType, offset, vm, parent = None, **args):
-        # Don't waste time if we're based on a NULL pointer
-        # I can't think of a better check than this...
-        if offset < 4:
-            return obj.NoneObject("MMVAD probably instantiated from a NULL "
-                                  "pointer, there is no tag to read")
+    def dereference(self, vm=None):
+        """Return the exact type of this _MMVAD depending on the tag.
 
-        ## All VADs are done in the process AS - so we might need to switch
-        ## Address spaces now. Find the eprocess we came from and switch
-        ## AS. Note that all child traversals will be in Process AS.
-        if vm.name.startswith("Kernel"):
-            # Find the next _EPROCESS along our parent list
-            eprocess = parent
-            while eprocess and eprocess.obj_name != "_EPROCESS":
-                eprocess = eprocess.obj_parent
+        All _MMVAD objects are initially instantiated as a generic _MMVAD
+        object. However, depending on their tags, they really are one of the
+        extended types, _MMVAD_LONG, or _MMVAD_SHORT.
 
-            # Switch to its process AS
-            vm = eprocess.get_process_address_space()
+        This method checks the type and returns the correct object. For invalid
+        tags we return _MMVAD object.
 
-        if not vm:
-            return obj.NoneObject("Could not find address space for _MMVAD object")
-
-        ## Note that since we were called from __new__ we can return a
-        ## completely different object here (including
-        ## NoneObject). This also means that we can not add any
-        ## specialist methods to the _MMVAD class.
-
-        ## We must not polute Object's constructor by providing the
-        ## members or struct_size we were instantiated with
-        args.pop('struct_size', None)
-        args.pop('members', None)
-
-        # Start off with an _MMVAD_LONG
-        result = self.obj_profile.Object(theType='_MMVAD_LONG', offset = offset, vm = vm,
-                                         parent = parent, **args)
-
-        # Get the tag and change the vad type if necessary
-        real_type = cls.tag_map.get(str(result.Tag), None)
+        Returns:
+          an _MMVAD_SHORT or _MMVAD_LONG object representing this _MMVAD.
+        """
+        # Get the tag and return the correct vad type if necessary
+        real_type = self.tag_map.get(self.Tag.v(), None)
         if not real_type:
-            return obj.NoneObject("Tag {0} not known".format(str(result.Tag)))
+            return self
 
-        if result.__class__.__name__ != real_type:
-            result = self.obj_profile.Object(theType=real_type, offset = offset, vm = vm,
-                                             parent = parent, **args)
+        return self.obj_profile.Object(
+            theType=real_type, offset=self.obj_offset, profile=self.obj_profile,
+            vm=vm or self.obj_vm, parent=self.obj_parent)
 
-        return result
-
-class _MMVAD_SHORT(obj.CType):
-    """Class with convenience functions for _MMVAD_SHORT functions"""
     def traverse(self, visited = None):
         """ Traverse the VAD tree by generating all the left items,
         then the right items.
@@ -715,18 +678,6 @@ class _MMVAD_SHORT(obj.CType):
             visited.add(c.obj_offset)
             yield c
 
-    def get_parent(self):
-        """Returns the Parent of the MMVAD"""
-        return self.Parent
-
-    def get_control_area(self):
-        """Returns the ControlArea of the MMVAD"""
-        return self.ControlArea
-
-    def get_file_object(self):
-        """Returns the FilePointer of the ControlArea of the MMVAD"""
-        return self.ControlArea.FilePointer
-
     def get_start(self):
         """Get the starting virtual address"""
         return self.StartingVpn << 12
@@ -735,33 +686,21 @@ class _MMVAD_SHORT(obj.CType):
         """Get the ending virtual address"""
         return ((self.EndingVpn + 1) << 12) - 1
 
-    def get_data(self):
-        """Get the data in a vad region"""
 
-        start = self.get_start()
-        end = self.get_end()
+class _MMVAD_SHORT(_MMVAD):
+    """Class with convenience functions for _MMVAD_SHORT functions"""
 
-        # avoid potential situations that would cause num_pages to
-        # overflow and then be too large to pass to xrange
-        if start > 0xFFFFFFFF or end > (0xFFFFFFFF << 12):
-            return ''
 
-        num_pages = (end - start + 1) >> 12
-
-        blank_page = '\x00' * 0x1000
-        pages_list = [(self.obj_vm.read(start + index * 0x1000, 0x1000) if self.obj_vm.is_valid_address(start + index * 0x1000) else blank_page) for index in xrange(num_pages)]
-        if None in pages_list:
-            pages_list = [a_page if a_page != None else blank_page for a_page in pages_list]
-        return ''.join(pages_list)
-
-class _MMVAD_LONG(_MMVAD_SHORT):
-    """Subclasses _MMVAD_LONG based on _MMVAD_SHORT"""
-    pass
+class _MMVAD_LONG(_MMVAD):
+    """Class with convenience functions for _MMVAD_SHORT functions"""
 
 
 class _EX_FAST_REF(obj.CType):
+
     def dereference_as(self, theType, parent = None, vm=None, **kwargs):
-        """Use the _EX_FAST_REF.Object pointer to resolve an object of the specified type"""
+        """Use the _EX_FAST_REF.Object pointer to resolve an object of the
+        specified type.
+        """
         MAX_FAST_REF = self.obj_profile.constants['MAX_FAST_REF']
         return self.obj_profile.Object(theType=theType,
                                        offset=self.Object.v() & ~MAX_FAST_REF,
