@@ -23,5 +23,4 @@ from volatility.plugins.windows import sockets
 from volatility.plugins.windows import sockscan
 from volatility.plugins.windows import ssdt
 from volatility.plugins.windows import taskmods
-from volatility.plugins.windows import userassist
 from volatility.plugins.windows import vadinfo

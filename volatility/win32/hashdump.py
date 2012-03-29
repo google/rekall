@@ -122,8 +122,6 @@ def get_bootkey(sysaddr):
     lsa_base = ["ControlSet{0:03}".format(cs), "Control", "Lsa"]
     lsa_keys = ["JD", "Skew1", "GBG", "Data"]
 
-
-
     root = rawreg.get_root(sysaddr)
     if not root:
         return None
@@ -180,11 +178,11 @@ def get_user_keys(samaddr):
 
     root = rawreg.get_root(samaddr)
     if not root:
-        return None
+        return []
 
     user_key = rawreg.open_key(root, user_key_path)
     if not user_key:
-        return None
+        return []
 
     return [k for k in rawreg.subkeys(user_key) if k.Name != "Names"]
 
@@ -255,7 +253,7 @@ def get_user_hashes(user_key, hbootkey):
         if v.Name == 'V':
             V = samaddr.read(v.Data, v.DataLength)
     if not V:
-        return None, None
+        return None
 
     lm_offset = unpack("<L", V[0x9c:0xa0])[0] + 0xCC + 4
     lm_len = unpack("<L", V[0xa0:0xa4])[0] - 4

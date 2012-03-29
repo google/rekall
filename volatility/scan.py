@@ -121,7 +121,7 @@ class BaseScanner(object):
 class DiscontigScanner(BaseScanner):
     def scan(self, offset = 0, maxlen = None):
         for (o, l) in self.address_space.get_available_addresses():
-            for match in BaseScanner.scan(self, o, l):
+            for match in super(DiscontigScanner, self).scan(o, l):
                 yield match
 
 

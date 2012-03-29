@@ -10,11 +10,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
@@ -24,15 +24,7 @@
 @organization: Volatile Systems
 """
 
-#pylint: disable-msg=C0111
-
-# from volatility.win32.datetime import windows_to_unix_time
-import volatility.win32.hive as hivemod
-import volatility.win32.rawreg as rawreg
-import volatility.debug as debug
-import volatility.utils as utils
-import volatility.commands as commands
-from volatility.plugins.windows.registry import hivelist
+from volatility.plugins.windows.registry import registry
 
 def vol(k):
     return bool(k.obj_offset & 0x80000000)

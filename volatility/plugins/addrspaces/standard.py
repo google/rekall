@@ -15,11 +15,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """ These are standard address spaces supported by Volatility """
@@ -40,7 +40,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
     1) A valid config.filename
 
     2) no one else has picked the AS before us
-    
+
     3) base == None (we dont operate on anyone else so we need to be
     right at the bottom of the AS stack.)
     """
@@ -54,7 +54,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
 
         self.as_assert(self.base == None, 'Must be first Address Space')
 
-        path = self.session.filename or filename
+        path = (self.session and self.session.filename) or filename
         self.as_assert(path, "Filename must be specified in session (e.g. "
                        "session.filename = 'MyFile.raw').")
 
@@ -110,14 +110,14 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
         return True
 
     def __eq__(self, other):
-        return (self.__class__ == other.__class__ and 
-                self.base == other.base and 
+        return (self.__class__ == other.__class__ and
+                self.base == other.base and
                 self.fname == other.fname)
 
 
 class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
     """ Class to handle all the associated details of a paged address space
-        
+
     Note: Pages can be of any size
     """
     __abstract = True

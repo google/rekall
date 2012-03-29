@@ -109,15 +109,15 @@ class Flags(obj.NativeType):
     ## consisting of a list of start, width bits
     maskmap = None
 
-    def __init__(self, theType = None, offset = 0, vm = None, parent = None,
-                 bitmap = None, maskmap = None, target = "unsigned long",
+    def __init__(self, bitmap = None, maskmap = None, target = "unsigned long",
                  **kwargs):
+        super(Flags, self).__init__(**kwargs)
         self.bitmap = bitmap or {}
         self.maskmap = maskmap or {}
         self.target = target
 
-        self.target_obj = obj.Object(target, offset = offset, vm = vm, parent = parent)
-        obj.NativeType.__init__(self, theType, offset, vm, parent, **kwargs)
+        self.target_obj = self.obj_profile.Object(target, offset=self.obj_offset,
+                                                  vm=self.obj_vm)
 
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
@@ -155,7 +155,7 @@ class Enumeration(obj.NativeType):
         self.choices = choices or {}
         self.target = target
         self.target_obj = self.obj_profile.Object(
-            target, offset=self.offset, vm=self.obj_vm)
+            target, offset=self.obj_offset, vm=self.obj_vm)
 
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)

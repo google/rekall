@@ -13,11 +13,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
@@ -26,7 +26,7 @@
 @contact:      awalters@volatilesystems.com
 @organization: Volatile Systems
 
-   Alias for all address spaces 
+   Alias for all address spaces
 
 """
 
@@ -80,6 +80,10 @@ class BaseAddressSpace(object):
         raise NotImplementedError("Write support for this type of Address Space has not "
                                   "been implemented")
 
+    def vtop(self, addr):
+        """Return the physical address of this virtual address."""
+        # For physical address spaces, this is a noop.
+        return addr
 
 
 class DummyAddressSpace(BaseAddressSpace):
@@ -139,6 +143,79 @@ class BufferAddressSpace(BaseAddressSpace):
     def get_available_addresses(self):
         yield (self.base_offset, len(self.data))
 
+
+class PagedReader(BaseAddressSpace):
+    """An address space which reads in page size.
+
+    This automatically takes care of splitting a large read into smaller reads.
+    """
+    PAGE_SIZE = 0x1000
+    __abstract = True
+
+    def _read_chunk(self, vaddr, length):
+        """
+        Read 'length' bytes from the virtual address 'vaddr'.
+        If vaddr does not have a valid mapping, return None.
+
+        This function should not be called from outside this class
+        as it doesn't take page breaks into account. That is,
+        the bytes at virtual addresses 0x1fff and 0x2000 are not
+        guarenteed to be contigious. Calling functions are responsible
+        for determining contiguious blocks.
+        """
+        paddr = self.vtop(vaddr)
+        if paddr is None:
+            return None
+
+        if not self.base.is_valid_address(paddr):
+            return None
+
+        return self.base.read(paddr, length)
+
+    def _read_bytes(self, vaddr, length, pad):
+        """
+        Read 'length' bytes from the virtual address 'vaddr'.
+        The 'pad' parameter controls whether unavailable bytes
+        are padded with zeros.
+        """
+        vaddr, length = int(vaddr), int(length)
+
+        ret = ''
+
+        while length > 0:
+            chunk_len = min(length, self.PAGE_SIZE - (vaddr % self.PAGE_SIZE))
+
+            buf = self._read_chunk(vaddr, chunk_len)
+            if buf is None:
+                if pad:
+                    buf = '\x00' * chunk_len
+                else:
+                    return obj.NoneObject("Could not read_chunks from addr " +
+                                          str(vaddr) + " of size " + str(chunk_len))
+
+            ret += buf
+            vaddr += chunk_len
+            length -= chunk_len
+
+        return ret
+
+    def read(self, vaddr, length):
+        '''
+        Read and return 'length' bytes from the virtual address 'vaddr'.
+        If any part of that block is unavailable, return None.
+        '''
+        return self._read_bytes(vaddr, length, pad = False)
+
+    def zread(self, vaddr, length):
+        '''
+        Read and return 'length' bytes from the virtual address 'vaddr'.
+        If any part of that block is unavailable, pad it with zeros.
+        '''
+        return self._read_bytes(vaddr, length, pad = True)
+
+    def is_valid_address(self, addr):
+        vaddr = self.vtop(addr)
+        return self.base.is_valid_address(vaddr)
 
 
 class Error(Exception):

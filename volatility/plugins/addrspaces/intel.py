@@ -12,11 +12,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """ This is Jesse Kornblum's patch to clean up the standard AS's.
@@ -33,22 +33,22 @@ from volatility import obj
 # WritablePagedMemory must be BEFORE base address, since it adds the concrete
 # method get_available_addresses If it's second, BaseAddressSpace's abstract
 # version will take priority
-class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddressSpace):
+class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReader):
     """ Standard x86 32 bit non PAE address space.
-    
-    Provides an address space for IA32 paged memory, aka the x86 
+
+    Provides an address space for IA32 paged memory, aka the x86
     architecture, without Physical Address Extensions (PAE). Allows
     callers to map virtual address to offsets in physical memory.
 
-    Create a new IA32 address space without PAE to sit on top of 
+    Create a new IA32 address space without PAE to sit on top of
     the base address space and a Directory Table Base (CR3 value)
     of 'dtb'.
 
-    Comments in this class mostly come from the Intel(R) 64 and IA-32 
-    Architectures Software Developer's Manual Volume 3A: System Programming 
+    Comments in this class mostly come from the Intel(R) 64 and IA-32
+    Architectures Software Developer's Manual Volume 3A: System Programming
     Guide, Part 1, revision 031, pages 4-8 to 4-15. This book is available
     for free at http://www.intel.com/products/processor/manuals/index.htm.
-    Similar information is also available from Advanced Micro Devices (AMD) 
+    Similar information is also available from Advanced Micro Devices (AMD)
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
 
     This is simplified from previous versions of volatility, by removing caching
@@ -102,14 +102,14 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddres
 
     def entry_present(self, entry):
         '''
-        Returns whether or not the 'P' (Present) flag is on 
+        Returns whether or not the 'P' (Present) flag is on
         in the given entry
         '''
         if entry:
             if (entry & 1):
                 return True
 
-            # The page is in transition and not a prototype. 
+            # The page is in transition and not a prototype.
             # Thus, we will treat it as present.
             if (entry & (1 << 11)) and not (entry & (1 << 10)):
                 return True
@@ -126,7 +126,7 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddres
         return False
 
     def pde_index(self, vaddr):
-        ''' 
+        '''
         Returns the Page Directory Entry Index number from the given
         virtual address. The index number is in bits 31:22.
         '''
@@ -196,69 +196,6 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddres
 
         return self.get_phys_addr(vaddr, pte_value)
 
-    def __read_chunk(self, vaddr, length):
-        """
-        Read 'length' bytes from the virtual address 'vaddr'.
-        If vaddr does not have a valid mapping, return None.
-
-        This function should not be called from outside this class
-        as it doesn't take page breaks into account. That is,
-        the bytes at virtual addresses 0x1fff and 0x2000 are not
-        guarenteed to be contigious. Calling functions are responsible
-        for determining contiguious blocks.
-        """
-        paddr = self.vtop(vaddr)
-        if paddr is None:
-            return None
-
-        if not self.base.is_valid_address(paddr):
-            return None
-
-        return self.base.read(paddr, length)
-
-
-    def __read_bytes(self, vaddr, length, pad):
-        """
-        Read 'length' bytes from the virtual address 'vaddr'.
-        The 'pad' parameter controls whether unavailable bytes 
-        are padded with zeros.
-        """
-        vaddr, length = int(vaddr), int(length)
-
-        ret = ''
-
-        while length > 0:
-            chunk_len = min(length, 0x1000 - (vaddr % 0x1000))
-
-            buf = self.__read_chunk(vaddr, chunk_len)
-            if buf is None:
-                if pad:
-                    buf = '\x00' * chunk_len
-                else:
-                    return obj.NoneObject("Could not read_chunks from addr " +
-                                          str(vaddr) + " of size " + str(chunk_len))
-
-            ret += buf
-            vaddr += chunk_len
-            length -= chunk_len
-
-        return ret
-
-
-    def read(self, vaddr, length):
-        '''
-        Read and return 'length' bytes from the virtual address 'vaddr'. 
-        If any part of that block is unavailable, return None.
-        '''
-        return self.__read_bytes(vaddr, length, pad = False)
-
-    def zread(self, vaddr, length):
-        '''
-        Read and return 'length' bytes from the virtual address 'vaddr'. 
-        If any part of that block is unavailable, pad it with zeros.
-        '''
-        return self.__read_bytes(vaddr, length, pad = True)
-
     def read_long_phys(self, addr):
         '''
         Returns an unsigned 32-bit integer from the address addr in
@@ -276,7 +213,7 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddres
     def get_available_pages(self):
         '''
         Return a list of lists of available memory pages.
-        Each entry in the list is the starting virtual address 
+        Each entry in the list is the starting virtual address
         and the size of the memory page.
         '''
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
@@ -301,16 +238,16 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.BaseAddres
 
 class IA32PagedMemoryPae(IA32PagedMemory):
     """ Standard x86 32 bit PAE address space.
-    
-    Provides an address space for IA32 paged memory, aka the x86 
+
+    Provides an address space for IA32 paged memory, aka the x86
     architecture, with Physical Address Extensions (PAE) enabled. Allows
     callers to map virtual address to offsets in physical memory.
 
-    Comments in this class mostly come from the Intel(R) 64 and IA-32 
-    Architectures Software Developer's Manual Volume 3A: System Programming 
+    Comments in this class mostly come from the Intel(R) 64 and IA-32
+    Architectures Software Developer's Manual Volume 3A: System Programming
     Guide, Part 1, revision 031, pages 4-15 to 4-23. This book is available
     for free at http://www.intel.com/products/processor/manuals/index.htm.
-    Similar information is also available from Advanced Micro Devices (AMD) 
+    Similar information is also available from Advanced Micro Devices (AMD)
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
     """
     order = 80

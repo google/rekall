@@ -26,44 +26,31 @@
 
 #pylint: disable-msg=C0111
 
-import volatility.scan as scan
-import volatility.obj as obj
-import volatility.utils as utils
 from volatility.plugins.windows import common
-import volatility.cache as cache
 
 
-class CheckHiveSig(scan.ScannerCheck):
-    """ Check for a registry hive signature """
-    def check(self, offset):
-        # Round offset to the pool alignment
-        pool_align = obj.VolMagic(self.address_space).PoolAlignment.v()
-        offset += 4
+class PoolScanHive(common.PoolScanner):
+    checks = [ ('PoolTagCheck', dict(tag = "CM10")) ]
 
-        extra = offset % pool_align
-        if extra:
-            offset += pool_align - extra
+    def scan(self):
+        pool_header_size = self.profile.get_obj_size("_POOL_HEADER")
+        for hit in super(PoolScanHive, self).scan():
+            # The _HHIVE is immediately after the pool header.
+            hhive = self.profile.Object("_CMHIVE", offset=hit + pool_header_size,
+                                        vm=self.address_space)
+            if hhive.Hive.Signature != 0xbee0bee0:
+                continue
 
-        sig = obj.Object('_HHIVE', vm = self.address_space, offset = offset).Signature
-        return sig == 0xbee0bee0
+            yield hhive
 
-class PoolScanHiveFast2(common.PoolScanner):
-    checks = [ ('PoolTagCheck', dict(tag = "CM10")),
-               # Dummy condition, since this will be changed during initialization
-               ('CheckPoolSize', dict(condition = lambda x: x == 0x638)),
-               #('CheckPoolType', dict(non_paged = True)), #doesn't work for win7 and vista
-               ('CheckHiveSig', {})
-               ]
 
-    def __init__(self, poolsize):
-        self.checks[1] = ('CheckPoolSize', dict(condition = lambda x: x >= poolsize))
-        super(PoolScanHiveFast2, self).__init__()
-
-class HiveScan(common.AbstractWindowsCommand):
+class HiveScan(common.PoolScannerPlugin):
     """ Scan Physical memory for _CMHIVE objects (registry hives)
 
     You will need to obtain these offsets to feed into the hivelist command.
     """
+
+    __name = "hivescan"
 
     # Declare meta information associated with this plugin
 
@@ -77,17 +64,28 @@ class HiveScan(common.AbstractWindowsCommand):
         version = '1.0',
         )
 
-    @cache.CacheDecorator("tests/hivescan")
-    def calculate(self):
-        ## Just grab the AS and scan it using our scanner
-        pspace = utils.load_as(self._config, astype = 'physical')
-        o = obj.VolMagic(pspace).HiveListPoolSize
+    def generate_hits(self, address_space=None):
+        """Yields potential _HHIVE objects."""
+        # Scan for these in the kernel address space.
+        address_space = address_space or self.physical_address_space
+        scanner = PoolScanHive(profile=self.profile, address_space=address_space)
 
-        poolsize = o.v()
+        return scanner.scan()
 
-        return PoolScanHiveFast2(poolsize).scan(pspace)
+    def render(self, outfd):
+        outfd.write("{0:10} {1:10} {2}\n".format("Offset(V)", "Offset(P)", "Name"))
+        for phive in self.generate_hits():
+            # Make the hive in the kernel address space by reflecting through
+            # the HiveList. Note that this may not return to the original
+            # object!
+            hive = phive.HiveList.reflect(vm=self.kernel_address_space).dereference_as(
+                "_CMHIVE", "HiveList")
 
-    def render_text(self, outfd, data):
-        outfd.write("{0:15} {1:15}\n".format("Offset(P)", "(hex)"))
-        for offset in data:
-            outfd.write("{0:<15} {1:#010x}\n".format(offset, offset))
+            try:
+                hive_name = (hive.FileFullPath.v() or hive.FileUserName.v() or
+                             hive.HiveRootPath.v() or "[no name]")
+            except AttributeError:
+                hive_name = "[no name]"
+
+            outfd.write("{0:#010x} {1:#010x} {2}\n".format(
+                    hive.obj_offset, phive.obj_offset, hive_name))

@@ -10,11 +10,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
@@ -33,15 +33,13 @@ import volatility.win32.hashdump as hashdumpmod
 import volatility.debug as debug
 import volatility.cache as cache
 import volatility.utils as utils
-from volatility.plugins.windows import common
+import volatility.commands as commands
 
-
-
-class LSADump(common.AbstractWindowsCommand):
+class LSADump(commands.command):
     """Dump (decrypted) LSA secrets from the registry"""
     # Declare meta information associated with this plugin
 
-    meta_info = common.AbstractWindowsCommand.meta_info
+    meta_info = {}
     meta_info['author'] = 'Brendan Dolan-Gavitt'
     meta_info['copyright'] = 'Copyright (c) 2007,2008 Brendan Dolan-Gavitt'
     meta_info['contact'] = 'bdolangavitt@wesleyan.edu'
@@ -50,8 +48,8 @@ class LSADump(common.AbstractWindowsCommand):
     meta_info['os'] = 'WIN_32_XP_SP2'
     meta_info['version'] = '1.0'
 
-    def __init__(self, config, *args):
-        common.AbstractWindowsCommand.__init__(self, config, *args)
+    def __init__(self, config, *args, **kwargs):
+        commands.Command.__init__(self, config, *args, **kwargs)
         config.add_option('SYS-OFFSET', short_option = 'y', type = 'int',
                           help = 'SYSTEM hive offset (virtual)')
         config.add_option('SEC-OFFSET', short_option = 's', type = 'int',
@@ -77,11 +75,11 @@ class LSADump(common.AbstractWindowsCommand):
                 outfd.write("{0:#010x}  {1:<48}  {2}\n".format(offset, hex, ''.join(chars)))
             outfd.write("\n")
 
-class HashDump(common.AbstractWindowsCommand):
+class HashDump(commands.command):
     """Dumps passwords hashes (LM/NTLM) from memory"""
 
-    def __init__(self, config, *args):
-        common.AbstractWindowsCommand.__init__(self, config, *args)
+    def __init__(self, config, *args, **kwargs):
+        commands.command.__init__(self, config, *args, **kwargs)
         config.add_option('SYS-OFFSET', short_option = 'y', type = 'int',
                           help = 'SYSTEM hive offset (virtual)')
         config.add_option('SAM-OFFSET', short_option = 's', type = 'int',
@@ -102,10 +100,10 @@ class HashDump(common.AbstractWindowsCommand):
                 debug.error("Unable to read hashes from registry")
             outfd.write(d + "\n")
 
-class HiveDump(common.AbstractWindowsCommand):
+class HiveDump(commands.command):
     """Prints out a hive"""
-    def __init__(self, config, *args):
-        common.AbstractWindowsCommand.__init__(self, config, *args)
+    def __init__(self, config, *args, **kwargs):
+        commands.Command.__init__(self, config, *args, **kwargs)
         config.add_option('HIVE-OFFSET', short_option = 'o', type = 'int',
                           help = 'Hive offset (virtual)')
 

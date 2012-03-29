@@ -239,7 +239,7 @@ class _LIST_ENTRY(obj.CType):
                 # Only yield valid objects (In case of dangling links).
                 yield task
 
-    def reflect(self):
+    def reflect(self, vm=None):
         """Reflect this list element by following its Flink and Blink.
 
         This is basically the same as Flink.Blink except that it also checks
@@ -249,13 +249,13 @@ class _LIST_ENTRY(obj.CType):
         Returns:
           the result of Flink.Blink.
         """
-        result1 = self.Flink.dereference_as(self.obj_type).Blink.dereference_as(
+        result1 = self.Flink.dereference_as(self.obj_type, vm=vm).Blink.dereference_as(
             self.obj_type)
 
         if not result1:
             return obj.NoneObject("Flink not valid.")
 
-        result2 = self.Blink.dereference_as(self.obj_type).Flink.dereference_as(
+        result2 = self.Blink.dereference_as(self.obj_type, vm=vm).Flink.dereference_as(
             self.obj_type)
 
         if result1 != result2:
