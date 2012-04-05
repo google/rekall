@@ -24,16 +24,20 @@
 @organization: Volatile Systems
 """
 
+from volatility.plugins.windows import common
 from volatility.plugins.windows.registry import registry
+
 
 def vol(k):
     return bool(k.obj_offset & 0x80000000)
 
-class PrintKey(hivelist.HiveList):
+class PrintKey(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
     "Print a registry key, and its subkeys and values"
     # Declare meta information associated with this plugin
 
-    meta_info = commands.command.meta_info
+    __name = "printkey"
+
+    meta_info = {}
     meta_info['author'] = 'Brendan Dolan-Gavitt'
     meta_info['copyright'] = 'Copyright (c) 2007,2008 Brendan Dolan-Gavitt'
     meta_info['contact'] = 'bdolangavitt@wesleyan.edu'
@@ -42,70 +46,90 @@ class PrintKey(hivelist.HiveList):
     meta_info['os'] = 'WIN_32_XP_SP2'
     meta_info['version'] = '1.0'
 
-    def __init__(self, config, *args):
-        hivelist.HiveList.__init__(self, config, *args)
-        config.add_option('HIVE-OFFSET', short_option = 'o',
-                          help = 'Hive offset (virtual)', type = 'int')
-        config.add_option('KEY', short_option = 'K',
-                          help = 'Registry Key', type = 'str')
+    def __init__(self, hive_offsets=None, key="", **kwargs):
+        """Print all keys and values contained by a registry key.
+
+        Args:
+          hive_offset: A list of hive offsets as found by hivelist (virtual
+            address). If not provided we call hivescan ourselves and list the
+            key on all hives.
+
+          key: The key name to list. If not provided we list the root key in the
+            hive.
+        """
+        super(PrintKey, self).__init__(**kwargs)
+        if hive_offsets is None:
+            hive_offsets = []
+
+        try:
+            self.hive_offsets = list(hive_offsets)
+        except TypeError:
+            self.hive_offsets = [hive_offsets]
+
+        self.key = key
 
     def hive_name(self, hive):
         try:
-            return hive.FileFullPath.v() or hive.FileUserName.v() or hive.HiveRootPath.v() or "[no name]"
+            return (hive.FileFullPath.v() or hive.FileUserName.v() or
+                    hive.HiveRootPath.v() or "[no name]")
         except AttributeError:
             return "[no name]"
 
-    def calculate(self):
-        addr_space = utils.load_as(self._config)
+    def list_keys(self):
+        """Return the keys that match."""
+        seen = set()
+        if not self.hive_offsets:
+            for phive in self.session.plugins.hivescan(
+                profile=self.profile, session=self.session).generate_hits(
+                self.physical_address_space):
 
-        if not self._config.HIVE_OFFSET:
-            hive_offsets = [(self.hive_name(h), h.obj_offset) for h in hivelist.HiveList.calculate(self)]
-        else:
-            hive_offsets = [("User Specified", self._config.HIVE_OFFSET)]
+                hive = phive.HiveList.reflect(vm=self.kernel_address_space).dereference_as(
+                    "_CMHIVE", "HiveList")
 
-        for name, hoff in set(hive_offsets):
-            h = hivemod.HiveAddressSpace(addr_space, self._config, hoff)
-            root = rawreg.get_root(h)
-            if not root:
-                if self._config.HIVE_OFFSET:
-                    debug.error("Unable to find root key. Is the hive offset correct?")
-            else:
-                if self._config.KEY:
-                    yield name, rawreg.open_key(root, self._config.KEY.split('\\'))
-                else:
-                    yield name, root
+                self.hive_offsets.append(hive.obj_offset)
+
+        for hive_offset in self.hive_offsets:
+            hive_offset = int(hive_offset)
+            if hive_offset in seen: continue
+
+            seen.add(hive_offset)
+
+            hive_address_space = registry.HiveAddressSpace(base=self.kernel_address_space,
+                                                           hive_addr=hive_offset,
+                                                           profile=self.profile)
+
+            reg = registry.Registry(profile=self.profile, address_space=hive_address_space)
+            yield reg, reg.open_key(self.key)
 
     def voltext(self, key):
         return "(V)" if vol(key) else "(S)"
 
-    def render_text(self, outfd, data):
+    def render(self, outfd):
         outfd.write("Legend: (S) = Stable   (V) = Volatile\n\n")
-        keyfound = False
-        for reg, key in data:
+        for reg, key in self.list_keys():
             if key:
-                keyfound = True
                 outfd.write("----------------------------\n")
-                outfd.write("Registry: {0}\n".format(reg))
+                outfd.write("Registry: {0}\n".format(reg.Name))
                 outfd.write("Key name: {0} {1:3s}\n".format(key.Name, self.voltext(key)))
                 outfd.write("Last updated: {0}\n".format(key.LastWriteTime))
                 outfd.write("\n")
                 outfd.write("Subkeys:\n")
-                for s in rawreg.subkeys(key):
-                    if s.Name == None:
-                        outfd.write("  Unknown subkey: " + s.Name.reason + "\n")
+
+                for subkey in key.subkeys():
+                    if not subkey.Name:
+                        outfd.write("  Unknown subkey: " + subkey.Name.reason + "\n")
                     else:
-                        outfd.write("  {1:3s} {0}\n".format(s.Name, self.voltext(s)))
+                        outfd.write(u"  {1:3s} {0}\n".format(
+                                subkey.Name, self.voltext(subkey)))
+
                 outfd.write("\n")
                 outfd.write("Values:\n")
-                for v in rawreg.values(key):
-                    tp, dat = rawreg.value_data(v)
-                    if tp == 'REG_BINARY':
-                        dat = "\n" + "\n".join(["{0:#010x}  {1:<48}  {2}".format(o, h, ''.join(c)) for o, h, c in utils.Hexdump(dat)])
-                    if tp in ['REG_SZ', 'REG_EXPAND_SZ', 'REG_LINK']:
-                        dat = dat.encode("ascii", 'backslashreplace')
-                    if tp == 'REG_MULTI_SZ':
-                        for i in range(len(dat)):
-                            dat[i] = dat[i].encode("ascii", 'backslashreplace')
-                    outfd.write("{0:13} {1:15} : {3:3s} {2}\n".format(tp, v.Name, dat, self.voltext(v)))
-        if not keyfound:
-            outfd.write("The requested key could not be found in the hive(s) searched\n")
+                for value in key.values():
+                    if value.Type == 'REG_BINARY':
+                        for offset, hexdata, translated_data in utils.Hexdump(
+                            key.DecodedData):
+                            outfd.write(u"{0:#010x}  {1:<48}  {2}".format(
+                                    offset, hexdata, translated_data))
+
+                    outfd.write(u"{0:13} {1:15} : {3:3s} {2}\n".format(
+                            value.Type, value.Name, value.DecodedData, self.voltext(value)))

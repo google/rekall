@@ -59,7 +59,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return self.v().split("\x00")[0]
 
     def __unicode__(self):
-        return self.v().decode("utf8", "replace").split("\x00")[0]
+        return self.v().decode("utf8", "replace").split("\x00")[0] or u""
 
     def __format__(self, formatspec):
         return format(unicode(self), formatspec)

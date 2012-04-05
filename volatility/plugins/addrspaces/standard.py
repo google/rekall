@@ -135,7 +135,7 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
         runLength = None
         currentOffset = None
         for (offset, size) in self.get_available_pages():
-            if (runLength == None):
+            if (runLength is None):
                 runLength = size
                 currentOffset = offset
             else:
@@ -145,9 +145,8 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
                     yield (currentOffset, runLength)
                     runLength = size
                     currentOffset = offset
-        if (runLength != None and currentOffset != None):
+        if (runLength is not None and currentOffset is not None):
             yield (currentOffset, runLength)
-        raise StopIteration
 
     def is_valid_address(self, vaddr):
         """Returns whether a virtual address is valid"""

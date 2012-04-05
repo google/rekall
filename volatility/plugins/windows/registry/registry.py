@@ -32,6 +32,7 @@ from volatility import obj
 
 registry_overlays = {
     '_CM_KEY_NODE': [None, {
+            'Parent': [None, ['pointer', ['_CM_KEY_NODE']]],
             'Flags': [None, ['Flags', dict(bitmap={
                             "KEY_IS_VOLATILE": 0,
                             "KEY_HIVE_EXIT": 1,
@@ -76,11 +77,21 @@ class HiveFileAddressSpace(HiveBaseAddressSpace):
     """
     BLOCK_SIZE = PAGE_SIZE = 0x1000
 
+    def __init__(self, **kwargs):
+        super(HiveFileAddressSpace, self).__init__(**kwargs)
+        self.as_assert(self.base, "Must stack on top of a file.")
+        self.as_assert(self.base.read(0, 4) == "regf", "File does not look "
+                       "like a registry file.")
+
     def vtop(self, vaddr):
         return vaddr + self.PAGE_SIZE + 4
 
+    @property
+    def Name(self):
+        return self.base
 
-class HiveAddressSpace(HiveFileAddressSpace):
+
+class HiveAddressSpace(HiveBaseAddressSpace):
     CI_TYPE_MASK = 0x80000000
     CI_TYPE_SHIFT = 0x1F
     CI_TABLE_MASK = 0x7FE00000
@@ -101,9 +112,9 @@ class HiveAddressSpace(HiveFileAddressSpace):
         super(HiveAddressSpace, self).__init__(**kwargs)
 
         self.as_assert(hive_addr, "Hive offset not provided.")
-        self.hive = profile.Object("_HHIVE", hive_addr, base)
-        self.baseblock = self.hive.BaseBlock.v()
-        self.flat = self.hive.Flat.v() > 0
+        self.hive = profile.Object("_CMHIVE", hive_addr, self.base)
+        self.baseblock = self.hive.Hive.BaseBlock.v()
+        self.flat = self.hive.Hive.Flat.v() > 0
 
     def vtop(self, vaddr):
         # If the hive is listed as "flat", it is all contiguous in memory
@@ -116,7 +127,7 @@ class HiveAddressSpace(HiveFileAddressSpace):
         ci_block = (vaddr & self.CI_BLOCK_MASK) >> self.CI_BLOCK_SHIFT
         ci_off = (vaddr & self.CI_OFF_MASK) >> self.CI_OFF_SHIFT
 
-        block = self.hive.Storage[ci_type].Map.Directory[ci_table].Table[
+        block = self.hive.Hive.Storage[ci_type].Map.Directory[ci_table].Table[
             ci_block].BlockAddress
 
         return block + ci_off + 4
@@ -128,7 +139,7 @@ class HiveAddressSpace(HiveFileAddressSpace):
         else:
             outf.write("\0" * self.BLOCK_SIZE)
 
-        length = self.hive.Storage[0].Length.v()
+        length = self.hive.Hive.Storage[0].Length.v()
         for i in range(0, length, self.BLOCK_SIZE):
             data = None
 
@@ -153,7 +164,7 @@ class HiveAddressSpace(HiveFileAddressSpace):
             stor = 1
             ci = lambda x: x | 0x80000000
 
-        length = self.hive.Storage[stor].Length.v()
+        length = self.hive.Hive.Storage[stor].Length.v()
         total_blocks = length / self.BLOCK_SIZE
         bad_blocks_reg = 0
         bad_blocks_mem = 0
@@ -178,6 +189,16 @@ class HiveAddressSpace(HiveFileAddressSpace):
 
         return (bad_blocks_reg, bad_blocks_mem, total_blocks)
 
+    @property
+    def Name(self):
+        name = "[no name]"
+        try:
+            name = (self.hive.FileFullPath.v() or self.hive.FileUserName.v() or
+                    self.hive.HiveRootPath.v())
+        except AttributeError:
+            pass
+
+        return u"{0} @ {1:#010x}".format(name, self.hive.obj_offset)
 
 
 class _CM_KEY_NODE(obj.CType):
@@ -351,6 +372,11 @@ class Registry(object):
             root_index = self.ROOT_INDEX | 0x80000000
 
         self.root = self.profile.Object("_CM_KEY_NODE", root_index, address_space)
+
+    @property
+    def Name(self):
+        """Return the name of the registry."""
+        return self.address_space.Name
 
     def open_key(self, key=""):
         """Opens a key.

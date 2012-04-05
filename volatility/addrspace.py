@@ -29,12 +29,7 @@
    Alias for all address spaces
 
 """
-
-#pylint: disable-msg=C0111
-import volatility.registry as registry
-import volatility.debug as debug
-from volatility import conf
-
+from volatility import registry
 
 
 class BaseAddressSpace(object):
@@ -190,6 +185,7 @@ class PagedReader(BaseAddressSpace):
                 if pad:
                     buf = '\x00' * chunk_len
                 else:
+                    from volatility import obj
                     return obj.NoneObject("Could not read_chunks from addr " +
                                           str(vaddr) + " of size " + str(chunk_len))
 

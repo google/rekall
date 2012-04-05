@@ -24,8 +24,6 @@
 @organization: Volatile Systems
 """
 
-#pylint: disable-msg=C0111
-
 from volatility.plugins.windows import common
 
 
@@ -51,8 +49,6 @@ class HiveScan(common.PoolScannerPlugin):
     """
 
     __name = "hivescan"
-
-    # Declare meta information associated with this plugin
 
     meta_info = dict(
         author = 'Brendan Dolan-Gavitt',
@@ -81,11 +77,5 @@ class HiveScan(common.PoolScannerPlugin):
             hive = phive.HiveList.reflect(vm=self.kernel_address_space).dereference_as(
                 "_CMHIVE", "HiveList")
 
-            try:
-                hive_name = (hive.FileFullPath.v() or hive.FileUserName.v() or
-                             hive.HiveRootPath.v() or "[no name]")
-            except AttributeError:
-                hive_name = "[no name]"
-
             outfd.write("{0:#010x} {1:#010x} {2}\n".format(
-                    hive.obj_offset, phive.obj_offset, hive_name))
+                    hive.obj_offset, phive.obj_offset, hive.Name))
