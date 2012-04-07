@@ -68,6 +68,29 @@ class HiveScan(common.PoolScannerPlugin):
 
         return scanner.scan()
 
+    def list_hives(self, address_space=None):
+        """Scans the address space for potential hives."""
+        # Just return the hive list from the session.
+        if self.session and self.session.hive_list is not None:
+            for hive in self.session.hive_list:
+                yield hive
+
+        hives = set()
+        for phive in self.generate_hits(self.physical_address_space):
+            # Reflect through the kernel address space to get the hive in kernel
+            # address space.
+            hive = phive.HiveList.reflect(vm=self.kernel_address_space).dereference_as(
+                "_CMHIVE", "HiveList")
+
+            if hive in hives:
+                continue
+
+            hives.add(hive)
+            yield hive
+
+        # Add the hives to the session for next time.
+        self.session.hive_list = list(hives)
+
     def render(self, outfd):
         outfd.write("{0:10} {1:10} {2}\n".format("Offset(V)", "Offset(P)", "Name"))
         for phive in self.generate_hits():

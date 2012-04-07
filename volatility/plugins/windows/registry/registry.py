@@ -24,6 +24,7 @@
 @license:      GNU General Public License 2.0 or later
 @contact:      bdolangavitt@wesleyan.edu, scudette@gmail.com
 """
+import re
 import struct
 
 from volatility import addrspace
@@ -112,7 +113,7 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         super(HiveAddressSpace, self).__init__(**kwargs)
 
         self.as_assert(hive_addr, "Hive offset not provided.")
-        self.hive = profile.Object("_CMHIVE", hive_addr, self.base)
+        self.hive = profile.Object("_CMHIVE", offset=hive_addr, vm=self.base)
         self.baseblock = self.hive.Hive.BaseBlock.v()
         self.flat = self.hive.Hive.Flat.v() > 0
 
@@ -207,9 +208,11 @@ class _CM_KEY_NODE(obj.CType):
     VK_SIG = "vk"
 
     def open_subkey(self, subkey_name):
+        subkey_name = subkey_name.lower()
+
         """Opens our direct child."""
         for subkey in self.subkeys():
-            if subkey.Name == subkey_name:
+            if unicode(subkey.Name).lower() == subkey_name:
                 return subkey
 
         return obj.NoneObject("Couldn't find subkey {0} of {1}".format(
@@ -237,7 +240,7 @@ class _CM_KEY_NODE(obj.CType):
             if count > 0:
                 sk_offset = self.SubKeyLists[list_index]
                 for subkey in self.obj_profile.Object("_CM_KEY_INDEX", offset=sk_offset,
-                                                      vm=self.obj_vm):
+                                                      vm=self.obj_vm, parent=self):
                     yield subkey
 
     def values(self):
@@ -246,6 +249,19 @@ class _CM_KEY_NODE(obj.CType):
             value = value_ptr.dereference()
             if value.Signature == self.VK_SIG:
                 yield value
+
+    @property
+    def Path(self):
+        """Traverse our parent objects to print the full path of this key."""
+        path = []
+        key = self
+        while key:
+            try:
+                path.append(unicode(key.Name))
+            except AttributeError: pass
+            key = key.obj_parent
+
+        return "/".join(reversed(path))
 
 
 class _CM_KEY_INDEX(obj.CType):
@@ -276,7 +292,7 @@ class _CM_KEY_INDEX(obj.CType):
                 # This is a pointer to another _CM_KEY_INDEX
                 for subkey in self.obj_profile.Object(
                     "Pointer", type_name="_CM_KEY_INDEX", offset=self.List[i].v(),
-                    vm=self.obj_vm):
+                    vm=self.obj_vm, parent=self.obj_parent):
                     if subkey.Signature == self.NK_SIG:
                         yield subkey
 
@@ -386,7 +402,7 @@ class Registry(object):
               path components (useful if the keyname contains /).
         """
         if isinstance(key, basestring):
-            key = filter(None, key.split("/"))
+            key = filter(None, re.split(r"[\\/]", key))
 
         result = self.root
         for component in key:

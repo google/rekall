@@ -76,6 +76,20 @@ class Command(object):
         if kwargs:
             logging.warning("Unknown kwargs %s ignored.", kwargs.keys())
 
+    def get_plugin(self, name, **kwargs):
+        """Returns an instance of the named plugin.
+
+        The new plugin will initialized with the current session and optional
+        kwargs.
+        Args:
+          name: The generic name of the plugin (i.e. the __name attribute,
+             e.g. pslist).
+          kwargs: Extra args to use for instantiating the plugin.
+        """
+        for cls in self.classes.values():
+            if cls.name == name:
+                return cls(session=self.session, **kwargs)
+
     def render(self, fd = None):
         """Produce results on the fd given."""
 

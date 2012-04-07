@@ -166,6 +166,15 @@ class Enumeration(obj.NativeType):
             return self.choices[value]
         return 'Unknown choice ' + str(value)
 
+    def __eq__(self, other):
+        if isinstance(other, int):
+            return self.v() == other
+
+        # Search the choices.
+        for k, v in self.choices.iteritems():
+            if v == other:
+                return self.v() == k
+
     def __format__(self, formatspec):
         return format(self.__str__(), formatspec)
 
@@ -226,6 +235,7 @@ class BasicWindowsClasses(obj.Profile):
 
     def __init__(self, **kwargs):
         super(BasicWindowsClasses, self).__init__(**kwargs)
+        self.add_types(native_types.generic_native_types)
         self.add_classes({
             'String': String,
             'UnicodeString': UnicodeString,

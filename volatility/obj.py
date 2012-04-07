@@ -39,7 +39,6 @@ import struct, operator
 import copy
 from volatility import addrspace
 from volatility import conf
-from volatility import debug
 from volatility import registry
 
 
@@ -161,10 +160,10 @@ class NoneObject(object):
     def __str__(self):
         ## If we are strict we blow up here
         if self.strict:
-            debug.error("{0} n{1}".format(self.reason, self.bt))
+            logging.error("{0} n{1}".format(self.reason, self.bt))
             sys.exit(0)
         else:
-            debug.warning("{0}".format(self.reason))
+            logging.warning("{0}".format(self.reason))
 
         return ""
 
@@ -427,45 +426,6 @@ class BaseObject(object):
     def d(self):
         """Display diagnostic information"""
         return self.__repr__()
-
-    def __getstate__(self):
-        """ This controls how we pickle and unpickle the objects """
-        try:
-            thetype = self._vol_theType.__name__
-        except AttributeError:
-            thetype = self._vol_theType
-
-        # Note: we lose the parent attribute here
-        result = dict(offset = self.obj_offset,
-                      name = self.obj_name,
-                      vm = self.obj_vm,
-                      theType = thetype)
-
-        ## Introspect the kwargs for the constructor and store in the dict
-        try:
-            for arg in self.__init__.func_code.co_varnames:
-                if (arg not in result and
-                    arg not in "self parent profile args".split()):
-                    result[arg] = self.__dict__[arg]
-        except KeyError:
-            debug.post_mortem()
-            raise pickle.PicklingError("Object {0} at 0x{1:08x} cannot be cached because of missing attribute {2}".format(self.obj_name, self.obj_offset, arg))
-
-        return result
-
-    def __setstate__(self, state):
-        ## What we want to do here is to instantiate a new object and then copy it into ourselves
-        #new_object = Object(state['theType'], state['offset'], state['vm'], name = state['name'])
-        new_object = Object(**state)
-        if not new_object:
-            raise pickle.UnpicklingError("Object {0} at 0x{1:08x} invalid".format(state['name'], state['offset']))
-
-        ## (Scudette) Im not sure how much of a hack this is - we
-        ## basically take over all the new object's members. This is
-        ## needed because __setstate__ can not return a new object,
-        ## but must update the current object instead. I'm sure ikelos
-        ## will object!!! I am open to suggestions ...
-        self.__dict__ = new_object.__dict__
 
     def __dir__(self):
         """Hide any members with _."""
@@ -766,7 +726,6 @@ class Array(BaseObject):
         if self.current.size() == 0:
             ## It is an error to have a zero sized element
             logging.debug("Array with 0 sized members???")
-            debug.b()
 
     def __getstate__(self):
         ## This one is too complicated to pickle right now
@@ -843,6 +802,13 @@ class CType(BaseObject):
         self.members = members
         self.struct_size = struct_size
         self.__initialized = True
+
+    def __int__(self):
+        """Return our offset as an integer.
+
+        This allows us to interchange CTypes and offsets.
+        """
+        return self.obj_offset
 
     def preamble_size(self):
         """The number of bytes before the object which are part of the object.
@@ -1098,7 +1064,7 @@ class Profile(object):
 
         ## If we get here we have no idea what this list is
         #raise RuntimeError("Error in parsing list {0}".format(typeList))
-        debug.warning("Unable to find a type for {0}, assuming int".format(typeList[0]))
+        logging.warning("Unable to find a type for {0}, assuming int".format(typeList[0]))
         return Curry(self.types['int'], name = name)
 
     def _get_dummy_obj(self, name):
@@ -1143,7 +1109,7 @@ class Profile(object):
             if k in self.vtypes:
                 self.vtypes[k] = self._apply_overlay(self.vtypes[k], v)
             else:
-                debug.warning("Overlay structure {0} not present in vtypes".format(k))
+                logging.debug("Overlay structure {0} not present in vtypes".format(k))
 
     def _apply_overlay(self, type_member, overlay):
         """ Update the overlay with the missing information from type.
@@ -1205,8 +1171,8 @@ class Profile(object):
             if callable(v):
                 members[k] = v
             elif v[0] == None:
-                debug.warning("{0} has no offset in object {1}. Check that vtypes "
-                                  "has a concrete definition for it.".format(k, cname))
+                logging.warning("{0} has no offset in object {1}. Check that vtypes "
+                                "has a concrete definition for it.".format(k, cname))
             else:
                 members[k] = (v[0], self.list_to_type(k, v[1], vtypes))
 
@@ -1262,7 +1228,7 @@ class Profile(object):
 
         ## If we get here we have no idea what the type is supposed to be?
         ## This is a serious error.
-        debug.warning("Cant find object {0} in profile {1}?".format(theType, self))
+        logging.warning("Cant find object {0} in profile {1}?".format(theType, self))
 
 
 class ProfileModification(object):

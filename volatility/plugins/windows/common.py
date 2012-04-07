@@ -341,6 +341,11 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
     __abstract = True
 
 
+class WindowsCommandPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
+    """A windows plugin which requires the kernel address space."""
+    __abstract = True
+
+
 class KDBGMixin(plugin.KernelASMixin):
     """A plugin mixin to make sure the kdbg is set correctly."""
 

@@ -28,9 +28,6 @@ from volatility.plugins.windows import common
 from volatility.plugins.windows.registry import registry
 
 
-def vol(k):
-    return bool(k.obj_offset & 0x80000000)
-
 class PrintKey(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
     "Print a registry key, and its subkeys and values"
     # Declare meta information associated with this plugin
@@ -68,29 +65,15 @@ class PrintKey(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
 
         self.key = key
 
-    def hive_name(self, hive):
-        try:
-            return (hive.FileFullPath.v() or hive.FileUserName.v() or
-                    hive.HiveRootPath.v() or "[no name]")
-        except AttributeError:
-            return "[no name]"
-
     def list_keys(self):
         """Return the keys that match."""
         seen = set()
         if not self.hive_offsets:
-            for phive in self.session.plugins.hivescan(
-                profile=self.profile, session=self.session).generate_hits(
-                self.physical_address_space):
-
-                hive = phive.HiveList.reflect(vm=self.kernel_address_space).dereference_as(
-                    "_CMHIVE", "HiveList")
-
-                self.hive_offsets.append(hive.obj_offset)
+            self.hive_offsets = list(self.get_plugin("hivescan").list_hives())
 
         for hive_offset in self.hive_offsets:
-            hive_offset = int(hive_offset)
-            if hive_offset in seen: continue
+            if hive_offset in seen:
+                continue
 
             seen.add(hive_offset)
 
@@ -102,7 +85,8 @@ class PrintKey(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
             yield reg, reg.open_key(self.key)
 
     def voltext(self, key):
-        return "(V)" if vol(key) else "(S)"
+        """Returns a string representing (S)table or (V)olatile keys."""
+        return "(V)" if key.obj_offset & 0x80000000 else "(S)"
 
     def render(self, outfd):
         outfd.write("Legend: (S) = Stable   (V) = Volatile\n\n")
@@ -126,10 +110,8 @@ class PrintKey(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
                 outfd.write("Values:\n")
                 for value in key.values():
                     if value.Type == 'REG_BINARY':
-                        for offset, hexdata, translated_data in utils.Hexdump(
-                            key.DecodedData):
-                            outfd.write(u"{0:#010x}  {1:<48}  {2}".format(
-                                    offset, hexdata, translated_data))
-
-                    outfd.write(u"{0:13} {1:15} : {3:3s} {2}\n".format(
-                            value.Type, value.Name, value.DecodedData, self.voltext(value)))
+                        utils.WriteHexdump(outfd, value.DecodedData)
+                    else:
+                        outfd.write(u"{0:13} {1:15} : {3:3s} {2}\n".format(
+                                value.Type, value.Name, value.DecodedData,
+                                self.voltext(value)))

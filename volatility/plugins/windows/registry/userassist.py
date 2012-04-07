@@ -9,11 +9,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
@@ -23,22 +23,16 @@
 @organization: Volatile Systems
 """
 
-#pylint: disable-msg=C0111
+import re
 
-from volatility.plugins.windows.registry import printkey
-from volatility.plugins.windows.registry import hivelist
-
-import volatility.win32.hive as hivemod
-import volatility.win32.rawreg as rawreg
-import volatility.addrspace as addrspace
-import volatility.obj as obj
-import volatility.debug as debug
+from volatility.plugins.windows import common
+from volatility.plugins.windows.registry import registry
 import volatility.utils as utils
 
 import datetime
 
 # for Windows 7 userassist info check out Didier Stevens' article
-# from Into the Boxes issue 0x0: 
+# from Into the Boxes issue 0x0:
 #  http://intotheboxes.wordpress.com/2010/01/01/into-the-boxes-issue-0x0/
 ua_win7_vtypes = {
   '_VOLUSER_ASSIST_TYPES' : [ 0x48, {
@@ -58,7 +52,7 @@ ua_vtypes = {
 }
 
 # taken from http://msdn.microsoft.com/en-us/library/dd378457%28v=vs.85%29.aspx
-folder_guids = {
+FOLDER_GUIDS = {
     "{de61d971-5ebc-4f02-a3a9-6c82895e5c04}":"Add or Remove Programs (Control Panel)",
     "{724EF170-A42D-4FEF-9F26-B60E846FBA4F}":"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Administrative Tools",
     "{a305ce99-f527-492b-8b1a-7e76fa98d6e4}":"Installed Updates",
@@ -162,112 +156,119 @@ folder_guids = {
     "{F38BF404-1D43-42F2-9305-67DE0B28FC23}":"%windir%",
 }
 
-class UserAssist(printkey.PrintKey, hivelist.HiveList):
+
+class UserAssist(common.WindowsCommandPlugin):
     "Print userassist registry keys and information"
 
-    def __init__(self, config, *args):
-        printkey.PrintKey.__init__(self, config, *args)
-        hivelist.HiveList.__init__(self, config, *args)
-        config.add_option('HIVE-OFFSET', short_option = 'o',
-                          help = 'Hive offset (virtual)', type = 'int')
+    __name = "userassist"
 
-    def calculate(self):
-        addr_space = utils.load_as(self._config)
-        win7 = False
-        if addr_space.profile.metadata.get('major', 0) == 6 and addr_space.profile.metadata.get('minor', 0) == 1:
-            win7 = True
-            addr_space.profile.add_types(ua_win7_vtypes)
+    def __init__(self, hive_offsets=None, **kwargs):
+        """Search the hives for userassist keys.
+
+        Args:
+          hive_offset: A list of hive offsets as found by hivelist (virtual
+            address). If not provided we call hivescan ourselves and list the
+            key on all hives.
+        """
+        super(UserAssist, self).__init__(**kwargs)
+        self.hive_offsets = hive_offsets
+
+        # This is an example of using a domain specific profile. We first make a
+        # virgin profile suitable for windows, then add the userassist
+        # definitions based on the operating system.
+        self.ua_profile = self.profile.classes["BaseWindowsProfile"]()
+
+        # Update the profiles for user assist types.
+        if self.profile.metadata('major') == 6 and self.profile.metadata('minor') == 1:
+            self.ua_profile.add_types(ua_win7_vtypes)
         else:
-            addr_space.profile.add_types(ua_vtypes)
+            self.ua_profile.add_types(ua_vtypes)
 
-        if not self._config.HIVE_OFFSET:
-            hive_offsets = [(self.hive_name(h), h.obj_offset) for h in hivelist.HiveList.calculate(self)]
-        else:
-            hive_offsets = [("User Specified", self._config.HIVE_OFFSET)]
+    def find_count_keys(self):
+        if not self.hive_offsets:
+            self.hive_offsets = list(self.get_plugin("hivescan").list_hives())
 
-        for name, hoff in set(hive_offsets):
-            h = hivemod.HiveAddressSpace(addr_space, self._config, hoff)
-            root = rawreg.get_root(h)
-            if not root:
-                if self._config.HIVE_OFFSET:
-                    debug.error("Unable to find root key. Is the hive offset correct?")
-            else:
-                skey = "software\\microsoft\\windows\\currentversion\\explorer\\userassist\\"
-                if win7:
-                    uakey = skey + "{CEBFF5CD-ACE2-4F4F-9178-9926F41749EA}\\Count"
-                    yield win7, name, rawreg.open_key(root, uakey.split('\\'))
-                    uakey = skey + "{F4E57C4B-2036-45F0-A9AB-443BCFE33D9F}\\Count"
-                    yield win7, name, rawreg.open_key(root, uakey.split('\\'))
-                else:
-                    uakey = skey + "{75048700-EF1F-11D0-9888-006097DEACF9}\\Count"
-                    yield win7, name, rawreg.open_key(root, uakey.split('\\'))
-                    uakey = skey + "{5E6AB780-7743-11CF-A12B-00AA004AE837}\\Count"
-                    yield win7, name, rawreg.open_key(root, uakey.split('\\'))
+        for hive_offset in self.hive_offsets:
+            hive_address_space = registry.HiveAddressSpace(
+                base=self.kernel_address_space,
+                hive_addr=hive_offset, profile=self.profile)
 
-    def parse_data(self, dat_raw):
-        bufferas = addrspace.BufferAddressSpace(self._config, data = dat_raw)
-        uadata = obj.Object("_VOLUSER_ASSIST_TYPES", offset = 0, vm = bufferas)
-        if len(dat_raw) < bufferas.profile.get_obj_size('_VOLUSER_ASSIST_TYPES') or uadata == None:
-            return None
+            reg = registry.Registry(
+                profile=self.profile, address_space=hive_address_space)
 
-        output = ""
-        if hasattr(uadata, "ID"):
-            output = "\n{0:15} {1}".format("ID:", uadata.ID)
-        if hasattr(uadata, "Count"):
-            output += "\n{0:15} {1}".format("Count:", uadata.Count)
-        else:
-            output += "\n{0:15} {1}".format("Count:", uadata.CountStartingAtFive if uadata.CountStartingAtFive < 5 else uadata.CountStartingAtFive - 5)
-        if hasattr(uadata, "FocusCount"):
+            key = reg.open_key("software\\microsoft\\windows\\currentversion\\"
+                               "explorer\\userassist\\")
+            for subkey in key.subkeys():
+                yield reg, subkey.open_subkey("Count")
+
+    def _resolve_gui_folders(self, name):
+        """In windows 7, the folder name is encoded as a GUID."""
+        guid = name.split("\\")[0]
+        return name.replace(guid, FOLDER_GUIDS.get(guid, guid))
+
+    def _render_assist_type(self, outfd, uadata):
+        try: outfd.write(u"{0:15} {1}\n".format("ID:", uadata.ID))
+        except AttributeError: pass
+
+        # Count.
+        try:
+            outfd.write(u"{0:15} {1}\n".format("Count:", uadata.Count))
+        except AttributeError:
+            count = uadata.CountStartingAtFive
+            if uadata.CountStartingAtFive > 5:
+                count -= 5
+
+            outfd.write(u"{0:15} {1}\n".format("Count:", count))
+
+        # Focus time.
+        try:
+            timestamp = uadata.FocusTime
             seconds = (uadata.FocusTime + 500) / 1000.0
-            time = datetime.timedelta(seconds = seconds) if seconds > 0 else uadata.FocusTime
-            output += "\n{0:15} {1}\n{2:15} {3}".format("Focus Count:", uadata.FocusCount, "Time Focused:", time)
-        output += "\n{0:15} {1}\n".format("Last updated:", uadata.LastUpdated)
+            if seconds > 0:
+                timestamp = datetime.timedelta(seconds = seconds)
+            outfd.write(u"{0:15} {1}\n{2:15} {3}\n".format(
+                    "Focus Count:", uadata.FocusCount, "Time Focused:",
+                    timestamp))
+        except AttributeError: pass
 
-        return output
+        outfd.write(u"{0:15} {1}\n".format(
+                "Last updated:", uadata.LastUpdated))
 
-    def render_text(self, outfd, data):
-        keyfound = False
-        for win7, reg, key in data:
-            if key:
-                keyfound = True
-                outfd.write("----------------------------\n")
-                outfd.write("Registry: {0}\n".format(reg))
-                outfd.write("Key name: {0}\n".format(key.Name))
-                outfd.write("Last updated: {0}\n".format(key.LastWriteTime))
-                outfd.write("\n")
-                outfd.write("Subkeys:\n")
-                for s in rawreg.subkeys(key):
-                    if s.Name == None:
-                        outfd.write("  Unknown subkey: " + s.Name.reason + "\n")
-                    else:
-                        outfd.write("  {0}\n".format(s.Name))
-                outfd.write("\n")
-                outfd.write("Values:\n")
-                for v in rawreg.values(key):
-                    tp, dat = rawreg.value_data(v)
-                    subname = v.Name
-                    if tp == 'REG_BINARY':
-                        dat_raw = dat
-                        dat = "\n".join(["{0:#010x}  {1:<48}  {2}".format(o, h, ''.join(c)) for o, h, c in utils.Hexdump(dat)])
-                        try:
-                            subname = subname.encode('rot_13')
-                        except:
-                            pass
-                        if win7:
-                            guid = subname.split("\\")[0]
-                            if guid in folder_guids:
-                                subname = subname.replace(guid, folder_guids[guid])
-                        d = self.parse_data(dat_raw)
-                        if d != None:
-                            dat = d + dat
-                        else:
-                            dat = "\n" + dat
-                    #these types shouldn't be encountered, but are just left here in case:
-                    if tp in ['REG_SZ', 'REG_EXPAND_SZ', 'REG_LINK']:
-                        dat = dat.encode("ascii", 'backslashreplace')
-                    if tp == 'REG_MULTI_SZ':
-                        for i in range(len(dat)):
-                            dat[i] = dat[i].encode("ascii", 'backslashreplace')
-                    outfd.write("\n{0:13} {1:15} : {2:3s}\n".format(tp, subname, dat))
-        if not keyfound:
-            outfd.write("The requested key could not be found in the hive(s) searched\n")
+    def render(self, outfd):
+        for reg, key in self.find_count_keys():
+            if not key: continue
+
+            outfd.write("----------------------------\n")
+            outfd.write("Registry: {0}\n".format(reg.Name))
+            outfd.write("Key path: {0}\n".format(key.Path))
+            outfd.write("Last updated: {0}\n".format(key.LastWriteTime))
+            outfd.write("\n")
+            outfd.write("Subkeys:\n")
+
+            for subkey in key.subkeys():
+                outfd.write("  {0}\n".format(s.Name))
+
+            outfd.write("\n")
+            outfd.write("Values:\n")
+            for value in key.values():
+                # In windows 7, folder names are replaced by guids.
+                value_name = str(value.Name).decode("rot13")
+                value_name = self._resolve_gui_folders(value_name)
+
+                outfd.write("\n{0:13} {1:15} :\n".format(value.Type, value_name))
+
+                # Decode the data
+                if value.Type == "REG_BINARY":
+                    # Does this look like a userassist record?
+                    if value.DataLength == self.ua_profile.get_obj_size(
+                        "_VOLUSER_ASSIST_TYPES"):
+
+                        # Use the specialized profile to instantiate this object.
+                        uadata = self.ua_profile.Object(
+                            "_VOLUSER_ASSIST_TYPES", offset=value.Data, vm=value.obj_vm)
+
+                        self._render_assist_type(outfd, uadata)
+
+                    # Show a hexdump of the value as well.
+                    utils.WriteHexdump(outfd, value.DecodedData)
+
