@@ -23,15 +23,8 @@
 import logging
 import os
 
-import volatility.win32 as win32
-import volatility.obj as obj
-import volatility.debug as debug
-import volatility.utils as utils
-import volatility.cache as cache
-
 from volatility.plugins.windows import common
 from volatility import plugin
-
 
 
 class WinPsList(common.WinProcessFilter):

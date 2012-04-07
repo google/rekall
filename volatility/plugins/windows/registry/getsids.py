@@ -12,11 +12,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 # Based heavily upon the getsids plugin by Moyix
 # http://kurtz.cs.wesleyan.edu/%7Ebdolangavitt/memory/getsids.py
@@ -28,8 +28,7 @@
 @organization: Volatile Systems
 """
 
-
-from volatility.plugins.windows import taskmods
+from volatility.plugins.windows import common
 import re
 
 
@@ -130,10 +129,10 @@ well_known_sids = {
   'S-1-16-28672': 'Secure Process Mandatory Level',
 }
 
-class GetSIDs(object):
+class GetSIDs(common.WinProcessFilter):
     """Print the SIDs owning each process"""
 
-    # Declare meta information associated with this plugin
+    __name = "getsids"
 
     meta_info = {}
     meta_info['author'] = 'Brendan Dolan-Gavitt'
@@ -144,11 +143,12 @@ class GetSIDs(object):
     meta_info['os'] = 'WIN_32_XP_SP2'
     meta_info['version'] = '1.0'
 
-    def render_text(self, outfd, data):
+    def render(self, outfd):
         """Renders the sids as text"""
-        for task in data:
+        for task in self.filter_processes():
             if not task.Token.is_valid():
-                outfd.write("{0} ({1}): Token unreadable\n".format(task.ImageFileName, int(task.UniqueProcessId)))
+                outfd.write("{0} ({1}): Token unreadable\n".format(
+                        task.ImageFileName, int(task.UniqueProcessId)))
                 continue
 
             tok = task.Token.dereference_as("_TOKEN")

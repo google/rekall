@@ -368,6 +368,7 @@ class KDBGMixin(plugin.KernelASMixin):
         # Allow kdbg to be an actual object.
         if isinstance(self.kdbg, obj.BaseObject):
             return
+
         # Or maybe its an integer representing the offset.
         elif self.kdbg:
             self.kdbg = self.profile.Object(
