@@ -33,20 +33,6 @@ from volatility.plugins.windows import kdbgscan
 # files, collecting debugging symbol data etc. This file defines
 # fixups and improvements to the standard types.
 windows_overlay = {
-    'VOLATILITY_MAGIC' : [None, {
-    # Profile specific values
-    'DTBSignature' : [ 0x0, ['VolatilityMagic', dict(value = "Volatility DTBSignature unspecified")]],
-    'KUSER_SHARED_DATA' : [ 0x0, ['VolatilityMagic', dict(value = 0xFFDF0000)]],
-    'KDBGHeader' : [ 0x0, ['VolatilityMagic', dict(value = 'Volatility KDBGHeader unspecified')]],
-    # Configuration options
-    'DTB' : [ 0x0, ['VolatilityDTB', dict(configname = "DTB")]],
-    'KPCR' : [ 0x0, ['VolatilityMagic', dict(value = 0xffdff000, configname = "KPCR")]],
-    'KDBG' : [ 0x0, ['VolatilityKDBG', dict(configname = "KDBG")]],
-    'IA32ValidAS': [ 0x0, ['VolatilityIA32ValidAS']],
-    # Pool allocations are aligned to this many bytes.
-    'PoolAlignment': [0x0, ['VolatilityMagic', dict(value = 8)]],
-    }],
-
     '_EPROCESS' : [ None, {
     'CreateTime' : [ None, ['WinTimeStamp', {}]],
     'ExitTime' : [ None, ['WinTimeStamp', {}]],
@@ -84,6 +70,11 @@ windows_overlay = {
     'Name' : [ 0x0, ['String', dict(length = 8)]],
     }],
 
+    'PO_MEMORY_IMAGE' : [ None, {
+    'Signature':   [ None, ['String', dict(length = 4)]],
+    'SystemTime' : [ None, ['WinTimeStamp', {}]],
+    }],
+
     '_DBGKD_GET_VERSION64' : [  None, {
     'DebuggerDataList' : [ None, ['pointer', ['unsigned long']]],
     }],
@@ -111,11 +102,6 @@ windows_overlay = {
     '_CM_KEY_INDEX' : [ None, {
     'Signature' : [ None, ['String', dict(length = 2)]],
     'List' : [ None, ['array', lambda x: x.Count.v() * 2, ['pointer', ['_CM_KEY_NODE']]]],
-    }],
-
-    '_IMAGE_HIBER_HEADER' : [ None, {
-    'Signature':   [ None, ['String', dict(length = 4)]],
-    'SystemTime' : [ None, ['WinTimeStamp', {}]],
     }],
 
     '_PHYSICAL_MEMORY_DESCRIPTOR' : [ None, {
@@ -760,7 +746,6 @@ class _MMSECTION_FLAGS(_MMVAD_FLAGS):
 
 
 import crash_vtypes
-import hibernate_vtypes
 import kdbg_vtypes
 import tcpip_vtypes
 import ssdt_vtypes
@@ -774,7 +759,6 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
         super(BaseWindowsProfile, self).__init__(**kwargs)
 
         self.add_types(crash_vtypes.crash_vtypes)
-        self.add_types(hibernate_vtypes.hibernate_vtypes)
         self.add_types(kdbg_vtypes.kdbg_vtypes)
         self.add_types(tcpip_vtypes.tcpip_vtypes)
         self.add_types(ssdt_vtypes.ssdt_vtypes)

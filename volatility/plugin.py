@@ -88,7 +88,7 @@ class Command(object):
         """
         for cls in self.classes.values():
             if cls.name == name:
-                return cls(session=self.session, **kwargs)
+                return cls(session=self.session, profile=self.profile, **kwargs)
 
     def render(self, fd = None):
         """Produce results on the fd given."""

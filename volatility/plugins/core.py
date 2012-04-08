@@ -9,11 +9,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """This module implements core plugins."""
@@ -73,7 +73,7 @@ class Info(plugin.Command):
                 fd.write("%s\n\n" % doc_string.strip())
 
             doc_strings = []
-            fd.write("Constructor args:\n" 
+            fd.write("Constructor args:\n"
                      "-----------------")
             for cls in item.mro():
                 try:
@@ -111,10 +111,10 @@ class Info(plugin.Command):
                  "---------- -------------------- ----------\n")
         for info in self.plugins():
             fd.write("{function:10} {name:20} {definition}\n  ({doc})\n\n".format(**info))
-        
 
 
-class LoadAddressSpace(plugin.Command):
+
+class LoadAddressSpace(plugin.ProfileCommand):
     """Load address spaces into the session if its not already loaded."""
 
     __name = "load_as"
@@ -147,7 +147,8 @@ class LoadAddressSpace(plugin.Command):
 
             if vas_spec == "auto":
                 self.session.kernel_address_space = self.GuessAddressSpace(
-                    astype = 'virtual', **kwargs)
+                    astype = 'virtual', base_as=self.session.physical_address_space,
+                    **kwargs)
             else:
                 self.kernel_address_space = addrspace.AddressSpaceFactory(
                     self.session, specification = vas_spec, astype = 'virtual')
@@ -156,22 +157,26 @@ class LoadAddressSpace(plugin.Command):
             logging.error("Could not create address space: %s" % e)
 
 
-    def GuessAddressSpace(self, session=None, astype = 'physical', **kwargs):
+    def GuessAddressSpace(self, session=None, astype = 'physical', base_as=None, **kwargs):
         """Loads an address space by stacking valid ASes on top of each other
-        (priority order first).        
+        (priority order first).
         """
         logging.debug("Guess %s address space", astype)
 
-        base_as = obj.NoneObject("Address space not found.")
+        base_as = base_as or obj.NoneObject("Address space not found.")
         error = addrspace.AddrSpaceError()
+
+        address_spaces = sorted(addrspace.BaseAddressSpace.classes.values(),
+                                key=lambda x: x.order)
+
         while 1:
             logging.debug("Voting round")
             found = False
-            for cls in addrspace.BaseAddressSpace.classes.values():
+            for cls in address_spaces:
                 logging.debug("Trying %s ", cls)
                 try:
                     base_as = cls(base=base_as, session=self.session,
-                                  astype=astype, **kwargs)
+                                  astype=astype, profile=self.profile, **kwargs)
                     logging.debug("Succeeded instantiating %s", base_as)
                     found = True
                     break

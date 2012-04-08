@@ -80,8 +80,14 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReade
         except AttributeError:
             pass
 
+        # If the underlying address space already knows about the dtb we use it.
+        try:
+            dtb = self.base.dtb
+        except AttributeError: pass
+
         # Allow the dtb to be specified in the session.
         self.dtb = dtb or self.session.dtb
+
         if self.dtb is None:
             logging.debug("DTB is not specified, about to search for it.")
             find_dtb = self.session.plugins.find_dtb(session=self.session)

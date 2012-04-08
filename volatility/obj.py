@@ -33,12 +33,11 @@ The Volatility object system.
 import logging
 import sys
 import re
-import cPickle as pickle # pickle implementation must match that in volatility.cache
-import struct, operator
+import operator
+import struct
 
 import copy
 from volatility import addrspace
-from volatility import conf
 from volatility import registry
 
 
@@ -570,10 +569,6 @@ class Pointer(NativeType):
 
         self.target_size = 0
 
-    def __getstate__(self):
-        ## This one is too complicated to pickle right now
-        raise pickle.PicklingError("Pointer objects do not support caching")
-
     def is_valid(self):
         """ Returns if what we are pointing to is valid """
         return self.obj_vm.is_valid_address(self.v())
@@ -726,10 +721,6 @@ class Array(BaseObject):
         if self.current.size() == 0:
             ## It is an error to have a zero sized element
             logging.debug("Array with 0 sized members???")
-
-    def __getstate__(self):
-        ## This one is too complicated to pickle right now
-        raise pickle.PicklingError("Array objects do not support caching")
 
     def size(self):
         return self.count * self.current.size()
@@ -910,6 +901,8 @@ class Profile(object):
     _md_build = 0
     _md_memory_model = None
 
+    # This is the dict which holds the overlays to be applied to the vtypes when
+    # compiling into types.
     overlay = None
 
     # These are the vtypes - they are just a dictionary describing the types
@@ -930,6 +923,10 @@ class Profile(object):
     # This is a dict of constants
     constants = None
 
+    # This is a record of all the modification classes that were applied to this
+    # profile.
+    applied_modifications = None
+
     def __init__(self, session=None, **kwargs):
         if kwargs:
             logging.error("Unknown keyword args {0}".format(kwargs))
@@ -938,6 +935,19 @@ class Profile(object):
         self.overlays = []
         self.vtypes = {}
         self.constants = {}
+        self.applied_modifications = set()
+
+        class dummy(object):
+            profile = self
+            name = 'dummy'
+            def is_valid_address(self, _offset):
+                return True
+
+            def read(self, _offset, _value):
+                return ""
+
+        # A dummy address space used internally.
+        self._dummy = dummy()
 
         # We initially populate this with objects in this module that will be used everywhere
         self.object_classes = {'BitField': BitField,
@@ -947,6 +957,15 @@ class Profile(object):
                                'NativeType': NativeType,
                                'CType': CType}
 
+    def copy(self):
+        """Makes a copy of this profile."""
+        result = self.__class__(session=self.session)
+        result.vtypes = copy.deepcopy(self.vtypes)
+        result.overlays = copy.deepcopy(self.overlays)
+        result.object_classes = copy.deepcopy(self.object_classes)
+
+        return result
+
     @classmethod
     def metadata(cls, name, default=None):
         """Obtain metadata about this profile."""
@@ -954,7 +973,7 @@ class Profile(object):
         return getattr(cls, prefix + name, default)
 
     def has_type(self, theType):
-        return theType in self.object_classes or theType in self.types
+        return theType in self.object_classes or theType in self.vtypes
 
     def add_classes(self, classes_dict):
         """Add the classes in the dict to our object classes mapping."""
@@ -1068,17 +1087,9 @@ class Profile(object):
         return Curry(self.types['int'], name = name)
 
     def _get_dummy_obj(self, name):
-        class dummy(object):
-            profile = self
-            name = 'dummy'
-            def is_valid_address(self, _offset):
-                return True
-
-            def read(self, _offset, _value):
-                return ""
-
+        """Make a dummy object on top of the dummy address space."""
         # Make the object on the dummy AS.
-        tmp = self.Object(theType = name, offset = 0, vm = dummy())
+        tmp = self.Object(theType = name, offset = 0, vm = self._dummy)
         return tmp
 
     def get_obj_offset(self, name, member):
@@ -1109,6 +1120,9 @@ class Profile(object):
             if k in self.vtypes:
                 self.vtypes[k] = self._apply_overlay(self.vtypes[k], v)
             else:
+                # The vtype does not have anything to overlay, we just create a
+                # new definition.
+                self.vtypes[k] = v
                 logging.debug("Overlay structure {0} not present in vtypes".format(k))
 
     def _apply_overlay(self, type_member, overlay):
@@ -1116,7 +1130,8 @@ class Profile(object):
 
         Basically if overlay has None in any slot it gets applied from vtype.
         """
-        if not overlay:
+        # A None in the overlay allows the vtype to bubble up.
+        if overlay is None:
             return type_member
 
         if type(type_member) == dict:
@@ -1171,6 +1186,7 @@ class Profile(object):
             if callable(v):
                 members[k] = v
             elif v[0] == None:
+                import pdb; pdb.set_trace()
                 logging.warning("{0} has no offset in object {1}. Check that vtypes "
                                 "has a concrete definition for it.".format(k, cname))
             else:
@@ -1232,4 +1248,58 @@ class Profile(object):
 
 
 class ProfileModification(object):
-    pass
+    """A profile modification adds new types to an existing profile.
+
+    A ProfileModification must be invoked explicitely. We have these as plugins
+    so its easier to find a modification by name. A typical invokation looks
+    like:
+
+    class myPlugin(plugin.Command):
+      def __init__(self, **kwargs):
+         super(myPlugin, self).__init__(**kwargs)
+
+         # Update the profile with the "VolRegistrySupport" implementation.
+         self.profile = obj.ProfileModification.classes['VolRegistrySupport'](self.profile)
+
+    Note that this plugin must explicitely apply the correct modification. This
+    allows the plugin to choose from a number of different implementations. For
+    example, in the above say we have one implementation (i.e. overlays, object
+    classes etc) called VolRegistrySupport and another called
+    ScudetteRegistrySupport, we can choose between them.
+
+    Now suppose that ScudetteRegistrySupport introduces an advanced class with
+    extra methods:
+
+    class _CM_KEY_INDEX(obj.CType):
+       .....
+       def SpecialMethod(...):
+          ....
+
+    The plugin relies on using this specific implementation (i.e. if we loaded
+    the other profile modification, this myPlugin will fail because it will
+    attempt to call an undefined method!  Essentially by explicitely loading the
+    modification, the plugin declares that it relies on the
+    ScudetteRegistrySupport implementation, but does not preclude having another
+    implementation.
+    """
+    def __new__(cls, profile):
+        if cls.__name__ in profile.applied_modifications:
+            return profile
+
+        # Return a copy of the profile.
+        result = profile.copy()
+        cls.modify(result)
+        result.applied_modifications.add(cls.__name__)
+
+        return result
+
+    @classmethod
+    def modify(cls, profile):
+        """This class should modify the profile appropritately.
+
+        The profile will be a copy of the original profile and will be returns
+        to the class caller.
+
+        Args:
+           A profile to be modified.
+        """

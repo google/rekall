@@ -25,6 +25,7 @@
 """
 
 from volatility.plugins.windows import common
+from volatility.plugins.windows.registry import registry
 
 
 class PoolScanHive(common.PoolScanner):
@@ -59,6 +60,12 @@ class HiveScan(common.PoolScannerPlugin):
         os = 'WIN_32_XP_SP2',
         version = '1.0',
         )
+
+    def __init__(self, **kwargs):
+        super(HiveScan, self).__init__(**kwargs)
+
+        # Install our specific implementation of registry support.
+        self.profile = registry.VolatilityRegisteryImplementation(self.profile)
 
     def generate_hits(self, address_space=None):
         """Yields potential _HHIVE objects."""

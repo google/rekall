@@ -192,14 +192,20 @@ class HiveAddressSpace(HiveBaseAddressSpace):
 
     @property
     def Name(self):
+        return self.hive.Name
+
+
+class _CMHIVE(obj.CType):
+    @property
+    def Name(self):
         name = "[no name]"
         try:
-            name = (self.hive.FileFullPath.v() or self.hive.FileUserName.v() or
-                    self.hive.HiveRootPath.v())
+            name = (self.FileFullPath.v() or self.FileUserName.v() or
+                    self.HiveRootPath.v())
         except AttributeError:
             pass
 
-        return u"{0} @ {1:#010x}".format(name, self.hive.obj_offset)
+        return u"{0} @ {1:#010x}".format(name, self.obj_offset)
 
 
 class _CM_KEY_NODE(obj.CType):
@@ -353,6 +359,19 @@ class _CM_KEY_VALUE(obj.CType):
         return data
 
 
+class VolatilityRegisteryImplementation(obj.ProfileModification):
+    """The standard volatility registry parsing subsystem."""
+
+    @classmethod
+    def modify(cls, profile):
+        profile.add_classes(dict(
+                _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
+                _CM_KEY_VALUE=_CM_KEY_VALUE, _CMHIVE=_CMHIVE
+                ))
+
+        profile.add_overlay(registry_overlays)
+
+
 class Registry(object):
     """A High level class to abstract access to the registry hive."""
     ROOT_INDEX = 0x20
@@ -370,18 +389,8 @@ class Registry(object):
            stable: Should we try to open the unstable registry area?
         """
         self.session = session
-        self.profile = profile or session.profile
+        self.profile = VolatilityRegisteryImplementation(profile or session.profile)
         self.address_space = address_space
-        if not hasattr(self.profile, "_registry_initialized"):
-            self.profile.add_classes(dict(
-                    _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
-                    _CM_KEY_VALUE=_CM_KEY_VALUE
-                    ))
-
-            self.profile.add_overlay(registry_overlays)
-
-            # Initialize the registry
-            self.profile._registry_initialized = True
 
         root_index = self.ROOT_INDEX
         if not stable:

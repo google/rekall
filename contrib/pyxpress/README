@@ -1,0 +1,11 @@
+This module implements the xpress decompression algorithm in c. This algorithm
+is used in hibernation files among other things. Volatility is shipped with a
+python only decompression algorithm, but this is very slow. By decompressing in
+C we can increase performance of hibernation file parsing.
+
+To install, simply run:
+
+python setup.py install
+
+This will build the module and install on the system. Volatility will
+automatically choose the fast decompressor if it is available.

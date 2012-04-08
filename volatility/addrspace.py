@@ -38,11 +38,25 @@ class BaseAddressSpace(object):
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
-    def __init__(self, base=None, session=None, write=None, **kwargs):
-        """ base is the AS we will be stacking on top of, opts are
-        options which we may use.
+    order = 10
+
+    def __init__(self, base=None, session=None, write=False, profile=None, **kwargs):
+        """Base is the AS we will be stacking on top of, opts are options which
+        we may use.
+
+        Args:
+          base: A base address space to stack on top of (i.e. delegate to it for
+            satisfying read requests).
+
+          session: An optional session object.
+
+          write: Should writing be allowed? Not currently implemented.
+
+          profile: An optional profile to use for parsing the address space
+            (e.g. needed for hibernation, crash etc.)
         """
         self.base = base
+        self.profile = profile
         self.session = session
         self.writeable = (self.session and self.session.writable_address_space) or write
 

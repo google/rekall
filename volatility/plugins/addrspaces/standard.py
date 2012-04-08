@@ -28,9 +28,7 @@ import urllib
 import os
 
 from volatility import addrspace
-from volatility import conf
 
-#pylint: disable-msg=C0111
 
 class FileAddressSpace(addrspace.BaseAddressSpace):
     """ This is a direct file AS.
@@ -49,6 +47,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
 
     ## We should be the AS of last resort
     order = 100
+
     def __init__(self, filename=None, **kwargs):
         super(FileAddressSpace, self).__init__(**kwargs)
 

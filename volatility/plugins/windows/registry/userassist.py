@@ -173,6 +173,9 @@ class UserAssist(common.WindowsCommandPlugin):
         super(UserAssist, self).__init__(**kwargs)
         self.hive_offsets = hive_offsets
 
+        # Install our specific implementation of registry support.
+        self.profile = registry.VolatilityRegisteryImplementation(self.profile)
+
         # This is an example of using a domain specific profile. We first make a
         # virgin profile suitable for windows, then add the userassist
         # definitions based on the operating system.

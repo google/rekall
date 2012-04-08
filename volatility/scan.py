@@ -98,7 +98,9 @@ class BaseScanner(object):
 
         while available_length > 0:
             to_read = min(constants.SCAN_BLOCKSIZE + self.overlap, available_length)
-            data = self.address_space.read(base_offset, to_read)
+            # If we do not use zread here, the entire read will fail if any part
+            # of it is not mapped and we will fail to scan the entire region.
+            data = self.address_space.zread(base_offset, to_read)
 
             # Ran out of contiguous region to read.
             if not data:

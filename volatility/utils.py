@@ -64,3 +64,4 @@ def WriteHexdump(fd, data, width=16):
         fd.write(u"{0:#010x}  {1:<48}  {2}\n".format(
                 offset, hexdata, "".join(translated_data)))
 
+
