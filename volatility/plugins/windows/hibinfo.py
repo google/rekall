@@ -28,7 +28,6 @@ from volatility.plugins.windows import common
 class HibInfo(common.AbstractWindowsCommand):
     """Dump hibernation file information"""
 
-    @cache.CacheDecorator("tests/hibinfo")
     def calculate(self):
         """Determines the address space"""
         addr_space = utils.load_as(self._config)

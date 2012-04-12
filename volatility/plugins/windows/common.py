@@ -341,11 +341,6 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
     __abstract = True
 
 
-class WindowsCommandPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
-    """A windows plugin which requires the kernel address space."""
-    __abstract = True
-
-
 class KDBGMixin(plugin.KernelASMixin):
     """A plugin mixin to make sure the kdbg is set correctly."""
 
@@ -381,6 +376,11 @@ class KDBGMixin(plugin.KernelASMixin):
                 vm=self.kernel_address_space)
         else:
             self.kdbg = obj.NoneObject("Could not guess kdbg offset")
+
+
+class WindowsCommandPlugin(KDBGMixin, AbstractWindowsCommandPlugin):
+    """A windows plugin which requires the kernel address space."""
+    __abstract = True
 
 
 class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):

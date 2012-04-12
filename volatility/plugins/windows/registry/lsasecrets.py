@@ -10,11 +10,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 #pylint: disable-msg=C0111
@@ -26,40 +26,41 @@
 """
 
 import struct
-import volatility.win32.rawreg as rawreg
-import volatility.win32.hive as hive
-import volatility.win32.hashdump as hashdump
-from Crypto.Hash import MD5
-from Crypto.Cipher import ARC4, DES
+from volatility.plugins.windows.registry import hashdump
+from Crypto import Hash
+from Crypto import Cipher
 
-def get_lsa_key(secaddr, bootkey):
-    if not bootkey:
-        return None
 
-    root = rawreg.get_root(secaddr)
-    if not root:
-        return None
+lsa_types = {
+    'LSA_BLOB': [ 8, {
+            'cbData': [0, ['unsigned int']],
+            'cbMaxData': [4, ['unsigned int']],
+            'szData': [8, ['String', dict(length=lambda x: x.cbData)]],
+            }]
+    }
 
-    enc_reg_key = rawreg.open_key(root, ["Policy", "PolSecretEncryptionKey"])
-    if not enc_reg_key:
-        return None
+
+def get_lsa_key(sec_registry, bootkey):
+    enc_reg_key = sec_registry.open_key(["Policy", "PolSecretEncryptionKey"])
 
     enc_reg_value = enc_reg_key.ValueList.List.dereference()[0]
     if not enc_reg_value:
         return None
 
-    obf_lsa_key = secaddr.read(enc_reg_value.Data,
-            enc_reg_value.DataLength)
+    obf_lsa_key = enc_reg_value.Data.dereference_as(
+        "String", length=enc_reg_value.DataLength).v()
+
     if not obf_lsa_key:
         return None
 
-    md5 = MD5.new()
+    md5 = Hash.MD5.new()
     md5.update(bootkey)
+
     for _i in range(1000):
         md5.update(obf_lsa_key[60:76])
     rc4key = md5.digest()
 
-    rc4 = ARC4.new(rc4key)
+    rc4 = Cipher.ARC4.new(rc4key)
     lsa_key = rc4.decrypt(obf_lsa_key[12:60])
 
     return lsa_key[0x10:0x20]
@@ -76,7 +77,7 @@ def decrypt_secret(secret, key):
         block_key = key[j:j + 7]
         des_key = hashdump.str_to_key(block_key)
 
-        des = DES.new(des_key, DES.MODE_ECB)
+        des = Cipher.DES.new(des_key, Cipher.DES.MODE_ECB)
         decrypted_data += des.decrypt(enc_block)
 
         j += 7
@@ -106,48 +107,25 @@ def get_secret_by_name(secaddr, name, lsakey):
 
     return decrypt_secret(enc_secret[0xC:], lsakey)
 
-def get_secrets(sysaddr, secaddr):
-    root = rawreg.get_root(secaddr)
-    if not root:
-        return None
+def get_secrets(sys_registry, sec_registry):
 
-    bootkey = hashdump.get_bootkey(sysaddr)
-    lsakey = get_lsa_key(secaddr, bootkey)
-    if not bootkey or not lsakey:
-        return None
+    bootkey = hashdump.get_bootkey(sys_registry)
+    lsakey = get_lsa_key(sec_registry, bootkey)
 
-    secrets_key = rawreg.open_key(root, ["Policy", "Secrets"])
+    secrets_key = sec_registry.open_key(["Policy", "Secrets"])
     if not secrets_key:
-        return None
+        return
 
-    secrets = {}
-    for key in rawreg.subkeys(secrets_key):
-        sec_val_key = rawreg.open_key(key, ["CurrVal"])
+    for key in secrets_key.subkeys():
+        sec_val_key = key.open_subkey("CurrVal")
+
         if not sec_val_key:
             continue
 
-        enc_secret_value = sec_val_key.ValueList.List.dereference()[0]
-        if not enc_secret_value:
-            continue
+        for enc_secret_value in sec_val_key.values():
+            enc_secret = enc_secret_value.Data.dereference_as(
+                "String", length=enc_secret_value.DataLength).v()
 
-        enc_secret = secaddr.read(enc_secret_value.Data,
-                enc_secret_value.DataLength)
-        if not enc_secret:
-            continue
-
-        secret = decrypt_secret(enc_secret[0xC:], lsakey)
-        secrets[key.Name] = secret
-
-    return secrets
-
-def get_memory_secrets(addr_space, config, syshive, sechive):
-    sysaddr = hive.HiveAddressSpace(addr_space, config, syshive)
-    secaddr = hive.HiveAddressSpace(addr_space, config, sechive)
-
-    return get_secrets(sysaddr, secaddr)
-
-def get_file_secrets(sysfile, secfile):
-    sysaddr = hive.HiveFileAddressSpace(sysfile)
-    secaddr = hive.HiveFileAddressSpace(secfile)
-
-    return get_secrets(sysaddr, secaddr)
+            if enc_secret:
+                secret = decrypt_secret(enc_secret[0xC:], lsakey)
+                yield key.Name, secret

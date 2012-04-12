@@ -10,27 +10,31 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-
-#pylint: disable-msg=C0111
 
 """
 @author:       Brendan Dolan-Gavitt
 @license:      GNU General Public License 2.0 or later
 @contact:      bdolangavitt@wesleyan.edu
-"""
 
-import volatility.obj as obj
-import volatility.win32.rawreg as rawreg
-import volatility.win32.hive as hive
-from Crypto.Hash import MD5, MD4
-from Crypto.Cipher import ARC4, DES
-from struct import unpack, pack
+http://moyix.blogspot.com/2008/02/decrypting-lsa-secrets.html
+
+Code seems to be inspired by eyas_at_xfocus.org
+http://www.xfocus.net/articles/200411/749.html
+"""
+import struct
+
+from volatility import obj
+from Crypto.Hash import MD5
+from Crypto.Hash import MD4
+from Crypto.Cipher import DES
+from Crypto.Cipher import ARC4
+
 
 odd_parity = [
   1, 1, 2, 2, 4, 4, 7, 7, 8, 8, 11, 11, 13, 13, 14, 14,
@@ -104,38 +108,30 @@ def hash_lm(pw):
 def hash_nt(pw):
     return MD4.new(pw.encode('utf-16-le')).digest()
 
-def find_control_set(sysaddr):
-    root = rawreg.get_root(sysaddr)
-    if not root:
-        return 1
-
-    csselect = rawreg.open_key(root, ["Select"])
+def find_control_set(sys_registry):
+    """Determine which control set we are currently running with."""
+    csselect = sys_registry.open_key("Select")
     if not csselect:
         return 1
 
-    for v in rawreg.values(csselect):
-        if v.Name == "Current":
-            return v.Data
+    value = csselect.open_value("Current")
+    return value.DecodedData
 
-def get_bootkey(sysaddr):
-    cs = find_control_set(sysaddr)
+def get_bootkey(sys_registry):
+    """Derive the boot key by unscrambling the LSA."""
+    cs = find_control_set(sys_registry)
+    bootkey = ""
     lsa_base = ["ControlSet{0:03}".format(cs), "Control", "Lsa"]
     lsa_keys = ["JD", "Skew1", "GBG", "Data"]
 
-    root = rawreg.get_root(sysaddr)
-    if not root:
-        return None
-
-    lsa = rawreg.open_key(root, lsa_base)
-    if not lsa:
-        return None
-
-    bootkey = ""
+    lsa = sys_registry.open_key(lsa_base)
 
     for lk in lsa_keys:
-        key = rawreg.open_key(lsa, [lk])
-        class_data = sysaddr.read(key.Class, key.ClassLength)
-        bootkey += class_data.decode('utf-16-le').decode('hex')
+        subkey = lsa.open_subkey(lk)
+        bootkey_data = subkey.Class.dereference_as("UnicodeString",
+                                                   length=subkey.ClassLength)
+
+        bootkey += bootkey_data.v().decode('hex')
 
     bootkey_scrambled = ""
     for i in range(len(bootkey)):
@@ -143,26 +139,15 @@ def get_bootkey(sysaddr):
 
     return bootkey_scrambled
 
-def get_hbootkey(samaddr, bootkey):
+def get_hbootkey(sam_registry, bootkey):
     sam_account_path = ["SAM", "Domains", "Account"]
 
-    if not bootkey:
-        return None
+    sam_account_key = sam_registry.open_key(sam_account_path)
 
-    root = rawreg.get_root(samaddr)
-    if not root:
-        return None
-
-    sam_account_key = rawreg.open_key(root, sam_account_path)
-    if not sam_account_key:
-        return None
-
-    F = None
-    for v in rawreg.values(sam_account_key):
-        if v.Name == 'F':
-            F = samaddr.read(v.Data, v.DataLength)
+    # Get the F value
+    F = sam_account_key.open_value("F").DecodedData
     if not F:
-        return None
+        return F
 
     md5 = MD5.new()
     md5.update(F[0x70:0x80] + aqwerty + bootkey + anum)
@@ -173,18 +158,14 @@ def get_hbootkey(samaddr, bootkey):
 
     return hbootkey
 
-def get_user_keys(samaddr):
+def get_user_keys(sam_registry):
     user_key_path = ["SAM", "Domains", "Account", "Users"]
 
-    root = rawreg.get_root(samaddr)
-    if not root:
-        return []
+    user_key = sam_registry.open_key(user_key_path)
 
-    user_key = rawreg.open_key(root, user_key_path)
-    if not user_key:
-        return []
-
-    return [k for k in rawreg.subkeys(user_key) if k.Name != "Names"]
+    for k in user_key.subkeys():
+        if k.Name != "Names":
+            yield k
 
 def decrypt_single_hash(rid, hbootkey, enc_hash, lmntstr):
     (des_k1, des_k2) = sid_to_key(rid)
@@ -192,7 +173,7 @@ def decrypt_single_hash(rid, hbootkey, enc_hash, lmntstr):
     d2 = DES.new(des_k2, DES.MODE_ECB)
 
     md5 = MD5.new()
-    md5.update(hbootkey[:0x10] + pack("<L", rid) + lmntstr)
+    md5.update(hbootkey[:0x10] + struct.pack("<L", rid) + lmntstr)
     rc4_key = md5.digest()
     rc4 = ARC4.new(rc4_key)
     obfkey = rc4.encrypt(enc_hash)
@@ -223,7 +204,7 @@ def encrypt_single_hash(rid, hbootkey, hash, lmntstr):
     enc_hash = d1.encrypt(hash[:8]) + d2.encrypt(hash[8:])
 
     md5 = MD5.new()
-    md5.update(hbootkey[:0x10] + pack("<L", rid) + lmntstr)
+    md5.update(hbootkey[:0x10] + struct.pack("<L", rid) + lmntstr)
     rc4_key = md5.digest()
     rc4 = ARC4.new(rc4_key)
     obfkey = rc4.encrypt(enc_hash)
@@ -246,19 +227,14 @@ def encrypt_hashes(rid, lm_hash, nt_hash, hbootkey):
     return enc_lmhash, enc_nthash
 
 def get_user_hashes(user_key, hbootkey):
-    samaddr = user_key.obj_vm
     rid = int(str(user_key.Name), 16)
-    V = None
-    for v in rawreg.values(user_key):
-        if v.Name == 'V':
-            V = samaddr.read(v.Data, v.DataLength)
-    if not V:
-        return None
 
-    lm_offset = unpack("<L", V[0x9c:0xa0])[0] + 0xCC + 4
-    lm_len = unpack("<L", V[0xa0:0xa4])[0] - 4
-    nt_offset = unpack("<L", V[0xa8:0xac])[0] + 0xCC + 4
-    nt_len = unpack("<L", V[0xac:0xb0])[0] - 4
+    V = user_key.open_value("V").DecodedData
+
+    lm_offset = struct.unpack("<L", V[0x9c:0xa0])[0] + 0xCC + 4
+    lm_len = struct.unpack("<L", V[0xa0:0xa4])[0] - 4
+    nt_offset = struct.unpack("<L", V[0xa8:0xac])[0] + 0xCC + 4
+    nt_len = struct.unpack("<L", V[0xac:0xb0])[0] - 4
 
     if lm_len:
         enc_lm_hash = V[lm_offset:lm_offset + 0x10]
@@ -273,41 +249,31 @@ def get_user_hashes(user_key, hbootkey):
     return decrypt_hashes(rid, enc_lm_hash, enc_nt_hash, hbootkey)
 
 def get_user_name(user_key):
-    samaddr = user_key.obj_vm
-    V = None
-    for v in rawreg.values(user_key):
-        if v.Name == 'V':
-            V = samaddr.read(v.Data, v.DataLength)
-    if not V:
-        return None
+    V = user_key.open_value("V").DecodedData
 
-    name_offset = unpack("<L", V[0x0c:0x10])[0] + 0xCC
-    name_length = unpack("<L", V[0x10:0x14])[0]
+    name_offset = struct.unpack("<L", V[0x0c:0x10])[0] + 0xCC
+    name_length = struct.unpack("<L", V[0x10:0x14])[0]
 
     username = V[name_offset:name_offset + name_length].decode('utf-16-le')
+
     return username
 
 def get_user_desc(user_key):
-    samaddr = user_key.obj_vm
-    V = None
-    for v in rawreg.values(user_key):
-        if v.Name == 'V':
-            V = samaddr.read(v.Data, v.DataLength)
-    if not V:
-        return None
+    V = user_key.open_value("V").DecodedData
 
-    desc_offset = unpack("<L", V[0x24:0x28])[0] + 0xCC
-    desc_length = unpack("<L", V[0x28:0x2c])[0]
+    desc_offset = struct.unpack("<L", V[0x24:0x28])[0] + 0xCC
+    desc_length = struct.unpack("<L", V[0x28:0x2c])[0]
 
     desc = V[desc_offset:desc_offset + desc_length].decode('utf-16-le')
+
     return desc
 
-def dump_hashes(sysaddr, samaddr):
-    bootkey = get_bootkey(sysaddr)
-    hbootkey = get_hbootkey(samaddr, bootkey)
+def dump_hashes(sys_registry, sam_registry):
+    bootkey = get_bootkey(sys_registry)
+    hbootkey = get_hbootkey(sam_registry, bootkey)
 
     if hbootkey:
-        for user in get_user_keys(samaddr):
+        for user in get_user_keys(sam_registry):
             lmhash, nthash = get_user_hashes(user, hbootkey)
             if not lmhash:
                 lmhash = empty_lm
@@ -317,13 +283,3 @@ def dump_hashes(sysaddr, samaddr):
                                               lmhash.encode('hex'), nthash.encode('hex'))
     else:
         yield obj.NoneObject("Hbootkey is not valid")
-
-def dump_memory_hashes(addr_space, config, syshive, samhive):
-    sysaddr = hive.HiveAddressSpace(addr_space, config, syshive)
-    samaddr = hive.HiveAddressSpace(addr_space, config, samhive)
-    return dump_hashes(sysaddr, samaddr)
-
-def dump_file_hashes(syshive_fname, samhive_fname):
-    sysaddr = hive.HiveFileAddressSpace(syshive_fname)
-    samaddr = hive.HiveFileAddressSpace(samhive_fname)
-    return dump_hashes(sysaddr, samaddr)

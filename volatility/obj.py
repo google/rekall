@@ -23,13 +23,10 @@ __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
               "by AAron Walters and Brendan Dolan-Gavitt with contributions "
               "by Mike Auty")
 
-# TODO(scudette): Add documentation here.
 """
 The Volatility object system.
 
 """
-
-#pylint: disable-msg=C0111,W0613
 import logging
 import sys
 import re
@@ -394,7 +391,7 @@ class BaseObject(object):
     def is_valid(self):
         return self.obj_vm.is_valid_address(self.obj_offset)
 
-    def dereference(self):
+    def dereference(self, vm=None):
         return NoneObject("Can't dereference {0}".format(self.obj_name), self.obj_profile)
 
     def dereference_as(self, derefType, vm=None, **kwargs):
@@ -637,11 +634,11 @@ class Pointer(NativeType):
     def __sub__(self, other):
         return self.__add__(-other)
 
-    def __iadd__(self):
+    def __iadd__(self, other):
         # Increment our own offset.
         self.target_size = (self.target_size or
                             self.target(vm=addrspace.DummyAddressSpace()).size())
-        self._vol_offset += self.target_size
+        self._vol_offset += self.target_size * other
 
     def d(self):
         target = self.dereference()
@@ -787,7 +784,7 @@ class CType(BaseObject):
             # Warn rather than raise an error, since some types (_HARDWARE_PTE,
             # for example) are generated without members
             logging.debug("No members specified for CType %s named %s",
-                          theType, name)
+                          self.obj_type, self.obj_name)
             members = {}
 
         self.members = members

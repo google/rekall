@@ -82,6 +82,8 @@ class HiveScan(common.PoolScannerPlugin):
             for hive in self.session.hive_list:
                 yield hive
 
+            return
+
         hives = set()
         for phive in self.generate_hits(self.physical_address_space):
             # Reflect through the kernel address space to get the hive in kernel

@@ -113,7 +113,10 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         super(HiveAddressSpace, self).__init__(**kwargs)
 
         self.as_assert(hive_addr, "Hive offset not provided.")
-        self.hive = profile.Object("_CMHIVE", offset=hive_addr, vm=self.base)
+        self.as_assert(self.base, "Must be layered on kernel address space.")
+        self.profile = VolatilityRegisteryImplementation(profile or self.session.profile)
+
+        self.hive = self.profile.Object("_CMHIVE", offset=hive_addr, vm=self.base)
         self.baseblock = self.hive.Hive.BaseBlock.v()
         self.flat = self.hive.Hive.Flat.v() > 0
 
@@ -228,7 +231,7 @@ class _CM_KEY_NODE(obj.CType):
         """Opens our direct child."""
         for value in self.values():
             if value.Name == value_name:
-                return subkey
+                return value
 
         return obj.NoneObject("Couldn't find subkey {0} of {1}".format(
                 value_name, self.Name))
@@ -418,3 +421,25 @@ class Registry(object):
             result = result.open_subkey(component)
 
         return result
+
+
+class RegistryHive(Registry):
+    def __init__(self, hive_offset=None, kernel_address_space=None, profile=None,
+                 session=None, **kwargs):
+        """A Registry hive instantiated from the hive offsets.
+
+        Args:
+          hive_offset: The virtual offset of the hive.
+          kernel_address_space: The kernel address space.
+        """
+        if session:
+            profile = profile or session.profile
+            kernel_address_space = kernel_address_space or session.kernel_address_space
+
+        hive_address_space = HiveAddressSpace(base=kernel_address_space,
+                                              hive_addr=hive_offset,
+                                              profile=profile,
+                                              session=session)
+
+        super(RegistryHive, self).__init__(
+            session=session, profile=profile, address_space=hive_address_space, **kwargs)

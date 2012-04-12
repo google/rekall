@@ -24,20 +24,19 @@
 @organization: Volatile Systems
 """
 
-#pylint: disable-msg=C0111
+from volatility import utils
 
-import volatility.win32.hive as hive
-import volatility.win32.rawreg as rawreg
-import volatility.win32.lsasecrets as lsasecrets
-import volatility.win32.hashdump as hashdumpmod
-import volatility.debug as debug
-import volatility.cache as cache
-import volatility.utils as utils
-import volatility.commands as commands
+from volatility.plugins.windows.registry import lsasecrets
+from volatility.plugins.windows.registry import hashdump
+from volatility.plugins.windows import common
+from volatility.plugins.windows.registry import registry
 
-class LSADump(commands.command):
+
+class LSADump(common.WindowsCommandPlugin):
     """Dump (decrypted) LSA secrets from the registry"""
     # Declare meta information associated with this plugin
+
+    __name = "lsadump"
 
     meta_info = {}
     meta_info['author'] = 'Brendan Dolan-Gavitt'
@@ -48,81 +47,101 @@ class LSADump(commands.command):
     meta_info['os'] = 'WIN_32_XP_SP2'
     meta_info['version'] = '1.0'
 
-    def __init__(self, config, *args, **kwargs):
-        commands.Command.__init__(self, config, *args, **kwargs)
-        config.add_option('SYS-OFFSET', short_option = 'y', type = 'int',
-                          help = 'SYSTEM hive offset (virtual)')
-        config.add_option('SEC-OFFSET', short_option = 's', type = 'int',
-                          help = 'SECURITY hive offset (virtual)')
+    @classmethod
+    def is_active(cls, session):
+        """We are only active for windows xp."""
+        if session and session.profile:
+            return session.profile.metadata("major") == 5
 
-    @cache.CacheDecorator(lambda self: "tests/lsadump/sys_offset={0}/sec_offset={1}".format(self._config.SYS_OFFSET, self._config.SEC_OFFSET))
+    def __init__(self, sys_offset=None, security_offset=None, **kwargs):
+        """Dump (decrypted) LSA secrets from the registry.
+
+        Args:
+           sys_offset: The hive virtual offset to the system hive.
+           security_offset: The hive virtual offset to the security hive.
+        """
+        super(LSADump, self).__init__(**kwargs)
+        self.sys_offset = sys_offset
+        self.security_offset = security_offset
+        self.profile = registry.VolatilityRegisteryImplementation(self.profile)
+
     def calculate(self):
-        addr_space = utils.load_as(self._config)
+        sys_hive = registry.RegistryHive(profile=self.profile, hive_offset=self.sys_offset,
+                                         kernel_address_space=self.kernel_address_space)
 
-        if not self._config.sys_offset or not self._config.sec_offset:
-            debug.error("Both SYSTEM and SECURITY offsets must be provided")
+        security_hive = registry.RegistryHive(
+            profile=self.profile, hive_offset=self.security_offset,
+            kernel_address_space=self.kernel_address_space)
 
-        secrets = lsasecrets.get_memory_secrets(addr_space, self._config, self._config.sys_offset, self._config.sec_offset)
-        if not secrets:
-            debug.error("Unable to read LSA secrets from registry")
+        return lsasecrets.get_secrets(sys_hive, security_hive)
 
-        return secrets
-
-    def render_text(self, outfd, data):
-        for k in data:
+    def render(self, outfd):
+        for k, v in self.calculate():
             outfd.write(k + "\n")
-            for offset, hex, chars in utils.Hexdump(data[k]):
-                outfd.write("{0:#010x}  {1:<48}  {2}\n".format(offset, hex, ''.join(chars)))
+            utils.WriteHexdump(outfd, v)
             outfd.write("\n")
 
-class HashDump(commands.command):
+
+class HashDump(LSADump):
     """Dumps passwords hashes (LM/NTLM) from memory"""
 
-    def __init__(self, config, *args, **kwargs):
-        commands.command.__init__(self, config, *args, **kwargs)
-        config.add_option('SYS-OFFSET', short_option = 'y', type = 'int',
-                          help = 'SYSTEM hive offset (virtual)')
-        config.add_option('SAM-OFFSET', short_option = 's', type = 'int',
-                          help = 'SAM hive offset (virtual)')
+    __name = "hashdump"
 
-    @cache.CacheDecorator(lambda self: "tests/hashdump/sys_offset={0}/sam_offset={1}".format(self._config.SYS_OFFSET, self._config.SAM_OFFSET))
+    def __init__(self, sys_offset=None, sam_offset=None, **kwargs):
+        """Dump (decrypted) LSA secrets from the registry.
+
+        Args:
+           sys_offset: The hive virtual offset to the system hive.
+           sam_offset: The hive virtual offset to the sam hive.
+        """
+        super(LSADump, self).__init__(**kwargs)
+        self.sys_offset = sys_offset
+        self.sam_offset = sam_offset
+        self.profile = registry.VolatilityRegisteryImplementation(self.profile)
+
     def calculate(self):
-        addr_space = utils.load_as(self._config)
+        sys_registry = registry.RegistryHive(
+            profile=self.profile, hive_offset=self.sys_offset,
+            kernel_address_space=self.kernel_address_space)
 
-        if not self._config.sys_offset or not self._config.sam_offset:
-            debug.error("Both SYSTEM and SAM offsets must be provided")
+        sam_registry = registry.RegistryHive(
+            profile=self.profile, hive_offset=self.sam_offset,
+            kernel_address_space=self.kernel_address_space)
 
-        return hashdumpmod.dump_memory_hashes(addr_space, self._config, self._config.sys_offset, self._config.sam_offset)
+        return hashdump.dump_hashes(sys_registry, sam_registry)
 
-    def render_text(self, outfd, data):
-        for d in data:
-            if d == None:
-                debug.error("Unable to read hashes from registry")
+    def render(self, outfd):
+        for d in self.calculate():
             outfd.write(d + "\n")
 
-class HiveDump(commands.command):
+
+
+class HiveDump(common.WindowsCommandPlugin):
     """Prints out a hive"""
-    def __init__(self, config, *args, **kwargs):
-        commands.Command.__init__(self, config, *args, **kwargs)
-        config.add_option('HIVE-OFFSET', short_option = 'o', type = 'int',
-                          help = 'Hive offset (virtual)')
 
-    @cache.CacheDecorator(lambda self: "tests/hivedump/hive_offset={0}".format(self._config.HIVE_OFFSET))
-    def calculate(self):
-        addr_space = utils.load_as(self._config)
+    __name = "hivedump"
 
-        if not self._config.hive_offset:
-            debug.error("A Hive offset must be provided (--hive-offset)")
+    def __init__(self, hive_offset=None, **kwargs):
+        super(HiveDump, self).__init__(**kwargs)
+        self.hive_offset = hive_offset
 
-        h = hive.HiveAddressSpace(addr_space, self._config, self._config.hive_offset)
-        return rawreg.get_root(h)
+    def get_keys(self, hive_offset=None):
+        """Iterate over all keys in this hive."""
+        hive_offset = hive_offset or self.hive_offset
 
-    def render_text(self, outfd, data):
+        reg = registry.RegistryHive(hive_offset=hive_offset,
+                                    kernel_address_space=self.kernel_address_space,
+                                    profile=self.profile)
+
+        return self._key_iterator(reg.root)
+
+    def _key_iterator(self, key):
+        for subkey in key.subkeys():
+            yield subkey
+            for subsubkey in self._key_iterator(subkey):
+                yield subsubkey
+
+    def render(self, outfd):
         outfd.write("{0:20s} {1}\n".format("Last Written", "Key"))
-        self.print_key(outfd, '', data)
-
-    def print_key(self, outfd, keypath, key):
-        if key.Name != None:
-            outfd.write("{0:20s} {1}\n".format(key.LastWriteTime, keypath + "\\" + key.Name))
-        for k in rawreg.subkeys(key):
-            self.print_key(outfd, keypath + "\\" + key.Name, k)
+        for key in self.get_keys():
+            outfd.write("{0:20s} {1}\n".format(key.LastWriteTime, key.Path))

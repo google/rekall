@@ -28,7 +28,7 @@ from volatility.plugins.windows import common
 from volatility.plugins.windows.registry import registry
 
 
-class PrintKey(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
+class PrintKey(common.WindowsCommandPlugin):
     "Print a registry key, and its subkeys and values"
     # Declare meta information associated with this plugin
 
@@ -55,6 +55,8 @@ class PrintKey(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
             hive.
         """
         super(PrintKey, self).__init__(**kwargs)
+        self.profile = registry.VolatilityRegisteryImplementation(self.profile)
+
         if hive_offsets is None:
             hive_offsets = []
 
@@ -77,11 +79,10 @@ class PrintKey(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
 
             seen.add(hive_offset)
 
-            hive_address_space = registry.HiveAddressSpace(base=self.kernel_address_space,
-                                                           hive_addr=hive_offset,
-                                                           profile=self.profile)
+            reg = registry.RegistryHive(
+                profile=self.profile, kernel_address_space=self.kernel_address_space,
+                hive_offset=hive_offset)
 
-            reg = registry.Registry(profile=self.profile, address_space=hive_address_space)
             yield reg, reg.open_key(self.key)
 
     def voltext(self, key):
