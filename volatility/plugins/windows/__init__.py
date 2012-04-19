@@ -4,7 +4,6 @@ from volatility.plugins.windows import connscan
 from volatility.plugins.windows import crashinfo
 from volatility.plugins.windows import dlldump
 from volatility.plugins.windows import filescan
-from volatility.plugins.windows import getsids
 from volatility.plugins.windows import handles
 from volatility.plugins.windows import hibinfo
 from volatility.plugins.windows import kdbgscan
@@ -19,8 +18,7 @@ from volatility.plugins.windows import patcher
 from volatility.plugins.windows import procdump
 from volatility.plugins.windows import pstree
 from volatility.plugins.windows import registry
-from volatility.plugins.windows import sockets
-from volatility.plugins.windows import sockscan
+#from volatility.plugins.windows import sockscan
 from volatility.plugins.windows import ssdt
 from volatility.plugins.windows import taskmods
 from volatility.plugins.windows import vadinfo
