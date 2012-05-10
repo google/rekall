@@ -1,0 +1,15 @@
+WinPMEM - a kernel mode driver for gaining access to physical memory.
+
+This code is based on the old win32dd codebase, main changes:
+
+- The crashdump producing code is removed.
+
+- A read device interface is used instead of writing the image from the
+  kernel. This allows us to have complex userspace imager (e.g. copy across
+  network, hash etc), as well as run analysis on the live system
+  (e.g. volatility can be run directly on the device).
+
+- This code builds on 64 bit windows as well as 32 bit windows.
+
+
+Copyright 2012, Michael Cohen (scudette@gmail.com)

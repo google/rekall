@@ -1,0 +1,11 @@
+TARGETNAME=winpmem
+TARGETTYPE=DRIVER
+TARGETPATH=release
+
+TARGETLIBS=$(DDK_LIB_PATH)\wdmsec.lib
+DDKROOT=$(BASEDIR)
+
+INCLUDES=$(DDK_INC_PATH);
+
+SOURCES= winpmem.c \
+         read.c
