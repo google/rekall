@@ -25,6 +25,13 @@ parser.add_option("-n", "--name", default="pmem",
 parser.add_option("-m", "--mode", default="physical",
                   help="The acquisition mode. Can be (physical or iospace)")
 
+parser.add_option("-l", "--load", default=False, action="store_true",
+                  help="Only load the driver and immediately quit. "
+                  "(Useful just before attaching with volatility)")
+
+parser.add_option("-u", "--unload", default=False, action="store_true",
+                  help="Unload the driver and immediately quit. ")
+
 
 def CTL_CODE(DeviceType, Function, Method, Access):
     return (DeviceType<<16) | (Access << 14) | (Function << 2) | Method
@@ -125,7 +132,16 @@ def main():
     except win32service.error:
         pass
 
+    if FLAGS.unload:
+        print r"unloaded winpmem driver."
+        return
+
     win32service.StartService(hSvc, [])
+
+    if FLAGS.load:
+        print r"Loaded the winpmem driver. You can now attach volatility to \\.\pmem"
+        return
+
     try:
         fd = win32file.CreateFile(
             "\\\\.\\" + FLAGS.name,
