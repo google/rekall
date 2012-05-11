@@ -22,6 +22,9 @@ parser.add_option("-f", "--filename", dest="filename", default="pmemdump.raw",
 parser.add_option("-n", "--name", default="pmem",
                   help="The name of the device.")
 
+parser.add_option("-m", "--mode", default="physical",
+                  help="The acquisition mode. Can be (physical or iospace)")
+
 
 def CTL_CODE(DeviceType, Function, Method, Access):
     return (DeviceType<<16) | (Access << 14) | (Function << 2) | Method
@@ -29,6 +32,7 @@ def CTL_CODE(DeviceType, Function, Method, Access):
 
 # IOCTLS for interacting with the driver.
 INFO_IOCTRL = CTL_CODE(0x22, 0x100, 0, 3)
+CTRL_IOCTRL = CTL_CODE(0x22, 0x101, 0, 3)
 
 
 class Image(object):
@@ -37,6 +41,10 @@ class Image(object):
 
     def __init__(self, fd):
         self.fd = fd
+
+        # Tell the driver what acquisition mode we want.
+        self.SetMode()
+
         result = win32file.DeviceIoControl(self.fd, INFO_IOCTRL, "", 1024, None)
         fmt_string = "QQl"
         self.cr3, self.kpcr, number_of_runs = struct.unpack_from(fmt_string, result)
@@ -53,6 +61,17 @@ class Image(object):
             print "0x%X\t\t0x%X" % (start, length)
             self.runs.append((start,length))
 
+    def SetMode(self):
+        if FLAGS.mode == "iospace":
+            mode = 0
+        elif FLAGS.mode == "physical":
+            mode = 1
+        else:
+            raise RuntimeError("Mode %s not supported" % FLAGS.mode)
+
+        win32file.DeviceIoControl(
+            self.fd, CTRL_IOCTRL, struct.pack("I", mode), 0, None)
+
     def DumpWithRead(self, output_filename):
         """Read the image and write all the data to a raw file."""
         with open(output_filename, "wb") as outfd:
@@ -66,7 +85,7 @@ class Image(object):
                 win32file.SetFilePointer(self.fd, offset, 0)
                 _, data = win32file.ReadFile(self.fd, self.buffer_size)
                 outfd.write(data)
-    
+
                 offset_in_mb = offset/1024/1024
                 if not offset_in_mb % 50:
                     sys.stdout.write("\n%04dMB\t" % offset_in_mb)

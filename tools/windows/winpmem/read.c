@@ -1,6 +1,8 @@
 #include "read.h"
 
-static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset, PCHAR buf, ULONG count) {
+static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension,
+                                      LARGE_INTEGER offset, PCHAR buf,
+                                      ULONG count) {
   ULONG page_offset = offset.QuadPart % PAGE_SIZE;
   ULONG to_read = min(PAGE_SIZE - page_offset, count);
   PUCHAR mapped_buffer = NULL;
@@ -9,7 +11,7 @@ static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension, LARGE_INTE
 
 
   /* Make sure we have a valid handle now. */
-  if(extension->MemoryHandle == 0) {
+  if(!extension->MemoryHandle) {
     UNICODE_STRING PhysicalMemoryPath;
     OBJECT_ATTRIBUTES MemoryAttributes;
 
@@ -33,27 +35,25 @@ static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension, LARGE_INTE
     // We define Memory's handle through ZwOpenSection()
     //
     NtStatus = ZwOpenSection(&extension->MemoryHandle,
-                             SECTION_MAP_READ,
-                             &MemoryAttributes);
+                             SECTION_MAP_READ, &MemoryAttributes);
 
-    if (!NT_SUCCESS(NtStatus))
-    {
-        DbgPrint("Failed ZwOpenSection(MemoryHandle) => %08X\n", NtStatus);
-        return -1;
+    if (!NT_SUCCESS(NtStatus)) {
+      WinDbgPrint("Failed ZwOpenSection(MemoryHandle) => %08X\n", NtStatus);
+      return -1;
     }
   };
 
   /* Map page into the Kernel AS */
   NtStatus = ZwMapViewOfSection(extension->MemoryHandle, (HANDLE) -1,
-                                &mapped_buffer, 0L, PAGE_SIZE, &offset, &ViewSize, ViewUnmap,
-                                0, PAGE_READONLY);
+                                &mapped_buffer, 0L, PAGE_SIZE, &offset,
+                                &ViewSize, ViewUnmap, 0, PAGE_READONLY);
 
   if (NT_SUCCESS(NtStatus)) {
     RtlCopyMemory(buf, mapped_buffer + page_offset, to_read);
     ZwUnmapViewOfSection((HANDLE)-1, mapped_buffer);
 
   } else {
-    DbgPrint("Failed to Map page at 0x%llX\n", offset.QuadPart);
+    WinDbgPrint("Failed to Map page at 0x%llX\n", offset.QuadPart);
     RtlZeroMemory(buf, to_read);
   };
 
@@ -61,9 +61,40 @@ static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension, LARGE_INTE
 };
 
 
-static NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset, PCHAR buf, ULONG *count,
-                           LONG (*handler)(IN PDEVICE_EXTENSION, LARGE_INTEGER, PCHAR, ULONG)
-                           ) {
+// Read a single page using MmMapIoSpace.
+static LONG MapIOPagePartialRead(IN PDEVICE_EXTENSION extension,
+                                 LARGE_INTEGER offset, PCHAR buf,
+                                 ULONG count) {
+  ULONG page_offset = offset.QuadPart % PAGE_SIZE;
+  ULONG to_read = min(PAGE_SIZE - page_offset, count);
+  PUCHAR mapped_buffer = NULL;
+  SIZE_T ViewSize = PAGE_SIZE;
+  NTSTATUS NtStatus;
+  LARGE_INTEGER ViewBase;
+
+  // Round to page size
+  ViewBase.QuadPart = offset.QuadPart - page_offset;
+
+  // Map exactly one page.
+  mapped_buffer = MmMapIoSpace(ViewBase, PAGE_SIZE, MmNonCached);
+
+  if (mapped_buffer) {
+    RtlCopyMemory(buf, mapped_buffer + page_offset, to_read);
+  } else {
+    // Failed to map page, null fill the buffer.
+    RtlZeroMemory(buf, to_read);
+  };
+
+  MmUnmapIoSpace(mapped_buffer, PAGE_SIZE);
+
+  return to_read;
+};
+
+
+static NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset,
+                           PCHAR buf, ULONG *count,
+                           LONG (*handler)(IN PDEVICE_EXTENSION, LARGE_INTEGER,
+                                           PCHAR, ULONG)) {
   int remaining = *count;
 
   while(remaining > 0) {
@@ -101,15 +132,24 @@ NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
   Buf = (PCHAR)(Irp->AssociatedIrp.SystemBuffer);
 
   switch(extension->mode) {
-    case ACQUISITION_MODE_PHYSICAL_MEMORY:
-      status = DeviceRead(extension, BufOffset, Buf, &BufLen, PhysicalMemoryPartialRead);
-      Irp->IoStatus.Information = pIoStackIrp->Parameters.Read.Length;
-      break;
 
-    default:
-      DbgPrint("Acquisition mode %u not supported.\n", extension->mode);
-      status = -1;
-      BufLen = 0;
+    // Read using the physical memory handle.
+  case ACQUISITION_MODE_PHYSICAL_MEMORY:
+    status = DeviceRead(extension, BufOffset, Buf, &BufLen,
+                        PhysicalMemoryPartialRead);
+    Irp->IoStatus.Information = pIoStackIrp->Parameters.Read.Length;
+    break;
+
+  case ACQUISITION_MODE_MAP_IO_SPACE:
+    status = DeviceRead(extension, BufOffset, Buf, &BufLen,
+                        MapIOPagePartialRead);
+    Irp->IoStatus.Information = pIoStackIrp->Parameters.Read.Length;
+    break;
+
+  default:
+    WinDbgPrint("Acquisition mode %u not supported.\n", extension->mode);
+    status = -1;
+    BufLen = 0;
   }
 
   Irp->IoStatus.Status = status;

@@ -2,6 +2,15 @@
 
 #include "read.h"
 
+
+// The following globals are populated in the kernel context from DriverEntry
+// and reported to the user context.
+
+// The kernel CR3
+LARGE_INTEGER CR3;
+
+
+
 NTSTATUS IoUnload(IN PDRIVER_OBJECT DriverObject) {
   UNICODE_STRING DeviceLinkUnicodeString;
   NTSTATUS NtStatus;
@@ -28,102 +37,6 @@ NTSTATUS IoUnload(IN PDRIVER_OBJECT DriverObject) {
 }
 
 
-/*++
-Function Name: MmGetPhysicalMemoryBlock
-
-Overview:
-        - This function aims at retrieving MmPhysicalMemoryBlock, regardless
-        of the host version.
-
-        The caller has to free the memory block.
-
-        - I suggest to recreate PHYSICAL_MEMORY_DESCRIPTOR with following informations:
-         NumberOfPages = sizeof(RAM) >> PAGE_SHIFT
-         NumberOfRuns = 1
-         BasePage = 1
-         PageCount = NumberOfPages - BasePage
-         Therefore, by using a single Run we can have a valid PHYSICAL_MEM_DESCRIPTOR.
-
-Parameters:
-        -
-
-Environment:
-        - Kernel Mode.
-
-Return Values:
-        - PPHYSICAL_MEMORY_DESCRIPTOR
---*/
-static PPHYSICAL_MEMORY_DESCRIPTOR MmGetPhysicalMemoryBlock(VOID) {
-  PPHYSICAL_MEMORY_DESCRIPTOR MmPhysicalMemoryBlock;
-  PPHYSICAL_MEMORY_RANGE MmPhysicalMemoryRange;
-  ULONG MemoryBlockSize;
-  PFN_NUMBER NumberOfPages;
-  ULONG NumberOfRuns;
-  ULONG Run;
-
-  //
-  // PHYSICAL_MEMORY_DESCRIPTOR isn't exported into KDDEBUGGER_DATA64
-  // NT 5.0 and below. But MmGetPhysicalMemoryRanges() computes
-  // PHYSICAL_MEMORY_RANGE with PHYSICAL_MEMORY_DESCRIPTOR. Then,
-  // We can easily rewrite PHYSICAL_MEMORY_DESCRIPTOR.
-  //
-  MmPhysicalMemoryRange = MmGetPhysicalMemoryRanges();
-
-  //
-  // Invalid ?
-  //
-  if (MmPhysicalMemoryRange == NULL) return NULL;
-
-  //
-  // Compute the number of runs and the number of pages
-  //
-  NumberOfRuns = 0;
-  NumberOfPages = 0;
-  while ((MmPhysicalMemoryRange[NumberOfRuns].BaseAddress.QuadPart != 0) &&
-         (MmPhysicalMemoryRange[NumberOfRuns].NumberOfBytes.QuadPart != 0)) {
-    NumberOfRuns++;
-    NumberOfPages += (PFN_NUMBER)BYTES_TO_PAGES(
-        MmPhysicalMemoryRange[NumberOfRuns].NumberOfBytes.QuadPart);
-  }
-
-  //
-  // Invalid ?
-  //
-  if (NumberOfRuns == 0) return NULL;
-
-  //
-  // Compute the size of the pool to allocate and then allocate
-  //
-  MemoryBlockSize = (sizeof(ULONG) + sizeof(PFN_NUMBER) +
-                     sizeof(PHYSICAL_MEMORY_RUN) * NumberOfRuns);
-
-  MmPhysicalMemoryBlock = ExAllocatePoolWithTag(NonPagedPool, MemoryBlockSize,
-                                                '  mM');
-
-  //
-  // Define PHYSICAL_MEMORY_DESCRIPTOR Header.=
-  //
-  MmPhysicalMemoryBlock->NumberOfRuns = NumberOfRuns;
-  MmPhysicalMemoryBlock->NumberOfPages = NumberOfPages;
-
-  for (Run = 0; Run < NumberOfRuns; Run++) {
-    //
-    // BasePage
-    //
-    MmPhysicalMemoryBlock->Run[Run].BasePage = (PFN_NUMBER)MI_CONVERT_PHYSICAL_TO_PFN(
-       MmPhysicalMemoryRange[NumberOfRuns].BaseAddress.QuadPart);
-
-    //
-    // PageCount
-    //
-    MmPhysicalMemoryBlock->Run[Run].PageCount = (PFN_NUMBER)BYTES_TO_PAGES(
-       MmPhysicalMemoryRange[Run].NumberOfBytes.QuadPart);
-  }
-
-  return MmPhysicalMemoryBlock;
-}
-
-
 /*
   Gets information about the memory layout.
 
@@ -136,17 +49,8 @@ static PPHYSICAL_MEMORY_DESCRIPTOR MmGetPhysicalMemoryBlock(VOID) {
  */
 int AddMemoryRanges(struct PmemMemroyInfo *info, int len) {
   PPHYSICAL_MEMORY_RANGE MmPhysicalMemoryRange;
-  int i = 0;
+  int number_of_runs = 0;
   int required_length;
-  ULONG CR3, KPCR;
-
-  /* Make sure we run on the first CPU so the KPCR is valid. */
-
-  KeSetSystemAffinityThread(1);
-
-  info->CR3.QuadPart = __readcr3();
-  info->KPCR.QuadPart = 0x12345678;
-  KeRevertToUserAffinityThread();
 
   // Enumerate address ranges.
   MmPhysicalMemoryRange = MmGetPhysicalMemoryRanges();
@@ -156,22 +60,22 @@ int AddMemoryRanges(struct PmemMemroyInfo *info, int len) {
   };
 
   /** Find out how many ranges there are. */
-  for(i=0; (MmPhysicalMemoryRange[i].BaseAddress.QuadPart) &&
-          (MmPhysicalMemoryRange[i].NumberOfBytes.QuadPart); i++) {
-    i++;
-  }
+  for(number_of_runs=0; (MmPhysicalMemoryRange[number_of_runs].BaseAddress.QuadPart) ||
+        (MmPhysicalMemoryRange[number_of_runs].NumberOfBytes.QuadPart); number_of_runs++);
 
-  required_length = sizeof(struct PmemMemroyInfo) +
-      i * sizeof(PHYSICAL_MEMORY_RANGE);
+  required_length = (sizeof(struct PmemMemroyInfo) +
+                     number_of_runs * sizeof(PHYSICAL_MEMORY_RANGE));
 
   /* Do we have enough space? */
   if(len < required_length) {
     return -1;
   };
 
-  info->NumberOfRuns = i;
+  RtlZeroMemory(info, required_length);
+
+  info->NumberOfRuns = number_of_runs;
   RtlCopyMemory(&info->Run[0], MmPhysicalMemoryRange,
-                i * sizeof(PHYSICAL_MEMORY_RANGE));
+                number_of_runs * sizeof(PHYSICAL_MEMORY_RANGE));
 
   ExFreePool(MmPhysicalMemoryRange);
 
@@ -185,7 +89,6 @@ static NTSTATUS wddCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
 
   WinDbgPrint("Created driver.");
   ext->MemoryHandle = 0;
-  ext->descriptor = MmGetPhysicalMemoryBlock();
 
   Irp->IoStatus.Status = STATUS_SUCCESS;
   Irp->IoStatus.Information = 0;
@@ -211,20 +114,6 @@ static NTSTATUS wddClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
  return STATUS_SUCCESS;
 }
 
-/*++
-Function Name: wddDispatchDeviceControl
-
-Overview:
-        - .
-
-Parameters:
-        - DeviceObject: Pointer to PDEVICE_OBJECT.
-
-        - Irp: Pointer to Irp.
-
-Return Values:
-        - NTSTATUS
---*/
 NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
                                       IN PIRP Irp)
 {
@@ -252,20 +141,58 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 
   switch ((IoControlCode & 0xFFFFFF0F)) {
     // Return information about memory layout etc through this ioctrl.
-    case IOCTL_GET_INFO: {
-      struct PmemMemroyInfo *info = (void *)IoBuffer;
-      int res = AddMemoryRanges(info, OutputLen);
+  case IOCTL_GET_INFO: {
+    struct PmemMemroyInfo *info = (void *)IoBuffer;
+    int res = AddMemoryRanges(info, OutputLen);
 
-      WinDbgPrint("Returning info on the system memory.\n");
-      if(res > 0) {
-        Irp->IoStatus.Information = res;
-        NtStatus = STATUS_SUCCESS;
-      } else {
-        NtStatus = STATUS_INFO_LENGTH_MISMATCH;
+    // We are currently running in user context which means __readcr3() will
+    // return the process CR3. So we return the kernel CR3 we found before.
+    info->CR3.QuadPart = CR3.QuadPart;
+
+    WinDbgPrint("Returning info on the system memory.\n");
+    if(res > 0) {
+      Irp->IoStatus.Information = res;
+      NtStatus = STATUS_SUCCESS;
+    } else {
+      NtStatus = STATUS_INFO_LENGTH_MISMATCH;
+    };
+
+    Irp->IoStatus.Status = NtStatus;
+  }; break;
+
+  case IOCTL_SET_MODE: {
+    WinDbgPrint("Setting Acquisition mode.\n");
+
+    if (InputLen == sizeof(struct PmemMemoryControl)) {
+      struct PmemMemoryControl *ctrl = (void *)IoBuffer;
+
+      ext->mode = ctrl->mode;
+      NtStatus = STATUS_SUCCESS;
+
+      switch(ctrl->mode) {
+      case ACQUISITION_MODE_PHYSICAL_MEMORY:
+        WinDbgPrint("Using physical memory device for acquisition.\n");
+        break;
+
+      case ACQUISITION_MODE_MAP_IO_SPACE:
+        WinDbgPrint("Using MmMapIoSpace for acquisition.\n");
+        break;
+
+      default:
+        WinDbgPrint("Invalid acquisition mode %d.\n", ctrl->mode);
+        NtStatus = STATUS_INVALID_PARAMETER;
       };
 
-      Irp->IoStatus.Status = NtStatus;
-    }; break;
+    } else {
+      NtStatus = STATUS_INFO_LENGTH_MISMATCH;
+    };
+
+    Irp->IoStatus.Status = NtStatus;
+  }; break;
+
+  default: {
+    WinDbgPrint("Invalid IOCTRL %d\n", IoControlCode);
+  };
   }
 
   //
@@ -276,20 +203,6 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 }
 
 
-/*++
-Function Name: DriverEntry
-
-Overview:
-        - Entry point.
-
-Parameters:
-        - DriverObject: Pointer to PDRIVER_OBJECT.
-
-        - RegistryPath: Pointer to PUNICODE_STRING.
-
-Return Values:
-        - NTSTATUS
---*/
 NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
                       IN PUNICODE_STRING RegistryPath)
 {
@@ -358,6 +271,9 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
     WinDbgPrint ("IoCreateSymbolicLink failed. => %08X\n", NtStatus);
     IoDeleteDevice (DeviceObject);
   }
+
+  // Populate globals in kernel context.
+  CR3.QuadPart = __readcr3();
 
   return NtStatus;
 }
