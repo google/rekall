@@ -79,26 +79,38 @@ class Image(object):
         win32file.DeviceIoControl(
             self.fd, CTRL_IOCTRL, struct.pack("I", mode), 0, None)
 
+    def PadWithNulls(self, outfd, length):
+        while length > 0:
+            to_write = max(length, self.buffer_size)
+            outfd.write("\x00" * to_write)
+            length -= to_write
+
     def DumpWithRead(self, output_filename):
         """Read the image and write all the data to a raw file."""
         with open(output_filename, "wb") as outfd:
             offset = 0
-            count = 0
-            end = self.runs[-1][0] + self.runs[-1][1]
-            print "Imaging %s bytes to file %s. Each . below represents 1 MB." % (
-                end, output_filename)
+            for start, length in self.runs:
+                if start > offset:
+                    print "\nPadding from 0x%X to 0x%X\n" % (offset, start)
+                    self.PadWithNulls(outfd, start - offset)
 
-            for offset in range(0, end, self.buffer_size):
-                win32file.SetFilePointer(self.fd, offset, 0)
-                _, data = win32file.ReadFile(self.fd, self.buffer_size)
-                outfd.write(data)
+                offset = start
+                end = start + length
+                while offset < end:
+                    to_read = min(self.buffer_size, end - offset)
+                    win32file.SetFilePointer(self.fd, offset, 0)
 
-                offset_in_mb = offset/1024/1024
-                if not offset_in_mb % 50:
-                    sys.stdout.write("\n%04dMB\t" % offset_in_mb)
+                    _, data = win32file.ReadFile(self.fd, to_read)
+                    outfd.write(data)
 
-                sys.stdout.write(".")
-                sys.stdout.flush()
+                    offset += to_read
+
+                    offset_in_mb = offset/1024/1024
+                    if not offset_in_mb % 50:
+                        sys.stdout.write("\n%04dMB\t" % offset_in_mb)
+
+                    sys.stdout.write(".")
+                    sys.stdout.flush()
 
 def main():
     """Load the driver and image the memory."""

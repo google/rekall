@@ -8,11 +8,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
 @author:       Andrew Case
@@ -59,7 +59,7 @@ class Ifconfig(common.AbstractLinuxCommandPlugin):
             vm=self.kernel_address_space)
 
         for net_dev in common.walk_internal_list("net_device", "next", net_device.v(), self.addr_space):
-        
+
             in_dev = obj.Object("in_device", offset = net_dev.ip_ptr, vm = self.addr_space)
 
             yield net_dev, in_dev
@@ -86,14 +86,14 @@ class Ifconfig(common.AbstractLinuxCommandPlugin):
                 ip = in_dev.ifa_list.ifa_address.cast("IpAddress")
             else:
                 # for interfaces w/o an ip address (dummy/bond)
-                ip = 0
+                ip = "0.0.0.0"
 
             if self.profile.obj_has_member("net_device", "perm_addr"):
                 hwaddr = net_dev.perm_addr
             else:
                 hwaddr = net_dev.dev_addr
 
-            mac_addr = ":".join(["%.02x" % x for x in hwaddr][:6]) 
+            mac_addr = ":".join(["%.02x" % x for x in hwaddr][:6])
 
             outfd.write("{0:8s} {1:16s} {2:32s}\n".format(
                     net_dev.name, ip, mac_addr))
