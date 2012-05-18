@@ -313,7 +313,8 @@ class BaseObject(object):
 
     @property
     def obj_offset(self):
-        return self._vol_offset
+        # 64 bit addresses are always sign extended, so we need to clear the top bits.
+        return self._vol_offset & 0xffffffffffff
 
     @property
     def obj_parent(self):
@@ -566,6 +567,13 @@ class Pointer(NativeType):
 
         self.target_size = 0
 
+    def v(self):
+        # 64 bit addresses are always sign extended so we need to clear to top bits.
+        return 0xffffffffffff & super(Pointer, self).v()
+
+    def __eq__(self, other):
+        return (0xffffffffffff & other) == self.v()
+
     def is_valid(self):
         """ Returns if what we are pointing to is valid """
         return self.obj_vm.is_valid_address(self.v())
@@ -657,6 +665,8 @@ class Pointer(NativeType):
 
         return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm,
                                        parent=self, **kwargs)
+
+
 
 
 
@@ -766,9 +776,12 @@ class Array(BaseObject):
         ## Check if the offset is valid
         offset = self.obj_offset + pos * self.current.size()
 
-        return self.target(offset=offset, vm=self.obj_vm, parent=self,
-                           profile=self.obj_profile,
-                           name = "{0} {1}".format(self.obj_name, pos))
+        try:
+            return self.target(offset=offset, vm=self.obj_vm, parent=self,
+                               profile=self.obj_profile,
+                               name = "{0} {1}".format(self.obj_name, pos))
+        except InvalidOffsetError:
+            return NoneObject("Invalid offset %s" % offset)
 
 
 class CType(BaseObject):
