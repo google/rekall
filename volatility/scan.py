@@ -51,6 +51,9 @@ class BaseScanner(object):
         self.profile = profile
         self.max_length = None
         self.base_offset = None
+        self.build_constraints()
+
+    def build_constraints(self):
         self.constraints = []
         for class_name, args in self.checks:
             check = ScannerCheck.classes[class_name](
@@ -158,6 +161,42 @@ class ScannerCheck(object):
     ## that all checks have a chance of passing.
     def skip(self, data, offset):
         return -1
+
+
+class MultiStringFinderCheck(ScannerCheck):
+    """A scanner checker for multiple strings."""
+
+    def __init__(self, needles = None, **kwargs):
+        """
+        Args:
+          needles: A list of strings we search for.
+        """
+        super(MultiStringFinderCheck, self).__init__(**kwargs)
+        if not needles:
+            needles = []
+        self.needles = needles
+        self.maxlen = 0
+        for needle in needles:
+            self.maxlen = max(self.maxlen, len(needle))
+        if not self.maxlen:
+            raise RuntimeError("No needles of any length were found for the "
+                               "MultiStringFinderCheck")
+
+    def check(self, offset):
+        verify = self.address_space.read(offset, self.maxlen)
+        for match in self.needles:
+            if verify[:len(match)] == match:
+                return True
+        return False
+
+    def skip(self, data, offset):
+        nextval = len(data)
+        for needle in self.needles:
+            dindex = data.find(needle, offset + 1)
+            if dindex > -1:
+                nextval = min(nextval, dindex)
+        return nextval - offset
+
 
 class ScannerGroup(BaseScanner):
     """Runs a bunch of scanners in one pass over the image."""

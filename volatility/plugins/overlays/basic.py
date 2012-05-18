@@ -86,8 +86,7 @@ class UnicodeString(String):
     """
     def __init__(self, encoding=None, **kwargs):
         super(UnicodeString, self).__init__(**kwargs)
-        if encoding is None:
-            self.encoding = self.obj_profile.get_constant('default_text_encoding')
+        self.encoding = encoding or self.obj_profile.get_constant('default_text_encoding')
 
     def v(self, vm=None):
         """Note this returns a unicode object."""
@@ -95,9 +94,12 @@ class UnicodeString(String):
         data = super(UnicodeString, self).v().decode(self.encoding, "ignore")
         return data.split("\x00")[0]
 
+    def __unicode__(self, vm=None):
+        return self.v(vm=vm) or ''
+
     def __str__(self):
         """This function returns an encoded string in utf8."""
-        return self.v().encode("utf8")
+        return self.v().encode("utf8") or ''
 
 
 class Flags(obj.NativeType):
@@ -192,6 +194,98 @@ class IpAddress(obj.NativeType):
         return socket.inet_ntoa(struct.pack("<I", value))
 
 
+class _LIST_ENTRY(obj.CType):
+    """ Adds iterators for _LIST_ENTRY types """
+
+    def dereference_as(self, type, member, vm=None):
+        """Recasts the list entry as a member in a type, and return the type.
+
+        Args:
+           type: The name of this CType type.
+           member: The name of the member of this CType.
+           address_space: An optional address space to switch during
+              deferencing.
+        """
+        offset = self.obj_profile.get_obj_offset(type, member)
+
+        item = self.obj_profile.Object(
+            theType=type, offset = self.obj_offset - offset,
+            vm = vm or self.obj_vm, parent = self.obj_parent,
+            name = type)
+
+        return item
+
+    def find_all_lists(self, seen):
+        """Follows all the list entries starting from lst.
+
+        We basically convert the list to a tree and recursively search it for
+        new nodes. From each node we follow the Flink and then the Blink. When
+        we see a node we already have, we backtrack. This allows us to find
+        nodes which do not satisfy the relation (Due to smear):
+
+        x.Flink.Blink = x
+        """
+        if not self.is_valid():
+            return
+        elif self in seen:
+            return
+
+        seen.append(self)
+        Flink = self.Flink.dereference()
+        Flink.find_all_lists(seen)
+
+        Blink = self.Blink.dereference()
+        Blink.find_all_lists(seen)
+
+    def list_of_type(self, type, member):
+        result = []
+        self.find_all_lists(result)
+
+        # We traverse all the _LIST_ENTRYs we can find, and cast them all back
+        # to the required member.
+        for lst in result:
+            # Skip ourselves in this (list_of_type is usually invoked on a list
+            # head).
+            if lst.obj_offset == self.obj_offset:
+                continue
+
+            task = lst.dereference_as(type, member)
+            if task:
+                # Only yield valid objects (In case of dangling links).
+                yield task
+
+    def reflect(self, vm=None):
+        """Reflect this list element by following its Flink and Blink.
+
+        This is basically the same as Flink.Blink except that it also checks
+        Blink.Flink. It also ensures that Flink and Blink are dereferences to
+        the correct type in case the vtypes do not specify them as pointers.
+
+        Returns:
+          the result of Flink.Blink.
+        """
+        result1 = self.Flink.dereference_as(self.obj_type, vm=vm).Blink.dereference_as(
+            self.obj_type)
+
+        if not result1:
+            return obj.NoneObject("Flink not valid.")
+
+        result2 = self.Blink.dereference_as(self.obj_type, vm=vm).Flink.dereference_as(
+            self.obj_type)
+
+        if result1 != result2:
+            return obj.NoneObject("Flink and Blink not consistent.")
+
+        return result1
+
+    def __nonzero__(self):
+        ## List entries are valid when both Flinks and Blink are valid
+        return bool(self.Flink) or bool(self.Blink)
+
+    def __iter__(self):
+        return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
+
+
 # TODO: Remove this hack.
 class VOLATILITY_MAGIC(obj.CType):
     """Class representing a VOLATILITY_MAGIC namespace
@@ -242,6 +336,9 @@ class BasicWindowsClasses(obj.Profile):
             'Flags': Flags,
             'Enumeration': Enumeration,
             'IpAddress': IpAddress,
+            '_LIST_ENTRY': _LIST_ENTRY,
+            'LIST_ENTRY32': _LIST_ENTRY,
+            'LIST_ENTRY64': _LIST_ENTRY,
             })
 
         self.add_constants(default_text_encoding="utf16")

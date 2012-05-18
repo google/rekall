@@ -19,12 +19,18 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import logging
+import optparse
 
 from volatility import conf
 from volatility import session
 
 # Import and register the core plugins
 from volatility import plugins
+
+parser = optparse.OptionParser()
+parser.add_option("-e", "--exec", default=None,
+                  help="execute a python volatility script.")
+
 
 def IPython011Support(user_session):
     """Launch the ipython session for pre 0.12 versions.
@@ -106,6 +112,8 @@ def NativePythonSupport(user_session):
 
 
 if __name__ == '__main__':
+    FLAGS, args = parser.parse_args()
+
     logging.basicConfig(level=logging.INFO)
 
     # New user session. TODO(scudette): Implement some kind of parameter parsing

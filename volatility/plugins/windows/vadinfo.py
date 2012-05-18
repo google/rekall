@@ -29,6 +29,7 @@
 
 import os.path
 from volatility import plugin
+from volatility import scan
 from volatility.plugins.windows import common
 
 
@@ -112,7 +113,7 @@ class VADInfo(common.WinProcessFilter):
     def write_vad_short(self, outfd, vad):
         """Renders a text version of a Short Vad"""
         outfd.write("VAD node @{0:08x} Start {1:08x} End {2:08x} Tag {3:4}\n".format(
-            vad.obj_offset, vad.get_start(), vad.get_end(), vad.Tag))
+            vad.obj_offset, vad.Start, vad.End, vad.Tag))
         outfd.write("Flags: {0}\n".format(str(vad.u.VadFlags)))
 
         # although the numeric value of Protection is printed above with VadFlags,
@@ -194,8 +195,7 @@ class VADTree(VADInfo):
                     level = levels.get(vad.Parent.v(), -1) + 1
                     levels[vad.obj_offset] = level
                     outfd.write(u" " * level + u"{0:08x} - {1:08x}\n".format(
-                                vad.get_start(),
-                                vad.get_end()))
+                                vad.Start, vad.End))
 
     def render_dot(self, outfd):
         for task in self.filter_processes():
@@ -213,10 +213,7 @@ class VADTree(VADInfo):
                     outfd.write(
                         u"vad_{0:08x} [label = \"{{ {1}\\n{2:08x} - {3:08x} }}\""
                         "shape = \"record\" color = \"blue\"];\n".format(
-                            vad.obj_offset,
-                            vad.Tag,
-                            vad.get_start(),
-                            vad.get_end()))
+                            vad.obj_offset, vad.Tag, vad.Start, vad.End))
 
             outfd.write(u"}\n")
 
@@ -241,9 +238,7 @@ class VADWalk(VADInfo):
                         vad.Parent.v() or 0,
                         vad.LeftChild.dereference().obj_offset or 0,
                         vad.RightChild.dereference().obj_offset or 0,
-                        vad.get_start(),
-                        vad.get_end(),
-                        vad.Tag))
+                        vad.Start, vad.End, vad.Tag))
 
 class VADDump(VADInfo):
     """Dumps out the vad sections to a file"""
@@ -291,8 +286,8 @@ class VADDump(VADInfo):
                     continue
 
                 # Find the start and end range
-                start = vad.get_start()
-                end = vad.get_end()
+                start = vad.Start
+                end = vad.End
 
                 # Open the file and initialize the data
                 path = os.path.join(
@@ -308,3 +303,26 @@ class VADDump(VADInfo):
                         outfd.write("Writing VAD for %s\n" % path)
 
                     f.write(range_data)
+
+
+class VadScanner(scan.BaseScanner):
+    """A scanner over all memory regions of a process."""
+
+    def __init__(self, task=None, process_profile=None):
+        """Scan the process address space through the Vads.
+
+        Args:
+          task: The _EPROCESS object for this task.
+
+          process_profile: The specialized profile for this process. In practice
+            this is always different from task.obj_profile (which belongs to the
+            kernel). If not provided we default to the kernel profile.
+        """
+        self.task = task
+        super(VadScanner, self).__init__(profile=process_profile or task.obj_profile,
+                                         address_space=task.get_process_address_space())
+
+    def scan(self, offset=0, maxlen=None):
+        for vad in self.task.VadRoot.traverse():
+            for match in super(VadScanner, self).scan(vad.Start, vad.End - vad.Start):
+                yield match

@@ -114,17 +114,17 @@ class WinDllList(common.WinProcessFilter):
         for task in self.filter_processes():
             pid = task.UniqueProcessId
 
-            outfd.write("*" * 72 + "\n")
-            outfd.write("{0} pid: {1:6}\n".format(task.ImageFileName, pid))
+            outfd.write(u"*" * 72 + "\n")
+            outfd.write(u"{0} pid: {1:6}\n".format(task.ImageFileName, pid))
 
             if task.Peb:
-                outfd.write("Command line : {0}\n".format(
+                outfd.write(u"Command line : {0}\n".format(
                         task.Peb.ProcessParameters.CommandLine))
-                outfd.write("{0}\n".format(task.Peb.CSDVersion))
-                outfd.write("\n")
-                outfd.write("{0:12} {1:12} {2}\n".format('Base', 'Size', 'Path'))
+                outfd.write(u"{0}\n".format(task.Peb.CSDVersion))
+                outfd.write(u"\n")
+                outfd.write(u"{0:12} {1:12} {2}\n".format('Base', 'Size', 'Path'))
                 for m in task.get_load_modules():
-                    outfd.write("0x{0:08x}   0x{1:06x}     {2}\n".format(
+                    outfd.write(u"0x{0:08x}   0x{1:06x}     {2}\n".format(
                             m.DllBase, m.SizeOfImage, m.FullDllName))
             else:
                 outfd.write("Unable to read PEB for task.\n")
@@ -212,9 +212,9 @@ class WinMemDump(WinMemMap):
 
         for task in self.filter_processes():
             outfd.write("*" * 72 + "\n")
-            filename = "{0}_{1:d}.dmp".format(task.ImageFileName, task.UniqueProcessId)
+            filename = u"{0}_{1:d}.dmp".format(task.ImageFileName, task.UniqueProcessId)
 
-            outfd.write("Writing {0} {1:6} to {2}\n".format(
+            outfd.write(u"Writing {0} {1:6} to {2}\n".format(
                     task.ImageFileName, task, filename))
 
             with open(os.path.join(self.dump_dir, filename), 'wb') as fd:

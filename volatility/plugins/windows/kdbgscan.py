@@ -24,40 +24,6 @@ from volatility import plugin
 from volatility.plugins.windows import common
 
 
-class MultiStringFinderCheck(scan.ScannerCheck):
-    """A scanner checker for multiple strings."""
-
-    def __init__(self, needles = None, **kwargs):
-        """
-        Args:
-          needles: A list of strings we search for.
-        """
-        super(MultiStringFinderCheck, self).__init__(**kwargs)
-        if not needles:
-            needles = []
-        self.needles = needles
-        self.maxlen = 0
-        for needle in needles:
-            self.maxlen = max(self.maxlen, len(needle))
-        if not self.maxlen:
-            raise RuntimeError("No needles of any length were found for the "
-                               "MultiStringFinderCheck")
-
-    def check(self, offset):
-        verify = self.address_space.read(offset, self.maxlen)
-        for match in self.needles:
-            if verify[:len(match)] == match:
-                return True
-        return False
-
-    def skip(self, data, offset):
-        nextval = len(data)
-        for needle in self.needles:
-            dindex = data.find(needle, offset + 1)
-            if dindex > -1:
-                nextval = min(nextval, dindex)
-        return nextval - offset
-
 
 class KDBGScanner(scan.DiscontigScanner):
     """Scans for _KDDEBUGGER_DATA64 structures.

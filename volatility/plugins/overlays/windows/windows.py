@@ -165,98 +165,6 @@ class _UNICODE_STRING(obj.CType):
         return self.v() or ''
 
 
-class _LIST_ENTRY(obj.CType):
-    """ Adds iterators for _LIST_ENTRY types """
-
-    def dereference_as(self, type, member, vm=None):
-        """Recasts the list entry as a member in a type, and return the type.
-
-        Args:
-           type: The name of this CType type.
-           member: The name of the member of this CType.
-           address_space: An optional address space to switch during
-              deferencing.
-        """
-        offset = self.obj_profile.get_obj_offset(type, member)
-
-        item = self.obj_profile.Object(
-            theType=type, offset = self.obj_offset - offset,
-            vm = vm or self.obj_vm, parent = self.obj_parent,
-            name = type)
-
-        return item
-
-    def find_all_lists(self, seen):
-        """Follows all the list entries starting from lst.
-
-        We basically convert the list to a tree and recursively search it for
-        new nodes. From each node we follow the Flink and then the Blink. When
-        we see a node we already have, we backtrack. This allows us to find
-        nodes which do not satisfy the relation (Due to smear):
-
-        x.Flink.Blink = x
-        """
-        if not self.is_valid():
-            return
-        elif self in seen:
-            return
-
-        seen.append(self)
-        Flink = self.Flink.dereference()
-        Flink.find_all_lists(seen)
-
-        Blink = self.Blink.dereference()
-        Blink.find_all_lists(seen)
-
-    def list_of_type(self, type, member):
-        result = []
-        self.find_all_lists(result)
-
-        # We traverse all the _LIST_ENTRYs we can find, and cast them all back
-        # to the required member.
-        for lst in result:
-            # Skip ourselves in this (list_of_type is usually invoked on a list
-            # head).
-            if lst.obj_offset == self.obj_offset:
-                continue
-
-            task = lst.dereference_as(type, member)
-            if task:
-                # Only yield valid objects (In case of dangling links).
-                yield task
-
-    def reflect(self, vm=None):
-        """Reflect this list element by following its Flink and Blink.
-
-        This is basically the same as Flink.Blink except that it also checks
-        Blink.Flink. It also ensures that Flink and Blink are dereferences to
-        the correct type in case the vtypes do not specify them as pointers.
-
-        Returns:
-          the result of Flink.Blink.
-        """
-        result1 = self.Flink.dereference_as(self.obj_type, vm=vm).Blink.dereference_as(
-            self.obj_type)
-
-        if not result1:
-            return obj.NoneObject("Flink not valid.")
-
-        result2 = self.Blink.dereference_as(self.obj_type, vm=vm).Flink.dereference_as(
-            self.obj_type)
-
-        if result1 != result2:
-            return obj.NoneObject("Flink and Blink not consistent.")
-
-        return result1
-
-    def __nonzero__(self):
-        ## List entries are valid when both Flinks and Blink are valid
-        return bool(self.Flink) or bool(self.Blink)
-
-    def __iter__(self):
-        return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
-
-
 class WinTimeStamp(obj.NativeType):
     """Class for handling Windows Time Stamps"""
 
@@ -381,6 +289,23 @@ class _EPROCESS(obj.CType):
             return token
 
         return obj.NoneObject("Cannot get process Token")
+
+    def ObReferenceObjectByHandle(self, handle, type=None):
+        """Search the object table and retrieve the object by handle.
+
+        Args:
+          handle: The handle we search for.
+          type: The object will be cast to this type.
+        """
+        for h in self.ObjectTable.handles():
+            if h.HandleValue == handle:
+                if type is None:
+                    return h
+                else:
+                    return h.dereference_as(type)
+
+        return obj.NoneObject("Could not find handle in ObjectTable")
+
 
 class _TOKEN(obj.CType):
     """A class for Tokens"""
@@ -663,11 +588,13 @@ class _MMVAD(obj.CType):
             visited.add(c.obj_offset)
             yield c
 
-    def get_start(self):
+    @property
+    def Start(self):
         """Get the starting virtual address"""
         return self.StartingVpn << 12
 
-    def get_end(self):
+    @property
+    def End(self):
         """Get the ending virtual address"""
         return ((self.EndingVpn + 1) << 12) - 1
 
@@ -764,9 +691,6 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
         self.add_types(ssdt_vtypes.ssdt_vtypes)
         self.add_classes({
             '_UNICODE_STRING': _UNICODE_STRING,
-            '_LIST_ENTRY': _LIST_ENTRY,
-            'LIST_ENTRY32': _LIST_ENTRY,
-            'LIST_ENTRY64': _LIST_ENTRY,
             'WinTimeStamp': WinTimeStamp,
             '_EPROCESS': _EPROCESS,
             '_ETHREAD': _ETHREAD,

@@ -8,11 +8,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
 @author:       Andrew Case
@@ -23,8 +23,7 @@
 
 from volatility.plugins.linux import common
 
-
-class a_ent:    
+class a_ent:
     def __init__(self, ip, mac, devname):
         self.ip      = ip
         self.mac     = mac
@@ -47,7 +46,7 @@ class Arp(common.AbstractLinuxCommandPlugin):
 
         for ntable in common.walk_internal_list("neigh_table", "next", ntables_ptr, self.addr_space):
             yield self.handle_table(ntable)
-        
+
     def handle_table(self, ntable):
 
         ret = []
@@ -65,11 +64,11 @@ class Arp(common.AbstractLinuxCommandPlugin):
         return sum(ret, [])
 
     def walk_neighbor(self, neighbor):
-    
+
         ret = []
 
         for n in linux_common.walk_internal_list("neighbour", "next", neighbor.v(), self.addr_space):
-            
+
             # get the family from each neighbour in order to work with ipv4 and 6
             family = n.tbl.family
 
@@ -83,13 +82,13 @@ class Arp(common.AbstractLinuxCommandPlugin):
             else:
                 ip = '?'
 
-            mac     = ":".join(["%.02x" % x for x in n.ha][:n.dev.addr_len]) 
+            mac     = ":".join(["%.02x" % x for x in n.ha][:n.dev.addr_len])
             devname = n.dev.name
 
             ret.append(a_ent(ip, mac, devname))
 
         return ret
-            
+
     def render(self, outfd):
         for arp_list in self.get_handle_tables():
             for ent in arp_list:

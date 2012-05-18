@@ -30,40 +30,19 @@ import os
 from volatility import addrspace
 
 
-class FileAddressSpace(addrspace.BaseAddressSpace):
-    """ This is a direct file AS.
+class FDAddressSpace(addrspace.BaseAddressSpace):
+    """An address space which operated on a file like object."""
 
-    For this AS to be instantiated, we need
+    __name = "filelike"
 
-    1) A valid config.filename
-
-    2) no one else has picked the AS before us
-
-    3) base == None (we dont operate on anyone else so we need to be
-    right at the bottom of the AS stack.)
-    """
-
-    __name = "file"
-
-    ## We should be the AS of last resort
-    order = 100
-
-    def __init__(self, filename=None, **kwargs):
-        super(FileAddressSpace, self).__init__(**kwargs)
-
+    def __init__(self, fhandle=None, **kwargs):
+        super(FDAddressSpace, self).__init__(**kwargs)
         self.as_assert(self.base == None, 'Must be first Address Space')
 
-        path = (self.session and self.session.filename) or filename
-        self.as_assert(path, "Filename must be specified in session (e.g. "
-                       "session.filename = 'MyFile.raw').")
+        fhandle = (self.session and self.session.fhandle) or fhandle
+        self.as_assert(fhandle is not None, 'file handle must be provided')
 
-        self.name = os.path.abspath(path)
-        self.fname = self.name
-        self.mode = 'rb'
-        if self.writeable:
-            self.mode += '+'
-
-        self.fhandle = open(self.fname, self.mode)
+        self.fhandle = fhandle
         self.fhandle.seek(0, 2)
         self.fsize = self.fhandle.tell()
         self.offset = 0
@@ -112,6 +91,41 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
         return (self.__class__ == other.__class__ and
                 self.base == other.base and
                 self.fname == other.fname)
+
+
+class FileAddressSpace(FDAddressSpace):
+    """ This is a direct file AS.
+
+    For this AS to be instantiated, we need
+
+    1) A valid config.filename
+
+    2) no one else has picked the AS before us
+
+    3) base == None (we dont operate on anyone else so we need to be
+    right at the bottom of the AS stack.)
+    """
+
+    __name = "file"
+
+    ## We should be the AS of last resort
+    order = 100
+
+    def __init__(self, filename=None, **kwargs):
+        self.as_assert(self.base == None, 'Must be first Address Space')
+
+        path = (self.session and self.session.filename) or filename
+        self.as_assert(path, "Filename must be specified in session (e.g. "
+                       "session.filename = 'MyFile.raw').")
+
+        self.name = os.path.abspath(path)
+        self.fname = self.name
+        self.mode = 'rb'
+        if self.writeable:
+            self.mode += '+'
+
+        fhandle = open(self.fname, self.mode)
+        super(FileAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
 
 
 class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
