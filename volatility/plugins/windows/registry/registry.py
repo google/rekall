@@ -291,13 +291,13 @@ class _CM_KEY_INDEX(obj.CType):
             # not care about the hash at all, so we skip every other entry. See
             # http://www.sentinelchicken.com/data/TheWindowsNTRegistryFileFormat.pdf
             for i in range(self.Count):
-                nk = self.List[i * 2]
+                nk = self.List[i]
                 if nk.Signature == self.NK_SIG:
                     yield nk
 
         elif self.Signature == self.RI_SIG:
-            import pdb; pdb.set_trace()
             for i in range(self.Count):
+                import pdb; pdb.set_trace()
                 # This is a pointer to another _CM_KEY_INDEX
                 for subkey in self.obj_profile.Object(
                     "Pointer", type_name="_CM_KEY_INDEX", offset=self.List[i].v(),

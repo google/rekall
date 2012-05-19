@@ -17,10 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import datetime
-
-from volatility import timefmt
-from volatility import debug
 from volatility import obj
 from volatility import addrspace
 
@@ -165,63 +161,6 @@ class _UNICODE_STRING(obj.CType):
         return self.v() or ''
 
 
-class WinTimeStamp(obj.NativeType):
-    """Class for handling Windows Time Stamps"""
-
-    def __init__(self, is_utc = False, **kwargs):
-        self.is_utc = is_utc
-        obj.NativeType.__init__(self, format_string = "q", **kwargs)
-
-    def windows_to_unix_time(self, windows_time):
-        """
-        Converts Windows 64-bit time to UNIX time
-
-        @type  windows_time:  Integer
-        @param windows_time:  Windows time to convert (64-bit number)
-
-        @rtype  Integer
-        @return  UNIX time
-        """
-        if(windows_time == 0):
-            unix_time = 0
-        else:
-            unix_time = windows_time / 10000000
-            unix_time = unix_time - 11644473600
-
-        if unix_time < 0:
-            unix_time = 0
-
-        return unix_time
-
-    def as_windows_timestamp(self):
-        return obj.NativeType.v(self)
-
-    def v(self, vm=None):
-        value = self.as_windows_timestamp()
-        return self.windows_to_unix_time(value)
-
-    def __nonzero__(self):
-        return self.v() != 0
-
-    def __str__(self):
-        return "{0}".format(self)
-
-    def as_datetime(self):
-        try:
-            dt = datetime.datetime.utcfromtimestamp(self.v())
-            if self.is_utc:
-                # Only do dt.replace when dealing with UTC
-                dt = dt.replace(tzinfo = timefmt.UTC())
-        except ValueError, e:
-            return obj.NoneObject("Datetime conversion failure: " + str(e))
-        return dt
-
-    def __format__(self, formatspec):
-        """Formats the datetime according to the timefmt module"""
-        dt = self.as_datetime()
-        if dt != None:
-            return format(timefmt.display_datetime(dt), formatspec)
-        return "-"
 
 class _EPROCESS(obj.CType):
     """ An extensive _EPROCESS with bells and whistles """
@@ -638,7 +577,7 @@ class _EX_FAST_REF(obj.CType):
                                        parent = parent or self, **kwargs)
 
 
-class ThreadCreateTimeStamp(WinTimeStamp):
+class ThreadCreateTimeStamp(basic.WinTimeStamp):
     """Handles ThreadCreateTimeStamps which are bit shifted WinTimeStamps"""
     def as_windows_timestamp(self):
         return obj.NativeType.v(self) >> 3
@@ -691,7 +630,6 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
         self.add_types(ssdt_vtypes.ssdt_vtypes)
         self.add_classes({
             '_UNICODE_STRING': _UNICODE_STRING,
-            'WinTimeStamp': WinTimeStamp,
             '_EPROCESS': _EPROCESS,
             '_ETHREAD': _ETHREAD,
             '_HANDLE_TABLE': _HANDLE_TABLE,

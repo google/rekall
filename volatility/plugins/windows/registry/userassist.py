@@ -179,7 +179,7 @@ class UserAssist(common.WindowsCommandPlugin):
         # This is an example of using a domain specific profile. We first make a
         # virgin profile suitable for windows, then add the userassist
         # definitions based on the operating system.
-        self.ua_profile = self.profile.classes["BaseWindowsProfile"]()
+        self.ua_profile = self.profile.classes["BasicWindowsClasses"]()
 
         # Update the profiles for user assist types.
         if self.profile.metadata('major') == 6 and self.profile.metadata('minor') == 1:

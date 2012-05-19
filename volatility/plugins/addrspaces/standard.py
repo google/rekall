@@ -112,8 +112,6 @@ class FileAddressSpace(FDAddressSpace):
     order = 100
 
     def __init__(self, filename=None, **kwargs):
-        self.as_assert(self.base == None, 'Must be first Address Space')
-
         path = (self.session and self.session.filename) or filename
         self.as_assert(path, "Filename must be specified in session (e.g. "
                        "session.filename = 'MyFile.raw').")

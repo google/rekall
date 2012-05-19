@@ -572,7 +572,10 @@ class Pointer(NativeType):
         return 0xffffffffffff & super(Pointer, self).v()
 
     def __eq__(self, other):
-        return (0xffffffffffff & other) == self.v()
+        try:
+            return (0xffffffffffff & other) == self.v()
+        except TypeError:
+            return False
 
     def is_valid(self):
         """ Returns if what we are pointing to is valid """
