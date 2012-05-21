@@ -11,11 +11,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 #pylint: disable-msg=C0111
@@ -30,7 +30,8 @@ class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
 
     __name = "modules"
 
-    # A local cache for find_modules.
+    # A local cache for find_modules. Key is module base and value is the
+    # _LDR_DATA_TABLE_ENTRY for the module.
     mod_lookup = None
     modlist = None
 
@@ -40,6 +41,22 @@ class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
 
     def lsmod(self):
         """ A Generator for modules (uses _KPCR symbols) """
+        if not self.mod_lookup:
+            self._make_cache()
+
+        for module in self.mod_lookup.values():
+            yield module
+
+    def addresses(self):
+        """Returns a list of module addresses."""
+        if not self.mod_lookup:
+            self._make_cache()
+
+        return sorted(self.mod_lookup.keys())
+
+    def _make_cache(self):
+        self.mod_lookup = {}
+
         ## Try to iterate over the process list in PsActiveProcessHead
         ## (its really a pointer to a _LIST_ENTRY)
         PsLoadedModuleList = self.kdbg.PsLoadedModuleList.dereference_as(
@@ -47,7 +64,9 @@ class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
 
         for l in PsLoadedModuleList.list_of_type("_LDR_DATA_TABLE_ENTRY",
                                                  "InLoadOrderLinks"):
-            yield l
+            self.mod_lookup[l.DllBase.v()] = l
+
+        self.modlist = sorted(self.mod_lookup.keys())
 
     def find_module(self, addr):
         """Uses binary search to find what module a given address resides in.
@@ -56,8 +75,7 @@ class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
         to do it many times. Note that modlist and mod_addrs must be sorted
         in order of the module base address."""
         if self.mod_lookup is None:
-            self.mod_lookup = dict([(x.DllBase.v(), x) for x in self.lsmod()])
-            self.modlist = sorted(self.mod_lookup.keys())
+            self._make_cache()
 
         pos = bisect.bisect_right(self.modlist, addr) - 1
         if pos == -1:
@@ -69,8 +87,6 @@ class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
             return mod
         else:
             return None
-
-
 
     def render(self, outfd):
         outfd.write("Offset(V)  Offset(P)  {0:50} {1:12} {2:8} {3}\n".format(

@@ -383,8 +383,11 @@ class BaseObject(object):
         return not self == other
 
     def __hash__(self):
-        # This should include the critical components of self.obj_vm
-        return hash(self.obj_name) ^ hash(self.obj_offset)
+        # This needs to be the same as the object we proxy so that we can mix
+        # with native types in sets and dicts. For example:
+        # pids = set([1,2,3])
+        # if task.UniqueProcessId in pids: ....
+        return hash(self.v())
 
     def m(self, memname):
         raise AttributeError("No member {0}".format(memname))
@@ -670,9 +673,6 @@ class Pointer(NativeType):
                                        parent=self, **kwargs)
 
 
-
-
-
 class Void(Pointer):
     def __init__(self, **kwargs):
         kwargs['theType'] = 'unsigned long'
@@ -884,20 +884,26 @@ class CType(BaseObject):
 
         return result
 
-    def __setattr__(self, attr, value):
-        """Change underlying members"""
-        # Special magic to allow initialization
-        if not self.__dict__.has_key('_CType__initialized'):  # this test allows attributes to be set in the __init__ method
-            return BaseObject.__setattr__(self, attr, value)
-        elif self.__dict__.has_key(attr):       # any normal attributes are handled normally
-            return BaseObject.__setattr__(self, attr, value)
-        else:
-            obj = self.m(attr)
-            if not obj.write(value):
-                raise ValueError("Error writing value to member " + attr)
+    def __eq__(self, other):
+        try:
+            return type(self) == type(other) and int(self) == int(other)
+        except (TypeError, ValueError):
+            return False
 
-        # If you hit this, cosider using obj.newattr('attr', value)
-        raise ValueError("Attribute " + attr + " was set after object initialization")
+    def __lt__(self, other):
+        try:
+            return self.obj_offset < int(other)
+        except (TypeError, ValueError):
+            return False
+
+    def __le__(self, other):
+        return self < other and self == other
+
+    def __gt__(self, other):
+        return not self < other and not self == other
+
+    def __ge__(self, other):
+        return not self < other
 
 
 ## Profiles are the interface for creating/interpreting

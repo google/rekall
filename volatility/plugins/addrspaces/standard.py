@@ -111,19 +111,21 @@ class FileAddressSpace(FDAddressSpace):
     ## We should be the AS of last resort
     order = 100
 
-    def __init__(self, filename=None, **kwargs):
-        path = (self.session and self.session.filename) or filename
+    def __init__(self, filename=None, session=None, **kwargs):
+        self.session = session
+        path = filename or (session and session.filename)
         self.as_assert(path, "Filename must be specified in session (e.g. "
                        "session.filename = 'MyFile.raw').")
 
         self.name = os.path.abspath(path)
         self.fname = self.name
         self.mode = 'rb'
-        if self.writeable:
-            self.mode += '+'
 
         fhandle = open(self.fname, self.mode)
-        super(FileAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
+        super(FileAddressSpace, self).__init__(fhandle=fhandle, session=session,
+                                               **kwargs)
+        self.as_assert(self.base == None, 'Must be first Address Space')
+
 
 
 class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):

@@ -21,6 +21,7 @@ from volatility import obj
 from volatility import addrspace
 
 from volatility.plugins.overlays import basic
+from volatility.plugins.overlays.windows import pe_vtypes
 from volatility.plugins.windows import kpcrscan
 from volatility.plugins.windows import kdbgscan
 
@@ -648,11 +649,5 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
 
         self.add_overlay(windows_overlay)
 
-### DEPRECATED FEATURES ###
-#
-# These are due from removal after version 2.2,
-# please do not rely upon them
-
-class AbstractWindows(obj.Profile):
-    """ A Profile for Windows systems """
-    _md_os = 'windows'
+        # Also apply basic PE file parsing to the overlays.
+        pe_vtypes.PEFileImplementation.Modify(self)

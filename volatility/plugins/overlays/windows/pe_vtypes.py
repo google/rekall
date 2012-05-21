@@ -118,6 +118,10 @@ pe_vtypes = {
     'SizeOfOptionalHeader' : [ 0x10, ['unsigned short']],
     'Characteristics' : [ 0x12, ['unsigned short']],
 } ],
+  '_IMAGE_DATA_DIRECTORY' : [ 0x8, {
+    'VirtualAddress' : [ 0x0, ['unsigned long']],
+    'Size' : [ 0x4, ['unsigned long']],
+} ],
     }
 
 pe_vtypes_64 = {
@@ -139,7 +143,7 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
         Check the sanity of export table fields.
 
         The RVAs cannot be larger than the module size. The function
-        and name counts cannot be larger than 32K. 
+        and name counts cannot be larger than 32K.
         """
         try:
             return (self.AddressOfFunctions < nt_header.OptionalHeader.SizeOfImage and
@@ -154,11 +158,11 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
         """
         Return a String object for the function name.
 
-        Names are truncated at 128 characters although its possible 
+        Names are truncated at 128 characters although its possible
         they may be longer. Thus, infrequently a function name will
         be missing some data. However, that's better than hard-coding
-        a larger value which frequently causes us to cross page 
-        boundaries and return a NoneObject anyway.  
+        a larger value which frequently causes us to cross page
+        boundaries and return a NoneObject anyway.
         """
         return self.obj_profile.Object("String",
                                        offset = self.obj_parent.DllBase.v() + name_rva,
@@ -170,51 +174,51 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
 
         @return: tuple (Ordinal, FunctionRVA, Name)
 
-        Ordinal is an integer and should never be None. If the function 
+        Ordinal is an integer and should never be None. If the function
         is forwarded, FunctionRVA is None. Otherwise, FunctionRVA is an
         RVA to the function's code (relative to module base). Name is a
-        String containing the exported function's name. If the Name is 
+        String containing the exported function's name. If the Name is
         paged, it will be None. If the function is forwarded, Name is the
-        forwarded function name including the DLL (ntdll.EtwLogTraceEvent). 
+        forwarded function name including the DLL (ntdll.EtwLogTraceEvent).
         """
 
         mod_base = self.obj_parent.DllBase.v()
         exp_dir = self.obj_parent.export_dir()
 
         # PE files with a large number of functions will have arrays
-        # that spans multiple pages. Thus the first entries may be valid, 
+        # that spans multiple pages. Thus the first entries may be valid,
         # last entries may be valid, but middle entries may be invalid
         # (paged). In the various checks below, we test for None (paged)
-        # and zero (non-paged but invalid RVA). 
+        # and zero (non-paged but invalid RVA).
 
-        # Array of RVAs to function code 
+        # Array of RVAs to function code
         address_of_functions = self.obj_profile.Object(
             'Array', offset = mod_base + self.AddressOfFunctions,
             targetType = 'unsigned int', count = self.NumberOfFunctions,
             vm = self.obj_vm)
 
-        # Array of RVAs to function names 
+        # Array of RVAs to function names
         address_of_names = self.obj_profile.Object(
             'Array', offset = mod_base + self.AddressOfNames,
             targetType = 'unsigned int', count = self.NumberOfNames,
             vm = self.obj_vm)
 
-        # Array of RVAs to function ordinals 
+        # Array of RVAs to function ordinals
         address_of_name_ordinals = self.obj_profile.Object(
             'Array', offset = mod_base + self.AddressOfNameOrdinals,
             targetType = 'unsigned short', count = self.NumberOfNames,
             vm = self.obj_vm)
 
         # When functions are exported by Name, it will increase
-        # NumberOfNames by 1 and NumberOfFunctions by 1. When 
+        # NumberOfNames by 1 and NumberOfFunctions by 1. When
         # functions are exported by Ordinal, only the NumberOfFunctions
-        # will increase. First we enum functions exported by Name 
+        # will increase. First we enum functions exported by Name
         # and track their corresponding Ordinals, so that when we enum
-        # functions exported by Ordinal only, we don't duplicate. 
+        # functions exported by Ordinal only, we don't duplicate.
 
         seen_ordinals = []
 
-        # Handle functions exported by name *and* ordinal 
+        # Handle functions exported by name *and* ordinal
         for i in range(self.NumberOfNames):
 
             name_rva = address_of_names[i]
@@ -232,10 +236,10 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
             if func_rva in (0, None):
                 continue
 
-            # Handle forwarded exports. If the function's RVA is inside the exports 
-            # section (as given by the VirtualAddress and Size fields in the 
-            # DataDirectory), the symbol is forwarded. Return the name of the 
-            # forwarded function and None as the function address. 
+            # Handle forwarded exports. If the function's RVA is inside the exports
+            # section (as given by the VirtualAddress and Size fields in the
+            # DataDirectory), the symbol is forwarded. Return the name of the
+            # forwarded function and None as the function address.
 
             if (func_rva >= exp_dir.VirtualAddress and
                     func_rva < exp_dir.VirtualAddress + exp_dir.Size):
@@ -245,18 +249,18 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
                 n = self._name(name_rva)
                 f = func_rva
 
-            # Add the ordinal base and save it 
+            # Add the ordinal base and save it
             ordinal += self.Base
             seen_ordinals.append(ordinal)
 
             yield ordinal, f, n
 
-        # Handle functions exported by ordinal only 
+        # Handle functions exported by ordinal only
         for i in range(self.NumberOfFunctions):
 
             ordinal = self.Base + i
 
-            # Skip functions already enumberated above 
+            # Skip functions already enumberated above
             if ordinal not in seen_ordinals:
 
                 func_rva = address_of_functions[i]
@@ -266,7 +270,7 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
 
                 seen_ordinals.append(ordinal)
 
-                # There is no name RVA 
+                # There is no name RVA
                 yield ordinal, func_rva, obj.NoneObject("Name RVA not accessible")
 
 
@@ -297,20 +301,20 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
 
     def _imported_functions(self):
         """
-        Generator for imported functions. 
+        Generator for imported functions.
 
         @return: tuple (Ordinal, FunctionVA, Name)
 
-        If the function is imported by ordinal, then Ordinal is the 
-        ordinal value and Name is None. 
+        If the function is imported by ordinal, then Ordinal is the
+        ordinal value and Name is None.
 
         If the function is imported by name, then Ordinal is the
         hint and Name is the imported function name (or None if its
-        paged). 
+        paged).
 
         FunctionVA is the virtual address of the imported function,
         as applied to the IAT by the Windows loader. If the FirstThunk
-        is paged, then FunctionVA will be None. 
+        is paged, then FunctionVA will be None.
         """
 
         i = 0
@@ -320,8 +324,8 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
                 offset = self.obj_parent.DllBase.v() + self.OriginalFirstThunk +
                 i * self.obj_profile.get_obj_size('_IMAGE_THUNK_DATA'),
                 vm = self.obj_vm)
-            
-            # We've reached the end when the element is zero 
+
+            # We've reached the end when the element is zero
             if thunk == None or thunk.AddressOfData == 0:
                 break
 
@@ -329,10 +333,10 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
             n = obj.NoneObject("Imported by ordinal?")
             f = obj.NoneObject("FirstThunk not accessible")
 
-            # If the highest bit (32 for x86 and 64 for x64) is set, the function is 
-            # imported by ordinal and the lowest 16-bits contain the ordinal value. 
-            # Otherwise, the lowest bits (0-31 for x86 and 0-63 for x64) contain an 
-            # RVA to an _IMAGE_IMPORT_BY_NAME struct. 
+            # If the highest bit (32 for x86 and 64 for x64) is set, the function is
+            # imported by ordinal and the lowest 16-bits contain the ordinal value.
+            # Otherwise, the lowest bits (0-31 for x86 and 0-63 for x64) contain an
+            # RVA to an _IMAGE_IMPORT_BY_NAME struct.
             if thunk.OrdinalBit == 1:
                 o = thunk.Ordinal & 0xFFFF
             else:
@@ -368,33 +372,33 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
     """
     Class for PE file / modules
 
-    If these classes are instantiated by _EPROCESS.list_*_modules() 
-    then its guaranteed to be in the process address space. 
+    If these classes are instantiated by _EPROCESS.list_*_modules()
+    then its guaranteed to be in the process address space.
 
     FIXME: If these classes are found by modscan, ensure we can
-    dereference properly with obj_native_vm. 
+    dereference properly with obj_native_vm.
     """
 
-    def _nt_header(self):
+    @property
+    def NTHeader(self):
         """Return the _IMAGE_NT_HEADERS object"""
 
         dos_header = self.obj_profile.Object("_IMAGE_DOS_HEADER", offset = self.DllBase.v(),
                                              vm = self.obj_vm)
 
-        return dos_header.get_nt_header()
+        return dos_header.NTHeader
 
     def _directory(self, dir_index):
         """Return the requested IMAGE_DATA_DIRECTORY"""
-        nt_header = self._nt_header()
+        data_dir = self.NTHeader.OptionalHeader.DataDirectory[dir_index]
 
-        data_dir = nt_header.OptionalHeader.DataDirectory[dir_index]
-
-        # Make sure the directory exists 
+        # Make sure the directory exists
         if data_dir.VirtualAddress == 0 or data_dir.Size == 0:
             raise ValueError('No export directory')
 
-        # Make sure the directory VA and Size are sane 
-        if data_dir.VirtualAddress + data_dir.Size > nt_header.OptionalHeader.SizeOfImage:
+        # Make sure the directory VA and Size are sane
+        if (data_dir.VirtualAddress + data_dir.Size >
+            self.NTHeader.OptionalHeader.SizeOfImage):
             raise ValueError('Invalid Export directory')
 
         return data_dir
@@ -418,9 +422,9 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
         """
         Generator for the PE's imported functions.
 
-        The _DIRECTORY_ENTRY_IMPORT.VirtualAddress points to an array 
-        of _IMAGE_IMPORT_DESCRIPTOR structures. The end is reached when 
-        the IID structure is all zeros. 
+        The _DIRECTORY_ENTRY_IMPORT.VirtualAddress points to an array
+        of _IMAGE_IMPORT_DESCRIPTOR structures. The end is reached when
+        the IID structure is all zeros.
         """
 
         try:
@@ -442,8 +446,8 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
             if desc == None or desc.is_list_end():
                 break
 
-            # Stop if the IID contains invalid fields 
-            if not desc.valid(self._nt_header()):
+            # Stop if the IID contains invalid fields
+            if not desc.valid(self.NTHeader):
                 break
 
             dll_name = desc.dll_name()
@@ -465,30 +469,10 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
             '_IMAGE_EXPORT_DIRECTORY', offset = self.DllBase.v() + data_dir.VirtualAddress,
             vm = self.obj_vm, parent = self)
 
-        if expdir.valid(self._nt_header()):
-            # Ordinal, Function RVA, and Name Object 
+        if expdir.valid(self.NTHeader):
+            # Ordinal, Function RVA, and Name Object
             for o, f, n in expdir._exported_functions():
                 yield o, f, n
-
-class WinPEVTypes(obj.ProfileModification):
-    before = ['WindowsOverlay']
-    conditions = {'os': lambda x : x == 'windows'}
-    def modification(self, profile):
-        profile.vtypes.update(pe_vtypes)
-
-class WinPEx64VTypes(obj.ProfileModification):
-    before = ['WinPEVTypes']
-    conditions = {'os': lambda x : x == 'windows',
-                  'memory_model': lambda x: x == '64bit'}
-    def modification(self, profile):
-        profile.vtypes.update(pe_vtypes_64)
-
-class WinPEObjectClasses(obj.ProfileModification):
-    before = ['WindowsOverlay']
-    conditions = {'os': lambda x : x == 'windows'}
-    def modification(self, profile):
-        profile.object_classes.update({
-            })
 
 
 # The following adds a profile to deal with PE files. Since PE files are not
@@ -497,11 +481,12 @@ class WinPEObjectClasses(obj.ProfileModification):
 class _IMAGE_DOS_HEADER(obj.CType):
     """DOS header"""
 
-    def get_nt_header(self):
+    @property
+    def NTHeader(self):
         """Get the NT header"""
 
         if self.e_magic != 0x5a4d:
-            raise ValueError('e_magic {0:04X} is not a valid DOS signature.'.format(
+            return obj.NoneObject('e_magic {0:04X} is not a valid DOS signature.'.format(
                     self.e_magic))
 
         nt_header = self.obj_profile.Object(theType="_IMAGE_NT_HEADERS",
@@ -509,7 +494,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
                                             vm = self.obj_vm)
 
         if nt_header.Signature != 0x4550:
-            raise ValueError('NT header signature {0:04X} is not a valid'.format(
+            return obj.NoneObject('NT header signature {0:04X} is not a valid'.format(
                     nt_header.Signature))
 
         return nt_header
@@ -518,7 +503,8 @@ class _IMAGE_DOS_HEADER(obj.CType):
 class _IMAGE_NT_HEADERS(obj.CType):
     """PE header"""
 
-    def get_sections(self, unsafe):
+    @property
+    def Sections(self):
         """Get the PE sections"""
         sect_size = self.obj_profile.get_obj_size("_IMAGE_SECTION_HEADER")
         start_addr = self.FileHeader.SizeOfOptionalHeader + self.OptionalHeader.obj_offset
@@ -528,8 +514,7 @@ class _IMAGE_NT_HEADERS(obj.CType):
             sect = self.obj_profile.Object(theType="_IMAGE_SECTION_HEADER",
                                            offset = s_addr, vm = self.obj_vm,
                                            parent = self)
-            if not unsafe:
-                sect.sanity_check_section()
+
             yield sect
 
 
@@ -550,19 +535,14 @@ class _IMAGE_SECTION_HEADER(obj.CType):
 
         if self.SizeOfRawData > image_size:
             raise ValueError('SizeOfRawData {0:08x} is larger than image '
-                             'size.'.format(self.SizeOfRawData))    
+                             'size.'.format(self.SizeOfRawData))
 
 
-class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
-    """A profile for PE files."""
+class PEFileImplementation(obj.ProfileModification):
+    """An implementation of a parser for PE files."""
 
-    def __init__(self, **kwargs):
-        super(PEProfile, self).__init__(**kwargs)
-        self.update_profile(self)
-
-    @staticmethod
-    def update_profile(profile):
-        """Update the profile with the pe specific types."""
+    @classmethod
+    def Modify(cls, profile):
         profile.add_types(pe_vtypes)
         profile.add_classes({
                 '_IMAGE_DOS_HEADER': _IMAGE_DOS_HEADER,
@@ -579,5 +559,13 @@ class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
                 })
 
 
+class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
+    """A profile for PE files."""
 
-        
+    def __init__(self, **kwargs):
+        super(PEProfile, self).__init__(**kwargs)
+        PEFileImplementation.modify(self)
+
+
+
+
