@@ -1,3 +1,19 @@
+/*
+   Copyright 2012 Michael Cohen <scudette@gmal.com>
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #include "read.h"
 
 static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension,
@@ -15,25 +31,14 @@ static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension,
     UNICODE_STRING PhysicalMemoryPath;
     OBJECT_ATTRIBUTES MemoryAttributes;
 
-    //
-    // We copy both, path to PhysicalMemory and destination file into
-    // UNICODE_STRING types.
-    //
-    RtlInitUnicodeString(&PhysicalMemoryPath,
-                         L"\\Device\\PhysicalMemory");
+    RtlInitUnicodeString(&PhysicalMemoryPath, L"\\Device\\PhysicalMemory");
 
-    //
-    // We initialize object attributes of Memory
-    //
     InitializeObjectAttributes(&MemoryAttributes,
                                &PhysicalMemoryPath,
                                OBJ_KERNEL_HANDLE,
                                (HANDLE) NULL,
                                (PSECURITY_DESCRIPTOR) NULL);
 
-    //
-    // We define Memory's handle through ZwOpenSection()
-    //
     NtStatus = ZwOpenSection(&extension->MemoryHandle,
                              SECTION_MAP_READ, &MemoryAttributes);
 
@@ -123,10 +128,7 @@ NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
   PDEVICE_EXTENSION extension = DeviceObject->DeviceExtension;
   NTSTATUS status = STATUS_SUCCESS;
 
-  //Get I/o Stack Location & Device Extension
   pIoStackIrp = IoGetCurrentIrpStackLocation(Irp);
-
-  //Get User Output Buffer & Length
   BufLen = pIoStackIrp->Parameters.Read.Length;
   BufOffset = pIoStackIrp->Parameters.Read.ByteOffset;
   Buf = (PCHAR)(Irp->AssociatedIrp.SystemBuffer);

@@ -1,3 +1,19 @@
+/*
+   Copyright 2012 Michael Cohen <scudette@gmal.com>
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 #include "winpmem.h"
 
 #include "read.h"
@@ -16,20 +32,10 @@ NTSTATUS IoUnload(IN PDRIVER_OBJECT DriverObject) {
   NTSTATUS NtStatus;
   PDEVICE_OBJECT pDeviceObject = DriverObject->DeviceObject;
 
-  //
-  // Initiliaze the string for the symbolic link.
-  //
   RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\DosDevices\\" PMEM_DEVICE_NAME);
-
-  //
-  // We delete the symbolic link we've created.
-  //
   NtStatus = IoDeleteSymbolicLink (&DeviceLinkUnicodeString);
 
   if (DriverObject != NULL) {
-    //
-    // We delete the device.
-    //
     IoDeleteDevice(pDeviceObject);
   }
 
@@ -40,12 +46,7 @@ NTSTATUS IoUnload(IN PDRIVER_OBJECT DriverObject) {
 /*
   Gets information about the memory layout.
 
-  - The current value of CR3 which is the kernel DTB.
-  - The location of the kernel PCR block.
   - The Physical memory address ranges.
-
-  This must be done in the context of the first CPU. See this:
-  http://www.msuiche.net/2009/01/05/multi-processors-and-kdversionblock/
  */
 int AddMemoryRanges(struct PmemMemroyInfo *info, int len) {
   PPHYSICAL_MEMORY_RANGE MmPhysicalMemoryRange;
@@ -140,6 +141,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
   IoControlCode = IrpStack->Parameters.DeviceIoControl.IoControlCode;
 
   switch ((IoControlCode & 0xFFFFFF0F)) {
+
     // Return information about memory layout etc through this ioctrl.
   case IOCTL_GET_INFO: {
     struct PmemMemroyInfo *info = (void *)IoBuffer;
@@ -195,9 +197,6 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
   };
   }
 
-  //
-  // Leaving.
-  //
   IoCompleteRequest(Irp,IO_NO_INCREMENT);
   return STATUS_SUCCESS;
 }
@@ -214,15 +213,10 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   WinDbgPrint("Copyright (c) 2012, Michael Cohen <scudette@gmail.com> based "
               "on win32dd code by Matthieu Suiche <http://www.msuiche.net>\n");
 
-  //
-  // We define the unicode string for our device.
-  //
   RtlInitUnicodeString (&DeviceName, L"\\Device\\" PMEM_DEVICE_NAME);
 
-  //
   // We create our secure device.
   // http://msdn.microsoft.com/en-us/library/aa490540.aspx
-  //
   NtStatus = IoCreateDeviceSecure(DriverObject,
                                   sizeof(DEVICE_EXTENSION),
                                   &DeviceName,
@@ -242,9 +236,6 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   DriverObject->MajorFunction[IRP_MJ_CLOSE] = wddClose;
   DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = wddDispatchDeviceControl;
   DriverObject->MajorFunction[IRP_MJ_READ] =  PmemRead;
-  //
-  // Define unloading function.
-  //
   DriverObject->DriverUnload = IoUnload;
 
   // Use buffered IO - a bit slower but simpler to implement, and more
@@ -253,20 +244,10 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   ClearFlag(DeviceObject->Flags, DO_DIRECT_IO );
   ClearFlag(DeviceObject->Flags, DO_DEVICE_INITIALIZING);
 
-  //
-  // We define the memory dumper symbolic name.
-  //
   RtlInitUnicodeString (&DeviceLink, L"\\DosDevices\\" PMEM_DEVICE_NAME);
 
-  //
-  // We create it's symbolic name.
-  //
-  NtStatus = IoCreateSymbolicLink (&DeviceLink,
-                                   &DeviceName);
+  NtStatus = IoCreateSymbolicLink (&DeviceLink, &DeviceName);
 
-  //
-  // If we reach this case, we cannot continue.
-  //
   if (!NT_SUCCESS(NtStatus)) {
     WinDbgPrint ("IoCreateSymbolicLink failed. => %08X\n", NtStatus);
     IoDeleteDevice (DeviceObject);

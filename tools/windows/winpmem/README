@@ -1,6 +1,6 @@
 WinPMEM - a kernel mode driver for gaining access to physical memory.
 
-This code is based on the old win32dd codebase, main changes:
+This code is inspired by the old win32dd codebase, main changes:
 
 - The crashdump producing code is removed.
 
@@ -13,3 +13,70 @@ This code is based on the old win32dd codebase, main changes:
 
 
 Copyright 2012, Michael Cohen (scudette@gmail.com)
+
+The files in this directory (Including the winpmem sources and signed binaries),
+are available under the following license: Apache License, Version 2.0
+
+
+How to use this tool.
+---------------------
+
+This release comes with signed binary drivers and a python program which uses
+this driver to create raw images. (Note that in order to load the driver on 64
+bit windows the driver _must_ be signed). Below we assume we are running on a 64
+bit system. The driver for 32 bit systems can be found in
+binaries\i386\winpmem.sys.
+
+To get help about the acquisition tool:
+
+c:\..> winpmem.py -h
+Usage: winpmem.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -d FILE, --driver=FILE
+                        The driver location (winpmem.sys)
+  -f FILE, --filename=FILE
+                        write image to FILE
+  -n NAME, --name=NAME  The name of the device.
+  -m MODE, --mode=MODE  The acquisition mode. Can be (physical or iospace)
+  -l, --load            Only load the driver and immediately quit. (Useful
+                        just before attaching with volatility)
+  -u, --unload          Unload the driver and immediately quit.
+
+To acquire memory into the file foobar.raw:
+c:\..> winpmem.py -d binaries\amd64\winpmem.sys -f foobar.raw
+CR3 = 0x187000
+Memory ranges:
+Start           Length
+0x1000          0x9E000
+0x100000                0x6F6FB000
+Imaging to foo.raw
+
+Padding from 0x0 to 0x1000
+
+
+0000MB  .
+Padding from 0x9F000 to 0x100000
+
+................................................
+0050MB  ..................................................
+0100MB  ..................................................
+0150MB  ..................................................
+0200MB  ..................................................
+0250MB  ..................................................
+
+Note that CR3 and the valid physical memory ranges are reported.
+
+Normally when acquiring memory we load the driver, acquire the memory, then
+unload the driver. To use volatility on the raw memory we need to leave the
+driver loaded:
+
+c:\..> winpmem.py -d binaries\amd64\winpmem.sys -l
+Loaded the winpmem driver. You can now attach volatility to \\.\pmem
+
+and once we finished with it we can unload it:
+c:\..> winpmem.py -d binaries\amd64\winpmem.sys -u
+(1073, 'CreateService', 'The specified service already exists.')
+unloaded winpmem driver.
+
