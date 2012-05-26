@@ -8,11 +8,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
 @author:       Andrew Case
@@ -40,7 +40,7 @@ class LinuxDmesg(common.AbstractLinuxCommandPlugin):
             vm=self.kernel_address_space)
 
         # Dereference this as a string of the correct length.
-        return log_buf_addr.dereference_as("String", length=log_buf_len)
+        return log_buf_addr.dereference_as("UnicodeString", length=log_buf_len)
 
     def render(self, outfd):
         outfd.write(self.get_dmesg())

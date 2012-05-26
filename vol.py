@@ -73,8 +73,15 @@ def IPython012Support(user_session):
     try:
         # Try to use the ipython shell
         from IPython.frontend.terminal.embed import InteractiveShellEmbed
+        from IPython.config.loader import Config
 
-        shell = InteractiveShellEmbed(user_ns=user_session._locals, banner2=banner)
+        # This should bring back the old autocall behaviour. e.g.:
+        # In [1]: vol plugins.pslist
+        cfg = Config()
+        cfg.InteractiveShellEmbed.autocall = 2
+
+        shell = InteractiveShellEmbed(config=cfg, user_ns=user_session._locals,
+                                      banner2=banner)
 
         # This must be run here because the IPython shell messes with our user
         # namespace above (by adding its own help function).

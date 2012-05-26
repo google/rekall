@@ -571,12 +571,12 @@ class Pointer(NativeType):
         self.target_size = 0
 
     def v(self):
-        # 64 bit addresses are always sign extended so we need to clear to top bits.
+        # 64 bit addresses are always sign extended so we need to clear the top bits.
         return 0xffffffffffff & super(Pointer, self).v()
 
     def __eq__(self, other):
         try:
-            return (0xffffffffffff & other) == self.v()
+            return (0xffffffffffff & int(other)) == self.v()
         except TypeError:
             return False
 

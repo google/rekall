@@ -8,12 +8,34 @@ a "profile".
 For linux a profile file is simply a zip file which contains:
 
 - A copy of the System.map file.
-- DWARF debugging symbols from the kernel.
+- Some source of vtype information. Currently this can be one of:
+
+  - A json file of the generated vtypes. The type can be generated offline by
+    running:
+
+    python volatility/plugins/overlays/linux/dwarfparser.py module.ko > module.json
+
+  - The compiled module.ko itself from this directory (This should contain
+    debugging symbols). Volatility will read the symbols directly using the
+    pyelftools module. The pyelftools can easily be installed using:
+
+    $sudo easy_install-2.7 pyelftools
+
+  - DWARF debugging symbols from the kernel generated using dwarfdump.
 
 Then you can always specify this profile like so:
-
-vol.py --profile Linux32 --profile_file myprofile.zip linux_list_tasks_ps
-
+$ python vol.py
+Welcome to volatility!
+To get help, type 'help()'
+In [1]: session.filename = "myimage.dd"
+In [2]: session.profile = profiles.Linux32
+In [3]: session.profile_file = "myprofile.zip"
+In [4]: vol plugins.pslist
+------> vol(plugins.pslist)
+Offset   Name                 Pid             Uid
+0x880015880000 init                 1               0
+0x880015881720 kthreadd             2               0
+.....
 
 How to get debugging symbols easily
 -----------------------------------
@@ -33,7 +55,25 @@ make[1]: Entering directory `/usr/src/linux-headers-2.6.32-8-generic'
   LD [M]  ..../tools/linux/module.ko
 make[1]: Leaving directory `/usr/src/linux-headers-2.6.32-8-generic'
 
-tools/linux$ dwarfdump -di module.ko > module.dwarf
-tools/linux$ zip myprofile.zip module.dwarf /boot/System.map-2.6.32-8-generic
+Now pack all the files into the same zip file:
 
-Now we have the myprofile.zip file.
+tools/linux$ zip myprofile.zip module.ko /boot/System.map-2.6.32-8-generic
+
+Note that by pre-generating the json file, volatility will load much faster
+(because it does not need to parse the dwarf information). It is always
+recommended thought to also keep the actual module in the zip file in case
+future versions of volatility need to regenerate the json file.
+
+Volatility will attempt to load symbols in the following order:
+  - json files are loaded first (This is fastest to load).
+
+  - The module symbols are parsed directly using pyelftools.
+
+  - The dwarfdump output is parsed textually (this is the slowest option). Note
+    that the output of dwarfdump has changed in the last few years, and
+    currently the parser only supports older versions of the dwarfdump output.
+
+  - Loading the vtype dicts directly from a python file is disabled for security
+    reasons. If you really need this you can enable it in
+    volatility/plugins/overlays/linux/linux.py or better still convert the
+    vtypes to a json file.
