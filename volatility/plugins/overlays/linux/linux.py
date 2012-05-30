@@ -28,6 +28,7 @@ import json
 import re
 import sys
 import zipfile
+import StringIO
 
 from volatility import obj
 from volatility import plugin

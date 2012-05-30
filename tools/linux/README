@@ -57,12 +57,12 @@ make[1]: Leaving directory `/usr/src/linux-headers-2.6.32-8-generic'
 
 Now pack all the files into the same zip file:
 
-tools/linux$ zip myprofile.zip module.ko /boot/System.map-2.6.32-8-generic
+tools/linux$ zip myprofile.zip module_dwarf.ko /boot/System.map-2.6.32-8-generic
 
 Note that by pre-generating the json file, volatility will load much faster
 (because it does not need to parse the dwarf information). It is always
-recommended thought to also keep the actual module in the zip file in case
-future versions of volatility need to regenerate the json file.
+recommended though to also keep the actual module in the zip file in case future
+versions of volatility need to regenerate the json file.
 
 Volatility will attempt to load symbols in the following order:
   - json files are loaded first (This is fastest to load).
@@ -74,6 +74,6 @@ Volatility will attempt to load symbols in the following order:
     currently the parser only supports older versions of the dwarfdump output.
 
   - Loading the vtype dicts directly from a python file is disabled for security
-    reasons. If you really need this you can enable it in
-    volatility/plugins/overlays/linux/linux.py or better still convert the
-    vtypes to a json file.
+    reasons (because it requires eval() on the vtypes file). If you really need
+    this you can enable it in volatility/plugins/overlays/linux/linux.py or
+    better still convert the vtypes to a json file.

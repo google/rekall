@@ -87,13 +87,13 @@ static loff_t pmem_get_size(void) {
       last_resource=p;
     };
   }
-  
+
   /* This should not happen - something has to be marked as
      allocated.
   */
   if(!last_resource) {
     printk(KERN_WARNING "No valid resources found.");
-    
+
     return -EINVAL;
   } else {
     return last_resource->end;
@@ -121,7 +121,7 @@ static loff_t pmem_llseek(struct file *file, loff_t offset, int whence) {
     file->f_pos = pmem_get_size() + offset;
     break;
   };
-    
+
   default:
     return -EINVAL;
   }
@@ -133,7 +133,7 @@ static loff_t pmem_llseek(struct file *file, loff_t offset, int whence) {
 /* This function reads as much of the page as possible - it may return
    a short read. If the page is invalid (e.g. the page could not be
    mapped in or its not in a valid memory resource we null pad the
-   buffer and log to syslog.   
+   buffer and log to syslog.
 */
 static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
 				 loff_t *poff) {
@@ -150,7 +150,7 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
   page = pfn_to_page(pfn);
   vaddr = kmap(page);
   if (!vaddr) goto error;
-  
+
   /* Copy the data into the user buffer. */
   if (copy_to_user(buf, vaddr + page_offset, to_read)) {
     goto unmap_error;
@@ -180,7 +180,8 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
 static ssize_t pmem_read(struct file *file, char *buf, size_t count,
 			 loff_t *poff) {
   loff_t file_size = pmem_get_size();
-  /* How much data is availanle in the entire memory range. */
+
+  /* How much data is available in the entire memory range. */
   size_t available = file_size - *poff;
   size_t remaining = min(count, available);
 
@@ -209,7 +210,7 @@ static int pmem_vma_fault(struct vm_area_struct *vma,
   /* Refuse to read from invalid pages. Map the zero page instead. */
   if(!is_page_valid(offset) || !pfn_valid(pfn)) {
     page = virt_to_page(zero_page);
-  } else { 
+  } else {
     /* Map the real page here. */
     page = pfn_to_page(pfn);
   };
@@ -240,7 +241,10 @@ static struct file_operations pmem_fops = {
 	.owner = THIS_MODULE,
 	.llseek = pmem_llseek,
 	.read = pmem_read,
-	.mmap = pmem_mmap,
+
+// TODO(scudette): This seems to generate a lot of warnings on kernels >
+// 3.0. Disabled temporarily until I figure out what is going on.
+//	.mmap = pmem_mmap,
 };
 
 static struct miscdevice pmem_dev = {

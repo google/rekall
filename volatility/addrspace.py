@@ -72,10 +72,20 @@ class BaseAddressSpace(object):
         if not assertion:
             if error == None:
                 error = "Instantiation failed for unspecified reason"
-            raise ASAssertionError, error
+            raise ASAssertionError(error)
 
     def read(self, addr, length):
         """ Read some date from a certain offset """
+
+    def zread(self, addr, length):
+        data = self.read(addr, length)
+        if not data:
+            return "\x00" * length
+
+        if len(data) < length:
+            data += "\x00" * (length - len(data))
+
+        return data
 
     def get_available_addresses(self):
         """ Return a generator of address ranges as (offset, size) covered by this AS """

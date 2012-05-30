@@ -13,7 +13,8 @@ pmem: pmem.c
 
 dwarf: module.c
 	$(MAKE) -C $(KDIR)/lib/modules/$(KVER)/build CONFIG_DEBUG_INFO=y M=$(PWD) modules
+	cp module.ko module_dwarf.ko
 
 clean:
 	$(MAKE) -C $(KDIR)/lib/modules/$(KVER)/build M=$(PWD) clean
-	rm module.dwarf
+	rm -f module_dwarf.ko
