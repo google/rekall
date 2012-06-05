@@ -157,7 +157,6 @@ class NoneObject(object):
         ## If we are strict we blow up here
         if self.strict:
             logging.error("{0} n{1}".format(self.reason, self.bt))
-            sys.exit(0)
         else:
             logging.warning("{0}".format(self.reason))
 
@@ -511,7 +510,7 @@ class NativeType(BaseObject, NumericProxyMixIn):
         return struct.calcsize(self.format_string)
 
     def v(self, vm=None):
-        data = self.obj_vm.read(self.obj_offset, self.size())
+        data = self.obj_vm.zread(self.obj_offset, self.size())
         if not data:
             return NoneObject("Unable to read {0} bytes from {1}".format(
                     self.size(), self.obj_offset))
@@ -524,7 +523,7 @@ class NativeType(BaseObject, NumericProxyMixIn):
         return self.obj_name
 
     def __repr__(self):
-        return " [{0}]: {1}".format(self._vol_theType, self.v())
+        return " [{0}]: 0x{1:08X}".format(self._vol_theType, self.v())
 
     def d(self):
         return " [{0} {1} | {2}]: {3}".format(self.__class__.__name__, self.obj_name or '',
@@ -555,18 +554,22 @@ class BitField(NativeType):
 
 class Pointer(NativeType):
 
-    def __init__(self, target = None, **kwargs):
+    def __init__(self, theType=None, target=None, target_args=None, **kwargs):
         # The format string comes from the address field:
-        super(Pointer, self).__init__(**kwargs)
+        super(Pointer, self).__init__(theType=theType, **kwargs)
 
         self.format_string = self.obj_profile.vtypes["address"][1]["format_string"]
 
-        # Keep it around in case we need to copy outselves
         self.kwargs = kwargs
-        if self.obj_type:
-            self.target = Curry(self.obj_profile.Object, theType=self.obj_type)
-        else:
+        kwargs = kwargs.copy()
+        kwargs.update(target_args or {})
+
+        if isinstance(target, basestring):
+            self.target = Curry(self.obj_profile.Object, theType=target, **kwargs)
+        elif callable(target):
             self.target = target
+        else:
+            self.target = Curry(self.obj_profile.Object, theType=self.obj_type, **kwargs)
 
         self.target_size = 0
 
@@ -699,7 +702,8 @@ class Void(Pointer):
 
 class Array(BaseObject):
     """ An array of objects of the same size """
-    def __init__(self, count = 1, targetType = None, target = None, **kwargs):
+    def __init__(self, count = 1, targetType = None, target = None, target_args=None,
+                 **kwargs):
         """Instantiate an array of like items.
 
         Args:
@@ -710,7 +714,8 @@ class Array(BaseObject):
 
           target: A callable which will be instantiated on each point. The size
             of the object returned by this should be the same for all members of
-            the array.
+            the array. Alternatively target can be the name of the element as a
+            string (same as targetType: e.g. "_IMAGE_EXPORT_DIRECTORY")
         """
         super(Array, self).__init__(**kwargs)
 
@@ -719,8 +724,14 @@ class Array(BaseObject):
 
         self.count = int(count)
 
+        # Allow the target to be specified as a string to make it more
+        # consistent with other classes which use the name "target".
+        if isinstance(target, basestring):
+            targetType = target
+
+        target_args = target_args or {}
         if targetType:
-            self.target = Curry(self.obj_profile.Object, theType=targetType)
+            self.target = Curry(self.obj_profile.Object, theType=targetType, **target_args)
         else:
             self.target = target
 
@@ -752,7 +763,14 @@ class Array(BaseObject):
             yield self[position]
 
     def __repr__(self):
-        result = [ x.__str__() for x in self ]
+        result = []
+        for x in self:
+            if len(result) > 10:
+                result.append(".... ")
+                break
+
+            result.append(x.__str__())
+
         return "<Array {0}>".format(",".join(result))
 
     def d(self):
@@ -1263,6 +1281,7 @@ class Profile(object):
 
         ## If we get here we have no idea what the type is supposed to be?
         ## This is a serious error.
+        import pdb; pdb.set_trace()
         logging.warning("Cant find object {0} in profile {1}?".format(theType, self))
 
 

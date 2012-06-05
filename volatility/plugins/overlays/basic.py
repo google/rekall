@@ -106,20 +106,18 @@ class UnicodeString(String):
 
 class Flags(obj.NativeType):
     """ This object decodes each flag into a string """
-    ## This dictionary maps each bit to a String
-    bitmap = None
-
-    ## This dictionary maps a string mask name to a bit range
-    ## consisting of a list of start, width bits
+    ## This dictionary maps a string mask name to an integer mask.
     maskmap = None
 
     def __init__(self, bitmap = None, maskmap = None, target = "unsigned long",
                  **kwargs):
         super(Flags, self).__init__(**kwargs)
-        self.bitmap = bitmap or {}
         self.maskmap = maskmap or {}
-        self.target = target
+        if bitmap:
+            for k, v in bitmap.items():
+                self.maskmap[v] = 1 << k
 
+        self.target = target
         self.target_obj = self.obj_profile.Object(target, offset=self.obj_offset,
                                                   vm=self.obj_vm)
 
@@ -129,10 +127,8 @@ class Flags(obj.NativeType):
     def __str__(self):
         result = []
         value = self.v()
-        keys = self.bitmap.keys()
-        keys.sort()
-        for k in keys:
-            if value & (1 << self.bitmap[k]):
+        for k, v in sorted(self.maskmap.items()):
+            if value & v:
                 result.append(k)
 
         return ', '.join(result)
@@ -141,12 +137,9 @@ class Flags(obj.NativeType):
         return format(self.__str__(), formatspec)
 
     def __getattr__(self, attr):
-        maprange = self.maskmap.get(attr)
-        if not maprange:
+        mask = self.maskmap.get(attr)
+        if not mask:
             return obj.NoneObject("Mask {0} not known".format(attr))
-
-        bits = 2 ** maprange[1] - 1
-        mask = bits << maprange[0]
 
         return self.v() & mask
 
@@ -288,7 +281,38 @@ class _LIST_ENTRY(obj.CType):
         return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
 
 
-class WinTimeStamp(obj.NativeType):
+class UnixTimeStamp(obj.NativeType):
+    """A unix timestamp (seconds since the epoch)."""
+    is_utc = True
+
+    def __init__(self, **kwargs):
+        obj.NativeType.__init__(self, format_string = "I", **kwargs)
+
+    def __nonzero__(self):
+        return self.v() != 0
+
+    def __str__(self):
+        return "{0}".format(self)
+
+    def as_datetime(self):
+        try:
+            dt = datetime.datetime.utcfromtimestamp(self.v())
+            if self.is_utc:
+                # Only do dt.replace when dealing with UTC
+                dt = dt.replace(tzinfo = timefmt.UTC())
+        except ValueError, e:
+            return obj.NoneObject("Datetime conversion failure: " + str(e))
+        return dt
+
+    def __format__(self, formatspec):
+        """Formats the datetime according to the timefmt module"""
+        dt = self.as_datetime()
+        if dt != None:
+            return format(timefmt.display_datetime(dt), formatspec)
+        return "-"
+
+
+class WinTimeStamp(UnixTimeStamp):
     """Class for handling Windows Time Stamps"""
 
     def __init__(self, is_utc = False, **kwargs):
@@ -322,29 +346,6 @@ class WinTimeStamp(obj.NativeType):
     def v(self, vm=None):
         value = self.as_windows_timestamp()
         return self.windows_to_unix_time(value)
-
-    def __nonzero__(self):
-        return self.v() != 0
-
-    def __str__(self):
-        return "{0}".format(self)
-
-    def as_datetime(self):
-        try:
-            dt = datetime.datetime.utcfromtimestamp(self.v())
-            if self.is_utc:
-                # Only do dt.replace when dealing with UTC
-                dt = dt.replace(tzinfo = timefmt.UTC())
-        except ValueError, e:
-            return obj.NoneObject("Datetime conversion failure: " + str(e))
-        return dt
-
-    def __format__(self, formatspec):
-        """Formats the datetime according to the timefmt module"""
-        dt = self.as_datetime()
-        if dt != None:
-            return format(timefmt.display_datetime(dt), formatspec)
-        return "-"
 
 
 # TODO: Remove this hack.
@@ -401,7 +402,7 @@ class BasicWindowsClasses(obj.Profile):
             'LIST_ENTRY32': _LIST_ENTRY,
             'LIST_ENTRY64': _LIST_ENTRY,
             'WinTimeStamp': WinTimeStamp,
-
+            'UnixTimeStamp': UnixTimeStamp,
             })
 
         self.add_constants(default_text_encoding="utf16")
