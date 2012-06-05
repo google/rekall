@@ -31,8 +31,10 @@ import sys
 import time
 
 from volatility import addrspace
+from volatility import fmtspec
 from volatility import plugin
 from volatility import obj
+from volatility import registry
 from volatility import utils
 
 
@@ -120,6 +122,123 @@ class Pager(object):
             self.pager.write(data)
 
 
+class TextRenderer(object):
+    """Plugins can receive a renderer object to assist formatting of output."""
+
+    __metaclass__ = registry.MetaclassRegistry
+
+    tablesep = " "
+    elide = True
+
+    def __init__(self, session=None, fd=None):
+        self.session = session
+        self.fd = fd
+
+    def start(self):
+        """The method is called when new output is required."""
+        self.pager = self.fd or Pager(session=self.session)
+
+    def write(self, data):
+        self.pager.write(data)
+
+    def _elide(self, string, length):
+        """Adds three dots in the middle of a string if it is longer than length"""
+        if length == -1:
+            return string
+
+        if len(string) < length:
+            return (" " * (length - len(string))) + string
+
+        elif len(string) == length:
+            return string
+
+        else:
+            if length < 5:
+                logging.error("Cannot elide a string to length less than 5")
+
+            even = ((length + 1) % 2)
+            length = (length - 3) / 2
+            return string[:length + even] + "..." + string[-length:]
+
+    def _formatlookup(self, code):
+        """Code to turn profile specific values into format specifications"""
+        code = code or ""
+        if not code.startswith('['):
+            return code
+
+        # Strip off the square brackets
+        code = code[1:-1].lower()
+        if code.startswith('addr'):
+            spec = fmtspec.FormatSpec("#10x")
+            if self.session.profile.metadata('memory_model') == '64bit':
+                spec.minwidth += 8
+
+            if 'pad' in code:
+                spec.fill = "0"
+                spec.align = spec.align if spec.align else "="
+
+            else:
+                # Non-padded addresses will come out as numbers,
+                # so titles should align >
+                spec.align = ">"
+            return spec.to_string()
+
+        # Something went wrong
+        debug.warning("Unknown table format specification: " + code)
+        return ""
+
+    def table_header(self, title_format_list = None):
+        """Table header renders the title row of a table.
+
+        This also stores the header types to ensure everything is formatted
+        appropriately.  It must be a list of tuples rather than a dict for
+        ordering purposes.
+        """
+        titles = []
+        rules = []
+        self._formatlist = []
+
+        for (k, v) in title_format_list:
+            spec = fmtspec.FormatSpec(self._formatlookup(v))
+
+            # If spec.minwidth = -1, this field is unbounded length
+            if spec.minwidth != -1:
+                spec.minwidth = max(spec.minwidth, len(k))
+
+            # Get the title specification to follow the alignment of the field
+            titlespec = fmtspec.FormatSpec(formtype='s',
+                                           minwidth=max(spec.minwidth, len(k)))
+
+            titlespec.align = spec.align if spec.align in "<>^" else "<"
+
+            # Add this to the titles, rules, and formatspecs lists
+            titles.append((u"{0:" + titlespec.to_string() + "}").format(k))
+            rules.append("-" * titlespec.minwidth)
+            self._formatlist.append(spec)
+
+        # Write out the titles and line rules
+        self.write(self.tablesep.join(titles) + "\n")
+        self.write(self.tablesep.join(rules) + "\n")
+
+    def table_row(self, *args):
+        """Outputs a single row of a table"""
+        reslist = []
+        if len(args) > len(self._formatlist):
+            logging.error("Too many values for the table")
+
+        for index in range(len(args)):
+            spec = self._formatlist[index]
+            result = (u"{0:" + spec.to_string() + "}").format(args[index])
+            if self.elide:
+                result = self._elide(result, spec.minwidth)
+
+            reslist.append(result)
+        self.write(self.tablesep.join(reslist) + "\n")
+
+    def end(self):
+        """Tells the renderer that we finished using it for a while."""
+
+
 class Session(object):
     """The session allows for storing of arbitrary values and configuration."""
 
@@ -131,6 +250,15 @@ class Session(object):
         # namespace.
         self._start_time = time.time()
         self._locals = env or {}
+
+        # Fill the session with helpful defaults.
+        self.__dict__['logging'] = self.logging or "INFO"
+        self.pager = obj.NoneObject("Set this to your favourite pager.")
+        self.profile = obj.NoneObject("Set this a valid profile (e.g. type profiles. and tab).")
+        self.profile_file = obj.NoneObject("Some profiles accept a data file (e.g. Linux).")
+        self.filename = obj.NoneObject("Set this to the image filename.")
+        self.renderer = TextRenderer(session=self)
+
         self.plugins = PluginContainer(self)
         self._ready = True
 
@@ -144,13 +272,6 @@ class Session(object):
 
     def _prepare_local_namespace(self):
         session = self._locals['session'] = Session(self._locals)
-
-        # Fill the session with helpful defaults.
-        session.__dict__['logging'] = self.logging or "INFO"
-        session.pager = obj.NoneObject("Set this to your favourite pager.")
-        session.profile = obj.NoneObject("Set this a valid profile (e.g. type profiles. and tab).")
-        session.profile_file = obj.NoneObject("Some profiles accept a data file (e.g. Linux).")
-        session.filename = obj.NoneObject("Set this to the image filename.")
 
         # Prepopulate the namespace with our most important modules.
         self._locals['addrspace'] = addrspace
@@ -183,15 +304,15 @@ class Session(object):
     def info(self, plugin_cls=None, fd=None):
         self.vol(self.plugins.info, item=plugin_cls, fd=fd)
 
-    def vol(self, plugin_cls=None, fd=None, debug=False, output=None, **kwargs):
+    def vol(self, plugin_cls=None, renderer=None, fd=None, debug=False, output=None,
+            **kwargs):
         """Launch a plugin and its render() method automatically.
 
+        We use the pager specified in session.pager.
+
         Args:
-          plugin: A string naming the plugin, or the plugin class itself.
-
-          fd: A file descriptor to write the rendered result to. If not set we
-            use the pager class.
-
+          plugin_cls: A string naming the plugin, or the plugin class itself.
+          renderer: An optional renderer to use.
           debug: If set we break into the debugger if anything goes wrong.
 
           output: If set we open and write the output to this filename. If
@@ -201,23 +322,29 @@ class Session(object):
         if isinstance(plugin_cls, basestring):
             plugin_cls = getattr(self.plugins, plugin_cls)
 
+        renderer = renderer or self.renderer
+
         if output is not None:
             if os.access(output, os.F_OK) and not self.overwrite:
                 logging.error("Output file '%s' exists but session.overwrite is "
-                              "not set - using stdout." % output)
-                fd = None
+                              "not set." % output)
             else:
-                fd = open(output, "w")
+                renderer = TextRenderer(session=self, fd=open(output, "w"))
+
+        # Allow per call overriding of the output file descriptor.
+        if fd is not None:
+            renderer = TextRenderer(session=self, fd=fd)
 
         try:
-            # Wrap the file descriptor with a pager that takes care of encoding.
-            fd = Pager(session=self, default_fd=fd)
+            renderer.start()
 
             kwargs['session'] = self
             result = plugin_cls(**kwargs)
-            result.render(fd)
+            result.render(renderer)
 
+            renderer.end()
             return result
+
         except plugin.Error, e:
             logging.error("Failed running plugin %s: %s", plugin_cls.__name__, e)
         except Exception, e:

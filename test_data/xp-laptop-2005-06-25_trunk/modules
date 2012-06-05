@@ -1,7 +1,7 @@
 {
     "profile": "WinXPSP2x86", 
     "number_of_lines": 129, 
-    "time_used": 2.3119959831237793, 
+    "time_used": 2.3381929397583008, 
     "filename": "test_data/xp-laptop-2005-06-25.img", 
     "mode": "trunk", 
     "output": [

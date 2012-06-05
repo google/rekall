@@ -88,21 +88,31 @@ class WinPsList(common.WinProcessFilter):
         logging.debug("Unable to list processes using any method.")
         return []
 
-    def render(self, fd=None):
-        fd.write(" Offset(V) Offset(P)  Name                 PID    PPID   Thds   Hnds   Time\n" + \
-                 "---------- ---------- -------------------- ------ ------ ------ ------ ------------------- \n")
+    def render(self, renderer):
+        renderer.table_header( [("Offset (V)", "[addrpad]"),
+                                ("Name", "20s"),
+                                ("PID", ">6"),
+                                ("PPID", ">6"),
+                                ("Thds", ">6"),
+                                ("Hnds", ">8"),
+                                ("Sess", ">6"),
+                                ("Wow64", ">6"),
+                                ("Start", "20"),
+                                ("Exit", "20")]
+                               )
 
         for task in self.filter_processes():
-            offset = task.obj_offset
-            fd.write(u"{0:#010x} {1:#010x} {2:20} {3:6} {4:6} {5:6} {6:6} {7:26}\n".format(
-                offset,
-                task.obj_vm.vtop(offset),
-                task.ImageFileName,
-                task.UniqueProcessId,
-                task.InheritedFromUniqueProcessId,
-                task.ActiveThreads,
-                task.ObjectTable.HandleCount,
-                task.CreateTime))
+            renderer.table_row(task.obj_offset,
+                               task.ImageFileName,
+                               task.UniqueProcessId,
+                               task.InheritedFromUniqueProcessId,
+                               task.ActiveThreads,
+                               task.ObjectTable.HandleCount,
+                               task.SessionId,
+                               task.IsWow64,
+                               str(task.CreateTime or ''),
+                               str(task.ExitTime or ''),
+                               )
 
 
 class WinDllList(common.WinProcessFilter):
@@ -110,25 +120,32 @@ class WinDllList(common.WinProcessFilter):
 
     __name = "dlllist"
 
-    def render(self, outfd):
+
+    def render(self, renderer):
         for task in self.filter_processes():
             pid = task.UniqueProcessId
 
-            outfd.write(u"*" * 72 + "\n")
-            outfd.write(u"{0} pid: {1:6}\n".format(task.ImageFileName, pid))
+            renderer.write(u"*" * 72 + "\n")
+            renderer.write(u"{0} pid: {1:6}\n".format(task.ImageFileName, pid))
 
             if task.Peb:
-                outfd.write(u"Command line : {0}\n".format(
+                renderer.write(u"Command line : {0}\n".format(
                         task.Peb.ProcessParameters.CommandLine))
-                outfd.write(u"{0}\n".format(task.Peb.CSDVersion))
-                outfd.write(u"\n")
-                outfd.write(u"{0:12} {1:12} {2}\n".format('Base', 'Size', 'Path'))
-                outfd.write(u"---------------------------------\n")
+
+                if task.IsWow64:
+                    renderer.write(
+                        u"Note: use ldrmodules for listing DLLs in Wow64 processes\n")
+
+                renderer.write(u"{0}\n".format(task.Peb.CSDVersion))
+                renderer.write(u"\n")
+                renderer.table_header([("Base", "[addrpad]"),
+                                       ("Size", "[addr]"),
+                                       ("Path", ""),
+                                       ])
                 for m in task.get_load_modules():
-                    outfd.write(u"0x{0:08x}   0x{1:06x}     {2}\n".format(
-                            m.DllBase, m.SizeOfImage, m.FullDllName))
+                    renderer.table_row(m.DllBase, m.SizeOfImage, m.FullDllName)
             else:
-                outfd.write("Unable to read PEB for task.\n")
+                renderer.write("Unable to read PEB for task.\n")
 
 
 class WinMemMap(common.WinProcessFilter):
@@ -167,25 +184,24 @@ class WinMemMap(common.WinProcessFilter):
 
         yield (last_va, last_pa, last_len)
 
-    def render(self, outfd):
+    def render(self, renderer):
         for task in self.filter_processes():
-            outfd.write("*" * 72 + "\n")
+            renderer.write("*" * 72 + "\n")
             task_space = task.get_process_address_space()
-            outfd.write("Process: '{0}' pid: {1:6}\n".format(
+            renderer.write(u"Process: '{0}' pid: {1:6}\n".format(
                     task.ImageFileName, task.UniqueProcessId))
 
-            outfd.write("{0:12} {1:12} {2:12}\n".format(
-                    'Virtual', 'Physical', 'Size'))
-
             ranges = list(self.get_pages_for_eprocess(task))
-
             if not ranges:
-                outfd.write("Unable to read pages for task.\n")
+                renderer.write("Unable to read pages for task.\n")
                 continue
 
+            renderer.table_header([("Virtual", "[addrpad]"),
+                                   ("Physical", "[addrpad]"),
+                                   ("Size", "[addr]")])
+
             for virtual_address, phys_address, length in ranges:
-                outfd.write("0x{0:010x} 0x{1:010x} 0x{2:012x}\n".format(
-                        virtual_address, phys_address, length))
+                renderer.table_row(virtual_address, phys_address, length)
 
 
 class WinMemDump(WinMemMap):

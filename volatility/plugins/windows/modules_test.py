@@ -30,33 +30,31 @@ class TestModules(testlib.VolatilityBaseUnitTestCase):
     ng_launch_args = [['modules', {}]]
 
     # Disabled temporarily until the output is more parseable.
-    def XXXtestModules(self):
+    def testModules(self):
         """Test the modules plugin."""
         previous_meta, current_meta = self.ReRunVolatilityTest('modules')
         previous = previous_meta['output']
         current = current_meta['output']
+
+        # The following can be out of order due to Volatility NG's list
+        # traversal algorithm being different from Volatility trunks.
 
         # Compare virtual addresses.
         self.assertIntegerListEqual(
             sorted(self.ExtractColumn(current, 0, 2)),
             sorted(self.ExtractColumn(previous, 0, 2)))
 
-        # Comparing against trunk we need to remap the columns a bit.
-        if previous_meta['mode'] == 'trunk':
-            names = sorted(self.ExtractColumn(previous, 1, 2, " +"))
-            base = sorted(self.ExtractColumn(previous, 2, 2, " +"))
-            path = sorted(self.ExtractColumn(previous, 1, 2, ".{54}"))
-        else:
-            names = sorted(self.ExtractColumn(previous, 2, 2, " +"))
-            base = sorted(self.ExtractColumn(previous, 3, 2, " +"))
-            path = sorted(self.ExtractColumn(previous, 2, 2, "0 +"))
-
         # Compare filenames.
         self.assertListEqual(
-            sorted(self.ExtractColumn(current, 2, 2, " +")), names)
-        self.assertListEqual(
-            sorted(self.ExtractColumn(current, 2, 2, "0 +")), path)
+            sorted(self.ExtractColumn(previous, 1, 2)),
+            sorted(self.ExtractColumn(current, 1, 2)))
 
-        # Compare virtual addresses.
+        # Compare paths.
+        self.assertListEqual(
+            sorted(self.ExtractColumn(previous, 4, 2)),
+            sorted(self.ExtractColumn(current, 4, 2)))
+
+        # Compare base virtual addresses.
         self.assertIntegerListEqual(
-            sorted(self.ExtractColumn(current, 3, 2, " +")), base)
+            sorted(self.ExtractColumn(current, 2, 2)),
+            sorted(self.ExtractColumn(current, 2, 2)))

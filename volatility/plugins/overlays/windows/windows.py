@@ -184,6 +184,24 @@ class _EPROCESS(obj.CType):
 
         return obj.NoneObject("Peb not found")
 
+    @property
+    def IsWow64(self):
+        """Returns True if this is a wow64 process"""
+        return hasattr(self, 'Wow64Process') and self.Wow64Process.v() != 0
+
+    @property
+    def SessionId(self):
+        """Returns the Session ID of the process"""
+
+        if self.Session.is_valid():
+            process_space = self.get_process_address_space()
+            if process_space:
+                return self.obj_profile.Object("_MM_SESSION_SPACE",
+                                               offset = self.Session,
+                                               vm = process_space).SessionId
+
+        return obj.NoneObject("Cannot find process session")
+
     def get_process_address_space(self):
         """ Gets a process address space for a task given in _EPROCESS """
         directory_table_base = self.Pcb.DirectoryTableBase.v()

@@ -86,17 +86,17 @@ class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
         else:
             return None
 
-    def render(self, outfd):
-        outfd.write("Offset(V)  Offset(P) {0:18}  {1:12}  {2:8} {3:50}\n".format(
-                'Name', 'Base', 'Size', 'File'))
-        outfd.write("---------------------------------------------\n")
+    def render(self, renderer):
+        renderer.table_header([("Offset (V)", "[addrpad]"),
+                               ("Name", "20"),
+                               ('Base', "[addrpad]"),
+                               ('Size', "[addr]"),
+                               ('File', "")
+                               ])
 
         for module in self.lsmod():
-            offset = module.obj_offset
-            outfd.write("{0:#010x}  {1:#10x}  {2:18}  {3:#012x}  {4:#08x}  {5:50}\n".format(
-                    offset, module.obj_vm.vtop(offset),
-                    module.BaseDllName,
-                    module.DllBase,
-                    module.SizeOfImage,
-                    module.FullDllName,
-                    ))
+            renderer.table_row(module.obj_offset,
+                               module.BaseDllName,
+                               module.DllBase,
+                               module.SizeOfImage,
+                               module.FullDllName)

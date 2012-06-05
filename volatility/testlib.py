@@ -167,8 +167,16 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
 
         t = time.time()
         user_session = session.Session(filename=image, profile=profile)
+
         fd = StringIO.StringIO()
-        user_session.vol(module, fd=fd, **kwargs)
+        renderer = session.TextRenderer(session=user_session, fd=fd)
+
+        # To make it easier to seperate columns we use the seperator ||. It is
+        # unlikely to occur naturally in a table.
+        renderer.tablesep = "||"
+        renderer.elide = False
+
+        user_session.vol(module, renderer=renderer, **kwargs)
 
         # Just a simple measure of time, so we can detect extreme slow down
         # regressions.

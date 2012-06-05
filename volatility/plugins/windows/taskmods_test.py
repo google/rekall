@@ -37,18 +37,12 @@ class TestPS(testlib.VolatilityBaseUnitTestCase):
     def testPslist(self):
         previous, current = self.ReRunVolatilityTest('pslist')
 
-        # Comparing against trunk we need to remap the columns a bit.
-        if previous['mode'] == 'trunk':
-            filenames = self.ExtractColumn(previous['output'], 1, 2)
-        else:
-            filenames = self.ExtractColumn(previous['output'], 2, 2)
-
         # Compare filenames.
-        self.assertListEqual(self.ExtractColumn(current['output'], 2, 2, " +"),
-                             filenames)
+        self.assertListEqual(self.ExtractColumn(current['output'], 1, 2),
+                             self.ExtractColumn(previous['output'], 1, 2))
 
         # Compare virtual addresses.
-        self.assertListEqual(self.ExtractColumn(current['output'], 0, 2, " +"),
+        self.assertListEqual(self.ExtractColumn(current['output'], 0, 2),
                              self.ExtractColumn(previous['output'], 0, 2))
 
     def ParseDllist(self, output):
@@ -73,23 +67,27 @@ class TestPS(testlib.VolatilityBaseUnitTestCase):
             # Base address.
             self.assertListEqual(
                 self.ExtractColumn(previous_map[pid], 0, 1),
-                self.ExtractColumn(current_map[pid], 0, 1, " +"))
+                self.ExtractColumn(current_map[pid], 0, 1))
 
             # Path address.
             self.assertListEqual(
                 self.ExtractColumn(previous_map[pid], 2, 1),
-                self.ExtractColumn(current_map[pid], 2, 1, "0 +"))
+                self.ExtractColumn(current_map[pid], 2, 1))
 
     def testMemmap(self):
         previous, current = self.ReRunVolatilityTest('memmap', pid=2624)
 
         # Virtual address - Hex formatting might be different so convert it from
         # hex and compare the ints themselves.
+        skip = 4
+        if previous['mode'] == 'trunk':
+            skip = 3
+
         self.assertIntegerListEqual(
-            self.ExtractColumn(previous['output'], 0, 3),
-            self.ExtractColumn(current['output'], 0, 3, " +"))
+            self.ExtractColumn(previous['output'], 0, skip),
+            self.ExtractColumn(current['output'], 0, 4))
 
         # Physical address.
         self.assertIntegerListEqual(
-            self.ExtractColumn(previous['output'], 1, 3),
-            self.ExtractColumn(current['output'], 1, 3, " +"))
+            self.ExtractColumn(previous['output'], 1, skip),
+            self.ExtractColumn(current['output'], 1, 4))
