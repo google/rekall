@@ -123,6 +123,7 @@ class WinDllList(common.WinProcessFilter):
                 outfd.write(u"{0}\n".format(task.Peb.CSDVersion))
                 outfd.write(u"\n")
                 outfd.write(u"{0:12} {1:12} {2}\n".format('Base', 'Size', 'Path'))
+                outfd.write(u"---------------------------------\n")
                 for m in task.get_load_modules():
                     outfd.write(u"0x{0:08x}   0x{1:06x}     {2}\n".format(
                             m.DllBase, m.SizeOfImage, m.FullDllName))
@@ -194,6 +195,11 @@ class WinMemDump(WinMemMap):
 
     def __init__(self, dump_dir=None, **args):
         """Dump all addressable memory for a process.
+
+        Note: This can be quite large. No padding is inserted into the output
+        file to compensate for inaddressable process memory, hence the output
+        offsets are essentially random. It is almost always better to use the
+        fuse filesystem in tools/windows/address_space_fuse.py
 
         Args:
           dump_dir: The Directory in which to dump memory. Files of the form

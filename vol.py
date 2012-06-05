@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # Volatility
 # Copyright (C) 2008 Volatile Systems
 #
@@ -18,8 +20,10 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import argparse
 import logging
-import optparse
+import sys
+
 
 from volatility import conf
 from volatility import session
@@ -27,9 +31,32 @@ from volatility import session
 # Import and register the core plugins
 from volatility import plugins
 
-parser = optparse.OptionParser()
-parser.add_option("-e", "--exec", default=None,
-                  help="execute a python volatility script.")
+parser =  argparse.ArgumentParser(description='The Volatility Memory Forensic Framework.',
+                                  epilog='When no module is provided, '
+                                  'drops into interactive mode')
+
+parser.add_argument("module", nargs='?',
+                    help="plugin module to run.")
+
+parser.add_argument("-e", "--exec", default=None,
+                    help="execute a python volatility script.")
+
+# The following are added for backwards compatibility to the most common
+# volatility command line options. This is not an exhaustive list (particularly
+# since in Volatility 2.X further options can be added to each plugin).
+
+parser.add_argument("-i", "--interactive", default=False, action="store_true",
+                    help="For compatibility, if a plugin name is specified on the "
+                    "command line, we exit immediately after running it. If this flag "
+                    "is specified we drop into the interactive shell instead.")
+
+parser.add_argument("-f", "--filename", default=None,
+                    help="The raw image to load.")
+
+parser.add_argument("-p", "--profile", default=None,
+                    help="Name of the profile to load.")
+
+parser.add_argument("--dtb", help="DTB Address")
 
 
 def IPython011Support(user_session):
@@ -116,16 +143,27 @@ def NativePythonSupport(user_session):
     user_session._prepare_local_namespace()
     code.interact(banner = banner, local = user_session._locals)
 
-
+def UpdateSessionFromArgv(user_session, FLAGS):
+    for k, v in FLAGS.__dict__.items():
+        if v is not None:
+            setattr(user_session, k, v)
 
 if __name__ == '__main__':
-    FLAGS, args = parser.parse_args()
+    FLAGS = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
 
     # New user session. TODO(scudette): Implement some kind of parameter parsing
     # here.
     conf.GLOBAL_SESSION = user_session = session.Session()
+
+    UpdateSessionFromArgv(user_session, FLAGS)
+    if FLAGS.module:
+        # Run the module
+        user_session.vol(FLAGS.module)
+
+        if not FLAGS.interactive:
+            sys.exit()
 
     # Try to launch the session using something.
     IPython011Support(user_session) or IPython012Support(user_session) or NativePythonSupport(user_session)

@@ -1,0 +1,16 @@
+{
+  "output": [
+    [
+      "replace",
+      1644,
+      "0x7c900000    0xb0000  -",
+      "Trunk volatility prints nothing for unmapped dlls, while we print -."
+    ],
+    [
+      "replace",
+      1878,
+      "0x7c900000    0xb0000  -",
+      "Trunk volatility prints nothing for unmapped dlls, while we print -."
+    ]
+  ]
+}

@@ -126,13 +126,17 @@ class Session(object):
     # This is used for setattr in __init__.
     _ready = False
 
-    def __init__(self, env=None):
+    def __init__(self, env=None, **kwargs):
         # These are the command plugins which we exported to the local
         # namespace.
         self._start_time = time.time()
         self._locals = env or {}
         self.plugins = PluginContainer(self)
         self._ready = True
+
+        # Merge in defaults.
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     def reset(self):
         """Reset the current session by making a new session."""

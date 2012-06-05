@@ -91,6 +91,7 @@ class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
     def render(self, outfd):
         outfd.write("Offset(V)  Offset(P)  {0:50} {1:12} {2:8} {3}\n".format(
                 'File', 'Base', 'Size', 'Name'))
+        outfd.write("---------------------------------------------\n")
 
         for module in self.lsmod():
             offset = module.obj_offset

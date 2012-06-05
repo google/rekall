@@ -4,5 +4,7 @@ objchk_wnet_*
 .scons*
 release
 *.sln
-test_data/*
+test_data/*.img*
+test_data/*.raw*
+test_data/*.hiber*
 build
