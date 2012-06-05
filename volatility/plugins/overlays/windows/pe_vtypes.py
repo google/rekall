@@ -650,7 +650,7 @@ pe_vtypes = {
             }],
 
     # The size of this is given by the Length member.
-    "StringFileInfo": [lambda x: RoundUp(x.obj_offset + x.Length) - x.obj_offset, {
+    "StringFileInfo": [lambda x: RoundUp(x.Length), {
             "Length": [0x00, ['unsigned short int']],
             "ValueLength": [0x02, ['unsigned short int']],
             "Type": [0x04, ['unsigned short int']],
@@ -663,7 +663,34 @@ pe_vtypes = {
                         maximum_offset=lambda x: x.Length + x.obj_offset)]],
             }],
 
-    "StringTable": [lambda x: RoundUp(x.obj_offset + x.Length) - x.obj_offset, {
+    # The size of this is given by the Length member.
+    "VarFileInfo": [lambda x: RoundUp(x.Length), {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ['unsigned short int']],
+
+            # Must be "VarFileInfo"
+            "Key": [0x06, ['UnicodeString', dict(length=24)]],
+
+            "Children": [AlignAfter("Key"), ['ListArray', dict(
+                        target='Var',
+                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
+            }],
+
+    # Round up the size of the struct to word alignment.
+    "Var": [lambda x: RoundUp(x.Length), {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ['unsigned short int']],
+
+            # This is exactly Translation
+            "Key": [0x06, ['UnicodeString', dict(length=24)]],
+
+            "Value": [AlignAfter("Key"), ['String', dict(
+                        length=lambda x: x.ValueLength, term=None)]],
+            }],
+
+    "StringTable": [lambda x: RoundUp(x.Length), {
             "Length": [0x00, ['unsigned short int']],
             "ValueLength": [0x02, ['unsigned short int']],
             "Type": [0x04, ['unsigned short int']],
@@ -677,7 +704,7 @@ pe_vtypes = {
             }],
 
     # Round up the size of the struct to word alignment.
-    "ResourceString": [lambda x: RoundUp(x.obj_offset + x.Length) - x.obj_offset, {
+    "ResourceString": [lambda x: RoundUp(x.Length), {
             "Length": [0x00, ['unsigned short int']],
             "ValueLength": [0x02, ['unsigned short int']],
             "Type": [0x04, ['unsigned short int']],
@@ -1162,6 +1189,17 @@ class ThunkArray(SentinalArray):
 
 class VS_VERSIONINFO(obj.CType):
 
+    @property
+    def Children(self):
+        """The child is either a StringFileInfo or VarFileInfo depending on the key."""
+        for child in self.m("Children"):
+            if child.Key.startswith("VarFileInfo"):
+                yield child.cast("VarFileInfo")
+            elif child.Key.startswith("StringFileInfo"):
+                yield child
+            else:
+                break
+
     def Strings(self, obj=None):
         """Generates all the ResourceString structs by recursively traversing
         the Children tree.
@@ -1234,6 +1272,17 @@ class PE(object):
             version_info = data.OffsetToData.dereference_as("VS_VERSIONINFO")
             for string in version_info.Strings():
                 yield string.Key, string.Value
+
+    def Sections(self):
+        for section in self.nt_header.Sections:
+
+            execution_flags = "%s%s%s" % (
+                "x" if section.Characteristics.IMAGE_SCN_MEM_EXECUTE else "-",
+                "r" if section.Characteristics.IMAGE_SCN_MEM_READ else "-",
+                "w" if section.Characteristics.IMAGE_SCN_MEM_WRITE else "-")
+
+            yield (execution_flags, section.Name, section.VirtualAddress,
+                   section.SizeOfRawData + section.VirtualAddress)
 
 
 # The following adds a profile to deal with PE files. Since PE files are not

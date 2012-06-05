@@ -892,7 +892,7 @@ class CType(BaseObject):
 
         fields = []
         # Print all the fields sorted by offset within the struct.
-        for k, (offset, _) in self.members.items():
+        for k in self.members:
             width_name = max(width_name, len(k))
             obj = self.m(k)
             fields.append((obj.obj_offset - self.obj_offset,
