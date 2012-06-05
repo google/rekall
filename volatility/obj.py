@@ -541,34 +541,40 @@ class BitField(NativeType):
 
 
 class Pointer(NativeType):
+    """A pointer reads an 'address' object from the address space."""
+    def __init__(self, target=None, target_args=None, **kwargs):
+        """Constructor.
 
-    def __init__(self, theType=None, target=None, target_args=None, **kwargs):
-        # The format string comes from the address field:
-        super(Pointer, self).__init__(theType=theType, **kwargs)
+        Args:
+           target: The name of the target object (A string). We use the profile
+             to instantiate it.
+           target_args: The target will receive these as kwargs.
+        """
+        super(Pointer, self).__init__(**kwargs)
 
-        self.format_string = self.obj_profile.vtypes["address"][1]["format_string"]
+        # We parse the address using the profile since address is a different
+        # size on different platforms.
+        self._proxy = self.obj_profile.Object("address", offset=self.obj_offset,
+                                              vm=self.obj_vm)
 
-        self.kwargs = kwargs
-        kwargs = kwargs.copy()
-        kwargs.update(target_args or {})
-
-        if isinstance(target, basestring):
-            self.target = Curry(self.obj_profile.Object, theType=target, **kwargs)
-        elif callable(target):
-            self.target = target
-        else:
-            self.target = Curry(self.obj_profile.Object, theType=self.obj_type, **kwargs)
-
+        # We just hold on to these so we can construct the objects later.
+        self.target = target
+        self.target_args = target_args or {}
         self.target_size = 0
+
+    def size(self):
+        return self._proxy.size()
 
     def v(self):
         # 64 bit addresses are always sign extended so we need to clear the top bits.
-        return 0xffffffffffff & super(Pointer, self).v()
+        return 0xffffffffffff & self._proxy.v()
 
     def __eq__(self, other):
         try:
-            return (0xffffffffffff & int(other)) == self.v()
-        except TypeError:
+            # Must use __int__() because int(other) when other is a string will
+            # convert it to an integer.
+            return (0xffffffffffff & other.__int__()) == self.v()
+        except (ValueError, AttributeError):
             return False
 
     def is_valid(self):
@@ -582,10 +588,21 @@ class Pointer(NativeType):
         vm = vm or self.obj_vm
 
         if vm.is_valid_address(offset):
-            result = self.target(offset = offset,
-                                 vm = vm, profile = self.obj_profile,
-                                 parent = self.obj_parent,
-                                 name = self.obj_name)
+            kwargs = copy.deepcopy(self.target_args)
+            kwargs.update(dict(offset = offset,
+                               vm = vm, profile = self.obj_profile,
+                               parent = self.obj_parent,
+                               name = self.obj_name))
+
+            if isinstance(self.target, basestring):
+                result = self.obj_profile.Object(theType=self.target, **kwargs)
+
+            elif callable(self.target):
+                result = self.target(**kwargs)
+            else:
+                # Target not valid, return void.
+                result = Void(**kwargs)
+
             return result
         else:
             return NoneObject("Pointer {0} invalid".format(self.obj_name))
@@ -695,10 +712,9 @@ class Array(BaseObject):
             i.e. it is possible to read past the end). By default the array is
             unbound.
 
-          target: A callable which will be instantiated on each point. The size
+          target: The name of the element to be instantiated on each point. The size
             of the object returned by this should be the same for all members of
-            the array. Alternatively target can be the name of the element as a
-            string (same as targetType: e.g. "_IMAGE_EXPORT_DIRECTORY")
+            the array (i.e. all elements should be the same size).
         """
         super(Array, self).__init__(**kwargs)
 
@@ -707,45 +723,33 @@ class Array(BaseObject):
 
         self.count = int(count)
 
-        if isinstance(target, basestring):
-            self.targetType = target
-
-        target_args = target_args or {}
         if not target:
             raise AttributeError("Array must use a target parameter")
 
-        self.target = Curry(self.obj_profile.Object, target, **target_args)
-
-        # Dereference the first element.
-        self.current = self[0]
-        self.target_size = self.current.size()
-
-        if self.target_size == 0:
-            ## It is an error to have a zero sized element
-            logging.debug("Array with 0 sized members???")
+        self.target = target
+        self.target_args = target_args or {}
+        self.target_size = self.obj_profile.get_obj_size(target)
 
     def size(self):
-        return self.count * self.target_size
+        """The size of the entire array."""
+        return self.target_size * self.count
 
     def __iter__(self):
-        ## This method is better than the __iter__/next method as it
-        ## is reentrant
-        for position in range(0, self.count):
+        # If the array is invalid we do not iterate.
+        if self.obj_vm.is_valid_address(self.obj_offset):
+            for position in range(0, self.count):
+                # We don't want to stop on a NoneObject.  Its
+                # entirely possible that this array contains a bunch of
+                # pointers and some of them may not be valid (or paged
+                # in). This should not stop us though we just return the
+                # invalid pointers to our callers.  It's up to the callers
+                # to do what they want with the array.
 
-            ## We don't want to stop on a NoneObject.  Its
-            ## entirely possible that this array contains a bunch of
-            ## pointers and some of them may not be valid (or paged
-            ## in). This should not stop us though we just return the
-            ## invalid pointers to our callers.  It's up to the callers
-            ## to do what they want with the array.
-            if (self.current == None):
-                return
-
-            yield self[position]
+                yield self[position]
 
     def __repr__(self):
-        return "<Array {0} x {1} @ 0x{2:08X}>".format(
-            self.count, self.targetType, self.obj_offset)
+        return "<{3} {0} x {1} @ 0x{2:08X}>".format(
+            self.count, self.target, self.obj_offset, self.__class__.__name__)
 
     def __str__(self):
         result = [repr(self)]
@@ -774,15 +778,65 @@ class Array(BaseObject):
             start, stop, step = pos.indices(self.count)
             return [self[i] for i in xrange(start, stop, step)]
 
-        ## Check if the offset is valid
-        offset = self.obj_offset + pos * self.target_size
+        offset = self.target_size * pos + self.obj_offset
 
         try:
-            return self.target(offset=offset, vm=self.obj_vm, parent=self,
-                               profile=self.obj_profile,
-                               name = "{0} @ {1}".format(self.obj_name, pos))
+            return self.obj_profile.Object(
+                self.target, offset=offset, vm=self.obj_vm,
+                parent=self, profile=self.obj_profile,
+                name = "{0}[{1}] ".format(self.obj_name, pos),
+                **self.target_args)
         except InvalidOffsetError:
             return NoneObject("Invalid offset %s" % offset)
+
+
+class ListArray(Array):
+    """An array of structs which do not all have the same size."""
+
+    def __init__(self, maximum_size=1024, maximum_offset=None, **kwargs):
+        """Constructor.
+
+        Args:
+          maximum_size: The maximum size of the array in bytes.
+        """
+        super(ListArray, self).__init__(**kwargs)
+        if callable(maximum_size):
+            maximum_size = maximum_size(self.obj_parent)
+
+        if callable(maximum_offset):
+            maximum_offset = maximum_offset(self.obj_parent)
+
+        self.maximum_offset = maximum_offset or (self.obj_offset + maximum_size)
+
+    def __iter__(self):
+        offset = self.obj_offset
+        count = 0
+        while offset < self.maximum_offset:
+            try:
+                item = self.obj_profile.Object(
+                    self.target, offset=offset, vm=self.obj_vm, parent=self,
+                    profile=self.obj_profile,
+                    name = "{0}[{1}] ".format(self.obj_name, count),
+                    **self.target_args)
+
+                item_size = item.size()
+                if item_size <= 0:
+                    break
+
+                offset += item_size
+                count += 1
+
+                yield item
+
+            except InvalidOffsetError:
+                return
+
+    def __getitem__(self, pos):
+        for index, item in enumerate(self):
+            if index == int(pos):
+                return item
+
+        return NoneObject("Pos seems to be outside the array maximum_size.")
 
 
 class CType(BaseObject):
@@ -824,6 +878,9 @@ class CType(BaseObject):
         return 0
 
     def size(self):
+        if callable(self.struct_size):
+            return self.struct_size(self)
+
         return self.struct_size
 
     def __repr__(self):
@@ -975,6 +1032,9 @@ class Profile(object):
             def read(self, _offset, _value):
                 return ""
 
+            def zread(self, offset, length):
+                return "\x00" * length
+
         # A dummy address space used internally.
         self._dummy = dummy()
 
@@ -983,6 +1043,7 @@ class Profile(object):
                                'Pointer': Pointer,
                                'Void': Void,
                                'Array': Array,
+                               'ListArray': ListArray,
                                'NativeType': NativeType,
                                'CType': CType}
 

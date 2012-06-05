@@ -168,7 +168,7 @@ class Session(object):
         # Its an address space
         elif isinstance(target, addrspace.BaseAddressSpace):
             data = target.zread(offset, width*rows)
-            base = offset
+            base = int(offset)
         # Its a string or something else:
         else:
             data = utils.SmartStr(data)

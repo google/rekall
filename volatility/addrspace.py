@@ -78,7 +78,7 @@ class BaseAddressSpace(object):
         """ Read some date from a certain offset """
 
     def zread(self, addr, length):
-        data = self.read(addr, length)
+        data = self.read(int(addr), int(length))
         if not data:
             return "\x00" * length
 

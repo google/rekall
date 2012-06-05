@@ -40,25 +40,42 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     Note that these strings are _not_ text strings - they are effectively bytes
     arrays and therefore are not encoded in any particular unicode encoding.
     """
-    def __init__(self, length = 1, **kwargs):
+    def __init__(self, length = 1024, term="\x00", **kwargs):
+        """Constructor.
+
+        Args:
+           length: The maximum length of the string.
+
+           terminator: The terminator for this string. If None, there will be no
+              checking for null terminations (Pure character array).
+        """
         super(String, self).__init__(**kwargs)
 
         ## Allow length to be a callable:
         if callable(length):
             length = length(self.obj_parent)
 
-        self.length = length
+        self.term = term
+        self.length = int(length)
 
-        ## length must be an integer
-        self.format_string = "{0}s".format(int(length))
+    def startswith(self, other):
+        return str(self).startswith(other)
+
+    def v(self, vm=None):
+        vm = vm or self.obj_vm
+        data = vm.read(self.obj_offset, self.length)
+        if self.term is not None:
+            left, sep, _ = data.partition(self.term)
+            data = left + sep
+
+        return data
 
     def proxied(self, name):
         """ Return an object to be proxied """
-        return self.__str__()
+        return self.v()
 
     def __str__(self):
-        ## Make sure its null terminated:
-        return self.v().split("\x00")[0]
+        return self.v()
 
     def __unicode__(self):
         return self.v().decode("utf8", "replace").split("\x00")[0] or u""
@@ -73,6 +90,11 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def __radd__(self, other):
         """Set up mappings for reverse concat"""
         return other + str(self)
+
+    def size(self):
+        """This is equivalent to strlen()."""
+        # The length is really determined by the terminator here.
+        return len(self.v())
 
 
 class UnicodeString(String):
@@ -90,11 +112,21 @@ class UnicodeString(String):
         super(UnicodeString, self).__init__(**kwargs)
         self.encoding = encoding or self.obj_profile.get_constant('default_text_encoding')
 
+
     def v(self, vm=None):
-        """Note this returns a unicode object."""
-        # Null terminate the string
-        data = super(UnicodeString, self).v().decode(self.encoding, "ignore")
-        return data.split("\x00")[0]
+        vm = vm or self.obj_vm
+
+        data = vm.read(self.obj_offset, self.length)
+
+        # Try to interpret it as a unicode encoded string.
+        data = data.decode(self.encoding, "ignore")
+
+        # Now null terminate if needed.
+        if self.term is not None:
+            left, sep, _ = data.partition(self.term)
+            data = left + sep
+
+        return data
 
     def __unicode__(self, vm=None):
         return self.v(vm=vm) or ''
@@ -102,6 +134,10 @@ class UnicodeString(String):
     def __str__(self):
         """This function returns an encoded string in utf8."""
         return self.v().encode("utf8") or ''
+
+    def size(self):
+        # This will only work if the encoding and decoding are equivalent.
+        return len(self.v().encode(self.encoding, 'ignore'))
 
 
 class Flags(obj.NativeType):
@@ -132,6 +168,13 @@ class Flags(obj.NativeType):
                 result.append(k)
 
         return ', '.join(result)
+
+    def __repr__(self):
+        abridged = str(self)
+        if len(abridged) > 10:
+            abridged = abridged[:40] + " ..."
+
+        return "%s (%s)" % (super(Flags, self).__repr__(), abridged)
 
     def __format__(self, formatspec):
         return format(self.__str__(), formatspec)
@@ -409,4 +452,4 @@ class BasicWindowsClasses(obj.Profile):
             'UnixTimeStamp': UnixTimeStamp,
             })
 
-        self.add_constants(default_text_encoding="utf16")
+        self.add_constants(default_text_encoding="utf-16-le")

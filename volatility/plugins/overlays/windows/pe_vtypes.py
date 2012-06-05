@@ -23,6 +23,9 @@
 http://msdn.microsoft.com/en-us/magazine/ms809762.aspx
 http://msdn.microsoft.com/en-us/magazine/cc301805.aspx
 http://code.google.com/p/corkami/downloads/detail?name=pe-20110117.pdf
+
+Version information:
+http://msdn.microsoft.com/en-us/library/windows/desktop/ff468916(v=vs.85).aspx
 """
 import copy
 
@@ -120,7 +123,7 @@ class ResourcePointer(obj.Pointer):
 
                 if isinstance(parent, _IMAGE_NT_HEADERS):
                     for section in parent.Sections:
-                        if section.Name == ".rsrc":
+                        if section.Name.startswith(".rsrc"):
                             self.resource_base = (section.VirtualAddress +
                                                   parent.OptionalHeader.ImageBase)
                             break
@@ -240,7 +243,7 @@ pe_overlays = {
             }],
 
     "_IMAGE_SECTION_HEADER": [None, {
-            'Name' : [ 0x0, ['String', {'length': 8}]],
+            'Name' : [ 0x0, ['String', {'length': 8, 'term': None}]],
             'Characteristics' : [ 0x24, ['Flags', {
                         'maskmap': {
                             'IMAGE_SCN_CNT_CODE':                  0x00000020,
@@ -344,7 +347,7 @@ pe_overlays = {
             }],
 
     "_IMAGE_RESOURCE_DIRECTORY_ENTRY": [0x08, {
-            "Name": [0x00, ['ResourcePointer', dict(target="ResourceString")]],
+            "Name": [0x00, ['ResourcePointer', dict(target="PrefixedString")]],
             "Type": [0x00, ["Enumeration", dict(choices={
                             1:    'RT_CURSOR',
                             2:    'RT_BITMAP',
@@ -371,23 +374,50 @@ pe_overlays = {
             # This is true when we need to use the Name field.
             "NameIsString": [0x00, ['BitField', dict(start_bit=31, end_bit=32)]],
             "OffsetToDataInt": [0x04, ['unsigned int']],
-            "OffsetToData": [0x04, ['ResourcePointer', dict(target="unsigned int")]],
+            "OffsetToData": [0x04, ['ResourcePointer', dict(target="_IMAGE_RESOURCE_DATA_ENTRY")]],
             "Entry": [0x04, ['ResourcePointer', dict(target="_IMAGE_RESOURCE_DIRECTORY")]],
 
             # If this is set the child is another _IMAGE_RESOURCE_DIRECTORY_ENTRY
             "ChildIsEntry": [0x04, ['BitField', dict(start_bit=31, end_bit=32)]],
             }],
 
-    'ResourceString' : [ 0x02, {
+    'PrefixedString' : [ 0x02, {
             'Length' : [ 0x0, ['unsigned short']],
             'Buffer' : [ 0x2, ['UnicodeString', dict(length=lambda x: x.Length * 2 + 1)]],
             } ],
+
+    '_IMAGE_RESOURCE_DATA_ENTRY': [0x10, {
+            'OffsetToData': [0x00, ['RVAPointer', dict(
+                        target="String",
+                        target_args=dict(length=lambda x: x.Size))]],
+            'Size': [0x04, ['unsigned int']],
+            'CodePage': [0x08, ['unsigned int']],
+            }],
     }
 
 # _IMAGE_OPTIONAL_HEADER64 is the same as _IMAGE_OPTIONAL_HEADER but offsets are
 # different
 pe_overlays["_IMAGE_OPTIONAL_HEADER64"] = copy.deepcopy(
     pe_overlays["_IMAGE_OPTIONAL_HEADER"])
+
+
+def RoundUp(offset):
+    """Round up the next word boundary."""
+    if offset % 4:
+        offset += 4 - offset % 4
+
+    return offset
+
+
+def AlignAfter(name):
+    def get_offset(x):
+        x = getattr(x, name)
+        end_of_object = x.obj_offset + x.size()
+
+        return RoundUp(end_of_object)
+
+    return get_offset
+
 
 pe_vtypes = {
     '_IMAGE_EXPORT_DIRECTORY': [ 0x28, {
@@ -425,7 +455,7 @@ pe_vtypes = {
             } ],
 
     '_IMAGE_SECTION_HEADER' : [ 0x28, {
-            'Name' : [ 0x0, ['String', {'length': 8}]],
+            'Name' : [ 0x0, ['String', {'length': 8, 'term': None}]],
             'Misc' : [ 0x8, ['__unnamed_156e']],
             'VirtualAddress' : [ 0xc, ['unsigned long']],
             'SizeOfRawData' : [ 0x10, ['unsigned long']],
@@ -557,6 +587,106 @@ pe_vtypes = {
             'Ordinal' : [ 0x0, ['unsigned long long']],
             'AddressOfData' : [ 0x0, ['unsigned long long']],
             'ForwarderString' : [ 0x0, ['unsigned long long']],
+            }],
+
+    # Note this is a problematic structure due to the alignment
+    # requirements. Its not too much of a problem for the Volatility object
+    # system though :-)
+
+    # http://msdn.microsoft.com/en-us/library/windows/desktop/ms647001(v=vs.85).aspx
+    'VS_VERSIONINFO': [0x06, {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ["Enumeration", dict(
+                        choices={
+                            0: "Binary",
+                            1: "Text",
+                            },
+                        target='unsigned short int')]],
+
+            # Must be VS_VERSION_INFO\x00 in utf16
+            "szKey": [0x06, ["UnicodeString", dict(length=32)]],
+
+            # The member is 32bit aligned after the szKey member.
+            "Value": [AlignAfter("szKey"), ["VS_FIXEDFILEINFO"]],
+
+            # This member is also aligned after the Value member.
+            "Children": [AlignAfter("Value"), ['ListArray', dict(
+                        target="StringFileInfo",
+                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
+            }],
+
+    'VS_FIXEDFILEINFO': [0x34, {
+            "Signature": [0x00, ['unsigned int']],
+            "StructVersion": [0x04, ['unsigned int']],
+            "FileVersionMS": [0x08, ['unsigned int']],
+            "FileVersionLS": [0x0c, ['unsigned int']],
+            "ProductVersionMS": [0x10, ['unsigned int']],
+            "ProductVersionLS": [0x14, ['unsigned int']],
+            "FileFlagsMask": [0x18, ['unsigned int']],
+            "FileFlags": [0x1c, ['unsigned int']],
+            "FileOS": [0x20, ["Flags", dict(
+                        maskmap={
+                            "VOS_DOS": 0x00010000,
+                            "VOS_NT": 0x00040000,
+                            "VOS__WINDOWS16": 0x00000001,
+                            "VOS__WINDOWS32": 0x00000004,
+                            },
+                        target='unsigned int')]],
+            "FileType": [0x24, ['Enumeration', dict(
+                        choices={
+                            1: "VFT_APP (Application)",
+                            2: "VFT_DLL (DLL)",
+                            3: "VFT_DRV (Driver)",
+                            4: "VFT_FORT (Font)",
+                            5: "VFT_VXD",
+                            7: "VFT_STATIC_LIB",
+                            },
+                        target='unsigned int')]],
+            "FileSubtype": [0x28, ['unsigned int']],
+            "FileDateMS": [0x2c, ['unsigned int']],
+            "FileDateLS": [0x30, ['unsigned int']],
+            "FileDate": [0x2c, ['WinTimeStamp', {}]],
+            }],
+
+    # The size of this is given by the Length member.
+    "StringFileInfo": [lambda x: RoundUp(x.obj_offset + x.Length) - x.obj_offset, {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ['unsigned short int']],
+
+            # Must be "StringFileInfo"
+            "Key": [0x06, ['UnicodeString', dict(length=28)]],
+
+            "Children": [AlignAfter("Key"), ['ListArray', dict(
+                        target='StringTable',
+                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
+            }],
+
+    "StringTable": [lambda x: RoundUp(x.obj_offset + x.Length) - x.obj_offset, {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ['unsigned short int']],
+
+            # In MSDN this is called szKey.
+            "LangID": [0x06, ['UnicodeString', dict(length=16, term=None)]],
+
+            "Children": [AlignAfter("LangID"), ['ListArray', dict(
+                        target='ResourceString',
+                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
+            }],
+
+    # Round up the size of the struct to word alignment.
+    "ResourceString": [lambda x: RoundUp(x.obj_offset + x.Length) - x.obj_offset, {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ['unsigned short int']],
+
+            # This is a null terminated unicode string representing the key.
+            "Key": [0x06, ['UnicodeString', dict(length=1024)]],
+
+            "Value": [AlignAfter("Key"), ['UnicodeString', dict(
+                        length=lambda x: x.ValueLength * 2)]],
             }],
     }
 
@@ -978,19 +1108,24 @@ class _IMAGE_DATA_DIRECTORY(obj.CType):
 class _IMAGE_RESOURCE_DIRECTORY(obj.CType):
     """Represents a node in the resource tree."""
 
-    Name = "/"
-
     def __iter__(self):
         for entry in self.Entries:
             yield entry
 
-    def Traverse(self):
-        for entry in self:
-            yield entry
+    def Open(self, node_name):
+        """Opens a specific node child."""
+        for entry in self.Entries:
+            if entry.Name == node_name:
+                return entry.Entry
 
+    def Traverse(self):
+        """A generator for _IMAGE_RESOURCE_DATA_ENTRY under this node."""
+        for entry in self:
             if entry.ChildIsEntry:
                 for subentry in entry.Entry.Traverse():
                     yield subentry
+            else:
+                yield entry.OffsetToData.dereference()
 
 
 class _IMAGE_RESOURCE_DIRECTORY_ENTRY(obj.CType):
@@ -1002,22 +1137,11 @@ class _IMAGE_RESOURCE_DIRECTORY_ENTRY(obj.CType):
         else:
             return utils.SmartUnicode(self.Type)
 
-    def Path(self):
-        result = self.Name
-
-        for parent in self.parents:
-            name = getattr(parent, "Name", "")
-            result = name + result
-
-        return result
-
     @property
     def Entry(self):
-        print hex(self.OffsetToDataInt)
         if self.ChildIsEntry:
             return self.m("Entry").dereference()
         else:
-            import pdb; pdb.set_trace()
             return self.m("OffsetToData")
 
 
@@ -1035,6 +1159,81 @@ class ThunkArray(SentinalArray):
 
         super(ThunkArray, self).__init__(target=target, parent=parent,
                                          **kwargs)
+
+class VS_VERSIONINFO(obj.CType):
+
+    def Strings(self, obj=None):
+        """Generates all the ResourceString structs by recursively traversing
+        the Children tree.
+        """
+        if obj is None:
+            obj = self
+
+        for child in obj.Children:
+            try:
+                for subchild in self.Strings(child):
+                    yield subchild
+            except AttributeError:
+                yield child
+
+
+
+class PE(object):
+    """A convenience object to access various things in a PE file."""
+
+    def __init__(self, address_space, image_base=0):
+        """Constructor.
+
+        Args:
+          address_space: An address space to examine.
+          image_base: The address of the dos header.
+        """
+        self.vm = address_space
+        self.profile = PEProfile()
+        self.image_base = image_base
+
+        self.dos_header = self.profile.Object(
+            "_IMAGE_DOS_HEADER", vm=self.vm, offset=image_base)
+
+        self.nt_header = self.dos_header.NTHeader
+
+    def ImportDirectory(self):
+        """A generator over the import directory.
+
+        Yields:
+           a tuple of (dll, function_name)
+        """
+        import_directory = self.nt_header.OptionalHeader.DataDirectory[
+            'IMAGE_DIRECTORY_ENTRY_IMPORT'].dereference()
+
+        for directory in import_directory:
+            dll = directory.Name.dereference()
+            for thunk in directory.FirstThunk.dereference():
+                function_name = thunk.AddressOfData.Name
+
+                yield dll, function_name
+
+    def ExportDirectory(self):
+        """A generator over the export directory."""
+        export_directory = self.nt_header.OptionalHeader.DataDirectory[
+            'IMAGE_DIRECTORY_ENTRY_EXPORT'].dereference()
+
+        dll = export_directory.Name.dereference()
+        for i in range(export_directory.NumberOfFunctions):
+            function_address = export_directory.AddressOfFunctions[i].dereference()
+            function_name = export_directory.AddressOfNames[i].dereference().dereference()
+            yield dll, function_address, function_name
+
+    def VersionInformation(self):
+        """A generator of key, value pairs."""
+        resource_directory = self.nt_header.OptionalHeader.DataDirectory[
+            'IMAGE_DIRECTORY_ENTRY_RESOURCE'].dereference()
+
+        # Find all the versions and their strings
+        for data in resource_directory.Open("RT_VERSION").Traverse():
+            version_info = data.OffsetToData.dereference_as("VS_VERSIONINFO")
+            for string in version_info.Strings():
+                yield string.Key, string.Value
 
 
 # The following adds a profile to deal with PE files. Since PE files are not
@@ -1061,6 +1260,7 @@ class PEFileImplementation(obj.ProfileModification):
                 "ResourcePointer": ResourcePointer,
                 "_IMAGE_RESOURCE_DIRECTORY": _IMAGE_RESOURCE_DIRECTORY,
                 "_IMAGE_RESOURCE_DIRECTORY_ENTRY": _IMAGE_RESOURCE_DIRECTORY_ENTRY,
+                "VS_VERSIONINFO": VS_VERSIONINFO,
                 })
         profile.add_overlay(pe_overlays)
 
