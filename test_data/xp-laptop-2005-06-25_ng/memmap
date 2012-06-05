@@ -1,7 +1,7 @@
 {
     "profile": "WinXPSP2x86", 
     "number_of_lines": 27858, 
-    "time_used": 3.363731861114502, 
+    "time_used": 1.3928730487823486, 
     "filename": "test_data/xp-laptop-2005-06-25.img", 
     "mode": "ng", 
     "kwargs": {

@@ -1,7 +1,7 @@
 # Volatility
 #
 # Authors:
-# Michael Cohen <scudette@users.sourceforge.net>
+# Michael Cohen <scudette@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,27 +26,13 @@ from volatility import testlib
 class TestPS(testlib.VolatilityBaseUnitTestCase):
     """Test the pslist module."""
 
-    def MakeBaseLineFromTrunk(self, executable, image, path, profile, **kwargs):
-        """Same as MakeBaseLine except we need to generate this from Trunk.
+    trunk_launch_args = [['pslist'],
+                         ['dlllist'],
+                         ['memmap', "--pid", "2624"]]
 
-        Usually this means launching the trunk program externally.
-        """
-        for args in [['pslist'],
-                     ['dlllist'],
-                     ['memmap', "--pid", "2624"]]:
-            module = args[0]
-            metadata = self.LaunchTrunkVolatility(executable=executable, profile=profile,
-                                                  image=image, args=args)
-
-            self.SaveRunData(path, module, metadata)
-
-    def MakeBaseLine(self, image, path, profile, **kwargs):
-        for module, kwargs in [['pslist', {}],
-                               ['dlllist', {}],
-                               ['memmap', dict(pid=2624)]]:
-            metadata = self.RunVolatilityModule(profile=profile, image=image,
-                                                module=module, **kwargs)
-            self.SaveRunData(path, module, metadata)
+    ng_launch_args = [['pslist', {}],
+                      ['dlllist', {}],
+                      ['memmap', dict(pid=2624)]]
 
     def testPslist(self):
         previous, current = self.ReRunVolatilityTest('pslist')
@@ -58,11 +44,11 @@ class TestPS(testlib.VolatilityBaseUnitTestCase):
             filenames = self.ExtractColumn(previous['output'], 2, 2)
 
         # Compare filenames.
-        self.assertListEqual(self.ExtractColumn(current['output'], 2, 2),
+        self.assertListEqual(self.ExtractColumn(current['output'], 2, 2, " +"),
                              filenames)
 
         # Compare virtual addresses.
-        self.assertListEqual(self.ExtractColumn(current['output'], 0, 2),
+        self.assertListEqual(self.ExtractColumn(current['output'], 0, 2, " +"),
                              self.ExtractColumn(previous['output'], 0, 2))
 
     def ParseDllist(self, output):
@@ -87,9 +73,23 @@ class TestPS(testlib.VolatilityBaseUnitTestCase):
             # Base address.
             self.assertListEqual(
                 self.ExtractColumn(previous_map[pid], 0, 1),
-                self.ExtractColumn(current_map[pid], 0, 1))
+                self.ExtractColumn(current_map[pid], 0, 1, " +"))
 
             # Path address.
             self.assertListEqual(
-                self.ExtractColumn(previous_map[pid], 2, 1, "0 +"),
+                self.ExtractColumn(previous_map[pid], 2, 1),
                 self.ExtractColumn(current_map[pid], 2, 1, "0 +"))
+
+    def testMemmap(self):
+        previous, current = self.ReRunVolatilityTest('memmap', pid=2624)
+
+        # Virtual address - Hex formatting might be different so convert it from
+        # hex and compare the ints themselves.
+        self.assertIntegerListEqual(
+            self.ExtractColumn(previous['output'], 0, 3),
+            self.ExtractColumn(current['output'], 0, 3, " +"))
+
+        # Physical address.
+        self.assertIntegerListEqual(
+            self.ExtractColumn(previous['output'], 1, 3),
+            self.ExtractColumn(current['output'], 1, 3, " +"))

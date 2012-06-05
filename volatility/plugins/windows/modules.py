@@ -1,7 +1,7 @@
 # Volatility
 #
 # Authors:
-# Mike Auty <mike.auty@gmail.com>
+# Michael Cohen <scudette@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-
-#pylint: disable-msg=C0111
 
 import bisect
 
@@ -89,15 +87,16 @@ class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
             return None
 
     def render(self, outfd):
-        outfd.write("Offset(V)  Offset(P)  {0:50} {1:12} {2:8} {3}\n".format(
-                'File', 'Base', 'Size', 'Name'))
+        outfd.write("Offset(V)  Offset(P) {0:18}  {1:12}  {2:8} {3:50}\n".format(
+                'Name', 'Base', 'Size', 'File'))
         outfd.write("---------------------------------------------\n")
 
         for module in self.lsmod():
             offset = module.obj_offset
-            outfd.write("{0:#010x} {1:#10x} {2:50} {3:#012x} {4:#08x} {5}\n".format(
+            outfd.write("{0:#010x}  {1:#10x}  {2:18}  {3:#012x}  {4:#08x}  {5:50}\n".format(
                     offset, module.obj_vm.vtop(offset),
-                    module.FullDllName,
+                    module.BaseDllName,
                     module.DllBase,
                     module.SizeOfImage,
-                    module.BaseDllName))
+                    module.FullDllName,
+                    ))

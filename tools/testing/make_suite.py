@@ -57,17 +57,26 @@ parser.add_argument("-e", "--executable", default=None,
 parser.add_argument("-p", "--profile", default="WinXPSP2x86",
                     help="The profile to use.")
 
+parser.add_argument("-m", "--modules", default=None,
+                    help="The modules to run (, seperated). If not set we do "
+                    "them all.")
+
+
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     FLAGS = parser.parse_args()
 
+    modules = []
+    if FLAGS.modules:
+        modules = set(FLAGS.modules.split(","))
+
     # Generate baselines for all the tests.
     for case, case_cls in testlib.VolatilityBaseUnitTestCase.classes.items():
-        logging.info("Generating baseline for test %s" % case)
-
         # Generate trunk baselines.
         if FLAGS.executable:
-            case_cls().MakeBaseLineFromTrunk(FLAGS.executable, FLAGS.image[0],
-                                             FLAGS.path[0], FLAGS.profile)
+            case_cls().MakeBaseLineFromTrunk(
+                executable=FLAGS.executable, image=FLAGS.image[0],
+                path=FLAGS.path[0], profile=FLAGS.profile, modules=FLAGS.modules)
         else:
-            case_cls().MakeBaseLine(FLAGS.image[0], FLAGS.path[0], FLAGS.profile)
+            case_cls().MakeBaseLine(image=FLAGS.image[0], path=FLAGS.path[0],
+                                    profile=FLAGS.profile, modules=FLAGS.modules)

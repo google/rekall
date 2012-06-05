@@ -185,7 +185,7 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
 
         return metadata
 
-    def ExtractColumn(self, lines, column, skip_headers=0, seperator=r"\s+"):
+    def ExtractColumn(self, lines, column, skip_headers=0, seperator=r"\|\|"):
         """Iterates over the lines and extracts the column number specified.
 
         Args:
@@ -195,7 +195,7 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
         """
         for line in lines[skip_headers:]:
             try:
-                yield re.split(seperator, line)[column]
+                yield re.split(seperator, line)[column].strip()
             except IndexError: pass
 
     def CompareColumns(self, previous, previous_column, current, current_column,
@@ -210,7 +210,7 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
 
         self.assertEqual(current_column, previous_column)
 
-    def ReRunVolatilityTest(self, module):
+    def ReRunVolatilityTest(self, module, **kwargs):
         """Loads and reruns the test stored in this module baseline file.
 
         Note that we use the metadata stored in the baseline file to rerun this
@@ -220,11 +220,39 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
         current_run_data = self.RunVolatilityModule(
             profile=previous_run_data['profile'],
             image=previous_run_data['filename'],
-            module=module, **previous_run_data.get('kwargs', {}))
+            module=module, **previous_run_data.get('kwargs', kwargs))
 
         return previous_run_data, current_run_data
 
-    def MakeBaseLine(self, image, path, profile, **kwargs):
+
+    trunk_launch_args = []
+    def MakeBaseLineFromTrunk(self, executable=None, image=None, path=None,
+                              profile=None, modules=None, **kwargs):
+        """Same as MakeBaseLine except we need to generate this from Trunk.
+
+        Usually this means launching the trunk program externally.
+
+        Args:
+          executable: Use this executable to launch the binary.
+          image: The image that will be tested.
+          path: The path which the baseline metadata files are written in.
+          profile: The profile to use.
+          modules: If set, only run modules in this set.
+        """
+        for args in self.trunk_launch_args:
+            module = args[0]
+
+            # Skip it if we dont need it.
+            if modules and module not in modules: continue
+
+            metadata = self.LaunchTrunkVolatility(executable=executable, profile=profile,
+                                                  image=image, args=args)
+
+            self.SaveRunData(path, module, metadata)
+
+    ng_launch_args = []
+    def MakeBaseLine(self, image=None, path=None, profile=None, modules=None,
+                     **kwargs):
         """Create all baseline files in path.
 
         This should be extended by TestCases to set up their baselines.
@@ -233,17 +261,28 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
            image: The image file to operate on.
            path: The directory path to store the baseline file.
            profile: The profile to use.
+           modules: only run these modules.
         """
+        for module, kwargs in self.ng_launch_args:
+            # Skip it if we dont need it.
+            if modules and module not in modules: continue
 
-    def MakeBaseLineFromTrunk(self, executable, image, path, profile, **kwargs):
-        """Same as MakeBaseLine except we need to generate this from Trunk.
-
-        Usually this means launching the trunk program externally.
-        """
+            metadata = self.RunVolatilityModule(profile=profile, image=image,
+                                                module=module, **kwargs)
+            self.SaveRunData(path, module, metadata)
 
     def assertListEqual(self, a, b):
         a = list(a)
         b = list(b)
+        self.assertEqual(len(a), len(b))
+
+        for x, y in zip(a, b):
+            self.assertEqual(x, y)
+
+    def assertIntegerListEqual(self, a, b, base=16):
+        """Compares two list of printed integers."""
+        a = [int(x, base) for x in a]
+        b = [int(x, base) for x in b]
         self.assertEqual(len(a), len(b))
 
         for x, y in zip(a, b):
