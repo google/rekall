@@ -201,7 +201,9 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
            column: The column to split off.
            skip_headers: Any header lines to skip.
         """
-        for line in lines[skip_headers:]:
+        for i, line in enumerate(lines):
+            if i < skip_headers: continue
+
             try:
                 yield re.split(seperator, line)[column].strip()
             except IndexError: pass
@@ -306,6 +308,23 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
 
             section.append(line)
         yield section
+
+    def FilterOutput(self, output, regex):
+        """Filter the output lines using a regex."""
+        regex_c = re.compile(regex)
+
+        for line in output:
+            m = regex_c.search(line)
+            if m:
+                yield line
+
+    def MatchOutput(self, output, regex, group=0):
+        regex_c = re.compile(regex)
+
+        for line in output:
+            m = regex_c.search(line)
+            if m:
+                yield m.group(group)
 
 
 class VolatilityTestLoader(unittest.TestLoader):

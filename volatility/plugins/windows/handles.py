@@ -12,11 +12,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 #pylint: disable-msg=C0111
@@ -77,12 +77,15 @@ class Handles(common.WinProcessFilter):
                     name = handle.NameInfo.Name
 
                 yield handle, object_type, name
-        
-    def render(self, outfd):
-        offsettype = "(V)"
 
-        outfd.write(u"{0:6}{1:6} {2:6} {3:10} {4:<16} {5}\n".format(
-            "Offset", offsettype, "Pid", "Access", "Type", "Details"))
+    def render(self, renderer):
+        renderer.table_header([("Offset (V)", "[addrpad]"),
+                               ("Pid", ">6"),
+                               ("Handle", "[addr]"),
+                               ("Access", "[addr]"),
+                               ("Type", "16"),
+                               ("Details", "")
+                               ])
 
         if self.object_type:
             object_list = self.object_type.split(',')
@@ -90,15 +93,15 @@ class Handles(common.WinProcessFilter):
             object_list = []
 
         for task in self.filter_processes():
-            for handle, otype, name in self.enumerate_handles(task):
-                if object_list and otype not in object_list:
+            for handle, object_type, name in self.enumerate_handles(task):
+                if object_list and object_type not in object_list:
                     continue
+
                 if self.silent:
                     if len(name.replace("'", "")) == 0:
                         continue
 
-                offset = handle.obj_vm.vtop(handle.Body.obj_offset)
-                outfd.write(u"{0:#010x}   {1:<6} {2:<#10x} {3:<16} {4}\n".format(
-                        offset, task.UniqueProcessId, handle.GrantedAccess,
-                        otype, name))
+                offset = handle.Body.obj_offset
+                renderer.table_row(offset, task.UniqueProcessId, handle.HandleValue,
+                                   handle.GrantedAccess, object_type, name)
 

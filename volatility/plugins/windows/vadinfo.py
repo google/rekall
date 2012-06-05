@@ -90,41 +90,57 @@ class VADInfo(common.WinProcessFilter):
         'VadLargePageSection',
     ]))
 
-    def render(self, outfd):
+    def render(self, renderer):
         for task in self.filter_processes():
-            outfd.write("*" * 72 + "\n")
-            outfd.write("Pid: {0:6}\n".format(task.UniqueProcessId))
+            renderer.write("*" * 72 + "\n")
+            renderer.write("Pid: {0:6}\n".format(task.UniqueProcessId))
 
             for vad in task.VadRoot.traverse():
                 vad = vad.dereference()
                 if vad and vad != 0:
                     try:
-                        self.write_vad_short(outfd, vad)
+                        self.write_vad_short(renderer, vad)
                     except AttributeError: pass
                     try:
-                        self.write_vad_control(outfd, vad)
+                        self.write_vad_control(renderer, vad)
                     except AttributeError: pass
                     try:
-                        self.write_vad_ext(outfd, vad)
+                        self.write_vad_ext(renderer, vad)
                     except AttributeError: pass
 
-                outfd.write("\n")
+                renderer.write("\n")
 
-    def write_vad_short(self, outfd, vad):
+    def write_vad_short(self, renderer, vad):
         """Renders a text version of a Short Vad"""
-        outfd.write("VAD node @{0:08x} Start {1:08x} End {2:08x} Tag {3:4}\n".format(
-            vad.obj_offset, vad.Start, vad.End, vad.Tag))
-        outfd.write("Flags: {0}\n".format(str(vad.u.VadFlags)))
+        renderer.table_header([("VAD node @", str(len("VAD node @"))),
+                               ("address", "[addrpad]"),
+                               ("Start", "5"),
+                               ("startaddr", "[addrpad]"),
+                               ("End", "3"),
+                               ("endaddr", "[addrpad]"),
+                               ("Tag", "3"),
+                               ("tagval", ""),
+                               ], suppress_headers=True)
+        renderer.table_row("VAD node @",
+                           vad.obj_offset,
+                           "Start",
+                           vad.Start,
+                           "End",
+                           vad.End,
+                           "Tag",
+                           vad.Tag)
+
+        renderer.write("Flags: {0}\n".format(str(vad.u.VadFlags)))
 
         # although the numeric value of Protection is printed above with VadFlags,
         # let's show the user a human-readable translation of the protection
-        outfd.write("Protection: {0}\n".format(
+        renderer.write("Protection: {0}\n".format(
                 self.PROTECT_FLAGS.get(vad.u.VadFlags.Protection.v(),
                                        hex(vad.u.VadFlags.Protection))))
 
         # translate the vad type if its available (> XP)
         if hasattr(vad.u.VadFlags, "VadType"):
-            outfd.write("Vad Type: {0}\n".format(
+            renderer.write("Vad Type: {0}\n".format(
                     self.MI_VAD_TYPE.get(vad.u.VadFlags.VadType.v(),
                                          hex(vad.u.VadFlags.VadType))))
 
@@ -184,18 +200,24 @@ class VADTree(VADInfo):
 
     __name = "vadtree"
 
-    def render(self, outfd):
+    def render(self, renderer):
         for task in self.filter_processes():
-            outfd.write(u"*" * 72 + "\n")
-            outfd.write(u"Pid: {0:6}\n".format(task.UniqueProcessId))
+            renderer.write(u"*" * 72 + "\n")
+            renderer.write(u"Pid: {0:6}\n".format(task.UniqueProcessId))
+
+            renderer.table_header([("indent", ""),
+                                   ("Start", "[addrpad]"),
+                                   ("-", "1"),
+                                   ("End", "[addrpad]")
+                                   ], suppress_headers=True)
+
             levels = {}
             for vad in task.VadRoot.traverse():
                 vad = vad.dereference()
                 if vad:
                     level = levels.get(vad.Parent.v(), -1) + 1
                     levels[vad.obj_offset] = level
-                    outfd.write(u" " * level + u"{0:08x} - {1:08x}\n".format(
-                                vad.Start, vad.End))
+                    renderer.table_row(u" " * level, vad.Start, vad.End)
 
     def render_dot(self, outfd):
         for task in self.filter_processes():

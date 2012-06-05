@@ -29,7 +29,6 @@ class TestModules(testlib.VolatilityBaseUnitTestCase):
     trunk_launch_args = [['modules']]
     ng_launch_args = [['modules', {}]]
 
-    # Disabled temporarily until the output is more parseable.
     def testModules(self):
         """Test the modules plugin."""
         previous_meta, current_meta = self.ReRunVolatilityTest('modules')
@@ -56,5 +55,5 @@ class TestModules(testlib.VolatilityBaseUnitTestCase):
 
         # Compare base virtual addresses.
         self.assertIntegerListEqual(
-            sorted(self.ExtractColumn(current, 2, 2)),
+            sorted(self.ExtractColumn(previous, 2, 2)),
             sorted(self.ExtractColumn(current, 2, 2)))

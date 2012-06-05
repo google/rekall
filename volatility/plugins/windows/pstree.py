@@ -50,10 +50,14 @@ class PSTree(common.WinProcessFilter):
 
         return result
 
-    def render(self, outfd):
+    def render(self, renderer):
         max_pad = 10
-        outfd.write("{0:20}             {1} {2:6} {3:6} {4:6} {5:6} {6:6}\n".format(
-            'Name', " " * max_pad, 'Pid', 'PPid', 'Thds', 'Hnds', 'Time'))
+        renderer.table_header([("Name", "<40"),
+                               ("Pid", ">6"),
+                               ("PPid", ">6"),
+                               ("Thds", ">6"),
+                               ("Hnds", ">6"),
+                               ("Time", "20")])
 
         process_dict = self._make_process_dict()
 
@@ -63,25 +67,22 @@ class PSTree(common.WinProcessFilter):
                 if task.InheritedFromUniqueProcessId != pid:
                     continue
 
-                outfd.write(u"{0} 0x{1:08X}:{2:20} {3} {4:6} {5:6} {6:6} {7:6} {8:26}\n".format(
-                        "." * pad,
-                        task.obj_offset,
-                        task.ImageFileName or "UNKNOWN",
-                        " " * (max_pad - pad),
-                        task.UniqueProcessId,
-                        task.InheritedFromUniqueProcessId,
-                        task.ActiveThreads,
-                        task.ObjectTable.HandleCount,
-                        task.CreateTime))
+                renderer.table_row(u"{0} 0x{1:08X}:{2:20}".format(
+                        "." * pad, task.obj_offset, task.ImageFileName or "UNKNOWN"),
+                                   task.UniqueProcessId,
+                                   task.InheritedFromUniqueProcessId,
+                                   task.ActiveThreads,
+                                   task.ObjectTable.HandleCount,
+                                   task.CreateTime)
 
                 if self.verbose:
                     try:
                         process_params = task.Peb.ProcessParameters
-                        outfd.write(u"{0}    cmd: {1}\n".format(
+                        renderer.write(u"{0}    cmd: {1}\n".format(
                                 ' ' * pad, process_params.CommandLine))
-                        outfd.write(u"{0}    path: {1}\n".format(
+                        renderer.write(u"{0}    path: {1}\n".format(
                                 ' ' * pad, process_params.ImagePathName))
-                        outfd.write(u"{0}    audit: {1}\n".format(
+                        renderer.write(u"{0}    audit: {1}\n".format(
                                 ' ' * pad,
                                 task.SeAuditProcessCreationInfo.ImageFileName.Name or
                                 "UNKNOWN"))

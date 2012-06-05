@@ -187,12 +187,20 @@ class TextRenderer(object):
         debug.warning("Unknown table format specification: " + code)
         return ""
 
-    def table_header(self, title_format_list = None):
+    def table_header(self, title_format_list = None, suppress_headers=False):
         """Table header renders the title row of a table.
 
         This also stores the header types to ensure everything is formatted
         appropriately.  It must be a list of tuples rather than a dict for
         ordering purposes.
+
+        Args:
+
+           title_format_list: A list of (Name, formatstring) tuples describing
+              the table headers.
+
+           suppress_headers: If True table headers will not be written (still
+              useful for formatting).
         """
         titles = []
         rules = []
@@ -217,8 +225,9 @@ class TextRenderer(object):
             self._formatlist.append(spec)
 
         # Write out the titles and line rules
-        self.write(self.tablesep.join(titles) + "\n")
-        self.write(self.tablesep.join(rules) + "\n")
+        if not suppress_headers:
+            self.write(self.tablesep.join(titles) + "\n")
+            self.write(self.tablesep.join(rules) + "\n")
 
     def table_row(self, *args):
         """Outputs a single row of a table"""
