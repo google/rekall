@@ -52,7 +52,7 @@ class Arp(common.AbstractLinuxCommandPlugin):
         ret = []
         hash_size = ntable.hash_mask
 
-        buckets = obj.Object(theType='Array', offset=ntable.hash_buckets, vm=self.addr_space, targetType='Pointer', count=hash_size)
+        buckets = obj.Object(theType='Array', offset=ntable.hash_buckets, vm=self.addr_space, target='Pointer', count=hash_size)
 
         for i in xrange(0, hash_size):
             if buckets[i]:

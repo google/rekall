@@ -52,7 +52,7 @@ Curry = functools.partial
 import traceback
 
 def get_bt_string(_e = None):
-    return ''.join(traceback.format_stack()[:-3])
+    return ''.join(traceback.format_stack()[:-2])
 
 class FormatSpec(object):
     def __init__(self, string = '', **kwargs):
@@ -156,7 +156,7 @@ class NoneObject(object):
     def __str__(self):
         ## If we are strict we blow up here
         if self.strict:
-            logging.error("{0} n{1}".format(self.reason, self.bt))
+            logging.error("{0}\n{1}".format(self.reason, self.bt))
         else:
             logging.warning("{0}".format(self.reason))
 
@@ -252,6 +252,9 @@ class ProfileError(Error):
 
 class BaseObject(object):
 
+    obj_parent = NoneObject("No parent")
+    obj_name = NoneObject("No name")
+
     # We have **kwargs here, but it's unclear if it's a good idea
     # Benefit is objects will never fail with duff parameters
     # Downside is typos won't show up and be difficult to diagnose
@@ -285,43 +288,27 @@ class BaseObject(object):
         if kwargs:
             logging.error("Unknown keyword args {0}".format(kwargs))
 
-        self._vol_theType = type_name or theType
-        self._vol_offset = offset
-        self._vol_vm = vm
-        self._vol_parent = parent
-        self._vol_name = name
-        self._vol_profile = profile
+        self.obj_type = type_name or theType
+
+        # 64 bit addresses are always sign extended, so we need to clear the top
+        # bits.
+        self.obj_offset = int(offset) & 0xffffffffffff
+        self.obj_vm = vm
+        self.obj_parent = parent
+        self.obj_name = name
+        self.obj_profile = profile
 
         if not self.obj_vm.is_valid_address(self.obj_offset):
             raise InvalidOffsetError("Invalid Address 0x{0:08X}, instantiating {1}".format(
                 offset, self.obj_name))
 
-    # Note entirely sure what the benefit of making these read only is. It costs
-    # one more function call though?
     @property
-    def obj_vm(self):
-        return self._vol_vm
-
-    @property
-    def obj_type(self):
-        return self._vol_theType
-
-    @property
-    def obj_profile(self):
-        return self._vol_profile
-
-    @property
-    def obj_offset(self):
-        # 64 bit addresses are always sign extended, so we need to clear the top bits.
-        return self._vol_offset & 0xffffffffffff
-
-    @property
-    def obj_parent(self):
-        return self._vol_parent
-
-    @property
-    def obj_name(self):
-        return self._vol_name
+    def parents(self):
+        """Returns all the parents of this object."""
+        obj = self
+        while obj.obj_parent:
+            obj = obj.obj_parent
+            yield obj
 
     def proxied(self, attr):
         return None
@@ -401,7 +388,7 @@ class BaseObject(object):
         vm = vm or self.obj_vm
 
         return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm,
-                                       parent=self, name=self.obj_name, **kwargs)
+                                       parent=self.obj_parent, name=self.obj_name, **kwargs)
 
     def cast(self, castString, **kwargs):
         return self.obj_profile.Object(theType=castString, offset=self.obj_offset,
@@ -421,10 +408,6 @@ class BaseObject(object):
     def __repr__(self):
         return "[{0} {1}] @ 0x{2:08X}".format(self.__class__.__name__, self.obj_name,
                                               self.obj_offset)
-
-    def d(self):
-        """Display diagnostic information"""
-        return self.__repr__()
 
     def __dir__(self):
         """Hide any members with _."""
@@ -523,11 +506,13 @@ class NativeType(BaseObject, NumericProxyMixIn):
         return self.obj_name
 
     def __repr__(self):
-        return " [{0}]: 0x{1:08X}".format(self._vol_theType, self.v())
+        try:
+            return " [{0}:{1}]: 0x{2:08X}".format(self.obj_type, self.obj_name,
+                                                  self.v())
+        except ValueError:
+            return " [{0}:{1}]: {2}".format(self.obj_type, self.obj_name,
+                                            repr(self.v()))
 
-    def d(self):
-        return " [{0} {1} | {2}]: {3}".format(self.__class__.__name__, self.obj_name or '',
-                                              self._vol_theType, self.v())
 
 class BitField(NativeType):
     """ A class splitting an integer into a bunch of bit. """
@@ -550,6 +535,9 @@ class BitField(NativeType):
     def write(self, data):
         data = data << self.start_bit
         return NativeType.write(self, data)
+
+    def __nonzero__(self):
+        return bool(self.v())
 
 
 class Pointer(NativeType):
@@ -624,11 +612,6 @@ class Pointer(NativeType):
         """
         return bool(self.is_valid())
 
-    def __repr__(self):
-        target = self.dereference()
-        return "<{0} pointer to [0x{1:08X}]>".format(
-            target.__class__.__name__, self.v())
-
     def __add__(self, other):
         """Return a new pointer advanced by this many positions.
 
@@ -655,12 +638,13 @@ class Pointer(NativeType):
         # Increment our own offset.
         self.target_size = (self.target_size or
                             self.target(vm=addrspace.DummyAddressSpace()).size())
-        self._vol_offset += self.target_size * other
+        self.obj_offset += self.target_size * other
 
-    def d(self):
+    def __repr__(self):
         target = self.dereference()
-        return "<{0} {1} pointer to [0x{2:08X}]>".format(
-            target.__class__.__name__, self.obj_name or '', self.v())
+        return "<{0} {3} to [0x{2:08X}] ({1})>".format(
+            target.__class__.__name__, self.obj_name or '', self.v(),
+            self.__class__.__name__)
 
     def __getattr__(self, attr):
         ## We just dereference ourself
@@ -673,7 +657,7 @@ class Pointer(NativeType):
         vm = vm or self.obj_vm
 
         return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm,
-                                       parent=self, **kwargs)
+                                       parent=self.obj_parent, **kwargs)
 
 
 class Void(Pointer):
@@ -690,9 +674,6 @@ class Void(Pointer):
         return "0x{0:08X}".format(self.v())
 
     def __repr__(self):
-        return "Void (0x{0:08X})".format(self.v())
-
-    def d(self):
         return "Void[{0} {1}] (0x{2:08X})".format(
             self.__class__.__name__, self.obj_name or '', self.v())
 
@@ -702,15 +683,17 @@ class Void(Pointer):
 
 class Array(BaseObject):
     """ An array of objects of the same size """
-    def __init__(self, count = 1, targetType = None, target = None, target_args=None,
+
+    target_size = 0
+
+    def __init__(self, count = 100000, target = None, target_args=None,
                  **kwargs):
         """Instantiate an array of like items.
 
         Args:
           count: How many items belong to the array (not strictly enforced -
-            i.e. it is possible to read past the end).
-
-          targetType: The string type of each element.
+            i.e. it is possible to read past the end). By default the array is
+            unbound.
 
           target: A callable which will be instantiated on each point. The size
             of the object returned by this should be the same for all members of
@@ -724,27 +707,25 @@ class Array(BaseObject):
 
         self.count = int(count)
 
-        # Allow the target to be specified as a string to make it more
-        # consistent with other classes which use the name "target".
         if isinstance(target, basestring):
-            targetType = target
+            self.targetType = target
 
         target_args = target_args or {}
-        if targetType:
-            self.target = Curry(self.obj_profile.Object, theType=targetType, **target_args)
-        else:
-            self.target = target
+        if not target:
+            raise AttributeError("Array must use a target parameter")
 
-        self.current = self.target(offset=self.obj_offset, vm=self.obj_vm,
-                                   parent=self, name=self.obj_name,
-                                   profile=self.obj_profile)
+        self.target = Curry(self.obj_profile.Object, target, **target_args)
 
-        if self.current.size() == 0:
+        # Dereference the first element.
+        self.current = self[0]
+        self.target_size = self.current.size()
+
+        if self.target_size == 0:
             ## It is an error to have a zero sized element
             logging.debug("Array with 0 sized members???")
 
     def size(self):
-        return self.count * self.current.size()
+        return self.count * self.target_size
 
     def __iter__(self):
         ## This method is better than the __iter__/next method as it
@@ -763,20 +744,19 @@ class Array(BaseObject):
             yield self[position]
 
     def __repr__(self):
-        result = []
-        for x in self:
+        return "<Array {0} x {1} @ 0x{2:08X}>".format(
+            self.count, self.targetType, self.obj_offset)
+
+    def __str__(self):
+        result = [repr(self)]
+        for i, x in enumerate(self):
+            result.append("0x%04X %r" % (i, x))
+
             if len(result) > 10:
-                result.append(".... ")
+                result.append("... More entries hidden")
                 break
 
-            result.append(x.__str__())
-
-        return "<Array {0}>".format(",".join(result))
-
-    def d(self):
-        result = [ x.__str__() for x in self ]
-        return "<Array[{0} {1}] {2}>".format(self.__class__.__name__,
-                                             self.obj_name or '', ",".join(result))
+        return "\n".join(result)
 
     def __eq__(self, other):
         if self.count != len(other):
@@ -795,12 +775,12 @@ class Array(BaseObject):
             return [self[i] for i in xrange(start, stop, step)]
 
         ## Check if the offset is valid
-        offset = self.obj_offset + pos * self.current.size()
+        offset = self.obj_offset + pos * self.target_size
 
         try:
             return self.target(offset=offset, vm=self.obj_vm, parent=self,
                                profile=self.obj_profile,
-                               name = "{0} {1}".format(self.obj_name, pos))
+                               name = "{0} @ {1}".format(self.obj_name, pos))
         except InvalidOffsetError:
             return NoneObject("Invalid offset %s" % offset)
 
@@ -849,12 +829,24 @@ class CType(BaseObject):
     def __repr__(self):
         return "[{0} {1}] @ 0x{2:08X}".format(self.obj_type, self.obj_name or '',
                                               self.obj_offset)
-    def d(self):
+    def __str__(self):
         result = self.__repr__() + "\n"
-        for k in self.members.keys():
-            result += " {0} - {1}\n".format(k, self.m(k).d())
+        width_name = 0
 
-        return result
+        fields = []
+        # Print all the fields sorted by offset within the struct.
+        for k, (offset, _) in self.members.items():
+            width_name = max(width_name, len(k))
+            obj = self.m(k)
+            fields.append((obj.obj_offset - self.obj_offset,
+                           k, repr(obj)))
+
+        fields.sort()
+
+        format_string = "0x%04X %" + str(width_name) + "s %s"
+        return result + "\n".join(
+            ["  0x%02X %s%s %s" % (offset, k, " " * (width_name - len(k)), v)
+             for offset,k,v in fields])
 
     def v(self, vm=None):
         """ When a struct is evaluated we just return our offset.

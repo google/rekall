@@ -57,7 +57,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(bf1 < 6, 8 < bf2)
         self.assertEqual(bf1 > 6, 8 > bf2)
         self.assertEqual(bf1 & 6, 8 & bf2)
-        self.assertEqual(bf1 ^ 6, 8 ^ bf2)        
+        self.assertEqual(bf1 ^ 6, 8 ^ bf2)
 
     def testPointer(self):
         # Create an address space from a buffer for testing
@@ -84,7 +84,7 @@ class ProfileTest(unittest.TestCase):
         # We build a simple profile with just the native types here.
         profile = obj.Profile.classes['Profile32Bits']()
         profile.add_types(vtype)
-        
+
         test = profile.Object("Test", offset=0, vm=address_space)
 
         ptr = test.ptr32
@@ -129,7 +129,7 @@ class ProfileTest(unittest.TestCase):
         # This is also invalid.
         self.assertEqual(type(test.invalid.dereference()), obj.NoneObject)
 
-        # Test nonzero. 
+        # Test nonzero.
         self.assert_(test.ptr32)
 
         # Note this pointer is actually zero, but it is actually valid in this AS.
@@ -152,9 +152,9 @@ class ProfileTest(unittest.TestCase):
         # Now test 64 bit pointers.
         profile = obj.Profile.classes['Profile64Bits']()
         profile.add_types(vtype)
-        
+
         test = profile.Object("Test", offset=0, vm=address_space)
-        
+
         ptr = test.ptr32
 
         # 64 bit pointers.
@@ -188,10 +188,10 @@ class ProfileTest(unittest.TestCase):
         # Create an address space from a buffer for testing
         address_space = addrspace.BufferAddressSpace(
             config=None, data="abcdefghijklmnopqrstuvwxyz")
-        
+
         profile = obj.Profile.classes['Profile32Bits']()
         test = profile.Object("Array", vm=address_space, offset=0,
-                              targetType="int", count=0)
+                              target="int", count=0)
 
         self.assertEqual(test[0], 0x64636261)
         self.assertEqual(test[1], 0x68676665)
@@ -225,7 +225,7 @@ class WinXPProfileTests(unittest.TestCase):
                                   vm=self.physical_address_space)
 
         self.assertEqual(eprocess.ImageFileName, 'mqtgsvc.exe')
-        
+
         # This is basically a Poor man's pslist - just follow the
         # _EPROCESS.PsActiveList around (see filescan.py).
 
@@ -251,7 +251,7 @@ class WinXPProfileTests(unittest.TestCase):
         names = []
         for p in eprocess.ActiveProcessLinks:
             names.append(p.ImageFileName)
-            
+
         expected_names = ['alg.exe', 'wuauclt.exe','firefox.exe','PluckSvr.exe',
                           'iexplore.exe','PluckTray.exe','PluckUpdater.ex',
                           'PluckUpdater.ex','PluckTray.exe','cmd.exe','wmiprvse.exe',

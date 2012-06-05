@@ -28,33 +28,55 @@ import copy
 
 from volatility import addrspace
 from volatility import obj
+from volatility import utils
 from volatility.plugins.overlays import basic
 
-
-IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16
 
 class IndexedArray(obj.Array):
     """An array which can be addressed via constant names."""
 
     def __init__(self, index_table=None, **kwargs):
-        super(IndexedArray, self).__init__(**kwargs)
         self.index_table = index_table or {}
+        super(IndexedArray, self).__init__(**kwargs)
 
     def __getitem__(self, item):
         # Still support numeric indexes
         if isinstance(item, (int, long)):
             index = item
+
+            # Try to name the object appropriately.
+            for k, v in self.index_table.items():
+                if v == item:
+                    item = k
+                    break
+
         elif item in self.index_table:
             index = self.index_table[item]
         else:
             raise KeyError("Unknown index %s" % item)
 
-        return super(IndexedArray, self).__getitem__(index)
+        result = super(IndexedArray, self).__getitem__(index)
+        result.obj_name = str(item)
+
+        return result
+
+
+class SentinalArray(obj.Array):
+    """A sential terminated array."""
+
+    def __iter__(self):
+        """Break when the sentinal is reached."""
+        for member in super(SentinalArray, self).__iter__():
+            data = member.obj_vm.zread(member.obj_offset, member.size())
+            if data == "\x00" * member.size():
+                break
+
+            yield member
 
 
 class RVAPointer(obj.Pointer):
     """A pointer through a relative virtual address."""
-    image_base = 0
+    ImageBase = 0
 
     def __init__(self, image_base=None, **kwargs):
         super(RVAPointer, self).__init__(**kwargs)
@@ -66,22 +88,51 @@ class RVAPointer(obj.Pointer):
 
         # By default find the ImageBase member of a parent.
         if image_base is None:
-            parent = self.obj_parent
-            while parent:
+            for parent in self.parents:
                 try:
                     image_base = parent.ImageBase
                     break
                 except AttributeError:
-                    parent = parent.obj_parent
+                    pass
 
-        self.image_base = image_base or 0
+        self.ImageBase = image_base or 0
 
     def v(self):
         rva_pointer = super(RVAPointer, self).v()
         if rva_pointer:
-            rva_pointer += self.image_base
+            rva_pointer += self.ImageBase
 
         return rva_pointer
+
+class ResourcePointer(obj.Pointer):
+    """A pointer relative to our resource section."""
+    resource_base = 0
+
+    def __init__(self, resource_base=None, **kwargs):
+        super(ResourcePointer, self).__init__(**kwargs)
+
+        # By default find the resource_base member of a parent.
+        if resource_base is None:
+            for parent in self.parents:
+                try:
+                    self.resource_base = parent.resource_base
+                except AttributeError: pass
+
+                if isinstance(parent, _IMAGE_NT_HEADERS):
+                    for section in parent.Sections:
+                        if section.Name == ".rsrc":
+                            self.resource_base = (section.VirtualAddress +
+                                                  parent.OptionalHeader.ImageBase)
+                            break
+                    break
+
+    def v(self):
+        # Only the first 31 bits are meaningful.
+        resource_pointer = int(super(ResourcePointer, self).v()) & ((1 << 31) - 1)
+        if resource_pointer:
+            resource_pointer += self.resource_base
+
+        return resource_pointer
 
 
 pe_overlays = {
@@ -103,7 +154,7 @@ pe_overlays = {
                         'target': 'unsigned short'}]],
 
             'DataDirectory' : [None, ['IndexedArray', {
-                        'count': IMAGE_NUMBEROF_DIRECTORY_ENTRIES,
+                        'count': 16,
                         'index_table': {
                             'IMAGE_DIRECTORY_ENTRY_EXPORT':        0,
                             'IMAGE_DIRECTORY_ENTRY_IMPORT':        1,
@@ -235,33 +286,33 @@ pe_overlays = {
                                                target_args=dict(length=128))]],
 
             # This is an RVA pointer to an array of _IMAGE_THUNK_DATA structs.
-            'FirstThunk': [ 0x10, ['RVAPointer', dict(
-                        target="Array",
-                        target_args=dict(targetType="_IMAGE_THUNK_DATA",
-                                         count=0xFFFF))]],
+            'FirstThunk': [ 0x10, ['RVAPointer', dict(target="ThunkArray")]],
 
             # This is a copy of the original IAT in memory.
-            'OriginalFirstThunk': [ 0x0, ['RVAPointer', dict(
-                        target="Array",
-                        target_args=dict(targetType="_IMAGE_THUNK_DATA",
-                                         count=0xFFFF))]],
+            'OriginalFirstThunk': [ 0x0, ['RVAPointer', dict(target="ThunkArray")]],
             }],
 
-    "_IMAGE_IMPORT_DESCRIPTOR64": [None, {
+    "_IMAGE_EXPORT_DIRECTORY": [None, {
             'Name': [ 0xC, ['RVAPointer', dict(target="String",
                                                target_args=dict(length=128))]],
 
-            # This is an RVA pointer to an array of _IMAGE_THUNK_DATA structs.
-            'FirstThunk': [ 0x10, ['RVAPointer', dict(
-                        target="Array",
-                        target_args=dict(targetType="_IMAGE_THUNK_DATA64",
-                                         count=0xFFFF))]],
+            'AddressOfFunctions': [ None, ['Array', dict(
+                        target="RVAPointer",
+                        target_args=dict(target="RVAPointer",
+                                         target_args=dict(target="unsigned int")),
+                        count=lambda x: x.NumberOfFunctions)]],
 
-            # This is a copy of the original IAT in memory.
-            'OriginalFirstThunk': [ 0x0, ['RVAPointer', dict(
-                        target="Array",
-                        target_args=dict(targetType="_IMAGE_THUNK_DATA64",
-                                         count=0xFFFF))]],
+            'AddressOfNames': [ None, ['Array', dict(
+                        target="RVAPointer",
+                        target_args=dict(target="RVAPointer",
+                                         target_args=dict(target="String",
+                                                          target_args=dict(length=128))),
+                        count=lambda x: x.NumberOfNames)]],
+
+            'AddressOfNameOrdinals': [ None, ['Array', dict(
+                        target="RVAPointer",
+                        target_args=dict(target="unsigned int"),
+                        count=lambda x: x.NumberOfFunctions - x.NumberOfNames)]],
             }],
 
     "_IMAGE_THUNK_DATA": [None, {
@@ -272,13 +323,71 @@ pe_overlays = {
             'AddressOfData' : [ 0x0, ['RVAPointer', dict(target="_IMAGE_IMPORT_BY_NAME")]],
             }],
 
+    "_IMAGE_NT_HEADERS": [None, {
+            # This is a psuedo member to give access to the sections.
+            "Sections": [
+                # The sections start immediately after the OptionalHeader:
+                lambda x: x.FileHeader.SizeOfOptionalHeader + x.OptionalHeader.obj_offset,
+
+                # The sections are an array of _IMAGE_SECTION_HEADER structs.
+                # The number of sections is found in the FileHeader
+                ['Array', dict(target="_IMAGE_SECTION_HEADER",
+                               count=lambda x: x.FileHeader.NumberOfSections)]],
+            }],
+
+    "_IMAGE_RESOURCE_DIRECTORY": [0x10, {
+            "NumberOfNamedEntries": [0x0c, ['unsigned short int']],
+            "NumberOfIdEntries": [0x0e, ['unsigned short int']],
+            "Entries": [0x10, ["Array", dict(
+                        target="_IMAGE_RESOURCE_DIRECTORY_ENTRY",
+                        count=lambda x: x.NumberOfIdEntries + x.NumberOfNamedEntries)]],
+            }],
+
+    "_IMAGE_RESOURCE_DIRECTORY_ENTRY": [0x08, {
+            "Name": [0x00, ['ResourcePointer', dict(target="ResourceString")]],
+            "Type": [0x00, ["Enumeration", dict(choices={
+                            1:    'RT_CURSOR',
+                            2:    'RT_BITMAP',
+                            3:    'RT_ICON',
+                            4:    'RT_MENU',
+                            5:    'RT_DIALOG',
+                            6:    'RT_STRING',
+                            7:    'RT_FONTDIR',
+                            8:    'RT_FONT',
+                            9:    'RT_ACCELERATOR',
+                            10:   'RT_RCDATA',
+                            11:   'RT_MESSAGETABLE',
+                            12:   'RT_GROUP_CURSOR',
+                            14:   'RT_GROUP_ICON',
+                            16:   'RT_VERSION',
+                            17:   'RT_DLGINCLUDE',
+                            19:   'RT_PLUGPLAY',
+                            20:   'RT_VXD',
+                            21:   'RT_ANICURSOR',
+                            22:   'RT_ANIICON',
+                            23:   'RT_HTML',
+                            24:   'RT_MANIFEST'})]],
+
+            # This is true when we need to use the Name field.
+            "NameIsString": [0x00, ['BitField', dict(start_bit=31, end_bit=32)]],
+            "OffsetToDataInt": [0x04, ['unsigned int']],
+            "OffsetToData": [0x04, ['ResourcePointer', dict(target="unsigned int")]],
+            "Entry": [0x04, ['ResourcePointer', dict(target="_IMAGE_RESOURCE_DIRECTORY")]],
+
+            # If this is set the child is another _IMAGE_RESOURCE_DIRECTORY_ENTRY
+            "ChildIsEntry": [0x04, ['BitField', dict(start_bit=31, end_bit=32)]],
+            }],
+
+    'ResourceString' : [ 0x02, {
+            'Length' : [ 0x0, ['unsigned short']],
+            'Buffer' : [ 0x2, ['UnicodeString', dict(length=lambda x: x.Length * 2 + 1)]],
+            } ],
     }
 
 # _IMAGE_OPTIONAL_HEADER64 is the same as _IMAGE_OPTIONAL_HEADER but offsets are
 # different
 pe_overlays["_IMAGE_OPTIONAL_HEADER64"] = copy.deepcopy(
     pe_overlays["_IMAGE_OPTIONAL_HEADER"])
-
 
 pe_vtypes = {
     '_IMAGE_EXPORT_DIRECTORY': [ 0x28, {
@@ -291,11 +400,6 @@ pe_vtypes = {
             }],
 
     '_IMAGE_IMPORT_DESCRIPTOR': [ 0x14, {
-            'TimeDateStamp': [ 0x4, ['UnixTimeStamp', {}]],
-            'ForwarderChain': [ 0x8, ['unsigned int']],
-            }],
-
-    '_IMAGE_IMPORT_DESCRIPTOR64': [ 0x14, {
             'TimeDateStamp': [ 0x4, ['UnixTimeStamp', {}]],
             'ForwarderChain': [ 0x8, ['unsigned int']],
             }],
@@ -442,7 +546,7 @@ pe_vtypes = {
             } ],
 
     '_IMAGE_DATA_DIRECTORY' : [ 0x8, {
-            'VirtualAddress' : [ 0x0, ['RVAPointer']],
+            'VirtualAddress' : [ 0x0, ['RVAPointer', dict(target='unsigned int')]],
             'Size' : [ 0x4, ['unsigned long']],
             } ],
 
@@ -516,19 +620,19 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
         # Array of RVAs to function code
         address_of_functions = self.obj_profile.Object(
             'Array', offset = mod_base + self.AddressOfFunctions,
-            targetType = 'unsigned int', count = self.NumberOfFunctions,
+            target = 'unsigned int', count = self.NumberOfFunctions,
             vm = self.obj_vm)
 
         # Array of RVAs to function names
         address_of_names = self.obj_profile.Object(
             'Array', offset = mod_base + self.AddressOfNames,
-            targetType = 'unsigned int', count = self.NumberOfNames,
+            target = 'unsigned int', count = self.NumberOfNames,
             vm = self.obj_vm)
 
         # Array of RVAs to function ordinals
         address_of_name_ordinals = self.obj_profile.Object(
             'Array', offset = mod_base + self.AddressOfNameOrdinals,
-            targetType = 'unsigned short', count = self.NumberOfNames,
+            target = 'unsigned short', count = self.NumberOfNames,
             vm = self.obj_vm)
 
         # When functions are exported by Name, it will increase
@@ -690,6 +794,7 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
                         )
         return data.count(chr(0)) == len(data)
 
+
 class _LDR_DATA_TABLE_ENTRY(obj.CType):
     """
     Class for PE file / modules
@@ -797,6 +902,8 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
 class _IMAGE_DOS_HEADER(obj.CType):
     """DOS header"""
 
+    #Put checks in constructor.
+
     @property
     def NTHeader(self):
         """Get the NT header"""
@@ -827,20 +934,6 @@ class _IMAGE_NT_HEADERS(obj.CType):
 
         return optional_header
 
-    @property
-    def Sections(self):
-        """Get the PE sections"""
-        sect_size = self.obj_profile.get_obj_size("_IMAGE_SECTION_HEADER")
-        start_addr = self.FileHeader.SizeOfOptionalHeader + self.OptionalHeader.obj_offset
-
-        for i in range(self.FileHeader.NumberOfSections):
-            s_addr = start_addr + (i * sect_size)
-            sect = self.obj_profile.Object(theType="_IMAGE_SECTION_HEADER",
-                                           offset = s_addr, vm = self.obj_vm,
-                                           parent = self)
-
-            yield sect
-
 
 class _IMAGE_SECTION_HEADER(obj.CType):
     """PE section"""
@@ -862,6 +955,88 @@ class _IMAGE_SECTION_HEADER(obj.CType):
                              'size.'.format(self.SizeOfRawData))
 
 
+class _IMAGE_DATA_DIRECTORY(obj.CType):
+    """A data directory."""
+
+    def dereference(self):
+        """Automatically resolve the data directory according to our name."""
+        result = self.m("VirtualAddress")
+
+        if self.obj_name == "IMAGE_DIRECTORY_ENTRY_IMPORT":
+            return result.dereference_as(
+                "SentinalArray", target="_IMAGE_IMPORT_DESCRIPTOR")
+
+        elif self.obj_name == "IMAGE_DIRECTORY_ENTRY_EXPORT":
+            return result.dereference_as("_IMAGE_EXPORT_DIRECTORY")
+
+        elif self.obj_name == "IMAGE_DIRECTORY_ENTRY_RESOURCE":
+            return result.dereference_as("_IMAGE_RESOURCE_DIRECTORY")
+
+        return result.dereference()
+
+
+class _IMAGE_RESOURCE_DIRECTORY(obj.CType):
+    """Represents a node in the resource tree."""
+
+    Name = "/"
+
+    def __iter__(self):
+        for entry in self.Entries:
+            yield entry
+
+    def Traverse(self):
+        for entry in self:
+            yield entry
+
+            if entry.ChildIsEntry:
+                for subentry in entry.Entry.Traverse():
+                    yield subentry
+
+
+class _IMAGE_RESOURCE_DIRECTORY_ENTRY(obj.CType):
+
+    @property
+    def Name(self):
+        if self.NameIsString:
+            return utils.SmartUnicode(self.m("Name").Buffer)
+        else:
+            return utils.SmartUnicode(self.Type)
+
+    def Path(self):
+        result = self.Name
+
+        for parent in self.parents:
+            name = getattr(parent, "Name", "")
+            result = name + result
+
+        return result
+
+    @property
+    def Entry(self):
+        print hex(self.OffsetToDataInt)
+        if self.ChildIsEntry:
+            return self.m("Entry").dereference()
+        else:
+            import pdb; pdb.set_trace()
+            return self.m("OffsetToData")
+
+
+class ThunkArray(SentinalArray):
+    """A sential terminated array of thunks."""
+
+    def __init__(self, parent=None, **kwargs):
+        target="_IMAGE_THUNK_DATA"
+
+        # Are we in a 64 bit file?
+        for x in parent.parents:
+            if x.obj_name.endswith("64"):
+                target += "64"
+                break
+
+        super(ThunkArray, self).__init__(target=target, parent=parent,
+                                         **kwargs)
+
+
 # The following adds a profile to deal with PE files. Since PE files are not
 # actually related to the kernel version, they get their own domain specific
 # profile.
@@ -878,8 +1053,14 @@ class PEFileImplementation(obj.ProfileModification):
                 '_IMAGE_EXPORT_DIRECTORY': _IMAGE_EXPORT_DIRECTORY,
                 '_IMAGE_IMPORT_DESCRIPTOR': _IMAGE_IMPORT_DESCRIPTOR,
                 '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
+                '_IMAGE_DATA_DIRECTORY': _IMAGE_DATA_DIRECTORY,
                 "IndexedArray": IndexedArray,
+                "SentinalArray": SentinalArray,
+                "ThunkArray": ThunkArray,
                 "RVAPointer": RVAPointer,
+                "ResourcePointer": ResourcePointer,
+                "_IMAGE_RESOURCE_DIRECTORY": _IMAGE_RESOURCE_DIRECTORY,
+                "_IMAGE_RESOURCE_DIRECTORY_ENTRY": _IMAGE_RESOURCE_DIRECTORY_ENTRY,
                 })
         profile.add_overlay(pe_overlays)
 
@@ -895,6 +1076,27 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
     """An address space which applies to PE files.
 
     This basically remaps sections in the PE file to the virtual address space.
+    See http://code.google.com/p/corkami/downloads/detail?name=pe-20110117.pdf
+
+    The PE file is divided into sections, each section is mapped into memory at
+    a different place:
+
+    File on Disk                 Memory Image
+0-> ------------    image base-> ------------
+     Header                      Header
+    ------------                 ------------
+     Section 1
+    ------------                 ------------
+     Section 2                    Section 1
+    ------------                 ------------
+
+                                 ------------
+                                  Section 2
+                                 ------------
+
+    This address space expands the file from disk into the memory image view as
+    shown. Since all internal pe RVA references are within the virtual space,
+    this helps resolution.
     """
     def __init__(self, **kwargs):
         """We layer on top of the file address space."""
@@ -902,18 +1104,34 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
 
         self.as_assert(self.base is not None, "Must layer on another AS.")
         self.as_assert(self.base.read(0, 2) == "MZ", "File does not have a PE signature.")
-        self.nt_header = PEProfile().Object(
-            "_IMAGE_DOS_HEADER", vm=self.base, offset=0).NTHeader
-        self.image_base = int(self.nt_header.OptionalHeader.ImageBase)
+        self.profile = PEProfile()
 
+        nt_header = self.profile.Object(
+            "_IMAGE_DOS_HEADER", vm=self.base, offset=0).NTHeader
+
+        self.image_base = int(nt_header.OptionalHeader.ImageBase)
         # Now map all the sections into a virtual address space.
         self.runs = []
-        for section in self.nt_header.Sections:
+
+        # The first run maps the file header over the base address
+        self.runs.append(
+            (self.image_base, nt_header.OptionalHeader.SizeOfHeaders, 0))
+
+        for section in nt_header.Sections:
             virtual_address = section.VirtualAddress.v() + self.image_base
             self.runs.append(
                 (virtual_address, section.SizeOfRawData.v(), section.PointerToRawData.v()))
 
+        # TODO: The sections may overlap: What to do then?
+        # Make sure that the sections are sorted.
+        self.runs.sort()
+
+        self.nt_header = self.profile.Object(
+            "_IMAGE_DOS_HEADER", vm=self, offset=self.image_base).NTHeader
+
     def read(self, addr, length):
+        # Not a particularly efficient algorithm, but probably fast enough since
+        # usually there are not too many sections.
         for virtual_address, run_length, physical_address in self.runs:
             if addr >= virtual_address and addr <= virtual_address + run_length:
                 offset = addr - virtual_address

@@ -8,11 +8,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
 @author:       Andrew Case
@@ -59,12 +59,12 @@ class LinuxFindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
     def dtb_hits(self):
         """Tries to locate the DTB."""
         if self.profile.metadata("memory_model") == "32bit":
-            PAGE_OFFSET = (self.profile.get_constant("_text") - 
+            PAGE_OFFSET = (self.profile.get_constant("_text") -
                            self.profile.get_constant("phys_startup_32"))
-            
+
             yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
         else:
-            PAGE_OFFSET = (self.profile.get_constant("_text") - 
+            PAGE_OFFSET = (self.profile.get_constant("_text") -
                            self.profile.get_constant("phys_startup_64"))
 
             yield self.profile.get_constant("init_level4_pgt") - PAGE_OFFSET
@@ -87,11 +87,11 @@ class LinProcessFilter(AbstractLinuxCommandPlugin):
 
     def __init__(self, phys_task_struct=None, pids=None, pid=None, **kwargs):
         """Lists information about all the dlls mapped by a process.
-        
+
         Args:
            phys_task_struct: One or more task structs or offsets defined in
               the physical AS.
-           
+
            pids: A list of pids.
            pid: A single pid.
         """
@@ -185,7 +185,7 @@ def bit_is_set(bmap, pos):
 
     mask = 1 << pos
     return bmap & mask
-    
+
 # returns a list of online cpus (the processor numbers)
 def online_cpus(smap, addr_space):
 
@@ -203,21 +203,21 @@ def online_cpus(smap, addr_space):
     for i in xrange(0, 8):
         if bit_is_set(bmap, i):
             cpus.append(i)
-            
-    return cpus    
+
+    return cpus
 
 def walk_per_cpu_var(obj_ref, per_var, var_type):
-        
+
     cpus = online_cpus(obj_ref.smap, obj_ref.addr_space)
-    
+
     # get the highest numbered cpu
     max_cpu = cpus[-1]
- 
+
     per_offsets = obj.Object(theType='Array', targetType='unsigned long', count=max_cpu, offset=obj_ref.smap["__per_cpu_offset"], vm=obj_ref.addr_space)
     i = 0
 
     for i in cpus:
-           
+
         offset = per_offsets[i]
 
         addr = obj_ref.smap["per_cpu__" + per_var] + offset.v()
@@ -257,7 +257,7 @@ def walk_internal_list(struct_name, list_member, list_start, addr_space):
         yield list_struct
 
         list_start = list_struct.__getattribute__(list_member)
-        
+
         if not list_start:
             break
 
@@ -355,15 +355,15 @@ def ip62str(in6addr):
 
     for byte in ipbytes:
         ret = ret + "%.02x" % byte
-                
+
         # make it the : notation
         if ctr % 2 and ctr != 15:
             ret = ret + ":"
 
         ctr = ctr + 1
 
-    return ret      
-    
+    return ret
+
 def S_ISDIR(mode):
     return (mode & linux_flags.S_IFMT) == linux_flags.S_IFDIR
 

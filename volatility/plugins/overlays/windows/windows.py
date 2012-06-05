@@ -303,13 +303,13 @@ class _HANDLE_TABLE(obj.CType):
         # see http://blogs.technet.com/b/markrussinovich/archive/2009/09/29/3283844.aspx
         if level > 0:
             count = 0x1000 / self.obj_profile.get_obj_size("address")
-            targetType = "address"
+            target = "address"
         else:
             count = 0x1000 / self.obj_profile.get_obj_size("_HANDLE_TABLE_ENTRY")
-            targetType = "_HANDLE_TABLE_ENTRY"
+            target = "_HANDLE_TABLE_ENTRY"
 
         table = self.obj_profile.Object(theType="Array", offset = offset, vm = self.obj_vm,
-                                        count = count, targetType = targetType,
+                                        count = count, target = target,
                                         parent = self)
 
         if table:

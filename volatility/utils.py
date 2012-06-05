@@ -58,10 +58,10 @@ def Hexdump(data, width = 16):
         yield offset, hexdata, translated_data
 
 
-def WriteHexdump(fd, data, width=16):
+def WriteHexdump(fd, data, base=0, width=16):
     """Write the hexdump to the fd."""
     for offset, hexdata, translated_data in Hexdump(data):
         fd.write(u"{0:#010x}  {1:<48}  {2}\n".format(
-                offset, hexdata, "".join(translated_data)))
+                base + offset, hexdata, "".join(translated_data)))
 
 

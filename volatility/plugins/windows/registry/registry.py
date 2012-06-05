@@ -414,6 +414,7 @@ class Registry(object):
               path components (useful if the keyname contains /).
         """
         if isinstance(key, basestring):
+            # / can be part of the key name...
             key = filter(None, re.split(r"[\\/]", key))
 
         result = self.root

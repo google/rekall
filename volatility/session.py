@@ -33,6 +33,7 @@ import time
 from volatility import addrspace
 from volatility import plugin
 from volatility import obj
+from volatility import utils
 
 
 class ProfileContainer(object):
@@ -154,9 +155,26 @@ class Session(object):
         self._locals['profiles'] = ProfileContainer(self)
 
         # The handler for the vol command.
+        self._locals['dump'] = session.dump
         self._locals['vol'] = session.vol
         self._locals['info'] = session.info
         self._locals['help'] = session.help
+
+    def dump(self, target, offset=0, width=16, rows=10):
+        # Its an object
+        if isinstance(target, obj.BaseObject):
+            data = target.obj_vm.zread(target.obj_offset, target.size())
+            base = target.obj_offset
+        # Its an address space
+        elif isinstance(target, addrspace.BaseAddressSpace):
+            data = target.zread(offset, width*rows)
+            base = offset
+        # Its a string or something else:
+        else:
+            data = utils.SmartStr(data)
+            base = 0
+
+        utils.WriteHexdump(sys.stdout, data, width=width, base=base)
 
     def info(self, plugin_cls=None, fd=None):
         self.vol(self.plugins.info, item=plugin_cls, fd=fd)

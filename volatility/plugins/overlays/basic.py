@@ -161,7 +161,7 @@ class Enumeration(obj.NativeType):
         value = self.v()
         if value in self.choices.keys():
             return self.choices[value]
-        return 'Unknown choice ' + str(value)
+        return str(value)
 
     def __eq__(self, other):
         if isinstance(other, int):
@@ -171,6 +171,10 @@ class Enumeration(obj.NativeType):
         for k, v in self.choices.iteritems():
             if v == other:
                 return self.v() == k
+
+    def __repr__(self):
+        return "%s (%s)" % (super(Enumeration, self).__repr__(),
+                            self.__str__())
 
     def __format__(self, formatspec):
         return format(self.__str__(), formatspec)
@@ -401,7 +405,7 @@ class BasicWindowsClasses(obj.Profile):
             '_LIST_ENTRY': _LIST_ENTRY,
             'LIST_ENTRY32': _LIST_ENTRY,
             'LIST_ENTRY64': _LIST_ENTRY,
-            'WinTimeStamp': WinTimeStamp,
+            'WinTimeStamp': WinTimeStamp, # WinFileTime.
             'UnixTimeStamp': UnixTimeStamp,
             })
 
