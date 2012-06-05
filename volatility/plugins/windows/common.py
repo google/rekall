@@ -303,6 +303,18 @@ class PoolScanner(scan.DiscontigScanner):
 
         return size_of_obj
 
+    def get_allocation(self, start_of_pool, object_name):
+        """Returns an instance of the object allocated in the pool.
+
+        Sometimes the object is allocated without an _OBJECT_HEADER before
+        it. In this case the object simply follows immediately after the
+        _POOL_HEADER.
+        """
+        size_of_pool_header = self.profile.get_obj_size("_POOL_HEADER")
+
+        return self.profile.Object(object_name, offset=start_of_pool + size_of_pool_header,
+                                   vm=self.address_space)
+
     def get_object(self, start_of_pool, object_name=None):
         """Returns the offset to the object using the bottom up method.
 

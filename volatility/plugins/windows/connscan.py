@@ -26,11 +26,6 @@ This module implements the fast connection scanning
 @organization: Volatile Systems
 """
 
-#pylint: disable-msg=C0111
-
-import volatility.utils as utils
-import volatility.obj as obj
-import volatility.debug as debug #pylint: disable-msg=W0611
 from volatility.plugins.windows import common
 
 
@@ -62,20 +57,21 @@ class ConnScan(common.AbstractWindowsCommandPlugin):
         Yields:
           _TCPT_OBJECT instantiated on the physical address space.
         """
-        scanner = PoolScanConnFast(profile=self.profile)
-        for offset in scanner.scan(self.physical_address_space):
-            ## This yields the pool offsets - we want the actual object
-            tcp_obj = self.profile.Object('_TCPT_OBJECT', vm = self.physical_address_space,
-                                          offset = offset)
-            yield tcp_obj
+        scanner = PoolScanConnFast(
+            profile=self.profile, address_space=self.physical_address_space)
 
-    def render(self, outfd):
-        outfd.write(" Offset(P)  Local Address             Remote Address            Pid   \n" + \
-                    "---------- ------------------------- ------------------------- ------ \n")
+        for offset in scanner.scan():
+            ## The struct is allocated out of the pool (i.e. its not an object).
+            yield scanner.get_allocation(offset, "_TCPT_OBJECT")
+
+    def render(self, renderer):
+        renderer.table_header([("Offset(P)", "[addrpad]"),
+                               ("Local Address", "<25"),
+                               ("Remote Address", "<25"),
+                               ("Pid", ">10")])
 
         ## We make a new scanner
         for tcp_obj in self.generate_hits():
             local = "{0}:{1}".format(tcp_obj.LocalIpAddress, tcp_obj.LocalPort)
             remote = "{0}:{1}".format(tcp_obj.RemoteIpAddress, tcp_obj.RemotePort)
-            outfd.write("{0:#010x} {1:25} {2:25} {3:6}\n".format(
-                    tcp_obj.obj_offset, local, remote, tcp_obj.Pid))
+            renderer.table_row(tcp_obj.obj_offset, local, remote, tcp_obj.Pid)

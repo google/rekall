@@ -7,12 +7,12 @@ Created on 31 Dec 2010
 import volatility.obj as obj
 
 # Structures used by connections, connscan, sockets, sockscan.
-# Used by x86 XP and Win2003 profiles. 
+# Used by x86 XP and Win2003 profiles.
 tcpip_vtypes = {
     '_ADDRESS_OBJECT' : [ 0x68, {
     'Next' : [ 0x0, ['pointer', ['_ADDRESS_OBJECT']]],
     'LocalIpAddress' : [ 0x2c, ['IpAddress']],
-    'LocalPort' : [ 0x30, ['unsigned short']],
+    'LocalPort' : [ 0x30, ['unsigned be short']],
     'Protocol'  : [ 0x32, ['unsigned short']],
     'Pid' : [ 0x148, ['unsigned long']],
     'CreateTime' : [ 0x158, ['WinTimeStamp', {}]],
@@ -27,7 +27,7 @@ tcpip_vtypes = {
     }],
 }
 
-# Structures specific to x86 Win2003 profiles. 
+# Structures specific to x86 Win2003 profiles.
 tcpip_vtypes_2003_sp1_sp2 = {
     '_ADDRESS_OBJECT' : [ 0x68, {
     'Next' : [ 0x0, ['pointer', ['_ADDRESS_OBJECT']]],
@@ -39,7 +39,7 @@ tcpip_vtypes_2003_sp1_sp2 = {
     }],
 }
 
-# Structures used by netscan for x86 Vista and 2008. 
+# Structures used by netscan for x86 Vista and 2008.
 tcpip_vtypes_vista = {
     '_IN_ADDR' : [ None, {
     'addr4' : [ 0x0, ['array', 4, ['unsigned char']]],
@@ -80,7 +80,7 @@ tcpip_vtypes_vista = {
     }],
 }
 
-# Structures for netscan on x86 Windows 7. 
+# Structures for netscan on x86 Windows 7.
 tcpip_vtypes_7 = {
     '_TCP_ENDPOINT': [ None, { # TcpE
     'InetAF' : [ 0xC, ['pointer', ['_INETAF']]],
@@ -93,9 +93,9 @@ tcpip_vtypes_7 = {
     }],
 }
 
-# Structures for netscan on x64 Windows 7. These may also apply 
+# Structures for netscan on x64 Windows 7. These may also apply
 # to x64 Vista and 2008 but that has not yet been determined. Naming
-# will be updated accordingly once we figure out the rest. 
+# will be updated accordingly once we figure out the rest.
 tcpip_vtypes_7_64 = {
     '_TCP_LISTENER': [ None, { # TcpL
     'Owner' : [ 0x28, ['pointer', ['_EPROCESS']]],

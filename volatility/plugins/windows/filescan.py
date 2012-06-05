@@ -26,9 +26,9 @@
 @organization: http://computer.forensikblog.de/en/
 """
 
-import volatility.scan as scan
-from volatility.plugins.windows import common
+from volatility import scan
 from volatility import utils
+from volatility.plugins.windows import common
 
 
 class PoolScanFile(common.PoolScanner):
@@ -73,16 +73,20 @@ class FileScan(common.PoolScannerPlugin):
 
             yield (object_obj, file_obj)
 
-    def render(self, outfd):
+    def render(self, renderer):
         """Print the output in a table."""
-        outfd.write("{0:10} {1:4} {2:4} {3:6} {4}\n".format(
-                     'Offset(P)', '#Ptr', '#Hnd', 'Access', 'Name'))
+
+        renderer.table_header([('Offset(P)', '[addrpad]'),
+                               ('#Ptr', '>6'),
+                               ('#Hnd', '>6'),
+                               ('Access', '>6'),
+                               ('Name', '')
+                               ])
 
         for object_obj, file_obj in self.generate_hits():
-            outfd.write(u"{0:#010x} {1:4} {2:4} {3:6} {4}\n".format(
-                    file_obj.obj_offset, object_obj.PointerCount,
-                    object_obj.HandleCount, file_obj.AccessString,
-                    file_obj.FileName.v(vm=self.kernel_address_space)))
+            renderer.table_row(file_obj.obj_offset, object_obj.PointerCount,
+                               object_obj.HandleCount, file_obj.AccessString,
+                               file_obj.FileName.v(vm=self.kernel_address_space))
 
 
 class PoolScanDriver(PoolScanFile):
@@ -120,20 +124,25 @@ class DriverScan(FileScan):
             yield (object_obj, driver_obj, extension_obj, object_name)
 
 
-    def render(self, outfd):
+    def render(self, renderer):
         """Renders the text-based output"""
-        outfd.write("{0:10} {1:4} {2:4} {3:10} {4:>6} {5:20} {6}\n".format(
-                     'Offset(P)', '#Ptr', '#Hnd',
-                     'Start', 'Size', 'Service key', 'Name'))
+        renderer.table_header([('Offset(P)', '[addrpad]'),
+                               ('#Ptr', '>4'),
+                               ('#Hnd', '>4'),
+                               ('Start', '[addrpad]'),
+                               ('Size', '[addr]'),
+                               ('Service Key', '20'),
+                               ('Name', '12'),
+                               ('Driver Name', '')
+                               ])
 
         for object_obj, driver_obj, extension_obj, object_name in self.generate_hits():
-            outfd.write(u"0x{0:08x} {1:4} {2:4} 0x{3:08x} {4:6} {5:20} {6:12} {7}\n".format(
-                         driver_obj.obj_offset, object_obj.PointerCount,
-                         object_obj.HandleCount,
-                         driver_obj.DriverStart, driver_obj.DriverSize,
-                         extension_obj.ServiceKeyName.v(vm=self.kernel_address_space),
-                         object_name,
-                         driver_obj.DriverName.v(vm=self.kernel_address_space)))
+            renderer.table_row(driver_obj.obj_offset, object_obj.PointerCount,
+                               object_obj.HandleCount,
+                               driver_obj.DriverStart, driver_obj.DriverSize,
+                               extension_obj.ServiceKeyName.v(vm=self.kernel_address_space),
+                               object_name,
+                               driver_obj.DriverName.v(vm=self.kernel_address_space))
 
 
 class PoolScanSymlink(PoolScanFile):
@@ -166,17 +175,21 @@ class SymLinkScan(FileScan):
             link_obj = scanner.get_object(offset, "_OBJECT_SYMBOLIC_LINK")
             yield object_obj, link_obj, object_name
 
-    def render(self, outfd):
+    def render(self, renderer):
         """ Renders text-based output """
+        renderer.table_header([('Offset(P)', '[addrpad]'),
+                               ('#Ptr', '>6'),
+                               ('#Hnd', '>6'),
+                               ('Creation time', '24'),
+                               ('From', '<20'),
+                               ('To', '60'),
+                               ])
 
-        outfd.write("{0:10} {1:4} {2:4} {3:24} {4:<20} {5}\n".format(
-            'Offset(P)', '#Ptr', '#Hnd', 'CreateTime', 'From', 'To'))
 
         for o, link, name in self.generate_hits():
-            outfd.write(u"{0:#010x} {1:4} {2:4} {3:<24} {4:<20} {5}\n".format(
-                        link.obj_offset, o.PointerCount,
-                        o.HandleCount, link.CreationTime or '',
-                        name, link.LinkTarget.v(vm=self.kernel_address_space)))
+            renderer.table_row(link.obj_offset, o.PointerCount,
+                               o.HandleCount, link.CreationTime or '',
+                               name, link.LinkTarget.v(vm=self.kernel_address_space))
 
 
 class PoolScanMutant(PoolScanDriver):
@@ -223,11 +236,17 @@ class MutantScan(FileScan):
             mutant = scanner.get_object(offset, "_KMUTANT")
             yield (object_obj, mutant, object_name)
 
-    def render(self, outfd):
+    def render(self, renderer):
         """Renders the output"""
-        outfd.write("{0:10} {1:4} {2:4} {3:6} {4:10} {5:10} {6}\n".format(
-                     'Offset(P)', '#Ptr', '#Hnd', 'Signal',
-                     'Thread', 'CID', 'Name'))
+
+        renderer.table_header([('Offset(P)', '[addrpad]'),
+                               ('#Ptr', '>4'),
+                               ('#Hnd', '>4'),
+                               ('Signal', '4'),
+                               ('Thread', '[addrpad]'),
+                               ('CID', '>9'),
+                               ('Name', '')
+                               ])
 
         for object_obj, mutant, object_name in self.generate_hits():
             if mutant.OwnerThread > 0x80000000:
@@ -237,12 +256,10 @@ class MutantScan(FileScan):
             else:
                 CID = ""
 
-            outfd.write(u"0x{0:08x} {1:4} {2:4} {3:6} 0x{4:08x} {5:10} {6}\n".format(
-                         mutant.obj_offset, object_obj.PointerCount,
-                         object_obj.HandleCount, mutant.Header.SignalState,
-                         mutant.OwnerThread, CID,
-                         object_obj.NameInfo.Name.v(vm=self.kernel_address_space))
-                        )
+            renderer.table_row(mutant.obj_offset, object_obj.PointerCount,
+                               object_obj.HandleCount, mutant.Header.SignalState,
+                               mutant.OwnerThread, CID,
+                               object_obj.NameInfo.Name.v(vm=self.kernel_address_space))
 
 class CheckProcess(scan.ScannerCheck):
     """ Check sanity of _EPROCESS """
@@ -350,50 +367,27 @@ class PSScan(common.PoolScannerPlugin):
         return 0
 
 
-    def render(self, outfd):
+    def render(self, renderer):
         """Render results in a table."""
-        outfd.write(" Offset(P) Offset(V)  Name             PID    PPID   PDB        Time created             Time exited             \n" + \
-                    "---------- --------- ---------------- ------ ------ ---------- ------------------------ ------------------------ \n")
+        renderer.table_header([('Offset(P)', '[addrpad]'),
+                               ('Offset(V)', '[addrpad]'),
+                               ('Name', '16'),
+                               ('PID', '>6'),
+                               ('PPID', '>6'),
+                               ('PDB', '[addrpad]'),
+                               ('Time created', '20'),
+                               ('Time exited', '20')
+                               ])
 
         for eprocess in self.calculate():
             # Try to guess the virtual address of the eprocess
             eprocess_virtual_address = self.guess_eprocess_virtual_address(eprocess)
 
-            outfd.write(u"0x{0:08x} 0x{1:08x} {2:16} {3:6} {4:6} 0x{5:08x} {6:24} {7:24}\n".format(
-                eprocess.obj_offset,
-                eprocess_virtual_address,
-                eprocess.ImageFileName,
-                eprocess.UniqueProcessId,
-                eprocess.InheritedFromUniqueProcessId,
-                eprocess.Pcb.DirectoryTableBase,
-                eprocess.CreateTime or '',
-                eprocess.ExitTime or ''))
-
-    def render_dot(self, outfd):
-        """Create a dot file for visualization."""
-        objects = set()
-        links = set()
-
-        for eprocess in self.calculate():
-            label = "{0} | {1} |".format(eprocess.UniqueProcessId,
-                                         eprocess.ImageFileName)
-            if eprocess.ExitTime:
-                label += "exited\\n{0}".format(eprocess.ExitTime)
-                options = ' style = "filled" fillcolor = "lightgray" '
-            else:
-                label += "running"
-                options = ''
-
-            objects.add('pid{0} [label="{1}" shape="record" {2}];\n'.format(eprocess.UniqueProcessId,
-                                                                            label, options))
-            links.add("pid{0} -> pid{1} [];\n".format(eprocess.InheritedFromUniqueProcessId,
-                                                      eprocess.UniqueProcessId))
-
-        ## Now write the dot file
-        outfd.write("digraph processtree { \ngraph [rankdir = \"TB\"];\n")
-        for link in links:
-            outfd.write(link)
-
-        for item in objects:
-            outfd.write(item)
-        outfd.write("}")
+            renderer.table_row(eprocess.obj_offset,
+                               eprocess_virtual_address,
+                               eprocess.ImageFileName,
+                               eprocess.UniqueProcessId,
+                               eprocess.InheritedFromUniqueProcessId,
+                               eprocess.Pcb.DirectoryTableBase,
+                               eprocess.CreateTime or '',
+                               eprocess.ExitTime or '')

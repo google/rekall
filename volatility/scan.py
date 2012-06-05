@@ -51,7 +51,6 @@ class BaseScanner(object):
         self.profile = profile
         self.max_length = None
         self.base_offset = None
-        self.build_constraints()
 
     def build_constraints(self):
         self.constraints = []
@@ -96,6 +95,11 @@ class BaseScanner(object):
 
     overlap = 20
     def scan(self, offset = 0, maxlen = None):
+        # Delay building the constraints so they can be added after scanner
+        # construction.
+        if self.constraints is None:
+            self.build_constraints()
+
         base_offset = offset
         available_length = maxlen or sys.maxint
 
