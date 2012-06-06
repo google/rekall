@@ -12,11 +12,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """ These are standard address spaces supported by Volatility """
@@ -35,7 +35,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
     1) A valid config.LOCATION (starting with file://)
 
     2) no one else has picked the AS before us
-    
+
     3) base == None (we dont operate on anyone else so we need to be
     right at the bottom of the AS stack.)
     """
@@ -44,11 +44,10 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
 
     def __init__(self, filename=None, **kwargs):
         super(MmapFileAddressSpace, self).__init__(**kwargs)
-
         self.as_assert(self.base == None , 'Must be first Address Space')
 
         path = self.session.filename or filename
-        self.as_assert(os.path.exists(path), 
+        self.as_assert(os.path.exists(path),
                        'Filename must be specified and exist')
 
         self.fname = self.name = os.path.abspath(path)
@@ -98,5 +97,5 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
         return True
 
     def __eq__(self, other):
-        return (self.__class__ == other.__class__ and 
+        return (self.__class__ == other.__class__ and
                 self.base == other.base and self.fname == other.fname)

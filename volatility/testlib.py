@@ -160,7 +160,7 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
         return metadata
 
     def RunVolatilityModule(self, profile=None, image=None, module=None, **kwargs):
-        """Runs the module and generates metada describing the test."""
+        """Runs the module and generates metadata describing the test."""
         # Module names are only lower case letters
         if re.search("[^a-z_]", module):
             raise AttributeError("Module name is not valid.")

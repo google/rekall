@@ -75,18 +75,6 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
     def close(self):
         self.fhandle.close()
 
-    def write(self, addr, data):
-        if not self.writeable:
-            return False
-
-        try:
-            self.fhandle.seek(addr)
-            self.fhandle.write(data)
-        except IOError:
-            return False
-
-        return True
-
     def __eq__(self, other):
         return (self.__class__ == other.__class__ and
                 self.base == other.base and
@@ -125,6 +113,53 @@ class FileAddressSpace(FDAddressSpace):
         super(FileAddressSpace, self).__init__(fhandle=fhandle, session=session,
                                                **kwargs)
         self.as_assert(self.base == None, 'Must be first Address Space')
+
+
+class WriteableAddressSpace(FDAddressSpace):
+    """This address space can be used to create new files.
+
+    NOTE: The does not participate in voting or gets automatically selected. It
+    can only be instantiated directly.
+    """
+
+    # This prevents this class from being automatically registered.
+    __abstract = True
+
+    def __init__(self, filename=None, mode="w+b", **kwargs):
+        self.as_assert(filename, "Filename must be specified.")
+
+        self.name = os.path.abspath(filename)
+        self.fname = self.name
+        self.mode = mode
+        self.writeable = True
+
+        fhandle = open(self.fname, self.mode)
+        super(WriteableAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
+        self.as_assert(self.base == None, 'Must be first Address Space')
+
+    def write(self, addr, data):
+        try:
+            self.fhandle.seek(addr)
+            self.fhandle.write(data)
+            self.fhandle.flush()
+        except IOError:
+            return False
+
+        return True
+
+    def is_valid_address(self, addr):
+        # All addresses are valid, we just grow the file there.
+        return True
+
+    def read(self, addr, length):
+        # Just null pad the file - even if we read past the end.
+        self.fhandle.seek(addr)
+        data = self.fhandle.read(length)
+
+        if len(data) < length:
+            data += "\x00" * (length - len(data))
+
+        return data
 
 
 

@@ -1246,7 +1246,7 @@ class PE(object):
 
         for directory in import_directory:
             dll = directory.Name.dereference()
-            for thunk in directory.FirstThunk.dereference():
+            for thunk in directory.OriginalFirstThunk.dereference():
                 function_name = thunk.AddressOfData.Name
 
                 yield dll, function_name

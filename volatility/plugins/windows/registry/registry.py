@@ -300,8 +300,9 @@ class _CM_KEY_INDEX(obj.CType):
                 import pdb; pdb.set_trace()
                 # This is a pointer to another _CM_KEY_INDEX
                 for subkey in self.obj_profile.Object(
-                    "Pointer", type_name="_CM_KEY_INDEX", offset=self.List[i].v(),
-                    vm=self.obj_vm, parent=self.obj_parent):
+                    "Pointer", offset=self.List[i].v(),
+                    vm=self.obj_vm, parent=self.obj_parent,
+                    target="_CM_KEY_INDEX"):
                     if subkey.Signature == self.NK_SIG:
                         yield subkey
 

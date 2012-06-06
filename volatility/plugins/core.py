@@ -253,3 +253,14 @@ class HexDumper(plugin.Command):
             fd.write("{0:016X} | {1} | {2}\n".format(
                     self.offset, hexdata, translated_data))
             self.offset += self.width
+
+
+class Null(WinMemDump):
+    """This plugin does absolutely nothing.
+
+    It is used to measure startup overheads.
+    """
+    __name = "null"
+
+    def render(self, outfd):
+        pass

@@ -13,40 +13,104 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-import logging
 import os
+import re
 import struct
 
 from volatility.plugins.windows import common
-from volatility.plugins.windows import taskmods
 from volatility import plugin
-from volatility import obj
+from volatility import utils
 
 
 class ProcExeDump(common.WinProcessFilter):
     """Dump a process to an executable file sample"""
 
-    __name = "procexedump"
+    __name = "procdump"
 
-    def __init__(self, dump_dir=None, unsafe=True, **kwargs):
+    def __init__(self, dump_dir=None, remap=False, outfd=None, **kwargs):
         """Dump a process from memory into an executable.
+
+        In windows PE files are mapped into memory in sections. Each section is
+        mapped into a region within the process virtual memory from a region in
+        the executable file:
+
+    File on Disk                 Memory Image
+0-> ------------    image base-> ------------
+     Header                      Header
+    ------------                 ------------
+     Section 1
+    ------------                 ------------
+     Section 2                    Section 1
+    ------------                 ------------
+
+                                 ------------
+                                  Section 2
+                                 ------------
+
+        This plugin simply copies the sections from memory back into the file on
+        disk. Its likely that some of the pages in memory are not actually
+        memory resident, so we might get invalid page reads. In this case the
+        region on disk is null padded. If that happens it will not be possible
+        to run the executable, but the executable can still be disassembled and
+        analysed statically.
+
+        References:
+        http://code.google.com/p/corkami/downloads/detail?name=pe-20110117.pdf
+
+        NOTE: Malware can mess with the headers after loading. The remap option
+        allows to remap the sections on the disk file so they do not collide.
 
         Args:
           dump_dir: Directory in which to dump executable files.
-          unsafe: Bypasses certain sanity checks when creating image
+
+          remap: If set, allows to remap the sections on disk so they do not
+            overlap.
+
+          fd: Alternatively, a filelike object can be provided directly.
         """
         super(ProcExeDump, self).__init__(**kwargs)
         self.dump_dir = dump_dir or self.session.dump_dir
-        self.unsafe = unsafe
 
         # Get the pe profile.
         self.pe_profile = self.profile.classes['PEProfile']()
+        self.fd = outfd
+
+    def WritePEFile(self, fd, address_space, image_base):
+        """Dumps the PE file found into the filelike object.
+
+        Args:
+          fd: A writeable filelike object which must support seeking.
+          address_space: The address_space to read from.
+          image_base: The offset of the dos file header.
+        """
+        dos_header = self.pe_profile.Object("_IMAGE_DOS_HEADER", offset=image_base,
+                                            vm=address_space)
+        image_base = dos_header.obj_offset
+        nt_header = dos_header.NTHeader
+
+        # First copy the PE file header, then copy the sections.
+        data = dos_header.obj_vm.zread(
+            image_base, min(1e6, nt_header.OptionalHeader.SizeOfHeaders))
+
+        fd.seek(0)
+        fd.write(data)
+
+        for section in nt_header.Sections:
+            # Force some sensible maximum values here.
+            size_of_section = min(10e6, section.SizeOfRawData)
+            physical_offset = min(100e6, int(section.PointerToRawData))
+
+            data = section.obj_vm.zread(
+                section.VirtualAddress + image_base, size_of_section)
+
+            fd.seek(physical_offset, 0)
+            fd.write(data)
 
     def _check_dump_dir(self):
         if not self.dump_dir:
@@ -57,137 +121,49 @@ class ProcExeDump(common.WinProcessFilter):
 
     def render(self, outfd):
         """Renders the tasks to disk images, outputting progress as they go"""
-        self._check_dump_dir()
+        if self.dump_dir:
+            self._check_dump_dir()
 
         for task in self.filter_processes():
             pid = task.UniqueProcessId
-            
-            filename = os.path.join(self.dump_dir, "executable.%s_%s.exe" % (
-                    task.ImageFileName, pid))
 
-            outfd.write("*" * 72 + "\n")
-            outfd.write("Dumping {0}, pid: {1:6} output: {2}\n".format(
-                    task.ImageFileName, pid, filename))
+            task_address_space = task.get_process_address_space()
+            if not task_address_space:
+                outfd.write("Can not get task address space - skipping.")
+                continue
 
-            with open(filename, 'wb') as fd:
-                try:
-                    self.dump_process(task, fd)
-                except plugin.PluginError, e:
-                    logging.error("Error: %s", e)
+            if self.fd:
+                self.WritePEFile(self.fd, task_address_space, task.Peb.ImageBaseAddress)
+                outfd.write("*" * 72 + "\n")
 
-    def dump_process(self, task, of):
-        pid = task.UniqueProcessId
-        task_space = task.get_process_address_space()
-        if task.Peb == None:
-            raise plugin.PluginError("PEB not memory resident for "
-                                     "process [{0}]\n".format(pid))
+                outfd.write("Dumping {0}, pid: {1:6} into user provided fd.\n".format(
+                        task.ImageFileName, pid))
 
-        if (task.Peb.ImageBaseAddress == None or task_space == None or
-            task_space.vtop(task.Peb.ImageBaseAddress) == None):
-            raise plugin.PluginError("ImageBaseAddress not memory resident"
-                                     " for process [{0}]\n".format(pid))
+            # Create a new file.
+            else:
+                sanitized_image_name = re.sub("[^a-zA-Z0-9-_]", "_",
+                                              utils.SmartStr(task.ImageFileName))
 
-        try:
-            for offset, code in self.get_image(task.get_process_address_space(),
-                                               task.Peb.ImageBaseAddress):
-                of.seek(offset)
-                of.write(code)
+                filename = os.path.join(self.dump_dir, u"executable.%s_%s.exe" % (
+                        sanitized_image_name, pid))
 
-        except ValueError, ve:
-            logging.error("Unable to dump executable; sanity check failed:\n"
-                          "  %s\nYou can use -u to disable this check.\n" % ve)
+                outfd.write("*" * 72 + "\n")
+                outfd.write("Dumping {0}, pid: {1:6} output: {2}\n".format(
+                        task.ImageFileName, pid, filename))
 
-    def round(self, addr, align, up = False):
-        """Rounds down an address based on an alignment"""
-        if addr % align == 0:
-            return addr
-        else:
-            if up:
-                return (addr + (align - (addr % align)))
-            return (addr - (addr % align))
+                with open(filename, 'wb') as fd:
+                    # The Process Environment Block contains the dos header:
+                    self.WritePEFile(fd, task_address_space, task.Peb.ImageBaseAddress)
 
-    def get_nt_header(self, addr_space, base_addr):
-        """Returns the NT Header object for a task"""
-        dos_header = self.pe_profile.Object("_IMAGE_DOS_HEADER", offset = base_addr,
-                                            vm = addr_space)
 
-        return dos_header.get_nt_header()
-
-    def get_code(self, addr_space, data_start, data_size, offset):
-        """Returns a single section of re-created data from a file image"""
-        data_start = int(data_start)
-        first_block = 0x1000 - data_start % 0x1000
-        full_blocks = ((data_size + (data_start % 0x1000)) / 0x1000) - 1
-        left_over = (data_size + data_start) % 0x1000
-
-        paddr = addr_space.vtop(data_start)
-        code = ""
-
-        # Deal with reads that are smaller than a block
-        if data_size < first_block:
-            data_read = addr_space.zread(data_start, data_size)
-            if paddr == None:
-                logging.info("Memory Not Accessible: Virtual Address: 0x{0:x} "
-                             "File Offset: 0x{1:x} Size: 0x{2:x}".format(
-                        data_start, offset, data_size))
-
-            code += data_read
-
-            return (offset, code)
-
-        data_read = addr_space.zread(data_start, first_block)
-        if paddr == None:
-            logging.info("Memory Not Accessible: Virtual Address: 0x{0:x} "
-                         "File Offset: 0x{1:x} Size: 0x{2:x}".format(
-                    data_start, offset, first_block))
-        code += data_read
-
-        # The middle part of the read
-        new_vaddr = data_start + first_block
-
-        for _i in range(0, full_blocks):
-            data_read = addr_space.zread(new_vaddr, 0x1000)
-            if not new_vaddr or addr_space.vtop(new_vaddr) == None:
-                logging.debug("Memory Not Accessible: Virtual Address: 0x{0:x} "
-                              "File Offset: 0x{1:x} Size: 0x{2:x}".format(
-                        new_vaddr, offset, 0x1000))
-            code += data_read
-            new_vaddr = new_vaddr + 0x1000
-
-        # The last part of the read
-        if left_over > 0:
-            data_read = addr_space.zread(new_vaddr, left_over)
-            if addr_space.vtop(new_vaddr) == None:
-                logging.debug("Memory Not Accessible: Virtual Address: 0x{0:x} "
-                              "File Offset: 0x{1:x} Size: 0x{2:x}".format(
-                        new_vaddr, offset, left_over))
-            code += data_read
-        return (offset, code)
-
-    def get_image(self, addr_space, base_addr):
-        """Outputs an executable disk image of a process"""
-        nt_header = self.get_nt_header(addr_space = addr_space,
-                                       base_addr = base_addr)
-
-        soh = nt_header.OptionalHeader.SizeOfHeaders
-        header = addr_space.read(base_addr, soh)
-        yield (0, header)
-
-        fa = nt_header.OptionalHeader.FileAlignment
-        for sect in nt_header.get_sections(self.unsafe):
-            foa = self.round(sect.PointerToRawData, fa)
-            if foa != sect.PointerToRawData:
-                logging.warning("section start on disk not aligned to file alignment.")
-                logging.warning("adjusted section start from {0} to {1}.".format(
-                        sect.PointerToRawData, foa))
-            yield self.get_code(addr_space,
-                                sect.VirtualAddress + base_addr,
-                                sect.SizeOfRawData, foa)
 
 class ProcMemDump(ProcExeDump):
     """Dump a process to an executable memory sample"""
 
     __name = "procmemdump"
+
+    # Disabled - functionality merged into the procexedump module above.
+    __abstract = True
 
     def replace_header_field(self, sect, header, item, value):
         """Replaces a field in a sector header"""

@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""Tests for the ConnScan plugins."""
+"""Tests for the FileScan plugins."""
 
 from volatility import testlib
 

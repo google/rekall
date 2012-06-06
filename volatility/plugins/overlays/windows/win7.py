@@ -154,47 +154,6 @@ class _MMVAD_LONG(_MMVAD):
     pass
 
 
-class Win7SP0x86(obj.Profile):
-    """ A Profile for Windows 7 SP0 x86 """
-    _md_memory_model = '32bit'
-    _md_os = 'windows'
-    _md_major = 6
-    _md_minor = 1
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win7_sp0_x86_vtypes'
-
-class Win7SP1x86(obj.Profile):
-    """ A Profile for Windows 7 SP1 x86 """
-    _md_memory_model = '32bit'
-    _md_os = 'windows'
-    _md_major = 6
-    _md_minor = 1
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win7_sp1_x86_vtypes'
-
-class Win7SP0x64(obj.Profile):
-    """ A Profile for Windows 7 SP0 x64 """
-    _md_memory_model = '64bit'
-    _md_os = 'windows'
-    _md_major = 6
-    _md_minor = 1
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win7_sp0_x64_vtypes'
-
-class Win7SP1x64(obj.Profile):
-    """ A Profile for Windows 7 SP1 x64 """
-    _md_memory_model = '64bit'
-    _md_os = 'windows'
-    _md_major = 6
-    _md_minor = 1
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win7_sp1_x64_vtypes'
-
-
-class Win2008R2SP0x64(Win7SP0x64):
-    """ A Profile for Windows 2008 R2 SP0 x64 """
-
-
-class Win2008R2SP1x64(Win7SP1x64):
-    """ A Profile for Windows 2008 R2 SP1 x64 """
-
-
 class Win7BaseProfile(windows.BaseWindowsProfile):
     """The common ancestor of all windows 7 profiles."""
 
@@ -212,6 +171,34 @@ class Win7BaseProfile(windows.BaseWindowsProfile):
                               _MMVAD=_MMVAD, _MMVAD_LONG=_MMVAD_LONG,
                               _MMVAD_SHORT=_MMVAD_SHORT,
                               pointer64=obj.Pointer))
+
+
+class Win7SP0x86(basic.Profile32Bits, Win7BaseProfile):
+    """ A Profile for Windows 7 SP0 x86 """
+    _md_major = 6
+    _md_minor = 1
+
+    def __init__(self, **kwargs):
+        super(Win7SP0x86, self).__init__(**kwargs)
+
+        # Import the actual vtypes on demand here to reduce memory usage.
+        from volatility.plugins.overlays.windows import win7_sp0_x86_vtypes
+
+        self.add_types(win7_sp0_x86_vtypes.ntkrnlmp_types)
+
+
+class Win7SP0x64(basic.Profile64Bits, Win7BaseProfile):
+    """ A Profile for Windows 7 SP0 x64 """
+    _md_major = 6
+    _md_minor = 1
+
+    def __init__(self, **kwargs):
+        super(Win7SP0x64, self).__init__(**kwargs)
+
+        # Import the actual vtypes on demand here to reduce memory usage.
+        from volatility.plugins.overlays.windows import win7_sp0_x64_vtypes
+
+        self.add_types(win7_sp0_x64_vtypes.ntkrnlmp_types)
 
 
 class Win7SP1x86(basic.Profile32Bits, Win7BaseProfile):
@@ -234,7 +221,6 @@ class Win7SP1x64(basic.Profile64Bits, Win7BaseProfile):
     """ A Profile for Windows 7 SP1 x64 """
     _md_major = 6
     _md_minor = 1
-    _md_build = 7601
 
     def __init__(self, **kwargs):
         super(Win7SP1x64, self).__init__(**kwargs)
@@ -244,3 +230,10 @@ class Win7SP1x64(basic.Profile64Bits, Win7BaseProfile):
         from volatility.plugins.overlays.windows import win7_sp1_x64_vtypes
 
         self.add_types(win7_sp1_x64_vtypes.ntkrnlmp_types)
+
+class Win2008R2SP0x64(Win7SP0x64):
+    """ A Profile for Windows 2008 R2 SP0 x64 """
+
+
+class Win2008R2SP1x64(Win7SP1x64):
+    """ A Profile for Windows 2008 R2 SP1 x64 """

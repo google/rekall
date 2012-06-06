@@ -1,0 +1,12 @@
+{
+    "profile": "WinXPSP2x86", 
+    "number_of_lines": 2, 
+    "hash": "219c749eac6ec764f97fe8dcb39666d5", 
+    "time_used": 4.8923289775848389, 
+    "filename": "test_data/xp-laptop-2005-06-25.img", 
+    "mode": "trunk", 
+    "output": [
+        "************************************************************************", 
+        "Dumping Fast.exe, pid:   1700 output: executable.1700.exe"
+    ]
+}

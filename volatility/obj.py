@@ -43,16 +43,30 @@ class classproperty(property):
     def __get__(self, cls, owner):
         return self.fget(owner)
 
-
-## Curry is now a standard python feature
-import functools
-
-Curry = functools.partial
-
 import traceback
+
+
+class Curry(object):
+    def __init__(self, curry_target, *args, **kwargs):
+        self.target = curry_target
+        self.kwargs = kwargs
+        self.args = args
+
+    def __call__(self, **kwargs):
+        # Merge the kwargs with the new kwargs
+        new_kwargs = self.kwargs.copy()
+        new_kwargs.update(kwargs)
+        return self.target(*self.args, **new_kwargs)
+
+# This is marginally faster but is harder to debug since the Curry callables are
+# opaque.
+# import functools
+# Curry = functools.partial
+
 
 def get_bt_string(_e = None):
     return ''.join(traceback.format_stack()[:-2])
+
 
 class FormatSpec(object):
     def __init__(self, string = '', **kwargs):
@@ -67,7 +81,8 @@ class FormatSpec(object):
         if string != '':
             self.from_string(string)
 
-        # Ensure we parse the remaining arguments after the string to that they override
+        # Ensure we parse the remaining arguments after the string to that they
+        # override
         self.from_specs(**kwargs)
 
     def from_specs(self, fill = None, align = None, sign = None, altform = None,
@@ -259,7 +274,7 @@ class BaseObject(object):
     # Benefit is objects will never fail with duff parameters
     # Downside is typos won't show up and be difficult to diagnose
     def __init__(self, theType=None, offset=0, vm=None, profile = None,
-                 parent = None, name = '', type_name=None, **kwargs):
+                 parent = None, name = '', **kwargs):
         """Constructor for Base object.
 
         Args:
@@ -278,17 +293,13 @@ class BaseObject(object):
 
           name: The name of this object.
 
-          type_name: The name of this type. This name will override the class
-            name and could mean something more meaningful (e.g. NativeType is not
-            meaningful).
-
           kwargs: Arbitrary args this object may accept - these can be passed in
              the vtype language definition.
         """
         if kwargs:
             logging.error("Unknown keyword args {0}".format(kwargs))
 
-        self.obj_type = type_name or theType
+        self.obj_type = theType
 
         # 64 bit addresses are always sign extended, so we need to clear the top
         # bits.
@@ -516,25 +527,27 @@ class NativeType(BaseObject, NumericProxyMixIn):
 
 class BitField(NativeType):
     """ A class splitting an integer into a bunch of bit. """
-    def __init__(self, profile=None, start_bit = 0, end_bit = 32, native_type = None,
+    def __init__(self, start_bit = 0, end_bit = 32, native_type = None,
                  **kwargs):
-        if native_type is None:
-            native_type = "address"
+        super(BitField, self).__init__(**kwargs)
 
-        # Defaults to profile-endian address, but can be overridden by native_type
-        kwargs.update(profile.vtypes[native_type][1])
-        NativeType.__init__(self, profile=profile, **kwargs)
+        self._proxy = self.obj_profile.Object(
+            native_type or "address", offset=self.obj_offset, vm=self.obj_vm)
+
         self.start_bit = start_bit
         self.end_bit = end_bit
-        self.native_type = native_type # Store this for proper caching
+
+    def size(self):
+        return self._proxy.size()
 
     def v(self, vm=None):
-        i = NativeType.v(self, vm=vm)
+        i = self._proxy.v(vm=vm)
         return (i & ((1 << self.end_bit) - 1)) >> self.start_bit
 
     def write(self, data):
-        data = data << self.start_bit
-        return NativeType.write(self, data)
+        # To write we need to read the proxy, set the bits and then write the
+        # proxy again.
+        return False
 
     def __nonzero__(self):
         return bool(self.v())
@@ -565,9 +578,9 @@ class Pointer(NativeType):
     def size(self):
         return self._proxy.size()
 
-    def v(self):
+    def v(self, vm=None):
         # 64 bit addresses are always sign extended so we need to clear the top bits.
-        return 0xffffffffffff & self._proxy.v()
+        return 0xffffffffffff & self._proxy.v(vm=vm)
 
     def __eq__(self, other):
         try:
@@ -718,6 +731,7 @@ class Array(BaseObject):
         """
         super(Array, self).__init__(**kwargs)
 
+        # Allow the count to be callable.
         if callable(count):
             count = count(self.obj_parent)
 
@@ -945,6 +959,27 @@ class CType(BaseObject):
     def __getattr__(self, attr):
         return self.m(attr)
 
+    def __setattr__(self, attr, value):
+        """Change underlying members"""
+        # Special magic to allow initialization this test allows attributes to
+        # be set in the __init__ method.
+        if not self.__dict__.has_key('_CType__initialized'):
+            return super(CType, self).__setattr__(attr, value)
+
+        # any normal attributes are handled normally
+        elif self.__dict__.has_key(attr):
+            return super(CType, self).__setattr__(attr, value)
+
+        else:
+            member = self.m(attr)
+            if not hasattr(member, 'write') or not member.write(value):
+                raise ValueError("Error writing value to member " + attr)
+
+            return
+
+        # If you hit this, consider using obj.newattr('attr', value)
+        raise ValueError("Attribute " + attr + " was set after object initialization")
+
     def __dir__(self):
         """This is useful for tab completion in an ipython volshell."""
         result = self.members.keys() + super(CType, self).__dir__()
@@ -1038,10 +1073,12 @@ class Profile(object):
         # A dummy address space used internally.
         self._dummy = dummy()
 
-        # We initially populate this with objects in this module that will be used everywhere
+        # We initially populate this with objects in this module that will be
+        # used everywhere
         self.object_classes = {'BitField': BitField,
                                'Pointer': Pointer,
                                'Void': Void,
+                               'void': Void,
                                'Array': Array,
                                'ListArray': ListArray,
                                'NativeType': NativeType,
@@ -1095,16 +1132,17 @@ class Profile(object):
                 self.vtypes[k] = original
 
     def compile(self):
-        """ Compiles the vtypes, overlays, object_classes, etc into a types dictionary."""
+        """Compiles the vtypes, overlays, object_classes, etc into a types
+        dictionary."""
         self.types = {}
 
-        # Marge all the overlays in order
+        # Merge all the overlays in order.
         for overlay in self.overlays:
             self._merge_overlay(overlay)
 
         for name in self.vtypes.keys():
             if isinstance(self.vtypes[name][0], str):
-                self.types[name] = self.list_to_type(name, self.vtypes[name], self.vtypes)
+                self.types[name] = self.list_to_type(name, self.vtypes[name])
             else:
                 self.types[name] = self.convert_members(
                 name, self.vtypes, copy.deepcopy(self.overlayDict))
@@ -1112,69 +1150,85 @@ class Profile(object):
         # We are ready to go now.
         self._ready = True
 
-    # pylint: disable-msg=R0911
-    def list_to_type(self, name, typeList, vtypes = None):
-        """ Parses a specification list and returns a VType object.
+
+    def list_to_target(self, typeList):
+        """Converts the list expression into a target, target_args notation.
+
+        Legacy vtypes use lists to specify the objects. This function is used to
+        convert from the legacy format to the more accurate modern
+        format. Hopefully the legacy format can be deprecated at some point.
+
+        Args:
+           typeList: A list of types. e.g. ['pointer64', ['_HMAP_TABLE']]
+
+        Returns:
+           A target, target_args tuple. Target is the class name which should be
+           instantiated, while target_args is a dict of args to be passed to
+           this class.
+           e.g. 'Pointer',  {target="_HMAP_TABLE"}
+        """
+        ## This is of the form [ '_HMAP_TABLE' ] - First element is the target
+        ## name, with no args.
+        if len(typeList) == 1:
+            target = typeList[0]
+            target_args = {}
+
+        ## This is of the form [ 'pointer' , [ 'foobar' ]]
+        ## Target is the first item, args is the second item.
+        elif typeList[0] == 'pointer' or typeList[0] == 'pointer64':
+            target = "Pointer"
+            target_args = self.list_to_target(typeList[1])
+
+        ## This is an array: [ 'array', count, ['foobar'] ]
+        elif typeList[0] == 'array':
+            target = "Array"
+            target_args = self.list_to_target(typeList[2])
+            target_args['count'] = typeList[1]
+
+        elif len(typeList) > 2:
+            logging.error("Invalid typeList %s" % (typeList,))
+
+        else:
+            target = typeList[0]
+            target_args = typeList[1]
+
+        return dict(target=target, target_args=target_args)
+
+    def list_to_type(self, name, typeList):
+        """Parses a specification list and returns a VType object.
 
         This function is a bit complex because we support lots of
         different list types for backwards compatibility.
+
+        This is the core function which effectively parses the VType language.
         """
-        ## This supports plugin memory objects:
-        try:
-            kwargs = typeList[1]
+        # Convert legacy typeList expressions to the modern format.
+        target_spec = self.list_to_target(typeList)
 
-            if type(kwargs) == dict:
-                ## We have a list of the form [ ClassName, dict(.. args ..) ]
-                return Curry(self.Object, theType = typeList[0], name = name,
-                             type_name = name, **kwargs)
-        except (TypeError, IndexError), _e:
-            pass
+        # The modern format uses a target, target_args notation.
+        target = target_spec['target']
+        target_args = target_spec['target_args']
 
-        ## This is of the form [ 'void' ]
-        if typeList[0] == 'void':
-            return Curry(Void, profile=self, name = name)
+        ## This is currently the recommended way to specify a type:
+        ## e.g. [ 'Pointer', {target="int"}]
+        if isinstance(target_args, dict):
+            return Curry(self.Object, theType = target, name = name,
+                         **target_args)
 
-        ## This is of the form [ 'pointer' , [ 'foobar' ]]
-        if typeList[0] == 'pointer' or typeList[0] == 'pointer64':
-            try:
-                target = typeList[1]
-            except IndexError:
-                raise RuntimeError("Syntax Error in pointer type defintion for name "
-                                   "{0}".format(name))
+        # This is of the deprecated form ['class_name', ['arg1', 'arg2']].
+        # Since the object framework moved to purely keyword args these are
+        # meaningless. Issue a deprecation warning.
+        elif type(target_args) == list:
+            logging.warning(
+                "Deprecated vtype expression %s for member %s, assuming int",
+                typeList, name)
 
-            return Curry(Pointer, name = name,
-                         target = self.list_to_type(name, target, vtypes))
+        else:
+            ## If we get here we have no idea what this list is
+            logging.warning("Unable to find a type for %s, assuming int",
+                            typeList)
 
-        ## This is an array: [ 'array', count, ['foobar'] ]
-        if typeList[0] == 'array':
-            return Curry(Array, name = name, count = typeList[1],
-                         target = self.list_to_type(name, typeList[2], vtypes))
-
-        ## This is a list which refers to a type which is already defined
-        if typeList[0] in self.types:
-            return Curry(self.types[typeList[0]], name = name)
-
-        ## Does it refer to a type which will be defined in future? in
-        ## this case we just curry the Object function to provide
-        ## it on demand. This allows us to define structures
-        ## recursively.
-        try:
-            tlargs = typeList[1]
-        except IndexError:
-            tlargs = {}
-
-        obj_name = typeList[0]
-        if type(tlargs) == dict:
-            return Curry(self.Object, theType = obj_name, name = name, **tlargs)
-
-        # This is of the form ['class_name', ['arg1', 'arg2']]
-        if typeList[0] in self.object_classes:
-            return Curry(self.object_classes[typeList[0]], *typeList[1:])
-
-        ## If we get here we have no idea what this list is
-        #raise RuntimeError("Error in parsing list {0}".format(typeList))
-        logging.warning("Unable to find a type for {0}, assuming int".format(typeList[0]))
-        return Curry(self.types['int'], name = name)
+        return Curry(self.Object, theType='int', name = name)
 
     def _get_dummy_obj(self, name):
         """Make a dummy object on top of the dummy address space."""
@@ -1183,7 +1237,10 @@ class Profile(object):
         return tmp
 
     def get_obj_offset(self, name, member):
-        """ Returns a members offset within the struct """
+        """ Returns a member's offset within the struct.
+
+        Note that this can be wrong if the offset is a callable.
+        """
         tmp = self._get_dummy_obj(name)
         offset, _cls = tmp.members[member]
 
@@ -1213,7 +1270,6 @@ class Profile(object):
                 # The vtype does not have anything to overlay, we just create a
                 # new definition.
                 self.vtypes[k] = v
-                logging.debug("Overlay structure {0} not present in vtypes".format(k))
 
     def _apply_overlay(self, type_member, overlay):
         """ Update the overlay with the missing information from type.
@@ -1263,7 +1319,8 @@ class Profile(object):
 
         [ offset_from_start_of_struct, specification_list ]
 
-        The specification list has the form specified by self.list_to_type() above.
+        The specification list has the form specified by self.list_to_type()
+        above.
 
         We return a list of CTypeMember objects.
         """
@@ -1276,11 +1333,10 @@ class Profile(object):
             if callable(v):
                 members[k] = v
             elif v[0] == None:
-                import pdb; pdb.set_trace()
                 logging.warning("{0} has no offset in object {1}. Check that vtypes "
                                 "has a concrete definition for it.".format(k, cname))
             else:
-                members[k] = (v[0], self.list_to_type(k, v[1], vtypes))
+                members[k] = (v[0], self.list_to_type(k, v[1]))
 
         ## Allow the plugins to over ride the class constructor here
         if self.object_classes and cname in self.object_classes:

@@ -63,7 +63,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
 
     def v(self, vm=None):
         vm = vm or self.obj_vm
-        data = vm.read(self.obj_offset, self.length)
+        data = vm.zread(self.obj_offset, self.length)
         if self.term is not None:
             left, sep, _ = data.partition(self.term)
             data = left + sep
@@ -411,7 +411,6 @@ class VOLATILITY_MAGIC(obj.CType):
 
 
 
-
 # We define two kinds of basic profiles, a 32 bit one and a 64 bit one
 class Profile32Bits(obj.Profile):
     """Basic profile for 32 bit systems."""
@@ -419,7 +418,7 @@ class Profile32Bits(obj.Profile):
 
     def __init__(self, **kwargs):
         super(Profile32Bits, self).__init__(**kwargs)
-        self.add_types(native_types.x86_native_types)
+        self.add_classes(native_types.x86_native_types)
         self.add_constants(PoolAlignment=8, MAX_FAST_REF=7)
 
 
@@ -429,7 +428,7 @@ class Profile64Bits(obj.Profile):
 
     def __init__(self, **kwargs):
         super(Profile64Bits, self).__init__(**kwargs)
-        self.add_types(native_types.x64_native_types)
+        self.add_classes(native_types.x64_native_types)
         self.add_constants(PoolAlignment=16, MAX_FAST_REF=15)
 
 
@@ -438,7 +437,7 @@ class BasicWindowsClasses(obj.Profile):
 
     def __init__(self, **kwargs):
         super(BasicWindowsClasses, self).__init__(**kwargs)
-        self.add_types(native_types.generic_native_types)
+        self.add_classes(native_types.generic_native_types)
         self.add_classes({
             'String': String,
             'UnicodeString': UnicodeString,
