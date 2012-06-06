@@ -255,7 +255,7 @@ class HexDumper(plugin.Command):
             self.offset += self.width
 
 
-class Null(WinMemDump):
+class Null(plugin.Command):
     """This plugin does absolutely nothing.
 
     It is used to measure startup overheads.
