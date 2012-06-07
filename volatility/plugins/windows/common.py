@@ -425,6 +425,9 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         if pid is not None:
             pids.append(pid)
 
+        if self.session.pid and not pid:
+            pids.append(self.session.pid)
+
         self.pids = pids
 
     def filter_processes(self):

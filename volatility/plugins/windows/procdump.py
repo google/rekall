@@ -84,6 +84,10 @@ class ProcExeDump(common.WinProcessFilter):
     def WritePEFile(self, fd, address_space, image_base):
         """Dumps the PE file found into the filelike object.
 
+        Note that this function can be used for any PE file (e.g. executable,
+        dll, driver etc). Only a base address need be specified. This makes this
+        plugin useful as a routine in other plugins.
+
         Args:
           fd: A writeable filelike object which must support seeking.
           address_space: The address_space to read from.
@@ -97,6 +101,7 @@ class ProcExeDump(common.WinProcessFilter):
         # First copy the PE file header, then copy the sections.
         data = dos_header.obj_vm.zread(
             image_base, min(1e6, nt_header.OptionalHeader.SizeOfHeaders))
+        if not data: return
 
         fd.seek(0)
         fd.write(data)
@@ -112,18 +117,15 @@ class ProcExeDump(common.WinProcessFilter):
             fd.seek(physical_offset, 0)
             fd.write(data)
 
-    def _check_dump_dir(self):
-        if not self.dump_dir:
+    def check_dump_dir(self, dump_dir=None):
+        if not dump_dir:
             raise plugin.PluginError("Please specify a dump directory.")
 
-        if not os.path.isdir(self.dump_dir):
+        if not os.path.isdir(dump_dir):
             raise plugin.PluginError("%s is not a directory" % self.dump_dir)
 
     def render(self, outfd):
         """Renders the tasks to disk images, outputting progress as they go"""
-        if self.dump_dir:
-            self._check_dump_dir()
-
         for task in self.filter_processes():
             pid = task.UniqueProcessId
 
@@ -141,6 +143,8 @@ class ProcExeDump(common.WinProcessFilter):
 
             # Create a new file.
             else:
+                self.check_dump_dir(self.dump_dir)
+
                 sanitized_image_name = re.sub("[^a-zA-Z0-9-_]", "_",
                                               utils.SmartStr(task.ImageFileName))
 
@@ -155,6 +159,59 @@ class ProcExeDump(common.WinProcessFilter):
                     # The Process Environment Block contains the dos header:
                     self.WritePEFile(fd, task_address_space, task.Peb.ImageBaseAddress)
 
+
+class DLLDump(common.WinProcessFilter):
+    """Dump DLLs from a process address space"""
+
+    __name = "dlldump"
+
+    def __init__(self, dump_dir=None, remap=False, outfd=None, regex=".+", **kwargs):
+        """Dumps dlls from processes into files.
+
+        Args:
+          dump_dir: Where dlls should be written to.
+          remap: If set, allows to remap the sections on disk.
+          outfd: An optional file like object to write on.
+          regex: A regular expression that is applied to the modules name.
+        """
+        super(DLLDump, self).__init__(**kwargs)
+
+        # Hold onto our procdump module for reuse.
+        self.procdump = self.session.plugins.procdump(session=self.session, remap=remap)
+        self.dump_dir = dump_dir or self.session.dump_dir
+        self.regex = re.compile(regex)
+
+    def render(self, outfd):
+        # Make sure the dump dir is ok.
+        self.procdump.check_dump_dir(self.dump_dir)
+
+        for task in self.filter_processes():
+            task_as = task.get_process_address_space()
+
+            # Skip kernel and invalid processes.
+            for module in task.get_load_modules():
+                process_offset = task_as.vtop(task.obj_offset)
+                if process_offset:
+
+                    # Skip the modules which do not match the regex.
+                    if not self.regex.search(utils.SmartUnicode(module.BaseDllName)):
+                        continue
+
+                    dump_file = "module.{0}.{1:x}.{2:x}.dll".format(
+                        task.UniqueProcessId, process_offset, module.DllBase)
+
+                    outfd.write(
+                        "Dumping {0}, Process: {1}, Base: {2:8x} output: {3}\n".format(
+                            module.BaseDllName, task.ImageFileName, module.DllBase,
+                            dump_file))
+
+                    # Use the procdump module to dump out the binary:
+                    with open(os.path.join(self.dump_dir, dump_file), "wb") as fd:
+                        self.procdump.WritePEFile(fd, task_as, module.DllBase)
+
+                else:
+                    outfd.write("Cannot dump {0}@{1} at {2:8x}\n".format(
+                            proc.ImageFileName, module.BaseDllName, module.DllBase))
 
 
 class ProcMemDump(ProcExeDump):

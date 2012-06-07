@@ -57,7 +57,9 @@ import re
 import subprocess
 import pdb
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 import StringIO
 
@@ -354,7 +356,15 @@ class VolatilityTestLoader(unittest.TestLoader):
     def loadTestsFromName(self, name, module=None):
         """Load the tests named."""
         parts = name.split(".")
-        test_cases = self.loadTestsFromTestCase(self.base_class.classes[parts[0]])
+        try:
+            test_cases = self.loadTestsFromTestCase(self.base_class.classes[parts[0]])
+        except KeyError:
+            logging.error("Testsuite %s not known", parts[0])
+            print "The following suites are known."
+            for cls in sorted(self.base_class.classes):
+                print "Suite %s" % cls
+
+            sys.exit(-1)
 
         # Specifies the whole test suite.
         if len(parts) == 1:
@@ -389,3 +399,15 @@ class VolatilityTestProgram(unittest.TestProgram):
             testRunner=VolatilityTestRunner(),
             argv=argv, testLoader=VolatilityTestLoader(flags))
 
+
+
+class TempDirectory(object):
+    """A self cleaning temporary directory."""
+
+    def __enter__(self):
+        self.name = tempfile.mkdtemp()
+
+        return self.name
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        shutil.rmtree(self.name, True)

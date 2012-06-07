@@ -56,7 +56,9 @@ parser.add_argument("-f", "--filename", default=None,
 parser.add_argument("-p", "--profile", default=None,
                     help="Name of the profile to load.")
 
-parser.add_argument("--dtb", help="DTB Address")
+parser.add_argument("--dtb", help="DTB Address.")
+parser.add_argument("--pid", help="A process PID.", type=int)
+parser.add_argument("--dump-dir", help="The directory to dump files to.")
 
 
 def IPython011Support(user_session):
@@ -146,7 +148,7 @@ def NativePythonSupport(user_session):
 def UpdateSessionFromArgv(user_session, FLAGS):
     for k, v in FLAGS.__dict__.items():
         if v is not None:
-            setattr(user_session, k, v)
+            setattr(user_session, k.replace("-", "_"), v)
 
 if __name__ == '__main__':
     FLAGS = parser.parse_args()

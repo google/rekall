@@ -21,7 +21,6 @@
 """Tests for the procexecdump plugins."""
 import os
 import hashlib
-import tempfile
 import StringIO
 
 from volatility import testlib
@@ -35,16 +34,16 @@ class TestProcdump(testlib.VolatilityBaseUnitTestCase):
 
     def LaunchTrunkVolatility(self, args=None, **kwargs):
         # Get a temp directory
-        directory = tempfile.mkdtemp()
-        args.append(directory)
+        with testlib.TempDirectory() as directory:
+            args.append(directory)
 
-        result = super(TestProcdump, self).LaunchTrunkVolatility(args=args, **kwargs)
+            result = super(TestProcdump, self).LaunchTrunkVolatility(args=args, **kwargs)
 
-        with open(os.path.join(directory, "executable.%s.exe" % args[2])) as fd:
-            md5 = hashlib.md5(fd.read())
-            result['hash'] = md5.hexdigest()
+            with open(os.path.join(directory, "executable.%s.exe" % args[2])) as fd:
+                md5 = hashlib.md5(fd.read())
+                result['hash'] = md5.hexdigest()
 
-        return result
+            return result
 
     def RunVolatilityModule(self, pid=None, **kwargs):
         fd = StringIO.StringIO()
@@ -68,3 +67,51 @@ class TestProcdump(testlib.VolatilityBaseUnitTestCase):
                                           module='procdump', pid=1700)
 
         self.assertEqual(previous_run_data['hash'], result['hash'])
+
+
+class TestDLLDump(testlib.VolatilityBaseUnitTestCase):
+    """Test the dlldump module."""
+
+    trunk_launch_args = [['dlldump', '--pid', '4012', '--dump-dir']]
+    ng_launch_args = [['dlldump', dict(pid=4012)]]
+
+    def LaunchTrunkVolatility(self, args=None, **kwargs):
+        # Get a temp directory
+        with testlib.TempDirectory() as directory:
+            args.append(directory)
+
+            result = super(TestDLLDump, self).LaunchTrunkVolatility(args=args, **kwargs)
+            file_hashes = {}
+
+            for filename in os.listdir(directory):
+                with open(os.path.join(directory, filename)) as fd:
+                    md5 = hashlib.md5(fd.read())
+                    file_hashes[filename] = md5.hexdigest()
+
+            result['hashes'] = file_hashes
+
+            return result
+
+    def RunVolatilityModule(self, pid=None, **kwargs):
+        with testlib.TempDirectory() as directory:
+
+            kwargs['dump_dir'] = directory
+            result = super(TestDLLDump, self).RunVolatilityModule(
+                pid=pid, **kwargs)
+
+            file_hashes = {}
+
+            for filename in os.listdir(directory):
+                with open(os.path.join(directory, filename)) as fd:
+                    md5 = hashlib.md5(fd.read())
+                    file_hashes[filename] = md5.hexdigest()
+
+            result['hashes'] = file_hashes
+
+            return result
+
+    def testDlldump(self):
+        previous, current = self.ReRunVolatilityTest('dlldump', pid=4012)
+
+        self.assertEqual(previous['hashes'], current['hashes'])
+
