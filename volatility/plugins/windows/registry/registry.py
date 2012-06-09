@@ -1,5 +1,5 @@
 # Volatility
-# Copyright (c) 2008 Volatile Systems
+# Copyright (c) 2012 Michael Cohen <scudette@gmail.com>
 # Copyright (c) 2008 Brendan Dolan-Gavitt <bdolangavitt@wesleyan.edu>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -17,13 +17,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-#pylint: disable-msg=C0111
+"""This is the registry parser.
 
+ We parse registry structures from files or memory.
 """
-@author:       Brendan Dolan-Gavitt, Michael Cohen
-@license:      GNU General Public License 2.0 or later
-@contact:      bdolangavitt@wesleyan.edu, scudette@gmail.com
-"""
+__author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
+              "by Brendan Dolan-Gavitt")
+
 import re
 import struct
 

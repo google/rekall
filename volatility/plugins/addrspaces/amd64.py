@@ -11,11 +11,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """ This is based on Jesse Kornblum's patch to clean up the standard AS's.
@@ -29,20 +29,20 @@ from volatility.plugins.addrspaces import intel
 # If it's second, BaseAddressSpace's abstract version will take priority
 class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     """ Standard AMD 64-bit address space.
-    
-    Provides an address space for AMD64 paged memory, aka the x86_64 
-    architecture, which is laid out similarly to Physical Address 
-    Extensions (PAE). Allows callers to map virtual address to 
+
+    Provides an address space for AMD64 paged memory, aka the x86_64
+    architecture, which is laid out similarly to Physical Address
+    Extensions (PAE). Allows callers to map virtual address to
     offsets in physical memory.
 
-    Create a new AMD64 address space to sit on top of the base address 
+    Create a new AMD64 address space to sit on top of the base address
     space and a Directory Table Base (CR3 value) of 'dtb'.
 
-    Comments in this class mostly come from the Intel(R) 64 and IA-32 
-    Architectures Software Developer's Manual Volume 3A: System Programming 
+    Comments in this class mostly come from the Intel(R) 64 and IA-32
+    Architectures Software Developer's Manual Volume 3A: System Programming
     Guide, Part 1, revision 031, pages 4-8 to 4-15. This book is available
     for free at http://www.intel.com/products/processor/manuals/index.htm.
-    Similar information is also available from Advanced Micro Devices (AMD) 
+    Similar information is also available from Advanced Micro Devices (AMD)
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
     """
     order = 60
@@ -53,7 +53,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         super(AMD64PagedMemory, self).__init__(**kwargs)
 
         # FIXME: This makes the AS dependent upon the profile in use
-        # Code to determine whether the profile is valid or not should 
+        # Code to determine whether the profile is valid or not should
         # go into the 'AMD64ValidAS' VolatilityMagic variable and return False if necessary.
 
         # Make sure that we only support 64 bit profiles here.
@@ -61,7 +61,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             raise RuntimeError("Only supporting 64 memory models.")
 
     def pml4e_index(self, vaddr):
-        ''' 
+        '''
         Returns the Page Map Level 4 Entry Index number from the given
         virtual address. The index number is in bits 47:39.
         '''
@@ -82,7 +82,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     def get_pdpte(self, vaddr, pml4e):
         '''
         Return the Page Directory Pointer Table Entry for the given virtual address.
-        
+
         Bits 51:12 are from the PML4E
         Bits 11:3 are bits 38:30 of the linear address
         Bits 2:0 are all 0
@@ -136,10 +136,10 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
         return self.get_phys_addr(vaddr, pte)
 
-    def get_available_pages(self):
+    def get_available_addresses(self):
         '''
         Return a list of lists of available memory pages.
-        Each entry in the list is the starting virtual address 
+        Each entry in the list is the starting virtual address
         and the size of the memory page.
         '''
 

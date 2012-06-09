@@ -2,7 +2,7 @@
 import sys
 
 from volatility.plugins.addrspaces import amd64
-#from volatility.plugins.addrspaces import crash
+from volatility.plugins.addrspaces import crash
 #from volatility.plugins.addrspaces import ewf
 from volatility.plugins.addrspaces import hibernate
 #from volatility.plugins.addrspaces import ieee1394

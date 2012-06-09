@@ -6,5 +6,6 @@ release
 *.sln
 test_data/*.img*
 test_data/*.raw*
+test_data/*.dmp*
 test_data/*.hiber*
 build

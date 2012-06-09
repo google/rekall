@@ -180,14 +180,13 @@ class LoadAddressSpace(plugin.ProfileCommand):
                     logging.debug("Succeeded instantiating %s", base_as)
                     found = True
                     break
-                except addrspace.ASAssertionError, e:
+                except (AssertionError, addrspace.ASAssertionError), e:
                     logging.debug("Failed instantiating %s: %s", cls.__name__, e)
                     error.append_reason(cls.__name__, e)
                     continue
                 except Exception, e:
-                    logging.debug("Failed instantiating (exception): %s", e)
-                    error.append_reason(cls.__name__ + " - EXCEPTION", e)
-                    continue
+                    logging.debug("Fatal Error: %s", e)
+                    return
 
             ## A full iteration through all the classes without anyone
             ## selecting us means we are done:

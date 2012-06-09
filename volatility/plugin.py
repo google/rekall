@@ -186,8 +186,8 @@ class PhysicalASMixin(object):
             self.physical_address_space = self.session.physical_address_space
 
         if self.physical_address_space is None:
-            raise plugin.PluginError("Physical address space is not set. "
-                                     "(Try plugins.load_as)")
+            raise PluginError("Physical address space is not set. "
+                              "(Try plugins.load_as)")
 
 
 def CommandFactory(command_name = None, config = None, class_name = None, **kwargs):

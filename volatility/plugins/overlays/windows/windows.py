@@ -16,13 +16,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+import copy
 
 from volatility import obj
 from volatility import addrspace
 
 from volatility.plugins.overlays import basic
 from volatility.plugins.overlays.windows import pe_vtypes
-from volatility.plugins.windows import kpcrscan
 from volatility.plugins.windows import kdbgscan
 
 
@@ -635,6 +635,25 @@ import kdbg_vtypes
 import tcpip_vtypes
 import ssdt_vtypes
 
+# Reference:
+# http://computer.forensikblog.de/en/2006/03/dmp-file-structure.html
+
+crash_overlays = {
+    "_DMP_HEADER": [None, {
+            'Signature': [None, ['String', dict(length=4)]],
+            'ValidDump': [None, ['String', dict(length=4)]],
+            'SystemTime': [None, ['WinTimeStamp']],
+            'DumpType': [None, ['Enumeration', {
+                        'choices': {
+                            1: "Full Dump",
+                            2: "Kernel Dump",
+                            },
+                        'target': 'unsigned int'}]],
+            }],
+    }
+
+crash_overlays['_DMP_HEADER64'] = copy.deepcopy(crash_overlays['_DMP_HEADER'])
+
 
 class BaseWindowsProfile(basic.BasicWindowsClasses):
     """Common symbols for all of windows kernel profiles."""
@@ -643,8 +662,17 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
     def __init__(self, **kwargs):
         super(BaseWindowsProfile, self).__init__(**kwargs)
 
+        # Crash support.
         self.add_types(crash_vtypes.crash_vtypes)
+        self.add_overlay(crash_overlays)
+
+        # KDBG types.
         self.add_types(kdbg_vtypes.kdbg_vtypes)
+        self.add_overlay(kdbg_vtypes.kdbg_overlay)
+        self.add_classes({
+                "_KDDEBUGGER_DATA64": kdbg_vtypes._KDDEBUGGER_DATA64
+                })
+
         self.add_types(tcpip_vtypes.tcpip_vtypes)
         self.add_types(ssdt_vtypes.ssdt_vtypes)
         self.add_classes({

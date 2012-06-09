@@ -1,8 +1,8 @@
 # Volatility
-# Copyright (C) 2007,2008 Volatile Systems
-# Copyright (C) 2005,2006,2007 4tphi Research
+# Copyright (C) 2012
 #
-# Authors: 
+# Authors:
+# Michael Cohen <scudette@gmail.com> based on code by
 # {npetroni,awalters}@4tphi.net (Nick Petroni and AAron Walters)
 #
 # This program is free software; you can redistribute it and/or modify
@@ -13,195 +13,148 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """ An AS for processing crash dumps """
-import struct
+import logging
+
+from volatility import addrspace
 from volatility import obj
 from volatility.plugins.addrspaces import standard
 
-#pylint: disable-msg=C0111
+PAGE_SHIFT = 12
 
-page_shift = 12
 
-class WindowsCrashDumpSpace32(standard.FileAddressSpace):
+class WindowsCrashDumpSpace32(addrspace.PagedReader):
     """ This AS supports windows Crash Dump format """
     order = 30
-    def __init__(self, base, config, **kwargs):
-        ## We must have an AS below us
-        self.as_assert(base, "No base Address Space")
 
-        standard.FileAddressSpace.__init__(self, base, config, layered = True, **kwargs)
+    PAGE_SIZE = 0x1000
 
-        ## Must start with the magic PAGEDUMP
-        self.as_assert((base.read(0, 8) == 'PAGEDUMP'), "Header signature invalid")
+    def __init__(self, **kwargs):
+        super(WindowsCrashDumpSpace32, self).__init__(**kwargs)
 
         self.runs = []
-        # I have the feeling config.OFFSET will interfere with plugin options...
-        self.offset = 0 # config.OFFSET
+        self.offset = 0
         self.fname = ''
 
-        self.as_assert(self.profile.has_type("_DMP_HEADER"), "_DMP_HEADER not available in profile")
-        self.header = obj.Object("_DMP_HEADER", self.offset, base)
+        # Check the file for sanity.
+        self.check_file()
 
-        self.runs = [ (x.BasePage.v(), x.PageCount.v()) \
-                      for x in self.header.PhysicalMemoryBlockBuffer.Run ]
+        # This is a lookup table: (virtual_address, physical_address, length)
+        self.runs = []
+        file_offset = self.header.size()
 
-        self.dtb = self.header.DirectoryTableBase.v()
+        for run in self.header.PhysicalMemoryBlockBuffer.Run:
+            self.runs.append((int(run.BasePage), file_offset, int(run.PageCount)))
+            file_offset += run.PageCount * self.PAGE_SIZE
 
-    def convert_to_raw(self, ofile):
-        page_count = 0
-        current_file_page = 0x1000
-        for run in self.runs:
-            page, count = run
+        self.session.dtb = int(self.header.DirectoryTableBase)
 
-            ofile.seek(page * 0x1000)
-            for j in xrange(0, count * 0x1000, 0x1000):
-                data = self.base.read(current_file_page + j, 0x1000)
-                ofile.write(data)
-                page_count += 1
-                # If there's only one run, this leaves the user in the dark,
-                # so instead we yield for every page
-                yield page_count
-            current_file_page += (count * 0x1000)
+    def check_file(self):
+        """Checks the base file handle for sanity."""
 
-    def get_header(self):
-        return self.header
+        self.as_assert(self.base,
+                       "Must stack on another address space")
 
-    def get_base(self):
-        return self.base
+        ## Must start with the magic PAGEDUMP
+        self.as_assert((self.base.read(0, 8) == 'PAGEDUMP'),
+                       "Header signature invalid")
 
-    def get_addr(self, addr):
+        self.as_assert(
+            self.profile.has_type("_DMP_HEADER"),
+            "_DMP_HEADER not available in profile")
+
+        self.header = self.profile.Object(
+            "_DMP_HEADER", offset=self.offset, vm=self.base)
+
+        if self.header.DumpType != "Full Dump":
+            raise IOError("This is not a full memory crash dump. "
+                          "Kernel crash dumps are not supported.")
+
+    def _read_chunk(self, addr, length, pad):
+        file_offset, available_length = self._get_available_buffer(addr, length)
+
+        # Mapping not valid.
+        if file_offset is None:
+            return "\x00" * available_length
+
+        else:
+            return self.base.read(file_offset, min(length, available_length))
+
+    def vtop(self, addr):
+        file_offset, _ = self._get_available_buffer(addr, 1)
+        return file_offset
+
+    def _get_available_buffer(self, addr, length):
+        """Resolves the address into the file offset.
+
+        In a crash dump, pages are stored back to back in runs. This function
+        finds the run that contains this page and returns the file address where
+        this page can be found.
+
+        Returns:
+          A tuple of (physical_offset, available_length). The physical_offset
+          can be None to signify that the address if not valid.
+        """
         page_offset = (addr & 0x00000FFF)
-        page = addr >> page_shift
+        page = addr >> PAGE_SHIFT
 
-        # This is the offset to account for the header file
-        offset = 1
-        for run in self.runs:
-            if ((page >= run[0]) and (page < (run[0] + run[1]))):
-                run_offset = page - run[0]
-                offset = offset + run_offset
-                baseoffset = (offset * 0x1000) + page_offset
-                return baseoffset
-            offset += run[1]
-        return None
+        for base_page, file_run_offset, page_count in self.runs:
+            # Required page is before this run (i.e. the read is outside any
+            # run).
+            if page < base_page:
+                available_length = min(length, (base_page - page) * self.PAGE_SIZE)
+                return (None, available_length)
 
-    def is_valid_address(self, addr):
-        return self.get_addr(addr) != None
+            # The required page is inside this run.
+            if page >= base_page and page < base_page + page_count:
+                file_offset = file_run_offset + (page - base_page) * self.PAGE_SIZE + page_offset
+                available_length = (base_page + page_count) * self.PAGE_SIZE - addr
 
-    def read(self, addr, length):
-        first_block = 0x1000 - addr % 0x1000
-        full_blocks = ((length + (addr % 0x1000)) / 0x1000) - 1
-        left_over = (length + addr) % 0x1000
+                # Offset of page in the run.
+                return (file_offset, available_length)
 
-        baddr = self.get_addr(addr)
-        if baddr == None:
-            return obj.NoneObject("Could not get base address at " + str(addr))
-
-        if length < first_block:
-            stuff_read = self.base.read(baddr, length)
-            return stuff_read
-
-        stuff_read = self.base.read(baddr, first_block)
-        new_addr = addr + first_block
-        for _i in range(0, full_blocks):
-            baddr = self.get_addr(new_addr)
-            if baddr == None:
-                return obj.NoneObject("Could not get base address at " + str(new_addr))
-            stuff_read = stuff_read + self.base.read(baddr, 0x1000)
-            new_addr = new_addr + 0x1000
-
-        if left_over > 0:
-            baddr = self.get_addr(new_addr)
-            if baddr == None:
-                return obj.NoneObject("Could not get base address at " + str(new_addr))
-            stuff_read = stuff_read + self.base.read(baddr, left_over)
-
-        return stuff_read
+        return None, 0
 
     def write(self, vaddr, buf):
-        baddr = self.get_addr(vaddr)
-        return standard.AbstractWritablePagedMemory.write(self, baddr, buf)
+        # Support writes straddling page runs.
+        while len(buf):
+            file_offset, available_length = self._get_available_buffer(vaddr, len(buf))
+            if file_offset is None:
+                raise IOError("Unable to write unmapped runs yet.")
 
-    def zread(self, vaddr, length):
-        first_block = 0x1000 - vaddr % 0x1000
-        full_blocks = ((length + (vaddr % 0x1000)) / 0x1000) - 1
-        left_over = (length + vaddr) % 0x1000
-
-        self.check_address_range(vaddr)
-
-        baddr = self.get_addr(vaddr)
-
-        if baddr == None:
-            if length < first_block:
-                return ('\0' * length)
-            stuff_read = ('\0' * first_block)
-        else:
-            if length < first_block:
-                return self.base.read(baddr, length)
-            stuff_read = self.base.read(baddr, first_block)
-
-        new_vaddr = vaddr + first_block
-        for _i in range(0, full_blocks):
-            baddr = self.get_addr(new_vaddr)
-            if baddr == None:
-                stuff_read = stuff_read + ('\0' * 0x1000)
-            else:
-                stuff_read = stuff_read + self.base.read(baddr, 0x1000)
-
-            new_vaddr = new_vaddr + 0x1000
-
-        if left_over > 0:
-            baddr = self.get_addr(new_vaddr)
-            if baddr == None:
-                stuff_read = stuff_read + ('\0' * left_over)
-            else:
-                stuff_read = stuff_read + self.base.read(baddr, left_over)
-        return stuff_read
-
-    def read_long(self, addr):
-        _baseaddr = self.get_addr(addr)
-        string = self.read(addr, 4)
-        if not string:
-            return obj.NoneObject("Could not read data at " + str(addr))
-        (longval,) = struct.unpack('=I', string)
-        return longval
+            self.base.write(baddr, buf[:available_length])
+            buf = buf[available_length:]
 
     def get_available_pages(self):
-        page_list = []
-        for run in self.runs:
-            start = run[0]
-            for page in range(start, start + run[1]):
-                page_list.append([page * 0x1000, 0x1000])
-        return page_list
+        for page_offset, _, page_count in self.runs:
+            yield page_offset, page_count
 
-    def get_number_of_pages(self):
-        return len(self.get_available_pages())
 
-    def get_address_range(self):
-        """ This relates to the logical address range that is indexable """
-        run = self.runs[-1]
-        size = run[0] * 0x1000 + run[1] * 0x1000
-        return [0, size]
+class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
+    """This AS supports windows Crash Dump format."""
+    order = 30
 
-    def get_available_addresses(self):
-        """ This returns the ranges  of valid addresses """
-        for run in self.runs:
-            yield (run[0] * 0x1000, run[1] * 0x1000)
+    def check_file(self):
+        """Check specifically for 64 bit crash dumps."""
+        ## Must start with the magic PAGEDU64
+        self.as_assert((self.base.read(0, 8) == 'PAGEDU64'),
+                       "Header signature invalid")
 
-    def get_runs(self):
-        """This returns the crashdump runs"""
-        return self.runs
+        self.as_assert(self.profile.has_type("_DMP_HEADER64"),
+                       "_DMP_HEADER64 not available in profile")
+        self.header = self.profile.Object("_DMP_HEADER64",
+                                          offset=self.offset, vm=self.base)
 
-    def check_address_range(self, addr):
-        memrange = self.get_address_range()
-        if addr < memrange[0] or addr > memrange[1]:
-            raise IOError
+        # The following error is fatal - abort the voting mechanism.
 
-    def close(self):
-        self.base.close()
+        # Unfortunately trunk volatility does not set this field correctly.
+        if self.header.DumpType != "Full Dump":
+            logging.warning("This is not a full memory crash dump. "
+                            "Kernel crash dumps are not supported.")

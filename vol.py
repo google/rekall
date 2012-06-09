@@ -25,7 +25,6 @@ import logging
 import sys
 
 
-from volatility import conf
 from volatility import session
 
 # Import and register the core plugins
@@ -155,9 +154,8 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO)
 
-    # New user session. TODO(scudette): Implement some kind of parameter parsing
-    # here.
-    conf.GLOBAL_SESSION = user_session = session.Session()
+    # New user session.
+    user_session = session.Session()
 
     UpdateSessionFromArgv(user_session, FLAGS)
     if FLAGS.module:

@@ -171,25 +171,28 @@ class PagedReader(BaseAddressSpace):
     PAGE_SIZE = 0x1000
     __abstract = True
 
-    def _read_chunk(self, vaddr, length):
+    def _read_chunk(self, vaddr, length, pad=False):
         """
-        Read 'length' bytes from the virtual address 'vaddr'.
-        If vaddr does not have a valid mapping, return None.
+        Read bytes from a virtual address.
 
-        This function should not be called from outside this class
-        as it doesn't take page breaks into account. That is,
-        the bytes at virtual addresses 0x1fff and 0x2000 are not
-        guarenteed to be contigious. Calling functions are responsible
-        for determining contiguious blocks.
+        Args:
+          vaddr: A virtual address to read from.
+          length: The number of bytes to read.
+          pad: If set, pad unavailable data with nulls.
+
+        Returns:
+          As many bytes as can be read within this page, or a NoneObject() if we
+          are not padding and the address is invalid.
         """
+        to_read = min(length, self.PAGE_SIZE - (vaddr % self.PAGE_SIZE))
         paddr = self.vtop(vaddr)
         if paddr is None:
-            return None
+            if pad:
+                return "\x00" * to_read
+            else:
+                return None
 
-        if not self.base.is_valid_address(paddr):
-            return None
-
-        return self.base.read(paddr, length)
+        return self.base.read(paddr, to_read)
 
     def _read_bytes(self, vaddr, length, pad):
         """
@@ -199,25 +202,17 @@ class PagedReader(BaseAddressSpace):
         """
         vaddr, length = int(vaddr), int(length)
 
-        ret = ''
+        result = ''
 
         while length > 0:
-            chunk_len = min(length, self.PAGE_SIZE - (vaddr % self.PAGE_SIZE))
+            buf = self._read_chunk(vaddr, length, pad=pad)
+            if not buf: break
 
-            buf = self._read_chunk(vaddr, chunk_len)
-            if buf is None:
-                if pad:
-                    buf = '\x00' * chunk_len
-                else:
-                    from volatility import obj
-                    return obj.NoneObject("Could not read_chunks from addr " +
-                                          str(vaddr) + " of size " + str(chunk_len))
+            result += buf
+            vaddr += len(buf)
+            length -= len(buf)
 
-            ret += buf
-            vaddr += chunk_len
-            length -= chunk_len
-
-        return ret
+        return result
 
     def read(self, vaddr, length):
         '''
@@ -236,6 +231,10 @@ class PagedReader(BaseAddressSpace):
     def is_valid_address(self, addr):
         vaddr = self.vtop(addr)
         return self.base.is_valid_address(vaddr)
+
+    def get_available_addresses(self):
+        for start, length in self.get_available_pages():
+            yield start * self.PAGE_SIZE, length * self.PAGE_SIZE
 
 
 class Error(Exception):

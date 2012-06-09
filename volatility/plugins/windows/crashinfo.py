@@ -11,68 +11,162 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 import os
-import volatility.utils as utils
-import volatility.cache as cache
-import volatility.debug as debug
+
+from volatility import plugin
 from volatility.plugins.windows import common
+from volatility.plugins.addrspaces import crash
+from volatility.plugins.addrspaces import standard
 
 
-class CrashInfo(common.AbstractWindowsCommand):
+class CrashInfo(common.AbstractWindowsCommandPlugin):
     """Dump crash-dump information"""
 
-    @cache.CacheDecorator("tests/crashinfo")
-    def calculate(self):
-        """Determines the address space"""
-        addr_space = utils.load_as(self._config)
+    __name = "crashinfo"
 
-        result = None
-        adrs = addr_space
-        while adrs:
-            if adrs.__class__.__name__ == 'WindowsCrashDumpSpace32':
-                result = adrs
-            adrs = adrs.base
+    @classmethod
+    def is_active(cls, config):
+        """We are only active if the profile is windows."""
+        return isinstance(config.physical_address_space, crash.WindowsCrashDumpSpace32)
 
-        if result is None:
-            debug.error("Memory Image could not be identified as a crash dump")
-
-        return result
-
-    def render_text(self, outfd, data):
+    def render(self, renderer):
         """Renders the crashdump header as text"""
+        if not isinstance(self.physical_address_space, crash.WindowsCrashDumpSpace32):
+            raise plugin.PluginError("Image is not a windows crash dump.")
 
-        hdr = data.get_header()
+        renderer.write(self.physical_address_space.header)
 
-        outfd.write("DUMP_HEADER32:\n")
-        outfd.write(" Majorversion:         0x{0:08x} ({1})\n".format(hdr.MajorVersion, hdr.MajorVersion))
-        outfd.write(" Minorversion:         0x{0:08x} ({1})\n".format(hdr.MinorVersion, hdr.MinorVersion))
-        outfd.write(" KdSecondaryVersion    0x{0:08x}\n".format(hdr.KdSecondaryVersion))
-        outfd.write(" DirectoryTableBase    0x{0:08x}\n".format(hdr.DirectoryTableBase))
-        outfd.write(" PfnDataBase           0x{0:08x}\n".format(hdr.PfnDataBase))
-        outfd.write(" PsLoadedModuleList    0x{0:08x}\n".format(hdr.PsLoadedModuleList))
-        outfd.write(" PsActiveProcessHead   0x{0:08x}\n".format(hdr.PsActiveProcessHead))
-        outfd.write(" MachineImageType      0x{0:08x}\n".format(hdr.MachineImageType))
-        outfd.write(" NumberProcessors      0x{0:08x}\n".format(hdr.NumberProcessors))
-        outfd.write(" BugCheckCode          0x{0:08x}\n".format(hdr.BugCheckCode))
-        outfd.write(" PaeEnabled            0x{0:08x}\n".format(hdr.PaeEnabled))
-        outfd.write(" KdDebuggerDataBlock   0x{0:08x}\n".format(hdr.KdDebuggerDataBlock))
-        outfd.write(" ProductType           0x{0:08x}\n".format(hdr.ProductType))
-        outfd.write(" SuiteMask             0x{0:08x}\n".format(hdr.SuiteMask))
-        outfd.write(" WriterStatus          0x{0:08x}\n".format(hdr.WriterStatus))
+        renderer.table_header([("FileOffset", "[addrpad]"),
+                               ("Start Address", "[addrpad]"),
+                               ("Length", "[addr]")])
+        page_size = self.physical_address_space.PAGE_SIZE
+        for start, file_offset, count in self.physical_address_space.runs:
+            renderer.table_row(file_offset, start * page_size, count * page_size)
 
-        outfd.write("\nPhysical Memory Description:\n")
-        outfd.write("Number of runs: {0}\n".format(len(data.get_runs())))
-        outfd.write("FileOffset    Start Address    Length\n")
-        foffset = 0x1000
-        run = []
-        for run in data.get_runs():
-            outfd.write("{0:08x}      {1:08x}         {2:08x}\n".format(foffset, run[0] * 0x1000, run[1] * 0x1000))
-            foffset += (run[1] * 0x1000)
-        outfd.write("{0:08x}      {1:08x}\n".format(foffset - 0x1000, ((run[0] + run[1] - 1) * 0x1000)))
+
+class Raw2Dump(common.WindowsCommandPlugin):
+    """Convert the physical address space to a crash dump."""
+
+    __name = "raw2dmp"
+
+    def __init__(self, destination=None, overwrite=False, buffer_size=10*1024*1024,
+                 **kwargs):
+        """Convert the physical address space to a crash dump.
+
+        Args:
+          destination: The destination path to write the crash dump.
+          overwrite: Should the output be overwritten?
+        """
+        super(Raw2Dump, self).__init__(**kwargs)
+        self.buffer_size = buffer_size
+        self.destination = destination
+        if not destination:
+            raise plugin.PluginError("A destination must be provided.")
+        if not overwrite and os.access(destination, os.F_OK):
+            raise plugin.PluginError(
+                "Unable to overwrite the destination file '%s'" % destination)
+
+    def render(self, renderer):
+        PAGE_SIZE = 0x1000
+
+        # We write the image to the destination using the WriteableAddressSpace.
+        out_as = standard.WriteableAddressSpace(filename=self.destination)
+
+        if self.profile.metadata("memory_model") == "64bit":
+            header = self.profile.Object('_DMP_HEADER64', offset=0, vm=out_as)
+
+            # Pad the header area with PAGE pattern:
+            out_as.write(0, "PAGE" * (header.size() / 4))
+
+            header.KdDebuggerDataBlock = int(self.kdbg) | 0xFFFF000000000000
+            out_as.write(4, "DU64")
+        else:
+            header = self.profile.Object('_DMP_HEADER64', offset=0, vm=out_as)
+            header.KdDebuggerDataBlock = int(self.kdbg)
+
+            # Pad the header area with PAGE pattern:
+            out_as.write(0, "PAGE" * (header.size() / 4))
+            out_as.write(4, "DUMP")
+
+            # PEA address spaces.
+            if getattr(self.kernel_address_space, "pae", None):
+                header.PaeEnabled = 1
+
+        # Scanning the memory region near KDDEBUGGER_DATA64 for
+        # DBGKD_GET_VERSION64
+        dbgkd = self.kdbg.dbgkd_version64()
+
+        # Write the runs from our physical address space.
+        i = number_of_pages = 0
+        for i, (start, length) in enumerate(
+            self.physical_address_space.get_available_pages()):
+            header.PhysicalMemoryBlockBuffer.Run[i].BasePage = start
+            header.PhysicalMemoryBlockBuffer.Run[i].PageCount = length
+            number_of_pages += length
+
+        if not i:
+            raise plugin.PluginError("Physical address space has no available data.")
+
+        header.PhysicalMemoryBlockBuffer.NumberOfRuns = i + 1
+        header.PhysicalMemoryBlockBuffer.NumberOfPages = number_of_pages
+
+        # Set members of the crash header
+        header.MajorVersion = dbgkd.MajorVersion.v()
+        header.MinorVersion = dbgkd.MinorVersion.v()
+        header.DirectoryTableBase = self.session.dtb
+        header.PfnDataBase = self.kdbg.MmPfnDatabase.v()
+        header.PsLoadedModuleList = self.kdbg.PsLoadedModuleList.v()
+        header.PsActiveProcessHead = self.kdbg.PsActiveProcessHead.v()
+        header.MachineImageType = dbgkd.MachineType.v()
+
+        # Find the number of processors
+        header.NumberProcessors = len(list(self.kdbg.kpcrs()))
+
+        # Zero out the BugCheck members
+        header.BugCheckCode = 0x00000000
+        header.BugCheckCodeParameter[0] = 0x00000000
+        header.BugCheckCodeParameter[1] = 0x00000000
+        header.BugCheckCodeParameter[2] = 0x00000000
+        header.BugCheckCodeParameter[3] = 0x00000000
+
+        # Set the sample run information
+
+        header.RequiredDumpSpace = number_of_pages + header.size() / PAGE_SIZE
+        header.SystemTime = 0
+        header.DumpType = 1
+
+        # Zero out the remaining non-essential fields from ContextRecordOffset
+        # to ExceptionOffset.
+        out_as.write(header.ContextRecord.obj_offset,
+                     "\x00" * (header.m("Exception").obj_offset -
+                               header.ContextRecord.obj_offset))
+
+        # Set the "converted" comment
+        out_as.write(header.Comment.obj_offset,
+                     "File was converted with Volatility NG" + "\x00")
+
+        # Now copy the physical address space to the output file.
+        output_offset = header.size()
+        for start, length in self.physical_address_space.get_available_pages():
+            renderer.write("\nRun [0x%08X, 0x%08X] (.=%sMb)\n" % (
+                    start, length, self.buffer_size/1024/1204))
+            data_length = length * PAGE_SIZE
+            start_offset = start * PAGE_SIZE
+            offset = 0
+            while data_length > 0:
+                to_read = min(data_length, self.buffer_size)
+
+                data = self.physical_address_space.zread(start_offset + offset, to_read)
+                out_as.write(output_offset, data)
+                renderer.write(".")
+                output_offset += len(data)
+                offset += len(data)
+                data_length -= len(data)
+

@@ -216,7 +216,7 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReade
         (longval,) = struct.unpack('<I', string)
         return longval
 
-    def get_available_pages(self):
+    def get_available_addresses(self):
         '''
         Return a list of lists of available memory pages.
         Each entry in the list is the starting virtual address
@@ -367,7 +367,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         (longlongval,) = struct.unpack('<Q', string)
         return longlongval
 
-    def get_available_pages(self):
+    def get_available_addresses(self):
         """A generator of address, length tuple for all valid memory regions."""
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200

@@ -21,6 +21,7 @@
 """ This plugin contains CORE classes used by lots of other plugins """
 import logging
 
+from volatility import addrspace
 from volatility import scan
 from volatility import obj
 from volatility import commands
@@ -41,17 +42,6 @@ class AbstractWindowsCommandPlugin(plugin.PhysicalASMixin,
     """
 
     __abstract = True
-
-    @classmethod
-    def is_active(cls, config):
-        """We are only active if the profile is windows."""
-        return (getattr(config.profile, "_md_os", None) == 'windows' and
-                plugin.Command.is_active(config))
-
-
-# TODO: remove this when all the plugins have been switched over..
-class AbstractWindowsCommand(commands.command):
-    """A base class for all windows based plugins."""
 
     @classmethod
     def is_active(cls, config):
@@ -135,7 +125,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
         me = list_head.dereference(vm=address_space).Blink.dereference()
         if me.v() != list_head.v():
-            raise AssertionError("Unable to reflect _EPROCESS through this address space.")
+            raise addrspace.ASAssertionError(
+                "Unable to reflect _EPROCESS through this address space.")
 
         return True
 

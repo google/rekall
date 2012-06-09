@@ -743,6 +743,7 @@ class Array(BaseObject):
         self.target = target
         self.target_args = target_args or {}
         self.target_size = self.obj_profile.get_obj_size(target)
+        self.__initialized = True
 
     def size(self):
         """The size of the entire array."""
@@ -802,6 +803,12 @@ class Array(BaseObject):
                 **self.target_args)
         except InvalidOffsetError:
             return NoneObject("Invalid offset %s" % offset)
+
+    def __setitem__(self, item, value):
+        if isinstance(item, int):
+            self[item].write(value)
+        else:
+            super(Array, self).__setitem__(item, value)
 
 
 class ListArray(Array):
@@ -917,7 +924,10 @@ class CType(BaseObject):
         format_string = "0x%04X %" + str(width_name) + "s %s"
         return result + "\n".join(
             ["  0x%02X %s%s %s" % (offset, k, " " * (width_name - len(k)), v)
-             for offset,k,v in fields])
+             for offset,k,v in fields]) + "\n"
+
+    def __unicode__(self, encoding=None):
+        return self.__str__()
 
     def v(self, vm=None):
         """ When a struct is evaluated we just return our offset.

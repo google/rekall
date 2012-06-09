@@ -179,7 +179,10 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
         pass
 
     def get_available_addresses(self):
-        """A generator that returns (addr, size) for each valid address block"""
+        """A generator that returns (addr, size) for each valid address block.
+
+        This function merges contiguous pages yielded by get_available_pages().
+        """
         runLength = None
         currentOffset = None
         for (offset, size) in self.get_available_pages():
@@ -194,7 +197,7 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
                     runLength = size
                     currentOffset = offset
         if (runLength is not None and currentOffset is not None):
-            yield (currentOffset, runLength)
+            yield (currentOffset * self.PAGE_SIZE, runLength * self.PAGE_SIZE)
 
     def is_valid_address(self, vaddr):
         """Returns whether a virtual address is valid"""

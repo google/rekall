@@ -8,11 +8,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
 @author:       Andrew Case
@@ -36,7 +36,7 @@ class LinuxPsList(common.AbstractLinuxCommandPlugin):
         """A generator of task_struct objects for all running tasks."""
         init_task_addr = self.profile.constants["init_task"]
 
-        init_task = self.profile.Object(theType="task_struct", 
+        init_task = self.profile.Object(theType="task_struct",
                                         vm=self.kernel_address_space,
                                         offset=init_task_addr)
 
@@ -69,7 +69,7 @@ class LinuxMemMap(common.LinProcessFilter):
             outfd.write("{0:12} {1:12} {2:12}\n".format(
                     'Virtual', 'Physical', 'Size'))
 
-            for va, length in task_space.get_available_pages():
+            for va, length in task_space.get_available_addresses():
                 pa = task_space.vtop(va)
                 if pa == None:
                     continue

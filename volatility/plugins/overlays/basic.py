@@ -200,6 +200,9 @@ class Enumeration(obj.NativeType):
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
 
+    def write(self, data):
+        return self.target_obj.write(data)
+
     def __str__(self):
         value = self.v()
         if value in self.choices.keys():
@@ -365,6 +368,10 @@ class WinTimeStamp(UnixTimeStamp):
     def __init__(self, is_utc = False, **kwargs):
         self.is_utc = is_utc
         obj.NativeType.__init__(self, format_string = "q", **kwargs)
+
+    def __repr__(self):
+        return "%s (%s)" % (super(WinTimeStamp, self).__repr__(),
+                            str(self))
 
     def windows_to_unix_time(self, windows_time):
         """

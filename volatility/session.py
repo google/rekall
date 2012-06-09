@@ -113,7 +113,7 @@ class Pager(object):
 
     def write(self, data):
         # Encode the data according to the output encoding.
-        data = data.encode(self.encoding)
+        data = utils.SmartUnicode(data).encode(self.encoding, "replace")
         try:
             self.pager.write(data)
         except IOError:

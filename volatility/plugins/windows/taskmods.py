@@ -168,7 +168,7 @@ class WinMemMap(common.WinProcessFilter):
         last_len = 0
 
         task_address_space = eprocess.get_process_address_space()
-        for va, length in task_address_space.get_available_pages():
+        for va, length in task_address_space.get_available_addresses():
             pa = task_address_space.vtop(va)
             if pa == None:
                 continue
