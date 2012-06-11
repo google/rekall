@@ -95,7 +95,7 @@ class Image(object):
 
     def PadWithNulls(self, outfd, length):
         while length > 0:
-            to_write = max(length, self.buffer_size)
+            to_write = min(length, self.buffer_size)
             outfd.write("\x00" * to_write)
             length -= to_write
 
@@ -162,7 +162,10 @@ def main():
         print r"unloaded winpmem driver."
         return
 
-    win32service.StartService(hSvc, [])
+    try:
+        win32service.StartService(hSvc, [])
+    except win32service.error, e:
+        print "%s: will try to continue" % e
 
     if FLAGS.load:
         print r"Loaded the winpmem driver. You can now attach volatility to \\.\pmem"
