@@ -113,21 +113,20 @@ class ResourcePointer(obj.Pointer):
 
     def __init__(self, resource_base=None, **kwargs):
         super(ResourcePointer, self).__init__(**kwargs)
-
         # By default find the resource_base member of a parent.
         if resource_base is None:
             for parent in self.parents:
                 try:
                     self.resource_base = parent.resource_base
-                except AttributeError: pass
-
-                if isinstance(parent, _IMAGE_NT_HEADERS):
-                    for section in parent.Sections:
-                        if section.Name.startswith(".rsrc"):
-                            self.resource_base = (section.VirtualAddress +
-                                                  parent.OptionalHeader.ImageBase)
-                            break
                     break
+
+                except AttributeError:
+                    if isinstance(parent, _IMAGE_NT_HEADERS):
+                        for section in parent.Sections:
+                            if section.Name.startswith(".rsrc"):
+                                self.resource_base = (section.VirtualAddress +
+                                                      parent.OptionalHeader.ImageBase)
+                                break
 
     def v(self):
         # Only the first 31 bits are meaningful.
@@ -1219,19 +1218,30 @@ class VS_VERSIONINFO(obj.CType):
 class PE(object):
     """A convenience object to access various things in a PE file."""
 
-    def __init__(self, address_space, image_base=0):
+    def __init__(self, address_space=None, image_base=0, filename=None):
         """Constructor.
 
         Args:
           address_space: An address space to examine.
+
           image_base: The address of the dos header.
+
+          filename: If a filename is provided we open the file as a PE File. In
+            this case, image_base and address_space are ignored.
         """
-        self.vm = address_space
         self.profile = PEProfile()
-        self.image_base = image_base
+
+        if filename is None:
+            self.vm = address_space
+            self.image_base = image_base
+        else:
+            file_address_space = PEFileAddressSpace.classes[
+                'FileAddressSpace'](filename=filename)
+            self.vm = PEFileAddressSpace(base=file_address_space)
+            self.image_base = self.vm.image_base
 
         self.dos_header = self.profile.Object(
-            "_IMAGE_DOS_HEADER", vm=self.vm, offset=image_base)
+            "_IMAGE_DOS_HEADER", vm=self.vm, offset=self.image_base)
 
         self.nt_header = self.dos_header.NTHeader
 

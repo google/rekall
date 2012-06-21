@@ -64,7 +64,7 @@ class Info(plugin.Command):
         fd.write("%s:\n%s\n\n" % (item, item.__doc__))
 
         if isinstance(item, registry.MetaclassRegistry):
-            # show the args it takes. Relies of the docstring to be formatted
+            # show the args it takes. Relies on the docstring to be formatted
             # properly.
             if item.__init__.__doc__:
                 doc_string = inspect.cleandoc(

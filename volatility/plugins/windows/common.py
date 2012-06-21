@@ -343,6 +343,16 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
     """A base class for all pool scanner plugins."""
     __abstract = True
 
+    def __init__(self, address_space=None, **kwargs):
+        """Scan the address space for pool allocations.
+
+        Args:
+          address_space: If provided we scan this address space, else we use the
+          physical_address_space.
+        """
+        super(PoolScannerPlugin, self).__init__(**kwargs)
+        self.address_space = address_space or self.physical_address_space
+
 
 class KDBGMixin(plugin.KernelASMixin):
     """A plugin mixin to make sure the kdbg is set correctly."""

@@ -293,6 +293,10 @@ class Session(object):
         self._locals['vol'] = session.vol
         self._locals['info'] = session.info
         self._locals['help'] = session.help
+        self._locals['p'] = session.printer
+
+    def printer(self, string):
+        print string
 
     def dump(self, target, offset=0, width=16, rows=10):
         # Its an object
@@ -305,7 +309,7 @@ class Session(object):
             base = int(offset)
         # Its a string or something else:
         else:
-            data = utils.SmartStr(data)
+            data = utils.SmartStr(target)
             base = 0
 
         utils.WriteHexdump(sys.stdout, data, width=width, base=base)

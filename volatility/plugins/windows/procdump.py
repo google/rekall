@@ -23,9 +23,86 @@ import os
 import re
 import struct
 
+from volatility.plugins.overlays.windows import pe_vtypes
 from volatility.plugins.windows import common
 from volatility import plugin
 from volatility import utils
+
+
+class PEDump(plugin.Command):
+    """Dump a PE binary from memory."""
+
+    __name = "pedump"
+
+    def __init__(self, address_space=None, image_base=None, fd=None, filename=None,
+                 **kwargs):
+        """Dump a PE binary from memory.
+
+        Args:
+          address_space: The address space which contains the PE image.
+          image_base: The address of the image base (dos header).
+          fd: The output file like object which will be used to write the file
+            onto.
+
+          filename: Alternatively a filename can be provided to write the PE
+            file to.
+        """
+        super(PEDump, self).__init__(**kwargs)
+        self.address_space = address_space
+        self.image_base = image_base
+        if fd:
+            self.out_fd = fd
+            self.filename = "FD <%s>" % fd
+        elif filename:
+            self.out_fd = open(filename, "w")
+            self.filename = filename
+
+        # Get the pe profile.
+        self.pe_profile = pe_vtypes.PEProfile()
+
+    def WritePEFile(self, fd, address_space, image_base):
+        """Dumps the PE file found into the filelike object.
+
+        Note that this function can be used for any PE file (e.g. executable,
+        dll, driver etc). Only a base address need be specified. This makes this
+        plugin useful as a routine in other plugins.
+
+        Args:
+          fd: A writeable filelike object which must support seeking.
+          address_space: The address_space to read from.
+          image_base: The offset of the dos file header.
+        """
+        dos_header = self.pe_profile.Object("_IMAGE_DOS_HEADER", offset=image_base,
+                                            vm=address_space)
+        image_base = dos_header.obj_offset
+        nt_header = dos_header.NTHeader
+
+        # First copy the PE file header, then copy the sections.
+        data = dos_header.obj_vm.zread(
+            image_base, min(1e6, nt_header.OptionalHeader.SizeOfHeaders))
+        if not data: return
+
+        fd.seek(0)
+        fd.write(data)
+
+        for section in nt_header.Sections:
+            # Force some sensible maximum values here.
+            size_of_section = min(10e6, section.SizeOfRawData)
+            physical_offset = min(100e6, int(section.PointerToRawData))
+
+            data = section.obj_vm.zread(
+                section.VirtualAddress + image_base, size_of_section)
+
+            fd.seek(physical_offset, 0)
+            fd.write(data)
+
+    def render(self, outfd):
+        outfd.write("Dumping PE File at image_base 0x%X to %s\n" % (
+                self.image_base, self.filename))
+
+        self.WritePEFile(self.out_fd, self.address_space, self.image_base)
+
+        outfd.write("Done!\n")
 
 
 class ProcExeDump(common.WinProcessFilter):
@@ -76,46 +153,8 @@ class ProcExeDump(common.WinProcessFilter):
         """
         super(ProcExeDump, self).__init__(**kwargs)
         self.dump_dir = dump_dir or self.session.dump_dir
-
-        # Get the pe profile.
-        self.pe_profile = self.profile.classes['PEProfile']()
         self.fd = outfd
-
-    def WritePEFile(self, fd, address_space, image_base):
-        """Dumps the PE file found into the filelike object.
-
-        Note that this function can be used for any PE file (e.g. executable,
-        dll, driver etc). Only a base address need be specified. This makes this
-        plugin useful as a routine in other plugins.
-
-        Args:
-          fd: A writeable filelike object which must support seeking.
-          address_space: The address_space to read from.
-          image_base: The offset of the dos file header.
-        """
-        dos_header = self.pe_profile.Object("_IMAGE_DOS_HEADER", offset=image_base,
-                                            vm=address_space)
-        image_base = dos_header.obj_offset
-        nt_header = dos_header.NTHeader
-
-        # First copy the PE file header, then copy the sections.
-        data = dos_header.obj_vm.zread(
-            image_base, min(1e6, nt_header.OptionalHeader.SizeOfHeaders))
-        if not data: return
-
-        fd.seek(0)
-        fd.write(data)
-
-        for section in nt_header.Sections:
-            # Force some sensible maximum values here.
-            size_of_section = min(10e6, section.SizeOfRawData)
-            physical_offset = min(100e6, int(section.PointerToRawData))
-
-            data = section.obj_vm.zread(
-                section.VirtualAddress + image_base, size_of_section)
-
-            fd.seek(physical_offset, 0)
-            fd.write(data)
+        self.pedump = PEDump(session=self.session)
 
     def check_dump_dir(self, dump_dir=None):
         if not dump_dir:
@@ -135,7 +174,8 @@ class ProcExeDump(common.WinProcessFilter):
                 continue
 
             if self.fd:
-                self.WritePEFile(self.fd, task_address_space, task.Peb.ImageBaseAddress)
+                self.pedump.WritePEFile(
+                    self.fd, task_address_space, task.Peb.ImageBaseAddress)
                 outfd.write("*" * 72 + "\n")
 
                 outfd.write("Dumping {0}, pid: {1:6} into user provided fd.\n".format(
@@ -157,33 +197,27 @@ class ProcExeDump(common.WinProcessFilter):
 
                 with open(filename, 'wb') as fd:
                     # The Process Environment Block contains the dos header:
-                    self.WritePEFile(fd, task_address_space, task.Peb.ImageBaseAddress)
+                    self.pedump.WritePEFile(
+                        fd, task_address_space, task.Peb.ImageBaseAddress)
 
 
-class DLLDump(common.WinProcessFilter):
+class DLLDump(ProcExeDump):
     """Dump DLLs from a process address space"""
 
     __name = "dlldump"
 
-    def __init__(self, dump_dir=None, remap=False, outfd=None, regex=".+", **kwargs):
+    def __init__(self, regex=".+", **kwargs):
         """Dumps dlls from processes into files.
 
         Args:
-          dump_dir: Where dlls should be written to.
-          remap: If set, allows to remap the sections on disk.
-          outfd: An optional file like object to write on.
           regex: A regular expression that is applied to the modules name.
         """
         super(DLLDump, self).__init__(**kwargs)
-
-        # Hold onto our procdump module for reuse.
-        self.procdump = self.session.plugins.procdump(session=self.session, remap=remap)
-        self.dump_dir = dump_dir or self.session.dump_dir
         self.regex = re.compile(regex)
 
     def render(self, outfd):
         # Make sure the dump dir is ok.
-        self.procdump.check_dump_dir(self.dump_dir)
+        self.check_dump_dir(self.dump_dir)
 
         for task in self.filter_processes():
             task_as = task.get_process_address_space()
@@ -207,11 +241,48 @@ class DLLDump(common.WinProcessFilter):
 
                     # Use the procdump module to dump out the binary:
                     with open(os.path.join(self.dump_dir, dump_file), "wb") as fd:
-                        self.procdump.WritePEFile(fd, task_as, module.DllBase)
+                        self.pedump.WritePEFile(fd, task_as, module.DllBase)
 
                 else:
                     outfd.write("Cannot dump {0}@{1} at {2:8x}\n".format(
                             proc.ImageFileName, module.BaseDllName, module.DllBase))
+
+
+class ModDump(DLLDump):
+    """Dump kernel drivers from kernel space."""
+
+    __name = "moddump"
+
+    address_spaces = None
+
+    def find_space(self, image_base):
+        """Search through all process address spaces for a PE file."""
+        if self.processes is None:
+            self.address_spaces = [self.kernel_address_space]
+            for task in self.filter_processes():
+                self.address_spaces.append(task.get_process_address_space())
+
+        for address_space in self.address_spaces:
+            if address_space.is_valid_address(image_base):
+                return address_space
+
+    def render(self, outfd):
+        # Make sure the dump dir is ok.
+        self.check_dump_dir(self.dump_dir)
+
+        modules_plugin = self.session.plugins.modules(session=self.session)
+
+        for module in modules_plugin.lsmod():
+            if self.regex.search(utils.SmartUnicode(module.BaseDllName)):
+                address_space = self.find_space(module.DllBase)
+                if address_space:
+                    dump_file = "driver.{0:x}.sys".format(module.DllBase)
+                    outfd.write("Dumping {0}, Base: {1:8x} output: {2}\n".format(
+                            module.BaseDllName, module.DllBase, dump_file))
+
+                    with open(os.path.join(self.dump_dir, dump_file), "wb") as fd:
+                        self.pedump.WritePEFile(fd, address_space, module.DllBase)
+
 
 
 class ProcMemDump(ProcExeDump):

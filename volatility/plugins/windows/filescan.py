@@ -26,6 +26,7 @@
 @organization: http://computer.forensikblog.de/en/
 """
 
+from volatility import obj
 from volatility import scan
 from volatility import utils
 from volatility.plugins.windows import common
@@ -59,8 +60,8 @@ class FileScan(common.PoolScannerPlugin):
 
     def generate_hits(self):
         """Generate possible hits."""
-        address_space = self.physical_address_space
-        scanner = PoolScanFile(profile=self.profile, address_space=address_space)
+        scanner = PoolScanFile(profile=self.profile,
+                               address_space=self.address_space)
         for offset in scanner.scan():
             object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
             if object_obj.get_object_type(self.kernel_address_space) != "File":
@@ -76,16 +77,31 @@ class FileScan(common.PoolScannerPlugin):
     def render(self, renderer):
         """Print the output in a table."""
 
-        renderer.table_header([('Offset(P)', '[addrpad]'),
-                               ('#Ptr', '>6'),
-                               ('#Hnd', '>6'),
-                               ('Access', '>6'),
+        renderer.table_header([('Offset', '[addrpad]'),
+                               ('#Ptr', '>3'),
+                               ('#Hnd', '>3'),
+                               ('Access', '6'),
+                               ('Owner', '[addrpad]'),
+                               ('Owner Pid', '>4'),
+                               ('Owner Name', '16'),
                                ('Name', '')
                                ])
 
         for object_obj, file_obj in self.generate_hits():
+            # The Process member in the object_obj sometimes points at the
+            # _EPROCESS.
+            try:
+                # TODO: Currently this only works in Windows 7. Fix for XP.
+                owner_process = object_obj.HandleInfo.SingleEntry.Process.dereference(
+                    vm=self.kernel_address_space)
+            except AttributeError:
+                owner_process = obj.NoneObject("HandleInfo not found")
+
             renderer.table_row(file_obj.obj_offset, object_obj.PointerCount,
                                object_obj.HandleCount, file_obj.AccessString,
+                               owner_process.obj_offset,
+                               owner_process.UniqueProcessId,
+                               owner_process.ImageFileName,
                                file_obj.FileName.v(vm=self.kernel_address_space))
 
 
@@ -94,7 +110,6 @@ class PoolScanDriver(PoolScanFile):
     allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_DRIVER_OBJECT',
                   '_DRIVER_EXTENSION']
     checks = [ ('PoolTagCheck', dict(tag = "Dri\xf6")),
-
                ('CheckPoolSize', dict(condition = lambda x: x >= 0xf8)),
                ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
                ('CheckPoolIndex', dict(value = 0)),
@@ -107,9 +122,8 @@ class DriverScan(FileScan):
 
     def generate_hits(self):
         """Generate possible hits."""
-        address_space = self.physical_address_space
         scanner = PoolScanDriver(
-            profile=self.profile, address_space=address_space)
+            profile=self.profile, address_space=self.address_space)
 
         for offset in scanner.scan():
             object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
@@ -164,8 +178,8 @@ class SymLinkScan(FileScan):
 
     def generate_hits(self):
         """Generate possible hits."""
-        address_space = self.physical_address_space
-        scanner = PoolScanSymlink(profile=self.profile, address_space=address_space)
+        scanner = PoolScanSymlink(profile=self.profile,
+                                  address_space=self.address_space)
         for offset in scanner.scan():
             object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
             if object_obj.get_object_type(self.kernel_address_space) != "SymbolicLink":
@@ -217,8 +231,8 @@ class MutantScan(FileScan):
         self.silent = silent
 
     def generate_hits(self):
-        address_space = self.physical_address_space
-        scanner = PoolScanMutant(profile=self.profile, address_space=address_space)
+        scanner = PoolScanMutant(profile=self.profile,
+                                 address_space=self.address_space)
         for offset in scanner.scan():
             object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
             if object_obj.get_object_type(self.kernel_address_space) != "Mutant":
@@ -343,8 +357,9 @@ class PSScan(common.PoolScannerPlugin):
     def calculate(self):
         """Generate possible hits."""
         ## Just grab the AS and scan it using our scanner
-        address_space = self.physical_address_space
-        scanner =  PoolScanProcess(profile=self.profile, address_space=address_space)
+        scanner =  PoolScanProcess(
+            profile=self.profile, address_space=self.address_space)
+
         return scanner.scan()
 
     def guess_eprocess_virtual_address(self, eprocess):
@@ -369,7 +384,7 @@ class PSScan(common.PoolScannerPlugin):
 
     def render(self, renderer):
         """Render results in a table."""
-        renderer.table_header([('Offset(P)', '[addrpad]'),
+        renderer.table_header([('Offset', '[addrpad]'),
                                ('Offset(V)', '[addrpad]'),
                                ('Name', '16'),
                                ('PID', '>6'),

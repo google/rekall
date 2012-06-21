@@ -7,3 +7,6 @@ from volatility.plugins.windows import procdump_test
 from volatility.plugins.windows import modules_test
 from volatility.plugins.windows import taskmods_test
 from volatility.plugins.windows import vadinfo_test
+
+# The registry module tests.
+from volatility.plugins.windows.registry import tests

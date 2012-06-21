@@ -27,6 +27,7 @@ __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
 The Volatility object system.
 
 """
+import inspect
 import logging
 import sys
 import re
@@ -51,12 +52,21 @@ class Curry(object):
         self.target = curry_target
         self.kwargs = kwargs
         self.args = args
+        self.__doc__ = self.target.__doc__
 
-    def __call__(self, **kwargs):
+    def __call__(self, *args, **kwargs):
         # Merge the kwargs with the new kwargs
         new_kwargs = self.kwargs.copy()
         new_kwargs.update(kwargs)
-        return self.target(*self.args, **new_kwargs)
+        return self.target(*(self.args + args), **new_kwargs)
+
+    def _default_arguments(self):
+        """Return a list of default args for the target."""
+        args, _, _, defaults = inspect.getargspec(self.target)
+        if defaults:
+            return args[-len(defaults):]
+
+        return []
 
 # This is marginally faster but is harder to debug since the Curry callables are
 # opaque.
@@ -193,6 +203,7 @@ class NoneObject(object):
 
     def __format__(self, formatspec):
         formatspec = formatspec.lower().replace("x", "s")
+        formatspec = formatspec.replace("#", "")
         spec = FormatSpec(string = formatspec, fill = "-", align = ">")
         return format('-', str(spec))
 
@@ -403,7 +414,7 @@ class BaseObject(object):
 
     def cast(self, castString, **kwargs):
         return self.obj_profile.Object(theType=castString, offset=self.obj_offset,
-                                       vm=self.obj_vm, **kwargs)
+                                       vm=self.obj_vm, parent=self.obj_parent, **kwargs)
 
     def v(self, vm=None):
         """ Do the actual reading and decoding of this member
@@ -681,6 +692,10 @@ class Pointer(NativeType):
         result = self.dereference()
 
         return getattr(result, attr)
+
+    def __iter__(self):
+        """Delegate the iterator to the target."""
+        return iter(self.dereference())
 
     def dereference_as(self, derefType, vm=None, **kwargs):
         """Dereference ourselves into another type, or address space."""
@@ -1099,7 +1114,9 @@ class Profile(object):
         result = self.__class__(session=self.session)
         result.vtypes = copy.deepcopy(self.vtypes)
         result.overlays = copy.deepcopy(self.overlays)
-        result.object_classes = copy.deepcopy(self.object_classes)
+
+        # Object classes are shallow dicts.
+        result.object_classes = self.object_classes.copy()
 
         return result
 
@@ -1366,10 +1383,45 @@ class Profile(object):
 
         return result
 
-    def Object(self, theType=None, offset=0, vm=None, name = None, **kwargs):
+    def __dir__(self):
+        """Support tab completion."""
+        # Compile on demand
+        if not self._ready: self.compile()
+        return sorted(self.__dict__.keys()) + sorted(self.types.keys())
+
+    def __getattr__(self, attr):
+        """Make it easier to instantiate individual members.
+
+        This method makes it possible to use the form:
+
+        self.profile._EPROCESS(vm=self.kernel_address_space, offset=X)
+
+        Which is easier to type and works well with attribute completion
+        (provided by __dir__).
+        """
+        if not self._ready: self.compile()
+        if attr not in self.types:
+            raise AttributeError("No such vtype")
+
+        return Curry(self.Object, attr)
+
+    def Object(self, theType=None, vm=None, offset=0, name=None, parent=None, **kwargs):
         """ A function which instantiates the object named in theType (as
         a string) from the type in profile passing optional args of
         kwargs.
+
+        Args:
+          theType: The name of the CType to instantiate (e.g. _EPROCESS).
+
+          vm: The address space to instantiate the object onto. If not provided
+            we use a dummy null padded address space.
+
+          offset: The location in the address space where the object is
+            instantiated.
+
+          name: An optional name for the object.
+
+          parent: The object can maintain a reference to its parent object.
         """
         # Compile on demand
         if not self._ready: self.compile()
@@ -1377,12 +1429,15 @@ class Profile(object):
         name = name or theType
         offset = int(offset)
 
+        if vm is None:
+            vm = self._dummy
+
         try:
             kwargs['profile'] = self
 
             if theType in self.types:
-                result = self.types[theType](offset = offset, vm = vm, name = name,
-                                             **kwargs)
+                result = self.types[theType](offset=offset, vm=vm, name=name,
+                                             parent=parent, **kwargs)
                 return result
 
             if theType in self.object_classes:
@@ -1390,6 +1445,7 @@ class Profile(object):
                                                       offset = offset,
                                                       vm = vm,
                                                       name = name,
+                                                      parent=parent,
                                                       **kwargs)
                 return result
 
@@ -1400,7 +1456,6 @@ class Profile(object):
 
         ## If we get here we have no idea what the type is supposed to be?
         ## This is a serious error.
-        import pdb; pdb.set_trace()
         logging.warning("Cant find object {0} in profile {1}?".format(theType, self))
 
 

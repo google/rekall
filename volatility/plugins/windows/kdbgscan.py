@@ -60,6 +60,7 @@ class KDBGScanner(scan.DiscontigScanner):
 
             if list_entry.reflect():
                 yield result
+
             elif list_entry.Flink == list_entry.Blink and not list_entry.Flink.dereference():
                 logging.debug("KDBG list_head is not mapped, assuming its valid.")
                 yield result

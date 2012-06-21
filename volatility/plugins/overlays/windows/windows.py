@@ -132,7 +132,19 @@ windows_overlay = {
     '_MMVAD_LONG': [ None, {
     'Tag': [-4 , ['String', dict(length = 4)]],
     }],
+
+    # The environment is a null termionated _UNICODE_STRING array. Print with
+    # list(eprocess.Peb.ProcessParameters.Environment)
+    '_RTL_USER_PROCESS_PARAMETERS': [None, {
+            'Environment': [None, ['Pointer', {
+                        'target': 'ListArray',
+                        'target_args': {
+                            'target': "UnicodeString"
+                            }
+                        }]],
+            }],
 }
+
 
 class _UNICODE_STRING(obj.CType):
     """Class representing a _UNICODE_STRING

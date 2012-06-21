@@ -82,6 +82,7 @@ def IPython011Support(user_session):
         # This must be run here because the IPython shell messes with our user
         # namespace above (by adding its own help function).
         user_session._prepare_local_namespace()
+        UpdateSessionFromArgv(user_session, FLAGS)
 
         shell(local_ns=user_session._locals)
         return True
@@ -99,25 +100,14 @@ def IPython012Support(user_session):
     banner = "Welcome to volshell! \nTo get help, type 'help()'"
 
     try:
-        # Try to use the ipython shell
-        from IPython.frontend.terminal.embed import InteractiveShellEmbed
-        from IPython.config.loader import Config
-
-        # This should bring back the old autocall behaviour. e.g.:
-        # In [1]: vol plugins.pslist
-        cfg = Config()
-        cfg.InteractiveShellEmbed.autocall = 2
-
-        shell = InteractiveShellEmbed(config=cfg, user_ns=user_session._locals,
-                                      banner2=banner)
+        from volatility import ipython_support
 
         # This must be run here because the IPython shell messes with our user
         # namespace above (by adding its own help function).
         user_session._prepare_local_namespace()
+        UpdateSessionFromArgv(user_session._locals['session'], FLAGS)
 
-        shell(local_ns=user_session._locals)
-        return True
-
+        return ipython_support.Shell(user_session)
     except ImportError:
         return False
 
@@ -156,9 +146,11 @@ if __name__ == '__main__':
 
     # New user session.
     user_session = session.Session()
-
     UpdateSessionFromArgv(user_session, FLAGS)
+
     if FLAGS.module:
+        UpdateSessionFromArgv(user_session, FLAGS)
+
         # Run the module
         user_session.vol(FLAGS.module)
 

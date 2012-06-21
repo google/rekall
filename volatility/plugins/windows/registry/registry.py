@@ -29,6 +29,7 @@ import struct
 
 from volatility import addrspace
 from volatility import obj
+from volatility import utils
 
 
 registry_overlays = {
@@ -119,6 +120,10 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         self.hive = self.profile.Object("_CMHIVE", offset=hive_addr, vm=self.base)
         self.baseblock = self.hive.Hive.BaseBlock.v()
         self.flat = self.hive.Hive.Flat.v() > 0
+        self.storage = self.hive.Hive.Storage
+
+        # This is a quick lookup for blocks.
+        self.block_cache = utils.FastStore(max_size=1000)
 
     def vtop(self, vaddr):
         # If the hive is listed as "flat", it is all contiguous in memory
@@ -131,11 +136,18 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         ci_block = (vaddr & self.CI_BLOCK_MASK) >> self.CI_BLOCK_SHIFT
         ci_off = (vaddr & self.CI_OFF_MASK) >> self.CI_OFF_SHIFT
 
-        block = self.hive.Hive.Storage[ci_type].Map.Directory[ci_table].Table[
-            ci_block].BlockAddress
+        try:
+            block = self.block_cache.Get((ci_type, ci_table, ci_block))
+        except KeyError:
+            block = self.storage[ci_type].Map.Directory[ci_table].Table[
+                ci_block].BlockAddress
+
+            self.block_cache.Put((ci_type, ci_table, ci_block), block)
 
         return block + ci_off + 4
 
+    # TODO: This code seems to be able to save registry from memory to
+    # disk. Write a plugin to do this easily.
     def save(self, outf):
         baseblock = self.base.read(self.baseblock, self.BLOCK_SIZE)
         if baseblock:
@@ -217,11 +229,9 @@ class _CM_KEY_NODE(obj.CType):
     VK_SIG = "vk"
 
     def open_subkey(self, subkey_name):
-        subkey_name = subkey_name.lower()
-
         """Opens our direct child."""
         for subkey in self.subkeys():
-            if unicode(subkey.Name).lower() == subkey_name:
+            if unicode(subkey.Name).lower() == subkey_name.lower():
                 return subkey
 
         return obj.NoneObject("Couldn't find subkey {0} of {1}".format(
@@ -245,9 +255,10 @@ class _CM_KEY_NODE(obj.CType):
         which are just a list of pointers to other subkeys.
         """
         # There are multiple lists of subkeys:
+        sk_lists = self.SubKeyLists
         for list_index, count in enumerate(self.SubKeyCounts):
             if count > 0:
-                sk_offset = self.SubKeyLists[list_index]
+                sk_offset = sk_lists[list_index]
                 for subkey in self.obj_profile.Object("_CM_KEY_INDEX", offset=sk_offset,
                                                       vm=self.obj_vm, parent=self):
                     yield subkey
@@ -290,14 +301,14 @@ class _CM_KEY_INDEX(obj.CType):
             # The List contains alternating pointers/hash elements here. We do
             # not care about the hash at all, so we skip every other entry. See
             # http://www.sentinelchicken.com/data/TheWindowsNTRegistryFileFormat.pdf
-            for i in range(self.Count):
-                nk = self.List[i]
+            key_list = self.List
+            for i in range(self.Count * 2):
+                nk = key_list[i]
                 if nk.Signature == self.NK_SIG:
                     yield nk
 
         elif self.Signature == self.RI_SIG:
             for i in range(self.Count):
-                import pdb; pdb.set_trace()
                 # This is a pointer to another _CM_KEY_INDEX
                 for subkey in self.obj_profile.Object(
                     "Pointer", offset=self.List[i].v(),
@@ -307,8 +318,9 @@ class _CM_KEY_INDEX(obj.CType):
                         yield subkey
 
         elif self.Signature == self.LI_SIG:
+            key_list = self.List
             for i in range(self.Count):
-                nk = self.List[i]
+                nk = key_list[i]
                 if nk.Signature == self.NK_SIG:
                     yield nk
 
@@ -400,7 +412,7 @@ class Registry(object):
         if not stable:
             root_index = self.ROOT_INDEX | 0x80000000
 
-        self.root = self.profile.Object("_CM_KEY_NODE", root_index, address_space)
+        self.root = self.profile.Object("_CM_KEY_NODE", offset=root_index, vm=address_space)
 
     @property
     def Name(self):

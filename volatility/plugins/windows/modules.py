@@ -23,7 +23,7 @@ import bisect
 from volatility.plugins.windows import common
 
 
-class Modules(common.KDBGMixin, common.AbstractWindowsCommandPlugin):
+class Modules(common.WindowsCommandPlugin):
     """Print list of loaded modules."""
 
     __name = "modules"

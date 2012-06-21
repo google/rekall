@@ -19,10 +19,20 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 """This is a windows specific address space."""
+import exceptions
 import os
+import struct
 import win32file
 
 from volatility.plugins.addrspaces import standard
+
+
+def CTL_CODE(DeviceType, Function, Method, Access):
+    return (DeviceType<<16) | (Access << 14) | (Function << 2) | Method
+
+
+# IOCTLS for interacting with the driver.
+INFO_IOCTRL = CTL_CODE(0x22, 0x100, 0, 3)
 
 
 class Win32FileAddressSpace(standard.FileAddressSpace):
@@ -57,8 +67,24 @@ class Win32FileAddressSpace(standard.FileAddressSpace):
             win32file.FILE_ATTRIBUTE_NORMAL,
             None)
 
-        # Lie about our size.
-        self.fsize = 1e12
+        # Try to get the memory runs from the winpmem driver.
+        self.runs = []
+        try:
+            self.ParseMemoryRuns()
+        except exceptions.WindowsError:
+            self.runs = [0, 1e12]
+
+    def ParseMemoryRuns(self):
+        result = win32file.DeviceIoControl(self.fhandle, INFO_IOCTRL, "", 1024, None)
+
+        fmt_string = "QQl"
+        self.dtb, _, number_of_runs = struct.unpack_from(fmt_string, result)
+
+        offset = struct.calcsize(fmt_string)
+
+        for x in range(number_of_runs):
+            start, length = struct.unpack_from("QQ", result, x * 16 + offset)
+            self.runs.append((start,length))
 
     def read(self, addr, length):
         win32file.SetFilePointer(self.fhandle, addr, 0)
