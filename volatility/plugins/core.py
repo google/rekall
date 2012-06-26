@@ -263,3 +263,5 @@ class Null(plugin.Command):
 
     def render(self, outfd):
         pass
+
+

@@ -34,6 +34,10 @@ class PluginError(Error):
     """An error occured in a plugin."""
 
 
+class InvalidArgs(Error):
+    """Invalid arguments."""
+
+
 class Command(object):
     """A command can be run from the volatility command line.
 
@@ -74,7 +78,7 @@ class Command(object):
         """
         self.session = session or conf.GLOBAL_SESSION
         if kwargs:
-            logging.warning("Unknown kwargs %s ignored.", kwargs.keys())
+            raise InvalidArgs(unicode(kwargs.keys()))
 
     def get_plugin(self, name, **kwargs):
         """Returns an instance of the named plugin.

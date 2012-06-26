@@ -27,13 +27,22 @@ class FormatSpec(object):
         self.precision = -1
         self.formtype = ''
 
+        # Should this entry be forced (elided) into the given width?
+        self.elide = True
+
+        # Should this text be wrapped to the given width? If this is true we can
+        # return multiple lines.
+        self.wrap = False
+
         if string != '':
             self.from_string(string)
 
         # Ensure we parse the remaining arguments after the string to that they override
         self.from_specs(**kwargs)
 
-    def from_specs(self, fill = None, align = None, sign = None, altform = None, minwidth = None, precision = None, formtype = None):
+    def from_specs(self, fill = None, align = None, sign = None, altform = None,
+                   minwidth = None, precision = None, formtype = None, wrap = False,
+                   width = None):
         ## Allow setting individual elements using kwargs
         if fill is not None:
             self.fill = fill
@@ -49,6 +58,15 @@ class FormatSpec(object):
             self.precision = precision
         if formtype is not None:
             self.formtype = formtype
+        if width is not None:
+            self.width = width
+
+        if wrap:
+            self.wrap = wrap
+            self.elide = False
+            self.formtype = 's'
+            self.fill = False
+            self.minwidth = self.width
 
     def from_string(self, formatspec):
         # Format specifier regular expression

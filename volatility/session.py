@@ -29,6 +29,7 @@ import pdb
 import os
 import subprocess
 import sys
+import textwrap
 import time
 
 from volatility import addrspace
@@ -115,6 +116,21 @@ class Pager(object):
         self.pager.communicate()
 
 
+class UnicodeWrapper(object):
+    """A wrapper around a file like object which guarantees writes in utf8."""
+
+    def __init__(self, fd, encoding='utf8'):
+        self.fd = fd
+        self.encoding = encoding
+
+    def write(self, data):
+        data = utils.SmartUnicode(data).encode(self.encoding, "replace")
+        self.fd.write(data)
+
+    def flush(self):
+        self.fd.flush()
+
+
 class TextRenderer(object):
     """Plugins can receive a renderer object to assist formatting of output."""
 
@@ -129,11 +145,10 @@ class TextRenderer(object):
 
     def start(self):
         """The method is called when new output is required."""
-        self.pager = self.fd
-        if self.pager is None and self.session.pager:
+        if self.fd is None and self.session.pager:
             self.pager = Pager(session=self.session)
         else:
-            self.pager = sys.stdout
+            self.pager = UnicodeWrapper(self.fd or sys.stdout)
 
     def end(self):
         """Tells the renderer that we finished using it for a while."""
@@ -163,9 +178,15 @@ class TextRenderer(object):
 
     def _formatlookup(self, code):
         """Code to turn profile specific values into format specifications"""
+        # Allow the format code to be provided as dict for directly initializing
+        # a FormatSpec object.
+        if isinstance(code, dict):
+            return fmtspec.FormatSpec(**code)
+
         code = code or ""
+        # Allow extended format specifiers (e.g. [addr] or [addrpad])
         if not code.startswith('['):
-            return code
+            return fmtspec.FormatSpec(code)
 
         # Strip off the square brackets
         code = code[1:-1].lower()
@@ -182,7 +203,7 @@ class TextRenderer(object):
                 # Non-padded addresses will come out as numbers,
                 # so titles should align >
                 spec.align = ">"
-            return spec.to_string()
+            return spec
 
         # Something went wrong
         debug.warning("Unknown table format specification: " + code)
@@ -208,7 +229,7 @@ class TextRenderer(object):
         self._formatlist = []
 
         for (k, v) in title_format_list:
-            spec = fmtspec.FormatSpec(self._formatlookup(v))
+            spec = self._formatlookup(v)
 
             # If spec.minwidth = -1, this field is unbounded length
             if spec.minwidth != -1:
@@ -233,17 +254,37 @@ class TextRenderer(object):
     def table_row(self, *args):
         """Outputs a single row of a table"""
         reslist = []
+        cell_widths = []
         if len(args) > len(self._formatlist):
             logging.error("Too many values for the table")
+
+        number_of_lines = 0
 
         for index in range(len(args)):
             spec = self._formatlist[index]
             result = (u"{0:" + spec.to_string() + "}").format(args[index])
-            if self.elide:
-                result = self._elide(result, spec.minwidth)
+            if spec.elide:
+                result = [self._elide(result, spec.minwidth)]
+            elif spec.wrap:
+                result = textwrap.wrap(result, spec.width)
+            else:
+                result = [result]
 
             reslist.append(result)
-        self.write(self.tablesep.join(reslist) + "\n")
+            number_of_lines = max(number_of_lines, len(result))
+            cell_widths.append(len(result[0]))
+
+        # Allow table rows to span multiple text lines.
+        for i in range(number_of_lines):
+            for j, cell_content in enumerate(reslist):
+                try:
+                    self.write(cell_content[i])
+                except IndexError:
+                    self.write(" " * cell_widths[j])
+
+                self.write(self.tablesep)
+            self.write("\n")
+
 
 
 class Session(object):
@@ -292,9 +333,15 @@ class Session(object):
         self._locals['info'] = session.info
         self._locals['vhelp'] = session.vhelp
         self._locals['p'] = session.printer
+        self._locals['l'] = session.lister
+        self._locals['dis'] = obj.Curry(session.vol, "dis")
 
     def printer(self, string):
         print string
+
+    def lister(self, arg):
+        for x in arg:
+            self.printer(x)
 
     def dump(self, target, offset=0, width=16, rows=10):
         # Its an object
@@ -315,7 +362,7 @@ class Session(object):
     def info(self, plugin_cls=None, fd=None):
         self.vol(self.plugins.info, item=plugin_cls, fd=fd)
 
-    def vol(self, plugin_cls=None, renderer=None, fd=None, debug=False, output=None,
+    def vol(self, plugin_cls, renderer=None, fd=None, debug=False, output=None,
             **kwargs):
         """Launch a plugin and its render() method automatically.
 
@@ -359,8 +406,14 @@ class Session(object):
 
             return result
 
+        except plugin.InvalidArgs, e:
+            logging.warning("Invalid Args (Try info plugins.%s): %s",
+                            plugin_cls.name, e)
+
         except plugin.Error, e:
-            logging.error("Failed running plugin %s: %s", plugin_cls.__name__, e)
+            logging.error("Failed running plugin %s: %s",
+                          plugin_cls.name, e)
+
         except Exception, e:
             logging.error("Error: %s", e)
             # If anything goes wrong, we break into a debugger here.

@@ -36,6 +36,7 @@ import struct
 
 import copy
 from volatility import addrspace
+from volatility import fmtspec
 from volatility import registry
 
 
@@ -78,91 +79,6 @@ def get_bt_string(_e = None):
     return ''.join(traceback.format_stack()[:-2])
 
 
-class FormatSpec(object):
-    def __init__(self, string = '', **kwargs):
-        self.fill = ''
-        self.align = ''
-        self.sign = ''
-        self.altform = False
-        self.minwidth = -1
-        self.precision = -1
-        self.formtype = ''
-
-        if string != '':
-            self.from_string(string)
-
-        # Ensure we parse the remaining arguments after the string to that they
-        # override
-        self.from_specs(**kwargs)
-
-    def from_specs(self, fill = None, align = None, sign = None, altform = None,
-                   minwidth = None, precision = None, formtype = None):
-        ## Allow setting individual elements using kwargs
-        if fill is not None:
-            self.fill = fill
-        if align is not None:
-            self.align = align
-        if sign is not None:
-            self.sign = sign
-        if altform is not None:
-            self.altform = altform
-        if minwidth is not None:
-            self.minwidth = minwidth
-        if precision is not None:
-            self.precision = precision
-        if formtype is not None:
-            self.formtype = formtype
-
-    def from_string(self, formatspec):
-        # Format specifier regular expression
-        regexp = "\A(.[<>=^]|[<>=^])?([-+ ]|\(\))?(#?)(0?)(\d*)(\.\d+)?(.)?\Z"
-
-        match = re.search(regexp, formatspec)
-
-        if match is None:
-            raise ValueError("Invalid format specification")
-
-        if match.group(1):
-            fillalign = match.group(1)
-            if len(fillalign) > 1:
-                self.fill = fillalign[0]
-                self.align = fillalign[1]
-            elif fillalign:
-                self.align = fillalign
-
-        if match.group(2):
-            self.sign = match.group(2)
-        if match.group(3):
-            self.altform = len(match.group(3)) > 0
-        if len(match.group(4)):
-            if self.fill == "":
-                self.fill = "0"
-                if self.align == "":
-                    self.align = "="
-        if match.group(5):
-            self.minwidth = int(match.group(5))
-        if match.group(6):
-            self.precision = int(match.group(6)[1:])
-        if match.group(7):
-            self.formtype = match.group(7)
-
-    def to_string(self):
-        formatspec = self.fill + self.align + self.sign
-        if self.sign == '(':
-            formatspec += ')'
-        if self.altform:
-            formatspec += '#'
-        if self.minwidth >= 0:
-            formatspec += str(self.minwidth)
-        if self.precision >= 0:
-            formatspec += '.' + str(self.precision)
-        formatspec += self.formtype
-
-        return formatspec
-
-    def __str__(self):
-        return self.to_string()
-
 class NoneObject(object):
     """ A magical object which is like None but swallows bad
     dereferences, __getattr__, iterators etc to return itself.
@@ -204,7 +120,7 @@ class NoneObject(object):
     def __format__(self, formatspec):
         formatspec = formatspec.lower().replace("x", "s")
         formatspec = formatspec.replace("#", "")
-        spec = FormatSpec(string = formatspec, fill = "-", align = ">")
+        spec = fmtspec.FormatSpec(string = formatspec, fill = "-", align = ">")
         return format('-', str(spec))
 
     def __getattr__(self, attr):
@@ -847,7 +763,7 @@ class ListArray(Array):
     def __iter__(self):
         offset = self.obj_offset
         count = 0
-        while offset < self.maximum_offset:
+        while offset < self.maximum_offset and count < self.count:
             try:
                 item = self.obj_profile.Object(
                     self.target, offset=offset, vm=self.obj_vm, parent=self,

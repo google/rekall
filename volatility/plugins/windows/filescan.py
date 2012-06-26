@@ -275,6 +275,7 @@ class MutantScan(FileScan):
                                mutant.OwnerThread, CID,
                                object_obj.NameInfo.Name.v(vm=self.kernel_address_space))
 
+
 class CheckProcess(scan.ScannerCheck):
     """ Check sanity of _EPROCESS """
     kernel = 0x80000000

@@ -23,6 +23,7 @@
 http://msdn.microsoft.com/en-us/magazine/ms809762.aspx
 http://msdn.microsoft.com/en-us/magazine/cc301805.aspx
 http://code.google.com/p/corkami/downloads/detail?name=pe-20110117.pdf
+http://code.google.com/p/pefile/
 
 Version information:
 http://msdn.microsoft.com/en-us/library/windows/desktop/ff468916(v=vs.85).aspx
@@ -298,23 +299,27 @@ pe_overlays = {
             'Name': [ 0xC, ['RVAPointer', dict(target="String",
                                                target_args=dict(length=128))]],
 
-            'AddressOfFunctions': [ None, ['Array', dict(
-                        target="RVAPointer",
+            'AddressOfFunctions': [ None, ['RVAPointer', dict(
+                        target="Array",
                         target_args=dict(target="RVAPointer",
-                                         target_args=dict(target="unsigned int")),
-                        count=lambda x: x.NumberOfFunctions)]],
+                                         count=lambda x: x.NumberOfFunctions)
+                        )]],
 
-            'AddressOfNames': [ None, ['Array', dict(
+            'AddressOfNames': [ None, ["RVAPointer", dict(
                         target="RVAPointer",
-                        target_args=dict(target="RVAPointer",
+                        target_args=dict(target="ListArray",
                                          target_args=dict(target="String",
+                                                          maximum_size=1000000,
+                                                          count=lambda x: x.NumberOfNames,
                                                           target_args=dict(length=128))),
-                        count=lambda x: x.NumberOfNames)]],
+                        )]],
 
-            'AddressOfNameOrdinals': [ None, ['Array', dict(
-                        target="RVAPointer",
-                        target_args=dict(target="unsigned int"),
-                        count=lambda x: x.NumberOfFunctions - x.NumberOfNames)]],
+            'AddressOfNameOrdinals': [ None, ['RVAPointer', dict(
+                        target="Array",
+                        target_args=dict(
+                            target="unsigned short int",
+                            count=lambda x: x.NumberOfFunctions)
+                        )]],
             }],
 
     "_IMAGE_THUNK_DATA": [None, {
@@ -1248,6 +1253,11 @@ class PE(object):
     def ImportDirectory(self):
         """A generator over the import directory.
 
+        Note that this iterates over the OriginalFirstThunk which still remains
+        from the on-disk executable. The IAT is constructed by the linker at
+        load time, and is stored in FirstThunk in memory. Hence the IAT() method
+        is going to return code objects while this method simply returns names.
+
         Yields:
            a tuple of (dll, function_name)
         """
@@ -1259,7 +1269,26 @@ class PE(object):
             for thunk in directory.OriginalFirstThunk.dereference():
                 function_name = thunk.AddressOfData.Name
 
-                yield dll, function_name
+                yield dll, function_name, thunk.AddressOfData.Hint
+
+    def IAT(self):
+        """A generator over the IAT.
+
+        Note that this iterates over the FirstThunk imports. In memory, these
+        contain the IAT which has been resolved by the loader.
+
+        Yields:
+          a tuple of (dll, function_name)
+        """
+        import_directory = self.nt_header.OptionalHeader.DataDirectory[
+            'IMAGE_DIRECTORY_ENTRY_IMPORT'].dereference()
+
+        for directory in import_directory:
+            dll = directory.Name.dereference()
+            for thunk in directory.FirstThunk.dereference():
+                function = thunk.Function
+
+                yield dll, function, thunk.Ordinal
 
     def ExportDirectory(self):
         """A generator over the export directory."""
@@ -1267,10 +1296,18 @@ class PE(object):
             'IMAGE_DIRECTORY_ENTRY_EXPORT'].dereference()
 
         dll = export_directory.Name.dereference()
-        for i in range(export_directory.NumberOfFunctions):
-            function_address = export_directory.AddressOfFunctions[i].dereference()
-            function_name = export_directory.AddressOfNames[i].dereference().dereference()
-            yield dll, function_address, function_name
+        function_table = export_directory.AddressOfFunctions.dereference()
+        name_table = export_directory.AddressOfNames.dereference()
+        ordinal_table = export_directory.AddressOfNameOrdinals.dereference()
+
+        # First do the names.
+        i = 0
+        for i, name in enumerate(name_table):
+            yield dll, function_table[i], name, ordinal_table[i]
+
+        # Now the functions without names
+        for j in range(i+1, function_table.count):
+            yield dll, function_table[j], "", ordinal_table[j]
 
     def VersionInformation(self):
         """A generator of key, value pairs."""

@@ -2,6 +2,7 @@ from volatility.plugins.windows import common
 from volatility.plugins.windows import connections
 from volatility.plugins.windows import connscan
 from volatility.plugins.windows import crashinfo
+from volatility.plugins.windows import disassembler
 from volatility.plugins.windows import filescan
 from volatility.plugins.windows import handles
 #from volatility.plugins.windows import hibinfo
@@ -15,6 +16,7 @@ from volatility.plugins.windows import modules
 from volatility.plugins.windows import pas2kas
 from volatility.plugins.windows import patcher
 from volatility.plugins.windows import procdump
+from volatility.plugins.windows import procinfo
 from volatility.plugins.windows import pstree
 from volatility.plugins.windows import registry
 #from volatility.plugins.windows import sockscan
