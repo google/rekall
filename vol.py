@@ -66,7 +66,7 @@ def IPython011Support(user_session):
     Returns:
       False if we failed to use IPython. True if the session was run and exited.
     """
-    banner = "Welcome to volshell! \nTo get help, type 'help()'"
+    banner = "Welcome to the volatility interactive shell! \nTo get help, type 'vhelp()'"
 
     try:
         # Try to use the ipython shell

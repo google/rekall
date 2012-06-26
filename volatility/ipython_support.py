@@ -24,7 +24,7 @@ from IPython.frontend.terminal.embed import InteractiveShellEmbed
 from IPython.config.loader import Config
 from IPython.core.completer import IPCompleter
 
-banner = "Welcome to the volatility interactive prompt! \nTo get help, type 'help()'"
+banner = "Welcome to the volatility interactive shell! \nTo get help, type 'vhelp()'"
 
 
 class VolCompleter(IPCompleter):

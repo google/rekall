@@ -27,6 +27,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 import logging
 import pdb
 import os
+import subprocess
 import sys
 import time
 
@@ -85,41 +86,33 @@ class PluginContainer(object):
 
 
 class Pager(object):
-    """A file like object which can be swapped with a pager."""
+    """A wrapper around a pager.
+
+    The pager can be specified by the session. (eg. session.pager = 'less') or
+    in an PAGER environment var.
+    """
     # Default encoding is utf8
     encoding = "utf8"
 
-    def __init__(self, session=None, default_fd=None):
-        # Default fd if not pager can be found.
-        self.default_fd = default_fd or sys.stdout
-        self.make_pager(session)
-
-
-    def make_pager(self, session):
+    def __init__(self, session=None, encoding=None):
         # More is the least common denominator of pagers :-(. Less is better,
         # but most is best!
         pager = session.pager or os.environ.get("PAGER")
-        try:
-            self.pager = os.popen(pager, 'w', 0)
-        except Exception, e:
-            self.pager = self.default_fd
-
-        # Determine the output encoding
-        try:
-            encoding = self.pager.encoding
-            if encoding: self.encoding = encoding
-        except AttributeError:
-            pass
+        self.encoding = encoding or session.encoding or sys.stdout.encoding
+        self.pager = subprocess.Popen(pager, shell=True, stdin=subprocess.PIPE, bufsize=10240)
 
     def write(self, data):
         # Encode the data according to the output encoding.
         data = utils.SmartUnicode(data).encode(self.encoding, "replace")
         try:
-            self.pager.write(data)
+            self.pager.stdin.write(data)
+            self.pager.stdin.flush()
         except IOError:
-            # In case the pipe closed we just write to stdout
-            self.pager = sys.stdout
-            self.pager.write(data)
+            raise KeyboardInterrupt("Pipe Error")
+
+    def flush(self):
+        """Wait for the pager to be exited."""
+        self.pager.communicate()
 
 
 class TextRenderer(object):
@@ -136,7 +129,15 @@ class TextRenderer(object):
 
     def start(self):
         """The method is called when new output is required."""
-        self.pager = self.fd or Pager(session=self.session)
+        self.pager = self.fd
+        if self.pager is None and self.session.pager:
+            self.pager = Pager(session=self.session)
+        else:
+            self.pager = sys.stdout
+
+    def end(self):
+        """Tells the renderer that we finished using it for a while."""
+        self.pager.flush()
 
     def write(self, data):
         self.pager.write(data)
@@ -244,9 +245,6 @@ class TextRenderer(object):
             reslist.append(result)
         self.write(self.tablesep.join(reslist) + "\n")
 
-    def end(self):
-        """Tells the renderer that we finished using it for a while."""
-
 
 class Session(object):
     """The session allows for storing of arbitrary values and configuration."""
@@ -292,7 +290,7 @@ class Session(object):
         self._locals['dump'] = session.dump
         self._locals['vol'] = session.vol
         self._locals['info'] = session.info
-        self._locals['help'] = session.help
+        self._locals['vhelp'] = session.vhelp
         self._locals['p'] = session.printer
 
     def printer(self, string):
@@ -353,9 +351,12 @@ class Session(object):
 
             kwargs['session'] = self
             result = plugin_cls(**kwargs)
-            result.render(renderer)
+            try:
+                result.render(renderer)
+                renderer.end()
+            except KeyboardInterrupt:
+                print "Aborted!"
 
-            renderer.end()
             return result
 
         except plugin.Error, e:
@@ -437,19 +438,19 @@ Config:
         logging.log(level, "Logging level set to %s", value)
         logging.getLogger().setLevel(int(level))
 
-    def help(self, item=None):
+    def vhelp(self, item=None):
         """Prints some helpful information."""
         if item is None:
             print """Welocome to Volatility.
 
 You can get help on any module or object by typing:
 
-help object
+vhelp object
 
 Some interesting topics to get you started, explaining some volatility specific
 concepts:
 
-help addrspace - The address space.
-help obj       - The volatility objects.
-help profile   - What are Profiles?
+vhelp addrspace - The address space.
+vhelp obj       - The volatility objects.
+vhelp profile   - What are Profiles?
 """
