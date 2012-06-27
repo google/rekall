@@ -52,6 +52,17 @@ class Disassemble(plugin.Command):
         else:
             self.distorm_mode = distorm3.Decode64Bits
 
+    def disassemble(self, offset):
+        """Disassemble the number of instructions required.
+
+        Returns:
+          A tuple of (Address, Opcode, Instructions).
+        """
+        data = self.address_space.zread(offset, self.length)
+        iterable = distorm3.DecodeGenerator(int(offset), data, self.distorm_mode)
+        for (offset, _size, instruction, hexdump) in iterable:
+            yield offset, hexdump, instruction
+
     def render(self, renderer):
         """Disassemble code at a given address.
 
@@ -64,12 +75,9 @@ class Disassemble(plugin.Command):
         The mode is '32bit' or '64bit'. If not supplied, the disasm
         mode is taken from the profile.
         """
-        data = self.address_space.zread(self.offset, self.length)
-        iterable = distorm3.DecodeGenerator(self.offset, data, self.distorm_mode)
-
         renderer.table_header([('Address', '[addrpad]'),
                                ('Op Codes', '<20'),
                                ('Instruction', '<40')])
-        for (offset, _size, instruction, hexdump) in iterable:
+        for (offset, instruction, hexdump) in self.disassemble(self.offset):
             renderer.table_row(offset, hexdump, instruction)
 

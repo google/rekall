@@ -262,13 +262,17 @@ class TextRenderer(object):
 
         for index in range(len(args)):
             spec = self._formatlist[index]
-            result = (u"{0:" + spec.to_string() + "}").format(args[index])
+            formatted_output = (u"{0:" + spec.to_string() + "}").format(args[index])
             if spec.elide:
-                result = [self._elide(result, spec.minwidth)]
+                result = [self._elide(formatted_output, spec.minwidth)]
             elif spec.wrap:
-                result = textwrap.wrap(result, spec.width)
+                result = []
+
+                for line in formatted_output.split("\n"):
+                    result.extend(textwrap.wrap(
+                            line, spec.width, replace_whitespace=False))
             else:
-                result = [result]
+                result = [formatted_output]
 
             reslist.append(result)
             number_of_lines = max(number_of_lines, len(result))
@@ -362,8 +366,7 @@ class Session(object):
     def info(self, plugin_cls=None, fd=None):
         self.vol(self.plugins.info, item=plugin_cls, fd=fd)
 
-    def vol(self, plugin_cls, renderer=None, fd=None, debug=False, output=None,
-            **kwargs):
+    def vol(self, plugin_cls, *args, **kwargs):
         """Launch a plugin and its render() method automatically.
 
         We use the pager specified in session.pager.
@@ -377,6 +380,11 @@ class Session(object):
             session.overwrite is set to True, we will overwrite this
             file. Otherwise the output is redirected to stdout.
         """
+        renderer = kwargs.pop("renderer", None)
+        fd = kwargs.pop("fd", None)
+        debug = kwargs.pop("debug", False)
+        output = kwargs.pop("output", None)
+
         if isinstance(plugin_cls, basestring):
             plugin_cls = getattr(self.plugins, plugin_cls)
 
@@ -397,7 +405,7 @@ class Session(object):
             renderer.start()
 
             kwargs['session'] = self
-            result = plugin_cls(**kwargs)
+            result = plugin_cls(*args, **kwargs)
             try:
                 result.render(renderer)
                 renderer.end()

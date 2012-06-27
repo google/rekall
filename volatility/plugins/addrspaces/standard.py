@@ -100,6 +100,8 @@ class FileAddressSpace(FDAddressSpace):
     order = 100
 
     def __init__(self, filename=None, session=None, **kwargs):
+        self.as_assert(self.base == None, 'Must be first Address Space')
+
         self.session = session
         path = filename or (session and session.filename)
         self.as_assert(path, "Filename must be specified in session (e.g. "
@@ -112,7 +114,6 @@ class FileAddressSpace(FDAddressSpace):
         fhandle = open(self.fname, self.mode)
         super(FileAddressSpace, self).__init__(fhandle=fhandle, session=session,
                                                **kwargs)
-        self.as_assert(self.base == None, 'Must be first Address Space')
 
 
 class WriteableAddressSpace(FDAddressSpace):

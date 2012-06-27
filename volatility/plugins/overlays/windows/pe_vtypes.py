@@ -84,27 +84,12 @@ class RVAPointer(obj.Pointer):
 
     def __init__(self, image_base=None, **kwargs):
         super(RVAPointer, self).__init__(**kwargs)
-
-        try:
-            image_base = self.obj_vm.image_base
-        except AttributeError:
-            pass
-
-        # By default find the ImageBase member of a parent.
-        if image_base is None:
-            for parent in self.parents:
-                try:
-                    image_base = parent.ImageBase
-                    break
-                except AttributeError:
-                    pass
-
-        self.ImageBase = image_base or 0
+        self.image_base = self.obj_context.get("image_base", 0)
 
     def v(self):
         rva_pointer = super(RVAPointer, self).v()
         if rva_pointer:
-            rva_pointer += self.ImageBase
+            rva_pointer += self.image_base
 
         return rva_pointer
 
@@ -114,20 +99,18 @@ class ResourcePointer(obj.Pointer):
 
     def __init__(self, resource_base=None, **kwargs):
         super(ResourcePointer, self).__init__(**kwargs)
-        # By default find the resource_base member of a parent.
-        if resource_base is None:
-            for parent in self.parents:
-                try:
-                    self.resource_base = parent.resource_base
-                    break
+        # By default find the resource_base from the context.
+        self.resource_base = self.obj_context.get("resource_base")
 
-                except AttributeError:
-                    if isinstance(parent, _IMAGE_NT_HEADERS):
-                        for section in parent.Sections:
-                            if section.Name.startswith(".rsrc"):
-                                self.resource_base = (section.VirtualAddress +
-                                                      parent.OptionalHeader.ImageBase)
-                                break
+        if self.resource_base is None:
+            for parent in self.parents:
+                if isinstance(parent, _IMAGE_NT_HEADERS):
+                    for section in parent.Sections:
+                        if section.Name.startswith(".rsrc"):
+                            self.resource_base = (section.VirtualAddress +
+                                                  parent.OptionalHeader.ImageBase)
+                            self.obj_context['resource_base'] = self.resource_base
+                            break
 
     def v(self):
         # Only the first 31 bits are meaningful.
@@ -1075,7 +1058,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
 
         nt_header = self.obj_profile.Object(theType="_IMAGE_NT_HEADERS",
                                             offset = self.e_lfanew + self.obj_offset,
-                                            vm = self.obj_vm)
+                                            vm = self.obj_vm, context=self.obj_context)
 
         if nt_header.Signature != 0x4550:
             return obj.NoneObject('NT header signature {0:04X} is not a valid'.format(
@@ -1148,6 +1131,8 @@ class _IMAGE_RESOURCE_DIRECTORY(obj.CType):
         for entry in self.Entries:
             if entry.Name == node_name:
                 return entry.Entry
+
+        return obj.NoneObject("node %s not found" % node_name)
 
     def Traverse(self):
         """A generator for _IMAGE_RESOURCE_DATA_ENTRY under this node."""
@@ -1246,7 +1231,8 @@ class PE(object):
             self.image_base = self.vm.image_base
 
         self.dos_header = self.profile.Object(
-            "_IMAGE_DOS_HEADER", vm=self.vm, offset=self.image_base)
+            "_IMAGE_DOS_HEADER", vm=self.vm, offset=self.image_base,
+            context=dict(image_base=self.image_base))
 
         self.nt_header = self.dos_header.NTHeader
 
@@ -1423,7 +1409,8 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
         self.runs.sort()
 
         self.nt_header = self.profile.Object(
-            "_IMAGE_DOS_HEADER", vm=self, offset=self.image_base).NTHeader
+            "_IMAGE_DOS_HEADER", vm=self, offset=self.image_base,
+            context=dict(image_base=0)).NTHeader
 
     def read(self, addr, length):
         # Not a particularly efficient algorithm, but probably fast enough since

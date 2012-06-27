@@ -154,8 +154,9 @@ class Flags(obj.NativeType):
                 self.maskmap[v] = 1 << k
 
         self.target = target
-        self.target_obj = self.obj_profile.Object(target, offset=self.obj_offset,
-                                                  vm=self.obj_vm)
+        self.target_obj = self.obj_profile.Object(
+            target, offset=self.obj_offset, vm=self.obj_vm,
+            context=self.obj_context)
 
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
@@ -195,7 +196,7 @@ class Enumeration(obj.NativeType):
         self.choices = choices or {}
         self.target = target
         self.target_obj = self.obj_profile.Object(
-            target, offset=self.obj_offset, vm=self.obj_vm)
+            target, offset=self.obj_offset, vm=self.obj_vm, context=self.obj_context)
 
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
@@ -254,9 +255,9 @@ class _LIST_ENTRY(obj.CType):
         offset = self.obj_profile.get_obj_offset(type, member)
 
         item = self.obj_profile.Object(
-            theType=type, offset = self.obj_offset - offset,
-            vm = vm or self.obj_vm, parent = self.obj_parent,
-            name = type)
+            theType=type, offset=self.obj_offset - offset,
+            vm=vm or self.obj_vm, parent=self.obj_parent,
+            name=type, context=self.obj_context)
 
         return item
 

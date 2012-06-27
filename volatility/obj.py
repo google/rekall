@@ -200,8 +200,8 @@ class BaseObject(object):
     # We have **kwargs here, but it's unclear if it's a good idea
     # Benefit is objects will never fail with duff parameters
     # Downside is typos won't show up and be difficult to diagnose
-    def __init__(self, theType=None, offset=0, vm=None, profile = None,
-                 parent = None, name = '', **kwargs):
+    def __init__(self, theType=None, offset=0, vm=None, profile=None,
+                 parent=None, name='', context=None, **kwargs):
         """Constructor for Base object.
 
         Args:
@@ -220,6 +220,10 @@ class BaseObject(object):
 
           name: The name of this object.
 
+          context: An opaque dict which is passed to all objects created from
+            this object. This dict may contain context specific information
+            which each derived instance can use.
+
           kwargs: Arbitrary args this object may accept - these can be passed in
              the vtype language definition.
         """
@@ -235,6 +239,7 @@ class BaseObject(object):
         self.obj_parent = parent
         self.obj_name = name
         self.obj_profile = profile
+        self.obj_context = context or {}
 
         if not self.obj_vm.is_valid_address(self.obj_offset):
             raise InvalidOffsetError("Invalid Address 0x{0:08X}, instantiating {1}".format(
@@ -326,11 +331,13 @@ class BaseObject(object):
         vm = vm or self.obj_vm
 
         return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm,
-                                       parent=self.obj_parent, name=self.obj_name, **kwargs)
+                                       parent=self.obj_parent, name=self.obj_name,
+                                       context=self.obj_context, **kwargs)
 
     def cast(self, castString, **kwargs):
         return self.obj_profile.Object(theType=castString, offset=self.obj_offset,
-                                       vm=self.obj_vm, parent=self.obj_parent, **kwargs)
+                                       vm=self.obj_vm, parent=self.obj_parent,
+                                       context=self.obj_context, **kwargs)
 
     def v(self, vm=None):
         """ Do the actual reading and decoding of this member
@@ -459,7 +466,8 @@ class BitField(NativeType):
         super(BitField, self).__init__(**kwargs)
 
         self._proxy = self.obj_profile.Object(
-            native_type or "address", offset=self.obj_offset, vm=self.obj_vm)
+            native_type or "address", offset=self.obj_offset, vm=self.obj_vm,
+            context=self.obj_context)
 
         self.start_bit = start_bit
         self.end_bit = end_bit
@@ -495,7 +503,7 @@ class Pointer(NativeType):
         # We parse the address using the profile since address is a different
         # size on different platforms.
         self._proxy = self.obj_profile.Object("address", offset=self.obj_offset,
-                                              vm=self.obj_vm)
+                                              vm=self.obj_vm, context=self.obj_context)
 
         # We just hold on to these so we can construct the objects later.
         self.target = target
@@ -535,7 +543,8 @@ class Pointer(NativeType):
                                name = self.obj_name))
 
             if isinstance(self.target, basestring):
-                result = self.obj_profile.Object(theType=self.target, **kwargs)
+                result = self.obj_profile.Object(theType=self.target,
+                                                 context=self.obj_context, **kwargs)
 
             elif callable(self.target):
                 result = self.target(**kwargs)
@@ -618,7 +627,8 @@ class Pointer(NativeType):
         vm = vm or self.obj_vm
 
         return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm,
-                                       parent=self.obj_parent, **kwargs)
+                                       parent=self.obj_parent,
+                                       context=self.obj_context, **kwargs)
 
 
 class Void(Pointer):
@@ -730,8 +740,8 @@ class Array(BaseObject):
             return self.obj_profile.Object(
                 self.target, offset=offset, vm=self.obj_vm,
                 parent=self, profile=self.obj_profile,
-                name = "{0}[{1}] ".format(self.obj_name, pos),
-                **self.target_args)
+                name="{0}[{1}] ".format(self.obj_name, pos),
+                context=self.obj_context, **self.target_args)
         except InvalidOffsetError:
             return NoneObject("Invalid offset %s" % offset)
 
@@ -767,8 +777,8 @@ class ListArray(Array):
             try:
                 item = self.obj_profile.Object(
                     self.target, offset=offset, vm=self.obj_vm, parent=self,
-                    profile=self.obj_profile,
-                    name = "{0}[{1}] ".format(self.obj_name, count),
+                    profile=self.obj_profile, context=self.obj_context,
+                    name="{0}[{1}] ".format(self.obj_name, count),
                     **self.target_args)
 
                 item_size = item.size()
@@ -890,8 +900,8 @@ class CType(BaseObject):
             offset = int(offset) + int(self.obj_offset)
 
         try:
-            result = cls(offset = offset, vm = self.obj_vm, parent = self, name = attr,
-                         profile = self.obj_profile)
+            result = cls(offset=offset, vm=self.obj_vm, parent=self, name=attr,
+                         profile=self.obj_profile, context=self.obj_context)
         except Error, e:
             result = NoneObject(str(e))
 
@@ -1321,7 +1331,8 @@ class Profile(object):
 
         return Curry(self.Object, attr)
 
-    def Object(self, theType=None, vm=None, offset=0, name=None, parent=None, **kwargs):
+    def Object(self, theType=None, vm=None, offset=0, name=None, parent=None,
+               context=None, **kwargs):
         """ A function which instantiates the object named in theType (as
         a string) from the type in profile passing optional args of
         kwargs.
@@ -1336,6 +1347,9 @@ class Profile(object):
             instantiated.
 
           name: An optional name for the object.
+
+          context: An opaque dict which is passed to all objects created from
+            this object.
 
           parent: The object can maintain a reference to its parent object.
         """
@@ -1353,15 +1367,16 @@ class Profile(object):
 
             if theType in self.types:
                 result = self.types[theType](offset=offset, vm=vm, name=name,
-                                             parent=parent, **kwargs)
+                                             parent=parent, context=context, **kwargs)
                 return result
 
             if theType in self.object_classes:
-                result = self.object_classes[theType](theType = theType,
-                                                      offset = offset,
-                                                      vm = vm,
-                                                      name = name,
+                result = self.object_classes[theType](theType=theType,
+                                                      offset=offset,
+                                                      vm=vm,
+                                                      name=name,
                                                       parent=parent,
+                                                      context=context,
                                                       **kwargs)
                 return result
 
