@@ -24,7 +24,8 @@ import os
 import struct
 import win32file
 
-from volatility.plugins.addrspaces import standard
+from volatility import addrspace
+from volatility import utils
 
 
 def CTL_CODE(DeviceType, Function, Method, Access):
@@ -34,8 +35,10 @@ def CTL_CODE(DeviceType, Function, Method, Access):
 # IOCTLS for interacting with the driver.
 INFO_IOCTRL = CTL_CODE(0x22, 0x100, 0, 3)
 
+PAGE_SHIFT = 12
 
-class Win32FileAddressSpace(standard.FileAddressSpace):
+
+class Win32FileAddressSpace(addrspace.PagedReader):
     """ This is a direct file AS for use in windows.
 
     In windows, in order to open raw devices we need to use the win32 apis. This
@@ -48,12 +51,12 @@ class Win32FileAddressSpace(standard.FileAddressSpace):
     ## We should be the AS of last resort but in front of the non win32 version.
     order = 90
 
-    def __init__(self, filename=None, **kwargs):
-        super(standard.FileAddressSpace, self).__init__(**kwargs)
+    PAGE_SIZE = 0x10000
 
-        self.as_assert(self.base == None, 'Must be first Address Space')
+    def __init__(self, base=None, filename=None, session=None, **kwargs):
+        self.as_assert(base == None, 'Must be first Address Space')
 
-        path = (self.session and self.session.filename) or filename
+        path = (session and session.filename) or filename
         self.as_assert(path, "Filename must be specified in session (e.g. "
                        "session.filename = 'MyFile.raw').")
 
@@ -71,11 +74,19 @@ class Win32FileAddressSpace(standard.FileAddressSpace):
         self.runs = []
         try:
             self.ParseMemoryRuns()
-        except exceptions.WindowsError:
+        except Exception:
             self.runs = [0, 1e12]
 
+        # IO on windows is extremely slow so we are better off using a
+        # cache.
+        self.cache = utils.FastStore(1000)
+
+        super(Win32FileAddressSpace, self).__init__(
+            session=session, base=base, **kwargs)
+
     def ParseMemoryRuns(self):
-        result = win32file.DeviceIoControl(self.fhandle, INFO_IOCTRL, "", 1024, None)
+        result = win32file.DeviceIoControl(
+            self.fhandle, INFO_IOCTRL, "", 1024, None)
 
         fmt_string = "QQl"
         self.dtb, _, number_of_runs = struct.unpack_from(fmt_string, result)
@@ -86,11 +97,52 @@ class Win32FileAddressSpace(standard.FileAddressSpace):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
             self.runs.append((start,length))
 
-    def read(self, addr, length):
-        win32file.SetFilePointer(self.fhandle, addr, 0)
+    def _read_chunk(self, addr, length, pad):
+        offset, length = self._get_available_buffer(addr, length)
+        if offset is None:
+            return "\x00" * length
+
+        win32file.SetFilePointer(self.fhandle, offset, 0)
         _, data = win32file.ReadFile(self.fhandle, length)
         return data
 
     def close(self):
         win32file.CloseHandle(self.fhandle)
 
+    def vtop(self, addr):
+        file_offset, _ = self._get_available_buffer(addr, 1)
+        return file_offset
+
+    def _get_available_buffer(self, addr, length):
+        """Resolves the address into the file offset.
+
+        In a crash dump, pages are stored back to back in runs. This function
+        finds the run that contains this page and returns the file address where
+        this page can be found.
+
+        Returns:
+          A tuple of (physical_offset, available_length). The physical_offset
+          can be None to signify that the address if not valid.
+        """
+        for start, run_length in self.runs:
+            # Required address is before this run (i.e. the read is
+            # outside any run).
+            if addr < start:
+                available_length = min(length, start - addr)
+                return (None, available_length)
+
+            # The required page is inside this run.
+            if addr >= start and addr < start + run_length:
+                available_length = min(length, start + run_length - addr)
+
+                # Offset of page in the run.
+                return (addr, available_length)
+
+        return None, 0
+
+    def get_available_pages(self):
+        for start, length in self.runs:
+            yield start >> PAGE_SHIFT, length >> PAGE_SHIFT
+
+    def is_valid_address(self, addr):
+        return self.vtop(addr) is not None

@@ -185,7 +185,7 @@ class LoadAddressSpace(plugin.ProfileCommand):
                     error.append_reason(cls.__name__, e)
                     continue
                 except Exception, e:
-                    logging.debug("Fatal Error: %s", e)
+                    logging.error("Fatal Error: %s", e)
                     return
 
             ## A full iteration through all the classes without anyone

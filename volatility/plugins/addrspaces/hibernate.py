@@ -26,7 +26,7 @@
 """ A Hiber file Address Space """
 from volatility import addrspace
 from volatility import obj
-from volatility.win32 import xpress
+from volatility.plugins.addrspaces import xpress
 import struct
 
 

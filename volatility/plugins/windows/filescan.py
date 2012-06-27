@@ -195,7 +195,7 @@ class SymLinkScan(FileScan):
                                ('#Ptr', '>6'),
                                ('#Hnd', '>6'),
                                ('Creation time', '24'),
-                               ('From', '<20'),
+                               ('From', ''),
                                ('To', '60'),
                                ])
 

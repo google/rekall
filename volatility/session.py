@@ -280,13 +280,14 @@ class TextRenderer(object):
 
         # Allow table rows to span multiple text lines.
         for i in range(number_of_lines):
+            row = []
             for j, cell_content in enumerate(reslist):
                 try:
-                    self.write(cell_content[i])
+                    row.append(cell_content[i])
                 except IndexError:
-                    self.write(" " * cell_widths[j])
+                    row.append(" " * cell_widths[j])
 
-                self.write(self.tablesep)
+            self.write(self.tablesep.join(row))
             self.write("\n")
 
 

@@ -10,15 +10,15 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 #  The source code in this file was inspired by the work of Matthieu Suiche,
-#  http://sandman.msuiche.net/, and the information presented released as 
+#  http://sandman.msuiche.net/, and the information presented released as
 #  part of the Microsoft Interoperability Initiative:
 #  http://download.microsoft.com/download/a/e/6/ae6e4142-aa58-45c6-8dcf-a657e5900cd3/%5BMS-DRSR%5D.pdf
 #  A special thanks to Matthieu for all his help!
@@ -60,8 +60,8 @@ def xpress_decode(inputBuffer):
             indicatorBit = 32
 
         indicatorBit = indicatorBit - 1
-        # check whether the bit specified by indicatorBit is set or not 
-        # set in indicator. For example, if indicatorBit has value 4 
+        # check whether the bit specified by indicatorBit is set or not
+        # set in indicator. For example, if indicatorBit has value 4
         # check whether the 4th bit of the value in indicator is set
         if not (indicator & (1 << indicatorBit)):
             try:
@@ -77,7 +77,7 @@ def xpress_decode(inputBuffer):
             # that it is actually wider. First we try 3 bits, then 3
             # bits plus a nibble, then a byte, and finally two bytes (an
             # unsigned short). Also, if we are using a nibble, then every
-            # other time we get the nibble from the high part of the previous 
+            # other time we get the nibble from the high part of the previous
             # byte used as a length nibble.
             # Thus if a nibble byte is F2, we would first use the low part (2),
             # and then at some later point get the nibble from the high part (F).

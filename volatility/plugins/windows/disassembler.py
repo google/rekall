@@ -17,6 +17,23 @@
 #
 
 """This module provides the primitives needed to disassemble code using distorm3."""
+
+# This stuff is just here to make pyinstaller pick up on it. Due to the way
+# distorm3 uses ctypes, pyinstaller misses the imports. Note that the following
+# patch should also be applied to distorm3/__init__.py to support freezing:
+#
+#    # Guess the DLL filename and load the library.
+#    if getattr(sys, "frozen", None):
+#        _distorm_path = '.'
+#    else:
+#        _distorm_path = split(__file__)[0]
+try:
+    from ctypes import cdll
+
+    cdll.LoadLibrary("distorm3.dll")
+except Exception:
+    pass
+
 import distorm3
 
 from volatility import obj
