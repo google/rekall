@@ -33,11 +33,11 @@ import textwrap
 import time
 
 from volatility import addrspace
-from volatility import fmtspec
 from volatility import plugin
 from volatility import obj
 from volatility import registry
 from volatility import utils
+from volatility.ui import renderer
 
 
 class ProfileContainer(object):
@@ -86,212 +86,6 @@ class PluginContainer(object):
             raise AttributeError(attr)
 
 
-class Pager(object):
-    """A wrapper around a pager.
-
-    The pager can be specified by the session. (eg. session.pager = 'less') or
-    in an PAGER environment var.
-    """
-    # Default encoding is utf8
-    encoding = "utf8"
-
-    def __init__(self, session=None, encoding=None):
-        # More is the least common denominator of pagers :-(. Less is better,
-        # but most is best!
-        pager = session.pager or os.environ.get("PAGER")
-        self.encoding = encoding or session.encoding or sys.stdout.encoding
-        self.pager = subprocess.Popen(pager, shell=True, stdin=subprocess.PIPE, bufsize=10240)
-
-    def write(self, data):
-        # Encode the data according to the output encoding.
-        data = utils.SmartUnicode(data).encode(self.encoding, "replace")
-        try:
-            self.pager.stdin.write(data)
-            self.pager.stdin.flush()
-        except IOError:
-            raise KeyboardInterrupt("Pipe Error")
-
-    def flush(self):
-        """Wait for the pager to be exited."""
-        self.pager.communicate()
-
-
-class UnicodeWrapper(object):
-    """A wrapper around a file like object which guarantees writes in utf8."""
-
-    def __init__(self, fd, encoding='utf8'):
-        self.fd = fd
-        self.encoding = encoding
-
-    def write(self, data):
-        data = utils.SmartUnicode(data).encode(self.encoding, "replace")
-        self.fd.write(data)
-
-    def flush(self):
-        self.fd.flush()
-
-
-class TextRenderer(object):
-    """Plugins can receive a renderer object to assist formatting of output."""
-
-    __metaclass__ = registry.MetaclassRegistry
-
-    tablesep = " "
-    elide = True
-
-    def __init__(self, session=None, fd=None):
-        self.session = session
-        self.fd = fd
-
-    def start(self):
-        """The method is called when new output is required."""
-        if self.fd is None and self.session.pager:
-            self.pager = Pager(session=self.session)
-        else:
-            self.pager = UnicodeWrapper(self.fd or sys.stdout)
-
-    def end(self):
-        """Tells the renderer that we finished using it for a while."""
-        self.pager.flush()
-
-    def write(self, data):
-        self.pager.write(data)
-
-    def _elide(self, string, length):
-        """Adds three dots in the middle of a string if it is longer than length"""
-        if length == -1:
-            return string
-
-        if len(string) < length:
-            return (" " * (length - len(string))) + string
-
-        elif len(string) == length:
-            return string
-
-        else:
-            if length < 5:
-                logging.error("Cannot elide a string to length less than 5")
-
-            even = ((length + 1) % 2)
-            length = (length - 3) / 2
-            return string[:length + even] + "..." + string[-length:]
-
-    def _formatlookup(self, code):
-        """Code to turn profile specific values into format specifications"""
-        # Allow the format code to be provided as dict for directly initializing
-        # a FormatSpec object.
-        if isinstance(code, dict):
-            return fmtspec.FormatSpec(**code)
-
-        code = code or ""
-        # Allow extended format specifiers (e.g. [addr] or [addrpad])
-        if not code.startswith('['):
-            return fmtspec.FormatSpec(code)
-
-        # Strip off the square brackets
-        code = code[1:-1].lower()
-        if code.startswith('addr'):
-            spec = fmtspec.FormatSpec("#10x")
-            if self.session.profile.metadata('memory_model') == '64bit':
-                spec.minwidth += 8
-
-            if 'pad' in code:
-                spec.fill = "0"
-                spec.align = spec.align if spec.align else "="
-
-            else:
-                # Non-padded addresses will come out as numbers,
-                # so titles should align >
-                spec.align = ">"
-            return spec
-
-        # Something went wrong
-        debug.warning("Unknown table format specification: " + code)
-        return ""
-
-    def table_header(self, title_format_list = None, suppress_headers=False):
-        """Table header renders the title row of a table.
-
-        This also stores the header types to ensure everything is formatted
-        appropriately.  It must be a list of tuples rather than a dict for
-        ordering purposes.
-
-        Args:
-
-           title_format_list: A list of (Name, formatstring) tuples describing
-              the table headers.
-
-           suppress_headers: If True table headers will not be written (still
-              useful for formatting).
-        """
-        titles = []
-        rules = []
-        self._formatlist = []
-
-        for (k, v) in title_format_list:
-            spec = self._formatlookup(v)
-
-            # If spec.minwidth = -1, this field is unbounded length
-            if spec.minwidth != -1:
-                spec.minwidth = max(spec.minwidth, len(k))
-
-            # Get the title specification to follow the alignment of the field
-            titlespec = fmtspec.FormatSpec(formtype='s',
-                                           minwidth=max(spec.minwidth, len(k)))
-
-            titlespec.align = spec.align if spec.align in "<>^" else "<"
-
-            # Add this to the titles, rules, and formatspecs lists
-            titles.append((u"{0:" + titlespec.to_string() + "}").format(k))
-            rules.append("-" * titlespec.minwidth)
-            self._formatlist.append(spec)
-
-        # Write out the titles and line rules
-        if not suppress_headers:
-            self.write(self.tablesep.join(titles) + "\n")
-            self.write(self.tablesep.join(rules) + "\n")
-
-    def table_row(self, *args):
-        """Outputs a single row of a table"""
-        reslist = []
-        cell_widths = []
-        if len(args) > len(self._formatlist):
-            logging.error("Too many values for the table")
-
-        number_of_lines = 0
-
-        for index in range(len(args)):
-            spec = self._formatlist[index]
-            formatted_output = (u"{0:" + spec.to_string() + "}").format(args[index])
-            if spec.elide:
-                result = [self._elide(formatted_output, spec.minwidth)]
-            elif spec.wrap:
-                result = []
-
-                for line in formatted_output.split("\n"):
-                    result.extend(textwrap.wrap(
-                            line, spec.width, replace_whitespace=False))
-            else:
-                result = [formatted_output]
-
-            reslist.append(result)
-            number_of_lines = max(number_of_lines, len(result))
-            cell_widths.append(len(result[0]))
-
-        # Allow table rows to span multiple text lines.
-        for i in range(number_of_lines):
-            row = []
-            for j, cell_content in enumerate(reslist):
-                try:
-                    row.append(cell_content[i])
-                except IndexError:
-                    row.append(" " * cell_widths[j])
-
-            self.write(self.tablesep.join(row))
-            self.write("\n")
-
-
-
 class Session(object):
     """The session allows for storing of arbitrary values and configuration."""
 
@@ -310,7 +104,7 @@ class Session(object):
         self.profile = obj.NoneObject("Set this a valid profile (e.g. type profiles. and tab).")
         self.profile_file = obj.NoneObject("Some profiles accept a data file (e.g. Linux).")
         self.filename = obj.NoneObject("Set this to the image filename.")
-        self.renderer = TextRenderer(session=self)
+        self.renderer = renderer.TextRenderer(session=self)
 
         self.plugins = PluginContainer(self)
         self._ready = True
@@ -381,37 +175,41 @@ class Session(object):
             session.overwrite is set to True, we will overwrite this
             file. Otherwise the output is redirected to stdout.
         """
-        renderer = kwargs.pop("renderer", None)
+        ui_renderer = kwargs.pop("renderer", None)
         fd = kwargs.pop("fd", None)
         debug = kwargs.pop("debug", False)
         output = kwargs.pop("output", None)
+        overwrite = kwargs.pop("overwrite", None)
 
         if isinstance(plugin_cls, basestring):
             plugin_cls = getattr(self.plugins, plugin_cls)
 
-        renderer = renderer or self.renderer
+        ui_renderer = ui_renderer or self.renderer
 
         if output is not None:
-            if os.access(output, os.F_OK) and not self.overwrite:
+            if os.access(output, os.F_OK) and not (overwrite or self.overwrite):
                 logging.error("Output file '%s' exists but session.overwrite is "
                               "not set." % output)
+                return
             else:
-                renderer = TextRenderer(session=self, fd=open(output, "w"))
+                ui_renderer = renderer.TextRenderer(session=self, fd=open(output, "w"))
 
         # Allow per call overriding of the output file descriptor.
-        if fd is not None:
-            renderer = TextRenderer(session=self, fd=fd)
+        elif fd is not None:
+            ui_renderer = renderer.TextRenderer(session=self, fd=fd)
 
         try:
-            renderer.start()
+            ui_renderer.start()
 
             kwargs['session'] = self
             result = plugin_cls(*args, **kwargs)
             try:
-                result.render(renderer)
-                renderer.end()
+                result.render(ui_renderer)
             except KeyboardInterrupt:
-                print "Aborted!"
+                self.report_progress("Aborted!\r\n", force=True)
+
+            finally:
+                ui_renderer.end()
 
             return result
 
@@ -499,6 +297,11 @@ Config:
 
         logging.log(level, "Logging level set to %s", value)
         logging.getLogger().setLevel(int(level))
+
+    def report_progress(self, message="", force=False):
+        """Called by the library to report back on the progress."""
+        if callable(self.progress):
+            self.progress(message, force=force)
 
     def vhelp(self, item=None):
         """Prints some helpful information."""

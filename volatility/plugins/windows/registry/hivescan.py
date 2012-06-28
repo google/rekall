@@ -71,7 +71,8 @@ class HiveScan(common.PoolScannerPlugin):
         """Yields potential _HHIVE objects."""
         # Scan for these in the kernel address space.
         address_space = address_space or self.physical_address_space
-        scanner = PoolScanHive(profile=self.profile, address_space=address_space)
+        scanner = PoolScanHive(profile=self.profile, address_space=address_space,
+                               session=self.session)
 
         return scanner.scan()
 

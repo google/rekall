@@ -19,13 +19,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-#pylint: disable-msg=C0111
-
 from volatility import obj
 from volatility.plugins.windows import common
 
 
-# Inherit from Dlllist for command line options
 class Handles(common.WinProcessFilter):
     """Print list of open handles for each process"""
 
@@ -93,7 +90,12 @@ class Handles(common.WinProcessFilter):
             object_list = []
 
         for task in self.filter_processes():
-            for handle, object_type, name in self.enumerate_handles(task):
+            for count, (handle, object_type, name) in enumerate(
+                self.enumerate_handles(task)):
+
+                self.session.report_progress("%s: %s handles" % (
+                        task.ImageFileName, count))
+
                 if object_list and object_type not in object_list:
                     continue
 

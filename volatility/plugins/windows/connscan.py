@@ -58,7 +58,8 @@ class ConnScan(common.AbstractWindowsCommandPlugin):
           _TCPT_OBJECT instantiated on the physical address space.
         """
         scanner = PoolScanConnFast(
-            profile=self.profile, address_space=self.physical_address_space)
+            session=self.session, profile=self.profile,
+            address_space=self.physical_address_space)
 
         for offset in scanner.scan():
             ## The struct is allocated out of the pool (i.e. its not an object).

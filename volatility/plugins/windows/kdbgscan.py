@@ -96,7 +96,8 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
 
     def hits(self):
         scanner = scan.BaseScanner.classes['KDBGScanner'](
-            profile=self.profile, address_space=self.kernel_address_space)
+            session=self.session, profile=self.profile,
+            address_space=self.kernel_address_space)
 
         # Yield actual objects here
         for kdbg in scanner.scan():

@@ -60,7 +60,7 @@ class FileScan(common.PoolScannerPlugin):
 
     def generate_hits(self):
         """Generate possible hits."""
-        scanner = PoolScanFile(profile=self.profile,
+        scanner = PoolScanFile(profile=self.profile, session=self.session,
                                address_space=self.address_space)
         for offset in scanner.scan():
             object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
@@ -122,8 +122,9 @@ class DriverScan(FileScan):
 
     def generate_hits(self):
         """Generate possible hits."""
-        scanner = PoolScanDriver(
-            profile=self.profile, address_space=self.address_space)
+        scanner = PoolScanDriver(session=self.session,
+                                 profile=self.profile,
+                                 address_space=self.address_space)
 
         for offset in scanner.scan():
             object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
@@ -178,7 +179,7 @@ class SymLinkScan(FileScan):
 
     def generate_hits(self):
         """Generate possible hits."""
-        scanner = PoolScanSymlink(profile=self.profile,
+        scanner = PoolScanSymlink(profile=self.profile, session=self.session,
                                   address_space=self.address_space)
         for offset in scanner.scan():
             object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
@@ -231,8 +232,9 @@ class MutantScan(FileScan):
         self.silent = silent
 
     def generate_hits(self):
-        scanner = PoolScanMutant(profile=self.profile,
+        scanner = PoolScanMutant(profile=self.profile, session=self.session,
                                  address_space=self.address_space)
+
         for offset in scanner.scan():
             object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
             if object_obj.get_object_type(self.kernel_address_space) != "Mutant":
@@ -358,8 +360,9 @@ class PSScan(common.PoolScannerPlugin):
     def calculate(self):
         """Generate possible hits."""
         ## Just grab the AS and scan it using our scanner
-        scanner =  PoolScanProcess(
-            profile=self.profile, address_space=self.address_space)
+        scanner =  PoolScanProcess(session=self.session,
+                                   profile=self.profile,
+                                   address_space=self.address_space)
 
         return scanner.scan()
 

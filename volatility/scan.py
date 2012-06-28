@@ -35,7 +35,7 @@ class BaseScanner(object):
     __metaclass__ = registry.MetaclassRegistry
 
     checks = []
-    def __init__(self, profile=None, address_space=None, window_size=8):
+    def __init__(self, profile=None, address_space=None, window_size=8, session=None):
         """The base scanner.
 
         Args:
@@ -51,6 +51,7 @@ class BaseScanner(object):
         self.profile = profile
         self.max_length = None
         self.base_offset = None
+        self.session = session
 
     def build_constraints(self):
         self.constraints = []
@@ -117,6 +118,10 @@ class BaseScanner(object):
             i = 0
             # Check each byte.
             while i < len(data):
+                # Update the progress bar.
+                if self.session:
+                    self.session.report_progress()
+
                 if self.check_addr(i + base_offset):
                     yield i + base_offset
 

@@ -95,7 +95,10 @@ class VADInfo(common.WinProcessFilter):
             renderer.write("*" * 72 + "\n")
             renderer.write("Pid: {0:6}\n".format(task.UniqueProcessId))
 
-            for vad in task.VadRoot.traverse():
+            for count, vad in enumerate(task.VadRoot.traverse()):
+                self.session.report_progress("Pid %s: %s Vads" % (task.UniqueProcessId,
+                                                                  count))
+
                 vad = vad.dereference()
                 if vad and vad != 0:
                     try:
@@ -207,7 +210,7 @@ class VADTree(VADInfo):
 
             renderer.table_header([("indent", ""),
                                    ("Start", "[addrpad]"),
-                                   ("-", "1"),
+                                   ("-", ""),
                                    ("End", "[addrpad]")
                                    ], suppress_headers=True)
 
