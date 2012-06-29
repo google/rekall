@@ -40,7 +40,8 @@ class BaseAddressSpace(object):
 
     order = 10
 
-    def __init__(self, base=None, session=None, write=False, profile=None, **kwargs):
+    def __init__(self, base=None, session=None, write=False, profile=None,
+                 **kwargs):
         """Base is the AS we will be stacking on top of, opts are options which
         we may use.
 
@@ -58,21 +59,18 @@ class BaseAddressSpace(object):
         self.base = base
         self.profile = profile
         self.session = session
-        self.writeable = (self.session and self.session.writable_address_space) or write
-
-    def get_config(self):
-        """Returns the config object used by the vm for use in other vms"""
-        return self.session
+        self.writeable = (self.session and self.session.writable_address_space or
+                          write)
 
     def as_assert(self, assertion, error = None):
-        """Duplicate for the assert command (so that optimizations don't disable them)
+        """Duplicate for the assert command (so that optimizations don't disable
+        them)
 
-           It had to be called as_assert, since assert is a keyword
+        It had to be called as_assert, since assert is a keyword
         """
         if not assertion:
-            if error == None:
-                error = "Instantiation failed for unspecified reason"
-            raise ASAssertionError(error)
+            raise ASAssertionError(error or
+                                   "Instantiation failed for unspecified reason")
 
     def read(self, addr, length):
         """ Read some date from a certain offset """
@@ -88,7 +86,7 @@ class BaseAddressSpace(object):
         return data
 
     def get_available_addresses(self):
-        """ Return a generator of address ranges as (offset, size) covered by this AS """
+        """Generates of address ranges as (offset, size) for by this AS."""
         return []
 
     def is_valid_address(self, _addr):
@@ -96,8 +94,8 @@ class BaseAddressSpace(object):
         return True
 
     def write(self, _addr, _buf):
-        raise NotImplementedError("Write support for this type of Address Space has not "
-                                  "been implemented")
+        raise NotImplementedError("Write support for this type of Address Space"
+                                  " has not been implemented")
 
     def vtop(self, addr):
         """Return the physical address of this virtual address."""
@@ -149,7 +147,8 @@ class BufferAddressSpace(BaseAddressSpace):
         self.data = data
 
     def is_valid_address(self, addr):
-        return not (addr < self.base_offset or addr > self.base_offset + len(self.data))
+        return not (addr < self.base_offset or addr > self.base_offset +
+                    len(self.data))
 
     def read(self, addr, length):
         offset = addr - self.base_offset
@@ -246,7 +245,11 @@ class ASAssertionError(Error):
 
 
 class AddrSpaceError(Error):
-    """Address Space Exception, so we can catch and deal with it in the main program"""
+    """Address Space Exception.
+
+    This exception is raised when an AS decides to not be instantiated. It is
+    used in the voting algorithm.
+    """
 
     def __init__(self):
         self.reasons = []
@@ -261,22 +264,4 @@ class AddrSpaceError(Error):
             result += " {0}: {1}\n".format(k, v)
 
         return result
-
-
-def AddressSpaceFactory(session = None, specification = '', astype = 'virtual', **kwargs):
-    """Build the address space from the specification.
-
-    Args:
-       session: A SessionObject.
-       specification: A column separated list of AS class names to be stacked.
-    """
-    base_as = None
-    for as_name in specification.split(":"):
-        as_cls = BaseAddressSpace.classes.get(as_name)
-        if as_cls is None:
-            raise Error("No such address space %s" % as_name)
-
-        base_as = as_cls(base=base_as, session=session, astype = astype, **kwargs)
-
-    return base_as
 

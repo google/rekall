@@ -1,7 +1,6 @@
 /*
-  This module does absolutely nothings at all. We just build it with debugging
-symbols and then read the DWARF symbols from it.
-*/
+  This module does absolutely nothing at all. We just build it with debugging
+  symbols and then read the DWARF symbols from it.  */
 #include <linux/module.h>
 
 #include <linux/fs_struct.h>
@@ -15,6 +14,7 @@ symbols and then read the DWARF symbols from it.
 #include <linux/mount.h>
 #include <linux/inetdevice.h>
 #include <linux/fdtable.h>
+#include <linux/elf.h>
 #include <net/ip_fib.h>
 #include <net/af_unix.h>
 
@@ -26,6 +26,19 @@ struct vfsmount vfsmount;
 struct in_device in_device;
 struct fib_table fib_table;
 struct unix_sock unix_sock;
+
+/* Elf structures. We use the names from the ELF standard:
+
+http://downloads.openwatcom.org/ftp/devel/docs/elf-64-gen.pdf
+*/
+Elf64_Ehdr A1;
+Elf64_Shdr A2;
+Elf64_Sym A3;
+Elf64_Rel A4;
+Elf64_Rela A5;
+Elf64_Phdr A6;
+Elf64_Dyn A7;
+Elf64_Nhdr A8;
 
 
 /********************************************************************

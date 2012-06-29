@@ -529,6 +529,9 @@ class Pointer(NativeType):
         """ Returns if what we are pointing to is valid """
         return self.obj_vm.is_valid_address(self.v())
 
+    def __getitem__(self, item):
+        return self.dereference()[item]
+
     def dereference(self, vm=None):
         offset = self.v()
 
@@ -658,7 +661,7 @@ class Array(BaseObject):
     target_size = 0
 
     def __init__(self, count = 100000, target = None, target_args=None,
-                 **kwargs):
+                 target_size = None, **kwargs):
         """Instantiate an array of like items.
 
         Args:
@@ -676,6 +679,9 @@ class Array(BaseObject):
         if callable(count):
             count = count(self.obj_parent)
 
+        if callable(target_size):
+            target_size = target_size(self.obj_parent)
+
         self.count = int(count)
 
         if not target:
@@ -683,7 +689,8 @@ class Array(BaseObject):
 
         self.target = target
         self.target_args = target_args or {}
-        self.target_size = self.obj_profile.get_obj_size(target)
+        self.target_size = target_size or self.obj_profile.get_obj_size(
+            target)
         self.__initialized = True
 
     def size(self):

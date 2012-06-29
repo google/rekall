@@ -19,6 +19,7 @@
 """This module implements core plugins."""
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
+
 import inspect
 import logging
 
@@ -142,22 +143,23 @@ class LoadAddressSpace(plugin.ProfileCommand):
                 self.session.physical_address_space = self.GuessAddressSpace(
                     astype = 'physical', **kwargs)
             else:
-                self.session.physical_address_space = addrspace.AddressSpaceFactory(
-                    self.session, specification = pas_spec, astype = 'physical')
+                self.session.physical_address_space = self.AddressSpaceFactory(
+                    specification=pas_spec, astype='physical')
 
             if vas_spec == "auto":
                 self.session.kernel_address_space = self.GuessAddressSpace(
                     astype = 'virtual', base_as=self.session.physical_address_space,
                     **kwargs)
             else:
-                self.kernel_address_space = addrspace.AddressSpaceFactory(
-                    self.session, specification = vas_spec, astype = 'virtual')
+                self.kernel_address_space = self.AddressSpaceFactory(
+                    specification=vas_spec, astype='virtual')
 
         except addrspace.ASAssertionError, e:
             logging.error("Could not create address space: %s" % e)
 
 
-    def GuessAddressSpace(self, session=None, astype = 'physical', base_as=None, **kwargs):
+    def GuessAddressSpace(self, session=None, astype = 'physical', base_as=None,
+                          **kwargs):
         """Loads an address space by stacking valid ASes on top of each other
         (priority order first).
         """
@@ -204,6 +206,24 @@ class LoadAddressSpace(plugin.ProfileCommand):
                          "plugin.load_as with a spec.\n", astype)
 
         return base_as
+
+    def AddressSpaceFactory(self, specification = '', astype = 'virtual'):
+        """Build the address space from the specification.
+
+        Args:
+           specification: A column separated list of AS class names to be stacked.
+        """
+        base_as = None
+        for as_name in specification.split(":"):
+            as_cls = addrspace.BaseAddressSpace.classes.get(as_name)
+            if as_cls is None:
+                raise addrspace.Error("No such address space %s" % as_name)
+
+            base_as = as_cls(base=base_as, session=self.session, astype=astype,
+                             **kwargs)
+
+        return base_as
+
 
 
 class HexDumper(plugin.Command):

@@ -100,7 +100,7 @@ class WindowsCrashDumpSpace32(addrspace.PagedReader):
 
         Returns:
           A tuple of (physical_offset, available_length). The physical_offset
-          can be None to signify that the address if not valid.
+          can be None to signify that the address is not valid.
         """
         page_offset = (addr & 0x00000FFF)
         page = addr >> PAGE_SHIFT

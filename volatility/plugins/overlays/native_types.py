@@ -21,6 +21,14 @@ generic_native_types = {
     'unsigned long long' : obj.Curry(obj.NativeType, theType='unsigned long long', format_string='<Q'),
     }
 
+# These are aliases for the same things
+for old, new in [['unsigned long long', 'long long unsigned int'],
+                 ['unsigned short', 'short unsigned int'],
+                 ]:
+    generic_native_types[new] = generic_native_types[old]
+
+
+
 x86_native_types = {
     'address' : obj.Curry(obj.NativeType, theType='address', format_string='<I'),
     }

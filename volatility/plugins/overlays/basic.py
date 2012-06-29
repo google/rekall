@@ -426,6 +426,7 @@ class Profile32Bits(obj.Profile):
 
     def __init__(self, **kwargs):
         super(Profile32Bits, self).__init__(**kwargs)
+        self.add_classes(native_types.generic_native_types)
         self.add_classes(native_types.x86_native_types)
         self.add_constants(PoolAlignment=8, MAX_FAST_REF=7)
 
@@ -436,6 +437,7 @@ class Profile64Bits(obj.Profile):
 
     def __init__(self, **kwargs):
         super(Profile64Bits, self).__init__(**kwargs)
+        self.add_classes(native_types.generic_native_types)
         self.add_classes(native_types.x64_native_types)
         self.add_constants(PoolAlignment=16, MAX_FAST_REF=15)
 
@@ -445,7 +447,6 @@ class BasicWindowsClasses(obj.Profile):
 
     def __init__(self, **kwargs):
         super(BasicWindowsClasses, self).__init__(**kwargs)
-        self.add_classes(native_types.generic_native_types)
         self.add_classes({
             'String': String,
             'UnicodeString': UnicodeString,

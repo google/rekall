@@ -65,6 +65,7 @@ import StringIO
 
 from volatility import registry
 from volatility import session
+from volatility.ui import renderer
 
 
 class VolatilityBaseUnitTestCase(unittest.TestCase):
@@ -171,14 +172,13 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
         user_session = session.Session(filename=image, profile=profile)
 
         fd = StringIO.StringIO()
-        renderer = session.TextRenderer(session=user_session, fd=fd)
+        ui_renderer = renderer.TextRenderer(session=user_session, fd=fd)
 
         # To make it easier to seperate columns we use the seperator ||. It is
         # unlikely to occur naturally in a table.
-        renderer.tablesep = "||"
-        renderer.elide = False
+        ui_renderer.tablesep = "||"
 
-        user_session.vol(module, renderer=renderer, **kwargs)
+        user_session.vol(module, renderer=ui_renderer, **kwargs)
 
         # Just a simple measure of time, so we can detect extreme slow down
         # regressions.

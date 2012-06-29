@@ -9,6 +9,7 @@ from volatility.plugins.addrspaces import hibernate
 from volatility.plugins.addrspaces import intel
 from volatility.plugins.addrspaces import mmap_address_space
 from volatility.plugins.addrspaces import standard
+from volatility.plugins.addrspaces import vboxelf
 
 # If we are running on windows, load the windows specific AS.
 if sys.platform == "win32":
