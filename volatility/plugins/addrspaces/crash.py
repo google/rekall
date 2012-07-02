@@ -55,6 +55,7 @@ class WindowsCrashDumpSpace32(addrspace.PagedReader):
             file_offset += run.PageCount * self.PAGE_SIZE
 
         self.session.dtb = int(self.header.DirectoryTableBase)
+        self.session.kdbg = int(self.header.KdDebuggerDataBlock)
 
     def check_file(self):
         """Checks the base file handle for sanity."""

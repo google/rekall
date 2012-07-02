@@ -1,5 +1,6 @@
 import logging
 import bisect
+import time
 
 from volatility.plugins.windows import common
 from volatility import plugin

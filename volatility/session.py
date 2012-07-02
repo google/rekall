@@ -179,7 +179,7 @@ class Session(object):
         fd = kwargs.pop("fd", None)
         debug = kwargs.pop("debug", False)
         output = kwargs.pop("output", None)
-        overwrite = kwargs.pop("overwrite", None)
+        overwrite = kwargs.get("overwrite")
 
         if isinstance(plugin_cls, basestring):
             plugin_cls = getattr(self.plugins, plugin_cls)

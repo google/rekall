@@ -102,6 +102,12 @@ class BaseAddressSpace(object):
         # For physical address spaces, this is a noop.
         return addr
 
+    @classmethod
+    def metadata(cls, name, default=None):
+        """Obtain metadata about this address space."""
+        prefix = '_md_'
+        return getattr(cls, prefix + name, default)
+
 
 class DummyAddressSpace(BaseAddressSpace):
     """An AS which always returns nulls."""

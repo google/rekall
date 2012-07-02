@@ -366,6 +366,17 @@ class KDBGMixin(plugin.KernelASMixin):
         """
         super(KDBGMixin, self).__init__(**kwargs)
         self.kdbg = kdbg or self.session.kdbg
+
+        # Interpret the session KDB as an int and check kdbg for sanity.
+        if self.kdbg and not isinstance(self.kdbg, obj.BaseObject):
+            kdbg = self.profile.Object("_KDDEBUGGER_DATA64", offset=int(self.kdbg),
+                                       vm = self.kernel_address_space)
+            if kdbg.Header.OwnerTag == 0x4742444b:
+                self.kdbg = self.session.kdbg = kdbg
+            else:
+                logging.info("KDBG in location 0x%10X is invalid. ignoring." % self.kdbg)
+                self.kdbg = None
+
         if self.kdbg is None:
             logging.info("KDBG not provided - Volatility will try to "
                          "automatically scan for it now using plugin.kdbgscan.")

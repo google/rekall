@@ -59,6 +59,9 @@ parser.add_argument("--dtb", help="DTB Address.")
 parser.add_argument("--pid", help="A process PID.", type=int)
 parser.add_argument("--dump-dir", help="The directory to dump files to.")
 
+parser.add_argument("--logging", default=None,
+                    help="Logging level (lower is more verbose).")
+
 
 def IPython011Support(user_session):
     """Launch the ipython session for pre 0.12 versions.
@@ -158,4 +161,6 @@ if __name__ == '__main__':
             sys.exit()
 
     # Try to launch the session using something.
-    IPython011Support(user_session) or IPython012Support(user_session) or NativePythonSupport(user_session)
+    (IPython011Support(user_session) or
+     IPython012Support(user_session) or
+     NativePythonSupport(user_session))

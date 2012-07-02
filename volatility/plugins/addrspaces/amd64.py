@@ -49,6 +49,8 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     pae = True
     paging_address_space = True
 
+    _md_memory_model = "64bit"
+
     def __init__(self, **kwargs):
         super(AMD64PagedMemory, self).__init__(**kwargs)
 

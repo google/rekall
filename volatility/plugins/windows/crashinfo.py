@@ -1,7 +1,8 @@
 # Volatility
 #
 # Authors:
-# Mike Auty <mike.auty@gmail.com>
+# Michael Cohen <scudette@gmail.com>
+# Based on code by Aaron Walters.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -69,6 +70,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
         self.destination = destination
         if not destination:
             raise plugin.PluginError("A destination must be provided.")
+
         if not overwrite and os.access(destination, os.F_OK):
             raise plugin.PluginError(
                 "Unable to overwrite the destination file '%s'" % destination)
@@ -104,14 +106,21 @@ class Raw2Dump(common.WindowsCommandPlugin):
         dbgkd = self.kdbg.dbgkd_version64()
 
         # Write the runs from our physical address space.
-        i = number_of_pages = 0
+        number_of_pages = 0
+        i = None
+
         for i, (start, length) in enumerate(
-            self.physical_address_space.get_available_pages()):
+            self.physical_address_space.get_available_addresses()):
+            # Convert to pages
+            start = start / PAGE_SIZE
+            length = length / PAGE_SIZE
+
             header.PhysicalMemoryBlockBuffer.Run[i].BasePage = start
             header.PhysicalMemoryBlockBuffer.Run[i].PageCount = length
             number_of_pages += length
 
-        if not i:
+        # Must be at least one run.
+        if i is None:
             raise plugin.PluginError("Physical address space has no available data.")
 
         header.PhysicalMemoryBlockBuffer.NumberOfRuns = i + 1
@@ -154,9 +163,13 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
         # Now copy the physical address space to the output file.
         output_offset = header.size()
-        for start, length in self.physical_address_space.get_available_pages():
-            renderer.write("\nRun [0x%08X, 0x%08X] (.=%sMb)\n" % (
-                    start, length, self.buffer_size/1024/1204))
+        for start, length in self.physical_address_space.get_available_addresses():
+            # Convert to pages
+            start = start / PAGE_SIZE
+            length = length / PAGE_SIZE
+
+            renderer.write("\nRun [0x%08X, 0x%08X] \n" % (
+                    start, length))
             data_length = length * PAGE_SIZE
             start_offset = start * PAGE_SIZE
             offset = 0
@@ -165,8 +178,9 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
                 data = self.physical_address_space.zread(start_offset + offset, to_read)
                 out_as.write(output_offset, data)
-                renderer.write(".")
                 output_offset += len(data)
                 offset += len(data)
                 data_length -= len(data)
+                renderer.RenderProgress("Wrote %sMB." % ((start_offset + offset)/1024/1024))
+
 

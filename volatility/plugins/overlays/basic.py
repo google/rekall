@@ -194,6 +194,7 @@ class Enumeration(obj.NativeType):
     def __init__(self, choices = None, target = "unsigned long", **kwargs):
         super(Enumeration, self).__init__(**kwargs)
         self.choices = choices or {}
+
         self.target = target
         self.target_obj = self.obj_profile.Object(
             target, offset=self.obj_offset, vm=self.obj_vm, context=self.obj_context)
@@ -225,6 +226,7 @@ class Enumeration(obj.NativeType):
 
     def __format__(self, formatspec):
         return format(self.__str__(), formatspec)
+
 
 class IpAddress(obj.NativeType):
     """Provides proper output for IpAddress objects"""
