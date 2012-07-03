@@ -172,11 +172,10 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
         user_session = session.Session(filename=image, profile=profile)
 
         fd = StringIO.StringIO()
-        ui_renderer = renderer.TextRenderer(session=user_session, fd=fd)
-
         # To make it easier to seperate columns we use the seperator ||. It is
         # unlikely to occur naturally in a table.
-        ui_renderer.tablesep = "||"
+        ui_renderer = renderer.TextRenderer(session=user_session, fd=fd,
+                                            tablesep="||")
 
         user_session.vol(module, renderer=ui_renderer, **kwargs)
 

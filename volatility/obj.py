@@ -36,7 +36,6 @@ import struct
 
 import copy
 from volatility import addrspace
-from volatility import fmtspec
 from volatility import registry
 
 
@@ -116,12 +115,6 @@ class NoneObject(object):
 
     def __len__(self):
         return 0
-
-    def __format__(self, formatspec):
-        formatspec = formatspec.lower().replace("x", "s")
-        formatspec = formatspec.replace("#", "")
-        spec = fmtspec.FormatSpec(string = formatspec, fill = "-", align = ">")
-        return format('-', str(spec))
 
     def __getattr__(self, attr):
         # By returning self for any unknown attribute

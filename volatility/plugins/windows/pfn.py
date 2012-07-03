@@ -130,7 +130,7 @@ class VtoP(common.WindowsCommandPlugin):
 
     def vtop(self, virtual_address, address_space):
         """Translate the virtual_address using the address_space."""
-        if self.profile.metadata("memory_model") == "32bit":
+        if address_space.metadata("memory_model") == "32bit":
             function = self._vtop_32bit
         else:
             function = self._vtop_64bit
@@ -158,6 +158,7 @@ class PFNInfo(common.WindowsCommandPlugin):
 
     # Size of page.
     PAGE_SIZE = 0x1000
+    PAGE_BITS = 12
 
     def __init__(self, pfn=None, physical_address=None, **kwargs):
         """Prints information about the physical PFN entry.
@@ -213,18 +214,22 @@ class PFNInfo(common.WindowsCommandPlugin):
         long_flags_string = " ".join(
             [v for k, v in flags.items() if pfn_obj.u3.e1.m(v)])
 
+        containing_page = int(pfn_obj.u4.PteFrame)
+        pte_physical_address = ((containing_page << self.PAGE_BITS) |
+                                (int(pfn_obj.PteAddress) & 0x3FF))
+
         renderer.write("""    flink       {0:08X}  blink / share count {1:016X}
-    pteaddress (Kernel VAS) 0x{2:016X}  (Phys AS) 0x{3:016X}
+    pteaddress (VAS) 0x{2:016X}  (Phys AS) 0x{3:016X}
     reference count {4:04X}   color {5}
     containing page        0x{6:08X}  {7}     {8}
     {9}
     """.format(pfn_obj.u1.Flink,
                pfn_obj.u2.Blink,
                pfn_obj.PteAddress,
-               self.kernel_address_space.vtop(pfn_obj.PteAddress),
+               pte_physical_address,
                pfn_obj.u3.e2.ReferenceCount,
                pfn_obj.u3.e1.PageColor,
-               pfn_obj.u4.PteFrame,
+               containing_page,
                pfn_obj.Type,
                short_flags_string,
                long_flags_string))
@@ -291,31 +296,33 @@ class PtoV(common.WinProcessFilter):
         if pfn_obj.Type != "ActiveAndValid":
             return obj.NoneObject("PTE invalid."), []
 
-        pte_address = int(pfn_obj.PteAddress)
+        containing_page = int(pfn_obj.u4.PteFrame)
+        pte_address = ((containing_page << self.PAGE_BITS) |
+                       (int(pfn_obj.PteAddress) & 0x3FF))
 
         result |= (pte_address << 10) & 0x3FF000
 
         # Get the PDE now:
-        pfn_obj = self.pfn_plugin.pfn_record(pfn_obj.u4.PteFrame.v())
+        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
 
         if pfn_obj.Type != "ActiveAndValid":
             return obj.NoneObject("PDE invalid (Is this a large page?)."), []
 
-        pde_address = int(pfn_obj.PteAddress)
+        containing_page = int(pfn_obj.u4.PteFrame)
+        pde_address = ((containing_page << self.PAGE_BITS) |
+                       (int(pfn_obj.PteAddress) & 0x3FF))
 
         result |= (pde_address << 20) & 0xffc00000
 
         # Now get the DTB.
-        pfn_obj = self.pfn_plugin.pfn_record(pfn_obj.u4.PteFrame.v())
+        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
 
-        dtb_address = int(pfn_obj.PteAddress) & 0xffffffffff000
+        containing_page = int(pfn_obj.u4.PteFrame)
+        dtb_address = containing_page << self.PAGE_BITS
 
-        return result, (("DTB", dtb_address,
-                         self.kernel_address_space.vtop(dtb_address)),
-                        ("PDE", pde_address,
-                         self.kernel_address_space.vtop(pde_address)),
-                        ("PTE", pte_address,
-                         self.kernel_address_space.vtop(pte_address)))
+        return result, (("DTB", dtb_address),
+                        ("PDE", pde_address),
+                        ("PTE", pte_address))
 
     def ptov(self, physical_address):
         """Convert the physical address to a virtual address.
@@ -335,9 +342,9 @@ class PtoV(common.WinProcessFilter):
                            "Virtual Address 0x{1:016X}\n".format(
                     self.physical_address, result))
 
-            for type, address, phys_addr in structures:
-                renderer.write("{0} @ 0x{1:016X} 0x{2:016X}\n".format(
-                        type, address, phys_addr))
+            for type, phys_addr in structures:
+                renderer.write("{0} @ 0x{1:016X}\n".format(
+                        type, phys_addr))
         else:
             renderer.write("Error converting Physical Address 0x{0:016X}: "
                            "{1}\n".format(self.physical_address, result))

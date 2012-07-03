@@ -21,14 +21,18 @@
 A renderer is used by plugins to produce formatted output.
 """
 import logging
+import json
+import re
 import os
+import string
 import subprocess
 import sys
 import textwrap
 import time
 
-from volatility import fmtspec
+from volatility import obj
 from volatility import utils
+from volatility import registry
 
 
 class Pager(object):
@@ -76,7 +80,317 @@ class UnicodeWrapper(object):
         self.fd.flush()
 
 
-class TextRenderer(object):
+
+
+class Formatter(string.Formatter):
+    """A formatter which supports extended formating specs."""
+    # This comes from http://docs.python.org/library/string.html
+    # 7.1.3.1. Format Specification Mini-Language
+    standard_format_specifier_re = re.compile("""
+(?P<fill>[^{}<>=^])?   # The fill parameter.
+(?P<align>[<>=^])?     # The alignment.
+(?P<sign>[+\- ])?      # Sign extension.
+(?P<hash>\#)?          # Hash means to preceed the whole thing with 0x.
+(?P<zerofill>0)?       # Should numbers be zero filled.
+(?P<width>\d+)?        # The minimum width.
+(?P<comma>,)?
+(?P<precision>.\d+)?   # Precision
+(?P<type>[bcdeEfFgGnosxX%])?  # The format string (Not all are supported).
+""", re.X)
+
+    def format_field(self, value, format_spec):
+        """Format the value using the format_spec.
+
+        The aim of this function is to remove the delegation to __format__() on
+        the object. For our needs we do not want the object to be responsible
+        for its own formatting since it is not aware of the renderer itself.
+
+        A volatility.obj.BaseObject instance must support the following
+        formatting operations:
+
+        __unicode__
+        __str__
+        __repr__
+        and may also support __int__ (for formatting in hex).
+        """
+        m = self.standard_format_specifier_re.match(format_spec)
+        if not m:
+            raise re.error("Invalid regex")
+
+        fields = m.groupdict()
+
+        # Format the value according to the basic type.
+        type = fields["type"] or "s"
+        try:
+            value = getattr(self, "format_type_%s" % type)(value, fields)
+        except AttributeError:
+            raise re.error("No formatter for type %s" % type)
+
+        return format(value, format_spec)
+
+    def format_type_s(self, value, fields):
+        try:
+            # This is required to allow BaseObject to pass non unicode returns
+            # from __unicode__ (e.g. NoneObject).
+            result = value.__unicode__()
+        except AttributeError:
+            result = unicode(value)
+
+        # None objects get a -.
+        if isinstance(result, obj.NoneObject):
+            return "-" * int(fields['width'] or "1")
+
+        return result
+
+    def format_type_x(self, value, fields):
+        return int(value)
+
+
+class TextColumn(object):
+    """An implementation of a Column."""
+
+    def __init__(self, name=None, formatstring="s", address_size=10,
+                 header_format=None, elide=False, **kwargs):
+        self.name = name or "-"
+        self.elide = elide
+        self.wrap = None
+
+        # How many places should addresses be padded?
+        self.address_size = address_size
+        self.parse_format(formatstring=formatstring,
+                          header_format=header_format)
+
+        # The format specifications is a dict.
+        self.formatter = Formatter()
+        self.header_width = 0
+
+    def parse_format(self, formatstring=None, header_format=None):
+        """Parse the format string into the format specification.
+
+        We support some extended forms of format string which we process
+        especially here:
+
+        [addrpad] - This is a padded address to width self.address_size.
+        [addr] - This is a non padded address.
+        [wrap:width] - This wraps a stringified version of the target in the
+           cell.
+        """
+        # This means unlimited width.
+        if formatstring == "":
+            self.header_format = self.formatstring = ""
+
+            # Eliding is not possible without column width limits.
+            self.elide = False
+            return
+
+        m = re.search("\[addrpad\]", formatstring)
+        if m:
+            self.formatstring = "#0%sx" % self.address_size
+            self.header_format = "^%ss" % self.address_size
+            return
+
+        m = re.search("\[addr\]", formatstring)
+        if m:
+            self.formatstring = "#%sx" % self.address_size
+            self.header_format = "^%ss" % self.address_size
+            return
+
+        # Look for the wrap specifier.
+        m = re.search("\[wrap:([^\]]+)\]", formatstring)
+        if m:
+            self.formatstring = "s"
+            self.wrap = int(m.group(1))
+            self.header_format = "<%ss" % self.wrap
+            return
+
+        # Fall through to a simple format specifier.
+        self.formatstring = formatstring
+
+        if header_format is None:
+            self.header_format = re.sub("[Xx]", "s", formatstring)
+
+    def render_header(self):
+        """Renders the cell header."""
+        header_cell = self.render_cell(
+            self.name, formatstring=self.header_format, elide=False)
+        self.header_width = max([len(line) for line in header_cell])
+
+        # Append a dashed line as a table header separator.
+        header_cell.append("-" * self.header_width)
+
+        return header_cell
+
+    def elide_string(self, string, length):
+        """Adds three dots in the middle of a string if it is longer than length"""
+        if length == -1:
+            return string
+
+        if len(string) < length:
+            return (" " * (length - len(string))) + string
+
+        elif len(string) == length:
+            return string
+
+        else:
+            if length < 5:
+                logging.error("Cannot elide a string to length less than 5")
+
+            even = ((length + 1) % 2)
+            length = (length - 3) / 2
+            return string[:length + even] + "..." + string[-length:]
+
+    def render_cell(self, target, formatstring=None, elide=None):
+        """Renders obj according to the format string."""
+        if formatstring is None:
+            formatstring = self.formatstring
+
+        # For NoneObjects we just render dashes. (Other renderers might want to
+        # actually record the error, we ignore it here.).
+        if isinstance(target, obj.NoneObject):
+            return ['-' * len(self.formatter.format_field(1, formatstring))]
+
+        # Simple formatting.
+        result = self.formatter.format_field(target, formatstring).splitlines()
+
+        # Support line wrapping.
+        if self.wrap:
+            old_result = result
+            result = []
+            for line in old_result:
+                result.extend(textwrap.wrap(line, self.wrap))
+
+        elif elide is None:
+            elide = self.elide
+
+        if elide:
+            # we take the header width as the maximum width of this column.
+            result = [
+                self.elide_string(line, self.header_width) for line in result]
+
+        return result or [""]
+
+
+class TextTable(object):
+    """A table is a collection of columns.
+
+    This table formats all its cells using proportional text font.
+    """
+
+    def __init__(self, columns=None, tablesep=" ", elide=True,
+                 suppress_headers=False):
+        self.columns = [TextColumn(*args, elide=elide) for args in columns]
+        self.tablesep = tablesep
+        self.elide = elide
+        self.suppress_headers = suppress_headers
+
+    def write_row(self, renderer, cells):
+        """Writes a row of the table.
+
+        Args:
+          renderer: The renderer we use to write on.
+          cells: A list of cell contents. Each cell content is a list of lines
+            in the cell.
+        """
+        # Ensure that all the cells are the same width.
+        justified_cells = []
+        cell_widths = []
+        max_height = 0
+        for cell in cells:
+            max_width = max([len(line) for line in cell])
+            max_height = max(max_height, len(cell))
+            justified_cell = []
+            for line in cell:
+                justified_cell.append(line + (' ' * (max_width-len(line))))
+            justified_cells.append(justified_cell)
+            cell_widths.append(max_width)
+
+        for line in range(max_height):
+            line_components = []
+            for i in range(len(justified_cells)):
+                try:
+                    line_components.append(justified_cells[i][line])
+                except IndexError:
+                    line_components.append(" " * cell_widths[i])
+
+            renderer.write(self.tablesep.join(line_components) + "\n")
+
+    def render_header(self, renderer):
+        # The headers must always be calculated so we can work out the column
+        # widths.
+        headers = [c.render_header() for c in self.columns]
+
+        if not self.suppress_headers:
+            self.write_row(renderer, headers)
+
+    def render_row(self, renderer, *args):
+        self.write_row(
+            renderer,
+            [c.render_cell(obj) for c, obj in zip(self.columns, args)])
+
+
+
+class RendererBaseClass(object):
+    """All renderers inherit from this."""
+
+    __metaclass__ = registry.MetaclassRegistry
+
+    def __init__(self, session=None, fd=None):
+        self.session = session
+        self.fd = fd
+        self.isatty = False
+        self.formatter = Formatter()
+
+    def start(self, plugin_name=None, kwargs=None):
+        """The method is called when new output is required.
+
+        Metadata about the running plugin is provided so the renderer may log it
+        if desired.
+
+        Args:
+           plugin_name: The name of the plugin which is running.
+           kwargs: The args for this plugin.
+        """
+
+    def end(self):
+        """Tells the renderer that we finished using it for a while."""
+
+    def write(self, data):
+        """Renderer should write some data."""
+
+    def format(self, formatstring, *data):
+        """Write formatted data.
+
+        For renderers that need access to the raw data (e.g. to check for
+        NoneObjects), it is preferred to call this method directly rather than
+        to format the string in the plugin itself.
+
+        By default we just call the format string directly.
+        """
+        self.write(self.formatter.format(formatstring, *data))
+
+    def flush(self):
+        """Renderer should flush data."""
+
+    def table_header(self, title_format_list = None, suppress_headers=False,
+                     name=None):
+        """Table header renders the title row of a table.
+
+        This also stores the header types to ensure everything is formatted
+        appropriately.  It must be a list of tuples rather than a dict for
+        ordering purposes.
+
+        Args:
+           title_format_list: A list of (Name, formatstring) tuples describing
+              the table headers.
+
+           suppress_headers: If True table headers will not be written (still
+              useful for formatting).
+
+           name: The name of this table.
+        """
+
+
+class TextRenderer(RendererBaseClass):
     """Plugins can receive a renderer object to assist formatting of output."""
 
     tablesep = " "
@@ -85,14 +399,20 @@ class TextRenderer(object):
     last_spin_time = 0
     last_spin = 0
     last_message_len = 0
+    isatty = False
 
-    def __init__(self, session=None, fd=None):
-        self.session = session
-        self.fd = fd
-        self.isatty = False
+    def __init__(self, tablesep=" ", elide=True, **kwargs):
+        super(TextRenderer, self).__init__(**kwargs)
+        self.tablesep = tablesep
+        self.elide = elide
 
-    def start(self):
-        """The method is called when new output is required."""
+    def start(self, plugin_name=None, kwargs=None):
+        """The method is called when new output is required.
+
+        Args:
+           plugin_name: The name of the plugin which is running.
+           kwargs: The args for this plugin.
+        """
         # When piping to a pager do not draw progress - this confuses the pager.
         if self.fd is None and self.session.pager:
             self.pager = Pager(session=self.session)
@@ -128,59 +448,8 @@ class TextRenderer(object):
     def flush(self):
         self.pager.flush()
 
-    def _elide(self, string, length):
-        """Adds three dots in the middle of a string if it is longer than length"""
-        if length == -1:
-            return string
-
-        if len(string) < length:
-            return (" " * (length - len(string))) + string
-
-        elif len(string) == length:
-            return string
-
-        else:
-            if length < 5:
-                logging.error("Cannot elide a string to length less than 5")
-
-            even = ((length + 1) % 2)
-            length = (length - 3) / 2
-            return string[:length + even] + "..." + string[-length:]
-
-    def _formatlookup(self, code):
-        """Code to turn profile specific values into format specifications"""
-        # Allow the format code to be provided as dict for directly initializing
-        # a FormatSpec object.
-        if isinstance(code, dict):
-            return fmtspec.FormatSpec(**code)
-
-        code = code or ""
-        # Allow extended format specifiers (e.g. [addr] or [addrpad])
-        if not code.startswith('['):
-            return fmtspec.FormatSpec(code)
-
-        # Strip off the square brackets
-        code = code[1:-1].lower()
-        if code.startswith('addr'):
-            spec = fmtspec.FormatSpec("#10x")
-            if self.session.profile.metadata('memory_model') == '64bit':
-                spec.minwidth += 8
-
-            if 'pad' in code:
-                spec.fill = "0"
-                spec.align = spec.align if spec.align else "="
-
-            else:
-                # Non-padded addresses will come out as numbers,
-                # so titles should align >
-                spec.align = ">"
-            return spec
-
-        # Something went wrong
-        debug.warning("Unknown table format specification: " + code)
-        return ""
-
-    def table_header(self, title_format_list = None, suppress_headers=False):
+    def table_header(self, columns = None, suppress_headers=False,
+                     **kwargs):
         """Table header renders the title row of a table.
 
         This also stores the header types to ensure everything is formatted
@@ -188,78 +457,20 @@ class TextRenderer(object):
         ordering purposes.
 
         Args:
-
-           title_format_list: A list of (Name, formatstring) tuples describing
-              the table headers.
+           columns: A list of (Name, formatstring) tuples describing
+              the table columns.
 
            suppress_headers: If True table headers will not be written (still
               useful for formatting).
         """
-        titles = []
-        rules = []
-        self._formatlist = []
-
-        for (k, v) in title_format_list:
-            spec = self._formatlookup(v)
-
-            # If spec.minwidth = -1, this field is unbounded length
-            if spec.minwidth != -1:
-                spec.minwidth = max(spec.minwidth, len(k))
-
-            # Get the title specification to follow the alignment of the field
-            titlespec = fmtspec.FormatSpec(formtype='s',
-                                           minwidth=max(spec.minwidth, len(k)))
-
-            titlespec.align = spec.align if spec.align in "<>^" else "<"
-
-            # Add this to the titles, rules, and formatspecs lists
-            titles.append((u"{0:" + titlespec.to_string() + "}").format(k))
-            rules.append("-" * titlespec.minwidth)
-            self._formatlist.append(spec)
-
-        # Write out the titles and line rules
-        if not suppress_headers:
-            self.write(self.tablesep.join(titles) + "\n")
-            self.write(self.tablesep.join(rules) + "\n")
+        self.table = TextTable(columns=columns, tablesep=self.tablesep,
+                               suppress_headers=suppress_headers,
+                               elide=self.elide)
+        self.table.render_header(self)
 
     def table_row(self, *args):
         """Outputs a single row of a table"""
-        reslist = []
-        cell_widths = []
-        if len(args) > len(self._formatlist):
-            logging.error("Too many values for the table")
-
-        number_of_lines = 0
-
-        for index in range(len(args)):
-            spec = self._formatlist[index]
-            formatted_output = (u"{0:" + spec.to_string() + "}").format(args[index])
-            if spec.elide:
-                result = [self._elide(formatted_output, spec.minwidth)]
-            elif spec.wrap:
-                result = []
-
-                for line in formatted_output.split("\n"):
-                    result.extend(textwrap.wrap(
-                            line, spec.width, replace_whitespace=False))
-            else:
-                result = [formatted_output]
-
-            reslist.append(result)
-            number_of_lines = max(number_of_lines, len(result))
-            cell_widths.append(len(result[0]))
-
-        # Allow table rows to span multiple text lines.
-        for i in range(number_of_lines):
-            row = []
-            for j, cell_content in enumerate(reslist):
-                try:
-                    row.append(cell_content[i])
-                except IndexError:
-                    row.append(" " * cell_widths[j])
-
-            self.write(self.tablesep.join(row))
-            self.write("\n")
+        return self.table.render_row(self, *args)
 
     def RenderProgress(self, message="", force=False, **_):
         if self.isatty:
@@ -275,3 +486,118 @@ class TextRenderer(object):
                 self.last_message_len = len(message)
                 sys.stdout.write(message)
                 sys.stdout.flush()
+
+
+class JsonFormatter(Formatter):
+    """A formatter for json object."""
+
+    def format_dict(self, value):
+        result = []
+        for k, v in value.items():
+            result.append((k, self.format_field(v, "s")))
+
+        return dict(result)
+
+    def format_field(self, value, format_spec):
+        """The json formatter aims to capture as many properties of the value as
+        possible.
+        """
+        # We try to capture as much information about this object. Hopefully
+        # this should be enough to reconstruct this object later.
+        if isinstance(value, obj.BaseObject):
+            result = dict(type=value.obj_type,
+                          name=value.obj_name,
+                          offset=value.obj_offset,
+                          vm=str(value.obj_vm))
+
+            try:
+                result['str'] = self.format_field(value.__unicode__(), "s")
+            except (AttributeError):
+                pass
+
+            try:
+                result['int'] = self.format_field(value.__init__(), "s")
+            except (ValueError, AttributeError):
+                pass
+
+            return result
+
+        # If it is a simple type, just pass it as is.
+        if isinstance(value, (int, long, basestring)):
+            return value
+
+        # If it is a NoneObject dump out the error
+        if isinstance(value, obj.NoneObject):
+            return dict(type=value.__class__.__name__,
+                        reason=value.reason)
+
+        # Fall back to just formatting it.
+        return super(JsonFormatter, self).format_field(value, format_spec)
+
+
+class JsonColumn(TextColumn):
+    """A column in a json table."""
+    def __init__(self, name=None, format_spec=None, **kwargs):
+        self.formatter = JsonFormatter()
+        self.name = name
+
+    def render_header(self):
+        return self.name
+
+    def render_cell(self, target):
+        return self.formatter.format_field(target, "s")
+
+
+class JsonTable(TextTable):
+    def __init__(self, columns=None, **kwargs):
+        self.columns = [JsonColumn(*args) for args in columns]
+
+    def render_header(self, renderer):
+        renderer.table_data['headers'] = [c.render_header() for c in self.columns]
+
+    def render_row(self, renderer, *args):
+        renderer.table_data['rows'].append(
+            [c.render_cell(obj) for c, obj in zip(self.columns, args)])
+
+
+
+class JsonRenderer(TextRenderer):
+    """Render the output as a json object."""
+
+    def start(self, plugin_name=None, kwargs=None):
+        self.formatter = JsonFormatter()
+
+        # We store the data here.
+        self.data = dict(plugin_name=plugin_name,
+                         kwargs=self.formatter.format_dict(kwargs),
+                         data=[])
+
+        super(JsonRenderer, self).start(plugin_name=plugin_name,
+                                        kwargs=kwargs)
+
+    def end(self):
+        # Just dump out the json object.
+        self.pager.write(json.dumps(self.data))
+
+    def format(self, formatstring, *args):
+        statement = [formatstring]
+        for arg in args:
+            # Just store the statement in the output.
+            statement.append(self.formatter.format_field(arg, "s"))
+
+        self.data['data'].append(statement)
+
+    def table_header(self, columns = None, **kwargs):
+        self.table = JsonTable(columns=columns)
+
+        # This is the current table - the JsonTable object will write on it.
+        self.table_data = dict(headers=[], rows=[])
+
+        # Append it to the data.
+        self.data['data'].append(self.table_data)
+
+        # Write the headers.
+        self.table.render_header(self)
+
+    def write(self, data):
+        self.data['data'].append(data)

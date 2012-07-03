@@ -110,7 +110,8 @@ class UnicodeString(String):
     """
     def __init__(self, encoding=None, **kwargs):
         super(UnicodeString, self).__init__(**kwargs)
-        self.encoding = encoding or self.obj_profile.get_constant('default_text_encoding')
+        self.encoding = encoding or self.obj_profile.get_constant(
+            'default_text_encoding')
 
 
     def v(self, vm=None):
@@ -345,7 +346,12 @@ class UnixTimeStamp(obj.NativeType):
         return self.v() != 0
 
     def __str__(self):
-        return "{0}".format(self)
+        if not self:
+            return "-"
+
+        dt = self.as_datetime()
+        if dt != None:
+            return str(timefmt.display_datetime(dt))
 
     def as_datetime(self):
         try:
@@ -356,13 +362,6 @@ class UnixTimeStamp(obj.NativeType):
         except ValueError, e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
         return dt
-
-    def __format__(self, formatspec):
-        """Formats the datetime according to the timefmt module"""
-        dt = self.as_datetime()
-        if dt != None:
-            return format(timefmt.display_datetime(dt), formatspec)
-        return "-"
 
 
 class WinTimeStamp(UnixTimeStamp):

@@ -167,10 +167,10 @@ class _UNICODE_STRING(obj.CType):
         return bool(self.Buffer)
 
     def __format__(self, formatspec):
-        return format(self.v(), formatspec)
+        return format(self.v() or "", formatspec)
 
     def __str__(self):
-        return self.v() or ''
+        return self.v()
 
 
 

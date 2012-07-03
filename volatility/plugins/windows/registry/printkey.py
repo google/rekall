@@ -94,9 +94,11 @@ class PrintKey(common.WindowsCommandPlugin):
         for reg, key in self.list_keys():
             if key:
                 outfd.write("----------------------------\n")
-                outfd.write("Registry: {0}\n".format(reg.Name))
-                outfd.write("Key name: {0} {1:3s}\n".format(key.Name, self.voltext(key)))
-                outfd.write("Last updated: {0}\n".format(key.LastWriteTime))
+                outfd.format("Registry: {0}\n", reg.Name)
+                outfd.format("Key name: {0} {1:3s}\n", key.Name,
+                             self.voltext(key))
+
+                outfd.format("Last updated: {0}\n", key.LastWriteTime)
                 outfd.write("\n")
                 outfd.write("Subkeys:\n")
 
@@ -104,8 +106,8 @@ class PrintKey(common.WindowsCommandPlugin):
                     if not subkey.Name:
                         outfd.write("  Unknown subkey: " + subkey.Name.reason + "\n")
                     else:
-                        outfd.write(u"  {1:3s} {0}\n".format(
-                                subkey.Name, self.voltext(subkey)))
+                        outfd.format(u"  {1:3s} {0}\n",
+                                     subkey.Name, self.voltext(subkey))
 
                 outfd.write("\n")
                 outfd.write("Values:\n")
@@ -113,6 +115,6 @@ class PrintKey(common.WindowsCommandPlugin):
                     if value.Type == 'REG_BINARY':
                         utils.WriteHexdump(outfd, value.DecodedData)
                     else:
-                        outfd.write(u"{0:13} {1:15} : {3:3s} {2}\n".format(
-                                value.Type, value.Name, value.DecodedData,
-                                self.voltext(value)))
+                        outfd.format(u"{0:13} {1:15} : {3:3s} {2}\n",
+                                     value.Type, value.Name, value.DecodedData,
+                                     self.voltext(value))

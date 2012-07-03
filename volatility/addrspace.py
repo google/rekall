@@ -108,6 +108,9 @@ class BaseAddressSpace(object):
         prefix = '_md_'
         return getattr(cls, prefix + name, default)
 
+    def __str__(self):
+        return self.__class__.__name__
+
 
 class DummyAddressSpace(BaseAddressSpace):
     """An AS which always returns nulls."""

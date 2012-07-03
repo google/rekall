@@ -110,8 +110,8 @@ class WinPsList(common.WinProcessFilter):
                                task.ObjectTable.HandleCount,
                                task.SessionId,
                                task.IsWow64,
-                               str(task.CreateTime or ''),
-                               str(task.ExitTime or ''),
+                               task.CreateTime,
+                               task.ExitTime,
                                )
 
 
@@ -126,17 +126,17 @@ class WinDllList(common.WinProcessFilter):
             pid = task.UniqueProcessId
 
             renderer.write(u"*" * 72 + "\n")
-            renderer.write(u"{0} pid: {1:6}\n".format(task.ImageFileName, pid))
+            renderer.format(u"{0} pid: {1:6}\n", task.ImageFileName, pid)
 
             if task.Peb:
-                renderer.write(u"Command line : {0}\n".format(
-                        task.Peb.ProcessParameters.CommandLine))
+                renderer.format(u"Command line : {0}\n",
+                                task.Peb.ProcessParameters.CommandLine)
 
                 if task.IsWow64:
                     renderer.write(
                         u"Note: use ldrmodules for listing DLLs in Wow64 processes\n")
 
-                renderer.write(u"{0}\n".format(task.Peb.CSDVersion))
+                renderer.format(u"{0}\n", task.Peb.CSDVersion)
                 renderer.write(u"\n")
                 renderer.table_header([("Base", "[addrpad]"),
                                        ("Size", "[addr]"),
@@ -188,8 +188,8 @@ class WinMemMap(common.WinProcessFilter):
         for task in self.filter_processes():
             renderer.write("*" * 72 + "\n")
             task_space = task.get_process_address_space()
-            renderer.write(u"Process: '{0}' pid: {1:6}\n".format(
-                    task.ImageFileName, task.UniqueProcessId))
+            renderer.format(u"Process: '{0}' pid: {1:6}\n",
+                            task.ImageFileName, task.UniqueProcessId)
 
             ranges = list(self.get_pages_for_eprocess(task))
             if not ranges:

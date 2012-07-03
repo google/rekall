@@ -62,6 +62,9 @@ parser.add_argument("--dump-dir", help="The directory to dump files to.")
 parser.add_argument("--logging", default=None,
                     help="Logging level (lower is more verbose).")
 
+parser.add_argument("--renderer", default="TextRenderer",
+                    help="The renderer to use. e.g. (TextRenderer, JsonRenderer).")
+
 
 def IPython011Support(user_session):
     """Launch the ipython session for pre 0.12 versions.
@@ -138,9 +141,13 @@ def NativePythonSupport(user_session):
     code.interact(banner = banner, local = user_session._locals)
 
 def UpdateSessionFromArgv(user_session, FLAGS):
+    result = {}
     for k, v in FLAGS.__dict__.items():
         if v is not None:
             setattr(user_session, k.replace("-", "_"), v)
+            result[k] = v
+
+    return result
 
 if __name__ == '__main__':
     FLAGS = parser.parse_args()

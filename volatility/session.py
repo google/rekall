@@ -104,7 +104,10 @@ class Session(object):
         self.profile = obj.NoneObject("Set this a valid profile (e.g. type profiles. and tab).")
         self.profile_file = obj.NoneObject("Some profiles accept a data file (e.g. Linux).")
         self.filename = obj.NoneObject("Set this to the image filename.")
-        self.renderer = renderer.TextRenderer(session=self)
+
+        # The default renderer.
+        self.renderer = "TextRenderer"
+        self.overwrite = False
 
         self.plugins = PluginContainer(self)
         self._ready = True
@@ -184,22 +187,31 @@ class Session(object):
         if isinstance(plugin_cls, basestring):
             plugin_cls = getattr(self.plugins, plugin_cls)
 
-        ui_renderer = ui_renderer or self.renderer
+        # Select the renderer from the session or from the kwargs.
+        if not isinstance(ui_renderer, renderer.RendererBaseClass):
+            try:
+                ui_renderer_cls = renderer.RendererBaseClass.classes[
+                    ui_renderer or self.renderer]
+            except KeyError:
+                logging.error("Unable to find a renderer %s. Using TextRenderer.",
+                              ui_renderer or self.renderer)
+                ui_renderer_cls = renderer.TextRenderer
 
-        if output is not None:
-            if os.access(output, os.F_OK) and not (overwrite or self.overwrite):
-                logging.error("Output file '%s' exists but session.overwrite is "
-                              "not set." % output)
-                return
-            else:
-                ui_renderer = renderer.TextRenderer(session=self, fd=open(output, "w"))
+            if output is not None:
+                if os.access(output, os.F_OK) and not (
+                    overwrite or self.overwrite):
+                    logging.error(
+                        "Output file '%s' exists but session.overwrite is "
+                        "not set." % output)
+                    return
+                else:
+                    fd = open(output, "w")
 
-        # Allow per call overriding of the output file descriptor.
-        elif fd is not None:
-            ui_renderer = renderer.TextRenderer(session=self, fd=fd)
+            # Allow per call overriding of the output file descriptor.
+            ui_renderer = ui_renderer_cls(session=self, fd=fd)
 
         try:
-            ui_renderer.start()
+            ui_renderer.start(plugin_name=plugin_cls.name, kwargs=kwargs)
 
             kwargs['session'] = self
             result = plugin_cls(*args, **kwargs)

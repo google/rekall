@@ -53,8 +53,9 @@ class PEInfo(plugin.Command):
         pe_helper = pe_vtypes.PE(address_space=self.address_space,
                                  image_base=self.image_base)
 
-        renderer.table_header([('', '<20'),
-                               ('', dict(wrap=True, width=60))])
+        renderer.table_header([('Machine', '<20'),
+                               ('TimeDateStamp', '[wrap:60]')])
+
         for field in ["Machine", "TimeDateStamp", "Characteristics"]:
             renderer.table_row(field,
                                getattr(pe_helper.nt_header.FileHeader, field))
@@ -87,7 +88,7 @@ class PEInfo(plugin.Command):
         renderer.write("\nImport Address Table:\n")
         renderer.table_header([('Name',  '<20'),
                                ('Address', '[addrpad]'),
-                               ('Disassembly', dict(wrap=True, width=30))])
+                               ('Disassembly', '[wrap:30]')])
 
         for name, function, ordinal in pe_helper.IAT():
             disassembly = []
@@ -131,6 +132,7 @@ class ProcInfo(common.WinProcessFilter):
 
             # Parse the PE file of the main process's executable.
             pe = PEInfo(address_space=task_address_space,
+                        session=self.session,
                         image_base=task.Peb.ImageBaseAddress)
 
             pe.render(outfd)
