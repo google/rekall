@@ -76,12 +76,12 @@ class Handles(common.WinProcessFilter):
                 yield handle, object_type, name
 
     def render(self, renderer):
-        renderer.table_header([("Offset (V)", "[addrpad]"),
-                               ("Pid", ">6"),
-                               ("Handle", "[addr]"),
-                               ("Access", "[addr]"),
-                               ("Type", "16"),
-                               ("Details", "")
+        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
+                               ("Pid", "pid", ">6"),
+                               ("Handle", "handle", "[addr]"),
+                               ("Access", "access", "[addr]"),
+                               ("Type", "obj_type", "16"),
+                               ("Details", "details", "")
                                ])
 
         if self.object_type:

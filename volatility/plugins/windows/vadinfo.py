@@ -115,14 +115,14 @@ class VADInfo(common.WinProcessFilter):
 
     def write_vad_short(self, renderer, vad):
         """Renders a text version of a Short Vad"""
-        renderer.table_header([("VAD node @", str(len("VAD node @"))),
-                               ("address", "[addrpad]"),
-                               ("Start", "5"),
-                               ("startaddr", "[addrpad]"),
-                               ("End", "3"),
-                               ("endaddr", "[addrpad]"),
-                               ("Tag", "3"),
-                               ("tagval", ""),
+        renderer.table_header([("VAD node @", "offset", str(len("VAD node @"))),
+                               ("address","address", "[addrpad]"),
+                               ("Start","Start", "5"),
+                               ("startaddr","startaddr", "[addrpad]"),
+                               ("End","End", "3"),
+                               ("endaddr","endaddr", "[addrpad]"),
+                               ("Tag","Tag", "3"),
+                               ("tagval","tagval", ""),
                                ], suppress_headers=True)
         renderer.table_row("VAD node @",
                            vad.obj_offset,
@@ -208,10 +208,10 @@ class VADTree(VADInfo):
             renderer.write(u"*" * 72 + "\n")
             renderer.write(u"Pid: {0:6}\n".format(task.UniqueProcessId))
 
-            renderer.table_header([("indent", ""),
-                                   ("Start", "[addrpad]"),
-                                   ("-", ""),
-                                   ("End", "[addrpad]")
+            renderer.table_header([("indent", "indent", ""),
+                                   ("Start", "Start", "[addrpad]"),
+                                   ("-","-", ""),
+                                   ("End","End", "[addrpad]")
                                    ], suppress_headers=True)
 
             levels = {}

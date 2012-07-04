@@ -318,10 +318,10 @@ class Connections(common.AbstractWindowsCommandPlugin):
 
 
     def render(self, renderer):
-        renderer.table_header([("Offset (V)", "[addrpad]"),
-                               ("Local Address", "25"),
-                               ("Remote Address", "25"),
-                               ("Pid", ">6")
+        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
+                               ("Local Address", "local_net_address", "25"),
+                               ("Remote Address", "remote_net_address", "25"),
+                               ("Pid", "pid", ">6")
                                ])
 
         for conn in self.determine_connections():
@@ -394,13 +394,13 @@ class Sockets(common.AbstractWindowsCommandPlugin):
                                     sock = sock.Next.dereference()
 
     def render(self, renderer):
-        renderer.table_header([("Offset (V)", "[addrpad]"),
-                               ("PID", ">6"),
-                               ("Port", ">6"),
-                               ("Proto", ">6"),
-                               ("Protocol", "15"),
-                               ("Address", "15"),
-                               ("Create Time", "")
+        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
+                               ("PID", "pid", ">6"),
+                               ("Port", "port", ">6"),
+                               ("Proto", "protocol_number", ">6"),
+                               ("Protocol", "protocol", "15"),
+                               ("Address", "address", "15"),
+                               ("Create Time", "socket_create_time", "")
                                ])
 
         for sock in self.determine_sockets():

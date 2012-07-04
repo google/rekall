@@ -149,9 +149,10 @@ class Formatter(string.Formatter):
 class TextColumn(object):
     """An implementation of a Column."""
 
-    def __init__(self, name=None, formatstring="s", address_size=10,
+    def __init__(self, name=None, cname=None, formatstring="s", address_size=10,
                  header_format=None, elide=False, **kwargs):
         self.name = name or "-"
+        self.cname = cname or "-"
         self.elide = elide
         self.wrap = None
 
@@ -520,6 +521,7 @@ class JsonFormatter(Formatter):
             except (ValueError, AttributeError):
                 pass
 
+
             return result
 
         # If it is a simple type, just pass it as is.
@@ -537,12 +539,13 @@ class JsonFormatter(Formatter):
 
 class JsonColumn(TextColumn):
     """A column in a json table."""
-    def __init__(self, name=None, format_spec=None, **kwargs):
+    def __init__(self, name=None, cname=None, format_spec=None, **kwargs):
         self.formatter = JsonFormatter()
         self.name = name
+        self.cname = cname
 
     def render_header(self):
-        return self.name
+        return self.cname
 
     def render_cell(self, target):
         return self.formatter.format_field(target, "s")
@@ -601,3 +604,4 @@ class JsonRenderer(TextRenderer):
 
     def write(self, data):
         self.data['data'].append(data)
+

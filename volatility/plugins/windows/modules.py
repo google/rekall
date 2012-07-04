@@ -87,11 +87,11 @@ class Modules(common.WindowsCommandPlugin):
             return None
 
     def render(self, renderer):
-        renderer.table_header([("Offset (V)", "[addrpad]"),
-                               ("Name", "20"),
-                               ('Base', "[addrpad]"),
-                               ('Size', "[addr]"),
-                               ('File', "")
+        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
+                               ("Name", "file_name", "20"),
+                               ('Base', "module_base", "[addrpad]"),
+                               ('Size', "module_size","[addr]"),
+                               ('File', "path", "")
                                ])
 
         for module in self.lsmod():

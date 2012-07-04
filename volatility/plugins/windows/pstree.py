@@ -52,12 +52,12 @@ class PSTree(common.WinProcessFilter):
 
     def render(self, renderer):
         max_pad = 10
-        renderer.table_header([("Name", "<40"),
-                               ("Pid", ">6"),
-                               ("PPid", ">6"),
-                               ("Thds", ">6"),
-                               ("Hnds", ">6"),
-                               ("Time", "20")])
+        renderer.table_header([("Name", "file_name", "<40"),
+                               ("Pid", "pid", ">6"),
+                               ("PPid", "ppid", ">6"),
+                               ("Thds", "thd_count", ">6"),
+                               ("Hnds", "hnd_count", ">6"),
+                               ("Time", "process_create_time", "20")])
 
         process_dict = self._make_process_dict()
 
@@ -78,14 +78,14 @@ class PSTree(common.WinProcessFilter):
                 if self.verbose:
                     try:
                         process_params = task.Peb.ProcessParameters
-                        renderer.write(u"{0}    cmd: {1}\n".format(
-                                ' ' * pad, process_params.CommandLine))
-                        renderer.write(u"{0}    path: {1}\n".format(
-                                ' ' * pad, process_params.ImagePathName))
-                        renderer.write(u"{0}    audit: {1}\n".format(
-                                ' ' * pad,
-                                task.SeAuditProcessCreationInfo.ImageFileName.Name or
-                                "UNKNOWN"))
+                        renderer.format(u"{0}    cmd: {1}\n",
+                                        ' ' * pad, process_params.CommandLine)
+                        renderer.format(u"{0}    path: {1}\n",
+                                        ' ' * pad, process_params.ImagePathName)
+                        renderer.format(
+                            u"{0}    audit: {1}\n", ' ' * pad,
+                            task.SeAuditProcessCreationInfo.ImageFileName.Name or
+                            "UNKNOWN")
                     except KeyError:
                         pass
 

@@ -53,42 +53,42 @@ class PEInfo(plugin.Command):
         pe_helper = pe_vtypes.PE(address_space=self.address_space,
                                  image_base=self.image_base)
 
-        renderer.table_header([('Machine', '<20'),
-                               ('TimeDateStamp', '[wrap:60]')])
+        renderer.table_header([('Machine', 'machine', '<20'),
+                               ('TimeDateStamp', 'time', '[wrap:60]')])
 
         for field in ["Machine", "TimeDateStamp", "Characteristics"]:
             renderer.table_row(field,
                                getattr(pe_helper.nt_header.FileHeader, field))
 
         renderer.write("\nSections:\n")
-        renderer.table_header([('Perm', '4'),
-                               ('Name', '<8'),
-                               ('VMA',  '[addrpad]'),
-                               ('Size', '[addrpad]')])
+        renderer.table_header([('Perm', 'perm', '4'),
+                               ('Name', 'name', '<8'),
+                               ('VMA',  'vma', '[addrpad]'),
+                               ('Size', 'size', '[addrpad]')])
 
         for permission, name, virtual_address, size in pe_helper.Sections():
             renderer.table_row(permission, name, virtual_address, size)
 
         renderer.write("\nData Directories:\n")
-        renderer.table_header([('', '<40'),
-                               ('VMA',  '[addrpad]'),
-                               ('Size', '[addrpad]')])
+        renderer.table_header([('', 'name', '<40'),
+                               ('VMA', 'vma', '[addrpad]'),
+                               ('Size', 'size', '[addrpad]')])
 
         for d in pe_helper.nt_header.OptionalHeader.DataDirectory:
             renderer.table_row(d.obj_name, d.VirtualAddress, d.Size)
 
 
         renderer.write("\nImport Directory (Original):\n")
-        renderer.table_header([('Name',  '<50'),
-                               ('Ord', '5')])
+        renderer.table_header([('Name', 'name', '<50'),
+                               ('Ord', 'ord', '5')])
 
         for dll, name, ordinal in pe_helper.ImportDirectory():
             renderer.table_row(u"%s!%s" % (dll, name), ordinal)
 
         renderer.write("\nImport Address Table:\n")
-        renderer.table_header([('Name',  '<20'),
-                               ('Address', '[addrpad]'),
-                               ('Disassembly', '[wrap:30]')])
+        renderer.table_header([('Name', 'name', '<20'),
+                               ('Address', 'address', '[addrpad]'),
+                               ('Disassembly', 'disassembly', '[wrap:30]')])
 
         for name, function, ordinal in pe_helper.IAT():
             disassembly = []
@@ -98,9 +98,9 @@ class PEInfo(plugin.Command):
             renderer.table_row(name, function, "\n".join(disassembly))
 
         renderer.write("\nExport Directory:\n")
-        renderer.table_header([('Entry Point', '[addrpad]'),
-                               ('Ord', '5'),
-                               ('Name',  '<50')])
+        renderer.table_header([('Entry Point', 'entry', '[addrpad]'),
+                               ('Ord', 'ord', '5'),
+                               ('Name',  'name', '<50')])
 
         for dll, function, name, ordinal in pe_helper.ExportDirectory():
             renderer.table_row(function, ordinal, u"%s!%s" % (dll, name))

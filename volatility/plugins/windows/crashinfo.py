@@ -44,9 +44,9 @@ class CrashInfo(common.AbstractWindowsCommandPlugin):
 
         renderer.write(self.physical_address_space.header)
 
-        renderer.table_header([("FileOffset", "[addrpad]"),
-                               ("Start Address", "[addrpad]"),
-                               ("Length", "[addr]")])
+        renderer.table_header([("FileOffset", "file_offset", "[addrpad]"),
+                               ("Start Address", "file_start_address", "[addrpad]"),
+                               ("Length", "file_length", "[addr]")])
         page_size = self.physical_address_space.PAGE_SIZE
         for start, file_offset, count in self.physical_address_space.runs:
             renderer.table_row(file_offset, start * page_size, count * page_size)

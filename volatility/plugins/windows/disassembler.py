@@ -92,9 +92,9 @@ class Disassemble(plugin.Command):
         The mode is '32bit' or '64bit'. If not supplied, the disasm
         mode is taken from the profile.
         """
-        renderer.table_header([('Address', '[addrpad]'),
-                               ('Op Codes', '<20'),
-                               ('Instruction', '<40')])
+        renderer.table_header([('Address', "cmd_address", '[addrpad]'),
+                               ('Op Codes', "opcode", '<20'),
+                               ('Instruction', "instruction", '<40')])
         for (offset, instruction, hexdump) in self.disassemble(self.offset):
             renderer.table_row(offset, hexdump, instruction)
 

@@ -89,16 +89,17 @@ class WinPsList(common.WinProcessFilter):
         return []
 
     def render(self, renderer):
-        renderer.table_header( [("Offset (V)", "[addrpad]"),
-                                ("Name", "20s"),
-                                ("PID", ">6"),
-                                ("PPID", ">6"),
-                                ("Thds", ">6"),
-                                ("Hnds", ">8"),
-                                ("Sess", ">6"),
-                                ("Wow64", ">6"),
-                                ("Start", "20"),
-                                ("Exit", "20")]
+
+    	renderer.table_header( [("Offset (V)", "offset_v", "[addrpad]"),
+                                ("Name", "file_name", "20s"),
+                                ("PID", "pid", ">6"),
+                                ("PPID", "ppid", ">6"),
+                                ("Thds", "thread_count", ">6"),
+                                ("Hnds", "handle_count", ">8"),
+                                ("Sess", "session_id", ">6"),
+                                ("Wow64", "wow64", ">6"),
+                                ("Start", "process_create_time", "20"),
+                                ("Exit", "process_exit_time", "20")]
                                )
 
         for task in self.filter_processes():
@@ -113,6 +114,7 @@ class WinPsList(common.WinProcessFilter):
                                task.CreateTime,
                                task.ExitTime,
                                )
+
 
 
 class WinDllList(common.WinProcessFilter):
@@ -138,9 +140,9 @@ class WinDllList(common.WinProcessFilter):
 
                 renderer.format(u"{0}\n", task.Peb.CSDVersion)
                 renderer.write(u"\n")
-                renderer.table_header([("Base", "[addrpad]"),
-                                       ("Size", "[addr]"),
-                                       ("Path", ""),
+                renderer.table_header([("Base", "module_base", "[addrpad]"),
+                                       ("Size", "module_size", "[addr]"),
+                                       ("Path", "loaded_dll_path", ""),
                                        ])
                 for m in task.get_load_modules():
                     renderer.table_row(m.DllBase, m.SizeOfImage, m.FullDllName)
@@ -196,9 +198,9 @@ class WinMemMap(common.WinProcessFilter):
                 renderer.write("Unable to read pages for task.\n")
                 continue
 
-            renderer.table_header([("Virtual", "[addrpad]"),
-                                   ("Physical", "[addrpad]"),
-                                   ("Size", "[addr]")])
+            renderer.table_header([("Virtual", "offset_v", "[addrpad]"),
+                                   ("Physical", "offset_p", "[addrpad]"),
+                                   ("Size", "process_size", "[addr]")])
 
             for virtual_address, phys_address, length in ranges:
                 renderer.table_row(virtual_address, phys_address, length)

@@ -66,10 +66,10 @@ class ConnScan(common.AbstractWindowsCommandPlugin):
             yield scanner.get_allocation(offset, "_TCPT_OBJECT")
 
     def render(self, renderer):
-        renderer.table_header([("Offset(P)", "[addrpad]"),
-                               ("Local Address", "<25"),
-                               ("Remote Address", "<25"),
-                               ("Pid", ">10")])
+        renderer.table_header([("Offset(P)", "offset_p", "[addrpad]"),
+                               ("Local Address", "local_net_address", "<25"),
+                               ("Remote Address", "remote_net_address", "<25"),
+                               ("Pid", "pid", ">10")])
 
         ## We make a new scanner
         for tcp_obj in self.generate_hits():

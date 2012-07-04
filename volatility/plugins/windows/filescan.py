@@ -77,14 +77,14 @@ class FileScan(common.PoolScannerPlugin):
     def render(self, renderer):
         """Print the output in a table."""
 
-        renderer.table_header([('Offset', '[addrpad]'),
-                               ('#Ptr', '>3'),
-                               ('#Hnd', '>3'),
-                               ('Access', '6'),
-                               ('Owner', '[addrpad]'),
-                               ('Owner Pid', '>4'),
-                               ('Owner Name', '16'),
-                               ('Name', '')
+        renderer.table_header([('Offset', "offset_p", '[addrpad]'),
+                               ('#Ptr', "ptr_count", '>3'),
+                               ('#Hnd', "hnd_count", '>3'),
+                               ('Access', "access", '6'),
+                               ('Owner', "owner", '[addrpad]'),
+                               ('Owner Pid', "owner_pid", '>4'),
+                               ('Owner Name', "owner_name", '16'),
+                               ('Name', "path", '')
                                ])
 
         for object_obj, file_obj in self.generate_hits():
@@ -141,14 +141,14 @@ class DriverScan(FileScan):
 
     def render(self, renderer):
         """Renders the text-based output"""
-        renderer.table_header([('Offset(P)', '[addrpad]'),
-                               ('#Ptr', '>4'),
-                               ('#Hnd', '>4'),
-                               ('Start', '[addrpad]'),
-                               ('Size', '[addr]'),
-                               ('Service Key', '20'),
-                               ('Name', '12'),
-                               ('Driver Name', '')
+        renderer.table_header([('Offset(P)', "offset_p", '[addrpad]'),
+                               ('#Ptr', "ptr_count", '>4'),
+                               ('#Hnd', "hnd_count", '>4'),
+                               ('Start', "driver_start", '[addrpad]'),
+                               ('Size', "driver_size", '[addr]'),
+                               ('Service Key', "driver_servicekey", '20'),
+                               ('Name', "driver_name", '12'),
+                               ('Driver Name', "path", '')
                                ])
 
         for object_obj, driver_obj, extension_obj, object_name in self.generate_hits():
@@ -192,12 +192,12 @@ class SymLinkScan(FileScan):
 
     def render(self, renderer):
         """ Renders text-based output """
-        renderer.table_header([('Offset(P)', '[addrpad]'),
-                               ('#Ptr', '>6'),
-                               ('#Hnd', '>6'),
-                               ('Creation time', '24'),
-                               ('From', ''),
-                               ('To', '60'),
+        renderer.table_header([('Offset(P)', "offset_p", '[addrpad]'),
+                               ('#Ptr', "ptr_count", '>6'),
+                               ('#Hnd', "hnd_count", '>6'),
+                               ('Creation time', "symlink_creation_time", '24'),
+                               ('From', "symlink_from", ''),
+                               ('To', "symlink_to", '60'),
                                ])
 
 
@@ -255,13 +255,13 @@ class MutantScan(FileScan):
     def render(self, renderer):
         """Renders the output"""
 
-        renderer.table_header([('Offset(P)', '[addrpad]'),
-                               ('#Ptr', '>4'),
-                               ('#Hnd', '>4'),
-                               ('Signal', '4'),
-                               ('Thread', '[addrpad]'),
-                               ('CID', '>9'),
-                               ('Name', '')
+        renderer.table_header([('Offset(P)', "offset_p", '[addrpad]'),
+                               ('#Ptr', "ptr_count", '>4'),
+                               ('#Hnd', "hnd_count", '>4'),
+                               ('Signal', "mutant_signal", '4'),
+                               ('Thread', "mutant_thread", '[addrpad]'),
+                               ('CID', "cid", '>9'),
+                               ('Name', "mutant_name", '')
                                ])
 
         for object_obj, mutant, object_name in self.generate_hits():
@@ -388,15 +388,15 @@ class PSScan(common.PoolScannerPlugin):
 
     def render(self, renderer):
         """Render results in a table."""
-        renderer.table_header([('Offset', '[addrpad]'),
-                               ('Offset(V)', '[addrpad]'),
-                               ('Name', '16'),
-                               ('PID', '>6'),
-                               ('PPID', '>6'),
-                               ('PDB', '[addrpad]'),
-                               ('Time created', '20'),
-                               ('Time exited', '20')
-                               ])
+        renderer.table_header([('Offset', "offset_p", '[addrpad]'),
+                               ('Offset(V)', "offset_v", '[addrpad]'),
+                               ('Name', "file_name", '16'),
+                               ('PID', "pid", '>6'),
+                               ('PPID', "ppid", '>6'),
+                               ('PDB', "pdb", '[addrpad]'),
+                               ('Time created', "process_create_time", '20'),
+                               ('Time exited', "process_exit_time", '20')]
+                               )
 
         for eprocess in self.calculate():
             # Try to guess the virtual address of the eprocess
