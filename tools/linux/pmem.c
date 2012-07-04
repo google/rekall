@@ -183,7 +183,8 @@ static ssize_t pmem_read(struct file *file, char *buf, size_t count,
 
   /* How much data is available in the entire memory range. */
   size_t available = file_size - *poff;
-  size_t remaining = min(count, available);
+  size_t to_read = min(count, available);
+  size_t remaining = to_read;
 
   if(file_size < *poff)
     return 0;
@@ -192,10 +193,11 @@ static ssize_t pmem_read(struct file *file, char *buf, size_t count,
      padding on error its impossible to fail here.
   */
   while(remaining > 0) {
-    remaining -= pmem_read_partial(file, buf, remaining, poff);
+    remaining -= pmem_read_partial(file, buf + (to_read - remaining),
+                                   remaining, poff);
   };
 
-  return min(count, available);
+  return to_read;
 }
 
 static unsigned long long zero_page = 0;
