@@ -170,7 +170,7 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
   *poff += to_read;
 
   /* Error occured we zero pad the result. */
-  memset(buf, 0, to_read);
+  clear_user(buf, to_read);
   return to_read;
 };
 

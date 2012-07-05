@@ -12,6 +12,4 @@ from volatility.plugins import linux
 from volatility.plugins import overlays
 
 # This will be deprecated in favor of the new pfn plugins which are much faster.
-#from volatility.plugins import strings
-from volatility.plugins import unittests
 from volatility.plugins import windows
