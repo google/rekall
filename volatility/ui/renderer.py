@@ -33,6 +33,7 @@ import time
 from volatility import obj
 from volatility import utils
 from volatility import registry
+from volatility import constants
 
 
 class Pager(object):
@@ -506,32 +507,31 @@ class JsonFormatter(Formatter):
         # We try to capture as much information about this object. Hopefully
         # this should be enough to reconstruct this object later.
         if isinstance(value, obj.BaseObject):
-            result = dict(type=value.obj_type,
-                          name=value.obj_name,
-                          offset=value.obj_offset,
-                          vm=str(value.obj_vm))
+            result = dict(volatility_type=value.obj_type,
+                          volatility_name=value.obj_name,
+                          volatility_offset=value.obj_offset,
+                          volatility_vm=str(value.obj_vm))
 
-            try:
-                result['str'] = self.format_field(value.__unicode__(), "s")
-            except (AttributeError):
-                pass
-
-            try:
-                result['int'] = self.format_field(value.__init__(), "s")
-            except (ValueError, AttributeError):
-                pass
+            for method in ["__unicode__", "__int__", "__str__"]:
+                try:
+                    result['value'] = self.format_field(
+                        getattr(value, method)(), "s")['value']
+                    break
+                except (AttributeError, ValueError):
+                    pass
 
 
             return result
 
         # If it is a simple type, just pass it as is.
         if isinstance(value, (int, long, basestring)):
-            return value
+            return dict(value=value)
 
         # If it is a NoneObject dump out the error
         if isinstance(value, obj.NoneObject):
-            return dict(type=value.__class__.__name__,
-                        reason=value.reason)
+            return dict(volatility_type=value.__class__.__name__,
+                        volatility_reason=value.reason,
+                        value=None)
 
         # Fall back to just formatting it.
         return super(JsonFormatter, self).format_field(value, format_spec)
@@ -558,10 +558,14 @@ class JsonTable(TextTable):
     def render_header(self, renderer):
         renderer.table_data['headers'] = [c.render_header() for c in self.columns]
 
-    def render_row(self, renderer, *args):
-        renderer.table_data['rows'].append(
-            [c.render_cell(obj) for c, obj in zip(self.columns, args)])
+    def get_header(self, renderer):
+        return [c.render_header() for c in self.columns]
 
+    def render_row(self, renderer, *args):
+        data = {}
+        for c, obj in zip(self.columns, args):
+            data[c.cname] = c.render_cell(obj)
+        renderer.table_data.append(data)
 
 
 class JsonRenderer(TextRenderer):
@@ -572,15 +576,18 @@ class JsonRenderer(TextRenderer):
 
         # We store the data here.
         self.data = dict(plugin_name=plugin_name,
+                         tool_name="volatility-ng",
+                         tool_version=constants.VERSION,
                          kwargs=self.formatter.format_dict(kwargs),
                          data=[])
 
         super(JsonRenderer, self).start(plugin_name=plugin_name,
                                         kwargs=kwargs)
+        self.headers = []
 
     def end(self):
         # Just dump out the json object.
-        self.pager.write(json.dumps(self.data))
+        self.pager.write(json.dumps(self.data, indent=4))
 
     def format(self, formatstring, *args):
         statement = [formatstring]
@@ -594,13 +601,13 @@ class JsonRenderer(TextRenderer):
         self.table = JsonTable(columns=columns)
 
         # This is the current table - the JsonTable object will write on it.
-        self.table_data = dict(headers=[], rows=[])
+        self.table_data = []
 
         # Append it to the data.
-        self.data['data'].append(self.table_data)
+        self.data['data'] = self.table_data
 
         # Write the headers.
-        self.table.render_header(self)
+        self.headers = self.table.get_header(self)
 
     def write(self, data):
         self.data['data'].append(data)
