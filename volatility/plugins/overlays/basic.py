@@ -31,6 +31,7 @@ import struct
 from volatility import obj
 from volatility import constants
 from volatility import timefmt
+from volatility import utils
 from volatility.plugins.overlays import native_types
 
 
@@ -90,6 +91,9 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def __radd__(self, other):
         """Set up mappings for reverse concat"""
         return other + str(self)
+
+    def __eq__(self, other):
+        return unicode(self) == utils.SmartUnicode(other)
 
     def size(self):
         """This is equivalent to strlen()."""
@@ -152,7 +156,7 @@ class Flags(obj.NativeType):
         self.maskmap = maskmap or {}
         if bitmap:
             for k, v in bitmap.items():
-                self.maskmap[v] = 1 << k
+                self.maskmap[k] = 1 << v
 
         self.target = target
         self.target_obj = self.obj_profile.Object(

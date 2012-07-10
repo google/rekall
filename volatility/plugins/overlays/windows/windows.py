@@ -51,6 +51,14 @@ windows_overlay = {
     'TimeZoneBias' : [ None, ['WinTimeStamp', {}]],
     }],
 
+    '_KPCR': [None, {
+            # The processor block has varying names between windows versions so
+            # we just make them synonyms.
+            'ProcessorBlock': lambda x: x.m("Prcb") or x.m("PrcbData"),
+            'IDT': lambda x: x.m("IDT") or x.m("IdtBase"),
+            'GDT': lambda x: x.m("GDT") or x.m("GdtBase"),
+            }],
+
     # The DTB is really an array of 2 ULONG_PTR but we only need the first one
     # which is the value loaded into CR3. The second one, according to procobj.c
     # of the wrk-v1.2, contains the PTE that maps something called hyper space.
@@ -508,7 +516,7 @@ class _MMVAD(obj.CType):
     ## The actual type depends on this tag value.
     tag_map = {'Vadl': '_MMVAD_LONG',
                'VadS': '_MMVAD_SHORT',
-               'Vad ': '_MMVAD_LONG',
+               'Vad ': '_MMVAD',
                'VadF': '_MMVAD_SHORT',
                'Vadm': '_MMVAD_LONG',
               }

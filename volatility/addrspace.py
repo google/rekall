@@ -30,6 +30,7 @@
 
 """
 from volatility import registry
+from volatility import utils
 
 
 class BaseAddressSpace(object):
@@ -169,6 +170,50 @@ class BufferAddressSpace(BaseAddressSpace):
 
     def get_available_addresses(self):
         yield (self.base_offset, len(self.data))
+
+
+class CachingAddressSpace(BaseAddressSpace):
+    __abstract = True
+
+    # The size of chunks we cache. This should be large enough to make file
+    # reads efficient.
+    CHUNK_SIZE = 10 * 1024 * 1024
+    CACHE_SIZE = 20
+
+    def __init__(self, **kwargs):
+        super(CachingAddressSpace, self).__init__(**kwargs)
+        self._cache = utils.FastStore(self.CACHE_SIZE)
+
+    def read(self, addr, length):
+        result = ""
+        while length > 0:
+            data = self.read_partial(addr, length)
+            if not data: break
+
+            result += data
+            length -= len(data)
+            addr += len(data)
+
+        return result
+
+    def zread(self, addr, length):
+        return self.read(addr, length)
+
+    def read_partial(self, addr, length):
+        chunk_number = addr / self.CHUNK_SIZE
+        chunk_offset = addr % self.CHUNK_SIZE
+        available_length = min(length, self.CHUNK_SIZE - chunk_offset)
+
+        try:
+            data = self._cache.Get(chunk_number)
+        except KeyError:
+            data = self.base.read(chunk_number * self.CHUNK_SIZE, self.CHUNK_SIZE)
+            self._cache.Put(chunk_number, data)
+
+        return data[chunk_offset:chunk_offset+available_length]
+
+    def get_available_addresses(self):
+        return self.base.get_available_addresses()
 
 
 class PagedReader(BaseAddressSpace):

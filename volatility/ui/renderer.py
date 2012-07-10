@@ -150,7 +150,7 @@ class Formatter(string.Formatter):
 class TextColumn(object):
     """An implementation of a Column."""
 
-    def __init__(self, name=None, cname=None, formatstring="s", address_size=10,
+    def __init__(self, name=None, cname=None, formatstring="s", address_size=14,
                  header_format=None, elide=False, **kwargs):
         self.name = name or "-"
         self.cname = cname or "-"
@@ -189,12 +189,15 @@ class TextColumn(object):
         if m:
             self.formatstring = "#0%sx" % self.address_size
             self.header_format = "^%ss" % self.address_size
+            # Never elide addresses - makes them unreadable.
+            self.elide = False
             return
 
         m = re.search("\[addr\]", formatstring)
         if m:
             self.formatstring = "#%sx" % self.address_size
             self.header_format = "^%ss" % self.address_size
+            self.elide = False
             return
 
         # Look for the wrap specifier.
@@ -279,8 +282,9 @@ class TextTable(object):
     """
 
     def __init__(self, columns=None, tablesep=" ", elide=True,
-                 suppress_headers=False):
-        self.columns = [TextColumn(*args, elide=elide) for args in columns]
+                 suppress_headers=False, address_size=10):
+        self.columns = [TextColumn(*args, elide=elide, address_size=address_size)
+                        for args in columns]
         self.tablesep = tablesep
         self.elide = elide
         self.suppress_headers = suppress_headers
@@ -358,6 +362,13 @@ class RendererBaseClass(object):
 
     def write(self, data):
         """Renderer should write some data."""
+
+    def section(self):
+        """Start a new section.
+
+        Sections are used to separate distinct entries (e.g. reports of different files).
+        """
+        self.write("*" * 50 + "\n")
 
     def format(self, formatstring, *data):
         """Write formatted data.
@@ -465,9 +476,15 @@ class TextRenderer(RendererBaseClass):
            suppress_headers: If True table headers will not be written (still
               useful for formatting).
         """
+        # Determine the address size
+        address_size = 14
+        if (self.session and self.session.profile and
+            self.session.profile.metadata("memory_model") == "32bit"):
+            address_size = 10
+
         self.table = TextTable(columns=columns, tablesep=self.tablesep,
                                suppress_headers=suppress_headers,
-                               elide=self.elide)
+                               elide=self.elide, address_size=address_size)
         self.table.render_header(self)
 
     def table_row(self, *args):

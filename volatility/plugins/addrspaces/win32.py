@@ -75,7 +75,7 @@ class Win32FileAddressSpace(addrspace.PagedReader):
         try:
             self.ParseMemoryRuns()
         except Exception:
-            self.runs = [0, 1e12]
+            self.runs = [[0, win32file.GetFileSize(self.fhandle)]]
 
         # IO on windows is extremely slow so we are better off using a
         # cache.

@@ -25,7 +25,7 @@ class _KDDEBUGGER_DATA64(obj.CType):
     def is_valid(self):
         """Returns true if the kdbg_object appears valid"""
         # Check the OwnerTag is in fact the string KDBG
-        return (super(_KDDEBUGGER_DATA64, self).is_valid(self) and
+        return (super(_KDDEBUGGER_DATA64, self).is_valid() and
                 self.Header.OwnerTag == 0x4742444B)
 
     @property

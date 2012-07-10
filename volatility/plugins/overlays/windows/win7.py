@@ -46,6 +46,10 @@ win7_overlays = {
             'Tag': [-12 , ['String', dict(length = 4)]],
             }],
 
+    '_MMVAD': [ None, {
+            'Tag': [-12 , ['String', dict(length = 4)]],
+            }],
+
     '_MMVAD_LONG': [ None, {
             'Tag': [-12 , ['String', dict(length = 4)]],
             }],

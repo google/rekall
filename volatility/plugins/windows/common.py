@@ -150,7 +150,7 @@ class PoolTagCheck(scan.ScannerCheck):
         self.tag_offset = self.profile.get_obj_offset(
             "_POOL_HEADER", "PoolTag")
 
-    def skip(self, data, offset):
+    def skip(self, data, offset, **_):
         nextvals = []
         for tag in self.tags:
             nextval = data.find(tag, offset + 1)
@@ -160,14 +160,14 @@ class PoolTagCheck(scan.ScannerCheck):
         # No tag was found
         if not nextvals:
             # Substrings are not found - skip to the end of this data buffer
-            return len(data) - offset - self.tag_offset
+            return len(data) - offset + 1
 
         return min(nextvals) - offset - self.tag_offset
 
     def check(self, offset):
         for tag in self.tags:
             # Check the tag field.
-            data = self.address_space.read(offset + self.tag_offset, len(tag))
+            data = self.address_space.zread(offset + self.tag_offset, len(tag))
             if data == tag:
                 return True
 

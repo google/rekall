@@ -22,6 +22,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import inspect
 import logging
+import pdb
 
 from volatility import addrspace
 from volatility import registry
@@ -188,6 +189,8 @@ class LoadAddressSpace(plugin.ProfileCommand):
                     continue
                 except Exception, e:
                     logging.error("Fatal Error: %s", e)
+                    if self.session.debug:
+                        pdb.post_mortem()
                     return
 
             ## A full iteration through all the classes without anyone

@@ -83,10 +83,6 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReade
             pass
 
         # If the underlying address space already knows about the dtb we use it.
-        try:
-            dtb = self.base.dtb
-        except AttributeError: pass
-
         # Allow the dtb to be specified in the session.
         self.dtb = dtb or self.session.dtb
 

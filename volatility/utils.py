@@ -20,9 +20,6 @@
 #
 import threading
 
-import volatility.addrspace as addrspace
-
-#pylint: disable-msg=C0111
 
 def SmartStr(string, encoding="utf8"):
     """Forces the string to be an encoded byte string."""

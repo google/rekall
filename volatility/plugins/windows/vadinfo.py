@@ -115,7 +115,7 @@ class VADInfo(common.WinProcessFilter):
 
     def write_vad_short(self, renderer, vad):
         """Renders a text version of a Short Vad"""
-        renderer.table_header([("VAD node @", "offset", str(len("VAD node @"))),
+        renderer.table_header([("VAD node @", "offset", ""),
                                ("address","address", "[addrpad]"),
                                ("Start","Start", "5"),
                                ("startaddr","startaddr", "[addrpad]"),

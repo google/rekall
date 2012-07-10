@@ -1,0 +1,24 @@
+{
+    "profile": "WinXPSP2x86", 
+    "number_of_lines": 14, 
+    "time_used": 5.0751299858093262, 
+    "filename": "/home/scudette/volatility//svn/test_data/xp-laptop-2005-06-25.img", 
+    "mode": "ng", 
+    "kwargs": {}, 
+    "output": [
+        "**************************************************", 
+        "Instantiating KDBG using: Kernel AS WinXPSP2x86 (5.1.0 32bit)", 
+        "Offset (V)                    : 0x8054c060", 
+        "Offset (P)                    : 0x54c060", 
+        "KDBG owner tag check          : True", 
+        "Version64                     : 0x8054c038 (Major: 15, Minor: 2600)", 
+        "Service Pack (CmNtCSDVersion) : 2", 
+        "Build string (NtBuildLab)     : 2600.xpsp_sp2_gdr.050301-1519", 
+        "PsActiveProcessHead           : 0x805604d8 (47 processes)", 
+        "PsLoadedModuleList            : 0x8055a420 (127 modules)", 
+        "KernelBase                    : 0x804d7000 (Matches MZ: True)", 
+        "Major (OptionalHeader)        : 5", 
+        "Minor (OptionalHeader)        : 1", 
+        "KPCR                          : 0xffdff000 (CPU 0)"
+    ]
+}

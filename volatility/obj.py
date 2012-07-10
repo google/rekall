@@ -312,7 +312,7 @@ class BaseObject(object):
         return hash(self.v())
 
     def m(self, memname):
-        raise AttributeError("No member {0}".format(memname))
+        return NoneObject("No member {0}".format(memname))
 
     def is_valid(self):
         return self.obj_vm.is_valid_address(self.obj_offset)
@@ -502,6 +502,7 @@ class Pointer(NativeType):
         self.target = target
         self.target_args = target_args or {}
         self.target_size = 0
+        self.kwargs = kwargs
 
     def size(self):
         return self._proxy.size()
@@ -582,14 +583,15 @@ class Pointer(NativeType):
         """
         # Find out our target size for pointer arithmetics.
         self.target_size = (self.target_size or
-                            self.target(vm=addrspace.DummyAddressSpace()).size())
+                            self.obj_profile.Object(
+                self.target, vm=addrspace.DummyAddressSpace()).size())
 
-        kwargs = self.kwargs
-        kwargs['offset'] = self.obj_offset + int(other) * self.target_size
-        kwargs['target'] = self.target
+        offset = self.obj_offset + int(other) * self.target_size
 
         try:
-            return Pointer(**kwargs)
+            return self.__class__(target=self.target, target_args=self.target_args,
+                                  offset=offset, vm=self.obj_vm, parent=self.obj_parent,
+                                  context=self.obj_context, profile=self.obj_profile)
         except InvalidOffsetError, e:
             return NoneObject(e)
 
@@ -876,6 +878,15 @@ class CType(BaseObject):
         return self.obj_offset
 
     def m(self, attr):
+        """Fetch the member named by attr.
+
+        NOTE: When the member does not exist in this struct, we return a
+        NoneObject instance. This allows one to write code such as:
+
+        struct.m("Field1") or struct.m("Field2") struct.m("Field2")
+
+        To access a field which has been renamed in different OS versions.
+        """
         if attr in self.members:
             # Allow the element to be a callable rather than a list - this is
             # useful for aliasing member names
@@ -884,12 +895,9 @@ class CType(BaseObject):
                 return element(self)
 
             offset, cls = element
-        elif attr.find('__') > 0 and attr[attr.find('__'):] in self.members:
-            offset, cls = self.members[attr[attr.find('__'):]]
         else:
-            ## hmm - tough choice - should we raise or should we not
-            #return NoneObject("Struct {0} has no member {1}".format(self.obj_name, attr))
-            raise AttributeError("Struct {0} has no member {1}".format(self.obj_name, attr))
+            return NoneObject(u"Struct {0} has no member {1}".format(
+                    self.obj_name, attr))
 
         if callable(offset):
             ## If offset is specified as a callable its an absolute
@@ -908,6 +916,13 @@ class CType(BaseObject):
         return result
 
     def __getattr__(self, attr):
+        # We raise when directly accessing a member to catch invalid access
+        # errors. NOTE: This is different from the m() method which returns a
+        # NoneObject for invalid members.
+        if attr not in self.members:
+            raise AttributeError("Type {0} has no member {1}".format(
+                    self.obj_name, attr))
+
         return self.m(attr)
 
     def __setattr__(self, attr, value):

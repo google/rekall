@@ -21,6 +21,7 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
+import pdb
 import logging
 import sys
 
@@ -62,8 +63,12 @@ parser.add_argument("--dump-dir", help="The directory to dump files to.")
 parser.add_argument("--logging", default=None,
                     help="Logging level (lower is more verbose).")
 
+parser.add_argument("--debug", default=None, action="store_true",
+                    help="If set we break into the debugger on some conditions.")
+
 parser.add_argument("--renderer", default="TextRenderer",
                     help="The renderer to use. e.g. (TextRenderer, JsonRenderer).")
+
 
 
 def IPython011Support(user_session):
@@ -95,7 +100,6 @@ def IPython011Support(user_session):
 
     except ImportError:
         return False
-
 
 def IPython012Support(user_session):
     """Launch the ipython session for post 0.12 versions.
@@ -162,7 +166,13 @@ if __name__ == '__main__':
         UpdateSessionFromArgv(user_session, FLAGS)
 
         # Run the module
-        user_session.vol(FLAGS.module)
+        try:
+            user_session.vol(FLAGS.module)
+        except Exception:
+            if FLAGS.debug:
+                pdb.post_mortem()
+            else:
+                raise
 
         if not FLAGS.interactive:
             sys.exit()
