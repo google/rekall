@@ -38,67 +38,13 @@ class VADInfo(common.WinProcessFilter):
 
     __name = "vadinfo"
 
-    # Vad Protections. Also known as page protections. _MMVAD_FLAGS.Protection,
-    # 3-bits, is an index into nt!MmProtectToValue (the following list).
-    PROTECT_FLAGS = dict(enumerate([
-        'PAGE_NOACCESS',
-        'PAGE_READONLY',
-        'PAGE_EXECUTE',
-        'PAGE_EXECUTE_READ',
-        'PAGE_READWRITE',
-        'PAGE_WRITECOPY',
-        'PAGE_EXECUTE_READWRITE',
-        'PAGE_EXECUTE_WRITECOPY',
-        'PAGE_NOACCESS',
-        'PAGE_NOCACHE | PAGE_READONLY',
-        'PAGE_NOCACHE | PAGE_EXECUTE',
-        'PAGE_NOCACHE | PAGE_EXECUTE_READ',
-        'PAGE_NOCACHE | PAGE_READWRITE',
-        'PAGE_NOCACHE | PAGE_WRITECOPY',
-        'PAGE_NOCACHE | PAGE_EXECUTE_READWRITE',
-        'PAGE_NOCACHE | PAGE_EXECUTE_WRITECOPY',
-        'PAGE_NOACCESS',
-        'PAGE_GUARD | PAGE_READONLY',
-        'PAGE_GUARD | PAGE_EXECUTE',
-        'PAGE_GUARD | PAGE_EXECUTE_READ',
-        'PAGE_GUARD | PAGE_READWRITE',
-        'PAGE_GUARD | PAGE_WRITECOPY',
-        'PAGE_GUARD | PAGE_EXECUTE_READWRITE',
-        'PAGE_GUARD | PAGE_EXECUTE_WRITECOPY',
-        'PAGE_NOACCESS',
-        'PAGE_WRITECOMBINE | PAGE_READONLY',
-        'PAGE_WRITECOMBINE | PAGE_EXECUTE',
-        'PAGE_WRITECOMBINE | PAGE_EXECUTE_READ',
-        'PAGE_WRITECOMBINE | PAGE_READWRITE',
-        'PAGE_WRITECOMBINE | PAGE_WRITECOPY',
-        'PAGE_WRITECOMBINE | PAGE_EXECUTE_READWRITE',
-        'PAGE_WRITECOMBINE | PAGE_EXECUTE_WRITECOPY',
-    ]))
-
-    # Vad Types. The _MMVAD_SHORT.u.VadFlags (_MMVAD_FLAGS) struct on XP has
-    # individual flags, 1-bit each, for these types. The _MMVAD_FLAGS for all
-    # OS after XP has a member _MMVAD_FLAGS.VadType, 3-bits, which is an index
-    # into the following enumeration.
-    MI_VAD_TYPE = dict(enumerate([
-        'VadNone',
-        'VadDevicePhysicalMemory',
-        'VadImageMap',
-        'VadAwe',
-        'VadWriteWatch',
-        'VadLargePages',
-        'VadRotatePhysical',
-        'VadLargePageSection',
-    ]))
-
     def render(self, renderer):
         for task in self.filter_processes():
-            renderer.write("*" * 72 + "\n")
+            renderer.section()
             renderer.write("Pid: {0:6}\n".format(task.UniqueProcessId))
 
+            count = 0
             for count, vad in enumerate(task.VadRoot.traverse()):
-                self.session.report_progress("Pid %s: %s Vads" % (task.UniqueProcessId,
-                                                                  count))
-
                 vad = vad.dereference()
                 if vad and vad != 0:
                     try:
@@ -112,6 +58,9 @@ class VADInfo(common.WinProcessFilter):
                     except AttributeError: pass
 
                 renderer.write("\n")
+
+            self.session.report_progress("Pid %s: %s Vads" % (
+                    task.UniqueProcessId, count))
 
     def write_vad_short(self, renderer, vad):
         """Renders a text version of a Short Vad"""
@@ -137,15 +86,11 @@ class VADInfo(common.WinProcessFilter):
 
         # although the numeric value of Protection is printed above with VadFlags,
         # let's show the user a human-readable translation of the protection
-        renderer.write("Protection: {0}\n".format(
-                self.PROTECT_FLAGS.get(vad.u.VadFlags.Protection.v(),
-                                       hex(vad.u.VadFlags.Protection))))
+        renderer.write("Protection: {0}\n".format(vad.u.VadFlags.ProtectionEnum))
 
         # translate the vad type if its available (> XP)
-        if hasattr(vad.u.VadFlags, "VadType"):
-            renderer.write("Vad Type: {0}\n".format(
-                    self.MI_VAD_TYPE.get(vad.u.VadFlags.VadType.v(),
-                                         hex(vad.u.VadFlags.VadType))))
+        if vad.u.VadFlags.m("VadType"):
+            renderer.write("Vad Type: {0}\n".format(vad.u.VadFlags.VadTypeEnum))
 
     def write_vad_control(self, outfd, vad):
         """Renders a text version of a (non-short) Vad's control information"""
@@ -329,6 +274,56 @@ class VADDump(VADInfo):
 
                     f.write(range_data)
 
+class VAD(common.WinProcessFilter):
+    """Concise dump of the VAD.
+
+    Similar to windbg's !vad.
+    """
+
+    __name = "vad"
+
+    PAGE_SIZE = 12
+
+    def render_vadroot(self, renderer, vad_root):
+        renderer.table_header([('VAD', 'offset', '[addrpad]'),
+                               ('lev', 'depth', '<2'),
+                               ('start', 'start_pfn', '[addr]'),
+                               ('end', 'end_pfn', '[addr]'),
+                               ('com', 'com', '!>4'),
+                               ('', 'type', '7'),
+                               ('', 'executable', '6'),
+                               ('Protect', 'protection', '!20'),
+                               ('Filename', 'filename', '')])
+
+        for vad in vad_root.traverse():
+            vad = vad.dereference()
+            if not vad: continue
+
+            filename = ""
+            try:
+                file_obj = vad.ControlArea.FilePointer
+                if file_obj:
+                    filename = file_obj.FileName or "Pagefile-backed section"
+            except AttributeError:
+                pass
+
+            renderer.table_row(
+                vad.obj_offset, vad.obj_context.get('depth', 0),
+                vad.Start >> self.PAGE_SIZE,
+                vad.End >> self.PAGE_SIZE,
+                vad.u.VadFlags.CommitCharge,
+                "Private" if vad.u.VadFlags.PrivateMemory else "Mapped",
+                "Exe" if "EXECUTE" in str(vad.u.VadFlags.ProtectionEnum) else "",
+                vad.u.VadFlags.ProtectionEnum,
+                filename)
+
+    def render(self, renderer):
+        for task in self.filter_processes():
+            renderer.section()
+            renderer.format("Pid: {0} {1}\n", task.UniqueProcessId,
+                            task.ImageFileName)
+            self.render_vadroot(renderer, task.VadRoot)
+
 
 class VadScanner(scan.BaseScanner):
     """A scanner over all memory regions of a process."""
@@ -344,10 +339,12 @@ class VadScanner(scan.BaseScanner):
             kernel). If not provided we default to the kernel profile.
         """
         self.task = task
-        super(VadScanner, self).__init__(profile=process_profile or task.obj_profile,
-                                         address_space=task.get_process_address_space())
+        super(VadScanner, self).__init__(
+            profile=process_profile or task.obj_profile,
+            address_space=task.get_process_address_space())
 
     def scan(self, offset=0, maxlen=None):
         for vad in self.task.VadRoot.traverse():
-            for match in super(VadScanner, self).scan(vad.Start, vad.End - vad.Start):
+            for match in super(VadScanner, self).scan(
+                vad.Start, vad.End - vad.Start):
                 yield match

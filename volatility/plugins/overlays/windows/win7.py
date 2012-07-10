@@ -48,10 +48,12 @@ win7_overlays = {
 
     '_MMVAD': [ None, {
             'Tag': [-12 , ['String', dict(length = 4)]],
+            'ControlArea': lambda x: x.Subsection.ControlArea,
             }],
 
     '_MMVAD_LONG': [ None, {
             'Tag': [-12 , ['String', dict(length = 4)]],
+            'ControlArea': lambda x: x.Subsection.ControlArea,
             }],
 
     "_CONTROL_AREA": [None, {
@@ -148,16 +150,6 @@ class _MMVAD_SHORT(_MMADDRESS_NODE):
     pass
 
 
-class _MMVAD(_MMVAD_SHORT):
-    @property
-    def ControlArea(self):
-        return self.Subsection.ControlArea
-
-
-class _MMVAD_LONG(_MMVAD):
-    pass
-
-
 class Win7BaseProfile(windows.BaseWindowsProfile):
     """The common ancestor of all windows 7 profiles."""
 
@@ -172,7 +164,6 @@ class Win7BaseProfile(windows.BaseWindowsProfile):
 
         self.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
                               _MMADDRESS_NODE=_MMADDRESS_NODE,
-                              _MMVAD=_MMVAD, _MMVAD_LONG=_MMVAD_LONG,
                               _MMVAD_SHORT=_MMVAD_SHORT,
                               pointer64=obj.Pointer))
 

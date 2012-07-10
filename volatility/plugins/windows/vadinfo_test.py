@@ -27,7 +27,8 @@ class TestVad(testlib.VolatilityBaseUnitTestCase):
     """Test the vadinfo module."""
 
     trunk_launch_args = [['vadinfo', "--pid", "2624"]]
-    ng_launch_args = [['vadinfo', dict(pid=2624)]]
+    ng_launch_args = [['vadinfo', dict(pid=2624)],
+                      ['vad', dict(pid=2624)]]
 
     def testVadInfo(self):
         previous_meta, current_meta = self.ReRunVolatilityTest('vadinfo', pid=2624)
@@ -42,3 +43,14 @@ class TestVad(testlib.VolatilityBaseUnitTestCase):
         self.assertEqual(len(file_objects), 27)
         self.assertListEqual(file_objects,
                              self.MatchOutput(current, "FileObject @[0-9a-z]+"))
+
+    def testVad(self):
+        try:
+            previous_meta, current_meta = self.ReRunVolatilityTest(
+                'vad', pid=2624)
+
+            self.assertEqual(previous_meta['output'],
+                             current_meta['output'])
+        except IOError:
+            # Module does not exist in trunk.
+            return

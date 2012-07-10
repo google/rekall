@@ -196,16 +196,24 @@ class Flags(obj.NativeType):
 class Enumeration(obj.NativeType):
     """Enumeration class for handling multiple possible meanings for a single value"""
 
-    def __init__(self, choices = None, target = "unsigned long", **kwargs):
+    def __init__(self, choices = None, target = "unsigned long", value=None,
+                 **kwargs):
         super(Enumeration, self).__init__(**kwargs)
         self.choices = choices or {}
+        if callable(value):
+            value = value(self.obj_parent)
 
-        self.target = target
-        self.target_obj = self.obj_profile.Object(
-            target, offset=self.obj_offset, vm=self.obj_vm, context=self.obj_context)
+        self.value = value
+        if value is None:
+            self.target = target
+            self.target_obj = self.obj_profile.Object(
+                target, offset=self.obj_offset, vm=self.obj_vm, context=self.obj_context)
 
     def v(self, vm=None):
-        return self.target_obj.v(vm=vm)
+        if self.value is None:
+            return self.target_obj.v(vm=vm)
+
+        return self.value
 
     def write(self, data):
         return self.target_obj.write(data)
@@ -214,6 +222,7 @@ class Enumeration(obj.NativeType):
         value = self.v()
         if value in self.choices.keys():
             return self.choices[value]
+
         return str(value)
 
     def __eq__(self, other):

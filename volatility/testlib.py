@@ -84,8 +84,12 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
         if re.search("[^a-z_]", module):
             raise AttributeError("Module name is not valid.")
 
-        data = json.loads(
-            open(os.path.join(self.flags.path[0], module)).read(10 * 1024 * 1024))
+        try:
+            with open(os.path.join(self.flags.path[0], module)) as fd:
+                data = json.loads(fd.read(10 * 1024 * 1024))
+        except IOError:
+            logging.warn("Baseline for %s is missing.", module)
+            raise
 
         # Try to apply the patch.
         try:

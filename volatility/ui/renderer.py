@@ -177,6 +177,11 @@ class TextColumn(object):
         [wrap:width] - This wraps a stringified version of the target in the
            cell.
         """
+        # Leading ! turns off eliding.
+        if formatstring.startswith("!"):
+            self.elide = False
+            formatstring = formatstring[1:]
+
         # This means unlimited width.
         if formatstring == "":
             self.header_format = self.formatstring = ""
@@ -195,7 +200,7 @@ class TextColumn(object):
 
         m = re.search("\[addr\]", formatstring)
         if m:
-            self.formatstring = "#%sx" % self.address_size
+            self.formatstring = ">#%sx" % self.address_size
             self.header_format = "^%ss" % self.address_size
             self.elide = False
             return

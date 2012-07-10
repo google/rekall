@@ -140,6 +140,66 @@ windows_overlay = {
     'Tag': [-4 , ['String', dict(length = 4)]],
     }],
 
+    '_MMVAD_FLAGS': [None, {
+            # Vad Protections. Also known as page protections. The
+            # _MMVAD_FLAGS.Protection, 3-bits, is an index into
+            # nt!MmProtectToValue (the following list).
+            'ProtectionEnum': lambda x: basic.Enumeration(
+                choices={
+                    0: 'NOACCESS',
+                    1: 'READONLY',
+                    2: 'EXECUTE',
+                    3: 'EXECUTE_READ',
+                    4: 'READWRITE',
+                    5: 'WRITECOPY',
+                    6: 'EXECUTE_READWRITE',
+                    7: 'EXECUTE_WRITECOPY',
+                    8: 'NOACCESS',
+                    9: 'NOCACHE | READONLY',
+                    10:'NOCACHE | EXECUTE',
+                    11:'NOCACHE | EXECUTE_READ',
+                    12:'NOCACHE | READWRITE',
+                    13:'NOCACHE | WRITECOPY',
+                    14:'NOCACHE | EXECUTE_READWRITE',
+                    15:'NOCACHE | EXECUTE_WRITECOPY',
+                    16:'NOACCESS',
+                    17:'GUARD | READONLY',
+                    18:'GUARD | EXECUTE',
+                    19:'GUARD | EXECUTE_READ',
+                    20:'GUARD | READWRITE',
+                    21:'GUARD | WRITECOPY',
+                    22:'GUARD | EXECUTE_READWRITE',
+                    23:'GUARD | EXECUTE_WRITECOPY',
+                    24:'NOACCESS',
+                    25:'WRITECOMBINE | READONLY',
+                    26:'WRITECOMBINE | EXECUTE',
+                    27:'WRITECOMBINE | EXECUTE_READ',
+                    28:'WRITECOMBINE | READWRITE',
+                    29:'WRITECOMBINE | WRITECOPY',
+                    30:'WRITECOMBINE | EXECUTE_READWRITE',
+                    31:'WRITECOMBINE | EXECUTE_WRITECOPY',
+                    },
+                value=x.m("Protection"), name=x.obj_name, theType=x.obj_type),
+
+            # Vad Types. The _MMVAD_SHORT.u.VadFlags (_MMVAD_FLAGS) struct on XP
+            # has individual flags, 1-bit each, for these types. The
+            # _MMVAD_FLAGS for all OS after XP has a member of the
+            # _MMVAD_FLAGS.VadType, 3-bits, which is an index into the following
+            # enumeration.
+            "VadTypeEnum": lambda x: basic.Enumeration(
+                choices={
+                    0: 'VadNone',
+                    1: 'VadDevicePhysicalMemory',
+                    2: 'VadImageMap',
+                    3: 'VadAwe',
+                    4: 'VadWriteWatch',
+                    5: 'VadLargePages',
+                    6: 'VadRotatePhysical',
+                    7:'VadLargePageSection',
+                    },
+                value=x.m("VadType"), name=x.obj_name, theType=x.obj_type),
+            }],
+
     # The environment is a null termionated _UNICODE_STRING array. Print with
     # list(eprocess.Peb.ProcessParameters.Environment)
     '_RTL_USER_PROCESS_PARAMETERS': [None, {
@@ -541,9 +601,10 @@ class _MMVAD(obj.CType):
 
         return self.obj_profile.Object(
             theType=real_type, offset=self.obj_offset, profile=self.obj_profile,
-            vm=vm or self.obj_vm, parent=self.obj_parent)
+            context=self.obj_context, vm=vm or self.obj_vm,
+            parent=self.obj_parent)
 
-    def traverse(self, visited = None):
+    def traverse(self, visited = None, depth=0):
         """ Traverse the VAD tree by generating all the left items,
         then the right items.
 
@@ -556,13 +617,14 @@ class _MMVAD(obj.CType):
         if self.obj_offset in visited:
             return
 
+        self.obj_context['depth'] = depth
         yield self
 
-        for c in self.LeftChild.traverse(visited = visited):
+        for c in self.LeftChild.traverse(visited = visited, depth=depth+1):
             visited.add(c.obj_offset)
             yield c
 
-        for c in self.RightChild.traverse(visited = visited):
+        for c in self.RightChild.traverse(visited = visited, depth=depth+1):
             visited.add(c.obj_offset)
             yield c
 
@@ -610,10 +672,14 @@ class _EX_FAST_REF(obj.CType):
         specified type.
         """
         MAX_FAST_REF = self.obj_profile.constants['MAX_FAST_REF']
-        return self.obj_profile.Object(theType=theType,
-                                       offset=self.Object.v() & ~MAX_FAST_REF,
-                                       vm=vm or self.obj_vm,
-                                       parent = parent or self, **kwargs)
+        return self.obj_profile.Object(
+            theType=theType,
+            offset=self.m("Object").v() & ~MAX_FAST_REF,
+            vm=vm or self.obj_vm,
+            parent = parent or self, **kwargs)
+
+    def __getattr__(self, attr):
+        return self.dereference().__getattr__(attr)
 
 
 class ThreadCreateTimeStamp(basic.WinTimeStamp):
@@ -637,9 +703,19 @@ class _CM_KEY_BODY(obj.CType):
 
 class _MMVAD_FLAGS(obj.CType):
     """This is for _MMVAD_SHORT.u.VadFlags"""
+
     def __str__(self):
-        return ", ".join(["%s: %s" % (name, self.m(name)) for name in sorted(
-                    self.members.keys()) if self.m(name) != 0])
+        result = []
+        for name in sorted(self.members):
+            if name.endswith("Enum"):
+                continue
+
+            try:
+                attribute = getattr(self, name)
+                result.append("%s: %s" % (name, attribute))
+            except AttributeError: pass
+
+        return ", ".join(result)
 
 class _MMVAD_FLAGS2(_MMVAD_FLAGS):
     """This is for _MMVAD_LONG.u2.VadFlags2"""

@@ -97,8 +97,6 @@ class NoneObject(object):
         ## If we are strict we blow up here
         if self.strict:
             logging.error("{0}\n{1}".format(self.reason, self.bt))
-        else:
-            logging.warning("{0}".format(self.reason))
 
         return ""
 
@@ -234,7 +232,7 @@ class BaseObject(object):
         self.obj_profile = profile
         self.obj_context = context or {}
 
-        if not self.obj_vm.is_valid_address(self.obj_offset):
+        if self.obj_vm and not self.obj_vm.is_valid_address(self.obj_offset):
             raise InvalidOffsetError("Invalid Address 0x{0:08X}, instantiating {1}".format(
                 offset, self.obj_name))
 
