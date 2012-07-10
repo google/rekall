@@ -37,6 +37,7 @@ import struct
 import copy
 from volatility import addrspace
 from volatility import registry
+from volatility import utils
 
 
 class classproperty(property):
@@ -1020,7 +1021,8 @@ class Profile(object):
         self.overlays = []
         self.vtypes = {}
         self.constants = {}
-        self.applied_modifications = set()
+        self.applied_modifications = []
+        self.applied_modifications.append(self.__class__.__name__)
 
         class dummy(object):
             profile = self
@@ -1403,6 +1405,9 @@ class Profile(object):
         logging.warning("Cant find object {0} in profile {1}?".format(theType, self))
 
 
+PROFILE_CACHE = utils.FastStore()
+
+
 class ProfileModification(object):
     """A profile modification adds new types to an existing profile.
 
@@ -1442,10 +1447,22 @@ class ProfileModification(object):
         if cls.__name__ in profile.applied_modifications:
             return profile
 
-        # Return a copy of the profile.
-        result = profile.copy()
-        cls.modify(result)
-        result.applied_modifications.add(cls.__name__)
+        # See if the profile is already cached. NOTE: This assumes that profiles
+        # do not store any instance specific data - so any profile instance
+        # which came from the same modifications is equivalent.
+
+        # If any of these change we can not use the same profile instance:
+        # session object, current modification, previous modifications.
+        key = "%r:%s:%s" % (profile.session, cls.__name__, profile.applied_modifications)
+        try:
+            result = PROFILE_CACHE.Get(key)
+        except KeyError:
+            # Return a copy of the profile.
+            result = profile.copy()
+            cls.modify(result)
+            result.applied_modifications.append(cls.__name__)
+
+            PROFILE_CACHE.Put(key, result)
 
         return result
 
@@ -1453,7 +1470,7 @@ class ProfileModification(object):
     def modify(cls, profile):
         """This class should modify the profile appropritately.
 
-        The profile will be a copy of the original profile and will be returns
+        The profile will be a copy of the original profile and will be returned
         to the class caller.
 
         Args:

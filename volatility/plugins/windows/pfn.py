@@ -128,6 +128,48 @@ class VtoP(common.WindowsCommandPlugin):
 
         yield "PTE mapped", address_space.get_phys_addr(vaddr, pte_value), pte_addr
 
+    def _vtop_64bit(self, vaddr, address_space):
+        """An implementation specific to the 64 bit intel address space."""
+        pml4e_addr = (address_space.dtb & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
+        pml4e_value = address_space._read_long_long_phys(pml4e_addr)
+        yield "pml4e", pml4e_value, pml4e_addr
+
+        if not address_space.entry_present(pml4e_value):
+            yield "Invalid PDE", None, None
+            return
+
+        pdpte_addr = (pml4e_value & 0xffffffffff000) | ((vaddr & 0x7FC0000000) >> 27)
+        pdpte_value = address_space._read_long_long_phys(pdpte_addr)
+        yield "pdpte", pdpte_value, pdpte_addr
+
+        if address_space.page_size_flag(pdpte_value):
+            yield "One Gig page", address_space.get_one_gig_paddr(
+                vaddr, pdpte_value), None
+            return
+
+        pde_addr = (pdpte_value & 0xffffffffff000) | ((vaddr & 0x3fe00000) >> 18)
+        pde_value = address_space.read_long_phys(pde_addr)
+        yield "pde", pde_value, pde_addr
+
+        if not address_space.entry_present(pde_value):
+            yield "Invalid PDE", None, None
+            return
+
+        if address_space.page_size_flag(pde_value):
+            yield "Large page mapped", address_space.get_four_meg_paddr(
+                vaddr, pde_value), None
+            return
+
+        pte_addr = (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
+        pte_value = address_space.read_long_phys(pte_addr)
+        yield "pte", pte_value, pte_addr
+
+        if not address_space.entry_present(pte_value):
+            yield "Invalid PTE", None, None
+            return
+
+        yield "PTE mapped", address_space.get_phys_addr(vaddr, pte_value), pte_addr
+
     def vtop(self, virtual_address, address_space):
         """Translate the virtual_address using the address_space."""
         if address_space.metadata("memory_model") == "32bit":
@@ -216,7 +258,7 @@ class PFNInfo(common.WindowsCommandPlugin):
 
         containing_page = int(pfn_obj.u4.PteFrame)
         pte_physical_address = ((containing_page << self.PAGE_BITS) |
-                                (int(pfn_obj.PteAddress) & 0x3FF))
+                                (int(pfn_obj.PteAddress) & 0xFFF))
 
         renderer.write("""    flink       {0:08X}  blink / share count {1:016X}
     pteaddress (VAS) 0x{2:016X}  (Phys AS) 0x{3:016X}
@@ -228,7 +270,7 @@ class PFNInfo(common.WindowsCommandPlugin):
                pfn_obj.PteAddress,
                pte_physical_address,
                pfn_obj.u3.e2.ReferenceCount,
-               pfn_obj.u3.e1.PageColor,
+               pfn_obj.u3.e1.m("PageColor") or pfn_obj.u4.PageColor,
                containing_page,
                pfn_obj.Type,
                short_flags_string,
@@ -298,7 +340,7 @@ class PtoV(common.WinProcessFilter):
 
         containing_page = int(pfn_obj.u4.PteFrame)
         pte_address = ((containing_page << self.PAGE_BITS) |
-                       (int(pfn_obj.PteAddress) & 0x3FF))
+                       (int(pfn_obj.PteAddress) & 0xFFF))
 
         result |= (pte_address << 10) & 0x3FF000
 
@@ -310,7 +352,7 @@ class PtoV(common.WinProcessFilter):
 
         containing_page = int(pfn_obj.u4.PteFrame)
         pde_address = ((containing_page << self.PAGE_BITS) |
-                       (int(pfn_obj.PteAddress) & 0x3FF))
+                       (int(pfn_obj.PteAddress) & 0xFFF))
 
         result |= (pde_address << 20) & 0xffc00000
 
@@ -324,6 +366,70 @@ class PtoV(common.WinProcessFilter):
                         ("PDE", pde_address),
                         ("PTE", pte_address))
 
+    def _ptov_x64(self, physical_address):
+        """An implementation of ptov for x64."""
+        result = physical_address & 0xFFF
+
+        # Get the pte for this physical_address using the pfn database.
+        pfn_obj = self.pfn_plugin.pfn_record(physical_address >> self.PAGE_BITS)
+
+        if pfn_obj.Type != "ActiveAndValid":
+            return obj.NoneObject("PTE invalid."), []
+
+        containing_page = int(pfn_obj.u4.PteFrame)
+        pte_address = ((containing_page << self.PAGE_BITS) |
+                       (int(pfn_obj.PteAddress) & 0xFFF))
+
+        result |= (pte_address << 9) & 0x1FF000
+
+        # Get the PDE now:
+        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
+
+        if pfn_obj.Type != "ActiveAndValid":
+            return obj.NoneObject("PDE invalid (Is this a large page?)."), []
+
+        containing_page = int(pfn_obj.u4.PteFrame)
+        pde_address = ((containing_page << self.PAGE_BITS) |
+                       (int(pfn_obj.PteAddress) & 0xFFF))
+
+        result |= (pde_address << 18) & 0x3fe00000
+
+        # Get the PDPTE now:
+        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
+
+        if pfn_obj.Type != "ActiveAndValid":
+            return obj.NoneObject("PDPTE invalid (Is this a one gig page?)."), []
+
+        containing_page = int(pfn_obj.u4.PteFrame)
+        pdpde_address = ((containing_page << self.PAGE_BITS) |
+                         (int(pfn_obj.PteAddress) & 0xFFF))
+
+        result |= (pdpde_address << 27) & 0x7FC0000000
+
+        # Get the PML4E now:
+        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
+
+        if pfn_obj.Type != "ActiveAndValid":
+            return obj.NoneObject("PML4E invalid."), []
+
+        containing_page = int(pfn_obj.u4.PteFrame)
+        pml4e_address = ((containing_page << self.PAGE_BITS) |
+                         (int(pfn_obj.PteAddress) & 0xFFF))
+
+        result |= (pml4e_address << 36) & 0xff8000000000
+
+        # Now get the DTB.
+        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
+
+        containing_page = int(pfn_obj.u4.PteFrame)
+        dtb_address = containing_page << self.PAGE_BITS
+
+        return result, (("DTB", dtb_address),
+                        ("PML4E", pml4e_address),
+                        ("PDPDE", pdpde_address),
+                        ("PDE", pde_address),
+                        ("PTE", pte_address))
+
     def ptov(self, physical_address):
         """Convert the physical address to a virtual address.
 
@@ -332,19 +438,20 @@ class PtoV(common.WinProcessFilter):
         """
         if self.kernel_address_space.metadata("memory_model") == "32bit":
             return self._ptov_x86(physical_address)
+        elif self.kernel_address_space.metadata("memory_model") == "64bit":
+            return self._ptov_x64(physical_address)
 
-        return obj.NoneObject("Memory model not supported.")
+        return obj.NoneObject("Memory model not supported."), []
 
     def render(self, renderer):
         result, structures = self.ptov(self.physical_address)
         if result:
-            renderer.write("Physical Address 0x{0:016X} => "
-                           "Virtual Address 0x{1:016X}\n".format(
-                    self.physical_address, result))
+            renderer.format("Physical Address 0x{0:016X} => "
+                            "Virtual Address 0x{1:016X}\n",
+                            self.physical_address, result)
 
             for type, phys_addr in structures:
-                renderer.write("{0} @ 0x{1:016X}\n".format(
-                        type, phys_addr))
+                renderer.format("{0} @ 0x{1:016X}\n", type, phys_addr)
         else:
-            renderer.write("Error converting Physical Address 0x{0:016X}: "
-                           "{1}\n".format(self.physical_address, result))
+            renderer.format("Error converting Physical Address 0x{0:016X}: "
+                            "{1!r}\n", self.physical_address, result)

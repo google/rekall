@@ -146,6 +146,12 @@ class Formatter(string.Formatter):
     def format_type_x(self, value, fields):
         return int(value)
 
+    def format_type_X(self, value, fields):
+        return int(value)
+
+    def format_type_r(self, value, fields):
+        return repr(value)
+
 
 class TextColumn(object):
     """An implementation of a Column."""
