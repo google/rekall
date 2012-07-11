@@ -24,10 +24,12 @@
 """
 
 import re
+from volatility import obj
+from volatility import utils
 
 from volatility.plugins.windows import common
 from volatility.plugins.windows.registry import registry
-import volatility.utils as utils
+
 
 import datetime
 
@@ -157,6 +159,18 @@ FOLDER_GUIDS = {
 }
 
 
+class UserAssistModification(obj.ProfileModification):
+    """Add special types to the profile to deal with user assist records."""
+
+    @classmethod
+    def modify(cls, profile):
+        # Update the profiles for user assist types.
+        if profile.metadata('major') == 6 and self.profile.metadata('minor') == 1:
+            profile.add_types(ua_win7_vtypes)
+        else:
+            profile.add_types(ua_vtypes)
+
+
 class UserAssist(common.WindowsCommandPlugin):
     "Print userassist registry keys and information"
 
@@ -173,19 +187,11 @@ class UserAssist(common.WindowsCommandPlugin):
         super(UserAssist, self).__init__(**kwargs)
         self.hive_offsets = hive_offsets
 
+        # Profile to deal with userassist data.
+        self.ua_profile = UserAssistModification(self.profile)
+
         # Install our specific implementation of registry support.
         self.profile = registry.VolatilityRegisteryImplementation(self.profile)
-
-        # This is an example of using a domain specific profile. We first make a
-        # virgin profile suitable for windows, then add the userassist
-        # definitions based on the operating system.
-        self.ua_profile = self.profile.classes["BasicWindowsClasses"]()
-
-        # Update the profiles for user assist types.
-        if self.profile.metadata('major') == 6 and self.profile.metadata('minor') == 1:
-            self.ua_profile.add_types(ua_win7_vtypes)
-        else:
-            self.ua_profile.add_types(ua_vtypes)
 
     def find_count_keys(self):
         if not self.hive_offsets:

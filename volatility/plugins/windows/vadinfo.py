@@ -92,7 +92,7 @@ class VADInfo(common.WinProcessFilter):
         if vad.u.VadFlags.m("VadType"):
             renderer.write("Vad Type: {0}\n".format(vad.u.VadFlags.VadTypeEnum))
 
-    def write_vad_control(self, outfd, vad):
+    def write_vad_control(self, renderer, vad):
         """Renders a text version of a (non-short) Vad's control information"""
         # even if the ControlArea is not NULL, it is only meaningful
         # for shared (non private) memory sections.
@@ -103,43 +103,39 @@ class VADInfo(common.WinProcessFilter):
         if not control_area:
             return
 
-        outfd.write("ControlArea @{0:08x} Segment {1:08x}\n".format(
-                control_area.dereference().obj_offset, control_area.Segment))
+        renderer.format("ControlArea @{0:08x} Segment {1:08x}\n",
+                        control_area.dereference().obj_offset, control_area.Segment)
 
-        outfd.write("Dereference list: Flink {0:08x}, Blink {1:08x}\n".format(
-                control_area.DereferenceList.Flink,
-                control_area.DereferenceList.Blink))
+        renderer.format("Dereference list: Flink {0:08x}, Blink {1:08x}\n",
+                        control_area.DereferenceList.Flink,
+                        control_area.DereferenceList.Blink)
 
-        outfd.write("NumberOfSectionReferences: {0:10} NumberOfPfnReferences:  "
-                    "{1:10}\n".format(
-                control_area.NumberOfSectionReferences,
-                control_area.NumberOfPfnReferences))
+        renderer.format("NumberOfSectionReferences: {0:10} NumberOfPfnReferences:  "
+                        "{1:10}\n", control_area.NumberOfSectionReferences,
+                        control_area.NumberOfPfnReferences)
 
-        outfd.write("NumberOfMappedViews:       {0:10} NumberOfUserReferences: "
-                    "{1:10}\n".format(
-                control_area.NumberOfMappedViews,
-                control_area.NumberOfUserReferences))
+        renderer.format("NumberOfMappedViews:       {0:10} NumberOfUserReferences: "
+                        "{1:10}\n", control_area.NumberOfMappedViews,
+                        control_area.NumberOfUserReferences)
 
-        outfd.write("WaitingForDeletion Event:  {0:08x}\n".format(
-                control_area.WaitingForDeletion))
+        renderer.format("WaitingForDeletion Event:  {0:08x}\n",
+                        control_area.WaitingForDeletion)
 
-        outfd.write("Control Flags: {0}\n".format(str(control_area.u.Flags)))
+        renderer.format("Control Flags: {0}\n", control_area.u.Flags)
 
         file_object = vad.ControlArea.FilePointer.dereference()
         if file_object and file_object != 0:
-            outfd.write("FileObject @{0:08x} FileBuffer @ {1:08x}          , "
-                        "Name: {2}\n".format(
-                    file_object.obj_offset, file_object.FileName.Buffer,
-                    file_object.FileName))
+            renderer.format("FileObject @{0:08x} FileBuffer @ {1:08x}          , "
+                            "Name: {2}\n", file_object.obj_offset,
+                            file_object.FileName.Buffer, file_object.FileName)
 
-    def write_vad_ext(self, outfd, vad):
+    def write_vad_ext(self, renderer, vad):
         """Renders a text version of a Long Vad"""
         if vad.obj_type != "_MMVAD_SHORT":
-            outfd.write("First prototype PTE: {0:08x} Last contiguous PTE: "
-                        "{1:08x}\n".format(
-                    vad.FirstPrototypePte, vad.LastContiguousPte))
+            renderer.format("First prototype PTE: {0:08x} Last contiguous PTE: "
+                            "{1:08x}\n", vad.FirstPrototypePte, vad.LastContiguousPte)
 
-            outfd.write("Flags2: {0}\n".format(str(vad.u2.VadFlags2)))
+            renderer.format("Flags2: {0}\n", vad.u2.VadFlags2)
 
 
 
@@ -150,8 +146,8 @@ class VADTree(VADInfo):
 
     def render(self, renderer):
         for task in self.filter_processes():
-            renderer.write(u"*" * 72 + "\n")
-            renderer.write(u"Pid: {0:6}\n".format(task.UniqueProcessId))
+            renderer.section()
+            renderer.format(u"Pid: {0:6}\n", task.UniqueProcessId)
 
             renderer.table_header([("indent", "indent", ""),
                                    ("Start", "Start", "[addrpad]"),
@@ -193,22 +189,28 @@ class VADWalk(VADInfo):
 
     __name = "vadwalk"
 
-    def render(self, outfd):
+    def render(self, renderer):
         for task in self.filter_processes():
-            outfd.write(u"*" * 72 + "\n")
-            outfd.write(u"Pid: {0:6}\n".format(task.UniqueProcessId))
-            outfd.write(u"{0:16s} {1:16s} {2:16s} {3:16s} {4:16s} {5:16s} {6:4}\n".format(
-                    "Address", "Parent", "Left", "Right", "Start", "End", "Tag"))
+            renderer.section()
+            renderer.format(u"Pid: {0:6}\n", task.UniqueProcessId)
+            renderer.table_header([("Address", "address", "[addrpad]"),
+                                   ("Parent", "parent", "[addrpad]"),
+                                   ("Left", "left", "[addrpad]"),
+                                   ("Right", "right", "[addrpad]"),
+                                   ("Start", "start", "[addrpad]"),
+                                   ("End", "end", "[addrpad]"),
+                                   ("Tag", "tag", "4"),
+                                   ])
             for vad in task.VadRoot.traverse():
                 # Ignore Vads with bad tags (which we explicitly include as None)
-                vad = vad.dereference()
                 if vad:
-                    outfd.write(u"{0:016x} {1:016x} {2:016x} {3:016x} {4:016x} {5:016x} {6:4}\n".format(
-                        vad.obj_offset,
-                        vad.Parent.v() or 0,
-                        vad.LeftChild.dereference().obj_offset or 0,
-                        vad.RightChild.dereference().obj_offset or 0,
-                        vad.Start, vad.End, vad.Tag))
+                    renderer.table_row(vad.obj_offset,
+                                       vad.Parent.obj_offset or 0,
+                                       vad.LeftChild.dereference().obj_offset or 0,
+                                       vad.RightChild.dereference().obj_offset or 0,
+                                       vad.Start,
+                                       vad.End,
+                                       vad.Tag)
 
 class VADDump(VADInfo):
     """Dumps out the vad sections to a file"""

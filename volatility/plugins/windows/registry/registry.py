@@ -24,6 +24,7 @@
 __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
               "by Brendan Dolan-Gavitt")
 
+import logging
 import re
 import struct
 
@@ -69,6 +70,7 @@ registry_overlays = {
 
 class HiveBaseAddressSpace(addrspace.PagedReader):
     __abstract = True
+    BLOCK_SIZE = PAGE_SIZE = 0x1000
 
 
 class HiveFileAddressSpace(HiveBaseAddressSpace):
@@ -77,8 +79,6 @@ class HiveFileAddressSpace(HiveBaseAddressSpace):
     This is suitable for reading regular registry files. It should be
     stacked over the FileAddressSpace.
     """
-    BLOCK_SIZE = PAGE_SIZE = 0x1000
-
     def __init__(self, **kwargs):
         super(HiveFileAddressSpace, self).__init__(**kwargs)
         self.as_assert(self.base, "Must stack on top of a file.")
@@ -146,31 +146,36 @@ class HiveAddressSpace(HiveBaseAddressSpace):
 
         return block + ci_off + 4
 
-    # TODO: This code seems to be able to save registry from memory to
-    # disk. Write a plugin to do this easily.
-    def save(self, outf):
+    def save(self):
+        """A generator of registry data in linear form.
+
+        This can be used to write a registry file.
+
+        Yields:
+           blocks of data in order.
+        """
         baseblock = self.base.read(self.baseblock, self.BLOCK_SIZE)
         if baseblock:
-            outf.write(baseblock)
+            yield baseblock
         else:
-            outf.write("\0" * self.BLOCK_SIZE)
+            yield "\0" * self.BLOCK_SIZE
 
         length = self.hive.Hive.Storage[0].Length.v()
         for i in range(0, length, self.BLOCK_SIZE):
-            data = None
-
             paddr = self.vtop(i)
-            if paddr:
+            if not paddr:
+                logging.warn("No mapping found for index {0:x}, "
+                             "filling with NULLs".format(i))
+                data = '\0' * self.BLOCK_SIZE
+            else:
                 paddr = paddr - 4
                 data = self.base.read(paddr, self.BLOCK_SIZE)
-            else:
-                print "No mapping found for index {0:x}, filling with NULLs".format(i)
+                if not data:
+                    logging.warn("Physical layer returned None for index "
+                                 "{0:x}, filling with NULL".format(i))
+                    data = '\0' * self.BLOCK_SIZE
 
-            if not data:
-                print "Physical layer returned None for index {0:x}, filling with NULL".format(i)
-                data = '\0' * self.BLOCK_SIZE
-
-            outf.write(data)
+            yield data
 
     def stats(self, stable = True):
         if stable:

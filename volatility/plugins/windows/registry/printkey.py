@@ -1,5 +1,5 @@
 # Volatility
-# Copyright (C) 2008 Volatile Systems
+# Copyright (C) 2012 Michael Cohen <scudette@gmail.com>
 # Copyright (c) 2008 Brendan Dolan-Gavitt <bdolangavitt@wesleyan.edu>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,12 +18,16 @@
 #
 
 """
+@author:       Michael Cohen <scudette@gmail.com>
 @author:       AAron Walters and Brendan Dolan-Gavitt
 @license:      GNU General Public License 2.0 or later
 @contact:      awalters@volatilesystems.com,bdolangavitt@wesleyan.edu
 @organization: Volatile Systems
 """
+import re
+import os
 
+from volatility import utils
 from volatility.plugins.windows import common
 from volatility.plugins.windows.registry import registry
 
@@ -89,32 +93,102 @@ class PrintKey(common.WindowsCommandPlugin):
         """Returns a string representing (S)table or (V)olatile keys."""
         return "(V)" if key.obj_offset & 0x80000000 else "(S)"
 
-    def render(self, outfd):
-        outfd.write("Legend: (S) = Stable   (V) = Volatile\n\n")
+    def render(self, renderer):
+        renderer.format("Legend: (S) = Stable   (V) = Volatile\n\n")
         for reg, key in self.list_keys():
             if key:
-                outfd.write("----------------------------\n")
-                outfd.format("Registry: {0}\n", reg.Name)
-                outfd.format("Key name: {0} {1:3s}\n", key.Name,
-                             self.voltext(key))
+                renderer.format("----------------------------\n")
+                renderer.format("Registry: {0}\n", reg.Name)
+                renderer.format("Key name: {0} {1:3s}\n", key.Name,
+                                self.voltext(key))
 
-                outfd.format("Last updated: {0}\n", key.LastWriteTime)
-                outfd.write("\n")
-                outfd.write("Subkeys:\n")
+                renderer.format("Last updated: {0}\n", key.LastWriteTime)
+                renderer.format("\n")
+                renderer.format("Subkeys:\n")
 
                 for subkey in key.subkeys():
                     if not subkey.Name:
-                        outfd.write("  Unknown subkey: " + subkey.Name.reason + "\n")
+                        renderer.format("  Unknown subkey: {0}\n", subkey.Name.reason)
                     else:
-                        outfd.format(u"  {1:3s} {0}\n",
-                                     subkey.Name, self.voltext(subkey))
+                        renderer.format(u"  {1:3s} {0}\n",
+                                        subkey.Name, self.voltext(subkey))
 
-                outfd.write("\n")
-                outfd.write("Values:\n")
+                renderer.format("\n")
+                renderer.format("Values:\n")
                 for value in key.values():
                     if value.Type == 'REG_BINARY':
-                        utils.WriteHexdump(outfd, value.DecodedData)
+                        utils.WriteHexdump(renderer, value.DecodedData)
                     else:
-                        outfd.format(u"{0:13} {1:15} : {3:3s} {2}\n",
-                                     value.Type, value.Name, value.DecodedData,
-                                     self.voltext(value))
+                        renderer.format(u"{0:13} {1:15} : {3:3s} {2}\n",
+                                        value.Type, value.Name, value.DecodedData,
+                                        self.voltext(value))
+
+
+class RegDump(common.WindowsCommandPlugin):
+    """Dump all registry hives into a dump directory."""
+
+    __name = 'regdump'
+
+    def __init__(self, hive_offsets=None, dump_dir=None, **kwargs):
+        """Dump a PE binary from memory.
+
+        Args:
+          hive_offset: A list of hive offsets as found by hivelist (virtual
+            address). If not provided we call hivescan ourselves and dump all
+            hives found.
+
+          dump_dir: Directory in which to dump hive files.
+        """
+        super(RegDump, self).__init__(**kwargs)
+        self.dump_dir = dump_dir or self.session.dump_dir
+        self.hive_offsets = hive_offsets
+
+    def dump_hive(self, hive_offset=None, reg=None, fd=None):
+        """Write the hive into the fd.
+
+        Args:
+          hive_offset: The virtual offset where the hive is located.
+          reg: Optionally an instance of registry.Registry helper. If provided
+            hive_offset is ignored.
+          fd: The file like object we write to.
+        """
+        if reg is None:
+            reg = registry.RegistryHive(
+                profile=self.profile, kernel_address_space=self.kernel_address_space,
+                hive_offset=hive_offset)
+
+        count = 0
+        for data in reg.address_space.save():
+            fd.write(data)
+            count += len(data)
+            self.session.report_progress("Dumping {0}Mb".format(count/1024/1024))
+
+    def render(self, renderer):
+        # Get all the offsets if needed.
+        if not self.hive_offsets:
+            self.hive_offsets = list(self.get_plugin("hivescan").list_hives())
+
+        seen = set()
+        for hive_offset in self.hive_offsets:
+            if hive_offset in seen:
+                continue
+
+            reg = registry.RegistryHive(
+                profile=self.profile, kernel_address_space=self.kernel_address_space,
+                hive_offset=hive_offset)
+
+            # Make up a filename for it, should be similar to the hive name.
+            filename = reg.Name.rsplit("\\", 1).pop()
+
+            # Sanitize it.
+            filename = re.sub("[^a-zA-Z0-9_\-@ ]", "_", filename)
+
+            # Make up the path.
+            path = os.path.join(self.dump_dir, filename)
+
+            renderer.section()
+            renderer.format("Dumping {0} into \"{1}\"\n", reg.Name, path)
+
+            with open(path, "wb") as fd:
+                self.dump_hive(reg=reg, fd=fd)
+                renderer.format("Dumped {0} bytes\n", fd.tell())
