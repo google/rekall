@@ -35,7 +35,7 @@ class WinPsList(common.WinProcessFilter):
     kdbg = None
     eprocess = None
 
-    def __init__(self, eprocess=None, **kwargs):
+    def __init__(self, **kwargs):
         """Lists the processes by following the _EPROCESS.PsActiveList.
 
         In the windows operating system, processes are linked together through a
@@ -51,15 +51,8 @@ class WinPsList(common.WinProcessFilter):
            its list.
 
         This plugin supports both approaches.
-
-        Args:
-          eprocess: The location of any eprocess location (in kernel AS). This
-             can be obtained from e.g. psscan or find_dtb. If neither kdbg or
-             eprocess are specified we just do the best we have from the
-             session.
         """
         super(WinPsList, self).__init__(**kwargs)
-        self.eprocess = eprocess
 
     def list_eprocess_from_kdbg(self, kdbg):
         """List the eprocess using the kdbg method."""

@@ -412,7 +412,8 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
 
     __abstract = True
 
-    def __init__(self, phys_eprocess=None, pids=None, pid=None, **kwargs):
+    def __init__(self, eprocess=None, phys_eprocess=None, pids=None,
+                 pid=None, **kwargs):
         """Lists information about all the dlls mapped by a process.
 
         Args:
@@ -429,7 +430,13 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         elif phys_eprocess is None:
             phys_eprocess = []
 
+        if isinstance(eprocess, int):
+            eprocess = [eprocess]
+        elif eprocess is None:
+            eprocess = []
+
         self.phys_eprocess = phys_eprocess
+        self.eprocess = eprocess
 
         if pids is None:
             pids = []
@@ -445,7 +452,7 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
     def filter_processes(self):
         """Filters eprocess list using phys_eprocess and pids lists."""
         # No filtering required:
-        if not self.phys_eprocess and not self.pids:
+        if not self.eprocess and not self.phys_eprocess and not self.pids:
             for eprocess in self.session.plugins.pslist(
                 session=self.session, kdbg=self.kdbg).list_eprocess():
                 yield eprocess
@@ -453,6 +460,10 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
             # We need to filter by phys_eprocess
             for offset in self.phys_eprocess:
                 yield self.virtual_process_from_physical_offset(offset)
+
+            for offset in self.eprocess:
+                yield self.profile._EPROCESS(vm=self.kernel_address_space,
+                                             offset=int(offset))
 
             # We need to filter by pids
             for eprocess in self.session.plugins.pslist(
@@ -471,8 +482,8 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         Returns:
            an _EPROCESS object or a NoneObject on failure.
         """
-        physical_eprocess = self.profile.Object(
-            theType="_EPROCESS", offset=int(physical_offset),
+        physical_eprocess = self.profile._EPROCESS(
+            offset=int(physical_offset),
             vm=self.kernel_address_space.base)
 
         # We cast our list entry in the kernel AS by following Flink into the

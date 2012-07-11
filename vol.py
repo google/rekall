@@ -69,6 +69,8 @@ parser.add_argument("--debug", default=None, action="store_true",
 parser.add_argument("--renderer", default="TextRenderer",
                     help="The renderer to use. e.g. (TextRenderer, JsonRenderer).")
 
+parser.add_argument("-v", "--verbose", default=None, action="store_true",
+                    help="Verbosity level for plugins.")
 
 
 def IPython011Support(user_session):
@@ -168,11 +170,11 @@ if __name__ == '__main__':
         # Run the module
         try:
             user_session.vol(FLAGS.module)
-        except Exception:
+        except Exception as e:
             if FLAGS.debug:
                 pdb.post_mortem()
             else:
-                raise
+                logging.error("%s. Try --debug for more information." % e)
 
         if not FLAGS.interactive:
             sys.exit()

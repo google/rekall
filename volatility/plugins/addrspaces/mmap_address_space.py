@@ -67,6 +67,9 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
                              access=mmap.ACCESS_READ)
 
     def read(self, addr, length):
+        if addr == None:
+            return None
+
         return self.map[addr:addr+length]
 
     def zread(self, addr, length):

@@ -83,7 +83,7 @@ class PluginContainer(object):
         try:
             return self.plugins[attr]
         except KeyError:
-            raise AttributeError(attr)
+            raise AttributeError("Plugin not found for this profile: %s" % attr)
 
 
 class Session(object):

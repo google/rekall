@@ -188,39 +188,24 @@ pe_overlays = {
                         }]],
 
             'Characteristics' : [ 0x12, ['Flags', {
-                        'bitmap': {
-                            # 0x0001
-                            0: 'IMAGE_FILE_RELOCS_STRIPPED',
-                            # 0x0002
-                            1: 'IMAGE_FILE_EXECUTABLE_IMAGE',
-                            # 0x0004
-                            2: 'IMAGE_FILE_LINE_NUMS_STRIPPED',
-                            # 0x0008
-                            3: 'IMAGE_FILE_LOCAL_SYMS_STRIPPED',
-                            # 0x0010
-                            4: 'IMAGE_FILE_AGGRESIVE_WS_TRIM',
-                            # 0x0020
-                            5: 'IMAGE_FILE_LARGE_ADDRESS_AWARE',
-                            # 0x0040
-                            6: 'IMAGE_FILE_16BIT_MACHINE',
-                            # 0x0080
-                            7: 'IMAGE_FILE_BYTES_REVERSED_LO',
-                            # 0x0100
-                            8: 'IMAGE_FILE_32BIT_MACHINE',
-                            # 0x0200
-                            9: 'IMAGE_FILE_DEBUG_STRIPPED',
-                            # 0x0400
-                            10: 'IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP',
-                            # 0x0800
-                            11: 'IMAGE_FILE_NET_RUN_FROM_SWAP',
-                            # 0x1000
-                            12: 'IMAGE_FILE_SYSTEM',
-                            # 0x2000
-                            13: 'IMAGE_FILE_DLL',
-                            # 0x4000
-                            14: 'IMAGE_FILE_UP_SYSTEM_ONLY',
-                            # 0x8000
-                            15: 'IMAGE_FILE_BYTES_REVERSED_HI'},
+                        'maskmap': {
+                            'IMAGE_FILE_RELOCS_STRIPPED': 0x0001,
+                            'IMAGE_FILE_EXECUTABLE_IMAGE': 0x0002,
+                            'IMAGE_FILE_LINE_NUMS_STRIPPED': 0x0004,
+                            'IMAGE_FILE_LOCAL_SYMS_STRIPPED': 0x0008,
+                            'IMAGE_FILE_AGGRESIVE_WS_TRIM': 0x0010,
+                            'IMAGE_FILE_LARGE_ADDRESS_AWARE': 0x0020,
+                            'IMAGE_FILE_16BIT_MACHINE': 0x0040,
+                            'IMAGE_FILE_BYTES_REVERSED_LO': 0x0080,
+                            'IMAGE_FILE_32BIT_MACHINE': 0x0100,
+                            'IMAGE_FILE_DEBUG_STRIPPED': 0x0200,
+                            'IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP': 0x0400,
+                            'IMAGE_FILE_NET_RUN_FROM_SWAP': 0x0800,
+                            'IMAGE_FILE_SYSTEM': 0x1000,
+                            'IMAGE_FILE_DLL': 0x2000,
+                            'IMAGE_FILE_UP_SYSTEM_ONLY': 0x4000,
+                            'IMAGE_FILE_BYTES_REVERSED_HI': 0x8000,
+                            },
                         'target': 'unsigned short'}]],
             'TimeDateStamp' : [ 0x4, ['UnixTimeStamp', {}]],
             }],
@@ -1315,7 +1300,7 @@ class PE(object):
                 "w" if section.Characteristics.IMAGE_SCN_MEM_WRITE else "-")
 
             yield (execution_flags, section.Name, section.VirtualAddress,
-                   section.SizeOfRawData + section.VirtualAddress)
+                   section.SizeOfRawData)
 
 
 # The following adds a profile to deal with PE files. Since PE files are not
