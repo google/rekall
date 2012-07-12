@@ -345,7 +345,7 @@ class _LIST_ENTRY(obj.CType):
         return bool(self.Flink) or bool(self.Blink)
 
     def __iter__(self):
-        return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
+        return self.list_of_type(self.obj_parent.obj_type, self.obj_name)
 
 
 class UnixTimeStamp(obj.NativeType):

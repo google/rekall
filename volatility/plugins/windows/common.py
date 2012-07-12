@@ -118,11 +118,15 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
     def verify_address_space(self, address_space):
         """Check the eprocess for sanity."""
+        version = self.profile.metadata("major"), self.profile.metadata("minor")
+        # The test below does not work on windows 8 with the idle process.
+        if version >= (6, 2):
+            return True
+
         # Reflect through the address space at ourselves. Note that the Idle
         # process is not usually in the PsActiveProcessHead list, so we use the
         # ThreadListHead instead.
         list_head = self.eprocess.ThreadListHead.Flink
-
         me = list_head.dereference(vm=address_space).Blink.dereference()
         if me.v() != list_head.v():
             raise addrspace.ASAssertionError(
