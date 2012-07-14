@@ -182,9 +182,12 @@ class PoolTagCheck(scan.ScannerCheck):
 
 class CheckPoolSize(scan.ScannerCheck):
     """ Check pool block size """
-    def __init__(self, condition = (lambda x: x == 8), **kwargs):
+    def __init__(self, condition=None, min_size=None, **kwargs):
         super(CheckPoolSize, self).__init__(**kwargs)
         self.condition = condition
+        if min_size:
+            self.condition = lambda x: x>min_size
+
         self.pool_align = self.profile.constants['PoolAlignment']
 
     def check(self, offset):
@@ -233,118 +236,15 @@ class CheckPoolIndex(scan.ScannerCheck):
 
 
 class PoolScanner(scan.DiscontigScanner):
-    """This scanner implements the pool scanning using the "Bottom Up" method.
+    """A scanner for pool allocations."""
 
-    The following is provided by MHL:
-
-    For example, let's assume the following object has no preamble, then we'd
-    take the base of pool header and add the size of pool header to reach the
-    base of the object. Layout in memory looks like this:
-
-    _POOL_HEADER
-    <TheObject>
-
-    Now let's assume the object has a preamble - an _OBJECT_HEADER with no
-    optional headers.
-
-    _POOL_HEADER
-    _OBJECT_HEADER
-    <TheObject>
-
-    Its easy to calculate the offset of the object, because you always know the
-    size of _POOL_HEADER and _OBJECT_HEADER. However, one situation complicates
-    this calculation. There may be optional headers between the pool header and
-    object header like this:
-
-    _POOL_HEADER
-    <SomeHeaderA>
-    <SomeHeaderB>
-    _OBJECT_HEADER
-    <TheObject>
-
-    The _OBJECT_HEADER itself is the "map" which tell us how many optional
-    headers there are. The question becomes - how do we find the _OBJECT_HEADER
-    when the very information we need (distance between pool header and object
-    header) is stored in the _OBJECT_HEADER? Furthermore, we can't statically
-    set preambles, because not only do they differ between objects (i.e. mutants
-    may have different optional headers than file objects), but they sometimes
-    differ between objects of the same type (for example one process may have 2
-    optional headers and another process may only have 1). That flexibility is
-    not really possible with the preambles - at least how they were implemented
-    at the time of these changes.
-
-    So the "bottom up" approach takes into account two values which *are*
-    reliable:
-
-    1. The size of the pool (_POOL_HEADER.BlockSize)
-    2. The size of the object you expect to find in the pool
-       (i.e. get_obj_size("_EPROCESS"))
-
-    So with that information, you can find the end of the pool (i.e. starting
-    from the bottom), subtract the size of the object (working our way up), and
-    then you've got the offset of the object. Always, the _OBJECT_HEADER (if
-    there is one) directly precedes the object, so once you've got the object's
-    offset, you can find the _OBJECT_HEADER. And from there, since
-    _OBJECT_HEADER is the "map" you can find any optional headers.
-    """
     # These objects are allocated in the pool allocation.
     allocation = [ '_POOL_HEADER' ]
 
-    def get_rounded_size(self, object_name):
-        """Returns the size of the object accounting for pool alignment."""
-        size_of_obj = self.profile.get_obj_size(object_name)
-        pool_align = self.profile.get_constant("PoolAlignment")
-
-        # Size is rounded to pool alignment
-        extra = size_of_obj % pool_align
-        if extra:
-            size_of_obj += pool_align - extra
-
-        return size_of_obj
-
-    def get_allocation(self, start_of_pool, object_name):
-        """Returns an instance of the object allocated in the pool.
-
-        Sometimes the object is allocated without an _OBJECT_HEADER before
-        it. In this case the object simply follows immediately after the
-        _POOL_HEADER.
-        """
-        size_of_pool_header = self.profile.get_obj_size("_POOL_HEADER")
-
-        return self.profile.Object(object_name, offset=start_of_pool + size_of_pool_header,
-                                   vm=self.address_space)
-
-    def get_object(self, start_of_pool, object_name=None):
-        """Returns the offset to the object using the bottom up method.
-
-        Args:
-          start_of_pool: The offset of the start of this allocation.
-          object_name: The name of the object we whish to get. This must be in
-             the allocation list. If not provided, we return the last object in the
-             allocation list.
-        """
-        object_name = object_name or self.allocation[-1]
-        pool_align = self.profile.get_constant("PoolAlignment")
-
-        pool_obj = self.profile.Object("_POOL_HEADER", vm=self.address_space,
-                                       offset=start_of_pool)
-
-        # We start at the end of the allocation, and go backwards for each
-        # object.
-        offset = start_of_pool + pool_obj.BlockSize * pool_align
-        for name in reversed(self.allocation):
-
-            # Rewind to the start of this object.
-            offset -= self.get_rounded_size(name)
-            obj = self.profile.Object(name, vm=self.address_space, offset=offset)
-
-            if name == object_name:
-                return obj
-
-            # Rewind past the object's preamble
-            offset -= obj.preamble_size()
-
-        raise KeyError("object not present in preamble.")
+    def scan(self, offset = 0, maxlen = None):
+        """Yields instances of _POOL_HEADER which potentially match."""
+        for offset in super(PoolScanner, self).scan(offset=offset, maxlen=maxlen):
+            yield self.profile._POOL_HEADER(vm=self.address_space, offset=offset)
 
 
 class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
@@ -359,7 +259,10 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
           physical_address_space.
         """
         super(PoolScannerPlugin, self).__init__(**kwargs)
-        self.address_space = address_space or self.physical_address_space
+        if self.session.scan_in_kernel:
+            self.address_space = address_space or self.kernel_address_space
+        else:
+            self.address_space = address_space or self.physical_address_space
 
 
 class KDBGMixin(plugin.KernelASMixin):

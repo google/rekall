@@ -78,8 +78,10 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
 
     Windows 7 changes the way objects are handled:
     References: http://www.codemachine.com/article_objectheader.html
-    """
 
+    The following debugger command find the type object for index 5:
+    dt nt!_OBJECT_TYPE poi(nt!ObTypeIndexTable + ( 5 * @$ptrsize ))
+    """
     type_map = { 2: 'Type',
                 3: 'Directory',
                 4: 'SymbolicLink',
@@ -140,6 +142,7 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
             if info_mask & mask:
                 offset -= self.obj_profile.get_obj_size(struct)
                 o = self.obj_profile.Object(theType=struct, offset=offset, vm=self.obj_vm)
+                self._preamble_size += o.size()
             else:
                 o = obj.NoneObject("Header not set")
 
@@ -148,6 +151,17 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
     def get_object_type(self, kernel_address_space):
         """Return the object's type as a string"""
         return self.type_map.get(self.TypeIndex.v(), '')
+
+    def is_valid(self):
+        """Determine if the object makes sense."""
+        # These need to be reasonable.
+        if (self.PointerCount < 0x100000 and self.HandleCount < 0x1000 and
+            self.PointerCount >= 0 and self.HandleCount >= 0 and
+            self.TypeIndex <= len(self.type_map) and
+            self.TypeIndex > 0):
+            return True
+
+        return False
 
 
 class _MMADDRESS_NODE(windows.VadTraverser):

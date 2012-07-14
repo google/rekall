@@ -32,11 +32,12 @@ class PoolScanHive(common.PoolScanner):
     checks = [ ('PoolTagCheck', dict(tag = "CM10")) ]
 
     def scan(self):
-        pool_header_size = self.profile.get_obj_size("_POOL_HEADER")
-        for hit in super(PoolScanHive, self).scan():
+        for pool_obj in super(PoolScanHive, self).scan():
             # The _HHIVE is immediately after the pool header.
-            hhive = self.profile.Object("_CMHIVE", offset=hit + pool_header_size,
-                                        vm=self.address_space)
+            hhive = self.profile._CMHIVE(
+                offset=pool_obj.obj_offset + pool_obj.size(),
+                vm=self.address_space)
+
             if hhive.Hive.Signature != 0xbee0bee0:
                 continue
 

@@ -36,7 +36,8 @@ class PoolScanConnFast(common.PoolScanner):
                ('CheckPoolIndex', dict(value = 0)),
                ]
 
-class ConnScan(common.AbstractWindowsCommandPlugin):
+
+class ConnScan(common.PoolScannerPlugin):
     """ Scan Physical memory for _TCPT_OBJECT objects (tcp connections)
     """
     meta_info = dict(
@@ -59,11 +60,13 @@ class ConnScan(common.AbstractWindowsCommandPlugin):
         """
         scanner = PoolScanConnFast(
             session=self.session, profile=self.profile,
-            address_space=self.physical_address_space)
+            address_space=self.address_space)
 
-        for offset in scanner.scan():
+        for pool_obj in scanner.scan():
             ## The struct is allocated out of the pool (i.e. its not an object).
-            yield scanner.get_allocation(offset, "_TCPT_OBJECT")
+            yield self.profile._TCPT_OBJECT(
+                vm=self.address_space,
+                offset=pool_obj.obj_offset + pool_obj.size())
 
     def render(self, renderer):
         renderer.table_header([("Offset(P)", "offset_p", "[addrpad]"),

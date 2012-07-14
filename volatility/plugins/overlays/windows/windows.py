@@ -331,6 +331,107 @@ class _EPROCESS(obj.CType):
         return obj.NoneObject("Could not find handle in ObjectTable")
 
 
+
+class _POOL_HEADER(obj.CType):
+    """Extension to support retrieving allocations inside the pool."""
+
+    def get_rounded_size(self, object_name):
+        """Returns the size of the object accounting for pool alignment."""
+        size_of_obj = self.obj_profile.get_obj_size(object_name)
+        pool_align = self.obj_profile.get_constant("PoolAlignment")
+
+        # Size is rounded to pool alignment
+        extra = size_of_obj % pool_align
+        if extra:
+            size_of_obj += pool_align - extra
+
+        return size_of_obj
+
+    def get_object(self, object_name, allocations):
+        """This implements retrieving an object from the pool allocation using
+        the "Bottom Up" method.  NOTE: This method does not work on windows 8
+        since allocations are rounded up to a fixed size. Newer versions of
+        windows have different _POOL_HEADER implementations.
+
+        The following is provided by MHL:
+
+        For example, let's assume the following object has no preamble, then we'd
+        take the base of pool header and add the size of pool header to reach the
+        base of the object. Layout in memory looks like this:
+
+        _POOL_HEADER
+        <TheObject>
+
+        Now let's assume the object has a preamble - an _OBJECT_HEADER with no
+        optional headers.
+
+        _POOL_HEADER
+        _OBJECT_HEADER
+        <TheObject>
+
+        Its easy to calculate the offset of the object, because you always know the
+        size of _POOL_HEADER and _OBJECT_HEADER. However, one situation complicates
+        this calculation. There may be optional headers between the pool header and
+        object header like this:
+
+        _POOL_HEADER
+        <SomeHeaderA>
+        <SomeHeaderB>
+        _OBJECT_HEADER
+        <TheObject>
+
+        The _OBJECT_HEADER itself is the "map" which tell us how many optional
+        headers there are. The question becomes - how do we find the _OBJECT_HEADER
+        when the very information we need (distance between pool header and object
+        header) is stored in the _OBJECT_HEADER? Furthermore, we can't statically
+        set preambles, because not only do they differ between objects (i.e. mutants
+        may have different optional headers than file objects), but they sometimes
+        differ between objects of the same type (for example one process may have 2
+        optional headers and another process may only have 1). That flexibility is
+        not really possible with the preambles - at least how they were implemented
+        at the time of these changes.
+
+        So the "bottom up" approach takes into account two values which *are*
+        reliable:
+
+        1. The size of the pool (_POOL_HEADER.BlockSize)
+        2. The size of the object you expect to find in the pool
+           (i.e. get_obj_size("_EPROCESS"))
+
+        So with that information, you can find the end of the pool (i.e. starting
+        from the bottom), subtract the size of the object (working our way up), and
+        then you've got the offset of the object. Always, the _OBJECT_HEADER (if
+        there is one) directly precedes the object, so once you've got the object's
+        offset, you can find the _OBJECT_HEADER. And from there, since
+        _OBJECT_HEADER is the "map" you can find any optional headers.
+
+        Args:
+          name: The name of the object type to retrieve. Note: name must be
+            allocations.
+
+          allocations: The list of objects which form this allocation.
+        """
+        pool_align = self.obj_profile.get_constant("PoolAlignment")
+
+        # We start at the end of the allocation, and go backwards for each
+        # object.
+        offset = self.obj_offset + self.BlockSize * pool_align
+
+        for name in reversed(allocations):
+            # Rewind to the start of this object.
+            offset -= self.get_rounded_size(name)
+
+            # Make a new object instance.
+            obj = self.obj_profile.Object(name, vm=self.obj_vm, offset=offset)
+            if name == object_name:
+                return obj
+
+            # Rewind past the object's preamble
+            offset -= obj.preamble_size()
+
+        raise KeyError("object not present in preamble.")
+
+
 class _TOKEN(obj.CType):
     """A class for Tokens"""
 
@@ -361,6 +462,7 @@ class _ETHREAD(obj.CType):
         """Return the EPROCESS that this thread is currently
         attached to."""
         return self.Tcb.ApcState.Process.dereference_as("_EPROCESS")
+
 
 class _HANDLE_TABLE(obj.CType):
     """ A class for _HANDLE_TABLE.
@@ -719,6 +821,7 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
             '_EPROCESS': _EPROCESS,
             '_ETHREAD': _ETHREAD,
             '_HANDLE_TABLE': _HANDLE_TABLE,
+            '_POOL_HEADER': _POOL_HEADER,
             '_OBJECT_HEADER': _OBJECT_HEADER,
             '_FILE_OBJECT': _FILE_OBJECT,
             '_EX_FAST_REF': _EX_FAST_REF,
@@ -733,3 +836,12 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
 
         # Also apply basic PE file parsing to the overlays.
         pe_vtypes.PEFileImplementation.Modify(self)
+
+        # Pooltags for common objects.
+        self.add_constants(DRIVER_POOLTAG="Dri\xf6",
+                           EPROCESS_POOLTAG="Pro\xe3",
+                           FILE_POOLTAG="Fil\xe5",
+                           SYMLINK_POOLTAG="Sym\xe2",
+                           MODULE_POOLTAG="MmLd",
+                           MUTANT_POOLTAG="Mut\xe1",
+                           )

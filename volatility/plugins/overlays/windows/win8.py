@@ -27,7 +27,11 @@ from volatility.plugins.overlays.windows import win7
 
 
 # In windows 8 the VadRoot is actually composed from _MM_AVL_NODE instead of
-# _MMVAD structs or _MMADDRESS_NODE.
+# _MMVAD structs or _MMADDRESS_NODE. The structs appear to be organised by
+# functional order - the _MM_AVL_NODE is always the first member of the struct,
+# then the _MMVAD_SHORT, then the _MMVAD. For example, the tree traversal code,
+# simply casts all objects to an _MM_AVL_NODE without caring what they actually
+# are, then depending on the vad tag, they get casted to different structs.
 win8_overlays = {
     '_EPROCESS': [ None, {
             # A symbolic link to the real vad root.
@@ -60,7 +64,7 @@ win8_overlays = {
     }
 
 
-class _OBJECT_HEADER(windows._OBJECT_HEADER):
+class _OBJECT_HEADER(win7._OBJECT_HEADER):
     """A Volatility object to handle Windows 7 object headers.
 
     Windows 7 changes the way objects are handled:
@@ -116,17 +120,22 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
                             ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 0x02),
                             ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 0x04),
                             ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO', 0x08),
-                            ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10))
+                            ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10),
+                            ('AuditInfo', '_OBJECT_HEADER_AUDIT_INFO', 0x40),
+                            )
 
     def find_optional_headers(self):
         """Find this object's optional headers."""
         offset = self.obj_offset
+
         info_mask = int(self.InfoMask)
 
         for name, struct, mask in self.optional_header_mask:
             if info_mask & mask:
                 offset -= self.obj_profile.get_obj_size(struct)
-                o = self.obj_profile.Object(theType=struct, offset=offset, vm=self.obj_vm)
+                o = self.obj_profile.Object(theType=struct, offset=offset,
+                                            vm=self.obj_vm)
+                self._preamble_size += o.size()
             else:
                 o = obj.NoneObject("Header not set")
 
@@ -136,12 +145,77 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
         """Return the object's type as a string"""
         return self.type_map.get(self.TypeIndex.v(), '')
 
+    def is_valid(self):
+        """Determine if the object makes sense."""
+        # These need to be reasonable.
+        pointer_count = int(self.PointerCount)
+        if pointer_count > 0x100000 or pointer_count < 0:
+            return False
+
+        handle_count = int(self.HandleCount)
+        if handle_count > 0x1000 or handle_count < 0:
+            return False
+
+        if  (self.TypeIndex >= len(self.type_map) or
+             self.TypeIndex < 1):
+            return False
+
+        return True
+
 
 class _HANDLE_TABLE(obj.CType):
     @property
     def HandleCount(self):
         # We dont know how to figure this out yet!
         return 0
+
+
+
+class _POOL_HEADER(obj.CType):
+    MAX_PREAMBLE_SIZE = 0xa0
+
+    def get_next_object(self, offset, object_name):
+        """Gets the next object that fits after this offset."""
+        pool_align = self.obj_profile.get_constant("PoolAlignment")
+        for preamble in range(0, self.MAX_PREAMBLE_SIZE, pool_align):
+            result = self.obj_profile.Object(object_name, vm=self.obj_vm,
+                                             offset=offset + preamble)
+
+            # If the object preamble is exactly what we expect, we found it.
+            if result.preamble_size() == preamble:
+                try:
+                    # Allow the object to check for its own validity.
+                    if result.is_valid():
+                        return result
+                except AttributeError:
+                    return result
+
+    def get_object(self, object_name, allocations):
+        """On windows 8, pool allocations are done from preset sizes. This means
+        that the allocation is never exactly the same size and we can not use
+        the bottom up method like before.
+
+        We therefore, have to build the headers forward by checking the preamble
+        size and validity of each object. This is a little slower than with
+        earlier versions of windows.
+        """
+        objects = []
+
+        offset = self.obj_offset
+
+        for name in allocations:
+            result = self.get_next_object(offset, name)
+            if not result:
+                return obj.NoneObject("Object not found.")
+
+            offset = result.obj_offset + result.size()
+            objects.append(result)
+
+            # Return to the caller.
+            if name == object_name:
+                return result
+
+        raise KeyError("object not present in preamble.")
 
 
 class _MM_AVL_NODE(win7._MMADDRESS_NODE):
@@ -209,3 +283,10 @@ class Win8SP0x64(basic.Profile64Bits, Win8BaseProfile):
         from volatility.plugins.overlays.windows import win8_sp0_x64_vtypes
 
         self.add_types(win8_sp0_x64_vtypes.ntkrnlmp_types)
+
+        # Windows 8 changes many of the pool tags.
+        self.add_constants(EPROCESS_POOLTAG="Proc",
+                           DRIVER_POOLTAG="Driv",
+                           )
+
+        self.add_classes(dict(_POOL_HEADER=_POOL_HEADER))

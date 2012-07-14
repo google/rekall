@@ -34,13 +34,14 @@ from volatility.plugins.windows import common
 
 class PoolScanFile(common.PoolScanner):
     """PoolScanner for File objects"""
-    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_FILE_OBJECT']
-
-    checks = [ ('PoolTagCheck', dict(tag = "Fil\xe5")),
-               ('CheckPoolSize', dict(condition = lambda x: x >= 0x98)),
-               ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-               ('CheckPoolIndex', dict(value = 0)),
-               ]
+    def __init__(self, **kwargs):
+        super(PoolScanFile, self).__init__(**kwargs)
+        self.checks = [
+            ('PoolTagCheck', dict(tag=self.profile.get_constant("FILE_POOLTAG"))),
+            ('CheckPoolSize', dict(min_size=self.profile.get_obj_size("_FILE_OBJECT"))),
+            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
+            ('CheckPoolIndex', dict(value = 0)),
+            ]
 
 
 class FileScan(common.PoolScannerPlugin):
@@ -57,18 +58,21 @@ class FileScan(common.PoolScannerPlugin):
     meta_info['version'] = '0.1'
 
     __name = "filescan"
+    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_FILE_OBJECT']
 
     def generate_hits(self):
         """Generate possible hits."""
         scanner = PoolScanFile(profile=self.profile, session=self.session,
                                address_space=self.address_space)
-        for offset in scanner.scan():
-            object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
+
+        for pool_obj in scanner.scan():
+            object_obj = pool_obj.get_object("_OBJECT_HEADER", self.allocation)
+
             if object_obj.get_object_type(self.kernel_address_space) != "File":
                 continue
 
             ## If the string is not reachable we skip it
-            file_obj = scanner.get_object(offset, "_FILE_OBJECT")
+            file_obj = pool_obj.get_object("_FILE_OBJECT", self.allocation)
             if not file_obj.FileName.v(vm=self.kernel_address_space):
                 continue
 
@@ -107,18 +111,28 @@ class FileScan(common.PoolScannerPlugin):
 
 class PoolScanDriver(PoolScanFile):
     """ Scanner for _DRIVER_OBJECT """
-    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_DRIVER_OBJECT',
-                  '_DRIVER_EXTENSION']
-    checks = [ ('PoolTagCheck', dict(tag = "Dri\xf6")),
-               ('CheckPoolSize', dict(condition = lambda x: x >= 0xf8)),
-               ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-               ('CheckPoolIndex', dict(value = 0)),
-               ]
+
+    def __init__(self, **kwargs):
+        super(PoolScanDriver, self).__init__(**kwargs)
+        self.checks = [
+            ('PoolTagCheck', dict(tag=self.profile.get_constant("DRIVER_POOLTAG"))),
+
+            # Must be large enough to hold the driver object.
+            ('CheckPoolSize', dict(condition=lambda x: x > self.profile.get_obj_size(
+                        "_DRIVER_OBJECT"))),
+
+            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
+            ('CheckPoolIndex', dict(value = 0)),
+            ]
 
 class DriverScan(FileScan):
     "Scan for driver objects _DRIVER_OBJECT "
 
     __name = "driverscan"
+
+
+    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_DRIVER_OBJECT',
+                  '_DRIVER_EXTENSION']
 
     def generate_hits(self):
         """Generate possible hits."""
@@ -126,16 +140,16 @@ class DriverScan(FileScan):
                                  profile=self.profile,
                                  address_space=self.address_space)
 
-        for offset in scanner.scan():
-            object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
+        for pool_obj in scanner.scan():
+            object_obj = pool_obj.get_object("_OBJECT_HEADER", self.allocation)
             if object_obj.get_object_type(self.kernel_address_space) != "Driver":
                 continue
 
             object_name = object_obj.NameInfo.Name.v(
                 vm=self.kernel_address_space)
 
-            driver_obj = scanner.get_object(offset, "_DRIVER_OBJECT")
-            extension_obj = scanner.get_object(offset, "_DRIVER_EXTENSION")
+            driver_obj = pool_obj.get_object("_DRIVER_OBJECT", self.allocation)
+            extension_obj = pool_obj.get_object("_DRIVER_EXTENSION", self.allocation)
             yield (object_obj, driver_obj, extension_obj, object_name)
 
 
@@ -162,32 +176,34 @@ class DriverScan(FileScan):
 
 class PoolScanSymlink(PoolScanFile):
     """ Scanner for symbolic link objects """
-    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_OBJECT_SYMBOLIC_LINK']
-    checks = [ ('PoolTagCheck', dict(tag = "Sym\xe2")),
-               # We use 0x48 as the lower bounds instead of 0x50 as described by Andreas
-               # http://computer.forensikblog.de/en/2009/04/symbolic_link_objects.html.
-               # This is because the _OBJECT_SYMBOLIC_LINK structure size is 2 bytes smaller
-               # on Windows 7 (a field was removed) than on all other OS versions.
-               ('CheckPoolSize', dict(condition = lambda x: x >= 0x48)),
-               ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-               ]
+    def __init__(self, **kwargs):
+        super(PoolScanSymlink, self).__init__(**kwargs)
+        self.checks = [
+            ('PoolTagCheck', dict(tag=self.profile.get_constant("SYMLINK_POOLTAG"))),
+            ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
+                        "_OBJECT_SYMBOLIC_LINK"))),
+            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
+            ]
+
 
 class SymLinkScan(FileScan):
     "Scan for symbolic link objects "
 
     __name = "symlinkscan"
 
+    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_OBJECT_SYMBOLIC_LINK']
+
     def generate_hits(self):
         """Generate possible hits."""
         scanner = PoolScanSymlink(profile=self.profile, session=self.session,
                                   address_space=self.address_space)
-        for offset in scanner.scan():
-            object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
+        for pool_obj in scanner.scan():
+            object_obj = pool_obj.get_object("_OBJECT_HEADER", self.allocation)
             if object_obj.get_object_type(self.kernel_address_space) != "SymbolicLink":
                 continue
 
             object_name = object_obj.NameInfo.Name.v(vm=self.kernel_address_space)
-            link_obj = scanner.get_object(offset, "_OBJECT_SYMBOLIC_LINK")
+            link_obj = pool_obj.get_object("_OBJECT_SYMBOLIC_LINK", self.allocation)
             yield object_obj, link_obj, object_name
 
     def render(self, renderer):
@@ -209,18 +225,24 @@ class SymLinkScan(FileScan):
 
 class PoolScanMutant(PoolScanDriver):
     """ Scanner for Mutants _KMUTANT """
-    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_KMUTANT']
-    checks = [ ('PoolTagCheck', dict(tag = "Mut\xe1")),
-               ('CheckPoolSize', dict(condition = lambda x: x >= 0x40)),
-               ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-               ('CheckPoolIndex', dict(value = 0)),
-               ]
+    def __init__(self, **kwargs):
+        super(PoolScanMutant, self).__init__(**kwargs)
+        self.checks = [
+            ('PoolTagCheck', dict(tag=self.profile.get_constant(
+                        "MUTANT_POOLTAG"))),
+
+            ('CheckPoolSize', dict(min_size=self.profile.get_obj_size("_KMUTANT"))),
+            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
+            ('CheckPoolIndex', dict(value = 0)),
+            ]
 
 
 class MutantScan(FileScan):
     "Scan for mutant objects _KMUTANT "
 
     __name = "mutantscan"
+
+    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_KMUTANT']
 
     def __init__(self, silent=None, **kwargs):
         """Scan for mutant objects _KMUTANT.
@@ -235,21 +257,18 @@ class MutantScan(FileScan):
         scanner = PoolScanMutant(profile=self.profile, session=self.session,
                                  address_space=self.address_space)
 
-        for offset in scanner.scan():
-            object_obj = scanner.get_object(offset, "_OBJECT_HEADER")
+        for pool_obj in scanner.scan():
+            object_obj = pool_obj.get_object("_OBJECT_HEADER", self.allocation)
             if object_obj.get_object_type(self.kernel_address_space) != "Mutant":
                 continue
 
-            ## Skip unallocated objects
-            ##if object_obj.Type == 0xbad0b0b0:
-            ##   continue
             object_name = object_obj.NameInfo.Name.v(vm=self.kernel_address_space)
 
             if self.silent:
                 if object_name.Length == 0:
                     continue
 
-            mutant = scanner.get_object(offset, "_KMUTANT")
+            mutant = pool_obj.get_object("_KMUTANT", self.allocation)
             yield (object_obj, mutant, object_name)
 
     def render(self, renderer):
@@ -317,17 +336,24 @@ class CheckProcess(scan.ScannerCheck):
 class PoolScanProcess(common.PoolScanner):
     """PoolScanner for File objects"""
     allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_EPROCESS']
-    checks = [ ('PoolTagCheck', dict(tag = '\x50\x72\x6F\xe3')),
-               ('CheckPoolSize', dict(condition = lambda x: x >= 0x280)),
-               ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-               ('CheckPoolIndex', dict(value = 0)),
-               ]
 
-    kernel = 0x80000000
+    def __init__(self, **kwargs):
+        super(PoolScanProcess, self).__init__(**kwargs)
+        self.checks = [
+            # Must have the right pool tag.
+            ('PoolTagCheck', dict(tag=self.profile.get_constant("EPROCESS_POOLTAG"))),
+
+            # Must be large enough for an _EPROCESS.
+            ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
+                        "_EPROCESS"))),
+
+            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
+            ('CheckPoolIndex', dict(value = 0)),
+            ]
 
     def scan(self, **kwargs):
-        for offset in super(PoolScanProcess, self).scan():
-            eprocess = self.get_object(offset, "_EPROCESS")
+        for pool_obj in super(PoolScanProcess, self).scan():
+            eprocess = pool_obj.get_object("_EPROCESS", self.allocation)
 
             if (eprocess.Pcb.DirectoryTableBase == 0):
                 continue
@@ -336,9 +362,6 @@ class PoolScanProcess(common.PoolScanner):
                 continue
 
             list_head = eprocess.ThreadListHead
-
-            if (list_head.Flink < self.kernel) or (list_head.Blink < self.kernel):
-                continue
 
             yield eprocess
 

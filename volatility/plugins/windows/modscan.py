@@ -37,11 +37,20 @@ import volatility.debug as debug #pylint: disable-msg=W0611
 class PoolScanModuleFast(common.PoolScanner):
     allocation = ['_POOL_HEADER', ]
 
-    checks = [ ('PoolTagCheck', dict(tag = 'MmLd')),
-               ('CheckPoolSize', dict(condition = lambda x: x > 0x4c)),
-               ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-               ('CheckPoolIndex', dict(value = 0)),
-               ]
+    def __init__(self, **kwargs):
+        super(PoolScanModuleFast, self).__init__(**kwargs)
+        self.checks = [
+            # Must have the right pool tag.
+            ('PoolTagCheck', dict(tag=self.profile.get_constant("MODULE_POOLTAG"))),
+
+            # Must be large enough for an _LDR_DATA_TABLE_ENTRY.
+            ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
+                        "_LDR_DATA_TABLE_ENTRY"))),
+
+            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
+            ('CheckPoolIndex', dict(value = 0)),
+            ]
+
 
 class ModScan(filescan.FileScan):
     """ Scan Physical memory for _LDR_DATA_TABLE_ENTRY objects

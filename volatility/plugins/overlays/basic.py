@@ -366,6 +366,8 @@ class UnixTimeStamp(obj.NativeType):
         if dt != None:
             return str(timefmt.display_datetime(dt))
 
+        return "-"
+
     def as_datetime(self):
         try:
             dt = datetime.datetime.utcfromtimestamp(self.v())
