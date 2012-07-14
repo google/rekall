@@ -118,6 +118,10 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
     def verify_address_space(self, address_space):
         """Check the eprocess for sanity."""
+        # In windows the DTB must be page aligned.
+        if address_space.dtb & 0xFFF != 0:
+            return False
+
         version = self.profile.metadata("major"), self.profile.metadata("minor")
         # The test below does not work on windows 8 with the idle process.
         if version >= (6, 2):

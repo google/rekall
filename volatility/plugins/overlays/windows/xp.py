@@ -26,23 +26,64 @@ This file provides support for windows XP SP2. We provide a profile
 for SP2.
 """
 
-#pylint: disable-msg=C0111
-
-import volatility.debug as debug #pylint: disable-msg=W0611
-import volatility.obj as obj
+from volatility import obj
 from volatility.plugins.overlays import basic
 from volatility.plugins.overlays.windows import windows
 
 
 # Windows XP specific overlays.
 win_xp_overlays = {
-    '_EPROCESS'        : [ None, {
-            'VadRoot'      : [ None, ['pointer', ['_MMVAD']]]
-            }]
+    '_EPROCESS' : [ None, {
+            'VadRoot': [ None, ['pointer', ['_MMVAD']]],
+            'RealVadRoot': lambda x: x.VadRoot.dereference(),
+            }],
+
+    '_MMVAD_SHORT': [ None, {
+            'Tag': [-4 , ['String', dict(length = 4)]],
+            'Start': lambda x: x.StartingVpn << 12,
+            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+            }],
+
+    '_MMVAD': [ None, {
+            'Tag': [-4 , ['String', dict(length = 4)]],
+            'Start': lambda x: x.StartingVpn << 12,
+            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+            }],
+
+    '_MMVAD_LONG': [ None, {
+            'Tag': [-4 , ['String', dict(length = 4)]],
+            'Start': lambda x: x.StartingVpn << 12,
+            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+            }],
+
+
     }
 
 
-class WinXPSP2x86(windows.BaseWindowsProfile, basic.Profile32Bits):
+class _MMVAD(windows.VadTraverser):
+    """Windows XP uses the _MMVAD struct itself as a traversor.
+
+    i.e. The _MMVAD contains the LeftChild and RightChild.
+    """
+
+
+class AbstractWinXPProfile(windows.BaseWindowsProfile):
+    """Base class for windows XP support."""
+    __abstract = True
+
+    def __init__(self, **kwargs):
+        super(AbstractWinXPProfile, self).__init__(**kwargs)
+
+        self.add_constants(PoolAlignment = 8)
+        self.add_overlay(win_xp_overlays)
+
+        self.add_classes(dict(_MMVAD=_MMVAD))
+
+
+class WinXPSP2x86(AbstractWinXPProfile, basic.Profile32Bits):
     """ A Profile for Windows XP SP2 x86 """
     _md_major = 5
     _md_minor = 1
@@ -50,30 +91,19 @@ class WinXPSP2x86(windows.BaseWindowsProfile, basic.Profile32Bits):
     def __init__(self, **kwargs):
         super(WinXPSP2x86, self).__init__(**kwargs)
 
-        self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02',
-                           PoolAlignment = 8,
-                           )
-
-        self.add_overlay(win_xp_overlays)
-
         # Import the actual vtypes on demand here to reduce memory usage.
         from volatility.plugins.overlays.windows import xp_sp2_x86_vtypes
 
         self.add_types(xp_sp2_x86_vtypes.ntkrnlmp_types)
 
 
-class WinXPSP3x86(windows.BaseWindowsProfile, basic.Profile32Bits):
+class WinXPSP3x86(AbstractWinXPProfile, basic.Profile32Bits):
     """ A Profile for Windows XP SP3 x86 """
     _md_major = 5
     _md_minor = 1
 
     def __init__(self, **kwargs):
         super(WinXPSP3x86, self).__init__(**kwargs)
-
-        self.add_constants(KDBGHeader = '\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02',
-                           PoolAlignment = 8,
-                           )
-        self.add_overlay(win_xp_overlays)
 
         # Import the actual vtypes on demand here to reduce memory usage.
         from volatility.plugins.overlays.windows import xp_sp3_x86_vtypes

@@ -44,18 +44,16 @@ class VADInfo(common.WinProcessFilter):
             renderer.write("Pid: {0:6}\n".format(task.UniqueProcessId))
 
             count = 0
-            for count, vad in enumerate(task.VadRoot.traverse()):
-                vad = vad.dereference()
-                if vad and vad != 0:
-                    try:
-                        self.write_vad_short(renderer, vad)
-                    except AttributeError: pass
-                    try:
-                        self.write_vad_control(renderer, vad)
-                    except AttributeError: pass
-                    try:
-                        self.write_vad_ext(renderer, vad)
-                    except AttributeError: pass
+            for count, vad in enumerate(task.RealVadRoot.traverse()):
+                try:
+                    self.write_vad_short(renderer, vad)
+                except AttributeError: pass
+                try:
+                    self.write_vad_control(renderer, vad)
+                except AttributeError: pass
+                try:
+                    self.write_vad_ext(renderer, vad)
+                except AttributeError: pass
 
                 renderer.write("\n")
 
@@ -156,12 +154,10 @@ class VADTree(VADInfo):
                                    ], suppress_headers=True)
 
             levels = {}
-            for vad in task.VadRoot.traverse():
-                vad = vad.dereference()
-                if vad:
-                    level = levels.get(vad.Parent.v(), -1) + 1
-                    levels[vad.obj_offset] = level
-                    renderer.table_row(u" " * level, vad.Start, vad.End)
+            for vad in task.RealVadRoot.traverse():
+                level = levels.get(vad.Parent.v(), -1) + 1
+                levels[vad.obj_offset] = level
+                renderer.table_row(u" " * level, vad.Start, vad.End)
 
     def render_dot(self, outfd):
         for task in self.filter_processes():
@@ -169,17 +165,15 @@ class VADTree(VADInfo):
             outfd.write(u"/* Pid: {0:6} */\n".format(task.UniqueProcessId))
             outfd.write(u"digraph processtree {\n")
             outfd.write(u"graph [rankdir = \"TB\"];\n")
-            for vad in task.VadRoot.traverse():
-                vad = vad.dereference()
-                if vad:
-                    if vad.Parent and vad.Parent.dereference():
-                        outfd.write(u"vad_{0:08x} -> vad_{1:08x}\n".format(
-                                vad.Parent.v() or 0, vad.obj_offset))
+            for vad in task.RealVadRoot.traverse():
+                if vad.Parent and vad.Parent.dereference():
+                    outfd.write(u"vad_{0:08x} -> vad_{1:08x}\n".format(
+                            vad.Parent.v() or 0, vad.obj_offset))
 
-                    outfd.write(
-                        u"vad_{0:08x} [label = \"{{ {1}\\n{2:08x} - {3:08x} }}\""
-                        "shape = \"record\" color = \"blue\"];\n".format(
-                            vad.obj_offset, vad.Tag, vad.Start, vad.End))
+                outfd.write(
+                    u"vad_{0:08x} [label = \"{{ {1}\\n{2:08x} - {3:08x} }}\""
+                    "shape = \"record\" color = \"blue\"];\n".format(
+                        vad.obj_offset, vad.Tag, vad.Start, vad.End))
 
             outfd.write(u"}\n")
 
@@ -201,7 +195,7 @@ class VADWalk(VADInfo):
                                    ("End", "end", "[addrpad]"),
                                    ("Tag", "tag", "4"),
                                    ])
-            for vad in task.VadRoot.traverse():
+            for vad in task.RealVadRoot.traverse():
                 # Ignore Vads with bad tags (which we explicitly include as None)
                 if vad:
                     renderer.table_row(vad.obj_offset,
@@ -249,10 +243,7 @@ class VADDump(VADInfo):
                 continue
 
             outfd.write("*" * 72 + "\n")
-            for vad in task.VadRoot.traverse():
-                vad = vad.dereference()
-                if not vad: continue
-
+            for vad in task.RealVadRoot.traverse():
                 # Ignore Vads with bad tags
                 if vad.obj_type == "_MMVAD":
                     continue
@@ -298,9 +289,6 @@ class VAD(common.WinProcessFilter):
                                ('Filename', 'filename', '')])
 
         for vad in vad_root.traverse():
-            vad = vad.dereference()
-            if not vad: continue
-
             filename = ""
             try:
                 file_obj = vad.ControlArea.FilePointer
@@ -313,7 +301,7 @@ class VAD(common.WinProcessFilter):
                 vad.obj_offset, vad.obj_context.get('depth', 0),
                 vad.Start >> self.PAGE_SIZE,
                 vad.End >> self.PAGE_SIZE,
-                vad.u.VadFlags.CommitCharge,
+                vad.CommitCharge,
                 "Private" if vad.u.VadFlags.PrivateMemory else "Mapped",
                 "Exe" if "EXECUTE" in str(vad.u.VadFlags.ProtectionEnum) else "",
                 vad.u.VadFlags.ProtectionEnum,
@@ -324,7 +312,7 @@ class VAD(common.WinProcessFilter):
             renderer.section()
             renderer.format("Pid: {0} {1}\n", task.UniqueProcessId,
                             task.ImageFileName)
-            self.render_vadroot(renderer, task.VadRoot)
+            self.render_vadroot(renderer, task.RealVadRoot)
 
 
 class VadScanner(scan.BaseScanner):
@@ -346,7 +334,7 @@ class VadScanner(scan.BaseScanner):
             address_space=task.get_process_address_space())
 
     def scan(self, offset=0, maxlen=None):
-        for vad in self.task.VadRoot.traverse():
+        for vad in self.task.RealVadRoot.traverse():
             for match in super(VadScanner, self).scan(
                 vad.Start, vad.End - vad.Start):
                 yield match

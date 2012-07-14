@@ -126,20 +126,6 @@ windows_overlay = {
     'UniqueThread' : [ None, ['unsigned int']],
     }],
 
-    '_MMVAD': [ None, {
-    # This is the location of the MMVAD type which controls how to parse the
-    # node. It is located before the structure.
-    'Tag': [-4 , ['String', dict(length = 4)]],
-    }],
-
-    '_MMVAD_SHORT': [ None, {
-    'Tag': [-4 , ['String', dict(length = 4)]],
-    }],
-
-    '_MMVAD_LONG': [ None, {
-    'Tag': [-4 , ['String', dict(length = 4)]],
-    }],
-
     '_MMVAD_FLAGS': [None, {
             # Vad Protections. Also known as page protections. The
             # _MMVAD_FLAGS.Protection, 3-bits, is an index into
@@ -569,90 +555,6 @@ class _FILE_OBJECT(obj.CType):
 
         return name
 
-## This is an object which provides access to the VAD tree.
-class _MMVAD(obj.CType):
-    """Class factory for _MMVAD objects"""
-
-    ## The actual type depends on this tag value.
-    tag_map = {'Vadl': '_MMVAD_LONG',
-               'VadS': '_MMVAD_SHORT',
-               'Vad ': '_MMVAD',
-               'VadF': '_MMVAD_SHORT',
-               'Vadm': '_MMVAD_LONG',
-              }
-
-    def dereference(self, vm=None):
-        """Return the exact type of this _MMVAD depending on the tag.
-
-        All _MMVAD objects are initially instantiated as a generic _MMVAD
-        object. However, depending on their tags, they really are one of the
-        extended types, _MMVAD_LONG, or _MMVAD_SHORT.
-
-        This method checks the type and returns the correct object. For invalid
-        tags we return _MMVAD object.
-
-        Returns:
-          an _MMVAD_SHORT or _MMVAD_LONG object representing this _MMVAD.
-        """
-        # Get the tag and return the correct vad type if necessary
-        real_type = self.tag_map.get(self.Tag.v(), None)
-        if not real_type:
-            return None
-
-        return self.obj_profile.Object(
-            theType=real_type, offset=self.obj_offset, profile=self.obj_profile,
-            context=self.obj_context, vm=vm or self.obj_vm,
-            parent=self.obj_parent)
-
-    def traverse(self, visited = None, depth=0):
-        """ Traverse the VAD tree by generating all the left items,
-        then the right items.
-
-        We try to be tolerant of cycles by storing all offsets visited.
-        """
-        if visited == None:
-            visited = set()
-
-        ## We try to prevent loops here
-        if self.obj_offset in visited:
-            return
-
-        self.obj_context['depth'] = depth
-        yield self
-
-        for c in self.LeftChild.traverse(visited = visited, depth=depth+1):
-            visited.add(c.obj_offset)
-            yield c
-
-        for c in self.RightChild.traverse(visited = visited, depth=depth+1):
-            visited.add(c.obj_offset)
-            yield c
-
-    @property
-    def Start(self):
-        """Get the starting virtual address"""
-        return self.StartingVpn << 12
-
-    @property
-    def End(self):
-        """Get the ending virtual address"""
-        return ((self.EndingVpn + 1) << 12) - 1
-
-    @property
-    def Parent(self):
-        try:
-            return self.m("Parent")
-        except AttributeError:
-            return obj.NoneObject("No parent known")
-
-
-class _MMVAD_SHORT(_MMVAD):
-    """Class with convenience functions for _MMVAD_SHORT functions"""
-
-
-class _MMVAD_LONG(_MMVAD):
-    """Class with convenience functions for _MMVAD_SHORT functions"""
-
 
 class _EX_FAST_REF(obj.CType):
     """This type allows instantiating an object from its .Object member."""
@@ -726,6 +628,47 @@ class _MMSECTION_FLAGS(_MMVAD_FLAGS):
     pass
 
 
+class VadTraverser(obj.CType):
+    """The windows Vad tree is basically the same in all versions of windows,
+    but the exact name of the stucts vary with version. This is the base class
+    for all Vad traversor.
+    """
+    ## The actual type depends on this tag value.
+    tag_map = {'Vadl': '_MMVAD_LONG',
+               'VadS': '_MMVAD_SHORT',
+               'Vad ': '_MMVAD',
+               'VadF': '_MMVAD_SHORT',
+               'Vadm': '_MMVAD_LONG',
+              }
+
+    def traverse(self, visited = None, depth=0):
+        """ Traverse the VAD tree by generating all the left items,
+        then the right items.
+
+        We try to be tolerant of cycles by storing all offsets visited.
+        """
+        if visited == None:
+            visited = set()
+
+        ## We try to prevent loops here
+        if self.obj_offset in visited:
+            return
+
+        self.obj_context['depth'] = depth
+
+        # Find out which Vad type we need to be:
+        if self.Tag in self.tag_map:
+            yield self.cast(self.tag_map[self.Tag])
+
+        for c in self.LeftChild.traverse(visited = visited, depth=depth+1):
+            visited.add(c.obj_offset)
+            yield c
+
+        for c in self.RightChild.traverse(visited = visited, depth=depth+1):
+            visited.add(c.obj_offset)
+            yield c
+
+
 import crash_vtypes
 import kdbg_vtypes
 import tcpip_vtypes
@@ -778,9 +721,6 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
             '_HANDLE_TABLE': _HANDLE_TABLE,
             '_OBJECT_HEADER': _OBJECT_HEADER,
             '_FILE_OBJECT': _FILE_OBJECT,
-            '_MMVAD': _MMVAD,
-            '_MMVAD_SHORT': _MMVAD_SHORT,
-            '_MMVAD_LONG': _MMVAD_LONG,
             '_EX_FAST_REF': _EX_FAST_REF,
             'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
             '_CM_KEY_BODY': _CM_KEY_BODY,

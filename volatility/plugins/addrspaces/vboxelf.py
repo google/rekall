@@ -61,7 +61,7 @@ class VirtualBoxCoreDumpElf64(addrspace.PagedReader):
                     continue
 
                 # Add the run to the memory map.
-                self.runs.append((int(section.p_vaddr),  # Virtual Addr
+                self.runs.append((int(section.p_paddr),  # Virtual Addr
                                   int(section.p_offset), # File Addr
                                   int(section.p_memsz))) # Length
 

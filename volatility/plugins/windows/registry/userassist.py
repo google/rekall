@@ -165,7 +165,7 @@ class UserAssistModification(obj.ProfileModification):
     @classmethod
     def modify(cls, profile):
         # Update the profiles for user assist types.
-        if profile.metadata('major') == 6 and self.profile.metadata('minor') == 1:
+        if profile.metadata('major') == 6 and profile.metadata('minor') == 1:
             profile.add_types(ua_win7_vtypes)
         else:
             profile.add_types(ua_vtypes)

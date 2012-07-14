@@ -36,24 +36,35 @@ from volatility.plugins.overlays.windows import windows
 # _MMVAD structs.
 win7_overlays = {
     '_EPROCESS': [ None, {
-            'VadRoot': [ None, ['_MMADDRESS_NODE']]
+            # A symbolic link to the real vad root.
+            'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
             }],
+
     '_MMADDRESS_NODE': [ None, {
             'Tag': [-12, ['String', dict(length=4)]],
             }],
 
     '_MMVAD_SHORT': [ None, {
             'Tag': [-12 , ['String', dict(length = 4)]],
+            'Start': lambda x: x.StartingVpn << 12,
+            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
     '_MMVAD': [ None, {
             'Tag': [-12 , ['String', dict(length = 4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
+            'Start': lambda x: x.StartingVpn << 12,
+            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
     '_MMVAD_LONG': [ None, {
             'Tag': [-12 , ['String', dict(length = 4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
+            'Start': lambda x: x.StartingVpn << 12,
+            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
     "_CONTROL_AREA": [None, {
@@ -139,15 +150,23 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
         return self.type_map.get(self.TypeIndex.v(), '')
 
 
-class _MMADDRESS_NODE(windows._MMVAD):
-    """In win7 the base class of all Vad objects in _MMADDRESS_NODE."""
-    @property
-    def Parent(self):
-        return self.u1.Parent
+class _MMADDRESS_NODE(windows.VadTraverser):
+    """In win7 the base of all Vad objects in _MMADDRESS_NODE.
 
+    The Vad structures can be either _MMVAD_SHORT or _MMVAD or _MMVAD_LONG. At
+    the base of each struct there is an _MMADDRESS_NODE which contains the
+    LeftChild and RightChild members. In order to traverse the tree, we follow
+    the _MMADDRESS_NODE and create the required _MMVAD type at each point
+    depending on their tags.
+    """
 
-class _MMVAD_SHORT(_MMADDRESS_NODE):
-    pass
+    ## The actual type depends on this tag value.
+    tag_map = {'Vadl': '_MMVAD_LONG',
+               'VadS': '_MMVAD_SHORT',
+               'Vad ': '_MMVAD',
+               'VadF': '_MMVAD_SHORT',
+               'Vadm': '_MMVAD_LONG',
+              }
 
 
 class Win7BaseProfile(windows.BaseWindowsProfile):
@@ -164,7 +183,6 @@ class Win7BaseProfile(windows.BaseWindowsProfile):
 
         self.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
                               _MMADDRESS_NODE=_MMADDRESS_NODE,
-                              _MMVAD_SHORT=_MMVAD_SHORT,
                               pointer64=obj.Pointer))
 
 

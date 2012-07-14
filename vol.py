@@ -31,6 +31,20 @@ from volatility import session
 # Import and register the core plugins
 from volatility import plugins
 
+class IntParser(argparse.Action):
+    """Class to parse ints either in hex or as ints."""
+    def __call__(self, parser, namespace, values, option_string=None):
+        try:
+            if values.startswith("0x"):
+                values = int(values, 16)
+            else:
+                values = int(values)
+        except ValueError:
+            raise argparse.ArgumentError(self, "Invalid integer value")
+
+        setattr(namespace, self.dest, values)
+
+
 parser =  argparse.ArgumentParser(description='The Volatility Memory Forensic Framework.',
                                   epilog='When no module is provided, '
                                   'drops into interactive mode')
@@ -56,8 +70,10 @@ parser.add_argument("-f", "--filename", default=None,
 parser.add_argument("-p", "--profile", default=None,
                     help="Name of the profile to load.")
 
-parser.add_argument("--dtb", help="DTB Address.")
-parser.add_argument("--pid", help="A process PID.", type=int)
+parser.add_argument("--dtb", action=IntParser, help="DTB Address.")
+parser.add_argument("--pid", help="A process PID.", action=IntParser)
+parser.add_argument("--eprocess", help="An process kernel address.", action=IntParser)
+
 parser.add_argument("--dump-dir", help="The directory to dump files to.")
 
 parser.add_argument("--logging", default=None,

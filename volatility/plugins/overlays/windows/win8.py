@@ -23,30 +23,35 @@ import windows
 from volatility import obj
 from volatility.plugins.overlays import basic
 from volatility.plugins.overlays.windows import windows
+from volatility.plugins.overlays.windows import win7
 
 
-# In windows 7 the VadRoot is actually composed from _MMADDRESS_NODEs instead of
-# _MMVAD structs.
+# In windows 8 the VadRoot is actually composed from _MM_AVL_NODE instead of
+# _MMVAD structs or _MMADDRESS_NODE.
 win8_overlays = {
     '_EPROCESS': [ None, {
-            'VadRoot': [ None, ['_MMADDRESS_NODE']]
+            # A symbolic link to the real vad root.
+            'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
             }],
-    '_MMADDRESS_NODE': [ None, {
-            'Tag': [-12, ['String', dict(length=4)]],
+
+    '_MM_AVL_NODE': [ None, {
+            'Tag': [-12 , ['String', dict(length = 4)]],
             }],
 
     '_MMVAD_SHORT': [ None, {
             'Tag': [-12 , ['String', dict(length = 4)]],
+            'Start': lambda x: x.StartingVpn << 12,
+            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'CommitCharge': lambda x: x.u1.VadFlags1.CommitCharge,
             }],
 
     '_MMVAD': [ None, {
             'Tag': [-12 , ['String', dict(length = 4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
-            }],
-
-    '_MMVAD_LONG': [ None, {
-            'Tag': [-12 , ['String', dict(length = 4)]],
-            'ControlArea': lambda x: x.Subsection.ControlArea,
+            'Start': lambda x: x.Core.StartingVpn << 12,
+            'End': lambda x: ((x.Core.EndingVpn + 1) << 12) - 1,
+            'CommitCharge': lambda x: x.Core.u1.VadFlags1.CommitCharge,
+            'u': lambda x: x.Core.u,
             }],
 
     "_CONTROL_AREA": [None, {
@@ -132,22 +137,32 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
         return self.type_map.get(self.TypeIndex.v(), '')
 
 
-class _MMADDRESS_NODE(windows._MMVAD):
-    """In win7 the base class of all Vad objects in _MMADDRESS_NODE."""
-    @property
-    def Parent(self):
-        return self.u1.Parent
-
-
-class _MMVAD_SHORT(_MMADDRESS_NODE):
-    pass
-
-
 class _HANDLE_TABLE(obj.CType):
     @property
     def HandleCount(self):
         # We dont know how to figure this out yet!
         return 0
+
+
+class _MM_AVL_NODE(win7._MMADDRESS_NODE):
+    """All nodes in the Vad tree are treated as _MM_AVL_NODE.
+
+    The Vad structures can be either _MMVAD_SHORT or _MMVAD. At the
+    base of each struct there is an _MM_AVL_NODE which contains the LeftChild
+    and RightChild members. In order to traverse the tree, we follow the
+    _MM_AVL_NODE and create the required _MMVAD type at each point.
+
+    In Windows 8 these behave the same as windows 7's _MMADDRESS_NODE.
+    """
+
+    ## The actual type depends on this tag value. Windows 8 does not have an
+    ## _MMVAD_LONG.
+    tag_map = {'Vadl': '_MMVAD',
+               'VadS': '_MMVAD_SHORT',
+               'Vad ': '_MMVAD',
+               'VadF': '_MMVAD_SHORT',
+               'Vadm': '_MMVAD',
+              }
 
 
 class Win8BaseProfile(windows.BaseWindowsProfile):
@@ -163,9 +178,8 @@ class Win8BaseProfile(windows.BaseWindowsProfile):
         self.add_overlay(win8_overlays)
 
         self.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
-                              _MMADDRESS_NODE=_MMADDRESS_NODE,
-                              _MMVAD_SHORT=_MMVAD_SHORT,
                               _HANDLE_TABLE=_HANDLE_TABLE,
+                              _MM_AVL_NODE=_MM_AVL_NODE,
                               pointer64=obj.Pointer))
 
 

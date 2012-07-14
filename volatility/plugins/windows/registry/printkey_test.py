@@ -74,7 +74,6 @@ class TestRegDump(testlib.VolatilityBaseUnitTestCase):
         try:
             previous_run_data = self.LoadPreviousRunData('regdump')
         except IOError:
-            logging.warn("No baseline for regdump skipping.")
             return
 
         result = self.RunVolatilityModule(profile=previous_run_data['profile'],

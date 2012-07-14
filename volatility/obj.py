@@ -858,7 +858,7 @@ class CType(BaseObject):
         for k in self.members:
             width_name = max(width_name, len(k))
             obj = self.m(k)
-            fields.append((obj.obj_offset - self.obj_offset,
+            fields.append((getattr(obj, "obj_offset", self.obj_offset) - self.obj_offset,
                            k, repr(obj)))
 
         fields.sort()
@@ -920,7 +920,7 @@ class CType(BaseObject):
         # NoneObject for invalid members.
         if attr not in self.members:
             raise AttributeError("Type {0} has no member {1}".format(
-                    self.obj_name, attr))
+                    self.obj_type, attr))
 
         return self.m(attr)
 
