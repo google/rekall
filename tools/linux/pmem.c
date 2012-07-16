@@ -53,6 +53,8 @@
 static char pmem_devname[32] = "pmem";
 #define SUCCESS 0
 
+static unsigned long long zero_page = 0;
+
 /* Checks to make sure that the page is valid. For now just checks the
    resource list for "System RAM", which is a very naive approach.
 */
@@ -144,7 +146,8 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
   struct page *page;
 
   /* Refuse to read from invalid pages. */
-  if(!is_page_valid(*poff) || !pfn_valid(pfn)) goto error;
+  if(!is_page_valid(*poff))
+    goto error;
 
   /* Map the page in the the kernel AS and get the address for it. */
   page = pfn_to_page(pfn);
@@ -170,7 +173,11 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
   *poff += to_read;
 
   /* Error occured we zero pad the result. */
-  clear_user(buf, to_read);
+  if(!zero_page)
+    zero_page = get_zeroed_page(GFP_KERNEL);
+
+  copy_to_user(buf, (const void *)zero_page, to_read);
+
   return to_read;
 };
 
@@ -200,8 +207,6 @@ static ssize_t pmem_read(struct file *file, char *buf, size_t count,
   return to_read;
 }
 
-static unsigned long long zero_page = 0;
-
 static int pmem_vma_fault(struct vm_area_struct *vma,
 			  struct vm_fault *vmf)
 {
@@ -210,7 +215,7 @@ static int pmem_vma_fault(struct vm_area_struct *vma,
   struct page *page;
 
   /* Refuse to read from invalid pages. Map the zero page instead. */
-  if(!is_page_valid(offset) || !pfn_valid(pfn)) {
+  if(!is_page_valid(offset)) {
     page = virt_to_page(zero_page);
   } else {
     /* Map the real page here. */

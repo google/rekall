@@ -76,7 +76,8 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return self.v()
 
     def __str__(self):
-        return self.v()
+        # Remove any null termination chars.
+        return self.v().rstrip("\x00")
 
     def __unicode__(self):
         return self.v().decode("utf8", "replace").split("\x00")[0] or u""
@@ -138,7 +139,7 @@ class UnicodeString(String):
 
     def __str__(self):
         """This function returns an encoded string in utf8."""
-        return self.v().encode("utf8") or ''
+        return super(UnicodeString, self).__str__().encode("utf8")
 
     def size(self):
         # This will only work if the encoding and decoding are equivalent.
