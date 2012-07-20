@@ -58,6 +58,32 @@ class LinuxMemMap(common.LinProcessFilter):
 
     __name = "memmap"
 
+    def address_ranges(self, address_space):
+      """Combine the addresses into ranges."""
+      contiguous_offset = None
+      total_length = 0
+
+      for (offset, length) in address_space.get_available_addresses():
+          # Try to join up adjacent pages as much as possible.
+          if contiguous_offset is None:
+              # Reset the contiguous range.
+              contiguous_offset = offset
+              total_length = length
+
+          elif offset == contiguous_offset + total_length:
+              total_length += length
+          else:
+              # Scan the last contiguous range.
+              yield contiguous_offset, total_length
+
+              # Reset the contiguous range.
+              contiguous_offset = offset
+              total_length = length
+
+      if total_length > 0:
+          # Do the last range.
+          yield contiguous_offset, total_length
+
     def render(self, outfd):
         outfd.write("*" * 72 + "\n")
 
@@ -69,7 +95,7 @@ class LinuxMemMap(common.LinProcessFilter):
             outfd.write("{0:12} {1:12} {2:12}\n".format(
                     'Virtual', 'Physical', 'Size'))
 
-            for va, length in task_space.get_available_addresses():
+            for va, length in self.address_ranges(task_space):
                 pa = task_space.vtop(va)
                 if pa == None:
                     continue

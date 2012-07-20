@@ -179,6 +179,32 @@ class WinMemMap(common.WinProcessFilter):
 
         yield (last_va, last_pa, last_len)
 
+    def address_ranges(self, address_space):
+      """Combine the addresses into ranges."""
+      contiguous_offset = None
+      total_length = 0
+
+      for (offset, length) in address_space.get_available_addresses():
+          # Try to join up adjacent pages as much as possible.
+          if contiguous_offset is None:
+              # Reset the contiguous range.
+              contiguous_offset = offset
+              total_length = length
+
+          elif offset == contiguous_offset + total_length:
+              total_length += length
+          else:
+              # Scan the last contiguous range.
+              yield contiguous_offset, total_length
+
+              # Reset the contiguous range.
+              contiguous_offset = offset
+              total_length = length
+
+      if total_length > 0:
+          # Do the last range.
+          yield contiguous_offset, total_length
+
     def render(self, renderer):
         for task in self.filter_processes():
             renderer.write("*" * 72 + "\n")

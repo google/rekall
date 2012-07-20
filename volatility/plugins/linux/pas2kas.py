@@ -3,10 +3,10 @@ import bisect
 import time
 import sys
 
-from volatility.plugins.windows import common
+from volatility.plugins.linux import common
 
 
-class WinPas2Vas(common.WinProcessFilter):
+class Pas2Vas(common.LinProcessFilter):
     """Resolves a physical address to a virtual addrress in a process."""
 
     __name = "pas2vas"
@@ -26,7 +26,7 @@ class WinPas2Vas(common.WinProcessFilter):
         offset. This takes a fair bit of memory and effort to build so by
         default we store the maps in the session for quick reuse.
         """
-        super(WinPas2Vas, self).__init__(**kwargs)
+        super(Pas2Vas, self).__init__(**kwargs)
 
         # Now we build the tables for each process. We do this simply by listing
         # all the tasks using pslist, and then for each task we get its address
@@ -50,7 +50,7 @@ class WinPas2Vas(common.WinProcessFilter):
             self.build_address_map(self.kernel_address_space, "Kernel", None)
 
         for task in self.filter_processes():
-            pid = int(task.UniqueProcessId)
+            pid = int(task.pid)
 
             task_as = task.get_process_address_space()
 
@@ -62,7 +62,7 @@ class WinPas2Vas(common.WinProcessFilter):
                 continue
 
             self.session.report_progress("Enumerating memory for %s (%s)" % (
-                task.UniqueProcessId, task.ImageFileName))
+                task.pid, task.comm))
 
             self.build_address_map(task_as, pid, task)
 

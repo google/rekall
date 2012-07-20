@@ -22,6 +22,7 @@
 """
 
 from volatility.plugins.linux import common
+from volatility import utils
 
 
 class Lsof(common.LinProcessFilter):
@@ -61,9 +62,10 @@ class Lsof(common.LinProcessFilter):
         ret_path = []
 
         inode = dentry.d_inode
-        while 1:
+        while inode:
             # Filenames can be unicode with a maximum length.
-            dname = dentry.d_name.name.dereference_as("UnicodeString", length=1024).v()
+            dname = utils.SmartUnicode(
+                dentry.d_name.name.dereference_as("UnicodeString", length=1024))
 
             if dname != '/':
                 ret_path.append(dname)
@@ -97,8 +99,12 @@ class Lsof(common.LinProcessFilter):
 
         return ret_val
 
-    def render(self, outfd):
+    def render(self, renderer):
+        renderer.table_header([("Pid", "pid", ">4"),
+                               ("Process Name", "name", "<16"),
+                               ("FD","fd", ">4"),
+                               ("Filename", "path", "")])
+
         for (task, filp, fd) in self.lsof():
-            outfd.write("{0:s}({1}): {2:5d} -> {3:s}\n".format(
-                    task.comm, task.pid, fd, self.get_path(
-                        task, filp)))
+            renderer.table_row(task.pid, task.comm, fd, self.get_path(
+                task, filp))

@@ -13,6 +13,7 @@ from volatility.plugins.windows import modscan
 from volatility.plugins.windows import modules
 #from volatility.plugins.windows import netscan
 from volatility.plugins.windows import patcher
+from volatility.plugins.windows import pas2kas
 from volatility.plugins.windows import pfn
 from volatility.plugins.windows import procdump
 from volatility.plugins.windows import procinfo

@@ -134,8 +134,8 @@ class UnicodeString(String):
 
         return data
 
-    def __unicode__(self, vm=None):
-        return self.v(vm=vm) or ''
+    def __unicode__(self):
+        return super(UnicodeString, self).__unicode__()
 
     def __str__(self):
         """This function returns an encoded string in utf8."""

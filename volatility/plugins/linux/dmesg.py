@@ -28,23 +28,10 @@ class LinuxDmesg(common.AbstractLinuxCommandPlugin):
 
     __name = "dmesg"
 
-    def get_dmesg(self):
-        # The length of the string is stored at this address.
-        log_buf_len = self.profile.Object(
-            "int", self.profile.get_constant("log_buf_len"),
-            vm=self.kernel_address_space)
-
-        # The address of the string is stored here.
-        log_buf_addr = self.profile.Object(
-            "Pointer", offset=self.profile.get_constant("log_buf"),
-            vm=self.kernel_address_space)
-
-        # Dereference this as a string of the correct length.
-        return log_buf_addr.dereference_as("UnicodeString", length=log_buf_len)
-
-    def render(self, outfd):
-        outfd.write(self.get_dmesg())
-
-
-
-
+    def render(self, renderer):
+        renderer.format("{0}", self.profile.Object(
+            "Pointer",
+            vm=self.kernel_address_space,
+            offset=self.profile.get_constant("log_buf"),
+            target='UnicodeString',
+            target_args=dict(length=self.profile.get_constant("log_buf_len"))))

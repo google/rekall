@@ -185,7 +185,7 @@ class TextColumn(object):
         """
         # Leading ! turns off eliding.
         if formatstring.startswith("!"):
-            self.elide = False
+            self.elide = True
             formatstring = formatstring[1:]
 
         # This means unlimited width.
@@ -292,7 +292,7 @@ class TextTable(object):
     This table formats all its cells using proportional text font.
     """
 
-    def __init__(self, columns=None, tablesep=" ", elide=True,
+    def __init__(self, columns=None, tablesep=" ", elide=False,
                  suppress_headers=False, address_size=10):
         self.columns = [TextColumn(*args, elide=elide, address_size=address_size)
                         for args in columns]
@@ -418,14 +418,14 @@ class TextRenderer(RendererBaseClass):
     """Plugins can receive a renderer object to assist formatting of output."""
 
     tablesep = " "
-    elide = True
+    elide = False
     spinner = "/-\|"
     last_spin_time = 0
     last_spin = 0
     last_message_len = 0
     isatty = False
 
-    def __init__(self, tablesep=" ", elide=True, **kwargs):
+    def __init__(self, tablesep=" ", elide=False, **kwargs):
         super(TextRenderer, self).__init__(**kwargs)
         self.tablesep = tablesep
         self.elide = elide
@@ -639,4 +639,3 @@ class JsonRenderer(TextRenderer):
 
     def write(self, data):
         self.data['data'].append(data)
-

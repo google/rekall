@@ -225,7 +225,7 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
 
     def __init__(self, profile_file=None, **kwargs):
         super(Linux32, self).__init__(**kwargs)
-        self.profile_file = profile_file or self.session.profile_file
+        self.profile_file = profile_file
         self.add_classes(dict(file=linux_file, list_head=list_head,
                               files_struct=files_struct, task_struct=task_struct,
                               fs_struct=linux_fs_struct))
@@ -237,10 +237,11 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
 
         This allows the user to set the profile file after setting the profile.
         """
-        if not self.profile_file:
+        profile_file = self.profile_file or self.session.profile_file
+        if not profile_file:
             raise obj.ProfileError("No profile dwarf pack specified (session.profile_file).")
 
-        self.parse_profile_file(self.profile_file)
+        self.parse_profile_file(profile_file)
         super(Linux32, self).compile()
 
     def _match_filename(self, regex, profile_zipfile):
@@ -323,4 +324,3 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
 class Linux64(basic.Profile64Bits, Linux32):
     """Support for 64 bit linux systems."""
     _md_memory_model = "64bit"
-
