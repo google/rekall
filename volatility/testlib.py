@@ -294,6 +294,11 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
         for x, y in zip(a, b):
             self.assertEqual(x, y)
 
+    def assertTableRowsEqual(self, a, b):
+        a = [x.strip() for x in a.split("||")]
+        b = [x.strip() for x in b.split("||")]
+        self.assertEqual(a, b)
+
     def assertIntegerListEqual(self, a, b, base=16):
         """Compares two list of printed integers."""
         a = [int(x, base) for x in a]

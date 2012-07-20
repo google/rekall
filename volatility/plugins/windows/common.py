@@ -235,7 +235,7 @@ class CheckPoolIndex(scan.ScannerCheck):
         return pool_hdr.PoolIndex == self.value
 
 
-class PoolScanner(scan.DiscontigScanner):
+class PoolScanner(scan.DiscontigScanner, scan.BaseScanner):
     """A scanner for pool allocations."""
 
     # These objects are allocated in the pool allocation.

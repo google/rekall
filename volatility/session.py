@@ -38,6 +38,7 @@ from volatility import obj
 from volatility import registry
 from volatility import utils
 from volatility.ui import renderer
+from volatility.plugins import core
 
 
 class ProfileContainer(object):
@@ -80,8 +81,10 @@ class PluginContainer(object):
         return self.plugins.keys()
 
     def __getattr__(self, attr):
+        """We return a curried plugin with the session already filled in."""
         try:
-            return self.plugins[attr]
+            result = obj.Curry(self.plugins[attr], session=self.session)
+            return result
         except KeyError:
             raise AttributeError("Plugin not found for this profile: %s" % attr)
 
@@ -211,13 +214,14 @@ class Session(object):
             ui_renderer = ui_renderer_cls(session=self, fd=fd)
 
         try:
-            ui_renderer.start(plugin_name=plugin_cls.name, kwargs=kwargs)
-
             kwargs['session'] = self
             result = plugin_cls(*args, **kwargs)
+            ui_renderer.start(plugin_name=result.name, kwargs=kwargs)
+
             try:
                 result.render(ui_renderer)
             except KeyboardInterrupt:
+                import pdb; pdb.post_mortem()
                 self.report_progress("Aborted!\r\n", force=True)
 
             finally:

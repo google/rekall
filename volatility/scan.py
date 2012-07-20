@@ -150,7 +150,9 @@ class BaseScanner(object):
             i += skip
 
 
-class DiscontigScanner(BaseScanner):
+class DiscontigScanner(object):
+    """A Mixin for Discontiguous scanning."""
+
     def scan(self, offset = 0, maxlen = None):
         contiguous_offset = 0
         total_length = 0

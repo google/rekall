@@ -1,0 +1,11 @@
+{
+    "comment": "Test file for Yara scanners.",
+    "filename": "test_data/xp-laptop-2005-06-25.img",
+    "profile": "WinXPSP2x86",
+    "sha1sum": "31cd2e8f1e4f7754da6477f102cbfac2052f878e",
+
+    "#": "",
+
+    "yarascan_test": { "": "rule Rule1\n{ strings:\n    $a = \"PluckUpdater.ex\"\n  condition:\n    $a\n}"
+                     }
+}

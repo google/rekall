@@ -749,6 +749,9 @@ class VadTraverser(obj.CType):
 
         We try to be tolerant of cycles by storing all offsets visited.
         """
+        if depth > 100:
+            import pdb; pdb.set_trace()
+
         if visited == None:
             visited = set()
 
@@ -762,12 +765,16 @@ class VadTraverser(obj.CType):
         if self.Tag in self.tag_map:
             yield self.cast(self.tag_map[self.Tag])
 
-        for c in self.LeftChild.traverse(visited = visited, depth=depth+1):
-            visited.add(c.obj_offset)
+        # This tag is valid for the Root.
+        elif self.Tag.v() != "\x00":
+            return
+
+        for c in self.LeftChild.traverse(visited=visited, depth=depth+1):
+            visited.add(self.obj_offset)
             yield c
 
-        for c in self.RightChild.traverse(visited = visited, depth=depth+1):
-            visited.add(c.obj_offset)
+        for c in self.RightChild.traverse(visited=visited, depth=depth+1):
+            visited.add(self.obj_offset)
             yield c
 
 

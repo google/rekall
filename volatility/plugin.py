@@ -20,10 +20,12 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 """Plugins allow the core volatility system to be extended."""
 import logging
+import StringIO
 
 from volatility import conf
 from volatility import registry
 from volatility import obj
+from volatility.ui import renderer
 
 
 class Error(Exception):
@@ -93,6 +95,15 @@ class Command(object):
         for cls in self.classes.values():
             if cls.name == name:
                 return cls(session=self.session, profile=self.profile, **kwargs)
+
+    def __str__(self):
+        """Render into a string using the text renderer."""
+        fd = StringIO.StringIO()
+        ui_renderer = renderer.TextRenderer(session=self.session, fd=fd)
+        ui_renderer.start(plugin_name=self.name)
+        self.render(ui_renderer)
+
+        return fd.getvalue()
 
     def render(self, fd = None):
         """Produce results on the fd given."""

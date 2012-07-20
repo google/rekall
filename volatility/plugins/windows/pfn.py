@@ -216,6 +216,9 @@ class VtoP(common.WindowsCommandPlugin):
         return function(virtual_address, address_space)
 
     def render(self, renderer):
+        if self.address is None:
+            return
+
         renderer.write("Virtual 0x{0:08X}, Page Directory 0x{1:08X}\n".format(
                 self.address, self.address_space.dtb))
 
@@ -531,6 +534,9 @@ class PtoV(common.WinProcessFilter):
         return obj.NoneObject("Memory model not supported."), []
 
     def render(self, renderer):
+        if self.physical_address is None:
+            return
+
         result, structures = self.ptov(self.physical_address)
         if result:
             renderer.format("Physical Address 0x{0:016X} => "

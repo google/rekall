@@ -25,7 +25,7 @@ from volatility.plugins.windows import common
 
 
 
-class KDBGScanner(scan.DiscontigScanner):
+class KDBGScanner(scan.DiscontigScanner, scan.BaseScanner):
     """Scans for _KDDEBUGGER_DATA64 structures.
 
     Note that this does not rely on signatures, as validity of hits is

@@ -49,8 +49,9 @@ class TestVad(testlib.VolatilityBaseUnitTestCase):
             previous_meta, current_meta = self.ReRunVolatilityTest(
                 'vad', pid=2624)
 
-            self.assertEqual(previous_meta['output'],
-                             current_meta['output'])
+            for x, y in zip(previous_meta['output'], current_meta['output']):
+                self.assertTableRowsEqual(x, y)
+
         except IOError:
             # Module does not exist in trunk.
             return

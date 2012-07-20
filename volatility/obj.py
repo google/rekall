@@ -53,7 +53,7 @@ class Curry(object):
         self.target = curry_target
         self.kwargs = kwargs
         self.args = args
-        self.__doc__ = self.target.__doc__
+        self.__doc__ = getattr(self.target, "__init__", self.target).__doc__
 
     def __call__(self, *args, **kwargs):
         # Merge the kwargs with the new kwargs
@@ -476,8 +476,11 @@ class BitField(NativeType):
         # proxy again.
         return False
 
+    # The __nonzero__ attribute is reserved for validity checks.
     def __nonzero__(self):
-        return bool(self.v())
+        # This is an error since this attribute is used for validity checking.
+        logging.warning("Bitfield %s called with __nonzero__.", self.obj_name)
+        return super(BitField, self).__nonzero__()
 
 
 class Pointer(NativeType):
@@ -494,8 +497,9 @@ class Pointer(NativeType):
 
         # We parse the address using the profile since address is a different
         # size on different platforms.
-        self._proxy = self.obj_profile.Object("address", offset=self.obj_offset,
-                                              vm=self.obj_vm, context=self.obj_context)
+        self._proxy = self.obj_profile.Object(
+            "address", offset=self.obj_offset,
+            vm=self.obj_vm, context=self.obj_context)
 
         # We just hold on to these so we can construct the objects later.
         self.target = target
@@ -507,7 +511,8 @@ class Pointer(NativeType):
         return self._proxy.size()
 
     def v(self, vm=None):
-        # 64 bit addresses are always sign extended so we need to clear the top bits.
+        # 64 bit addresses are always sign extended so we need to clear the top
+        # bits.
         return 0xffffffffffff & self._proxy.v(vm=vm)
 
     def __eq__(self, other):
