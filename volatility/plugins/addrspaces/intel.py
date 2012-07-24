@@ -229,8 +229,10 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReade
             pde_value = self.get_pde(vaddr)
             if not self.entry_present(pde_value):
                 continue
+
             if self.page_size_flag(pde_value):
                 yield (vaddr, 0x400000)
+
             else:
                 tmp = vaddr
                 for pte in range(0, 0x400):

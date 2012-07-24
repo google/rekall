@@ -153,27 +153,9 @@ class BaseScanner(object):
 class DiscontigScanner(object):
     """A Mixin for Discontiguous scanning."""
 
-    def scan(self, offset = 0, maxlen = None):
-        contiguous_offset = 0
-        total_length = 0
-        for (offset, length) in self.address_space.get_available_addresses():
-            # Try to join up adjacent pages as much as possible.
-            if offset == contiguous_offset + total_length:
-                total_length += length
-            else:
-                # Scan the last contiguous range.
-                for match in super(DiscontigScanner, self).scan(
-                    contiguous_offset, total_length):
-                    yield match
-
-                # Reset the contiguous range.
-                contiguous_offset = offset
-                total_length = length
-
-        if total_length > 0:
-            # Do the last range.
-            for match in super(DiscontigScanner, self).scan(
-                contiguous_offset, total_length):
+    def scan(self, offset=0, maxlen=None):
+        for (offset, length) in self.address_space.get_address_ranges():
+            for match in super(DiscontigScanner, self).scan(offset, length):
                 yield match
 
 

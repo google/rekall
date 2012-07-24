@@ -19,7 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 import threading
-
+import time
 
 def SmartStr(string, encoding="utf8"):
     """Forces the string to be an encoded byte string."""
@@ -188,3 +188,24 @@ class FastStore(object):
 
   def __setstate__(self, state):
     self.__init__(max_size=state["max_size"])
+
+
+class AgeBasedCache(FastStore):
+    """A cache which removes objects after some time."""
+
+    def __init__(self, max_age=20, **kwargs):
+        super(AgeBasedCache, self).__init__(**kwargs)
+        self.max_age = max_age
+
+    def Put(self, key, item):
+        super(AgeBasedCache, self).Put(key, (item, time.time()))
+
+    def Get(self, key):
+        item, timestamp = super(AgeBasedCache, self).Get(key)
+
+        if timestamp + self.max_age > time.time():
+            return item
+
+        else:
+            self.ExpireObject(key)
+            raise KeyError("Item too old.")

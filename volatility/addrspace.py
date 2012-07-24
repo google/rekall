@@ -63,6 +63,11 @@ class BaseAddressSpace(object):
         self.writeable = (self.session and self.session.writable_address_space or
                           write)
 
+        # This is a short lived cache. If we use a static image, this cache need
+        # not expire, however, when analysing a live system we need to flush the
+        # cache frequently.
+        self.cache = utils.AgeBasedCache(max_age=20)
+
     def as_assert(self, assertion, error = None):
         """Duplicate for the assert command (so that optimizations don't disable
         them)
@@ -89,6 +94,54 @@ class BaseAddressSpace(object):
     def get_available_addresses(self):
         """Generates of address ranges as (offset, size) for by this AS."""
         return []
+
+    def get_address_ranges(self, start=0, end=0xfffffffffffff):
+        """Generates the address ranges which fall between start and end."""
+        for offset, length in self._get_address_ranges():
+
+            # The entire range is below what is required - ignore it.
+            if offset + length < start:
+                continue
+
+            # The range starts after the address we care about - we are done.
+            if offset > end:
+                return
+
+            # Clip the bottom of the range to the start point, and the end of
+            # the range to the end point.
+            range_start = max(start, offset)
+            range_end = min(end, offset + length)
+
+            yield range_start, range_end - range_start
+
+    def _get_address_ranges(self):
+        """Generates merged address ranges from get_available_addresses()."""
+        try:
+            return self.cache.Get("Ranges")
+        except KeyError:
+            pass
+
+        result = []
+        contiguous_offset = 0
+        total_length = 0
+        for (offset, length) in self.get_available_addresses():
+            # Try to join up adjacent pages as much as possible.
+            if offset == contiguous_offset + total_length:
+                total_length += length
+            else:
+                result.append((contiguous_offset, total_length))
+
+                # Reset the contiguous range.
+                contiguous_offset = offset
+                total_length = length
+
+        if total_length > 0:
+            result.append((contiguous_offset, total_length))
+
+        # Sort in virtual addresses.
+        result.sort()
+        self.cache.Put("Ranges", result)
+        return result
 
     def is_valid_address(self, _addr):
         """ Tell us if the address is valid """

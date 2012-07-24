@@ -231,18 +231,20 @@ class VADDump(VADInfo):
 
         self.verbose = verbose
 
-    def render(self, outfd):
+    def render(self, renderer):
         for task in self.filter_processes():
-            outfd.write("Pid: {0:6}\n".format(task.UniqueProcessId))
+            renderer.section()
+            renderer.format("Pid: {0:6}\n", task.UniqueProcessId)
+
             # Get the task and all process specific information
             task_space = task.get_process_address_space()
+
             name = task.ImageFileName
             offset = task_space.vtop(task.obj_offset)
             if offset is None:
-                outfd.write("Process does not have a valid address space.\n")
+                renderer.format("Process does not have a valid address space.\n")
                 continue
 
-            outfd.write("*" * 72 + "\n")
             for vad in task.RealVadRoot.traverse():
                 # Ignore Vads with bad tags
                 if vad.obj_type == "_MMVAD":
@@ -252,20 +254,42 @@ class VADDump(VADInfo):
                 start = vad.Start
                 end = vad.End
 
+                filename = "{0}.{1:x}.{2:08x}-{3:08x}.dmp".format(
+                    name, offset, start, end)
+
                 # Open the file and initialize the data
-                path = os.path.join(
-                    self.dump_dir, "{0}.{1:x}.{2:08x}-{3:08x}.dmp".format(
-                        name, offset, start, end))
+                path = os.path.join(self.dump_dir, filename)
 
-                with open(path, 'wb') as f:
-                    # Copy the memory from the process's address space into the
-                    # file. This will null pad any missing pages.
-                    range_data = task_space.zread(start, end - start + 1)
+                with open(path, 'wb') as fd:
+                    self.session.report_progress("Dumping %s" % filename)
+                    self.CopyToFile(task_space, start, end + 1, fd)
 
-                    if self.verbose:
-                        outfd.write("Writing VAD for %s\n" % path)
+    def CopyToFile(self, addrspace, start, end, outfd):
+        """Copy a part of the address space to the output file.
 
-                    f.write(range_data)
+        This utility function allows the writing of sparse files correctly. We
+        pass over the address space, automatically skipping regions which are
+        not valid. For file systems which support sparse files (e.g. in Linux),
+        no additional disk space will be used for unmapped regions.
+
+        If a region has no mapped pages, the resulting file will be of 0 bytes
+        long.
+        """
+        BUFFSIZE = 1024 * 1024
+
+        for offset, length in addrspace.get_address_ranges(start, end):
+            outfd.seek(offset - start)
+            i = offset
+
+            # Now copy the region in fixed size buffers.
+            while i < offset + length:
+                to_read = min(BUFFSIZE, length)
+
+                data = addrspace.zread(i, to_read)
+                outfd.write(data)
+
+                i += to_read
+
 
 class VAD(common.WinProcessFilter):
     """Concise dump of the VAD.
@@ -336,5 +360,5 @@ class VadScanner(scan.BaseScanner):
     def scan(self, offset=0, maxlen=None):
         for vad in self.task.RealVadRoot.traverse():
             for match in super(VadScanner, self).scan(
-                vad.Start, vad.End - vad.Start):
+                vad.Start, vad.End - vad.Start + 1):
                 yield match
