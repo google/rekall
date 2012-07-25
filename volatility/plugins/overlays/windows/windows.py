@@ -775,7 +775,6 @@ class VadTraverser(obj.CType):
 
 import crash_vtypes
 import kdbg_vtypes
-import tcpip_vtypes
 import ssdt_vtypes
 
 # Reference:
@@ -816,7 +815,6 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
                 "_KDDEBUGGER_DATA64": kdbg_vtypes._KDDEBUGGER_DATA64
                 })
 
-        self.add_types(tcpip_vtypes.tcpip_vtypes)
         self.add_types(ssdt_vtypes.ssdt_vtypes)
         self.add_classes({
             '_UNICODE_STRING': _UNICODE_STRING,

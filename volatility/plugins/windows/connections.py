@@ -20,6 +20,7 @@
 
 #pylint: disable-msg=C0111
 
+from volatility.plugins.overlays.windows import tcpip_vtypes
 from volatility.plugins.windows import common
 from volatility import obj
 
@@ -272,6 +273,9 @@ class Connections(common.AbstractWindowsCommandPlugin):
         """Enumerates the active connections in tcpip.sys's data structures."""
         super(Connections, self).__init__(**kwargs)
 
+        # Install the reversed tcpip structs.
+        self.profile = tcpip_vtypes.TCPIPModifications(self.profile)
+
     def determine_connections(self):
         """Determines active connections in tcpip.sys"""
         version = (self.profile.metadata('major', 0),
@@ -283,7 +287,9 @@ class Connections(common.AbstractWindowsCommandPlugin):
             module_versions = module_versions_2k3
 
         # List all the modules using the modules plugin
-        modules = self.session.plugins.modules(session=self.session)
+        modules = self.session.plugins.modules(
+            session=self.session, profile=self.profile)
+
         for m in modules.lsmod():
             # Try to find the tcpip.sys module.
             if str(m.BaseDllName).lower() == 'tcpip.sys':
@@ -294,15 +300,15 @@ class Connections(common.AbstractWindowsCommandPlugin):
                     TCBTableOff = module_versions[attempt]['TCBTableOff']
                     BaseAddress = int(m.DllBase)
 
-                    table_size = m.obj_profile.Object(
+                    table_size = self.profile.Object(
                         theType="long", offset=BaseAddress + SizeOff, vm=m.obj_vm)
 
-                    table_addr = m.obj_profile.Object(
+                    table_addr = self.profile.Object(
                         theType="unsigned long", offset=BaseAddress + TCBTableOff,
                         vm = m.obj_vm)
 
                     if table_size > 0:
-                        table = m.obj_profile.Object(
+                        table = self.profile.Object(
                             theType="Array", offset=table_addr, vm=m.obj_vm,
                             count = table_size,
                             target = "Pointer", target_args = dict(target='_TCPT_OBJECT'))
@@ -348,6 +354,9 @@ class Sockets(common.AbstractWindowsCommandPlugin):
         """Enumerates the active sockets in tcpip.sys's data structures."""
         super(Sockets, self).__init__(**kwargs)
 
+        # Install the reversed tcpip structs.
+        self.profile = tcpip_vtypes.TCPIPModifications(self.profile)
+
     def determine_sockets(self):
         """Determines all active sockets in tcpip.sys"""
         version = (self.profile.metadata('major', 0),
@@ -370,16 +379,16 @@ class Sockets(common.AbstractWindowsCommandPlugin):
                     AddrObjTableOffset = module_versions[attempt]['AddrObjTableOffset']
                     BaseAddress = int(m.DllBase)
 
-                    table_size = m.obj_profile.Object(
+                    table_size = self.profile.Object(
                         theType="long", offset=BaseAddress + AddrObjTableSizeOffset,
                         vm=m.obj_vm)
 
-                    table_addr = m.obj_profile.Object(
+                    table_addr = self.profile.Object(
                         theType="unsigned long", offset=BaseAddress + AddrObjTableOffset,
                         vm = m.obj_vm)
 
                     if table_size > 0:
-                        table = m.obj_profile.Object(
+                        table = self.profile.Object(
                             theType="Array", offset=table_addr, vm=m.obj_vm,
                             count = table_size,
                             target = "Pointer", target_args=dict(target='_ADDRESS_OBJECT'))

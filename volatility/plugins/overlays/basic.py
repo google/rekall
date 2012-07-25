@@ -256,6 +256,16 @@ class IpAddress(obj.NativeType):
         value = super(IpAddress, self).v(vm=vm)
         return socket.inet_ntoa(struct.pack("<I", value))
 
+class Ipv6Address(obj.NativeType):
+    """Provides proper output for Ipv6Address objects"""
+    def __init__(self, **kwargs):
+        super(Ipv6Address, self).__init__(**kwargs)
+        # IpAddress is always a 32 bit int.
+        self.format_string = "16s"
+
+    def v(self):
+        return utils.inet_ntop(socket.AF_INET6, obj.NativeType.v(self))
+
 
 class _LIST_ENTRY(obj.CType):
     """ Adds iterators for _LIST_ENTRY types """
@@ -454,6 +464,7 @@ class BasicWindowsClasses(obj.Profile):
             'Flags': Flags,
             'Enumeration': Enumeration,
             'IpAddress': IpAddress,
+            'Ipv6Address': Ipv6Address,
             '_LIST_ENTRY': _LIST_ENTRY,
             'LIST_ENTRY32': _LIST_ENTRY,
             'LIST_ENTRY64': _LIST_ENTRY,

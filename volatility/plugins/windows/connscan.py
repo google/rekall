@@ -26,6 +26,7 @@ This module implements the fast connection scanning
 @organization: Volatile Systems
 """
 
+from volatility.plugins.overlays.windows import tcpip_vtypes
 from volatility.plugins.windows import common
 
 
@@ -51,6 +52,11 @@ class ConnScan(common.PoolScannerPlugin):
         )
 
     __name = "connscan"
+
+
+    def __init__(self, **kwargs):
+        super(ConnScan, self).__init__(**kwargs)
+        self.profile = tcpip_vtypes.TCPIPModifications(self.profile)
 
     def generate_hits(self):
         """Search the physical address space for _TCPT_OBJECTs.

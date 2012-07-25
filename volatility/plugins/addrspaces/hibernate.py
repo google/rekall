@@ -35,36 +35,6 @@ import struct
 PAGE_SIZE = 0x1000
 page_shift = 12
 
-class Store(object):
-    """A Cache for pages."""
-
-    def __init__(self, limit = 500):
-        self.limit = limit
-        self.cache = {}
-        self.seq = []
-        self.size = 0
-
-        # These are used to keep track of cache efficiency.
-        self.total_hits = 0
-        self.total_misses = 0
-
-    def put(self, key, item):
-        self.cache[key] = item
-        self.size += len(item)
-
-        self.seq.append(key)
-        if len(self.seq) >= self.limit:
-            key = self.seq.pop(0)
-            self.size -= len(self.cache[key])
-            del self.cache[key]
-
-    def get(self, key):
-        if key in self.cache:
-            self.total_hits += 1
-            return self.cache.get(key)
-
-        self.total_misses += 1
-
 
 class HibernationSupport(obj.ProfileModification):
     """Support hibernation file structures for different versions of windows."""
@@ -260,7 +230,7 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
         self.PageIndex = 0
         self.AddressList = []
         self.LookupCache = {}
-        self.PageCache = Store(500)
+        self.PageCache = utils.FastStore(500)
         self.MemRangeCnt = 0
         self.offset = 0
         self.entry_count = 0xFF
@@ -469,7 +439,7 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
         return XpressHeaderOffset != None
 
     def read_xpress(self, baddr, BlockSize):
-        data_uz = self.PageCache.get(baddr)
+        data_uz = self.PageCache.Get(baddr)
         if data_uz is None:
             data_read = self.base.read(baddr, BlockSize)
             if BlockSize == 0x10000:
@@ -477,7 +447,7 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
             else:
                 data_uz = xpress.xpress_decode(data_read)
 
-                self.PageCache.put(baddr, data_uz)
+                self.PageCache.Put(baddr, data_uz)
 
         return data_uz
 

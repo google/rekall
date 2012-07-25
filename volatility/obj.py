@@ -1069,7 +1069,15 @@ class Profile(object):
     def metadata(cls, name, default=None):
         """Obtain metadata about this profile."""
         prefix = '_md_'
+
         return getattr(cls, prefix + name, default)
+
+    @classmethod
+    def metadatas(cls, *args):
+        """Obtain metadata about this profile."""
+        prefix = '_md_'
+
+        return tuple([getattr(cls, prefix + x, None) for x in args])
 
     def has_type(self, theType):
         return theType in self.object_classes or theType in self.vtypes

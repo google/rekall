@@ -193,7 +193,7 @@ class CheckPoolSize(scan.ScannerCheck):
         super(CheckPoolSize, self).__init__(**kwargs)
         self.condition = condition
         if min_size:
-            self.condition = lambda x: x>min_size
+            self.condition = lambda x: x >= min_size
 
         self.pool_align = self.profile.constants['PoolAlignment']
 
@@ -258,7 +258,7 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
     """A base class for all pool scanner plugins."""
     __abstract = True
 
-    def __init__(self, address_space=None, **kwargs):
+    def __init__(self, address_space=None, scan_in_kernel=False, **kwargs):
         """Scan the address space for pool allocations.
 
         Args:
@@ -266,7 +266,8 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
           physical_address_space.
         """
         super(PoolScannerPlugin, self).__init__(**kwargs)
-        if self.session.scan_in_kernel:
+        scan_in_kernel = scan_in_kernel or self.session.scan_in_kernel
+        if scan_in_kernel:
             self.address_space = address_space or self.kernel_address_space
         else:
             self.address_space = address_space or self.physical_address_space

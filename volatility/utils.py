@@ -3,6 +3,7 @@
 #
 # Authors:
 # Michael Cohen <scudette@users.sourceforge.net>
+# Michael Hale Ligh <michael.hale@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,9 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#
+
+import itertools
+import socket
 import threading
 import time
+
 
 def SmartStr(string, encoding="utf8"):
     """Forces the string to be an encoded byte string."""
@@ -209,3 +213,64 @@ class AgeBasedCache(FastStore):
         else:
             self.ExpireObject(key)
             raise KeyError("Item too old.")
+
+
+# Compensate for Windows python not supporting socket.inet_ntop and some
+# Linux systems (i.e. OpenSuSE 11.2 w/ Python 2.6) not supporting IPv6.
+
+def inet_ntop(address_family, packed_ip):
+
+    def inet_ntop4(packed_ip):
+        if not isinstance(packed_ip, str):
+            raise TypeError("must be string, not {0}".format(type(packed_ip)))
+
+        if len(packed_ip) != 4:
+            raise ValueError("invalid length of packed IP address string")
+
+        return "{0}.{1}.{2}.{3}".format(*[ord(x) for x in packed_ip])
+
+    def inet_ntop6(packed_ip):
+        if not isinstance(packed_ip, str):
+            raise TypeError("must be string, not {0}".format(type(packed_ip)))
+
+        if len(packed_ip) != 16:
+            raise ValueError("invalid length of packed IP address string")
+
+        words = []
+        for i in range(0, 16, 2):
+            words.append((ord(packed_ip[i]) << 8) | ord(packed_ip[i + 1]))
+
+        # Replace a run of 0x00s with None
+        numlen = [(k, len(list(g))) for k, g in itertools.groupby(words)]
+        max_zero_run = sorted(sorted(
+                numlen, key = lambda x: x[1], reverse = True),
+                              key = lambda x: x[0])[0]
+        words = []
+        for k, l in numlen:
+            if (k == 0) and (l == max_zero_run[1]) and not (None in words):
+                words.append(None)
+            else:
+                for i in range(l):
+                    words.append(k)
+
+        # Handle encapsulated IPv4 addresses
+        encapsulated = ""
+        if (words[0] is None) and (len(words) == 3 or (
+                len(words) == 4 and words[1] == 0xffff)):
+            words = words[:-2]
+            encapsulated = inet_ntop4(packed_ip[-4:])
+        # If we start or end with None, then add an additional :
+        if words[0] is None:
+            words = [None] + words
+        if words[-1] is None:
+            words += [None]
+        # Join up everything we've got using :s
+        return (":".join(
+                ["{0:x}".format(w) if w is not None else "" for w in words]) +
+                encapsulated)
+
+    if address_family == socket.AF_INET:
+        return inet_ntop4(packed_ip)
+    elif address_family == socket.AF_INET6:
+        return inet_ntop6(packed_ip)
+    raise socket.error("[Errno 97] Address family not supported by protocol")
