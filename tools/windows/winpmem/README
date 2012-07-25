@@ -18,8 +18,17 @@ The files in this directory (Including the winpmem sources and signed binaries),
 are available under the following license: Apache License, Version 2.0
 
 
-How to use this tool.
----------------------
+How to use these drivers.
+=========================
+
+There are two user space programs that can be used to acquire memory images. The python acquitision program demonstrates how to use the driver from python and can be easily extended to handle the image in another way (e.g. compress, hash, send across the network etc).
+
+The executable/Release/winpmem.exe program is a self contained binary with both
+32 and 64 bit drivers embedded. It is the easiest to use for incident response
+since it requires no external dependencies.
+
+The Python acquitision tool winpmem.py
+--------------------------------------
 
 This release comes with signed binary drivers and a python program which uses
 this driver to create raw images. (Note that in order to load the driver on 64
@@ -80,3 +89,45 @@ c:\..> winpmem.py -d binaries\amd64\winpmem.sys -u
 (1073, 'CreateService', 'The specified service already exists.')
 unloaded winpmem driver.
 
+
+The self contained binary winpmem.exe
+-------------------------------------
+
+This program is easiest to use for incident response since it requires no other
+dependencies than the executable itself. The program will load the correct
+driver (32 bit or 64 bit) automatically.
+
+c:\..> tools\windows\winpmem\executable\Release\winpmem.exe -h
+Winpmem - A memory imager for windows.
+Copyright Michael Cohen (scudette@gmail.com) 2012.
+
+Usage:
+  tools\windows\winpmem\executable\Release\winpmem.exe [option] [output path]
+
+Option:
+  -l    Load the driver and exit.
+  -u    Unload the driver and exit.
+  -1    Use MmMapIoSpace method.
+  -2    Use \\Device\PhysicalMemory method (Default).
+  -h    Display this help.
+
+
+Sample:
+tools\windows\winpmem\executable\Release\winpmem.exe physmem.raw
+Writes an image to physmem.raw
+
+To load the driver and exit:
+c:\..> tools\windows\winpmem\executable\Release\winpmem.exe -l
+Loaded Driver.
+
+To unload the driver and exit:
+c:\..> tools\windows\winpmem\executable\Release\winpmem.exe -u
+Driver Unloaded.
+
+To acquire an image:
+c:\..> tools\windows\winpmem\executable\Release\winpmem.exe myimage.raw
+
+To acquire using the MmMapIoSpace method:
+c:\..> tools\windows\winpmem\executable\Release\winpmem.exe -1 myimage.raw
+
+The driver will be automatically unloaded after the image is acquired.

@@ -28,6 +28,7 @@ import re
 import os
 
 from volatility import utils
+from volatility.plugins import core
 from volatility.plugins.windows import common
 from volatility.plugins.windows.registry import registry
 
@@ -124,7 +125,7 @@ class PrintKey(common.WindowsCommandPlugin):
                                         self.voltext(value))
 
 
-class RegDump(common.WindowsCommandPlugin):
+class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
     """Dump all registry hives into a dump directory."""
 
     __name = 'regdump'
