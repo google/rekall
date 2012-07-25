@@ -23,6 +23,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 import inspect
 import logging
 import pdb
+import os
 
 from volatility import addrspace
 from volatility import registry
@@ -275,6 +276,30 @@ class HexDumper(plugin.Command):
             fd.write("{0:016X} | {1} | {2}\n".format(
                     self.offset, hexdata, translated_data))
             self.offset += self.width
+
+
+class DirectoryDumperMixin(object):
+    """A mixin for plugins that want to dump files to a directory."""
+
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(DirectoryDumperMixin, cls).args(parser)
+        parser.add_argument("--dump-dir", required=True,
+                            help="Path suitable for dumping files (required).")
+
+    def __init__(self, dump_dir=None, **kwargs):
+        super(DirectoryDumperMixin, self).__init__(**kwargs)
+
+        self.dump_dir = dump_dir or self.session.dump_dir
+        self.check_dump_dir(self.dump_dir)
+
+    def check_dump_dir(self, dump_dir=None):
+        if not dump_dir:
+            raise plugin.PluginError("Please specify a dump directory.")
+
+        if not os.path.isdir(dump_dir):
+            raise plugin.PluginError("%s is not a directory" % self.dump_dir)
 
 
 class Null(plugin.Command):

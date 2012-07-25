@@ -1,7 +1,7 @@
 # Volatility
 #
 # Authors:
-# Michael Cohen <scudette@users.sourceforge.net>
+# Copyright (C) 2012 Michael Cohen <scudette@users.sourceforge.net>
 # Mike Auty <mike.auty@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -354,7 +354,7 @@ class UnixTimeStamp(obj.NativeType):
     is_utc = True
 
     def __init__(self, **kwargs):
-        obj.NativeType.__init__(self, format_string = "I", **kwargs)
+        super(UnixTimeStamp, self).__init__(format_string = "I", **kwargs)
 
     def __nonzero__(self):
         return self.v() != 0
@@ -413,27 +413,11 @@ class WinTimeStamp(UnixTimeStamp):
         return unix_time
 
     def as_windows_timestamp(self):
-        return obj.NativeType.v(self)
+        return super(WinTimeStamp, self).v(self)
 
     def v(self, vm=None):
         value = self.as_windows_timestamp()
         return self.windows_to_unix_time(value)
-
-
-# TODO: Remove this hack.
-class VOLATILITY_MAGIC(obj.CType):
-    """Class representing a VOLATILITY_MAGIC namespace
-
-       Needed to ensure that the address space is not verified as valid for constants
-    """
-    def __init__(self, theType, offset, vm, **kwargs):
-        try:
-            obj.CType.__init__(self, theType, offset, vm, **kwargs)
-        except obj.InvalidOffsetError:
-            # The exception will be raised before this point,
-            # so we must finish off the CType's __init__ ourselves
-            self.__initialized = True
-
 
 
 # We define two kinds of basic profiles, a 32 bit one and a 64 bit one

@@ -1,4 +1,5 @@
 # Volatility
+# Copyright (C) 2012 Michael Cohen <scudette@users.sourceforge.net>
 # Copyright (c) 2008 Volatile Systems
 # Copyright (c) 2008 Brendan Dolan-Gavitt <bdolangavitt@wesleyan.edu>
 #
@@ -38,7 +39,7 @@ windows_overlay = {
     }],
 
     '_ETHREAD' : [ None, {
-    'CreateTime' : [ None, ['ThreadCreateTimeStamp', {}]],
+    'CreateTime' : [ None, ['WinTimeStamp', {}]],
     'ExitTime' : [ None, ['WinTimeStamp', {}]],
     }],
 
@@ -686,12 +687,6 @@ class _EX_FAST_REF(obj.CType):
         return self.dereference().__getattr__(attr)
 
 
-class ThreadCreateTimeStamp(basic.WinTimeStamp):
-    """Handles ThreadCreateTimeStamps which are bit shifted WinTimeStamps"""
-    def as_windows_timestamp(self):
-        return obj.NativeType.v(self) >> 3
-
-
 class _CM_KEY_BODY(obj.CType):
     """Registry key"""
 
@@ -832,7 +827,6 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
             '_OBJECT_HEADER': _OBJECT_HEADER,
             '_FILE_OBJECT': _FILE_OBJECT,
             '_EX_FAST_REF': _EX_FAST_REF,
-            'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
             '_CM_KEY_BODY': _CM_KEY_BODY,
             '_MMVAD_FLAGS': _MMVAD_FLAGS,
             '_MMVAD_FLAGS2': _MMVAD_FLAGS2,
@@ -851,4 +845,5 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
                            SYMLINK_POOLTAG="Sym\xe2",
                            MODULE_POOLTAG="MmLd",
                            MUTANT_POOLTAG="Mut\xe1",
+                           THREAD_POOLTAG='\x54\x68\x72\xe5',
                            )

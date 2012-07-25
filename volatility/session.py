@@ -33,6 +33,7 @@ import textwrap
 import time
 
 from volatility import addrspace
+from volatility import args
 from volatility import plugin
 from volatility import obj
 from volatility import registry
@@ -167,7 +168,7 @@ class Session(object):
     def info(self, plugin_cls=None, fd=None):
         self.vol(self.plugins.info, item=plugin_cls, fd=fd)
 
-    def vol(self, plugin_cls, *args, **kwargs):
+    def vol(self, plugin_cls, *pos_args, **kwargs):
         """Launch a plugin and its render() method automatically.
 
         We use the pager specified in session.pager.
@@ -186,9 +187,14 @@ class Session(object):
         debug = kwargs.pop("debug", False)
         output = kwargs.pop("output", None)
         overwrite = kwargs.get("overwrite")
+        flags = kwargs.get("flags")
 
         if isinstance(plugin_cls, basestring):
             plugin_cls = getattr(self.plugins, plugin_cls)
+
+        # If the args came from the command line parse them now:
+        if flags:
+            kwargs = args.MockArgParser().build_args_dict(plugin_cls, flags)
 
         # Select the renderer from the session or from the kwargs.
         if not isinstance(ui_renderer, renderer.RendererBaseClass):
@@ -215,13 +221,15 @@ class Session(object):
 
         try:
             kwargs['session'] = self
-            result = plugin_cls(*args, **kwargs)
+            result = plugin_cls(*pos_args, **kwargs)
             ui_renderer.start(plugin_name=result.name, kwargs=kwargs)
 
             try:
                 result.render(ui_renderer)
             except KeyboardInterrupt:
-                import pdb; pdb.post_mortem()
+                if self.debug:
+                    pdb.set_trace()
+
                 self.report_progress("Aborted!\r\n", force=True)
 
             finally:

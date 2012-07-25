@@ -21,7 +21,6 @@
 @organization: Digital Forensics Solutions
 """
 
-import volatility.commands as commands
 import volatility.utils    as utils
 import volatility.obj      as obj
 
@@ -159,10 +158,9 @@ class LinProcessFilter(AbstractLinuxCommandPlugin):
 
 
 # TODO: Deprecate this when all plugins have been converted.
-class AbstractLinuxCommand(commands.command):
+class AbstractLinuxCommand(object):
 
     def __init__(self, *args, **kwargs):
-        commands.command.__init__(self, *args, **kwargs)
         self.addr_space = utils.load_as(self._config)
         self.profile = self.addr_space.profile
         self.smap = self.profile.sys_map

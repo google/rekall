@@ -22,9 +22,9 @@
 import logging
 
 from volatility import addrspace
+from volatility import args
 from volatility import scan
 from volatility import obj
-from volatility import commands
 from volatility import profile
 from volatility import plugin
 
@@ -65,6 +65,13 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
     # We scan this many bytes at once
     SCAN_BLOCKSIZE = 1024 * 1024
+
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(WinFindDTB, cls).args(parser)
+        parser.add_argument("--process_name",
+                            help="The name of the process to search for.")
 
     def __init__(self, process_name = "Idle", **kwargs):
         """Scans the image for the Idle process.
@@ -268,6 +275,13 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
 class KDBGMixin(plugin.KernelASMixin):
     """A plugin mixin to make sure the kdbg is set correctly."""
 
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(KDBGMixin, cls).args(parser)
+        parser.add_argument("--kdbg", action=args.IntParser,
+                            help="Location of the KDBG structure.")
+
     def __init__(self, kdbg=None, **kwargs):
         """Ensure there is a valid KDBG object.
 
@@ -323,15 +337,30 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
 
     __abstract = True
 
-    def __init__(self, eprocess=None, phys_eprocess=None, pids=None,
-                 pid=None, **kwargs):
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(WinProcessFilter, cls).args(parser)
+
+        parser.add_argument("--eprocess", action=args.ArrayIntParser, nargs="+",
+                            help="Kernel addresses of eprocess structs.")
+
+        parser.add_argument("--phys_eprocess",
+                            action=args.ArrayIntParser, nargs="+",
+                            help="Physical addresses of eprocess structs.")
+
+        parser.add_argument("--pid",
+                            action=args.ArrayIntParser, nargs="+",
+                            help="One or more pids of processes to select.")
+
+
+    def __init__(self, eprocess=None, phys_eprocess=None, pid=None, **kwargs):
         """Lists information about all the dlls mapped by a process.
 
         Args:
            physical_eprocess: One or more EPROCESS structs or offsets defined in
               the physical AS.
 
-           pids: A list of pids.
            pid: A single pid.
         """
         super(WinProcessFilter, self).__init__(**kwargs)
@@ -349,10 +378,11 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         self.phys_eprocess = phys_eprocess
         self.eprocess = eprocess
 
-        if pids is None:
-            pids = []
+        pids = []
+        if isinstance(pid, list):
+            pids.extend(pid)
 
-        if pid is not None:
+        elif isinstance(pid, int):
             pids.append(pid)
 
         if self.session.pid and not pid:

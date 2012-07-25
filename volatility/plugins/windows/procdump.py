@@ -25,6 +25,7 @@ import struct
 
 from volatility.plugins.overlays.windows import pe_vtypes
 from volatility.plugins.windows import common
+from volatility.plugins import core
 from volatility import plugin
 from volatility import utils
 
@@ -96,21 +97,21 @@ class PEDump(plugin.Command):
             fd.seek(physical_offset, 0)
             fd.write(data)
 
-    def render(self, outfd):
-        outfd.write("Dumping PE File at image_base 0x%X to %s\n" % (
-                self.image_base, self.filename))
+    def render(self, renderer):
+        renderer.format("Dumping PE File at image_base 0x%X to %s\n",
+                        self.image_base, self.filename)
 
         self.WritePEFile(self.out_fd, self.address_space, self.image_base)
 
-        outfd.write("Done!\n")
+        renderer.format("Done!\n")
 
 
-class ProcExeDump(common.WinProcessFilter):
+class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
     """Dump a process to an executable file sample"""
 
     __name = "procdump"
 
-    def __init__(self, dump_dir=None, remap=False, outfd=None, **kwargs):
+    def __init__(self, remap=False, outfd=None, **kwargs):
         """Dump a process from memory into an executable.
 
         In windows PE files are mapped into memory in sections. Each section is
@@ -144,56 +145,45 @@ class ProcExeDump(common.WinProcessFilter):
         allows to remap the sections on the disk file so they do not collide.
 
         Args:
-          dump_dir: Directory in which to dump executable files.
-
           remap: If set, allows to remap the sections on disk so they do not
             overlap.
 
           fd: Alternatively, a filelike object can be provided directly.
         """
         super(ProcExeDump, self).__init__(**kwargs)
-        self.dump_dir = dump_dir or self.session.dump_dir
         self.fd = outfd
         self.pedump = PEDump(session=self.session)
 
-    def check_dump_dir(self, dump_dir=None):
-        if not dump_dir:
-            raise plugin.PluginError("Please specify a dump directory.")
-
-        if not os.path.isdir(dump_dir):
-            raise plugin.PluginError("%s is not a directory" % self.dump_dir)
-
-    def render(self, outfd):
+    def render(self, renderer):
         """Renders the tasks to disk images, outputting progress as they go"""
         for task in self.filter_processes():
             pid = task.UniqueProcessId
 
             task_address_space = task.get_process_address_space()
             if not task_address_space:
-                outfd.write("Can not get task address space - skipping.")
+                renderer.format("Can not get task address space - skipping.")
                 continue
 
             if self.fd:
                 self.pedump.WritePEFile(
                     self.fd, task_address_space, task.Peb.ImageBaseAddress)
-                outfd.write("*" * 72 + "\n")
+                renderer.section()
 
-                outfd.write("Dumping {0}, pid: {1:6} into user provided fd.\n".format(
-                        task.ImageFileName, pid))
+                renderer.format("Dumping {0}, pid: {1:6} into user provided "
+                                "fd.\n", task.ImageFileName, pid)
 
             # Create a new file.
             else:
-                self.check_dump_dir(self.dump_dir)
-
                 sanitized_image_name = re.sub("[^a-zA-Z0-9-_]", "_",
                                               utils.SmartStr(task.ImageFileName))
 
                 filename = os.path.join(self.dump_dir, u"executable.%s_%s.exe" % (
                         sanitized_image_name, pid))
 
-                outfd.write("*" * 72 + "\n")
-                outfd.write("Dumping {0}, pid: {1:6} output: {2}\n".format(
-                        task.ImageFileName, pid, filename))
+                renderer.section()
+
+                renderer.format("Dumping {0}, pid: {1:6} output: {2}\n",
+                                task.ImageFileName, pid, filename)
 
                 with open(filename, 'wb') as fd:
                     # The Process Environment Block contains the dos header:
@@ -206,6 +196,14 @@ class DLLDump(ProcExeDump):
 
     __name = "dlldump"
 
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(DLLDump, cls).args(parser)
+        parser.add_argument(
+            "--regex", default=".+",
+            help="A Regular expression for selecting the dlls to dump.")
+
     def __init__(self, regex=".+", **kwargs):
         """Dumps dlls from processes into files.
 
@@ -216,9 +214,6 @@ class DLLDump(ProcExeDump):
         self.regex = re.compile(regex)
 
     def render(self, outfd):
-        # Make sure the dump dir is ok.
-        self.check_dump_dir(self.dump_dir)
-
         for task in self.filter_processes():
             task_as = task.get_process_address_space()
 
@@ -267,9 +262,6 @@ class ModDump(DLLDump):
                 return address_space
 
     def render(self, outfd):
-        # Make sure the dump dir is ok.
-        self.check_dump_dir(self.dump_dir)
-
         modules_plugin = self.session.plugins.modules(session=self.session)
 
         for module in modules_plugin.lsmod():

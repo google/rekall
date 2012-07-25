@@ -19,6 +19,7 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 """Plugins allow the core volatility system to be extended."""
+
 import logging
 import StringIO
 
@@ -60,12 +61,13 @@ class Command(object):
     __abstract = True
     __metaclass__ = registry.MetaclassRegistry
 
-    @obj.classproperty
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+
+    @registry.classproperty
     def name(cls):
-        try:
-            return getattr(cls, "_%s__name" % cls.__name__)
-        except AttributeError:
-            return ""
+        return getattr(cls, "_%s__name" % cls.__name__, None)
 
     def __init__(self, session=None, **kwargs):
         """The constructor for this command.
@@ -203,46 +205,3 @@ class PhysicalASMixin(object):
         if self.physical_address_space is None:
             raise PluginError("Physical address space is not set. "
                               "(Try plugins.load_as)")
-
-
-def CommandFactory(command_name = None, config = None, class_name = None, **kwargs):
-    """Creates a new instance of a command.
-
-    Args:
-      command_name: The optional name as advertised by the command.
-
-      config: A configuration object which will be used to resolve the right
-         class for this name.p
-
-      command_cls: The name of the command's class (used to get specific
-         classes).
-
-      kwargs: Will be passed to the command's constructor.
-
-    Return:
-     A command instance created with the kwargs.
-    """
-    # Find the corresponding command class.
-    if command_name:
-        command_classes = []
-        for name, command_cls in Command.GetActiveClasses(config):
-            if command_cls.name == command_name:
-                command_classes.append(command_cls)
-
-        # Do we have too many active commands?
-        if len(command_classes) > 1:
-            logging.error("There are multiple active implementations for "
-                          "'%s' %s, will pick %s for now." % (
-                    command_name, [x.__name__ for x in command_classes],
-                    command_classes[0].__name__))
-
-        if command_classes:
-            command_classes[0](**kwargs)
-
-    else:
-        try:
-            return Command.classes[class_name](**kwargs)
-        except KeyError:
-            pass
-
-    raise Error("No such plugin.")

@@ -28,6 +28,13 @@ class PSTree(common.WinProcessFilter):
 
     __name = "pstree"
 
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(PSTree, cls).args(parser)
+        parser.add_argument("-v", "--verbose", default=False,
+                            action="store_true", help="Show more details.")
+
     def __init__(self, verbose=False, **kwargs):
         super(PSTree, self).__init__(**kwargs)
         self.verbose = verbose

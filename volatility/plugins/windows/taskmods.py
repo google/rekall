@@ -23,6 +23,8 @@
 import logging
 import os
 
+from volatility import args
+from volatility.plugins import core
 from volatility.plugins.windows import common
 from volatility import plugin
 
@@ -225,25 +227,10 @@ class WinMemMap(common.WinProcessFilter):
                 renderer.table_row(virtual_address, phys_address, length)
 
 
-class WinMemDump(WinMemMap):
+class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
     """Dump the addressable memory for a process"""
 
     __name = "memdump"
-
-    def __init__(self, dump_dir=None, **args):
-        """Dump all addressable memory for a process.
-
-        Note: This can be quite large. No padding is inserted into the output
-        file to compensate for inaddressable process memory, hence the output
-        offsets are essentially random. It is almost always better to use the
-        fuse filesystem in tools/windows/address_space_fuse.py
-
-        Args:
-          dump_dir: The Directory in which to dump memory. Files of the form
-            pid.dmp will be created there.
-        """
-        super(WinMemDump, self).__init__(**args)
-        self.dump_dir = dump_dir
 
     def dump_process(self, eprocess, fd):
         for va, pa, length in self.get_pages_for_eprocess(eprocess):

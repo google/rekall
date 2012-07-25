@@ -1,7 +1,7 @@
 # Volatility
 # Copyright (C) 2011
 #
-# Michael Cohen <scudette@users.sourceforge.net> 
+# Michael Cohen <scudette@gmail.com>
 #
 # ******************************************************
 #
@@ -36,7 +36,12 @@ step, as soon as a module is imported, the plugin is registered.
 
 import abc
 import os
-import zipfile
+
+
+class classproperty(property):
+    """A property that can be called on classes."""
+    def __get__(self, cls, owner):
+        return self.fget(owner)
 
 
 class MetaclassRegistry(abc.ABCMeta):

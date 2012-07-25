@@ -28,6 +28,14 @@ class Handles(common.WinProcessFilter):
 
     __name = "handles"
 
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(Handles, cls).args(parser)
+        parser.add_argument("--object_type", nargs="+",
+                            help="Types of objects to show.")
+
+
     def __init__(self, object_type=None, silent=None, **kwargs):
         """Lists the handles for processes.
 
@@ -36,7 +44,10 @@ class Handles(common.WinProcessFilter):
           silent: Suppress less meaningful results
         """
         super(Handles, self).__init__(**kwargs)
-        self.object_type = object_type
+        if isinstance(object_type, basestring):
+            object_type = ",".split(object_type)
+
+        self.object_list = object_type
         self.silent = silent
 
     def full_key_name(self, handle):
@@ -84,11 +95,6 @@ class Handles(common.WinProcessFilter):
                                ("Details", "details", "")
                                ])
 
-        if self.object_type:
-            object_list = self.object_type.split(',')
-        else:
-            object_list = []
-
         for task in self.filter_processes():
             for count, (handle, object_type, name) in enumerate(
                 self.enumerate_handles(task)):
@@ -96,7 +102,7 @@ class Handles(common.WinProcessFilter):
                 self.session.report_progress("%s: %s handles" % (
                         task.ImageFileName, count))
 
-                if object_list and object_type not in object_list:
+                if self.object_list and object_type not in self.object_list:
                     continue
 
                 if self.silent:

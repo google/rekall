@@ -37,24 +37,27 @@ class TestProcdump(testlib.VolatilityBaseUnitTestCase):
         with testlib.TempDirectory() as directory:
             args.append(directory)
 
-            result = super(TestProcdump, self).LaunchTrunkVolatility(args=args, **kwargs)
+            result = super(TestProcdump, self).LaunchTrunkVolatility(
+                args=args, **kwargs)
 
-            with open(os.path.join(directory, "executable.%s.exe" % args[2])) as fd:
+            filename = os.listdir(directory)[0]
+            with open(os.path.join(directory, filename)) as fd:
                 md5 = hashlib.md5(fd.read())
                 result['hash'] = md5.hexdigest()
 
             return result
 
     def RunVolatilityModule(self, pid=None, **kwargs):
-        fd = StringIO.StringIO()
-        result = super(TestProcdump, self).RunVolatilityModule(outfd=fd, pid=pid, **kwargs)
+        with testlib.TempDirectory() as directory:
+            result = super(TestProcdump, self).RunVolatilityModule(
+                dump_dir=directory, pid=pid, **kwargs)
 
-        del result['kwargs']
+            filename = os.listdir(directory)[0]
+            with open(os.path.join(directory, filename)) as fd:
+                md5 = hashlib.md5(fd.read())
+                result['hash'] = md5.hexdigest()
 
-        md5 = hashlib.md5(fd.getvalue())
-        result['hash'] = md5.hexdigest()
-
-        return result
+            return result
 
     def testProcDump(self):
         try:

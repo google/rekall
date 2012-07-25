@@ -40,34 +40,33 @@ from volatility import registry
 from volatility import utils
 
 
-class classproperty(property):
-    """A property that can be called on classes."""
-    def __get__(self, cls, owner):
-        return self.fget(owner)
-
 import traceback
 
 
 class Curry(object):
     def __init__(self, curry_target, *args, **kwargs):
-        self.target = curry_target
-        self.kwargs = kwargs
-        self.args = args
-        self.__doc__ = getattr(self.target, "__init__", self.target).__doc__
+        self._target = curry_target
+        self._kwargs = kwargs
+        self._args = args
+        self.__doc__ = getattr(self._target, "__init__", self._target).__doc__
 
     def __call__(self, *args, **kwargs):
         # Merge the kwargs with the new kwargs
-        new_kwargs = self.kwargs.copy()
+        new_kwargs = self._kwargs.copy()
         new_kwargs.update(kwargs)
-        return self.target(*(self.args + args), **new_kwargs)
+        return self._target(*(self._args + args), **new_kwargs)
 
     def _default_arguments(self):
         """Return a list of default args for the target."""
-        args, _, _, defaults = inspect.getargspec(self.target)
+        args, _, _, defaults = inspect.getargspec(self._target)
         if defaults:
             return args[-len(defaults):]
 
         return []
+
+    def __getattr__(self, attr):
+        return getattr(self._target, attr)
+
 
 # This is marginally faster but is harder to debug since the Curry callables are
 # opaque.
