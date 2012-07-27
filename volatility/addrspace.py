@@ -95,8 +95,11 @@ class BaseAddressSpace(object):
         """Generates of address ranges as (offset, size) for by this AS."""
         return []
 
-    def get_address_ranges(self, start=0, end=0xfffffffffffff):
+    def get_address_ranges(self, start=0, end=None):
         """Generates the address ranges which fall between start and end."""
+        if end is None:
+            end = 0xfffffffffffff
+
         for offset, length in self._get_address_ranges():
 
             # The entire range is below what is required - ignore it.

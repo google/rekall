@@ -270,16 +270,17 @@ pe_overlays = {
             'AddressOfFunctions': [ None, ['RVAPointer', dict(
                         target="Array",
                         target_args=dict(target="RVAPointer",
+                                         target_args=dict(target="Function"),
                                          count=lambda x: x.NumberOfFunctions)
                         )]],
 
             'AddressOfNames': [ None, ["RVAPointer", dict(
-                        target="RVAPointer",
-                        target_args=dict(target="ListArray",
-                                         target_args=dict(target="String",
-                                                          maximum_size=1000000,
-                                                          count=lambda x: x.NumberOfNames,
-                                                          target_args=dict(length=128))),
+                        target="Array",
+                        target_args=dict(
+                            target="RVAPointer",
+                            target_args=dict(target="String"),
+                            count=lambda x: x.NumberOfNames,
+                            )
                         )]],
 
             'AddressOfNameOrdinals': [ None, ['RVAPointer', dict(
@@ -931,6 +932,9 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
     If these classes are instantiated by _EPROCESS.list_*_modules()
     then its guaranteed to be in the process address space.
     """
+    @property
+    def PE(self):
+        return PE(address_space=self.obj_vm, image_base=self.DllBase)
 
     @property
     def NTHeader(self):
@@ -1271,14 +1275,33 @@ class PE(object):
         name_table = export_directory.AddressOfNames.dereference()
         ordinal_table = export_directory.AddressOfNameOrdinals.dereference()
 
+        seen_ordinals = set()
+
         # First do the names.
-        i = 0
         for i, name in enumerate(name_table):
-            yield dll, function_table[i], name, ordinal_table[i]
+            ordinal = int(ordinal_table[i])
+            seen_ordinals.add(ordinal)
+
+            yield (dll, function_table[ordinal].dereference(),
+                   name.dereference(), ordinal)
 
         # Now the functions without names
-        for j in range(i+1, function_table.count):
-            yield dll, function_table[j], "", ordinal_table[j]
+        for i, func in enumerate(function_table):
+            ordinal = export_directory.Base + i
+            if ordinal in seen_ordinals:
+                continue
+
+            yield (dll, function_table[ordinal].dereference(),
+                   obj.NoneObject("Name not accessible"), ordinal)
+
+    def GetProcAddress(self, name):
+        """Scan the export table for a function of the given name.
+
+        Similar to the GetProcAddress function.
+        """
+        for dll, function, func_name, ordinal in self.ExportDirectory():
+            if func_name == name:
+                return function
 
     def VersionInformation(self):
         """A generator of key, value pairs."""

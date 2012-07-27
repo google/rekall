@@ -18,6 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 import logging
+import sys
 
 from volatility import scan
 from volatility import plugin
@@ -33,7 +34,7 @@ class KDBGScanner(scan.DiscontigScanner, scan.BaseScanner):
     """
     checks = [ ("MultiStringFinderCheck", dict(needles=["KDBG"])) ]
 
-    def scan(self, offset = 0, maxlen = None):
+    def scan(self, offset=0, maxlen=sys.maxint):
         # How far into the struct the OwnerTag is.
         owner_tag_offset = self.profile.get_obj_offset("_DBGKD_DEBUG_DATA_HEADER64",
                                                        "OwnerTag")

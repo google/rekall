@@ -348,6 +348,9 @@ class _POOL_HEADER(obj.CType):
 
         return size_of_obj
 
+    def end(self):
+        return self.obj_offset + self.size()
+
     def get_object(self, object_name, allocations):
         """This implements retrieving an object from the pool allocation using
         the "Bottom Up" method.  NOTE: This method does not work on windows 8

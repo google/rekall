@@ -28,6 +28,8 @@
 # "The VAD Tree: A Process-Eye View of Physical Memory," Brendan Dolan-Gavitt
 
 import os.path
+import sys
+
 from volatility import plugin
 from volatility import scan
 from volatility.plugins.windows import common
@@ -357,7 +359,7 @@ class VadScanner(scan.BaseScanner):
             profile=process_profile or task.obj_profile,
             address_space=task.get_process_address_space())
 
-    def scan(self, offset=0, maxlen=None):
+    def scan(self, offset=0, maxlen=sys.maxint):
         for vad in self.task.RealVadRoot.traverse():
             for match in super(VadScanner, self).scan(
                 vad.Start, vad.End - vad.Start + 1):

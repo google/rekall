@@ -130,7 +130,7 @@ class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
 
     __name = 'regdump'
 
-    def __init__(self, hive_offsets=None, dump_dir=None, **kwargs):
+    def __init__(self, hive_offsets=None, **kwargs):
         """Dump a PE binary from memory.
 
         Args:
@@ -141,7 +141,6 @@ class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
           dump_dir: Directory in which to dump hive files.
         """
         super(RegDump, self).__init__(**kwargs)
-        self.dump_dir = dump_dir or self.session.dump_dir
         self.hive_offsets = hive_offsets
 
     def dump_hive(self, hive_offset=None, reg=None, fd=None):

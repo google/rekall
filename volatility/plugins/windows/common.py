@@ -20,6 +20,7 @@
 
 """ This plugin contains CORE classes used by lots of other plugins """
 import logging
+import sys
 
 from volatility import addrspace
 from volatility import args
@@ -248,10 +249,10 @@ class PoolScanner(scan.DiscontigScanner, scan.BaseScanner):
     # These objects are allocated in the pool allocation.
     allocation = [ '_POOL_HEADER' ]
 
-    def scan(self, offset = 0, maxlen = None):
+    def scan(self, offset=0, maxlen=sys.maxint):
         """Yields instances of _POOL_HEADER which potentially match."""
-        for offset in super(PoolScanner, self).scan(offset=offset, maxlen=maxlen):
-            yield self.profile._POOL_HEADER(vm=self.address_space, offset=offset)
+        for hit in super(PoolScanner, self).scan(offset=offset, maxlen=maxlen):
+            yield self.profile._POOL_HEADER(vm=self.address_space, offset=hit)
 
 
 class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):

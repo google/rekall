@@ -35,7 +35,8 @@ class BaseScanner(object):
     __metaclass__ = registry.MetaclassRegistry
 
     checks = []
-    def __init__(self, profile=None, address_space=None, window_size=8, session=None):
+    def __init__(self, profile=None, address_space=None, window_size=8,
+                 session=None):
         """The base scanner.
 
         Args:
@@ -100,7 +101,7 @@ class BaseScanner(object):
         return skip
 
     overlap = 1024
-    def scan(self, offset = 0, maxlen = None):
+    def scan(self, offset=0, maxlen=sys.maxint):
         """Scan the region from offset for maxlen.
 
         Args:
@@ -116,9 +117,6 @@ class BaseScanner(object):
         # construction.
         if self.constraints is None:
             self.build_constraints()
-
-        if maxlen is None:
-            maxlen = sys.maxint
 
         # Start scanning from offset until maxlen:
         i = offset
@@ -137,9 +135,10 @@ class BaseScanner(object):
 
             # Allow us to skip uninteresting regions (default skip is 1).
             if data_offset + self.overlap >= len(data):
+                to_read = min(constants.SCAN_BLOCKSIZE, maxlen - (i - offset))
+
                 # Refresh the data buffer.
-                data = self.address_space.read(i, min(constants.SCAN_BLOCKSIZE,
-                                                       maxlen - (i - offset)))
+                data = self.address_space.read(i, to_read)
                 data_offset = 0
                 if not data:
                     break
@@ -153,9 +152,10 @@ class BaseScanner(object):
 class DiscontigScanner(object):
     """A Mixin for Discontiguous scanning."""
 
-    def scan(self, offset=0, maxlen=None):
-        for (offset, length) in self.address_space.get_address_ranges():
-            for match in super(DiscontigScanner, self).scan(offset, length):
+    def scan(self, offset=0, maxlen=sys.maxint):
+        for (start, length) in self.address_space.get_address_ranges(
+            offset, offset + maxlen):
+            for match in super(DiscontigScanner, self).scan(start, length):
                 yield match
 
 
@@ -256,45 +256,37 @@ class ScannerGroup(BaseScanner):
                                            address_space=address_space)
         self.scanners = scanners
         for scanner in scanners.values():
-            scanner.address_space = self.buffer
+            scanner.address_space = self.address_space
 
         # A dict to hold all hits for each scanner.
         self.result = {}
 
-    def scan(self, offset = 0, maxlen = None):
-        base_offset = offset
-        available_length = (maxlen or sys.maxint)
+    def scan(self, offset=0, maxlen=sys.maxint):
+        available_length = maxlen
 
         while available_length > 0:
-            to_read = min(constants.SCAN_BLOCKSIZE + self.overlap, available_length)
+            to_read = min(constants.SCAN_BLOCKSIZE + self.overlap,
+                          available_length)
 
-            data = self.address_space.zread(base_offset, to_read)
-
-            # Ran out of contiguous region to read.
-            if not data:
-                break
-
-            self.buffer.assign_buffer(data, base_offset)
-            # Now feed all the scanners from the buffer address space.
+            # Now feed all the scanners from the same address space.
             for name, scanner in self.scanners.items():
-                for hit in scanner.scan(offset=self.buffer.base_offset,
-                                        maxlen=available_length):
+                for hit in scanner.scan(offset=offset, maxlen=to_read):
                     # Yield the result as well as cache it.
-                    self.result.setdefault(name, []).append(hit)
                     yield name, hit
 
             # Move to the next scan block.
-            base_offset += constants.SCAN_BLOCKSIZE
+            offset += constants.SCAN_BLOCKSIZE
             available_length -= constants.SCAN_BLOCKSIZE
 
 
 class DiscontigScannerGroup(ScannerGroup):
     """A scanner group which works over a virtual address space."""
 
-    def scan(self, **kwargs):
-        for (offset, length) in self.address_space.get_available_addresses():
+    def scan(self, offset=0, maxlen=sys.maxint):
+        for (start, length) in self.address_space.get_address_ranges(
+            offset, offset + maxlen):
             for match in super(DiscontigScannerGroup, self).scan(
-                offset, maxlen=length):
+                start, maxlen=length):
                 yield match
 
 

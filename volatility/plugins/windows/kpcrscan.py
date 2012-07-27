@@ -9,19 +9,20 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
-@author:       Bradley Schatz 
+@author:       Bradley Schatz
 @license:      GNU General Public License 2.0 or later
 @contact:      bradley@schatzforensic.com.au
 @organization: Schatz Forensic
 """
+import sys
 
 import struct
 import volatility.utils as utils
@@ -116,5 +117,5 @@ class KPCRScannerCheck(scan.ScannerCheck):
 class KPCRScanner(scan.DiscontigScanner):
     checks = [ ("KPCRScannerCheck", {})
                ]
-    def scan(self, address_space, offset = 0, maxlen = None):
+    def scan(self, address_space, offset=0, maxlen=maxlen):
         return scan.DiscontigScanner.scan(self, address_space, max(offset, 0x80000000), maxlen)

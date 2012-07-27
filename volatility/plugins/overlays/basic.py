@@ -25,6 +25,7 @@ OS's
 import copy
 import datetime
 import logging
+import re
 import socket
 import struct
 
@@ -430,6 +431,96 @@ class WinTimeStamp(UnixTimeStamp):
         return self.windows_to_unix_time(value)
 
 
+class Function(obj.BaseObject):
+    """A volatility object representing code snippets."""
+
+
+# If distorm3 is available we can do a few more things.
+try:
+    import distorm3
+
+    class DistormFunction(Function):
+
+        def __init__(self, mode=None, **kwargs):
+            super(Function, self).__init__(**kwargs)
+
+            if mode is None:
+                self.mode = self.obj_profile.metadata("memory_model")
+
+            if self.mode == "32bit":
+                self.distorm_mode = distorm3.Decode32Bits
+            else:
+                self.distorm_mode = distorm3.Decode64Bits
+
+        def __str__(self):
+            result = []
+            for data in self.Disassemble():
+                result.append("0x%08X %20s %s" % data)
+
+            return "\n".join(result)
+
+        def Search(self, expressions, instruction_limit=100):
+            """Search forward for a sequence matching the expressions.
+
+            Args:
+              expressions: A list of regular expressions which must all match
+                the instruction.
+              instruction_limit: The number of instructions to search ahead.
+
+            Returns:
+              Another Function object at the matched position or None.
+            """
+            terms = []
+            for e in expressions:
+                if isinstance(e, basestring):
+                    e = re.compile(e)
+                terms.append(e)
+
+            instructions = []
+            for offset, _, instruction in self.Disassemble(instruction_limit):
+                instructions.append((offset, instruction))
+
+            for i in range(len(instructions)):
+                for j in range(len(terms)):
+                    print expressions[j], instructions[i][1]
+                    if not terms[j].match(instructions[i + j][1]):
+                        break
+                else:
+                    return self.obj_profile.Object(
+                        "Function", vm=self.obj_vm, offset=instructions[i][0])
+
+        def __getitem__(self, item):
+            for i, x in enumerate(self.Disassemble):
+                if i == item:
+                    return x
+
+        def Disassemble(self, instructions=10):
+            """Generate some instructions."""
+            overlap = 0x100
+            data = ''
+            offset = self.obj_offset
+            count = 0
+
+            while True:
+                if offset - self.obj_offset > len(data) - 40:
+                    data = self.obj_vm.zread(offset, overlap)
+
+                iterator = distorm3.DecodeGenerator(offset, data, self.distorm_mode)
+                for (offset, _size, instruction, hexdump) in iterator:
+                    yield offset, hexdump, instruction
+                    count += 1
+                    if count >= instructions:
+                        return
+
+
+    Function = DistormFunction
+
+except ImportError:
+    pass
+
+
+
+
 # We define two kinds of basic profiles, a 32 bit one and a 64 bit one
 class Profile32Bits(obj.Profile):
     """Basic profile for 32 bit systems."""
@@ -470,6 +561,7 @@ class BasicWindowsClasses(obj.Profile):
             'LIST_ENTRY64': _LIST_ENTRY,
             'WinTimeStamp': WinTimeStamp, # WinFileTime.
             'UnixTimeStamp': UnixTimeStamp,
+            'Function': Function,
             })
 
         self.add_constants(default_text_encoding="utf-16-le")

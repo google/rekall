@@ -138,7 +138,7 @@ class Formatter(string.Formatter):
             result = unicode(value)
 
         # None objects get a -.
-        if isinstance(result, obj.NoneObject):
+        if result is None or isinstance(result, obj.NoneObject):
             return "-" * int(fields['width'] or "1")
 
         return result
@@ -262,7 +262,7 @@ class TextColumn(object):
 
         # For NoneObjects we just render dashes. (Other renderers might want to
         # actually record the error, we ignore it here.).
-        if isinstance(target, obj.NoneObject):
+        if target is None or isinstance(target, obj.NoneObject):
             return ['-' * len(self.formatter.format_field(1, formatstring))]
 
         # Simple formatting.
