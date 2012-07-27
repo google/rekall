@@ -936,7 +936,7 @@ class CType(BaseObject):
             return super(CType, self).__setattr__(attr, value)
 
         # any normal attributes are handled normally
-        elif self.__dict__.has_key(attr):
+        elif hasattr(self.__class__, attr) or self.__dict__.has_key(attr):
             return super(CType, self).__setattr__(attr, value)
 
         else:

@@ -21,7 +21,10 @@ are available under the following license: Apache License, Version 2.0
 How to use these drivers.
 =========================
 
-There are two user space programs that can be used to acquire memory images. The python acquitision program demonstrates how to use the driver from python and can be easily extended to handle the image in another way (e.g. compress, hash, send across the network etc).
+There are two user space programs that can be used to acquire memory images. The
+python acquitision program demonstrates how to use the driver from python and
+can be easily extended to handle the image in another way (e.g. compress, hash,
+send across the network etc).
 
 The executable/Release/winpmem.exe program is a self contained binary with both
 32 and 64 bit drivers embedded. It is the easiest to use for incident response

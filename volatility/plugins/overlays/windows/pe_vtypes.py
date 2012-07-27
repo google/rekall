@@ -932,9 +932,14 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
     If these classes are instantiated by _EPROCESS.list_*_modules()
     then its guaranteed to be in the process address space.
     """
+    _pe = None
+
     @property
     def PE(self):
-        return PE(address_space=self.obj_vm, image_base=self.DllBase)
+        if self._pe is None:
+            self._pe = PE(address_space=self.obj_vm, image_base=self.DllBase)
+
+        return self._pe
 
     @property
     def NTHeader(self):
