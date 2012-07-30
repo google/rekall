@@ -26,6 +26,7 @@ import pdb
 import os
 
 from volatility import addrspace
+from volatility import args
 from volatility import registry
 from volatility import plugin
 from volatility import obj
@@ -313,3 +314,18 @@ class Null(plugin.Command):
         pass
 
 
+class LoadPlugins(plugin.Command):
+    """Load user provided plugins.
+
+    This probably is only useful after the interactive shell started since you
+    can already use the --plugin command line option.
+    """
+
+    __name = "load_plugin"
+
+    def __init__(self, path, **kwargs):
+        super(LoadPlugins, self).__init__(**kwargs)
+        if isinstance(path, basestring):
+            path = [path]
+
+        args.LoadPlugins(path)

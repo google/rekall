@@ -176,9 +176,6 @@ class Error(Exception):
     """All object related exceptions come from this one."""
 
 
-class InvalidOffsetError(Error):
-    """Simple placeholder to identify invalid offsets"""
-
 class ProfileError(Error):
     """Errors in setting the profile."""
 
@@ -231,10 +228,6 @@ class BaseObject(object):
         self.obj_name = name
         self.obj_profile = profile
         self.obj_context = context or {}
-
-        if self.obj_vm and not self.obj_vm.is_valid_address(self.obj_offset):
-            raise InvalidOffsetError("Invalid Address 0x{0:08X}, instantiating {1}".format(
-                offset, self.obj_name))
 
     @property
     def parents(self):
@@ -590,13 +583,13 @@ class Pointer(NativeType):
                 self.target, vm=addrspace.DummyAddressSpace()).size())
 
         offset = self.obj_offset + int(other) * self.target_size
+        if not self.obj_vm.is_valid_address(offset):
+            return NoneObject("Invalid offset")
 
-        try:
-            return self.__class__(target=self.target, target_args=self.target_args,
-                                  offset=offset, vm=self.obj_vm, parent=self.obj_parent,
-                                  context=self.obj_context, profile=self.obj_profile)
-        except InvalidOffsetError, e:
-            return NoneObject(e)
+        return self.__class__(target=self.target, target_args=self.target_args,
+                              offset=offset, vm=self.obj_vm,
+                              parent=self.obj_parent,
+                              context=self.obj_context, profile=self.obj_profile)
 
     def __sub__(self, other):
         return self.__add__(-other)
@@ -740,15 +733,14 @@ class Array(BaseObject):
             return [self[i] for i in xrange(start, stop, step)]
 
         offset = self.target_size * pos + self.obj_offset
-
-        try:
-            return self.obj_profile.Object(
-                self.target, offset=offset, vm=self.obj_vm,
-                parent=self, profile=self.obj_profile,
-                name="{0}[{1}] ".format(self.obj_name, pos),
-                context=self.obj_context, **self.target_args)
-        except InvalidOffsetError:
+        if not self.obj_vm.is_valid_address(offset):
             return NoneObject("Invalid offset %s" % offset)
+
+        return self.obj_profile.Object(
+            self.target, offset=offset, vm=self.obj_vm,
+            parent=self, profile=self.obj_profile,
+            name="{0}[{1}] ".format(self.obj_name, pos),
+            context=self.obj_context, **self.target_args)
 
     def __setitem__(self, item, value):
         if isinstance(item, int):
@@ -779,24 +771,23 @@ class ListArray(Array):
         offset = self.obj_offset
         count = 0
         while offset < self.maximum_offset and count < self.count:
-            try:
-                item = self.obj_profile.Object(
-                    self.target, offset=offset, vm=self.obj_vm, parent=self,
-                    profile=self.obj_profile, context=self.obj_context,
-                    name="{0}[{1}] ".format(self.obj_name, count),
-                    **self.target_args)
-
-                item_size = item.size()
-                if item_size <= 0:
-                    break
-
-                offset += item_size
-                count += 1
-
-                yield item
-
-            except InvalidOffsetError:
+            if not self.obj_vm.is_valid_address(offset):
                 return
+
+            item = self.obj_profile.Object(
+                self.target, offset=offset, vm=self.obj_vm, parent=self,
+                profile=self.obj_profile, context=self.obj_context,
+                name="{0}[{1}] ".format(self.obj_name, count),
+                **self.target_args)
+
+            item_size = item.size()
+            if item_size <= 0:
+                break
+
+            offset += item_size
+            count += 1
+
+            yield item
 
     def __getitem__(self, pos):
         for index, item in enumerate(self):
@@ -1389,32 +1380,34 @@ class Profile(object):
         if vm is None:
             vm = self._dummy
 
-        try:
-            kwargs['profile'] = self
-
-            if theType in self.types:
-                result = self.types[theType](offset=offset, vm=vm, name=name,
-                                             parent=parent, context=context, **kwargs)
-                return result
-
-            if theType in self.object_classes:
-                result = self.object_classes[theType](theType=theType,
-                                                      offset=offset,
-                                                      vm=vm,
-                                                      name=name,
-                                                      parent=parent,
-                                                      context=context,
-                                                      **kwargs)
-                return result
-
-        except InvalidOffsetError, e:
-            ## If we cant instantiate the object here, we just error out:
-            return NoneObject("Invalid Address 0x{0:08X}, instantiating {1}".format(
+        if not vm.is_valid_address(offset):
+            # If we can not instantiate the object here, we just error out:
+            return NoneObject(
+                "Invalid Address 0x{0:08X}, instantiating {1}".format(
                     offset, name))
 
-        ## If we get here we have no idea what the type is supposed to be?
-        ## This is a serious error.
-        logging.warning("Cant find object {0} in profile {1}?".format(theType, self))
+        kwargs['profile'] = self
+
+        if theType in self.types:
+            result = self.types[theType](offset=offset, vm=vm, name=name,
+                                         parent=parent, context=context, **kwargs)
+            return result
+
+        elif theType in self.object_classes:
+            result = self.object_classes[theType](theType=theType,
+                                                  offset=offset,
+                                                  vm=vm,
+                                                  name=name,
+                                                  parent=parent,
+                                                  context=context,
+                                                  **kwargs)
+            return result
+
+        else:
+            # If we get here we have no idea what the type is supposed to be?
+            # This is a serious error.
+            logging.warning("Cant find object {0} in profile {1}?".format(
+                    theType, self))
 
 
 PROFILE_CACHE = utils.FastStore()

@@ -96,12 +96,18 @@ class BaseAddressSpace(object):
         return []
 
     def get_address_ranges(self, start=0, end=None):
-        """Generates the address ranges which fall between start and end."""
+        """Generates the address ranges which fall between start and end.
+
+        Note that start and end are here specified in the virtual address
+        space. More importantly this does not say anything about the pages in
+        the physical address space - just because pages in the virtual address
+        space are contiguous does not mean they are also contiguous in the
+        physical address space.
+        """
         if end is None:
             end = 0xfffffffffffff
 
         for offset, length in self._get_address_ranges():
-
             # The entire range is below what is required - ignore it.
             if offset + length < start:
                 continue
@@ -115,7 +121,8 @@ class BaseAddressSpace(object):
             range_start = max(start, offset)
             range_end = min(end, offset + length)
 
-            yield range_start, range_end - range_start
+            if range_end > range_start:
+                yield range_start, range_end - range_start
 
     def _get_address_ranges(self):
         """Generates merged address ranges from get_available_addresses()."""

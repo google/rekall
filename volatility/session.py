@@ -317,7 +317,7 @@ Config:
 
         level = value
         if isinstance(value, basestring):
-            level = getattr(logging, value, logging.INFO)
+            level = getattr(logging, value.upper(), logging.INFO)
 
         logging.log(level, "Logging level set to %s", value)
         logging.getLogger().setLevel(int(level))

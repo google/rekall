@@ -23,7 +23,10 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 """This module manages the command line parsing logic."""
 
 import argparse
+import logging
+import os
 import sys
+import zipfile
 
 from volatility import plugin
 
@@ -97,13 +100,89 @@ class MockArgParser(object):
 
 
 class VolatilityArgParser(argparse.ArgumentParser):
+    ignore_errors = False
 
     def error(self, message):
+        if self.ignore_errors:
+            return
+
         # We trap this error especially since we launch the volshell.
         if message == "too few arguments":
             return
 
         super(VolatilityArgParser, self).error(message)
+
+    def parse_known_args(self, args=None, namespace=None, force=False):
+        self.ignore_errors = force
+
+        result = super(VolatilityArgParser, self).parse_known_args(
+            args=args, namespace=namespace)
+
+        return result
+
+    def print_help(self, file=None):
+        if self.ignore_errors:
+            return
+
+        return super(VolatilityArgParser, self).print_help(file=file)
+
+    def exit(self, *args, **kwargs):
+        if self.ignore_errors:
+            return
+
+        return super(VolatilityArgParser, self).exit(*args, **kwargs)
+
+
+def LoadPlugins(paths=None):
+    PYTHON_EXTENSIONS = [".py", ".pyo", ".pyc"]
+
+    for path in paths:
+        if not os.access(path, os.R_OK):
+            logging.error("Unable to find %s", path)
+            continue
+
+        path = os.path.abspath(path)
+        directory, filename = os.path.split(path)
+        module_name, ext = os.path.splitext(filename)
+
+        # Its a python file.
+        if ext in PYTHON_EXTENSIONS:
+            # Make sure python can find the file.
+            sys.path.insert(0, directory)
+
+            try:
+                logging.info("Loading user plugin %s", path)
+                __import__(module_name)
+            except Exception, e:
+                logging.error("Error loading user plugin %s: %s", path, e)
+            finally:
+                sys.path.pop(0)
+
+        elif ext == ".zip":
+            zfile = zipfile.ZipFile(path)
+
+            # Make sure python can find the file.
+            sys.path.insert(0, path)
+            try:
+                logging.info("Loading user plugin archive %s", path)
+                for name in zfile.namelist():
+                    # Change from filename to python package name.
+                    module_name, ext = os.path.splitext(name)
+                    if ext in PYTHON_EXTENSIONS:
+                        module_name = module_name.replace("/", ".").replace(
+                            "\\", ".")
+
+                        try:
+                            __import__(module_name.strip("\\/"))
+                        except Exception as e:
+                            logging.error("Error loading user plugin %s: %s",
+                                          path, e)
+
+            finally:
+                sys.path.pop(0)
+
+        else:
+            logging.error("Plugin %s has incorrect extension.", path)
 
 
 def parse_args(argv=None):
@@ -125,8 +204,9 @@ def parse_args(argv=None):
                         " it. If this flag is specified we drop into the "
                         "interactive shell instead.")
 
-    parser.add_argument("--logging", default=None,
-                        help="Logging level (lower is more verbose).")
+    parser.add_argument("--logging", default="error", choices=[
+            "debug", "info", "warning",  "critical", "error"],
+                        help="Logging level to show messages.")
 
     parser.add_argument("--debug", default=None, action="store_true",
                         help="If set we break into the debugger on some "
@@ -144,6 +224,10 @@ def parse_args(argv=None):
                         help="The renderer to use. e.g. (TextRenderer, "
                         "JsonRenderer).")
 
+
+    parser.add_argument("--plugin", default=[], nargs="+",
+                        help="Load user provided plugin bundle.")
+
     # Module specific args.
     subparsers = parser.add_subparsers(
         description="The following plugins can be selected.",
@@ -151,6 +235,20 @@ def parse_args(argv=None):
         )
 
     parsers = {}
+
+    # Check for additional user modules first since they may introduce more
+    # options and plugins.
+    namespace = argparse.Namespace()
+
+    # The parser may complain here if we are using options etc that are
+    # introduced by user plugins - so we suppress it for this run.
+    parser.parse_known_args(argv, namespace, force=True)
+
+    # This is the earliest point we can initialize the logger:
+    logging.getLogger().setLevel(getattr(logging, namespace.logging.upper()))
+
+    # Now load the user plugins.
+    LoadPlugins(namespace.plugin)
 
     # Add module specific parser for each module.
     for cls in plugin.Command.classes.values():

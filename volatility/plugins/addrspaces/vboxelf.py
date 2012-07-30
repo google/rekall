@@ -23,6 +23,7 @@
 # ELF64 format: http://downloads.openwatcom.org/ftp/devel/docs/elf-64-gen.pdf
 
 from volatility import addrspace
+from volatility import utils
 from volatility.plugins.overlays.linux import elf
 
 
@@ -80,7 +81,7 @@ class VirtualBoxCoreDumpElf64(addrspace.PagedReader):
 
         # Mapping not valid.
         if file_offset is None:
-            return "\x00" * available_length
+            return "\x00" * length
 
         else:
             return self.base.read(file_offset, min(length, available_length))

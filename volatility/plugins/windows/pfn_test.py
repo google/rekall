@@ -28,8 +28,11 @@ class TestPFN(testlib.VolatilityBaseUnitTestCase):
 
     def testVTOP(self):
         """Test the vtop function."""
-        metadata = self.LoadPreviousRunData("pfn")
-        session = self.BuildUserSession("pfn")
+        try:
+            metadata = self.LoadPreviousRunData("pfn")
+            session = self.BuildUserSession("pfn")
+        except IOError:
+            return
 
         # Instantiate the pfn plugin.
         vtop = session.vol("vtop")
