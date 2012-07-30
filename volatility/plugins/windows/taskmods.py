@@ -209,7 +209,10 @@ class WinMemMap(common.WinProcessFilter):
 
     def render(self, renderer):
         for task in self.filter_processes():
-            renderer.write("*" * 72 + "\n")
+            renderer.section()
+            renderer.RenderProgress("Dumping pid {0}".format(
+                    task.UniqueProcessId))
+
             task_space = task.get_process_address_space()
             renderer.format(u"Process: '{0}' pid: {1:6}\n",
                             task.ImageFileName, task.UniqueProcessId)
@@ -225,6 +228,8 @@ class WinMemMap(common.WinProcessFilter):
 
             for virtual_address, phys_address, length in ranges:
                 renderer.table_row(virtual_address, phys_address, length)
+
+
 
 
 class WinMemDump(core.DirectoryDumperMixin, WinMemMap):

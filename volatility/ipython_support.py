@@ -20,12 +20,12 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 """Support ipython 12."""
+
+from volatility import constants
+
 from IPython.frontend.terminal.embed import InteractiveShellEmbed
 from IPython.config.loader import Config
 from IPython.core.completer import IPCompleter
-
-banner = "Welcome to the volatility interactive shell! \nTo get help, type 'vhelp()'"
-
 
 class VolCompleter(IPCompleter):
 
@@ -44,7 +44,7 @@ def Shell(user_session):
     cfg.InteractiveShellEmbed.autocall = 2
 
     shell = InteractiveShellEmbed(config=cfg, user_ns=user_session._locals,
-                                  banner2=banner)
+                                  banner2=constants.BANNER)
 
     def _default_arguments(obj):
         """Allow the object to return default args."""

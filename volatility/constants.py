@@ -9,14 +9,21 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import os, sys
-
-VERSION = "3.0_alpha"
+VERSION = "3.0_tp1"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
+BANNER = """
+The Volatility Memory Forensic Framework technology preview (%s).
+
+NOTE: This is pre-release software and is provided for evauation only. Please
+check at http://volatility.googlecode.com/ for officially supported versions.
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
+""" % VERSION

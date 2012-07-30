@@ -188,9 +188,14 @@ class PhysicalASMixin(object):
 
         Args:
           physical_address_space: The physical address space to use. If not
-            specified we use the following options: 1)
-            session.physical_address_space, 2) Guess using the load_as() plugin,
+            specified we use the following options:
+
+            1) session.physical_address_space,
+
+            2) Guess using the load_as() plugin,
+
             3) Use session.kernel_address_space.base.
+
         """
         super(PhysicalASMixin, self).__init__(**kwargs)
 

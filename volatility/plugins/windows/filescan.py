@@ -244,7 +244,7 @@ class MutantScan(FileScan):
 
     allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_KMUTANT']
 
-    def __init__(self, silent=None, **kwargs):
+    def __init__(self, silent=False, **kwargs):
         """Scan for mutant objects _KMUTANT.
 
         Args:
@@ -264,9 +264,8 @@ class MutantScan(FileScan):
 
             object_name = object_obj.NameInfo.Name.v(vm=self.kernel_address_space)
 
-            if self.silent:
-                if object_name.Length == 0:
-                    continue
+            if self.silent and not object_name:
+                continue
 
             mutant = pool_obj.get_object("_KMUTANT", self.allocation)
             yield (object_obj, mutant, object_name)

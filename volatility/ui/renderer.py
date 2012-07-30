@@ -50,7 +50,8 @@ class Pager(object):
         # but most is best!
         pager = session.pager or os.environ.get("PAGER")
         self.encoding = encoding or session.encoding or sys.stdout.encoding
-        self.pager = subprocess.Popen(pager, shell=True, stdin=subprocess.PIPE, bufsize=10240)
+        self.pager = subprocess.Popen(pager, shell=True, stdin=subprocess.PIPE,
+                                      bufsize=10240)
 
     def write(self, data):
         # Encode the data according to the output encoding.
@@ -58,8 +59,10 @@ class Pager(object):
         try:
             self.pager.stdin.write(data)
             self.pager.stdin.flush()
+
+        # This can happen if the pager disappears in the middle of the write.
         except IOError:
-            raise KeyboardInterrupt("Pipe Error")
+            self.flush()
 
     def flush(self):
         """Wait for the pager to be exited."""
@@ -425,10 +428,17 @@ class TextRenderer(RendererBaseClass):
     last_message_len = 0
     isatty = False
 
-    def __init__(self, tablesep=" ", elide=False, **kwargs):
+    def __init__(self, tablesep=" ", elide=False, max_data=1024*1024, **kwargs):
         super(TextRenderer, self).__init__(**kwargs)
         self.tablesep = tablesep
         self.elide = elide
+
+        # We keep the data that we produce in memory for while.
+        self.data = ''
+        self.max_data = max_data
+
+        # Make sure that our output is unicode safe.
+        self.fd = UnicodeWrapper(self.fd or sys.stdout)
 
     def start(self, plugin_name=None, kwargs=None):
         """The method is called when new output is required.
@@ -437,40 +447,27 @@ class TextRenderer(RendererBaseClass):
            plugin_name: The name of the plugin which is running.
            kwargs: The args for this plugin.
         """
-        # When piping to a pager do not draw progress - this confuses the pager.
-        if self.fd is None and self.session.pager:
-            self.pager = Pager(session=self.session)
-            self.isatty = False
-
-        elif self.fd:
-            # When outputting to file we can draw progress.
-            self.pager = UnicodeWrapper(self.fd)
-            if self.fd != sys.stdout:
-                self.isatty = True
-                self.session.progress = self.RenderProgress
-
-        else:
-            # When outputting to the terminal we can draw progress.
-            self.pager = UnicodeWrapper(sys.stdout)
-            self.isatty = sys.stdout.isatty()
+        # This handles the progress messages from volatility for the duration of
+        # the rendering.
+        if self.session:
             self.session.progress = self.RenderProgress
 
     def end(self):
         """Tells the renderer that we finished using it for a while."""
-        sys.stdout.write("\r")
-        self.pager.flush()
-        self.session.progress = None
+        # Remove the progress handler from the session.
+        if self.session:
+            self.session.progress = None
 
     def write(self, data):
-        if self.isatty:
-            sys.stdout.flush()
-            sys.stdout.write("\r")
-            sys.stdout.flush()
+        self.data += data
+        # Only keep some of the last data.
+        self.data = self.data[-self.max_data:]
 
-        self.pager.write(data)
+        self.fd.write(data)
+        self.fd.flush()
 
     def flush(self):
-        self.pager.flush()
+        self.fd.flush()
 
     def table_header(self, columns = None, suppress_headers=False,
                      **kwargs):
@@ -503,19 +500,19 @@ class TextRenderer(RendererBaseClass):
         return self.table.render_row(self, *args)
 
     def RenderProgress(self, message="", force=False, **_):
-        if self.isatty:
-            # Only write once per second.
-            now = time.time()
-            if force or now > self.last_spin_time + 0.2:
-                self.last_spin_time = now
-                self.last_spin += 1
-                if not message:
-                    message = self.spinner[self.last_spin % len(self.spinner)]
+        # Only write once per second.
+        now = time.time()
+        if force or now > self.last_spin_time + 0.2:
+            self.last_spin_time = now
+            self.last_spin += 1
+            if not message:
+                message = self.spinner[self.last_spin % len(self.spinner)]
 
-                sys.stdout.write("\r" + " " * self.last_message_len + "\r")
-                self.last_message_len = len(message)
-                sys.stdout.write(message)
-                sys.stdout.flush()
+            # Wipe the last message.
+            sys.stdout.write("\r" + " " * self.last_message_len + "\r")
+            self.last_message_len = len(message)
+            sys.stdout.write(message + "\r")
+            sys.stdout.flush()
 
 
 class JsonFormatter(Formatter):
@@ -615,7 +612,7 @@ class JsonRenderer(TextRenderer):
 
     def end(self):
         # Just dump out the json object.
-        self.pager.write(json.dumps(self.data, indent=4))
+        self.fd.write(json.dumps(self.data, indent=4))
 
     def format(self, formatstring, *args):
         statement = [formatstring]

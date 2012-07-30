@@ -61,7 +61,7 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReade
 
     _md_memory_model = "32bit"
 
-    def __init__(self, name=None, dtb = None, **kwargs):
+    def __init__(self, name=None, dtb=None, **kwargs):
         """Instantiate an Intel 32 bit Address space over the layered AS.
 
         Args:
@@ -102,7 +102,7 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReade
 
         self.as_assert(self.dtb != None, "No valid DTB specified. Try the find_dtb"
                        " plugin to search for the dtb.")
-        self.name = name or 'Kernel AS'
+        self.name = (name or 'Kernel AS') + "@%#x" % self.dtb
 
     def entry_present(self, entry):
         '''

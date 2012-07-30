@@ -24,6 +24,7 @@ way for people to save their own results.
 """
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
+import inspect
 import logging
 import pdb
 import os
@@ -90,83 +91,45 @@ class PluginContainer(object):
             raise AttributeError("Plugin not found for this profile: %s" % attr)
 
 
+class Container(object):
+    """Just a container."""
+
+
 class Session(object):
-    """The session allows for storing of arbitrary values and configuration."""
+    """Base session.
 
-    # This is used for setattr in __init__.
-    _ready = False
-
-    def __init__(self, env=None, **kwargs):
-        # These are the command plugins which we exported to the local
-        # namespace.
-        self._start_time = time.time()
-        self._locals = env or {}
-
-        # Fill the session with helpful defaults.
-        self.__dict__['logging'] = self.logging or "INFO"
-        self.pager = obj.NoneObject("Set this to your favourite pager.")
+    This session contains the bare minimum to use volatility.
+    """
+    def __init__(self, **kwargs):
         self.profile = obj.NoneObject("Set this a valid profile (e.g. type profiles. and tab).")
         self.profile_file = obj.NoneObject("Some profiles accept a data file (e.g. Linux).")
         self.filename = obj.NoneObject("Set this to the image filename.")
 
+        self.plugins = PluginContainer(self)
+
         # The default renderer.
         self.renderer = "TextRenderer"
-        self.overwrite = False
-
-        self.plugins = PluginContainer(self)
-        self._ready = True
 
         # Merge in defaults.
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-    def reset(self):
-        """Reset the current session by making a new session."""
-        self._prepare_local_namespace()
-
-    def _prepare_local_namespace(self):
-        session = self._locals['session'] = Session(self._locals)
-
-        # Prepopulate the namespace with our most important modules.
-        self._locals['addrspace'] = addrspace
-        self._locals['obj'] = obj
-        self._locals['plugins'] = session.plugins
-        self._locals['profiles'] = ProfileContainer(self)
-
-        # The handler for the vol command.
-        self._locals['dump'] = session.dump
-        self._locals['vol'] = session.vol
-        self._locals['info'] = session.info
-        self._locals['vhelp'] = session.vhelp
-        self._locals['p'] = session.printer
-        self._locals['l'] = session.lister
-        self._locals['dis'] = obj.Curry(session.vol, "dis")
-
-    def printer(self, string):
-        print string
-
-    def lister(self, arg):
-        for x in arg:
-            self.printer(x)
-
-    def dump(self, target, offset=0, width=16, rows=10):
-        # Its an object
-        if isinstance(target, obj.BaseObject):
-            data = target.obj_vm.zread(target.obj_offset, target.size())
-            base = target.obj_offset
-        # Its an address space
-        elif isinstance(target, addrspace.BaseAddressSpace):
-            data = target.zread(offset, width*rows)
-            base = int(offset)
-        # Its a string or something else:
+    def __setattr__(self, attr, value):
+        """Allow the user to set configuration information directly."""
+        # Allow for hooks to override special options.
+        hook = getattr(self, "_set_%s" % attr, None)
+        if hook:
+            hook(value)
         else:
-            data = utils.SmartStr(target)
-            base = 0
+            object.__setattr__(self, attr, value)
 
-        utils.WriteHexdump(sys.stdout, data, width=width, base=base)
+        # This may affect which plugins are available for the user.
+        if self.plugins:
+            self.plugins.reset()
 
-    def info(self, plugin_cls=None, fd=None):
-        self.vol(self.plugins.info, item=plugin_cls, fd=fd)
+    def __getattr__(self, attr):
+        """This will only get called if the attribute does not exist."""
+        return None
 
     def vol(self, plugin_cls, *pos_args, **kwargs):
         """Launch a plugin and its render() method automatically.
@@ -198,14 +161,15 @@ class Session(object):
 
         # Select the renderer from the session or from the kwargs.
         if not isinstance(ui_renderer, renderer.RendererBaseClass):
-            try:
-                ui_renderer_cls = renderer.RendererBaseClass.classes[
-                    ui_renderer or self.renderer]
-            except KeyError:
+            ui_renderer_cls = renderer.RendererBaseClass.classes.get(
+                ui_renderer or self.renderer)
+
+            if not ui_renderer_cls:
                 logging.error("Unable to find a renderer %s. Using TextRenderer.",
                               ui_renderer or self.renderer)
                 ui_renderer_cls = renderer.TextRenderer
 
+            # Allow the output to be written to file.
             if output is not None:
                 if os.access(output, os.F_OK) and not (
                     overwrite or self.overwrite):
@@ -221,7 +185,13 @@ class Session(object):
 
         try:
             kwargs['session'] = self
-            result = plugin_cls(*pos_args, **kwargs)
+
+            # If we were passed an instance we do not instantiate it.
+            if inspect.isclass(plugin_cls):
+                result = plugin_cls(*pos_args, **kwargs)
+            else:
+                result = plugin_cls
+
             ui_renderer.start(plugin_name=result.name, kwargs=kwargs)
 
             try:
@@ -234,6 +204,15 @@ class Session(object):
 
             finally:
                 ui_renderer.end()
+
+            # If there was too much data and a pager is specified, simply pass
+            # the data to the pager:
+            if self.pager and len(ui_renderer.data.split("\n", 50)) >= 50:
+                pager = renderer.Pager(self)
+                pager.write(ui_renderer.data)
+
+                # Now wait for the user to exit the pager.
+                pager.flush()
 
             return result
 
@@ -252,39 +231,6 @@ class Session(object):
                 pdb.post_mortem()
             else:
                 raise
-
-    def __str__(self):
-        result = """Volatility session Started on %s.
-
-Config:
-""" % (time.ctime(self.start_time))
-        for name in dir(self):
-            value = getattr(self, name)
-            result += " %s:  %r\n" % (name, value)
-
-        return result
-
-    def __setattr__(self, attr, value):
-        """Allow the user to set configuration information directly."""
-        # Allow for hooks to override special options.
-        hook = getattr(self, "_set_%s" % attr, None)
-        if hook:
-            hook(value)
-        else:
-            object.__setattr__(self, attr, value)
-
-        # This may affect which plugins are available for the user.
-        if self.plugins:
-            self.plugins.reset()
-
-    def __getattr__(self, attr):
-        """This will only get called if the attribute does not exist."""
-        return None
-
-    def __dir__(self):
-        items = self.__dict__.keys() + dir(self.__class__)
-
-        return [x for x in items if not x.startswith("_")]
 
     def _set_profile(self, profile):
         """A Hook for setting profiles."""
@@ -312,6 +258,104 @@ Config:
         else:
             raise RuntimeError("A profile must be a string.")
 
+    def report_progress(self, message="", force=False):
+        """Called by the library to report back on the progress."""
+        if callable(self.progress):
+            self.progress(message, force=force)
+
+
+class InteractiveSession(Session):
+    """The session allows for storing of arbitrary values and configuration.
+
+    This session contains a lot of convenience features which are useful for
+    interactive use.
+    """
+
+    # This is used for setattr in __init__.
+    _ready = False
+
+    def __init__(self, env=None, **kwargs):
+        super(InteractiveSession, self).__init__()
+
+        # These are the command plugins which we exported to the local
+        # namespace.
+        self._start_time = time.time()
+        self._locals = env or {}
+
+        # These keep track of the last run plugin.
+        self._last_plugin = None
+
+        # Fill the session with helpful defaults.
+        self.__dict__['logging'] = self.logging or "INFO"
+        self.pager = obj.NoneObject("Set this to your favourite pager.")
+        self.overwrite = False
+
+        self._ready = True
+
+    def reset(self):
+        """Reset the current session by making a new session."""
+        self._prepare_local_namespace()
+
+    def vol(self, *args, **kwargs):
+        self.last = super(InteractiveSession, self).vol(*args, **kwargs)
+
+    def _prepare_local_namespace(self):
+        #session = self._locals['session'] = InteractiveSession(env=self._locals)
+        session = self._locals['session'] = self
+        # Prepopulate the namespace with our most important modules.
+        self._locals['addrspace'] = addrspace
+        self._locals['obj'] = obj
+        self._locals['profile'] = self.profile
+
+        # The handler for the vol command.
+        self._locals['vol'] = session.vol
+        self._locals['vhelp'] = session.vhelp
+        self._locals['p'] = session.printer
+        self._locals['l'] = session.lister
+        self._locals['v'] = session.v
+        self._locals['dis'] = obj.Curry(session.vol, "dis")
+
+        # Add all plugins to the local namespace and to their own container.
+        container = self._locals['plugins'] = Container()
+        for cls in plugin.Command.classes.values():
+            name = cls.name
+            if name:
+                # Create a runner for this plugin and set its documentation.
+                runner = obj.Curry(session.vol, name)
+                runner.__doc__ = utils.SmartUnicode(core.Info(cls))
+                setattr(container, name, runner)
+
+                self._locals[name] = runner
+
+    def v(self):
+        """Re-execute the previous command."""
+        if self.last:
+            self.vol(self.last)
+
+    def printer(self, string):
+        if string is not None:
+            print string
+
+    def lister(self, arg):
+        for x in arg:
+            self.printer(x)
+
+    def __str__(self):
+        result = """Volatility session Started on %s.
+
+Config:
+""" % (time.ctime(self.start_time))
+        for name in dir(self):
+            value = getattr(self, name)
+            result += " %s:  %r\n" % (name, value)
+
+        return result
+
+    def __dir__(self):
+        items = self.__dict__.keys() + dir(self.__class__)
+
+        return [x for x in items if not x.startswith("_")]
+
     def _set_logging(self, value):
         if value is None: return
 
@@ -321,11 +365,6 @@ Config:
 
         logging.info("Logging level set to %s", value)
         logging.getLogger().setLevel(int(level))
-
-    def report_progress(self, message="", force=False):
-        """Called by the library to report back on the progress."""
-        if callable(self.progress):
-            self.progress(message, force=force)
 
     def vhelp(self, item=None):
         """Prints some helpful information."""

@@ -28,6 +28,7 @@ import os
 import sys
 import zipfile
 
+from volatility import constants
 from volatility import plugin
 
 
@@ -187,11 +188,10 @@ def LoadPlugins(paths=None):
 
 def parse_args(argv=None):
     """Parse the args from the command line argv."""
-    parser =  VolatilityArgParser(
-        description='The Volatility Memory Forensic Framework.',
-        conflict_handler='resolve',
-        epilog='When no module is provided, '
-        'drops into interactive mode')
+    parser =  VolatilityArgParser(description=constants.BANNER,
+                                  conflict_handler='resolve',
+                                  epilog='When no module is provided, '
+                                  'drops into interactive mode')
 
     # Top level args.
     parser.add_argument("-e", "--exec", default=None,
@@ -203,6 +203,10 @@ def parse_args(argv=None):
                         "on the command line, we exit immediately after running"
                         " it. If this flag is specified we drop into the "
                         "interactive shell instead.")
+
+    parser.add_argument("--pager", default=os.environ.get("PAGER"),
+                        help="The pager to use when output is larger than a "
+                        "screen full.")
 
     parser.add_argument("--logging", default="error", choices=[
             "debug", "info", "warning",  "critical", "error"],
@@ -266,5 +270,7 @@ def parse_args(argv=None):
 
     # Parse the command line.
     result = parser.parse_args(argv)
+
+    result.plugin = None
 
     return result

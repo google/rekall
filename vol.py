@@ -26,6 +26,7 @@ import sys
 
 
 from volatility import args
+from volatility import constants
 from volatility import session
 
 # Import and register the core plugins
@@ -38,8 +39,6 @@ def IPython011Support(user_session):
     Returns:
       False if we failed to use IPython. True if the session was run and exited.
     """
-    banner = "Welcome to the volatility interactive shell! \nTo get help, type 'vhelp()'"
-
     try:
         # Try to use the ipython shell
         from IPython import genutils
@@ -49,7 +48,8 @@ def IPython011Support(user_session):
         # polluting it with additional crap.
         genutils.dir2 = dir
 
-        shell = Shell.IPShellEmbed(argv=[], user_ns=user_session._locals, banner=banner)
+        shell = Shell.IPShellEmbed(argv=[], user_ns=user_session._locals,
+                                   banner=constants.BANNER)
 
         # This must be run here because the IPython shell messes with our user
         # namespace above (by adding its own help function).
@@ -68,8 +68,6 @@ def IPython012Support(user_session):
     Returns:
       False if we failed to use IPython. True if the session was run and exited.
     """
-    banner = "Welcome to volshell! \nTo get help, type 'help()'"
-
     try:
         from volatility import ipython_support
 
@@ -92,8 +90,6 @@ def NativePythonSupport(user_session):
     # If the ipython shell is not available, we can use the native python shell.
     import code, inspect
 
-    banner = "Welcome to volshell! \nTo get help, type 'help()'"
-
     # Try to enable tab completion
     try:
         import rlcompleter, readline #pylint: disable-msg=W0612
@@ -103,7 +99,7 @@ def NativePythonSupport(user_session):
 
     # Prepare the session for running within the native python interpreter.
     user_session._prepare_local_namespace()
-    code.interact(banner = banner, local = user_session._locals)
+    code.interact(banner=constants.BANNER, local=user_session._locals)
 
 def UpdateSessionFromArgv(user_session, FLAGS):
     result = {}
@@ -119,8 +115,8 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO)
 
-    # New user session.
-    user_session = session.Session()
+    # New user interactive session (with extra bells and whistles).
+    user_session = session.InteractiveSession()
     UpdateSessionFromArgv(user_session, FLAGS)
 
     if getattr(FLAGS, "module", None):

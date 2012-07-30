@@ -23,13 +23,17 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 import inspect
 import logging
 import pdb
+import re
 import os
+import textwrap
 
 from volatility import addrspace
 from volatility import args
+from volatility import constants
 from volatility import registry
 from volatility import plugin
 from volatility import obj
+from volatility import utils
 
 
 class Info(plugin.Command):
@@ -50,71 +54,154 @@ class Info(plugin.Command):
 
     def plugins(self):
         for name, cls in plugin.Command.classes.items():
-            yield dict(name=name, function=cls.name, definition=cls.__module__,
-                       doc=cls.__doc__.splitlines()[0])
+            if name:
+                yield name, cls.name, cls.__doc__.splitlines()[0]
 
     def address_spaces(self):
         for name, cls in addrspaces.BaseAddressSpace.classes.items():
             yield dict(name=name, function=cls.name, definition=cls.__module__)
 
-    def render(self, fd):
+    def render(self, renderer):
         if self.item is None:
-            return self.render_general_info(fd)
+            return self.render_general_info(renderer)
         else:
-            return self.render_item_info(self.item, fd)
+            return self.render_item_info(self.item, renderer)
 
-    def render_item_info(self, item, fd):
+    def _split_into_paragraphs(self, string, dedent):
+        """Split a string into paragraphs.
+
+        A paragraph is defined as lines of text having the same indentation. An
+        empty new line breaks the paragraph.
+
+        The first line in each paragraph is allowed to be indented more than the
+        second line.
+        """
+        paragraph = []
+        last_leading_space = 0
+        first_line_indent = 0
+
+        for line in string.splitlines():
+            line = line[dedent:]
+
+            m = re.match("\s*", line)
+            leading_space = len(m.group(0))
+
+            text = line[leading_space:]
+
+            # First line is always included.
+            if not paragraph:
+                paragraph = [text]
+                first_line = True
+                first_line_indent = leading_space
+                continue
+
+            if first_line and last_leading_space != leading_space:
+                if text:
+                    paragraph.append(text)
+
+                last_leading_space = leading_space
+                first_line = False
+
+            elif leading_space != last_leading_space:
+                if paragraph:
+                    yield paragraph, first_line_indent
+
+                paragraph = []
+                if text:
+                    paragraph.append(text)
+                last_leading_space = leading_space
+                first_line_indent = leading_space
+                first_line = True
+            else:
+                if text:
+                    paragraph.append(text)
+
+                first_line = False
+
+        if paragraph:
+            yield paragraph, first_line_indent
+
+    def split_into_paragraphs(self, string, dedent=0, wrap=50):
+        for paragraph, leading_space in self._split_into_paragraphs(
+            string, dedent):
+            paragraph = textwrap.wrap("\n".join(paragraph), wrap)
+            yield "\n".join([(" " * leading_space + x) for x in paragraph])
+
+    def parse_args_string(self, arg_string):
+        """Parses a standard docstring into args and docs for each arg."""
+        parameter = None
+        doc = ""
+
+        for line in arg_string.splitlines():
+            m = re.match("\s+([^\s]+):(.+)", line)
+            if m:
+                if parameter:
+                    yield parameter, doc
+
+                parameter = m.group(1)
+                doc = m.group(2)
+            else:
+                doc += "\n" + line
+
+        if parameter:
+            yield parameter, doc
+
+    def render_item_info(self, item, renderer):
         """Render information about the specific item."""
-        fd.write("%s:\n%s\n\n" % (item, item.__doc__))
+        if isinstance(item, obj.Curry):
+            item = item._target
+
+        cls_doc = item.__doc__ or ""
 
         if isinstance(item, registry.MetaclassRegistry):
+            renderer.format("{0}: {1}\n", item.name, cls_doc.splitlines()[0])
+
             # show the args it takes. Relies on the docstring to be formatted
             # properly.
-            if item.__init__.__doc__:
-                doc_string = inspect.cleandoc(
-                    item.__init__.__doc__).split("Args:")[0]
+            doc_string = item.__init__.__doc__ or ""
+            doc_string = inspect.cleandoc(doc_string).split("Args:")[0]
 
-                fd.write("%s\n\n" % doc_string.strip())
+            renderer.write("%s\n\n" % doc_string.strip())
 
             doc_strings = []
-            fd.write("Constructor args:\n"
-                     "-----------------")
+            renderer.table_header([('Parameter', 'parameter', '30'),
+                                   ('Documentation', 'doc', '70')])
+
+            seen_parameters = set()
             for cls in item.mro():
-                try:
-                    doc_string = inspect.cleandoc(
-                        cls.__init__.__doc__).split("Args:")[1]
+                cls_doc = cls.__init__.__doc__ or ""
+                if self.verbosity > 0:
+                    renderer.format("Defined by {0} ({1}):",
+                                    cls.__name__, inspect.getfile(cls))
 
-                    if doc_string not in doc_strings:
-                        doc_strings.append(doc_string)
-                        if self.verbosity > 0:
-                            fd.write("Defined by %s (%s):" % (
-                                    cls.__name__, inspect.getfile(cls)))
+                m = re.search("\n( +)Args:(.+)", cls_doc, re.S|re.M)
+                if m:
+                    doc_string = m.group(2)
+                    dedent = len(m.group(1))
+                    for parameter, doc in self.parse_args_string(doc_string):
+                        if parameter in seen_parameters: continue
 
-                        fd.write("%s" % doc_string)
+                        seen_parameters.add(parameter)
+                        clean_doc = []
+                        for paragraph in self.split_into_paragraphs(
+                            " " * dedent + doc, dedent=dedent, wrap=70):
+                            clean_doc.append(paragraph)
 
-                except (IndexError, AttributeError):
-                    pass
+                        renderer.table_row(parameter, "\n".join(clean_doc))
 
-            fd.write("\n\n"
-                     "Plugin methods:\n"
-                     "---------------\n")
-            for name, function in inspect.getmembers(
-                item, lambda x: inspect.ismethod(x)):
-                if name.startswith("_"): continue
+        else:
+            # For normal objects just write their docstrings.
+            renderer.write(item.__doc__ or "")
 
-                fd.write("   %s:\n" % name)
-                if function.__doc__:
-                    fd.write("%s\n\n" % inspect.cleandoc(function.__doc__))
+    def render_general_info(self, renderer):
+        renderer.write(constants.BANNER)
+        renderer.table_header([('Plugin', 'function', "20"),
+                               ('Provider Class', 'provider', '20'),
+                               ('Docs', 'docs', '[wrap:50]'),
+                               ])
 
-
-    def render_general_info(self, fd):
-        fd.write("Volatility 3.0 alpha\n\n")
-        fd.write("Plugins\n"
-                 "-------\n"
-                 "Function   Provider Class       Definition\n"
-                 "---------- -------------------- ----------\n")
-        for info in self.plugins():
-            fd.write("{function:10} {name:20} {definition}\n  ({doc})\n\n".format(**info))
+        for cls, name, doc in self.plugins():
+            renderer.table_row(name, cls, doc)
 
 
 
@@ -151,8 +238,12 @@ class LoadAddressSpace(plugin.ProfileCommand):
 
             if vas_spec == "auto":
                 self.session.kernel_address_space = self.GuessAddressSpace(
-                    astype = 'virtual', base_as=self.session.physical_address_space,
+                    astype = 'virtual',
+                    base_as=self.session.physical_address_space,
                     **kwargs)
+
+                # Set the default address space to the kernel.
+                self.session.default_address_space = self.session.kernel_address_space
             else:
                 self.kernel_address_space = self.AddressSpaceFactory(
                     specification=vas_spec, astype='virtual')
@@ -230,55 +321,6 @@ class LoadAddressSpace(plugin.ProfileCommand):
         return base_as
 
 
-
-class HexDumper(plugin.Command):
-    """Hexdump a region of memory."""
-
-    __name = "hexdump"
-
-    fd = None
-
-    def __init__(self, offset=0, vm=None, width=16, length=25, **kwargs):
-        """Hexdump a region of memory.
-
-        Note that this plugin can be reused to keep dumping from where it was left off last time. Each call to render() resumes from the last place. This is useful for the shell:
-
-        In[0]: vol plugins.hexdump, offset=10
-
-        ....
-        In[1]: _.render()
-        ....  Resumes to dump another page.
-
-        Args:
-          - offset: Where to start from.
-          - vm: The address space to use. If not specified we use session.kernel_address_space.
-          - width: The width of the hexdump.
-          - length: The number of lines to dump.
-        """
-        super(HexDumper, self).__init__(**kwargs)
-        self.offset = offset
-        self.vm = vm or self.session.kernel_address_space
-        self.width = width
-        self.length = length
-
-    def render(self, fd=None):
-        if fd is None:
-            fd = self.fd
-
-        self.fd = fd
-        for row in xrange(self.length):
-            row_data = self.vm.zread(self.offset, self.width)
-
-            translated_data = [x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data]
-            translated_data = "".join(translated_data)
-
-            hexdata = " ".join(["{0:02x}".format(ord(x)) for x in row_data])
-
-            fd.write("{0:016X} | {1} | {2}\n".format(
-                    self.offset, hexdata, translated_data))
-            self.offset += self.width
-
-
 class DirectoryDumperMixin(object):
     """A mixin for plugins that want to dump files to a directory."""
 
@@ -329,3 +371,83 @@ class LoadPlugins(plugin.Command):
             path = [path]
 
         args.LoadPlugins(path)
+
+
+class Dump(plugin.Command):
+    """Hexdump an object or memory location."""
+
+    __name = "dump"
+
+    def __init__(self, target=None, offset=0, width=16, rows=30, **kwargs):
+        """Hexdump an object or memory location.
+
+        You can use this plugin repeateadely to keep dumping more data using the
+        "p _" (print last result) operation:
+
+        In [2]: dump session.kernel_address_space, 0x814b13b0
+        ------> dump(session.kernel_address_space, 0x814b13b0)
+        Offset                         Hex                              Data
+        ---------- ------------------------------------------------ ----------------
+        0x814b13b0 03 00 1b 00 00 00 00 00 b8 13 4b 81 b8 13 4b 81  ..........K...K.
+
+        Out[3]: <volatility.plugins.core.Dump at 0x2967510>
+
+        In [4]: p _
+        ------> p(_)
+        Offset                         Hex                              Data
+        ---------- ------------------------------------------------ ----------------
+        0x814b1440 70 39 00 00 54 1b 01 00 18 0a 00 00 32 59 00 00  p9..T.......2Y..
+        0x814b1450 6c 3c 01 00 81 0a 00 00 18 0a 00 00 00 b0 0f 06  l<..............
+        0x814b1460 00 10 3f 05 64 77 ed 81 d4 80 21 82 00 00 00 00  ..?.dw....!.....
+
+        Args:
+          target: The object to dump or an address space.
+          offset: The offset to start dumping from.
+          width: How many Hex character per line.
+          rows: How many rows to dump.
+        """
+        super(Dump, self).__init__(**kwargs)
+        self.target = target
+        self.offset = int(offset)
+        self.width = int(width)
+        self.rows = int(rows)
+
+    def render(self, renderer):
+        # Its an object
+        if isinstance(self.target, obj.BaseObject):
+            data = self.target.obj_vm.zread(self.target.obj_offset,
+                                            self.target.size())
+            base = self.target.obj_offset
+        # Its an address space
+        elif isinstance(self.target, addrspace.BaseAddressSpace):
+            data = self.target.zread(self.offset, self.width * self.rows)
+            base = self.offset
+
+        # If the target is an integer we assume it means an offset to read from
+        # the default_address_space.
+        elif isinstance(self.target, (int, long)):
+            if self.offset == 0:
+                self.offset = self.target
+
+            data = self.session.default_address_space.zread(
+                self.offset, self.width * self.rows)
+            base = self.offset
+
+        # Its a string or something else:
+        else:
+            data = utils.SmartStr(self.target)
+            base = 0
+
+        renderer.table_header([("Offset", "offset", "[addr]"),
+                               ("Hex", "hex", "^" + str(3 * self.width)),
+                               ("Data", "data", "^" + str(self.width))])
+
+        offset = 0
+        for offset, hexdata, translated_data in utils.Hexdump(
+            data, width=self.width):
+            renderer.table_row(self.offset + offset, hexdata,
+                               "".join(translated_data))
+
+        # Advance the offset so we can continue from this offset next time we
+        # get called.
+        self.offset += offset

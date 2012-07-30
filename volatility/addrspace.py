@@ -41,6 +41,9 @@ class BaseAddressSpace(object):
 
     order = 10
 
+    # This can be used to name the address space (e.g. process if etc).
+    name = ""
+
     def __init__(self, base=None, session=None, write=False, profile=None,
                  **kwargs):
         """Base is the AS we will be stacking on top of, opts are options which
@@ -174,6 +177,9 @@ class BaseAddressSpace(object):
 
     def __str__(self):
         return self.__class__.__name__
+
+    def __repr__(self):
+        return "<%s @ %#x %s>" % (self.__class__.__name__, hash(self), self.name)
 
 
 class DummyAddressSpace(BaseAddressSpace):

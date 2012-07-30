@@ -461,7 +461,7 @@ class Function(obj.BaseObject):
 try:
     import distorm3
 
-    class DistormFunction(Function):
+    class Function(Function):
 
         def __init__(self, mode=None, **kwargs):
             super(Function, self).__init__(**kwargs)
@@ -533,9 +533,6 @@ try:
                     count += 1
                     if count >= instructions:
                         return
-
-
-    Function = DistormFunction
 
 except ImportError:
     pass

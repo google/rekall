@@ -308,6 +308,10 @@ class BaseObject(object):
     def is_valid(self):
         return self.obj_vm.is_valid_address(self.obj_offset)
 
+    def deref(self, vm=None):
+        """An alias for dereference - less to type."""
+        return self.dereference(vm=vm)
+
     def dereference(self, vm=None):
         return NoneObject("Can't dereference {0}".format(self.obj_name), self.obj_profile)
 
@@ -1337,6 +1341,7 @@ class Profile(object):
         """Support tab completion."""
         # Compile on demand
         if not self._ready: self.compile()
+
         return sorted(self.__dict__.keys()) + sorted(self.types.keys())
 
     def __getattr__(self, attr):
@@ -1350,12 +1355,13 @@ class Profile(object):
         (provided by __dir__).
         """
         if not self._ready: self.compile()
-        if attr not in self.types:
+
+        if attr not in self.types and attr not in self.object_classes:
             raise AttributeError("No such vtype")
 
         return Curry(self.Object, attr)
 
-    def Object(self, theType=None, vm=None, offset=0, name=None, parent=None,
+    def Object(self, theType=None, offset=0, vm=None, name=None, parent=None,
                context=None, **kwargs):
         """ A function which instantiates the object named in theType (as
         a string) from the type in profile passing optional args of
@@ -1384,7 +1390,10 @@ class Profile(object):
         offset = int(offset)
 
         if vm is None:
-            vm = self._dummy
+            if self.session and self.session.default_address_space:
+                vm = self.session.kernel_address_space
+            else:
+                vm = self._dummy
 
         if not vm.is_valid_address(offset):
             # If we can not instantiate the object here, we just error out:
