@@ -633,6 +633,9 @@ class Void(Pointer):
         kwargs['theType'] = 'unsigned long'
         super(Void, self).__init__(**kwargs)
 
+    def v(self):
+        return self.obj_offset
+
     def size(self):
         logging.warning("Void objects have no size! Are you doing pointer arithmetic "
                         "on a pointer to void?")
@@ -1407,6 +1410,8 @@ class Profile(object):
             return result
 
         else:
+            import pdb; pdb.set_trace()
+
             # If we get here we have no idea what the type is supposed to be?
             # This is a serious error.
             logging.warning("Cant find object {0} in profile {1}?".format(

@@ -420,8 +420,41 @@ class WinTimeStamp(UnixTimeStamp):
         return self.windows_to_unix_time(value)
 
 
+class IndexedArray(obj.Array):
+    """An array which can be addressed via constant names."""
+
+    def __init__(self, index_table=None, **kwargs):
+        super(IndexedArray, self).__init__(**kwargs)
+        self.index_table = index_table or {}
+        self.count = len(index_table)
+
+    def __getitem__(self, item):
+        # Still support numeric indexes
+        if isinstance(item, (int, long)):
+            index = item
+
+            # Try to name the object appropriately.
+            for k, v in self.index_table.items():
+                if v == item:
+                    item = k
+                    break
+
+        elif item in self.index_table:
+            index = self.index_table[item]
+        else:
+            raise KeyError("Unknown index %s" % item)
+
+        result = super(IndexedArray, self).__getitem__(index)
+        result.obj_name = str(item)
+
+        return result
+
+
 class Function(obj.BaseObject):
     """A volatility object representing code snippets."""
+
+    def __int__(self):
+        return self.obj_offset
 
 
 # If distorm3 is available we can do a few more things.
@@ -550,6 +583,7 @@ class BasicWindowsClasses(obj.Profile):
             'LIST_ENTRY64': _LIST_ENTRY,
             'WinTimeStamp': WinTimeStamp, # WinFileTime.
             'UnixTimeStamp': UnixTimeStamp,
+            "IndexedArray": IndexedArray,
             'Function': Function,
             })
 

@@ -36,35 +36,6 @@ from volatility import utils
 from volatility.plugins.overlays import basic
 
 
-class IndexedArray(obj.Array):
-    """An array which can be addressed via constant names."""
-
-    def __init__(self, index_table=None, **kwargs):
-        self.index_table = index_table or {}
-        super(IndexedArray, self).__init__(**kwargs)
-
-    def __getitem__(self, item):
-        # Still support numeric indexes
-        if isinstance(item, (int, long)):
-            index = item
-
-            # Try to name the object appropriately.
-            for k, v in self.index_table.items():
-                if v == item:
-                    item = k
-                    break
-
-        elif item in self.index_table:
-            index = self.index_table[item]
-        else:
-            raise KeyError("Unknown index %s" % item)
-
-        result = super(IndexedArray, self).__getitem__(index)
-        result.obj_name = str(item)
-
-        return result
-
-
 class SentinalArray(obj.Array):
     """A sential terminated array."""
 
@@ -1348,7 +1319,6 @@ class PEFileImplementation(obj.ProfileModification):
                 '_IMAGE_IMPORT_DESCRIPTOR': _IMAGE_IMPORT_DESCRIPTOR,
                 '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
                 '_IMAGE_DATA_DIRECTORY': _IMAGE_DATA_DIRECTORY,
-                "IndexedArray": IndexedArray,
                 "SentinalArray": SentinalArray,
                 "ThunkArray": ThunkArray,
                 "RVAPointer": RVAPointer,

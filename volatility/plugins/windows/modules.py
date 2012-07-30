@@ -20,6 +20,7 @@
 
 import bisect
 
+from volatility import obj
 from volatility.plugins.windows import common
 
 
@@ -75,16 +76,17 @@ class Modules(common.WindowsCommandPlugin):
         if self.mod_lookup is None:
             self._make_cache()
 
+        addr = int(addr)
         pos = bisect.bisect_right(self.modlist, addr) - 1
         if pos == -1:
-            return None
+            return obj.NoneObject("Unknown")
         mod = self.mod_lookup[self.modlist[pos]]
 
         if (addr >= mod.DllBase.v() and
             addr < mod.DllBase.v() + mod.SizeOfImage.v()):
             return mod
-        else:
-            return None
+
+        return obj.NoneObject("Unknown")
 
     def render(self, renderer):
         renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
