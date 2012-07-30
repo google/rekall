@@ -169,12 +169,14 @@ class DW_TAG_member(DIETag):
         self.parent.members.append(self)
 
         if 'DW_AT_data_member_location' in self.attributes:
-            op_code, value = describe_DWARF_expr(
-                self.attributes['DW_AT_data_member_location'].value,
-                die.cu.structs)
+            value = self.attributes['DW_AT_data_member_location'].value
+            if isinstance(value, (int, long)):
+                self.offset = value
+            else:
+                op_code, value = describe_DWARF_expr(value, die.cu.structs)
 
-            if op_code=="DW_OP_plus_uconst":
-                self.offset = int(value)
+                if op_code=="DW_OP_plus_uconst":
+                    self.offset = int(value)
 
     def VType(self):
         if self.type_id not in self.types:
@@ -316,7 +318,8 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print "Usage: dwarfparser.py  module.ko > module.json"
     else:
-        parser = DWARFParser(open(sys.argv[1]), "rb")
-        vtypes = parser.VType()
+        with open(sys.argv[1], "rb") as fd:
+            parser = DWARFParser(fd)
+            vtypes = parser.VType()
 
-        print json.dumps(vtypes)
+            print json.dumps(vtypes)

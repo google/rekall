@@ -187,7 +187,7 @@ class Session(object):
             kwargs['session'] = self
 
             # If we were passed an instance we do not instantiate it.
-            if inspect.isclass(plugin_cls):
+            if inspect.isclass(plugin_cls) or isinstance(plugin_cls, obj.Curry):
                 result = plugin_cls(*pos_args, **kwargs)
             else:
                 result = plugin_cls
