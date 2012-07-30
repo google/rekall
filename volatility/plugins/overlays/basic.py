@@ -193,9 +193,10 @@ class Enumeration(obj.NativeType):
     """Enumeration class for handling multiple possible meanings for a single value"""
 
     def __init__(self, choices = None, target = "unsigned long", value=None,
-                 **kwargs):
+                 default = None, **kwargs):
         super(Enumeration, self).__init__(**kwargs)
         self.choices = choices or {}
+        self.default = default
         if callable(value):
             value = value(self.obj_parent)
 
@@ -216,10 +217,7 @@ class Enumeration(obj.NativeType):
 
     def __str__(self):
         value = self.v()
-        if value in self.choices.keys():
-            return self.choices[value]
-
-        return str(value)
+        return self.choices.get(value, self.default) or str(value)
 
     def __eq__(self, other):
         if isinstance(other, int):
