@@ -5,6 +5,7 @@
 # Copyright (C) 2007 Komoku, Inc.
 #
 # Authors:
+# Michael Cohen <scudette@gmail.com>
 # Brendan Dolan-Gavitt <bdolangavitt@wesleyan.edu>
 # Mike Auty <mike.auty@gmail.com>
 #

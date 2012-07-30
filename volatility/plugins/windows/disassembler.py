@@ -58,11 +58,21 @@ class Disassemble(plugin.Command):
     __name = "dis"
 
     def __init__(self, address_space=None, offset=None, length=80, mode=None,
-                 **kwargs):
+                 suppress_headers=False, **kwargs):
+        """Dumps a disassembly of a location.
+
+        Args:
+          address_space: The address_space to read from.
+          offset: The offset to read from.
+          length: The number of instructions (lines) to disassemble.
+          mode: The mode (32/64 bit)- if not set taken from profile.
+          suppress_headers: If set we do not write headers.
+        """
         super(Disassemble, self).__init__(**kwargs)
         self.address_space = address_space
         self.offset = offset
         self.length = length
+        self.suppress_headers = suppress_headers
         self.mode = mode or self.session.profile.metadata("memory_model", "32bit")
         if self.mode == "32bit":
             self.distorm_mode = distorm3.Decode32Bits
@@ -94,7 +104,8 @@ class Disassemble(plugin.Command):
         """
         renderer.table_header([('Address', "cmd_address", '[addrpad]'),
                                ('Op Codes', "opcode", '<20'),
-                               ('Instruction', "instruction", '<40')])
+                               ('Instruction', "instruction", '<40')],
+                              suppress_headers=self.suppress_headers)
         for (offset, instruction, hexdump) in self.disassemble(self.offset):
             renderer.table_row(offset, hexdump, instruction)
 

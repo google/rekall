@@ -375,7 +375,8 @@ class Dump(plugin.Command):
 
     __name = "dump"
 
-    def __init__(self, target=None, offset=0, width=16, rows=30, **kwargs):
+    def __init__(self, target=None, offset=0, width=16, rows=30,
+                 suppress_headers=False, **kwargs):
         """Hexdump an object or memory location.
 
         You can use this plugin repeateadely to keep dumping more data using the
@@ -402,12 +403,14 @@ class Dump(plugin.Command):
           offset: The offset to start dumping from.
           width: How many Hex character per line.
           rows: How many rows to dump.
+          suppress_headers: If set we do not write the headers.
         """
         super(Dump, self).__init__(**kwargs)
         self.target = target
         self.offset = int(offset)
         self.width = int(width)
         self.rows = int(rows)
+        self.suppress_headers = suppress_headers
 
     def render(self, renderer):
         # Its an object
@@ -437,7 +440,8 @@ class Dump(plugin.Command):
 
         renderer.table_header([("Offset", "offset", "[addr]"),
                                ("Hex", "hex", "^" + str(3 * self.width)),
-                               ("Data", "data", "^" + str(self.width))])
+                               ("Data", "data", "^" + str(self.width))],
+                              suppress_headers=self.suppress_headers)
 
         offset = 0
         for offset, hexdata, translated_data in utils.Hexdump(

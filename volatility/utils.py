@@ -56,11 +56,14 @@ def Hexdump(data, width = 16):
         yield offset, hexdata, translated_data
 
 
-def WriteHexdump(fd, data, base=0, width=16):
+def WriteHexdump(renderer, data, base=0, width=16):
     """Write the hexdump to the fd."""
+    renderer.table_header([('Offset', 'offset', '[addrpad]'),
+                           ('Hex', 'hex', '^' + str(width * 3)),
+                           ('Data', 'data', '^' + str(width))])
+
     for offset, hexdata, translated_data in Hexdump(data):
-        fd.write(u"{0:#010x}  {1:<48}  {2}\n".format(
-                base + offset, hexdata, "".join(translated_data)))
+        renderer.table_row(base + offset, hexdata, "".join(translated_data))
 
 
 # This is a synchronize decorator.

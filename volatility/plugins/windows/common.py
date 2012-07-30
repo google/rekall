@@ -20,6 +20,7 @@
 
 """ This plugin contains CORE classes used by lots of other plugins """
 import logging
+import re
 import sys
 
 from volatility import addrspace
@@ -28,6 +29,7 @@ from volatility import scan
 from volatility import obj
 from volatility import profile
 from volatility import plugin
+from volatility import utils
 
 #pylint: disable-msg=C0111
 
@@ -355,8 +357,12 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
                             action=args.ArrayIntParser, nargs="+",
                             help="One or more pids of processes to select.")
 
+        parser.add_argument("--proc_regex", default=None,
+                            help="A regex to select a profile by name.")
 
-    def __init__(self, eprocess=None, phys_eprocess=None, pid=None, **kwargs):
+
+    def __init__(self, eprocess=None, phys_eprocess=None, pid=None,
+                 proc_regex=None, **kwargs):
         """Lists information about all the dlls mapped by a process.
 
         Args:
@@ -364,6 +370,9 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
               the physical AS.
 
            pid: A single pid.
+
+           proc_regex: A regular expression for filtering process name (using
+              _EPROCESS.ImageFileName).
         """
         super(WinProcessFilter, self).__init__(**kwargs)
 
@@ -391,11 +400,16 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
             pids.append(self.session.pid)
 
         self.pids = pids
+        if isinstance(proc_regex, basestring):
+            proc_regex = re.compile(proc_regex, re.I)
+
+        self.proc_regex = proc_regex
 
     def filter_processes(self):
         """Filters eprocess list using phys_eprocess and pids lists."""
         # No filtering required:
-        if not self.eprocess and not self.phys_eprocess and not self.pids:
+        if (not self.eprocess and not self.phys_eprocess and not self.pids and
+            not self.proc_regex):
             for eprocess in self.session.plugins.pslist(
                 session=self.session, kdbg=self.kdbg).list_eprocess():
                 yield eprocess
@@ -413,6 +427,10 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
                 session=self.session, kdbg=self.kdbg).list_eprocess():
                 if int(eprocess.UniqueProcessId) in self.pids:
                     yield eprocess
+                elif self.proc_regex and self.proc_regex.match(
+                    utils.SmartUnicode(eprocess.ImageFileName)):
+                    yield eprocess
+
 
     def virtual_process_from_physical_offset(self, physical_offset):
         """Tries to return an eprocess in virtual space from a physical offset.

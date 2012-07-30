@@ -48,6 +48,7 @@ win7_overlays = {
             'Tag': [-12 , ['String', dict(length = 4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
@@ -56,6 +57,7 @@ win7_overlays = {
             'ControlArea': lambda x: x.Subsection.ControlArea,
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
@@ -64,6 +66,7 @@ win7_overlays = {
             'ControlArea': lambda x: x.Subsection.ControlArea,
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 

@@ -42,6 +42,7 @@ win_xp_overlays = {
             'Tag': [-4 , ['String', dict(length = 4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
@@ -49,6 +50,7 @@ win_xp_overlays = {
             'Tag': [-4 , ['String', dict(length = 4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
@@ -56,6 +58,7 @@ win_xp_overlays = {
             'Tag': [-4 , ['String', dict(length = 4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
