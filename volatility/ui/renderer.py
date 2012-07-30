@@ -416,6 +416,18 @@ class RendererBaseClass(object):
            name: The name of this table.
         """
 
+    def record(self, record_data):
+        """Writes a single complete record.
+
+        A record consists of one object of related fields.
+
+        Args:
+          data: A list of tuples (name, short_name, formatstring, data)
+        """
+        for name, short_name, formatstring, data in record_data:
+            self.format("%s: %s\n" % (name, formatstring), data)
+
+        self.format("\n")
 
 class TextRenderer(RendererBaseClass):
     """Plugins can receive a renderer object to assist formatting of output."""

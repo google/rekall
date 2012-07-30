@@ -400,6 +400,7 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
             pids.append(self.session.pid)
 
         self.pids = pids
+        self.proc_regex_text = proc_regex
         if isinstance(proc_regex, basestring):
             proc_regex = re.compile(proc_regex, re.I)
 
