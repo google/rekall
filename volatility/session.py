@@ -198,7 +198,7 @@ class Session(object):
                 result.render(ui_renderer)
             except KeyboardInterrupt:
                 if self.debug:
-                    pdb.set_trace()
+                    pdb.post_mortem()
 
                 self.report_progress("Aborted!\r\n", force=True)
 

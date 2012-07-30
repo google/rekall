@@ -194,16 +194,6 @@ def parse_args(argv=None):
                                   'drops into interactive mode')
 
     # Top level args.
-    parser.add_argument("-e", "--exec", default=None,
-                        help="execute a python volatility script.")
-
-    parser.add_argument("-i", "--interactive", default=False,
-                        action="store_true",
-                        help="For compatibility, if a plugin name is specified "
-                        "on the command line, we exit immediately after running"
-                        " it. If this flag is specified we drop into the "
-                        "interactive shell instead.")
-
     parser.add_argument("--pager", default=os.environ.get("PAGER"),
                         help="The pager to use when output is larger than a "
                         "screen full.")
@@ -213,21 +203,18 @@ def parse_args(argv=None):
                         help="Logging level to show messages.")
 
     parser.add_argument("--debug", default=None, action="store_true",
-                        help="If set we break into the debugger on some "
+                        help="If set we break into the debugger on error "
                         "conditions.")
 
     parser.add_argument("-p", "--profile", default=None,
                         help="Name of the profile to load.")
 
-
     parser.add_argument("-f", "--filename", default=None,
                         help="The raw image to load.")
-
 
     parser.add_argument("--renderer", default="TextRenderer",
                         help="The renderer to use. e.g. (TextRenderer, "
                         "JsonRenderer).")
-
 
     parser.add_argument("--plugin", default=[], nargs="+",
                         help="Load user provided plugin bundle.")

@@ -316,7 +316,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print "Usage: dwarfparser.py  module.ko > module.json"
     else:
-        parser = DWARFParser(open(sys.argv[1]))
+        parser = DWARFParser(open(sys.argv[1]), "rb")
         vtypes = parser.VType()
 
         print json.dumps(vtypes)

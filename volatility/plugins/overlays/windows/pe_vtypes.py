@@ -1258,8 +1258,7 @@ class PE(object):
             ordinal = int(ordinal_table[i])
             seen_ordinals.add(ordinal)
 
-            yield (dll, function_table[ordinal].dereference(),
-                   name.dereference(), ordinal)
+            yield (dll, function_table[ordinal], name.dereference(), ordinal)
 
         # Now the functions without names
         for i, func in enumerate(function_table):
@@ -1267,7 +1266,7 @@ class PE(object):
             if ordinal in seen_ordinals:
                 continue
 
-            yield (dll, function_table[ordinal].dereference(),
+            yield (dll, function_table[ordinal],
                    obj.NoneObject("Name not accessible"), ordinal)
 
     def GetProcAddress(self, name):
@@ -1275,9 +1274,9 @@ class PE(object):
 
         Similar to the GetProcAddress function.
         """
-        for dll, function, func_name, ordinal in self.ExportDirectory():
+        for dll, function_pointer, func_name, ordinal in self.ExportDirectory():
             if func_name == name:
-                return function
+                return function_pointer.dereference()
 
     def VersionInformation(self):
         """A generator of key, value pairs."""

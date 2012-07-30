@@ -119,6 +119,7 @@ if __name__ == '__main__':
     user_session = session.InteractiveSession()
     UpdateSessionFromArgv(user_session, FLAGS)
 
+    # Run a module and do not drop into the shell.
     if getattr(FLAGS, "module", None):
         UpdateSessionFromArgv(user_session, FLAGS)
 
@@ -131,8 +132,7 @@ if __name__ == '__main__':
             else:
                 logging.error("%s. Try --debug for more information." % e)
 
-        if not FLAGS.interactive:
-            sys.exit()
+        sys.exit()
 
     # Try to launch the session using something.
     (IPython011Support(user_session) or

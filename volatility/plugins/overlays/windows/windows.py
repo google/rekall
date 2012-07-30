@@ -19,8 +19,9 @@
 #
 import copy
 
-from volatility import obj
 from volatility import addrspace
+from volatility import obj
+from volatility import utils
 
 from volatility.plugins.overlays import basic
 from volatility.plugins.overlays.windows import pe_vtypes
@@ -319,6 +320,9 @@ class _UNICODE_STRING(obj.CType):
     def __nonzero__(self):
         ## Unicode strings are valid if they point at a valid memory
         return bool(self.Buffer)
+
+    def __eq__(self, other):
+        return unicode(self) == utils.SmartUnicode(other)
 
     def __str__(self):
         return self.v()

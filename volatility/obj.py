@@ -540,11 +540,12 @@ class Pointer(NativeType):
             kwargs.update(dict(offset = offset,
                                vm = vm, profile = self.obj_profile,
                                parent = self.obj_parent,
-                               name = self.obj_name))
+                               name=self.obj_name))
 
             if isinstance(self.target, basestring):
-                result = self.obj_profile.Object(theType=self.target,
-                                                 context=self.obj_context, **kwargs)
+                result = self.obj_profile.Object(
+                    theType=self.target,
+                    context=self.obj_context, **kwargs)
 
             elif callable(self.target):
                 result = self.target(**kwargs)
@@ -641,8 +642,8 @@ class Void(Pointer):
         return self.obj_offset
 
     def size(self):
-        logging.warning("Void objects have no size! Are you doing pointer arithmetic "
-                        "on a pointer to void?")
+        logging.warning("Void objects have no size! Are you doing pointer "
+                        "arithmetic on a pointer to void?")
         return 1
 
     def cdecl(self):

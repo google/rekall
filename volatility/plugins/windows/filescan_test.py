@@ -49,6 +49,24 @@ class TestFileScanners(testlib.VolatilityBaseUnitTestCase):
                 self.ExtractColumn(current, i, 2),
                 self.ExtractColumn(previous, i, 2))
 
+    def testPsScan(self):
+        previous_meta, current_meta = self.ReRunVolatilityTest('psscan')
+        previous = previous_meta['output']
+        current = current_meta['output']
+
+        if previous_meta['mode'] == 'trunk':
+            for x, y in ((0, 0), (1, 2), (2, 3), (3, 4), (4, 5), (6, 8), (7, 9)):
+                self.assertListEqual(
+                    self.ExtractColumn(current, y, 2),
+                    self.ExtractColumn(previous, x, 2))
+
+        else:
+            # Compare the entire table
+            for i in range(10):
+                self.assertListEqual(
+                    self.ExtractColumn(current, i, 2),
+                    self.ExtractColumn(previous, i, 2))
+
     def testSymlink(self):
         previous_meta, current_meta = self.ReRunVolatilityTest('symlinkscan')
         previous = previous_meta['output']

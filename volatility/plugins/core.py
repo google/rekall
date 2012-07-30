@@ -148,9 +148,6 @@ class Info(plugin.Command):
 
     def render_item_info(self, item, renderer):
         """Render information about the specific item."""
-        if isinstance(item, obj.Curry):
-            item = item._target
-
         cls_doc = item.__doc__ or ""
 
         if isinstance(item, registry.MetaclassRegistry):

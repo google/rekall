@@ -410,12 +410,24 @@ class PSScan(common.PoolScannerPlugin):
 
     def render(self, renderer):
         """Render results in a table."""
+        # Try to do a regular process listing so we can compare if the process
+        # is known.
+        pslist = self.session.plugins.pslist()
+
+        # These are virtual addresses.
+        known_eprocess = set()
+        known_pids = set()
+        for task in pslist.list_eprocess():
+            known_eprocess.add(task.obj_offset)
+            known_pids.add(task.UniqueProcessId)
+
         renderer.table_header([('Offset', "offset_p", '[addrpad]'),
                                ('Offset(V)', "offset_v", '[addrpad]'),
                                ('Name', "file_name", '16'),
                                ('PID', "pid", '>6'),
                                ('PPID', "ppid", '>6'),
                                ('PDB', "pdb", '[addrpad]'),
+                               ('Stat', 'stat', "4"),
                                ('Time created', "process_create_time", '20'),
                                ('Time exited', "process_exit_time", '20')]
                                )
@@ -424,11 +436,19 @@ class PSScan(common.PoolScannerPlugin):
             # Try to guess the virtual address of the eprocess
             eprocess_virtual_address = self.guess_eprocess_virtual_address(eprocess)
 
+            known = ""
+            if eprocess_virtual_address in known_eprocess:
+                known += "E"
+
+            if eprocess.UniqueProcessId in known_pids:
+                known += "P"
+
             renderer.table_row(eprocess.obj_offset,
                                eprocess_virtual_address,
                                eprocess.ImageFileName,
                                eprocess.UniqueProcessId,
                                eprocess.InheritedFromUniqueProcessId,
                                eprocess.Pcb.DirectoryTableBase,
+                               known,
                                eprocess.CreateTime or '',
                                eprocess.ExitTime or '')

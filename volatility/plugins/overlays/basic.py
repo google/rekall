@@ -481,6 +481,90 @@ try:
 
             return "\n".join(result)
 
+        def _call_or_unc_jmp(self, op):
+            """Determine if an instruction is a call or an
+            unconditional jump
+
+            @param op: a distorm3 Op object
+            """
+            return ((op.flowControl == 'FC_CALL' and
+                     op.mnemonic == "CALL") or
+                    (op.flowControl == 'FC_UNC_BRANCH' and
+                     op.mnemonic == "JMP"))
+
+        def DetectJumps(self, size=1000):
+            """A generator for operations that look like jumps.
+
+            Disassemble a block of data and yield possible
+            calls to imported functions. We're looking for
+            instructions such as these:
+
+            x86:
+            CALL DWORD [0x1000400]
+            JMP  DWORD [0x1000400]
+
+            x64:
+            CALL QWORD [RIP+0x989d]
+
+            On x86, the 0x1000400 address is an entry in the
+            IAT or call table. It stores a DWORD which is the
+            location of the API function being called.
+
+            On x64, the 0x989d is a relative offset from the
+            current instruction (RIP).
+
+            Yields:
+              A tuple of source, destination Function objects which are the
+              targets for jumps.
+            """
+            for op in self.Decompose(size=size):
+                iat_loc = None
+
+                if self.mode == '32bit':
+                    if (self._call_or_unc_jmp(op) and
+                        op.operands[0].type == 'AbsoluteMemoryAddress'):
+                        iat_loc = (op.operands[0].disp & 0xffffffff)
+                else:
+                    if (self._call_or_unc_jmp(op) and
+                        'FLAG_RIP_RELATIVE' in op.flags and
+                        op.operands[0].type == 'AbsoluteMemory'):
+                        iat_loc = op.address + op.size + op.operands[0].disp
+
+                if iat_loc:
+                    # This is the address being called
+                    func_pointer = self.obj_profile.Pointer(
+                        target="Function", offset=iat_loc, vm=self.obj_vm,
+                        name="Function")
+
+                    yield op.address, iat_loc, func_pointer
+
+        def Decompose(self, size=0):
+            """A generator for instructions of this object."""
+            overlap = 0x1000
+            data = ''
+            offset = self.obj_offset
+            count = 0
+
+            while size > count:
+                data = self.obj_vm.zread(offset, overlap)
+
+                # This could happen if we hit an unmapped page - we just
+                # abort.
+                if not data:
+                    return
+
+                count += len(data)
+                for op in distorm3.Decompose(offset, data, self.distorm_mode):
+                    if op.address - offset > len(data) - 40:
+                        break
+
+                    if not op.valid:
+                        continue
+
+                    yield op
+
+                offset = op.address
+
         def Search(self, expressions, instruction_limit=100):
             """Search forward for a sequence matching the expressions.
 
@@ -536,8 +620,6 @@ try:
 
 except ImportError:
     pass
-
-
 
 
 # We define two kinds of basic profiles, a 32 bit one and a 64 bit one

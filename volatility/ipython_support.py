@@ -27,6 +27,7 @@ from IPython.frontend.terminal.embed import InteractiveShellEmbed
 from IPython.config.loader import Config
 from IPython.core.completer import IPCompleter
 
+
 class VolCompleter(IPCompleter):
 
     def _default_arguments(self, obj):

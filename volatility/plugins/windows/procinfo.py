@@ -36,6 +36,10 @@ class PEInfo(plugin.Command):
     def __init__(self, address_space=None, image_base=None, **kwargs):
         """Dump a PE binary from memory.
 
+        Status is shown for each exported function:
+
+          - M: The function is mapped into memory.
+
         Args:
           address_space: The address space which contains the PE image.
           image_base: The address of the image base (dos header).
@@ -60,8 +64,8 @@ class PEInfo(plugin.Command):
             renderer.table_row(field,
                                getattr(pe_helper.nt_header.FileHeader, field))
 
-        renderer.write("\nSections (Relative to 0x08%X):\n" %
-                       pe_helper.image_base)
+        renderer.format("\nSections (Relative to 0x08%X):\n",
+                        pe_helper.image_base)
         renderer.table_header([('Perm', 'perm', '4'),
                                ('Name', 'name', '<8'),
                                ('VMA',  'vma', '[addrpad]'),
@@ -70,7 +74,7 @@ class PEInfo(plugin.Command):
         for permission, name, virtual_address, size in pe_helper.Sections():
             renderer.table_row(permission, name, virtual_address, size)
 
-        renderer.write("\nData Directories:\n")
+        renderer.format("\nData Directories:\n")
         renderer.table_header([('', 'name', '<40'),
                                ('VMA', 'vma', '[addrpad]'),
                                ('Size', 'size', '[addrpad]')])
@@ -79,14 +83,14 @@ class PEInfo(plugin.Command):
             renderer.table_row(d.obj_name, d.VirtualAddress, d.Size)
 
 
-        renderer.write("\nImport Directory (Original):\n")
+        renderer.format("\nImport Directory (Original):\n")
         renderer.table_header([('Name', 'name', '<50'),
                                ('Ord', 'ord', '5')])
 
         for dll, name, ordinal in pe_helper.ImportDirectory():
             renderer.table_row(u"%s!%s" % (dll, name), ordinal)
 
-        renderer.write("\nImport Address Table:\n")
+        renderer.format("\nImport Address Table:\n")
         renderer.table_header([('Name', 'name', '<20'),
                                ('Address', 'address', '[addrpad]'),
                                ('Disassembly', 'disassembly', '[wrap:30]')])
@@ -98,15 +102,15 @@ class PEInfo(plugin.Command):
                 disassembly.append(x.strip())
             renderer.table_row(name, function, "\n".join(disassembly))
 
-        renderer.write("\nExport Directory:\n")
-        renderer.table_header([('Entry Point', 'entry', '[addrpad]'),
+        renderer.format("\nExport Directory:\n")
+        renderer.table_header([('Entry', 'entry', '[addrpad]'),
+                               ('Stat', 'status', '4'),
                                ('Ord', 'ord', '5'),
                                ('Name',  'name', '<50')])
 
         for dll, function, name, ordinal in pe_helper.ExportDirectory():
-            renderer.table_row(function, ordinal, u"%s!%s" % (dll, name))
-
-
+            status = 'M' if function.dereference() else "-"
+            renderer.table_row(function, status, ordinal, u"%s!%s" % (dll, name))
 
 
 class ProcInfo(common.WinProcessFilter):
