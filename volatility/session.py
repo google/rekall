@@ -319,7 +319,7 @@ Config:
         if isinstance(value, basestring):
             level = getattr(logging, value.upper(), logging.INFO)
 
-        logging.log(level, "Logging level set to %s", value)
+        logging.info("Logging level set to %s", value)
         logging.getLogger().setLevel(int(level))
 
     def report_progress(self, message="", force=False):

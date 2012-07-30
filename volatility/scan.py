@@ -138,7 +138,7 @@ class BaseScanner(object):
                 to_read = min(constants.SCAN_BLOCKSIZE, maxlen - (i - offset))
 
                 # Refresh the data buffer.
-                data = self.address_space.read(i, to_read)
+                data = self.address_space.zread(i, to_read)
                 data_offset = 0
                 if not data:
                     break

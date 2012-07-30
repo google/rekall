@@ -27,6 +27,7 @@
 import re
 import os
 
+from volatility import args
 from volatility import utils
 from volatility.plugins import core
 from volatility.plugins.windows import common
@@ -48,11 +49,22 @@ class PrintKey(common.WindowsCommandPlugin):
     meta_info['os'] = 'WIN_32_XP_SP2'
     meta_info['version'] = '1.0'
 
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(PrintKey, cls).args(parser)
+        parser.add_argument("-k", "--key", default="",
+                            help="Registry key to print.")
+
+        parser.add_argument("-o", "--hive_offsets", default=None,
+                            action=args.ArrayIntParser, nargs="+",
+                            help = 'Hive offsets to search (virtual)')
+
     def __init__(self, hive_offsets=None, key="", **kwargs):
         """Print all keys and values contained by a registry key.
 
         Args:
-          hive_offset: A list of hive offsets as found by hivelist (virtual
+          hive_offsets: A list of hive offsets as found by hivelist (virtual
             address). If not provided we call hivescan ourselves and list the
             key on all hives.
 
@@ -61,15 +73,7 @@ class PrintKey(common.WindowsCommandPlugin):
         """
         super(PrintKey, self).__init__(**kwargs)
         self.profile = registry.VolatilityRegisteryImplementation(self.profile)
-
-        if hive_offsets is None:
-            hive_offsets = []
-
-        try:
-            self.hive_offsets = list(hive_offsets)
-        except TypeError:
-            self.hive_offsets = [hive_offsets]
-
+        self.hive_offsets = hive_offsets
         self.key = key
 
     def list_keys(self):
@@ -129,6 +133,17 @@ class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
     """Dump all registry hives into a dump directory."""
 
     __name = 'regdump'
+
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(RegDump, cls).args(parser)
+        parser.add_argument("-k", "--key", default=False,
+                            help="Registry key to print.")
+
+        parser.add_argument("-o", "--hive_offsets", action=args.ArrayIntParser,
+                            nargs="+", help='Hive offsets to search (virtual)')
+
 
     def __init__(self, hive_offsets=None, **kwargs):
         """Dump a PE binary from memory.

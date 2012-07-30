@@ -252,7 +252,7 @@ class ModDump(DLLDump):
 
     def find_space(self, image_base):
         """Search through all process address spaces for a PE file."""
-        if self.processes is None:
+        if self.address_spaces is None:
             self.address_spaces = [self.kernel_address_space]
             for task in self.filter_processes():
                 self.address_spaces.append(task.get_process_address_space())

@@ -83,9 +83,6 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def __unicode__(self):
         return self.v().decode("utf8", "replace").split("\x00")[0] or u""
 
-    def __format__(self, formatspec):
-        return format(unicode(self), formatspec)
-
     def __add__(self, other):
         """Set up mappings for concat"""
         return str(self) + other
@@ -136,7 +133,7 @@ class UnicodeString(String):
         return data
 
     def __unicode__(self):
-        return super(UnicodeString, self).__unicode__()
+        return self.v().split("\x00")[0] or u""
 
     def __str__(self):
         """This function returns an encoded string in utf8."""
@@ -183,9 +180,6 @@ class Flags(obj.NativeType):
             abridged = abridged[:40] + " ..."
 
         return "%s (%s)" % (super(Flags, self).__repr__(), abridged)
-
-    def __format__(self, formatspec):
-        return format(self.__str__(), formatspec)
 
     def __getattr__(self, attr):
         mask = self.maskmap.get(attr)
@@ -239,9 +233,6 @@ class Enumeration(obj.NativeType):
     def __repr__(self):
         return "%s (%s)" % (super(Enumeration, self).__repr__(),
                             self.__str__())
-
-    def __format__(self, formatspec):
-        return format(self.__str__(), formatspec)
 
 
 class IpAddress(obj.NativeType):

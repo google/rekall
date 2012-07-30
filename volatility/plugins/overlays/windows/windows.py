@@ -221,9 +221,6 @@ class _UNICODE_STRING(obj.CType):
         ## Unicode strings are valid if they point at a valid memory
         return bool(self.Buffer)
 
-    def __format__(self, formatspec):
-        return format(self.v() or "", formatspec)
-
     def __str__(self):
         return self.v()
 

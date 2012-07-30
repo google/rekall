@@ -46,10 +46,6 @@ class VolatilityException(Exception):
     """Generic Volatility Specific exception, to help differentiate from other exceptions"""
 
 
-class CacheRelativeURLException(VolatilityException):
-    """Exception for gracefully not saving Relative URLs in the cache"""
-
-
 def Hexdump(data, width = 16):
     """ Hexdump function shared by various plugins """
     for offset in xrange(0, len(data), width):

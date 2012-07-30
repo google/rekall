@@ -328,11 +328,11 @@ class BaseObject(object):
         """
         return NoneObject("No value for {0}".format(self.obj_name), self.obj_profile)
 
-    def __format__(self, formatspec):
-        return format(self.v(), formatspec)
-
     def __str__(self):
         return str(self.v())
+
+    def __unicode__(self):
+        return self.__str__().decode("utf8", "ignore")
 
     def __repr__(self):
         return "[{0} {1}] @ 0x{2:08X}".format(self.__class__.__name__, self.obj_name,
@@ -343,6 +343,15 @@ class BaseObject(object):
         result = self.__dict__.keys() + dir(self.__class__)
 
         return result
+
+    def __format__(self, formatspec):
+        if not formatspec:
+            formatspec = "s"
+
+        if formatspec[-1] in "xdXD":
+            return format(int(self), formatspec)
+
+        return object.__format__(self, formatspec)
 
 
 def CreateMixIn(mixin):
@@ -384,9 +393,6 @@ class NumericProxyMixIn(object):
 
         ## Comparisons
         '__lt__', '__le__', '__eq__', '__ne__', '__ge__', '__gt__', '__index__',
-
-        ## Formatting
-        '__format__',
         ]
 
 
@@ -395,9 +401,6 @@ class StringProxyMixIn(object):
     _specials = [
         ## Comparisons
         '__lt__', '__le__', '__eq__', '__ne__', '__ge__', '__gt__', '__index__',
-
-        ## Formatting
-        '__format__',
         ]
 
 

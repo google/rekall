@@ -185,7 +185,8 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
 
         # Just a simple measure of time, so we can detect extreme slow down
         # regressions.
-        metadata = dict(output = fd.getvalue().splitlines())
+        metadata = dict(output = fd.getvalue().decode("utf8", "ignore").
+                        splitlines())
 
         metadata['time_used'] = time.time() - t
         logging.info("Completed in %s seconds" % metadata['time_used'])
