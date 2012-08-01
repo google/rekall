@@ -379,6 +379,15 @@ class PSScan(common.PoolScannerPlugin):
 
     __name = "psscan"
 
+    def __init__(self, **kwargs):
+        """Scan Physical memory for _EPROCESS pool allocations.
+
+        Status flags:
+          E: A known _EPROCESS address from pslist.
+          P: A known pid from pslist.
+        """
+        super(PSScan, self).__init__(**kwargs)
+
     def calculate(self):
         """Generate possible hits."""
         ## Just grab the AS and scan it using our scanner
@@ -402,11 +411,7 @@ class PSScan(common.PoolScannerPlugin):
         # The virtual eprocess should be the same as the physical one
         kernel_eprocess_offset = list_entry.obj_offset - list_entry_offset
 
-        if self.kernel_address_space.vtop(kernel_eprocess_offset) == eprocess.obj_offset:
-            return kernel_eprocess_offset
-
-        return 0
-
+        return kernel_eprocess_offset
 
     def render(self, renderer):
         """Render results in a table."""

@@ -207,6 +207,7 @@ class Win7SP0x86(basic.Profile32Bits, Win7BaseProfile):
     """ A Profile for Windows 7 SP0 x86 """
     _md_major = 6
     _md_minor = 1
+    _md_type = "Kernel"
 
     def __init__(self, **kwargs):
         super(Win7SP0x86, self).__init__(**kwargs)
@@ -221,6 +222,7 @@ class Win7SP0x64(basic.Profile64Bits, Win7BaseProfile):
     """ A Profile for Windows 7 SP0 x64 """
     _md_major = 6
     _md_minor = 1
+    _md_type = "Kernel"
 
     def __init__(self, **kwargs):
         super(Win7SP0x64, self).__init__(**kwargs)
@@ -236,6 +238,7 @@ class Win7SP1x86(basic.Profile32Bits, Win7BaseProfile):
     _md_major = 6
     _md_minor = 1
     _md_build = 7601
+    _md_type = "Kernel"
 
     def __init__(self, **kwargs):
         super(Win7SP1x86, self).__init__(**kwargs)
@@ -251,6 +254,7 @@ class Win7SP1x64(basic.Profile64Bits, Win7BaseProfile):
     """ A Profile for Windows 7 SP1 x64 """
     _md_major = 6
     _md_minor = 1
+    _md_type = "Kernel"
 
     def __init__(self, **kwargs):
         super(Win7SP1x64, self).__init__(**kwargs)

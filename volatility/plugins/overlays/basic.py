@@ -631,7 +631,8 @@ class Profile32Bits(obj.Profile):
         super(Profile32Bits, self).__init__(**kwargs)
         self.add_classes(native_types.generic_native_types)
         self.add_classes(native_types.x86_native_types)
-        self.add_constants(PoolAlignment=8, MAX_FAST_REF=7)
+        self.add_constants(PoolAlignment=8, MAX_FAST_REF=7,
+                           MaxPointer=2**32-1)
 
 
 class Profile64Bits(obj.Profile):
@@ -642,7 +643,8 @@ class Profile64Bits(obj.Profile):
         super(Profile64Bits, self).__init__(**kwargs)
         self.add_classes(native_types.generic_native_types)
         self.add_classes(native_types.x64_native_types)
-        self.add_constants(PoolAlignment=16, MAX_FAST_REF=15)
+        self.add_constants(PoolAlignment=16, MAX_FAST_REF=15,
+                           MaxPointer=2**48-1)
 
 
 class BasicWindowsClasses(obj.Profile):

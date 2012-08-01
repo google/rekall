@@ -251,7 +251,9 @@ class PoolScanner(scan.DiscontigScanner, scan.BaseScanner):
     # These objects are allocated in the pool allocation.
     allocation = [ '_POOL_HEADER' ]
 
-    def scan(self, offset=0, maxlen=sys.maxint):
+    def scan(self, offset=0, maxlen=None):
+        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+
         """Yields instances of _POOL_HEADER which potentially match."""
         for hit in super(PoolScanner, self).scan(offset=offset, maxlen=maxlen):
             yield self.profile._POOL_HEADER(vm=self.address_space, offset=hit)

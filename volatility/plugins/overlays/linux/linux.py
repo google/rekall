@@ -222,6 +222,7 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
     """
     _md_os = "linux"
     _md_memory_model = "32bit"
+    _md_type = "Kernel"
 
     def __init__(self, profile_file=None, **kwargs):
         super(Linux32, self).__init__(**kwargs)

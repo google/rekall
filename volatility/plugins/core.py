@@ -41,6 +41,13 @@ class Info(plugin.Command):
 
     __name = "info"
 
+
+    standard_options = [("output", " Save output to this file."),
+                        ("overwrite", " Must be set to overwrite an output "
+                         "file. You can also set this in the session as a "
+                         "global setting."),
+                        ("renderer", " Use this renderer for the output.")]
+
     def __init__(self, item=None, verbosity=0, **kwargs):
         """Display information about a plugin.
 
@@ -162,7 +169,7 @@ class Info(plugin.Command):
 
             doc_strings = []
             renderer.table_header([('Parameter', 'parameter', '30'),
-                                   ('Documentation', 'doc', '70')])
+                                   (' Documentation', 'doc', '70')])
 
             seen_parameters = set()
             for cls in item.mro():
@@ -179,16 +186,24 @@ class Info(plugin.Command):
                         if parameter in seen_parameters: continue
 
                         seen_parameters.add(parameter)
-                        clean_doc = []
-                        for paragraph in self.split_into_paragraphs(
-                            " " * dedent + doc, dedent=dedent, wrap=70):
-                            clean_doc.append(paragraph)
+                        renderer.table_row(parameter,
+                                           self._clean_up_doc(doc, dedent))
 
-                        renderer.table_row(parameter, "\n".join(clean_doc))
+            # Add the standard help options.
+            for parameter, descriptor in self.standard_options:
+                renderer.table_row(parameter, self._clean_up_doc(descriptor))
 
         else:
             # For normal objects just write their docstrings.
             renderer.write(item.__doc__ or "")
+
+    def _clean_up_doc(self, doc, dedent=0):
+        clean_doc = []
+        for paragraph in self.split_into_paragraphs(
+            " " * dedent + doc, dedent=dedent, wrap=70):
+            clean_doc.append(paragraph)
+
+        return "\n".join(clean_doc)
 
     def render_general_info(self, renderer):
         renderer.write(constants.BANNER)
@@ -293,10 +308,10 @@ class LoadAddressSpace(plugin.ProfileCommand):
             base_as = None
 
         if base_as:
-            logging.info("Autodetected %s address space %s\n", astype, base_as)
+            logging.info("Autodetected %s address space %s", astype, base_as)
         else:
             logging.info("Failed to autodetect %s address space. Try running "
-                         "plugin.load_as with a spec.\n", astype)
+                         "plugin.load_as with a spec.", astype)
 
         return base_as
 

@@ -100,7 +100,7 @@ class WinPas2Vas(common.WinProcessFilter):
             # This efficiently finds the entry in the map just below the
             # physical_address.
             lookup_pa, length, lookup_va, task = lookup_map[
-                bisect.bisect(lookup_map, (physical_address, sys.maxint, 0))-1]
+                bisect.bisect(lookup_map, (physical_address, 2**64, 0))-1]
 
             if (lookup_pa <= physical_address and
                 lookup_pa + length > physical_address):

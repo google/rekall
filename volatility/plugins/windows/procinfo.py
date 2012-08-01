@@ -64,7 +64,7 @@ class PEInfo(plugin.Command):
             renderer.table_row(field,
                                getattr(pe_helper.nt_header.FileHeader, field))
 
-        renderer.format("\nSections (Relative to 0x08%X):\n",
+        renderer.format("\nSections (Relative to 0x{0:08X}):\n",
                         pe_helper.image_base)
         renderer.table_header([('Perm', 'perm', '4'),
                                ('Name', 'name', '<8'),

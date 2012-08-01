@@ -90,6 +90,7 @@ class WinXPSP2x86(AbstractWinXPProfile, basic.Profile32Bits):
     """ A Profile for Windows XP SP2 x86 """
     _md_major = 5
     _md_minor = 1
+    _md_type = "Kernel"
 
     def __init__(self, **kwargs):
         super(WinXPSP2x86, self).__init__(**kwargs)
@@ -104,6 +105,7 @@ class WinXPSP3x86(AbstractWinXPProfile, basic.Profile32Bits):
     """ A Profile for Windows XP SP3 x86 """
     _md_major = 5
     _md_minor = 1
+    _md_type = "Kernel"
 
     def __init__(self, **kwargs):
         super(WinXPSP3x86, self).__init__(**kwargs)

@@ -117,7 +117,12 @@ if __name__ == '__main__':
 
     # New user interactive session (with extra bells and whistles).
     user_session = session.InteractiveSession()
-    UpdateSessionFromArgv(user_session, FLAGS)
+
+    try:
+        UpdateSessionFromArgv(user_session, FLAGS)
+    except ValueError as e:
+        print e
+        sys.exit(-1)
 
     # Run a module and do not drop into the shell.
     if getattr(FLAGS, "module", None):

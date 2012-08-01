@@ -219,6 +219,12 @@ def parse_args(argv=None):
     parser.add_argument("--plugin", default=[], nargs="+",
                         help="Load user provided plugin bundle.")
 
+    parser.add_argument("--output", default=None,
+                        help="Write to this output file.")
+
+    parser.add_argument("--overwrite", action="store_true", default=False,
+                        help="Allow overwriting of output files.")
+
     # Module specific args.
     subparsers = parser.add_subparsers(
         description="The following plugins can be selected.",

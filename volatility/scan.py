@@ -53,7 +53,7 @@ class BaseScanner(object):
         self.address_space = address_space
         self.window_size = window_size
         self.constraints = None
-        self.profile = profile
+        self.profile = profile or session.profile
         self.max_length = None
         self.base_offset = None
         self.session = session
@@ -101,7 +101,7 @@ class BaseScanner(object):
         return skip
 
     overlap = 1024
-    def scan(self, offset=0, maxlen=sys.maxint):
+    def scan(self, offset=0, maxlen=None):
         """Scan the region from offset for maxlen.
 
         Args:
@@ -113,6 +113,8 @@ class BaseScanner(object):
         Yields:
           offsets where all the constrainst are satisfied.
         """
+        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+
         # Delay building the constraints so they can be added after scanner
         # construction.
         if self.constraints is None:
@@ -152,7 +154,9 @@ class BaseScanner(object):
 class DiscontigScanner(object):
     """A Mixin for Discontiguous scanning."""
 
-    def scan(self, offset=0, maxlen=sys.maxint):
+    def scan(self, offset=0, maxlen=None):
+        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+
         for (start, length) in self.address_space.get_address_ranges(
             offset, offset + maxlen):
             for match in super(DiscontigScanner, self).scan(start, length):
@@ -244,16 +248,14 @@ class MultiStringFinderCheck(ScannerCheck):
 class ScannerGroup(BaseScanner):
     """Runs a bunch of scanners in one pass over the image."""
 
-    def __init__(self, profile=None, window_size=8, address_space=None,
-                 **scanners):
+    def __init__(self, scanners=None, **kwargs):
         """Create a new scanner group.
 
         Args:
           scanners: A dict of BaseScanner instances. Keys will be used to refer
           to the scanner, while the value is the scanner instance.
         """
-        super(ScannerGroup, self).__init__(profile=profile,
-                                           address_space=address_space)
+        super(ScannerGroup, self).__init__(**kwargs)
         self.scanners = scanners
         for scanner in scanners.values():
             scanner.address_space = self.address_space
@@ -261,8 +263,8 @@ class ScannerGroup(BaseScanner):
         # A dict to hold all hits for each scanner.
         self.result = {}
 
-    def scan(self, offset=0, maxlen=sys.maxint):
-        available_length = maxlen
+    def scan(self, offset=0, maxlen=None):
+        available_length = maxlen or self.profile.get_constant("MaxPointer")
 
         while available_length > 0:
             to_read = min(constants.SCAN_BLOCKSIZE + self.overlap,
@@ -282,7 +284,9 @@ class ScannerGroup(BaseScanner):
 class DiscontigScannerGroup(ScannerGroup):
     """A scanner group which works over a virtual address space."""
 
-    def scan(self, offset=0, maxlen=sys.maxint):
+    def scan(self, offset=0, maxlen=None):
+        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+
         for (start, length) in self.address_space.get_address_ranges(
             offset, offset + maxlen):
             for match in super(DiscontigScannerGroup, self).scan(

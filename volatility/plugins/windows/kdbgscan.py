@@ -34,7 +34,9 @@ class KDBGScanner(scan.DiscontigScanner, scan.BaseScanner):
     """
     checks = [ ("MultiStringFinderCheck", dict(needles=["KDBG"])) ]
 
-    def scan(self, offset=0, maxlen=sys.maxint):
+    def scan(self, offset=0, maxlen=None):
+        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+
         # How far into the struct the OwnerTag is.
         owner_tag_offset = self.profile.get_obj_offset("_DBGKD_DEBUG_DATA_HEADER64",
                                                        "OwnerTag")

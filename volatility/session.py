@@ -244,13 +244,18 @@ class Session(object):
             try:
                 profile = obj.Profile.classes[profile](session=self)
             except KeyError:
-                logging.error("Profile %s is not known." % profile)
-                logging.info("Known profiles are:")
+                print ("Profile %s is not known." % profile)
+                print ("Known profiles are:")
 
-                for profile in obj.Profile.classes:
-                    logging.info("  %s" % profile)
+                valid_profiles = []
+                for profile, cls in obj.Profile.classes.items():
+                    if cls.metadata("type") == "Kernel":
+                        valid_profiles.append(profile)
 
-                return
+                for profile in sorted(valid_profiles):
+                    print ("  %s" % profile)
+
+                raise ValueError("Invalid profile")
 
         if isinstance(profile, obj.Profile):
             self.__dict__['profile'] = profile

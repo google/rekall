@@ -360,7 +360,9 @@ class VadScanner(scan.BaseScanner):
             profile=process_profile or task.obj_profile,
             address_space=task.get_process_address_space())
 
-    def scan(self, offset=0, maxlen=sys.maxint):
+    def scan(self, offset=0, maxlen=None):
+        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+
         for vad in self.task.RealVadRoot.traverse():
             # Get only the mapped address ranges within the vad region.
             for start, length in self.address_space.get_address_ranges(

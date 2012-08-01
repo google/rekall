@@ -146,7 +146,7 @@ class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
 
 
     def __init__(self, hive_offsets=None, **kwargs):
-        """Dump a PE binary from memory.
+        """Dump the registry from memory.
 
         Args:
           hive_offset: A list of hive offsets as found by hivelist (virtual
