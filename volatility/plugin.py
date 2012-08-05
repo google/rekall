@@ -171,7 +171,7 @@ class KernelASMixin(object):
 
         if self.kernel_address_space is None:
             # Try to guess the AS
-            self.session.plugins.load_as(session=self.session)
+            self.session.plugins.load_as()
             self.kernel_address_space = self.session.kernel_address_space
 
         if self.kernel_address_space is None:

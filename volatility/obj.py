@@ -1426,11 +1426,8 @@ class Profile(object):
             return result
 
         else:
-            import pdb; pdb.set_trace()
-
             # If we get here we have no idea what the type is supposed to be?
-            # This is a serious error.
-            logging.warning("Cant find object {0} in profile {1}?".format(
+            logging.info("Cant find object {0} in profile {1}?".format(
                     theType, self))
 
 

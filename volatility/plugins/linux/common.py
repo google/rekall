@@ -96,7 +96,7 @@ class LinProcessFilter(AbstractLinuxCommandPlugin):
         """
         super(LinProcessFilter, self).__init__(**kwargs)
 
-        if isinstance(phys_task_struct, int):
+        if isinstance(phys_task_struct, (int, long)):
             phys_task_struct = [phys_task_struct]
         elif phys_task_struct is None:
             phys_task_struct = []

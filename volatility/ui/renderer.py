@@ -27,6 +27,7 @@ import os
 import string
 import subprocess
 import sys
+import tempfile
 import textwrap
 import time
 
@@ -48,25 +49,47 @@ class Pager(object):
     def __init__(self, session=None, encoding=None):
         # More is the least common denominator of pagers :-(. Less is better,
         # but most is best!
-        pager = session.pager or os.environ.get("PAGER")
+        self.pager_command = session.pager or os.environ.get("PAGER")
         self.encoding = encoding or session.encoding or sys.stdout.encoding
-        self.pager = subprocess.Popen(pager, shell=True, stdin=subprocess.PIPE,
-                                      bufsize=10240)
+
+        # Make a temporary filename to store output in.
+        self.fd = tempfile.NamedTemporaryFile(prefix="vol")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        # Delete the temp file.
+        if self.fd:
+            self.fd.close()
 
     def write(self, data):
         # Encode the data according to the output encoding.
         data = utils.SmartUnicode(data).encode(self.encoding, "replace")
         try:
-            self.pager.stdin.write(data)
-            self.pager.stdin.flush()
-
+            self.fd.write(data)
         # This can happen if the pager disappears in the middle of the write.
         except IOError:
             self.flush()
 
     def flush(self):
         """Wait for the pager to be exited."""
-        self.pager.communicate()
+        self.fd.flush()
+
+        args = dict(filename=self.fd.name)
+        # Allow the user to interpolate the filename in a special way, otherwise
+        # just append to the end of the command.
+        if "%" in self.pager_command:
+            pager_command = self.pager_command % args
+        else:
+            pager_command = self.pager_command + " %s" % self.fd.name
+
+        try:
+            subprocess.call(pager_command, shell=True)
+
+        # Allow the user to break out from waiting for the command.
+        except KeyboardInterrupt:
+            pass
 
 
 class UnicodeWrapper(object):

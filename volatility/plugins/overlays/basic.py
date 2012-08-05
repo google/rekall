@@ -220,7 +220,7 @@ class Enumeration(obj.NativeType):
         return self.choices.get(value, self.default) or str(value)
 
     def __eq__(self, other):
-        if isinstance(other, int):
+        if isinstance(other, (int, long)):
             return self.v() == other
 
         # Search the choices.

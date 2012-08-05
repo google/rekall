@@ -378,13 +378,15 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         """
         super(WinProcessFilter, self).__init__(**kwargs)
 
-        if isinstance(phys_eprocess, int):
+        if isinstance(phys_eprocess, (int, long)):
             phys_eprocess = [phys_eprocess]
         elif phys_eprocess is None:
             phys_eprocess = []
 
-        if isinstance(eprocess, int):
+        if isinstance(eprocess, (int, long)):
             eprocess = [eprocess]
+        elif isinstance(eprocess, obj.CType):
+            eprocess = [eprocess.obj_offset]
         elif eprocess is None:
             eprocess = []
 
@@ -395,7 +397,7 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         if isinstance(pid, list):
             pids.extend(pid)
 
-        elif isinstance(pid, int):
+        elif isinstance(pid, (int, long)):
             pids.append(pid)
 
         if self.session.pid and not pid:

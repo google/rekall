@@ -151,7 +151,7 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
 
             self.newattr(name, o)
 
-    def get_object_type(self, kernel_address_space):
+    def get_object_type(self, vm=None):
         """Return the object's type as a string"""
         return self.type_map.get(self.TypeIndex.v(), '')
 

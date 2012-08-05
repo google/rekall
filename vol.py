@@ -115,17 +115,9 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO)
 
-    # New user interactive session (with extra bells and whistles).
-    user_session = session.InteractiveSession()
-
-    try:
-        UpdateSessionFromArgv(user_session, FLAGS)
-    except ValueError as e:
-        print e
-        sys.exit(-1)
-
     # Run a module and do not drop into the shell.
     if getattr(FLAGS, "module", None):
+        user_session = session.Session()
         UpdateSessionFromArgv(user_session, FLAGS)
 
         # Run the module
@@ -138,6 +130,9 @@ if __name__ == '__main__':
                 logging.error("%s. Try --debug for more information." % e)
 
         sys.exit()
+
+    # New user interactive session (with extra bells and whistles).
+    user_session = session.InteractiveSession()
 
     # Try to launch the session using something.
     (IPython011Support(user_session) or

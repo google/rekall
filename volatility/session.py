@@ -43,54 +43,6 @@ from volatility.ui import renderer
 from volatility.plugins import core
 
 
-class ProfileContainer(object):
-    """A utility class for intantiating profiles."""
-
-    def __init__(self, session=None):
-        self.session = session
-
-    def __dir__(self):
-        """Show all available profiles."""
-        return obj.Profile.classes.keys()
-
-    def __getattr__(self, attr):
-        if attr not in obj.Profile.classes:
-            raise AttributeError("%s is not a valid profile" % attr)
-
-        return attr
-
-
-class PluginContainer(object):
-    """A container for holding plugins."""
-
-    def __init__(self, session):
-        self.plugins = {}
-        self.session = session
-
-        # Now add the commands that are available based on self.session
-        for command_cls in plugin.Command.GetActiveClasses(self.session):
-            if command_cls.name:
-                self.plugins[command_cls.name] = command_cls
-
-        logging.debug("Reloading active plugins %s",
-                      ["%s <- %s" % (x, y.__name__) for x,y in self.plugins.items()])
-
-    def reset(self):
-        self.__init__(self.session)
-
-    def __dir__(self):
-        """Support ipython command expansion."""
-        return self.plugins.keys()
-
-    def __getattr__(self, attr):
-        """We return a curried plugin with the session already filled in."""
-        try:
-            result = obj.Curry(self.plugins[attr], session=self.session)
-            return result
-        except KeyError:
-            raise AttributeError("Plugin not found for this profile: %s" % attr)
-
-
 class Container(object):
     """Just a container."""
 
@@ -101,11 +53,9 @@ class Session(object):
     This session contains the bare minimum to use volatility.
     """
     def __init__(self, **kwargs):
-        self.profile = obj.NoneObject("Set this a valid profile (e.g. type profiles. and tab).")
+        self.profile = obj.NoneObject("Set this to a valid profile (e.g. type profiles. and tab).")
         self.profile_file = obj.NoneObject("Some profiles accept a data file (e.g. Linux).")
         self.filename = obj.NoneObject("Set this to the image filename.")
-
-        self.plugins = PluginContainer(self)
 
         # The default renderer.
         self.renderer = "TextRenderer"
@@ -113,6 +63,15 @@ class Session(object):
         # Merge in defaults.
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def _update_runners(self):
+        plugins = Container()
+        object.__setattr__(self, "plugins", plugins)
+        for cls in plugin.Command.GetActiveClasses(self):
+            name = cls.name
+            if name:
+                # Create a runner for this plugin and set its documentation.
+                setattr(plugins, name, obj.Curry(cls, session=self))
 
     def __setattr__(self, attr, value):
         """Allow the user to set configuration information directly."""
@@ -123,13 +82,13 @@ class Session(object):
         else:
             object.__setattr__(self, attr, value)
 
-        # This may affect which plugins are available for the user.
-        if self.plugins:
-            self.plugins.reset()
+            # This may affect which plugins are available for the user.
+            self._update_runners()
 
     def __getattr__(self, attr):
         """This will only get called if the attribute does not exist."""
         return None
+        return obj.NoneObject("Session has not attribute %s" % attr)
 
     def vol(self, plugin_cls, *pos_args, **kwargs):
         """Launch a plugin and its render() method automatically.
@@ -232,6 +191,9 @@ class Session(object):
             else:
                 raise
 
+    def _set_progress(self, progress):
+        object.__setattr__(self, "progress", progress)
+
     def _set_profile(self, profile):
         """A Hook for setting profiles."""
         if profile == None:
@@ -259,7 +221,7 @@ class Session(object):
 
         if isinstance(profile, obj.Profile):
             self.__dict__['profile'] = profile
-            self.plugins.reset()
+            self._update_runners()
         else:
             raise RuntimeError("A profile must be a string.")
 
@@ -280,12 +242,11 @@ class InteractiveSession(Session):
     _ready = False
 
     def __init__(self, env=None, **kwargs):
-        super(InteractiveSession, self).__init__()
+        self._locals = env or {}
 
         # These are the command plugins which we exported to the local
         # namespace.
         self._start_time = time.time()
-        self._locals = env or {}
 
         # These keep track of the last run plugin.
         self._last_plugin = None
@@ -295,7 +256,33 @@ class InteractiveSession(Session):
         self.pager = obj.NoneObject("Set this to your favourite pager.")
         self.overwrite = False
 
+        super(InteractiveSession, self).__init__()
+
         self._ready = True
+
+    def _update_runners(self):
+        plugins = Container()
+        self._locals['plugins'] = Container()
+
+        object.__setattr__(self, "plugins", plugins)
+        for cls in plugin.Command.GetActiveClasses(self):
+            name = cls.name
+            if name:
+                setattr(plugins, name, obj.Curry(cls, session=self))
+
+                # Create a runner for this plugin and set its documentation.
+                runner = obj.Curry(self.vol, name)
+
+                # Try to cache the class documentation so we do not need to
+                # re-parse it.
+                try:
+                    runner.__doc__ = getattr(cls, "_%s__doc" % cls.__name__)
+                except AttributeError:
+                    runner.__doc__ = utils.SmartUnicode(core.Info(cls))
+                    setattr(cls, "_%s__doc" % cls.__name__, runner.__doc__)
+
+                setattr(self._locals['plugins'], name, runner)
+                self._locals[name] = runner
 
     def reset(self):
         """Reset the current session by making a new session."""
@@ -321,16 +308,7 @@ class InteractiveSession(Session):
         self._locals['dis'] = obj.Curry(session.vol, "dis")
 
         # Add all plugins to the local namespace and to their own container.
-        container = self._locals['plugins'] = Container()
-        for cls in plugin.Command.classes.values():
-            name = cls.name
-            if name:
-                # Create a runner for this plugin and set its documentation.
-                runner = obj.Curry(session.vol, name)
-                runner.__doc__ = utils.SmartUnicode(core.Info(cls))
-                setattr(container, name, runner)
-
-                self._locals[name] = runner
+        self._update_runners()
 
     def v(self):
         """Re-execute the previous command."""
