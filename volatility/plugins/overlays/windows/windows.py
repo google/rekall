@@ -297,6 +297,9 @@ windows_overlay = {
                         target_args=dict(target="Function"),
                         )]],
             }],
+
+    # This defines _PSP_CID_TABLE as an alias for _HANDLE_TABLE.
+    "_PSP_CID_TABLE": '_HANDLE_TABLE'
 }
 
 
@@ -662,6 +665,21 @@ class _HANDLE_TABLE(obj.CType):
             yield h
 
 
+class _PSP_CID_TABLE(_HANDLE_TABLE):
+    """Subclass the Windows handle table object for parsing PspCidTable"""
+
+    def get_item(self, entry, handle_value = 0):
+        p = self.obj_profile.Object("address", entry.Object.v(), self.obj_vm)
+
+        handle = self.obj_profile.Object(
+            "_OBJECT_HEADER",
+            offset=(p & ~7) - self.obj_vm.profile.get_obj_offset(
+                '_OBJECT_HEADER', 'Body'),
+            vm = self.obj_vm)
+
+        return handle
+
+
 class _OBJECT_HEADER(obj.CType):
     """A Volatility object to handle Windows object headers.
 
@@ -720,10 +738,10 @@ class _OBJECT_HEADER(obj.CType):
         return self.obj_profile.Object(theType=theType, offset=self.Body.obj_offset,
                                        vm=vm or self.obj_vm, parent=self)
 
-    def get_object_type(self, kernel_address_space):
+    def get_object_type(self, vm=None):
         """Return the object's type as a string"""
-        type_obj = self.obj_profile.Object(
-            theType="_OBJECT_TYPE", vm=kernel_address_space, offset=self.Type)
+        type_obj = self.obj_profile._OBJECT_TYPE(vm=vm or self.obj_vm,
+                                                 offset=self.Type)
 
         return type_obj.Name.v()
 
@@ -926,6 +944,7 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
             '_HANDLE_TABLE': _HANDLE_TABLE,
             '_POOL_HEADER': _POOL_HEADER,
             '_OBJECT_HEADER': _OBJECT_HEADER,
+            '_PSP_CID_TABLE': _PSP_CID_TABLE,
             '_FILE_OBJECT': _FILE_OBJECT,
             '_EX_FAST_REF': _EX_FAST_REF,
             '_CM_KEY_BODY': _CM_KEY_BODY,

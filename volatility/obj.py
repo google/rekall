@@ -1122,12 +1122,14 @@ class Profile(object):
         for overlay in self.overlays:
             self._merge_overlay(overlay)
 
-        for name in self.vtypes.keys():
-            if isinstance(self.vtypes[name][0], str):
-                self.types[name] = self.list_to_type(name, self.vtypes[name])
-            else:
-                self.types[name] = self.convert_members(
-                name, self.vtypes, copy.deepcopy(self.overlayDict))
+        for name, definition in self.vtypes.items():
+            # An overlay which specifies a string as a definition is simply an
+            # alias for another struct.
+            if isinstance(definition, str):
+                definition = self.vtypes[definition]
+
+            self.types[name] = self._convert_members(
+                name, definition, copy.deepcopy(self.overlayDict))
 
         # We are ready to go now.
         self._ready = True
@@ -1284,7 +1286,7 @@ class Profile(object):
 
         return overlay
 
-    def convert_members(self, cname, vtypes, overlay):
+    def _convert_members(self, cname, expression, overlay):
         """ Convert the member named by cname from the c description
         provided by vtypes into a list of members that can be used
         for later parsing.
@@ -1306,12 +1308,10 @@ class Profile(object):
 
         We return a list of CTypeMember objects.
         """
-        expression = vtypes[cname]
-        ctype = self._apply_overlay(expression, overlay.get(cname))
+        size, ctype_definition = self._apply_overlay(expression, overlay.get(cname))
 
         members = {}
-        size = ctype[0]
-        for k, v in ctype[1].items():
+        for k, v in ctype_definition.items():
             if callable(v):
                 members[k] = v
             elif v[0] == None:
@@ -1321,12 +1321,12 @@ class Profile(object):
                 members[k] = (v[0], self.list_to_type(k, v[1]))
 
         ## Allow the plugins to over ride the class constructor here
-        if self.object_classes and cname in self.object_classes:
+        if cname in self.object_classes:
             cls = self.object_classes[cname]
         else:
             cls = CType
 
-        return Curry(cls, theType = cname, members = members, struct_size = size)
+        return Curry(cls, theType=cname, members=members, struct_size=size)
 
     def get_constant(self, constant):
         # Compile on demand
@@ -1417,6 +1417,12 @@ class Profile(object):
                                                   parent=parent,
                                                   context=context,
                                                   **kwargs)
+
+            if isinstance(result, CType):
+                # This should not normally happen.
+                logging.error("Instantiating a CType class without an overlay. "
+                              "Please ensure an overlay is defined.")
+
             return result
 
         else:
