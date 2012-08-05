@@ -155,12 +155,6 @@ class Session(object):
 
             try:
                 result.render(ui_renderer)
-            except KeyboardInterrupt:
-                if self.debug:
-                    pdb.post_mortem()
-
-                self.report_progress("Aborted!\r\n", force=True)
-
             finally:
                 ui_renderer.end()
 
@@ -182,6 +176,12 @@ class Session(object):
         except plugin.Error, e:
             logging.error("Failed running plugin %s: %s",
                           plugin_cls.name, e)
+
+        except KeyboardInterrupt:
+            if self.debug:
+                pdb.post_mortem()
+
+            self.report_progress("Aborted!\r\n", force=True)
 
         except Exception, e:
             logging.error("Error: %s", e)

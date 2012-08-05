@@ -53,43 +53,53 @@ class Pager(object):
         self.encoding = encoding or session.encoding or sys.stdout.encoding
 
         # Make a temporary filename to store output in.
-        self.fd = tempfile.NamedTemporaryFile(prefix="vol")
+        self.fd, self.filename = tempfile.mkstemp(prefix="vol")
 
     def __enter__(self):
         return self
 
     def __exit__(self, *args, **kwargs):
         # Delete the temp file.
-        if self.fd:
-            self.fd.close()
+        try:
+            os.unlink(self.filename)
+        except OSError:
+            pass
 
     def write(self, data):
         # Encode the data according to the output encoding.
         data = utils.SmartUnicode(data).encode(self.encoding, "replace")
         try:
-            self.fd.write(data)
+            if sys.platform in ["win32"]:
+                data = data.replace("\n", "\r\n")
+
+            os.write(self.fd, data)
         # This can happen if the pager disappears in the middle of the write.
         except IOError:
-            self.flush()
+            pass
 
     def flush(self):
         """Wait for the pager to be exited."""
-        self.fd.flush()
-
-        args = dict(filename=self.fd.name)
-        # Allow the user to interpolate the filename in a special way, otherwise
-        # just append to the end of the command.
-        if "%" in self.pager_command:
-            pager_command = self.pager_command % args
-        else:
-            pager_command = self.pager_command + " %s" % self.fd.name
+        os.close(self.fd)
 
         try:
+            args = dict(filename=self.filename)
+            # Allow the user to interpolate the filename in a special way, otherwise
+            # just append to the end of the command.
+            if "%" in self.pager_command:
+                pager_command = self.pager_command % args
+            else:
+                pager_command = self.pager_command + " %s" % self.filename
+
             subprocess.call(pager_command, shell=True)
 
         # Allow the user to break out from waiting for the command.
         except KeyboardInterrupt:
             pass
+        finally:
+            try:
+                os.unlink(self.filename)
+            except OSError:
+                pass
 
 
 class UnicodeWrapper(object):
