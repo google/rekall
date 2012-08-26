@@ -1,0 +1,1686 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.8" />
+<title>Volatility Technology preview tutorial</title>
+<style type="text/css">
+/* Shared CSS for AsciiDoc xhtml11 and html5 backends */
+
+/* Default font. */
+body {
+  font-family: Georgia,serif;
+}
+
+/* Title font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+#toctitle,
+#author, #revnumber, #revdate, #revremark,
+#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+h5 {
+  font-size: 1.0em;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
+  padding: 0;
+  margin: 0;
+}
+
+
+#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+#email {
+}
+#revnumber, #revdate, #revremark {
+}
+
+#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #888;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  #footer-badges { display: none; }
+}
+
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+span.aqua { color: aqua; }
+span.black { color: black; }
+span.blue { color: blue; }
+span.fuchsia { color: fuchsia; }
+span.gray { color: gray; }
+span.green { color: green; }
+span.lime { color: lime; }
+span.maroon { color: maroon; }
+span.navy { color: navy; }
+span.olive { color: olive; }
+span.purple { color: purple; }
+span.red { color: red; }
+span.silver { color: silver; }
+span.teal { color: teal; }
+span.white { color: white; }
+span.yellow { color: yellow; }
+
+span.aqua-background { background: aqua; }
+span.black-background { background: black; }
+span.blue-background { background: blue; }
+span.fuchsia-background { background: fuchsia; }
+span.gray-background { background: gray; }
+span.green-background { background: green; }
+span.lime-background { background: lime; }
+span.maroon-background { background: maroon; }
+span.navy-background { background: navy; }
+span.olive-background { background: olive; }
+span.purple-background { background: purple; }
+span.red-background { background: red; }
+span.silver-background { background: silver; }
+span.teal-background { background: teal; }
+span.white-background { background: white; }
+span.yellow-background { background: yellow; }
+
+span.big { font-size: 2em; }
+span.small { font-size: 0.6em; }
+
+span.underline { text-decoration: underline; }
+span.overline { text-decoration: overline; }
+span.line-through { text-decoration: line-through; }
+
+div.unbreakable { page-break-inside: avoid; }
+
+
+/*
+ * xhtml11 specific
+ *
+ * */
+
+div.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+/*
+ * html5 specific
+ *
+ * */
+
+table.tableblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+thead, p.tableblock.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+p.tableblock {
+  margin-top: 0;
+}
+table.tableblock {
+  border-width: 3px;
+  border-spacing: 0px;
+  border-style: solid;
+  border-color: #527bbd;
+  border-collapse: collapse;
+}
+th.tableblock, td.tableblock {
+  border-width: 1px;
+  padding: 4px;
+  border-style: solid;
+  border-color: #527bbd;
+}
+
+table.tableblock.frame-topbot {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
+table.tableblock.frame-sides {
+  border-top-style: hidden;
+  border-bottom-style: hidden;
+}
+table.tableblock.frame-none {
+  border-style: hidden;
+}
+
+th.tableblock.halign-left, td.tableblock.halign-left {
+  text-align: left;
+}
+th.tableblock.halign-center, td.tableblock.halign-center {
+  text-align: center;
+}
+th.tableblock.halign-right, td.tableblock.halign-right {
+  text-align: right;
+}
+
+th.tableblock.valign-top, td.tableblock.valign-top {
+  vertical-align: top;
+}
+th.tableblock.valign-middle, td.tableblock.valign-middle {
+  vertical-align: middle;
+}
+th.tableblock.valign-bottom, td.tableblock.valign-bottom {
+  vertical-align: bottom;
+}
+
+
+/*
+ * manpage specific
+ *
+ * */
+
+body.manpage h1 {
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  border-top: 2px solid silver;
+  border-bottom: 2px solid silver;
+}
+body.manpage h2 {
+  border-style: none;
+}
+body.manpage div.sectionbody {
+  margin-left: 3em;
+}
+
+@media print {
+  body.manpage div#toc { display: none; }
+}
+
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  if (!toc) {
+    return;
+  }
+
+  // Delete existing TOC entries in case we're reloading the TOC.
+  var tocEntriesToRemove = [];
+  var i;
+  for (i = 0; i < toc.childNodes.length; i++) {
+    var entry = toc.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div'
+     && entry.getAttribute("class")
+     && entry.getAttribute("class").match(/^toclevel/))
+      tocEntriesToRemove.push(entry);
+  }
+  for (i = 0; i < tocEntriesToRemove.length; i++) {
+    toc.removeChild(tocEntriesToRemove[i]);
+  }
+
+  // Rebuild TOC entries.
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  // Delete existing footnote entries in case we're reloading the footnodes.
+  var i;
+  var noteholder = document.getElementById("footnotes");
+  if (!noteholder) {
+    return;
+  }
+  var entriesToRemove = [];
+  for (i = 0; i < noteholder.childNodes.length; i++) {
+    var entry = noteholder.childNodes[i];
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+      entriesToRemove.push(entry);
+  }
+  for (i = 0; i < entriesToRemove.length; i++) {
+    noteholder.removeChild(entriesToRemove[i]);
+  }
+
+  // Rebuild footnote entries.
+  var cont = document.getElementById("content");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      var note = spans[i].getAttribute("data-note");
+      if (!note) {
+        // Use [\s\S] in place of . so multi-line matches work.
+        // Because JavaScript has no s (dotall) regex flag.
+        note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+        spans[i].innerHTML =
+          "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+        spans[i].setAttribute("data-note", note);
+      }
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+},
+
+install: function(toclevels) {
+  var timerId;
+
+  function reinstall() {
+    asciidoc.footnotes();
+    if (toclevels) {
+      asciidoc.toc(toclevels);
+    }
+  }
+
+  function reinstallAndRemoveTimer() {
+    clearInterval(timerId);
+    reinstall();
+  }
+
+  timerId = setInterval(reinstall, 500);
+  if (document.addEventListener)
+    document.addEventListener("DOMContentLoaded", reinstallAndRemoveTimer, false);
+  else
+    window.onload = reinstallAndRemoveTimer;
+}
+
+}
+asciidoc.install(2);
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Volatility Technology preview tutorial</h1>
+<span id="author">Michael Cohen</span><br />
+<span id="email"><code>&lt;<a href="mailto:scudette@gmail.com">scudette@gmail.com</a>&gt;</code></span><br />
+<span id="revdate">August 2012</span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>The technology preview (TP) is a preview version of the volatility memory
+forensic tool. The main goals of the new framework are to enhance user
+experience by making common tasks easier and more intuitive as well as provide a
+powerful and capable interface for automation and performing more complex
+operations.</p></div>
+<div class="paragraph"><p>This tutorial is written as a follow up document to the presentation "Memory
+Forensics with Volatility" as presented at DFRWS 2012. This document roughly
+follows the same slides and illustrates the commands one needs to type to
+replicate the same examples.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installation">1. Installation</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Volatility TP is distributed both in source form and as a stand alone windows
+executable. The executable is already packed with all the dependencies and
+libraries and so does not require any external software to run.</p></div>
+<div class="paragraph"><p>To install onto a new system you must first have the following dependencies:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Python 2.7 or 2.6.5 from <a href="http://www.python.org/">http://www.python.org/</a>
+</p>
+</li>
+<li>
+<p>
+Install easy install from one of the file releases at
+  <a href="http://pypi.python.org/pypi/setuptools/">setuptools</a>.  On windows this will
+  make the easy_install.exe script available on
+  <em>c:\python27\scripts\easy_install.exe</em>.
+</p>
+</li>
+<li>
+<p>
+If you are using Python 2.6.5 you will also need to install argparse (linux
+  and osx systems might need sudo before running this):
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>easy_install argparse</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Now install ipython:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>easy_install ipython</code></pre>
+</div></div>
+</li>
+<li>
+<p>
+Install pydistorm3:
+</p>
+<div class="literalblock">
+<div class="content">
+<pre><code>wget https://distorm.googlecode.com/files/distorm3.3-package.zip
+unzip distorm3.3-package.zip
+cd distorm3
+python setup.py build
+sudo python setup.py install</code></pre>
+</div></div>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_a_short_volatility_demo">2. A short volatility demo</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This section is a quick tour of the new Volatility TP user interface. The
+program can still accept command line options - which we can learn more about by
+using the --help option:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ python vol.py -h
+usage: vol.py [-h] [--pager PAGER]
+              [--logging {debug,info,warning,critical,error}] [--debug]
+              [-p PROFILE] [-f FILENAME] [--renderer RENDERER]
+              [--plugin PLUGIN [PLUGIN ...]] [--output OUTPUT] [--overwrite]
+              Plugin ...
+
+The Volatility Memory Forensic Framework technology preview (3.0_tp1). NOTE:
+This is pre-release software and is provided for evauation only. Please check
+at http://volatility.googlecode.com/ for officially supported versions. This
+program is free software; you can redistribute it and/or modify it under the
+terms of the GNU General Public License.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --pager PAGER         The pager to use when output is larger than a screen
+                        full.
+  --logging {debug,info,warning,critical,error}
+                        Logging level to show messages.
+  --debug               If set we break into the debugger on error conditions.
+  -p PROFILE, --profile PROFILE
+                        Name of the profile to load.
+  -f FILENAME, --filename FILENAME
+                        The raw image to load.
+  --renderer RENDERER   The renderer to use. e.g. (TextRenderer,
+                        JsonRenderer).
+  --plugin PLUGIN [PLUGIN ...]
+                        Load user provided plugin bundle.
+  --output OUTPUT       Write to this output file.
+  --overwrite           Allow overwriting of output files.</code></pre>
+</div></div>
+<div class="paragraph"><p>Some of the most frequently used flags are described below:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+--pager
+</dt>
+<dd>
+<p>
+The pager can be specified as the program that will be used to inspect the
+result of each plugin. Since many plugins produce a great deal of output text, a
+pager is often needed. The Volatility TP will write the output to a temporary
+file, and launch this program to view it. For example, on windows it is useful
+to use notepad to examine the output from each plugin (e.g. <em>--pager notepad</em>). On
+linux use <em>--pager less</em> for example, or even <em>--pager "gvim -f"</em>.
+</p>
+</dd>
+<dt class="hdlist1">
+--profile
+</dt>
+<dd>
+<p>
+The <em>--profile</em> flag specifies the profile to use. The profile is an operating
+system specific collection of struct definitions which are used to parse the
+kernel data structures (which vary from version to version). The profile used
+must match the operating system version of the image.
+</p>
+</dd>
+<dt class="hdlist1">
+--filename
+</dt>
+<dd>
+<p>
+The <em>--filename</em> option is the name of the image to analyse. If you are using
+the raw device as provided by the winpmem driver, this will be <em>\\.\pmem</em>
+(windows) for example or <em>/dev/pmem</em> (linux). You almost always want to specify
+a filename to operate on.
+</p>
+</dd>
+<dt class="hdlist1">
+--renderer
+</dt>
+<dd>
+<p>
+The <em>--renderer</em> option allows the user to specify the output format for the
+plugin. Currently supported formats are textual output, and json output.
+</p>
+</dd>
+<dt class="hdlist1">
+--plugin
+</dt>
+<dd>
+<p>
+The <em>--plugin</em> option allows the user to specify one or more python modules or zip
+files which contain third party volatility extension plugins. Each python file
+in these plugins will be imported and any plugins defined there will become
+available to the tool.
+</p>
+</dd>
+<dt class="hdlist1">
+The interactive shell
+</dt>
+<dd>
+<p>
+If the command is followed by a plugin name, the tool will not use the
+interactive shell, but rather run the plugin and exit. This behaviour is similar
+to many other command line tools (and to previous volatility versions):
+</p>
+</dd>
+</dl></div>
+<div class="listingblock">
+<div class="title">Example: Running plugin from command line.</div>
+<div class="content">
+<pre><code>$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist
+Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0x823c87c0 System                    4      0     61     1140 ------  False -                    -
+0x81fdf020 smss.exe                448      4      3       21 ------  False 2005-06-25 16:47:28  -
+0x81f5a3b8 csrss.exe               504    448     12      596      0  False 2005-06-25 16:47:30  -
+0x81f8eb10 winlogon.exe            528    448     21      508      0  False 2005-06-25 16:47:31  -
+0x820e0da0 services.exe            580    528     18      401      0  False 2005-06-25 16:47:31  -
+...</code></pre>
+</div></div>
+<div class="paragraph"><p>Some command plugins use additional options specific to their module. You can
+read plugin specific help by specifying the <em>--help</em> option after the name of the
+plugin:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist --help
+usage: vol.py pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
+                     [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
+                     [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
+
+List processes for windows.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --kdbg KDBG           Location of the KDBG structure.
+  --eprocess EPROCESS [EPROCESS ...]
+                        Kernel addresses of eprocess structs.
+  --phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]
+                        Physical addresses of eprocess structs.
+  --pid PID [PID ...]   One or more pids of processes to select.
+  --proc_regex PROC_REGEX
+                        A regex to select a profile by name.</code></pre>
+</div></div>
+<div class="paragraph"><p>For example to list all the <strong>svchost</strong> processes, we can apply a regex to process
+names:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --proc_regex svc
+Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0x81fa5aa0 svchost.exe             740    580     17      198      0  False 2005-06-25 16:47:32  -
+0x81fa8650 svchost.exe             800    580     10      302      0  False 2005-06-25 16:47:33  -
+0x81faba78 svchost.exe             840    580     83     1589      0  False 2005-06-25 16:47:33  -
+0x81f8dda0 svchost.exe             984    580      6       90      0  False 2005-06-25 16:47:35  -
+0x81f6e7e8 svchost.exe            1024    580     15      207      0  False 2005-06-25 16:47:35  -
+0x82081da0 svchost.exe            1484    580      6      119      0  False 2005-06-25 16:47:59  -</code></pre>
+</div></div>
+<div class="paragraph"><p>In order to use the interactive shell, do not specify any plugin to run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --pager less
+The Volatility Memory Forensic Framework technology preview (3.0_tp1).
+
+In [1]:</code></pre>
+</div></div>
+<div class="paragraph"><p>The interactive shell marks input lines with an "In [line number]:" format and
+output lines are marked as "Out [line number]:". In order to run a plugin simply
+type its name and press enter:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>In [1]: pslist   <img alt="1" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" />
+------&gt; pslist() <img alt="2" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
+HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
+Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
+izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
+MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
+MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
+AAAASUVORK5CYII=" />
+Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0x823c87c0 System                    4      0     61     1140 ------  False -                    -
+0x81fdf020 smss.exe                448      4      3       21 ------  False 2005-06-25 16:47:28  -</code></pre>
+</div></div>
+<div class="colist arabic"><table>
+<tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></td><td>
+The user enters the bare word pslist as a command.
+</td></tr>
+<tr><td><img alt="2" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
+HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
+Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
+izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
+MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
+MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
+AAAASUVORK5CYII=" /></td><td>
+IPython is configured for auto-execution and assumed the user wants to run a
+function called pslist()
+</td></tr>
+</table></div>
+<div class="paragraph"><p>Plugins appear as functions in the namespace the shell is running in. IPython
+sees the bare word <em>pslist</em> and assumes you mean to run the function
+<em>pslist()</em>. Running this function will render the output to the screen.</p></div>
+<div class="paragraph"><p>All plugins which are applicable to the current image and profile are also
+collected in the variable <em>plugins</em> in the namespace. This means we can use
+command line completion to discover all the plugins we could use on the current
+image:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>In [3]: plugins.[tab][tab]
+plugins.callbacks    plugins.handles      plugins.modules      plugins.raw2dmp
+plugins.cmdscan      plugins.hashdump     plugins.mutantscan   plugins.regdump
+plugins.connections  plugins.hivedump     plugins.null         plugins.sockets
+plugins.connscan     plugins.hivescan     plugins.pas2vas      plugins.svcscan
+plugins.consoles     plugins.impscan      plugins.pedump       plugins.symlinkscan</code></pre>
+</div></div>
+<div class="paragraph"><p>To learn more about each of these plugins we can follow the name of the plugin
+with a single ?:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>In [3]: plugins.pslist?
+pslist: List processes for windows.
+Lists the processes by following the _EPROCESS.PsActiveList.
+
+In the windows operating system, processes are linked together through a
+doubly linked list. This plugin follows the list around, printing
+information about each process.
+
+To begin, we need to find any element on the list. This can be done by:
+
+1) Obtaining the _KDDEBUGGER_DATA64.PsActiveProcessHead - debug
+   information.
+
+2) Finding any _EPROCESS in memory (e.g. through psscan) and following
+   its list.
+
+This plugin supports both approaches.
+
+Parameter                       Documentation
+------------------------------ ----------------------------------------------------------------------
+physical_eprocess               One or more EPROCESS structs or offsets defined in the physical AS.
+pid                             A single pid.
+proc_regex                      A regular expression for filtering process name (using
+                                _EPROCESS.ImageFileName).
+kdbg                            The location of the kernel debugger block (In the physical AS).
+kernel_address_space            The kernel address space to use. If not specified, we use the session.
+physical_address_space          The physical address space to use. If not specified we use the
+                                following options:
+                                   1) session.physical_address_space,
+                                   2) Guess using the load_as() plugin,
+                                   3) Use session.kernel_address_space.base.
+profile                         The kernel profile to use for this command.
+session                         The session we will use. Many options are taken from the session by
+                                default, if not provided. This allows users to omit specifying many
+                                options.
+output                          Save output to this file.
+overwrite                       Must be set to overwrite an output file. You can also set this in the
+                                session as a global setting.
+renderer                        Use this renderer for the output.</code></pre>
+</div></div>
+<div class="paragraph"><p>We can now specify the parameters to be passed to the plugin (This is the same
+as the command line example above):</p></div>
+<div class="listingblock">
+<div class="title">Example: Specifying plugin options in the interactive shell.</div>
+<div class="content">
+<pre><code>In [5]: pslist proc_regex="svc"
+------&gt; pslist(proc_regex="svc")
+Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0x81fa5aa0 svchost.exe             740    580     17      198      0  False 2005-06-25 16:47:32  -
+0x81fa8650 svchost.exe             800    580     10      302      0  False 2005-06-25 16:47:33  -
+0x81faba78 svchost.exe             840    580     83     1589      0  False 2005-06-25 16:47:33  -
+0x81f8dda0 svchost.exe             984    580      6       90      0  False 2005-06-25 16:47:35  -
+...</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img alt="Note" src="data:image/png;base64,
+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" />
+</td>
+<td class="content">
+<div class="paragraph"><p>Since important information is already stored in the interactive session between
+plugin invocations (e.g. kdbg location, dtb location etc), it is much faster to
+run plugins from the interactive session than to run each plugin in turn from
+the command line. It is possible to easily write a script for automating the
+running of multiple plugins.</p></div>
+</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>The interactive shell is the most powerful and flexible interface and so the
+remainder of this tutorial will focus on it.</p></div>
+<div class="paragraph"><p>At the heart of the interactive interface is the session object. The session is
+an object which contains information about the current image analysis. Plugins
+and the user can store information in the session which will be later used by
+other plugins. For example, when running the pslist() plugin, the load_as()
+plugin is run to determine the address spaces that should be used. This in turn
+calls the find_dtb() plugin which searches for a kernel DTB (used to construct
+the kernel address space).</p></div>
+<div class="paragraph"><p>It follows that after running the pslist() plugin for the first time, a number
+of new objects are stored in the session, and they can be reused the second time
+a pslist() is run. At any time we can view the current session (Note "p" is the
+shortcut command for "print"):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>In [8]: p session
+------&gt; p(session)
+Volatility session Started on Wed Aug  8 16:45:07 2012.
+
+Config:
+ default_address_space:  &lt;IA32PagedMemory @ 0x24892d0 Kernel AS@0x39000&gt;
+ dtb:  233472
+ filename:  'xp-laptop-2005-06-25.img'
+ kdbg:  [_KDDEBUGGER_DATA64 _KDDEBUGGER_DATA64] @ 0x8054C060
+ kernel_address_space:  &lt;IA32PagedMemory @ 0x24892d0 Kernel AS@0x39000&gt;
+ last:  &lt;volatility.plugins.windows.filescan.PSScan object at 0x24853d0&gt;
+ logging:  'INFO'
+ overwrite:  False
+ pager:  'less'
+ physical_address_space:  &lt;MmapFileAddressSpace @ 0x262a650 xp-laptop-2005-06-25.img&gt;
+ profile:  &lt;volatility.plugins.overlays.windows.xp.WinXPSP2x86 object at 0x1d11090&gt;
+ renderer:  'TextRenderer'</code></pre>
+</div></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+physical_address_space
+</dt>
+<dd>
+<p>
+We can see the physical_address_space is an MmapFileAddressSpace instance over
+the image file, while the kernel_address_space is an IA32PagedMemory address
+space instantiated over the dtb at 0x39000. We can see the last volatility
+plugin run (psscan) here too.
+</p>
+</dd>
+<dt class="hdlist1">
+default_address_space
+</dt>
+<dd>
+<p>
+The default_address_space is the address space that will be used to instantiate
+new objects from the interactive shell by default. When reading memory we must
+always use an address space. For example, we can use the physical address space
+(i.e. the raw image) or a virtual address space (for example, the kernel or any
+process&#8217;s address space). Commonly we spend some time analysing a particular
+address space so its useful to set the default_address_space to avoid typing.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>For example, suppose we want to examine the _EPROCESS object reported by the
+pslist module above for pid 740. We read the virtual offset of the process as
+0x81fa5aa0 in the kernel address space. We first create an instance of the
+_EPROCESS at the reported offset, and assign it to a variable. We then can
+examine all the fields of this struct by using command line completion (double
+tab):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>In [10]: task = session.profile._EPROCESS(0x81fa5aa0)
+
+In [11]: task.[tab][tab]
+Display all 138 possibilities? (y or n)
+task.ActiveProcessLinks            task.ReadTransferCount
+task.ActiveThreads                 task.RealVadRoot
+task.AddressCreationLock           task.RundownProtect
+task.AddressSpaceInitialized       task.SeAuditProcessCreationInfo
+task.AweInfo                       task.SectionBaseAddress
+task.BreakOnTermination            task.SectionObject
+task.CloneRoot                     task.SecurityPort
+....
+
+In [11]: task.UniqueProcessId
+Out[11]:  [unsigned int:UniqueProcessId]: 0x000002E4
+
+In [12]: task.ImageFileName
+Out[12]:  [String:ImageFileName]: 'svchost.exe\x00'</code></pre>
+</div></div>
+<div class="paragraph"><p>When examining a member in a struct (such as <em>_EPROCESS.ImageFileName</em>) we
+receive an instance of a volatility <em>BaseObject</em>. This has both a type
+(e.g. <em>String</em>) and a name (e.g. <em>ImageFileName</em>) as well as a human readable
+representation (e.g. svchost.exe).</p></div>
+<div class="paragraph"><p>For example the task object we have has a type of <em>_EPROCESS</em> (which is a
+struct), and it exists at offset 0x81fa5aa0:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>In [13]: task
+Out[13]: [_EPROCESS _EPROCESS] @ 0x81FA5AA0</code></pre>
+</div></div>
+<div class="paragraph"><p>To view the entire object we can print it (you can use the shortcut <em>p</em> as a
+shortcut for <em>print</em> - either will work).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>In [14]: p task
+-------&gt; p(task)
+[_EPROCESS _EPROCESS] @ 0x81FA5AA0
+  0x00 Pcb                          [_KPROCESS Pcb] @ 0x81FA5AA0
+  0x6C ProcessLock                  [_EX_PUSH_LOCK ProcessLock] @ 0x81FA5B0C
+  0x70 CreateTime                    [WinTimeStamp:CreateTime]: 0x42BD8AA4 (2005-06-25 16:47:32 )
+  0x78 ExitTime                      [WinTimeStamp:ExitTime]: 0x00000000 (-)
+  0x80 RundownProtect               [_EX_RUNDOWN_REF RundownProtect] @ 0x81FA5B20
+  0x84 UniqueProcessId               [unsigned int:UniqueProcessId]: 0x000002E4
+  0x88 ActiveProcessLinks           [_LIST_ENTRY ActiveProcessLinks] @ 0x81FA5B28
+  0x90 QuotaUsage                   &lt;Array 3 x unsigned long @ 0x81FA5B30&gt;
+  0x9C QuotaPeak                    &lt;Array 3 x unsigned long @ 0x81FA5B3C&gt;
+  0xA8 CommitCharge                  [unsigned long:CommitCharge]: 0x000002E7
+  0xAC PeakVirtualSize               [unsigned long:PeakVirtualSize]: 0x0402C000
+  0xB0 VirtualSize                   [unsigned long:VirtualSize]: 0x03EC9000
+  0xB4 SessionProcessLinks          [_LIST_ENTRY SessionProcessLinks] @ 0x81FA5B54
+  0xBC DebugPort                    &lt;NoneObject Pointer to [0x00000000] (DebugPort)&gt;
+  0xC0 ExceptionPort                &lt;Void Pointer to [0xE175BCA8] (ExceptionPort)&gt;
+...</code></pre>
+</div></div>
+<div class="paragraph"><p>This view shows the layour of the _EPROCESS struct which is overlayed on the
+offset 0x81FA5B54. The first column is the relative offset of each member,
+followed by the name of each member and a representation of each member. This
+representation consists of a type (e.g. _KPROCESS), a name (e.g. Pcb) and a
+human readable representation.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interactive_plugins">3. Interactive plugins</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Many plugins are designed to work in the interactive environment since they are
+by nature interactive. For example the dump plugin performs a hex dump of a
+region of memory:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>In [18]: dump?
+
+dump: Hexdump an object or memory location.
+Hexdump an object or memory location.
+
+You can use this plugin repeateadely to keep dumping more data using the
+"v" (rerun last operation) plugin:
+
+In [2]: dump session.kernel_address_space, 0x814b13b0
+------&gt; dump(session.kernel_address_space, 0x814b13b0)
+Offset                         Hex                              Data
+---------- ------------------------------------------------ ----------------
+0x814b13b0 03 00 1b 00 00 00 00 00 b8 13 4b 81 b8 13 4b 81  ..........K...K.
+
+In [3]: v
+------&gt; v()
+Offset                         Hex                              Data
+---------- ------------------------------------------------ ----------------
+0x814b1440 70 39 00 00 54 1b 01 00 18 0a 00 00 32 59 00 00  p9..T.......2Y..
+0x814b1450 6c 3c 01 00 81 0a 00 00 18 0a 00 00 00 b0 0f 06  l&lt;..............
+0x814b1460 00 10 3f 05 64 77 ed 81 d4 80 21 82 00 00 00 00  ..?.dw....!.....
+
+Parameter                       Documentation
+------------------------------ ----------------------------------------------------------------------
+target                          The object to dump or an address space.
+offset                          The offset to start dumping from.</code></pre>
+</div></div>
+<div class="paragraph"><p>Lets try to dump the hex content of the task object (Note that if no address
+space is specified, the default address space from the session is used - in this
+case the kernel_address_space):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>In [19]: dump 0x81FA5AA0
+-------&gt; dump(0x81FA5AA0)
+  Offset                         Hex                              Data
+---------- ------------------------------------------------ ----------------
+0x81fa5aa0 03 00 1b 00 00 00 00 00 10 3c 21 82 10 3c 21 82  .........&lt;!..&lt;!.
+0x81fa5ab0 b0 5a fa 81 b0 5a fa 81 00 50 57 0e 00 e0 56 0e  .Z...Z...PW...V.
+0x81fa5ac0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0x81fa5ad0 ac 20 00 00 00 00 00 00 1d 00 00 00 0b 00 00 00  ................</code></pre>
+</div></div>
+<div class="paragraph"><p>This will produce one pagefull of hex dump. To produce another page, simply
+rerun the last plugin using the <em>v</em> plugin:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>In [20]: v
+-------&gt; v()
+  Offset                         Hex                              Data
+---------- ------------------------------------------------ ----------------
+0x81fa5c70 a6 92 08 00 00 00 00 00 2c 03 00 00 00 00 00 00  ........,.......
+0x81fa5c80 e0 7c 00 00 00 00 00 00 00 00 00 00 aa 16 00 00  .|..............
+0x81fa5c90 00 00 00 00 b0 1e 0f 82 30 fe 1f 95 a5 79 c5 01  ........0....y..
+0x81fa5ca0 00 00 01 00 31 05 00 00 c3 04 00 00 b6 04 00 00  ....1...........</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_automating_volatility">4. Automating Volatility</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>One of the main thrusts in the technology preview version is the automation of
+volatility so it can be used from external programs easily, as well as making it
+easier to write custom volatility scripts.</p></div>
+<div class="paragraph"><p>This section demonstrates how to automate the new framework, both by embedding
+it a completely inside another application, as well as simply automating the
+analysis from volatility itself.</p></div>
+<div class="sect2">
+<h3 id="_embedding_volatility_in_an_external_python_program">4.1. Embedding Volatility in an external python program</h3>
+<div class="paragraph"><p>In this example we will run the pslist plugin on a sample image, capture the
+text table into a string and then print this string (In a real example, this
+could be served over a HTTP or whatever).</p></div>
+<div class="paragraph"><p>The basic sequence of steps is:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Create a session object
+</dt>
+<dd>
+<p>
+ All interactions with the volatility library require a session object. The
+ session object keeps information related to the same image. There can be any
+ number of session objects valid at the same time - no data is global.
+</p>
+</dd>
+<dt class="hdlist1">
+Create an appropriate renderer object
+</dt>
+<dd>
+<p>
+ All output is rendered using a renderer. A renderer is an abstraction which is
+ able to format the output in some way. For example, the TextRenderer outputs
+ tables of text, while the JSONRenderer outputs json blobs.
+</p>
+</dd>
+<dt class="hdlist1">
+Instantiate the plugin
+</dt>
+<dd>
+<p>
+ The plugin is simply an object which can be instantiated using various
+ parameters.
+</p>
+</dd>
+<dt class="hdlist1">
+Render the plugin into the renderer
+</dt>
+<dd>
+<p>
+ Calling the plugin&#8217;s render method with a valid renderer will cause it to
+ execute its analysis and output into this renderer.
+</p>
+</dd>
+</dl></div>
+<div class="listingblock">
+<div class="title">Example of embedding volatility in a python application</div>
+<div class="content"><!-- Generator: GNU source-highlight 3.1.3
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #000000">    1:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> StringIO
+<span style="color: #000000">    2:</span>
+<span style="color: #000000">    3:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> volatility <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
+<span style="color: #000000">    4:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> volatility <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins        <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></span></span>
+<span style="color: #000000">    5:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> volatility<span style="color: #990000">.</span>ui <span style="font-weight: bold"><span style="color: #000080">import</span></span> renderer
+<span style="color: #000000">    6:</span>
+<span style="color: #000000">    7:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                  <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
+HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
+Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
+izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
+MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
+MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
+AAAASUVORK5CYII=" /></span></span>
+<span style="color: #000000">    8:</span>     filename<span style="color: #990000">=</span><span style="color: #FF0000">"xp-laptop-2005-06-25.img"</span><span style="color: #990000">,</span>
+<span style="color: #000000">    9:</span>     profile<span style="color: #990000">=</span><span style="color: #FF0000">"WinXPSP2x86"</span><span style="color: #990000">)</span>
+<span style="color: #000000">   10:</span>
+<span style="color: #000000">   11:</span> fd <span style="color: #990000">=</span> StringIO<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">StringIO</span></span><span style="color: #990000">()</span>
+<span style="color: #000000">   12:</span>
+<span style="color: #000000">   13:</span> r <span style="color: #990000">=</span> renderer<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">TextRenderer</span></span><span style="color: #990000">(</span>fd<span style="color: #990000">=</span>fd<span style="color: #990000">)</span>
+<span style="color: #000000">   14:</span>
+<span style="color: #000000">   15:</span> plugin <span style="color: #990000">=</span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">()</span>           <span style="font-style: italic"><span style="color: #9A1900"># <img alt="3" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
+JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
+7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
+Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
+cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
+NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
+SUVORK5CYII=" /></span></span>
+<span style="color: #000000">   16:</span> plugin<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">render</span></span><span style="color: #990000">(</span>r<span style="color: #990000">)</span>                      <span style="font-style: italic"><span style="color: #9A1900"># <img alt="4" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABzSURBVHja
+HY0hEoUwEEMjkZVYZGVlr1CJxCKRXKPyy28reyVsZeXKsCFi573ZzAQk+x5jaQ6gFQAxIA8XceEN
+ZEN3DkOCH/TobUoSVuAYwSSLyzbvaHWVFJxUmmp+PF+twrLkuXzLwPmZ8+OjtH8KS6pGvuoGNo5b
+6rzDAAAAQ3RFWHRTb2Z0d2FyZQBAKCMpSW1hZ2VNYWdpY2sgNC4yLjggOTkvMDgvMDEgY3Jpc3R5
+QG15c3RpYy5lcy5kdXBvbnQuY29tkbohuAAAACp0RVh0U2lnbmF0dXJlADlmODJmY2FjOWUwMzlj
+YmRiNzIzODBhNDU5MTMyNGY1gLv4dgAAAA50RVh0UGFnZQAxMngxMiswKzCEbbt9AAAAAElFTkSu
+QmCC" /></span></span>
+<span style="color: #000000">   17:</span>
+<span style="color: #000000">   18:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> fd<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getvalue</span></span><span style="color: #990000">()</span></tt></pre></div></div>
+<div class="colist arabic"><table>
+<tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></td><td>
+Importing the plugins is required to make volatility load all the default
+plugins. At this point any third party plugins will need to be imported too.
+</td></tr>
+<tr><td><img alt="2" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
+HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
+Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
+izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
+MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
+MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
+AAAASUVORK5CYII=" /></td><td>
+The session object is created with initial values for some parameters.
+</td></tr>
+<tr><td><img alt="3" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
+JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
+7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
+Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
+cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
+NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
+SUVORK5CYII=" /></td><td>
+The plugin is instantiated from the session object.
+</td></tr>
+<tr><td><img alt="4" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABzSURBVHja
+HY0hEoUwEEMjkZVYZGVlr1CJxCKRXKPyy28reyVsZeXKsCFi573ZzAQk+x5jaQ6gFQAxIA8XceEN
+ZEN3DkOCH/TobUoSVuAYwSSLyzbvaHWVFJxUmmp+PF+twrLkuXzLwPmZ8+OjtH8KS6pGvuoGNo5b
+6rzDAAAAQ3RFWHRTb2Z0d2FyZQBAKCMpSW1hZ2VNYWdpY2sgNC4yLjggOTkvMDgvMDEgY3Jpc3R5
+QG15c3RpYy5lcy5kdXBvbnQuY29tkbohuAAAACp0RVh0U2lnbmF0dXJlADlmODJmY2FjOWUwMzlj
+YmRiNzIzODBhNDU5MTMyNGY1gLv4dgAAAA50RVh0UGFnZQAxMngxMiswKzCEbbt9AAAAAElFTkSu
+QmCC" /></td><td>
+The output is rendered into the renderer and becomes available in the
+StringIO.
+</td></tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_automating_volatility_2">4.2. Automating Volatility</h3>
+<div class="paragraph"><p>Much of the time the volatility interactive interface is sufficient for most
+analysis. Sometimes, however, we need to automate some of this
+analysis. Previously users had to write plugins to extend volatility, but in
+many cases this is probably an overkill.</p></div>
+<div class="paragraph"><p>In this section, we see how interactive scripts can be written to automate
+volatility. This is similar to Embedding in an external program, except that the
+script runs within the interactive session. When the script completes, the
+interactive session resumes.</p></div>
+<div class="paragraph"><p>For this example, we search for all processes with a name of <em>python.exe</em> and
+dump them into the temporary directory with their timestamps. This could be used
+for example to dump periodic snapshots of a process from a live system.</p></div>
+<div class="paragraph"><p>First we create the following python file named <em>dumper.py</em>:</p></div>
+<div class="listingblock">
+<div class="title">Example interactive python script.</div>
+<div class="content"><!-- Generator: GNU source-highlight 3.1.3
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #000000">    1:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> time
+<span style="color: #000000">    2:</span>
+<span style="color: #000000">    3:</span> pslist <span style="color: #990000">=</span> session<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>proc_regex<span style="color: #990000">=</span><span style="color: #FF0000">"python.exe"</span><span style="color: #990000">)</span>
+<span style="color: #000000">    4:</span> pedumper <span style="color: #990000">=</span> session<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pedump</span></span><span style="color: #990000">()</span>
+<span style="color: #000000">    5:</span>
+<span style="color: #000000">    6:</span> <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> task <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> pslist<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">filter_processes</span></span><span style="color: #990000">():</span>
+<span style="color: #000000">    7:</span>     outfd <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">open</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"/tmp/%s-%s.exe"</span> <span style="color: #990000">%</span> <span style="color: #990000">(</span>time<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">time</span></span><span style="color: #990000">(),</span> task<span style="color: #990000">.</span>UniqueProcessId<span style="color: #990000">),</span>
+<span style="color: #000000">    8:</span>                  <span style="color: #FF0000">"wb"</span><span style="color: #990000">)</span>
+<span style="color: #000000">    9:</span>     pedumper<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">WritePEFile</span></span><span style="color: #990000">(</span>fd<span style="color: #990000">=</span>outfd<span style="color: #990000">,</span>
+<span style="color: #000000">   10:</span>                          address_space<span style="color: #990000">=</span>task<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">get_process_address_space</span></span><span style="color: #990000">(),</span>
+<span style="color: #000000">   11:</span>                          image_base<span style="color: #990000">=</span>task<span style="color: #990000">.</span>Peb<span style="color: #990000">.</span>ImageBaseAddress<span style="color: #990000">)</span></tt></pre></div></div>
+<div class="paragraph"><p>Now we run this file directly from the interactive shell.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ vol.py -f \\.\pmem --profile Win7SP0x64
+...
+
+In [1]: run -i dumper.py  <img alt="1" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" />
+In [2]: ls -l
+
+total 300
+-rw-r----- 1 user group  57344 2012-08-27 00:28 1346020082.17-4012.exe
+....</code></pre>
+</div></div>
+<div class="colist arabic"><table>
+<tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></td><td>
+Running the script with the -i flag ensures that the script receives the
+same namespace as the interactive shell. This means that it can use the same
+session and we can see all variables defined by the script.
+</td></tr>
+</table></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img alt="Important" src="data:image/png;base64,
+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
+EQn3XQAAAABJRU5ErkJggg==" />
+</td>
+<td class="content">
+<div class="paragraph"><p>In the interactive shell IPython will automatically attempt to execute plugins
+without requiring the brackets to be present - this is merely a usability
+feature. In reality all input is interpreted as python code.</p></div>
+<div class="paragraph"><p>This means that while in the interactive shell its sufficient to just type
+<em>pslist</em>, when running an external script, you will need to explicitly call the
+function as <em>pslist()</em>.</p></div>
+</td>
+</tr></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_extending_volatility">4.3. Extending Volatility</h3>
+<div class="paragraph"><p>Extending volatility is most useful when you want to add additional
+functionality which should be reused by other people, or contributed to the
+core. If you are just interested in automating a very specific analysis, an
+interactive shell script is sufficient usually, and is simple to write.</p></div>
+<div class="paragraph"><p>There are a number of different components which can be extended these fall
+roughly into these categories:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Address Spaces
+</dt>
+<dd>
+<p>
+  Address spaces are the way volatility implements image reading. Most of the
+  time you will want to implement some kind of support for new image files.
+</p>
+</dd>
+<dt class="hdlist1">
+Renderers
+</dt>
+<dd>
+<p>
+  All output in volatility is performed through an abstract renderer. For
+  specialist output (e.g. HTML or XML), a new renderer should be written. See
+  <em>BaseRenderer</em> and <em>TextRenderer</em> as possible examples.
+</p>
+</dd>
+<dt class="hdlist1">
+Profiles and specialized parsers
+</dt>
+<dd>
+<p>
+  Profiles are used by volatility to parse data structures. Sometimes plugin
+  authors wish to extend the parsing system by providing definitions for new
+  types, or additional behaviors via new object classes.
+</p>
+</dd>
+<dt class="hdlist1">
+Plugins
+</dt>
+<dd>
+<p>
+  A plugin is a reusable component which is available in the interactive
+  session. A plugin should only be written if it can be widely useful and/or can
+  be reused by other plugins. It is normally not necessary to write a plugin to
+  automate volatility (e.g. search for a specific malware).
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2012-08-27 00:55:16 CEST
+</div>
+</div>
+</body>
+</html>

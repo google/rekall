@@ -225,6 +225,9 @@ class Session(object):
         else:
             raise RuntimeError("A profile must be a string.")
 
+    def __unicode__(self):
+        return u"Session"
+
     def report_progress(self, message="", force=False):
         """Called by the library to report back on the progress."""
         if callable(self.progress):

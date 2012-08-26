@@ -1,0 +1,649 @@
+Volatility Technology preview tutorial
+======================================
+Michael Cohen <scudette@gmail.com>
+August 2012
+:toc:
+:icons:
+:data-uri:
+:numbered:
+:website: http://code.google.com/p/volatility/
+
+The technology preview (TP) is a preview version of the volatility memory
+forensic tool. The main goals of the new framework are to enhance user
+experience by making common tasks easier and more intuitive as well as provide a
+powerful and capable interface for automation and performing more complex
+operations.
+
+This tutorial is written as a follow up document to the presentation "Memory
+Forensics with Volatility" as presented at DFRWS 2012. This document roughly
+follows the same slides and illustrates the commands one needs to type to
+replicate the same examples.
+
+
+Installation
+------------
+
+Volatility TP is distributed both in source form and as a stand alone windows
+executable. The executable is already packed with all the dependencies and
+libraries and so does not require any external software to run.
+
+To install onto a new system you must first have the following dependencies:
+
+- Python 2.7 or 2.6.5 from http://www.python.org/
+
+- Install easy install from one of the file releases at
+  http://pypi.python.org/pypi/setuptools/[setuptools].  On windows this will
+  make the easy_install.exe script available on
+  'c:\python27\scripts\easy_install.exe'.
+
+- If you are using Python 2.6.5 you will also need to install argparse (linux
+  and osx systems might need sudo before running this):
+
+  easy_install argparse
+
+- Now install ipython:
+
+  easy_install ipython
+
+- Install pydistorm3:
+
+ wget https://distorm.googlecode.com/files/distorm3.3-package.zip
+ unzip distorm3.3-package.zip
+ cd distorm3
+ python setup.py build
+ sudo python setup.py install
+
+
+A short volatility demo
+-----------------------
+
+This section is a quick tour of the new Volatility TP user interface. The
+program can still accept command line options - which we can learn more about by
+using the --help option:
+
+-----------------------------------------------------------------------------
+$ python vol.py -h
+usage: vol.py [-h] [--pager PAGER]
+              [--logging {debug,info,warning,critical,error}] [--debug]
+              [-p PROFILE] [-f FILENAME] [--renderer RENDERER]
+              [--plugin PLUGIN [PLUGIN ...]] [--output OUTPUT] [--overwrite]
+              Plugin ...
+
+The Volatility Memory Forensic Framework technology preview (3.0_tp1). NOTE:
+This is pre-release software and is provided for evauation only. Please check
+at http://volatility.googlecode.com/ for officially supported versions. This
+program is free software; you can redistribute it and/or modify it under the
+terms of the GNU General Public License.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --pager PAGER         The pager to use when output is larger than a screen
+                        full.
+  --logging {debug,info,warning,critical,error}
+                        Logging level to show messages.
+  --debug               If set we break into the debugger on error conditions.
+  -p PROFILE, --profile PROFILE
+                        Name of the profile to load.
+  -f FILENAME, --filename FILENAME
+                        The raw image to load.
+  --renderer RENDERER   The renderer to use. e.g. (TextRenderer,
+                        JsonRenderer).
+  --plugin PLUGIN [PLUGIN ...]
+                        Load user provided plugin bundle.
+  --output OUTPUT       Write to this output file.
+  --overwrite           Allow overwriting of output files.
+-----------------------------------------------------------------------------
+
+Some of the most frequently used flags are described below:
+
+--pager::
+The pager can be specified as the program that will be used to inspect the
+result of each plugin. Since many plugins produce a great deal of output text, a
+pager is often needed. The Volatility TP will write the output to a temporary
+file, and launch this program to view it. For example, on windows it is useful
+to use notepad to examine the output from each plugin (e.g. '--pager notepad'). On
+linux use '--pager less' for example, or even '--pager "gvim -f"'.
+
+--profile::
+The '--profile' flag specifies the profile to use. The profile is an operating
+system specific collection of struct definitions which are used to parse the
+kernel data structures (which vary from version to version). The profile used
+must match the operating system version of the image.
+
+--filename::
+The '--filename' option is the name of the image to analyse. If you are using
+the raw device as provided by the winpmem driver, this will be '\\.\pmem'
+(windows) for example or '/dev/pmem' (linux). You almost always want to specify
+a filename to operate on.
+
+--renderer::
+The '--renderer' option allows the user to specify the output format for the
+plugin. Currently supported formats are textual output, and json output.
+
+--plugin::
+The '--plugin' option allows the user to specify one or more python modules or zip
+files which contain third party volatility extension plugins. Each python file
+in these plugins will be imported and any plugins defined there will become
+available to the tool.
+
+The interactive shell::
+If the command is followed by a plugin name, the tool will not use the
+interactive shell, but rather run the plugin and exit. This behaviour is similar
+to many other command line tools (and to previous volatility versions):
+
+.Example: Running plugin from command line.
+-----------------------------------------------------------------------------
+$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist
+Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0x823c87c0 System                    4      0     61     1140 ------  False -                    -
+0x81fdf020 smss.exe                448      4      3       21 ------  False 2005-06-25 16:47:28  -
+0x81f5a3b8 csrss.exe               504    448     12      596      0  False 2005-06-25 16:47:30  -
+0x81f8eb10 winlogon.exe            528    448     21      508      0  False 2005-06-25 16:47:31  -
+0x820e0da0 services.exe            580    528     18      401      0  False 2005-06-25 16:47:31  -
+...
+-----------------------------------------------------------------------------
+
+Some command plugins use additional options specific to their module. You can
+read plugin specific help by specifying the '--help' option after the name of the
+plugin:
+
+-----------------------------------------------------------------------------
+$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist --help
+usage: vol.py pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
+                     [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
+                     [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
+
+List processes for windows.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --kdbg KDBG           Location of the KDBG structure.
+  --eprocess EPROCESS [EPROCESS ...]
+                        Kernel addresses of eprocess structs.
+  --phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]
+                        Physical addresses of eprocess structs.
+  --pid PID [PID ...]   One or more pids of processes to select.
+  --proc_regex PROC_REGEX
+                        A regex to select a profile by name.
+-----------------------------------------------------------------------------
+
+For example to list all the *svchost* processes, we can apply a regex to process
+names:
+
+-----------------------------------------------------------------------------
+$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --proc_regex svc
+Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0x81fa5aa0 svchost.exe             740    580     17      198      0  False 2005-06-25 16:47:32  -
+0x81fa8650 svchost.exe             800    580     10      302      0  False 2005-06-25 16:47:33  -
+0x81faba78 svchost.exe             840    580     83     1589      0  False 2005-06-25 16:47:33  -
+0x81f8dda0 svchost.exe             984    580      6       90      0  False 2005-06-25 16:47:35  -
+0x81f6e7e8 svchost.exe            1024    580     15      207      0  False 2005-06-25 16:47:35  -
+0x82081da0 svchost.exe            1484    580      6      119      0  False 2005-06-25 16:47:59  -
+-----------------------------------------------------------------------------
+
+In order to use the interactive shell, do not specify any plugin to run:
+
+-----------------------------------------------------------------------------
+$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --pager less
+The Volatility Memory Forensic Framework technology preview (3.0_tp1).
+
+In [1]:
+-----------------------------------------------------------------------------
+
+The interactive shell marks input lines with an "In [line number]:" format and
+output lines are marked as "Out [line number]:". In order to run a plugin simply
+type its name and press enter:
+
+-----------------------------------------------------------------------------
+In [1]: pslist   <1>
+------> pslist() <2>
+Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0x823c87c0 System                    4      0     61     1140 ------  False -                    -
+0x81fdf020 smss.exe                448      4      3       21 ------  False 2005-06-25 16:47:28  -
+-----------------------------------------------------------------------------
+
+<1> The user enters the bare word pslist as a command.
+<2> IPython is configured for auto-execution and assumed the user wants to run a
+function called pslist()
+
+Plugins appear as functions in the namespace the shell is running in. IPython
+sees the bare word 'pslist' and assumes you mean to run the function
+'pslist()'. Running this function will render the output to the screen.
+
+All plugins which are applicable to the current image and profile are also
+collected in the variable 'plugins' in the namespace. This means we can use
+command line completion to discover all the plugins we could use on the current
+image:
+
+-----------------------------------------------------------------------------
+In [3]: plugins.[tab][tab]
+plugins.callbacks    plugins.handles      plugins.modules      plugins.raw2dmp
+plugins.cmdscan      plugins.hashdump     plugins.mutantscan   plugins.regdump
+plugins.connections  plugins.hivedump     plugins.null         plugins.sockets
+plugins.connscan     plugins.hivescan     plugins.pas2vas      plugins.svcscan
+plugins.consoles     plugins.impscan      plugins.pedump       plugins.symlinkscan
+-----------------------------------------------------------------------------
+
+To learn more about each of these plugins we can follow the name of the plugin
+with a single ?:
+
+-----------------------------------------------------------------------------
+In [3]: plugins.pslist?
+pslist: List processes for windows.
+Lists the processes by following the _EPROCESS.PsActiveList.
+
+In the windows operating system, processes are linked together through a
+doubly linked list. This plugin follows the list around, printing
+information about each process.
+
+To begin, we need to find any element on the list. This can be done by:
+
+1) Obtaining the _KDDEBUGGER_DATA64.PsActiveProcessHead - debug
+   information.
+
+2) Finding any _EPROCESS in memory (e.g. through psscan) and following
+   its list.
+
+This plugin supports both approaches.
+
+Parameter                       Documentation
+------------------------------ ----------------------------------------------------------------------
+physical_eprocess               One or more EPROCESS structs or offsets defined in the physical AS.
+pid                             A single pid.
+proc_regex                      A regular expression for filtering process name (using
+                                _EPROCESS.ImageFileName).
+kdbg                            The location of the kernel debugger block (In the physical AS).
+kernel_address_space            The kernel address space to use. If not specified, we use the session.
+physical_address_space          The physical address space to use. If not specified we use the
+                                following options:
+                                   1) session.physical_address_space,
+                                   2) Guess using the load_as() plugin,
+                                   3) Use session.kernel_address_space.base.
+profile                         The kernel profile to use for this command.
+session                         The session we will use. Many options are taken from the session by
+                                default, if not provided. This allows users to omit specifying many
+                                options.
+output                          Save output to this file.
+overwrite                       Must be set to overwrite an output file. You can also set this in the
+                                session as a global setting.
+renderer                        Use this renderer for the output.
+-----------------------------------------------------------------------------
+
+We can now specify the parameters to be passed to the plugin (This is the same
+as the command line example above):
+
+.Example: Specifying plugin options in the interactive shell.
+-----------------------------------------------------------------------------
+In [5]: pslist proc_regex="svc"
+------> pslist(proc_regex="svc")
+Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0x81fa5aa0 svchost.exe             740    580     17      198      0  False 2005-06-25 16:47:32  -
+0x81fa8650 svchost.exe             800    580     10      302      0  False 2005-06-25 16:47:33  -
+0x81faba78 svchost.exe             840    580     83     1589      0  False 2005-06-25 16:47:33  -
+0x81f8dda0 svchost.exe             984    580      6       90      0  False 2005-06-25 16:47:35  -
+...
+-----------------------------------------------------------------------------
+
+[NOTE]
+================================================================================
+Since important information is already stored in the interactive session between
+plugin invocations (e.g. kdbg location, dtb location etc), it is much faster to
+run plugins from the interactive session than to run each plugin in turn from
+the command line. It is possible to easily write a script for automating the
+running of multiple plugins.
+================================================================================
+
+The interactive shell is the most powerful and flexible interface and so the
+remainder of this tutorial will focus on it.
+
+At the heart of the interactive interface is the session object. The session is
+an object which contains information about the current image analysis. Plugins
+and the user can store information in the session which will be later used by
+other plugins. For example, when running the pslist() plugin, the load_as()
+plugin is run to determine the address spaces that should be used. This in turn
+calls the find_dtb() plugin which searches for a kernel DTB (used to construct
+the kernel address space).
+
+It follows that after running the pslist() plugin for the first time, a number
+of new objects are stored in the session, and they can be reused the second time
+a pslist() is run. At any time we can view the current session (Note "p" is the
+shortcut command for "print"):
+
+-----------------------------------------------------------------------------
+In [8]: p session
+------> p(session)
+Volatility session Started on Wed Aug  8 16:45:07 2012.
+
+Config:
+ default_address_space:  <IA32PagedMemory @ 0x24892d0 Kernel AS@0x39000>
+ dtb:  233472
+ filename:  'xp-laptop-2005-06-25.img'
+ kdbg:  [_KDDEBUGGER_DATA64 _KDDEBUGGER_DATA64] @ 0x8054C060
+ kernel_address_space:  <IA32PagedMemory @ 0x24892d0 Kernel AS@0x39000>
+ last:  <volatility.plugins.windows.filescan.PSScan object at 0x24853d0>
+ logging:  'INFO'
+ overwrite:  False
+ pager:  'less'
+ physical_address_space:  <MmapFileAddressSpace @ 0x262a650 xp-laptop-2005-06-25.img>
+ profile:  <volatility.plugins.overlays.windows.xp.WinXPSP2x86 object at 0x1d11090>
+ renderer:  'TextRenderer'
+-----------------------------------------------------------------------------
+
+physical_address_space::
+We can see the physical_address_space is an MmapFileAddressSpace instance over
+the image file, while the kernel_address_space is an IA32PagedMemory address
+space instantiated over the dtb at 0x39000. We can see the last volatility
+plugin run (psscan) here too.
+
+default_address_space::
+The default_address_space is the address space that will be used to instantiate
+new objects from the interactive shell by default. When reading memory we must
+always use an address space. For example, we can use the physical address space
+(i.e. the raw image) or a virtual address space (for example, the kernel or any
+process's address space). Commonly we spend some time analysing a particular
+address space so its useful to set the default_address_space to avoid typing.
+
+For example, suppose we want to examine the _EPROCESS object reported by the
+pslist module above for pid 740. We read the virtual offset of the process as
+0x81fa5aa0 in the kernel address space. We first create an instance of the
+_EPROCESS at the reported offset, and assign it to a variable. We then can
+examine all the fields of this struct by using command line completion (double
+tab):
+
+-----------------------------------------------------------------------------
+In [10]: task = session.profile._EPROCESS(0x81fa5aa0)
+
+In [11]: task.[tab][tab]
+Display all 138 possibilities? (y or n)
+task.ActiveProcessLinks            task.ReadTransferCount
+task.ActiveThreads                 task.RealVadRoot
+task.AddressCreationLock           task.RundownProtect
+task.AddressSpaceInitialized       task.SeAuditProcessCreationInfo
+task.AweInfo                       task.SectionBaseAddress
+task.BreakOnTermination            task.SectionObject
+task.CloneRoot                     task.SecurityPort
+....
+
+In [11]: task.UniqueProcessId
+Out[11]:  [unsigned int:UniqueProcessId]: 0x000002E4
+
+In [12]: task.ImageFileName
+Out[12]:  [String:ImageFileName]: 'svchost.exe\x00'
+-----------------------------------------------------------------------------
+
+When examining a member in a struct (such as '_EPROCESS.ImageFileName') we
+receive an instance of a volatility 'BaseObject'. This has both a type
+(e.g. 'String') and a name (e.g. 'ImageFileName') as well as a human readable
+representation (e.g. svchost.exe).
+
+For example the task object we have has a type of '_EPROCESS' (which is a
+struct), and it exists at offset 0x81fa5aa0:
+
+-----------------------------------------------------------------------------
+In [13]: task
+Out[13]: [_EPROCESS _EPROCESS] @ 0x81FA5AA0
+-----------------------------------------------------------------------------
+
+To view the entire object we can print it (you can use the shortcut 'p' as a
+shortcut for 'print' - either will work).
+
+-----------------------------------------------------------------------------
+In [14]: p task
+-------> p(task)
+[_EPROCESS _EPROCESS] @ 0x81FA5AA0
+  0x00 Pcb                          [_KPROCESS Pcb] @ 0x81FA5AA0
+  0x6C ProcessLock                  [_EX_PUSH_LOCK ProcessLock] @ 0x81FA5B0C
+  0x70 CreateTime                    [WinTimeStamp:CreateTime]: 0x42BD8AA4 (2005-06-25 16:47:32 )
+  0x78 ExitTime                      [WinTimeStamp:ExitTime]: 0x00000000 (-)
+  0x80 RundownProtect               [_EX_RUNDOWN_REF RundownProtect] @ 0x81FA5B20
+  0x84 UniqueProcessId               [unsigned int:UniqueProcessId]: 0x000002E4
+  0x88 ActiveProcessLinks           [_LIST_ENTRY ActiveProcessLinks] @ 0x81FA5B28
+  0x90 QuotaUsage                   <Array 3 x unsigned long @ 0x81FA5B30>
+  0x9C QuotaPeak                    <Array 3 x unsigned long @ 0x81FA5B3C>
+  0xA8 CommitCharge                  [unsigned long:CommitCharge]: 0x000002E7
+  0xAC PeakVirtualSize               [unsigned long:PeakVirtualSize]: 0x0402C000
+  0xB0 VirtualSize                   [unsigned long:VirtualSize]: 0x03EC9000
+  0xB4 SessionProcessLinks          [_LIST_ENTRY SessionProcessLinks] @ 0x81FA5B54
+  0xBC DebugPort                    <NoneObject Pointer to [0x00000000] (DebugPort)>
+  0xC0 ExceptionPort                <Void Pointer to [0xE175BCA8] (ExceptionPort)>
+...
+-----------------------------------------------------------------------------
+
+This view shows the layour of the _EPROCESS struct which is overlayed on the
+offset 0x81FA5B54. The first column is the relative offset of each member,
+followed by the name of each member and a representation of each member. This
+representation consists of a type (e.g. _KPROCESS), a name (e.g. Pcb) and a
+human readable representation.
+
+Interactive plugins
+-------------------
+Many plugins are designed to work in the interactive environment since they are
+by nature interactive. For example the dump plugin performs a hex dump of a
+region of memory:
+
+-----------------------------------------------------------------------------
+In [18]: dump?
+
+dump: Hexdump an object or memory location.
+Hexdump an object or memory location.
+
+You can use this plugin repeateadely to keep dumping more data using the
+"v" (rerun last operation) plugin:
+
+In [2]: dump session.kernel_address_space, 0x814b13b0
+------> dump(session.kernel_address_space, 0x814b13b0)
+Offset                         Hex                              Data
+---------- ------------------------------------------------ ----------------
+0x814b13b0 03 00 1b 00 00 00 00 00 b8 13 4b 81 b8 13 4b 81  ..........K...K.
+
+In [3]: v
+------> v()
+Offset                         Hex                              Data
+---------- ------------------------------------------------ ----------------
+0x814b1440 70 39 00 00 54 1b 01 00 18 0a 00 00 32 59 00 00  p9..T.......2Y..
+0x814b1450 6c 3c 01 00 81 0a 00 00 18 0a 00 00 00 b0 0f 06  l<..............
+0x814b1460 00 10 3f 05 64 77 ed 81 d4 80 21 82 00 00 00 00  ..?.dw....!.....
+
+Parameter                       Documentation
+------------------------------ ----------------------------------------------------------------------
+target                          The object to dump or an address space.
+offset                          The offset to start dumping from.
+-----------------------------------------------------------------------------
+
+Lets try to dump the hex content of the task object (Note that if no address
+space is specified, the default address space from the session is used - in this
+case the kernel_address_space):
+
+-----------------------------------------------------------------------------
+In [19]: dump 0x81FA5AA0
+-------> dump(0x81FA5AA0)
+  Offset                         Hex                              Data
+---------- ------------------------------------------------ ----------------
+0x81fa5aa0 03 00 1b 00 00 00 00 00 10 3c 21 82 10 3c 21 82  .........<!..<!.
+0x81fa5ab0 b0 5a fa 81 b0 5a fa 81 00 50 57 0e 00 e0 56 0e  .Z...Z...PW...V.
+0x81fa5ac0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0x81fa5ad0 ac 20 00 00 00 00 00 00 1d 00 00 00 0b 00 00 00  ................
+-----------------------------------------------------------------------------
+
+This will produce one pagefull of hex dump. To produce another page, simply
+rerun the last plugin using the 'v' plugin:
+-----------------------------------------------------------------------------
+In [20]: v
+-------> v()
+  Offset                         Hex                              Data
+---------- ------------------------------------------------ ----------------
+0x81fa5c70 a6 92 08 00 00 00 00 00 2c 03 00 00 00 00 00 00  ........,.......
+0x81fa5c80 e0 7c 00 00 00 00 00 00 00 00 00 00 aa 16 00 00  .|..............
+0x81fa5c90 00 00 00 00 b0 1e 0f 82 30 fe 1f 95 a5 79 c5 01  ........0....y..
+0x81fa5ca0 00 00 01 00 31 05 00 00 c3 04 00 00 b6 04 00 00  ....1...........
+-----------------------------------------------------------------------------
+
+
+Automating Volatility
+---------------------
+
+One of the main thrusts in the technology preview version is the automation of
+volatility so it can be used from external programs easily, as well as making it
+easier to write custom volatility scripts.
+
+This section demonstrates how to automate the new framework, both by embedding
+it a completely inside another application, as well as simply automating the
+analysis from volatility itself.
+
+
+Embedding Volatility in an external python program
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In this example we will run the pslist plugin on a sample image, capture the
+text table into a string and then print this string (In a real example, this
+could be served over a HTTP or whatever).
+
+The basic sequence of steps is:
+
+Create a session object::
+ All interactions with the volatility library require a session object. The
+ session object keeps information related to the same image. There can be any
+ number of session objects valid at the same time - no data is global.
+
+Create an appropriate renderer object::
+ All output is rendered using a renderer. A renderer is an abstraction which is
+ able to format the output in some way. For example, the TextRenderer outputs
+ tables of text, while the JSONRenderer outputs json blobs.
+
+Instantiate the plugin::
+ The plugin is simply an object which can be instantiated using various
+ parameters.
+
+Render the plugin into the renderer::
+ Calling the plugin's render method with a valid renderer will cause it to
+ execute its analysis and output into this renderer.
+
+
+[source,python,numbered]
+.Example of embedding volatility in a python application
+-----------------------------------------------------------------------------
+import StringIO
+
+from volatility import session
+from volatility import plugins        # <1>
+from volatility.ui import renderer
+
+s = session.Session(                  # <2>
+    filename="xp-laptop-2005-06-25.img",
+    profile="WinXPSP2x86")
+
+fd = StringIO.StringIO()
+
+r = renderer.TextRenderer(fd=fd)
+
+plugin = s.plugins.pslist()           # <3>
+plugin.render(r)                      # <4>
+
+print fd.getvalue()
+-----------------------------------------------------------------------------
+
+<1> Importing the plugins is required to make volatility load all the default
+plugins. At this point any third party plugins will need to be imported too.
+<2> The session object is created with initial values for some parameters.
+<3> The plugin is instantiated from the session object.
+<4> The output is rendered into the renderer and becomes available in the
+StringIO.
+
+Automating Volatility
+~~~~~~~~~~~~~~~~~~~~~
+
+Much of the time the volatility interactive interface is sufficient for most
+analysis. Sometimes, however, we need to automate some of this
+analysis. Previously users had to write plugins to extend volatility, but in
+many cases this is probably an overkill.
+
+In this section, we see how interactive scripts can be written to automate
+volatility. This is similar to Embedding in an external program, except that the
+script runs within the interactive session. When the script completes, the
+interactive session resumes.
+
+For this example, we search for all processes with a name of 'python.exe' and
+dump them into the temporary directory with their timestamps. This could be used
+for example to dump periodic snapshots of a process from a live system.
+
+First we create the following python file named 'dumper.py':
+
+[source,python,numbered]
+.Example interactive python script.
+-----------------------------------------------------------------------------
+import time
+
+pslist = session.plugins.pslist(proc_regex="python.exe")
+pedumper = session.plugins.pedump()
+
+for task in pslist.filter_processes():
+    outfd = open("/tmp/%s-%s.exe" % (time.time(), task.UniqueProcessId),
+                 "wb")
+    pedumper.WritePEFile(fd=outfd,
+                         address_space=task.get_process_address_space(),
+                         image_base=task.Peb.ImageBaseAddress)
+-----------------------------------------------------------------------------
+
+Now we run this file directly from the interactive shell.
+-----------------------------------------------------------------------------
+$ vol.py -f \\.\pmem --profile Win7SP0x64
+...
+
+In [1]: run -i dumper.py  <1>
+In [2]: ls -l
+
+total 300
+-rw-r----- 1 user group  57344 2012-08-27 00:28 1346020082.17-4012.exe
+....
+-----------------------------------------------------------------------------
+
+<1> Running the script with the -i flag ensures that the script receives the
+same namespace as the interactive shell. This means that it can use the same
+session and we can see all variables defined by the script.
+
+
+[IMPORTANT]
+================================================================================
+In the interactive shell IPython will automatically attempt to execute plugins
+without requiring the brackets to be present - this is merely a usability
+feature. In reality all input is interpreted as python code.
+
+This means that while in the interactive shell its sufficient to just type
+'pslist', when running an external script, you will need to explicitly call the
+function as 'pslist()'.
+================================================================================
+
+
+Extending Volatility
+~~~~~~~~~~~~~~~~~~~~
+
+Extending volatility is most useful when you want to add additional
+functionality which should be reused by other people, or contributed to the
+core. If you are just interested in automating a very specific analysis, an
+interactive shell script is sufficient usually, and is simple to write.
+
+There are a number of different components which can be extended these fall
+roughly into these categories:
+
+Address Spaces::
+  Address spaces are the way volatility implements image reading. Most of the
+  time you will want to implement some kind of support for new image files.
+
+Renderers::
+  All output in volatility is performed through an abstract renderer. For
+  specialist output (e.g. HTML or XML), a new renderer should be written. See
+  'BaseRenderer' and 'TextRenderer' as possible examples.
+
+Profiles and specialized parsers::
+  Profiles are used by volatility to parse data structures. Sometimes plugin
+  authors wish to extend the parsing system by providing definitions for new
+  types, or additional behaviors via new object classes.
+
+Plugins::
+  A plugin is a reusable component which is available in the interactive
+  session. A plugin should only be written if it can be widely useful and/or can
+  be reused by other plugins. It is normally not necessary to write a plugin to
+  automate volatility (e.g. search for a specific malware).
