@@ -150,62 +150,23 @@ class WinMemMap(common.WinProcessFilter):
 
     __name = "memmap"
 
-    def get_pages_for_eprocess(self, eprocess, coalesce=False):
-        """Returns the list of pages the _EPROCESS has mapped.
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(WinMemMap, cls).args(parser)
+        parser.add_argument(
+            "--coalesce", default=False, action="store_true",
+            help="Merge contiguous pages into larger ranges.")
+
+    def __init__(self, coalesce=False, **kwargs):
+        """Calculates the memory regions mapped by a process.
 
         Args:
-          eprocess: A _EPROCESS to use.
-          coalesce: Should memory ranges be coalesced into larger blocks.
-
-        Yields:
-          Tuples of (virtual address, physical address, range length)
+          coalesce: Merge pages which are contiguous in memory into larger
+             ranges.
         """
-        last_va = 0
-        last_pa = 0
-        last_len = 0
-
-        task_address_space = eprocess.get_process_address_space()
-        for va, length in task_address_space.get_available_addresses():
-            pa = task_address_space.vtop(va)
-            if pa == None:
-                continue
-
-            ## This page is right after the last page in the range
-            if coalesce and va == last_va + last_len and pa == last_pa + last_len:
-                last_len += length
-            else:
-                if last_len > 0:
-                    yield (last_va, last_pa, last_len)
-
-                last_va, last_pa, last_len = va, pa, length
-
-        yield (last_va, last_pa, last_len)
-
-    def address_ranges(self, address_space):
-      """Combine the addresses into ranges."""
-      contiguous_offset = None
-      total_length = 0
-
-      for (offset, length) in address_space.get_available_addresses():
-          # Try to join up adjacent pages as much as possible.
-          if contiguous_offset is None:
-              # Reset the contiguous range.
-              contiguous_offset = offset
-              total_length = length
-
-          elif offset == contiguous_offset + total_length:
-              total_length += length
-          else:
-              # Scan the last contiguous range.
-              yield contiguous_offset, total_length
-
-              # Reset the contiguous range.
-              contiguous_offset = offset
-              total_length = length
-
-      if total_length > 0:
-          # Do the last range.
-          yield contiguous_offset, total_length
+        self.coalesce = coalesce
+        super(WinMemMap, self).__init__(**kwargs)
 
     def render(self, renderer):
         for task in self.filter_processes():
@@ -217,8 +178,7 @@ class WinMemMap(common.WinProcessFilter):
             renderer.format(u"Process: '{0}' pid: {1:6}\n",
                             task.ImageFileName, task.UniqueProcessId)
 
-            ranges = list(self.get_pages_for_eprocess(task))
-            if not ranges:
+            if not task_space:
                 renderer.write("Unable to read pages for task.\n")
                 continue
 
@@ -226,10 +186,14 @@ class WinMemMap(common.WinProcessFilter):
                                    ("Physical", "offset_p", "[addrpad]"),
                                    ("Size", "process_size", "[addr]")])
 
-            for virtual_address, phys_address, length in ranges:
+            if self.coalesce:
+                ranges = task_space.get_address_ranges()
+            else:
+                ranges = task_space.get_available_addresses()
+
+            for virtual_address, length in ranges:
+                phys_address = task_space.vtop(virtual_address)
                 renderer.table_row(virtual_address, phys_address, length)
-
-
 
 
 class WinMemDump(core.DirectoryDumperMixin, WinMemMap):

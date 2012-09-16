@@ -217,7 +217,8 @@ class Enumeration(obj.NativeType):
 
     def __str__(self):
         value = self.v()
-        return self.choices.get(value, self.default) or str(value)
+        return self.choices.get(value, self.default) or (
+            "UNKNOWN (%s)" % str(value))
 
     def __eq__(self, other):
         if isinstance(other, (int, long)):

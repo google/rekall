@@ -23,25 +23,12 @@
 from volatility import testlib
 
 
-class TestFileScanners(testlib.VolatilityBaseUnitTestCase):
-    """Test the FileScan module."""
-
-    trunk_launch_args = [#['filescan'],
-                         ['driverscan'],
-                         ['symlinkscan'],
-                         ['mutantscan'],
-                         ['psscan']]
-
-    ng_launch_args = [#['filescan', {}],
-                      ['driverscan', {}],
-                      ['symlinkscan', {}],
-                      ['mutantscan', {}],
-                      ['psscan', {}]]
+class TestDriverScan(testlib.VolatilityBaseUnitTestCase):
+    PARAMETERS = dict(commandline="driverscan")
 
     def testDriver(self):
-        previous_meta, current_meta = self.ReRunVolatilityTest('driverscan')
-        previous = previous_meta['output']
-        current = current_meta['output']
+        previous = self.baseline['output']
+        current = self.current['output']
 
         # Compare the entire table
         for i in range(8):
@@ -49,12 +36,16 @@ class TestFileScanners(testlib.VolatilityBaseUnitTestCase):
                 self.ExtractColumn(current, i, 2),
                 self.ExtractColumn(previous, i, 2))
 
-    def testPsScan(self):
-        previous_meta, current_meta = self.ReRunVolatilityTest('psscan')
-        previous = previous_meta['output']
-        current = current_meta['output']
 
-        if previous_meta['mode'] == 'trunk':
+class TestPSScan(testlib.VolatilityBaseUnitTestCase):
+
+    PARAMETERS = dict(commandline="psscan")
+
+    def testPsScan(self):
+        previous = self.baseline['output']
+        current = self.current['output']
+
+        if self.baseline_mode == 'trunk':
             for x, y in ((0, 0), (1, 2), (2, 3), (3, 4), (4, 5), (6, 8), (7, 9)):
                 self.assertListEqual(
                     self.ExtractColumn(current, y, 2),
@@ -67,10 +58,14 @@ class TestFileScanners(testlib.VolatilityBaseUnitTestCase):
                     self.ExtractColumn(current, i, 2),
                     self.ExtractColumn(previous, i, 2))
 
+
+class TestSymlinkScan(testlib.VolatilityBaseUnitTestCase):
+
+    PARAMETERS = dict(commandline="symlinkscan")
+
     def testSymlink(self):
-        previous_meta, current_meta = self.ReRunVolatilityTest('symlinkscan')
-        previous = previous_meta['output']
-        current = current_meta['output']
+        previous = self.baseline['output']
+        current = self.current['output']
 
         # Compare the entire table
         for i in range(6):
@@ -78,10 +73,14 @@ class TestFileScanners(testlib.VolatilityBaseUnitTestCase):
                 self.ExtractColumn(current, i, 2),
                 self.ExtractColumn(previous, i, 2))
 
+
+class TestMutantScan(testlib.VolatilityBaseUnitTestCase):
+
+    PARAMETERS = dict(commandline="symlinkscan")
+
     def testMutant(self):
-        previous_meta, current_meta = self.ReRunVolatilityTest('mutantscan')
-        previous = previous_meta['output']
-        current = current_meta['output']
+        previous = self.baseline['output']
+        current = self.current['output']
 
         # Compare the entire table
         for i in range(6):

@@ -26,14 +26,12 @@ from volatility import testlib
 class TestModules(testlib.VolatilityBaseUnitTestCase):
     """Test the Modules module."""
 
-    trunk_launch_args = [['modules']]
-    ng_launch_args = [['modules', {}]]
+    PARAMETERS = dict(commandline="modules")
 
     def testModules(self):
         """Test the modules plugin."""
-        previous_meta, current_meta = self.ReRunVolatilityTest('modules')
-        previous = previous_meta['output']
-        current = current_meta['output']
+        previous = self.baseline['output']
+        current = self.current['output']
 
         # The following can be out of order due to Volatility NG's list
         # traversal algorithm being different from Volatility trunks.

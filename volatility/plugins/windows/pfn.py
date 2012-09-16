@@ -83,7 +83,7 @@ class PFNModification(obj.ProfileModification):
                 })
 
 
-class VtoP(common.WindowsCommandPlugin):
+class VtoP(common.WinProcessFilter):
     """Prints information about the virtual to physical translation."""
 
     __name = "vtop"
@@ -100,7 +100,7 @@ class VtoP(common.WindowsCommandPlugin):
           address_space: The address space to use (default the kernel_address_space).
         """
         super(VtoP, self).__init__(**kwargs)
-        self.address_space = address_space or self.kernel_address_space
+        self.address_space = address_space
         self.address = virtual_address
 
     def _vtop_32bit(self, vaddr, address_space):

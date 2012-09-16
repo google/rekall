@@ -26,15 +26,11 @@ from volatility import testlib
 class TestConnections(testlib.VolatilityBaseUnitTestCase):
     """Test the connections module."""
 
-    trunk_launch_args = [['connections'],
-                         ['sockets']]
-    ng_launch_args = [['connections', {}],
-                      ['sockets', {}]]
+    PARAMETERS = dict(commandline="connections")
 
-    def testConnectionss(self):
-        previous_meta, current_meta = self.ReRunVolatilityTest('connections')
-        previous = previous_meta['output']
-        current = current_meta['output']
+    def testConnections(self):
+        previous = self.baseline['output']
+        current = self.current['output']
 
         # Compare the entire table
         for i in range(4):
@@ -42,10 +38,15 @@ class TestConnections(testlib.VolatilityBaseUnitTestCase):
                 sorted(self.ExtractColumn(current, i, 2)),
                 sorted(self.ExtractColumn(previous, i, 2)))
 
+
+class TestSockets(testlib.VolatilityBaseUnitTestCase):
+    """Test the sockets module."""
+
+    PARAMETERS = dict(commandline="sockets")
+
     def testSockets(self):
-        previous_meta, current_meta = self.ReRunVolatilityTest('sockets')
-        previous = previous_meta['output']
-        current = current_meta['output']
+        previous = self.baseline['output']
+        current = self.current['output']
 
         # Compare the entire table
         for i in range(6):

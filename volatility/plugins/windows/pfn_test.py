@@ -19,6 +19,7 @@
 #
 
 """Tests for the pfn plugins."""
+import json
 
 from volatility import testlib
 
@@ -26,21 +27,29 @@ from volatility import testlib
 class TestPFN(testlib.VolatilityBaseUnitTestCase):
     """Test the pfn module."""
 
-    def testVTOP(self):
+    # This is the test data in json format. Keys are _EPROCESS and values is a
+    # list of private addresses.
+    PARAMETERS = dict(test_data="""{ "0x81faf280": ["0x320010", "0x7ffdf043"],
+                  "0x81ed84e8":  ["0x240200", "0x360012"]
+                }""")
+
+    def BuildBaseLineData(self, config_options):
+        return {}
+
+    def testPFN(self):
         """Test the vtop function."""
-        try:
-            metadata = self.LoadPreviousRunData("pfn")
-            session = self.BuildUserSession("pfn")
-        except IOError:
-            return
+        config_options = self.baseline['options']
+
+        session = self.MakeUserSession(config_options)
 
         # Instantiate the pfn plugin.
         vtop = session.vol("vtop")
         ptov = session.vol("ptov")
 
         # Get the image metadata.
-        for task_offset, virtual_addresses in metadata.get(
-            "pfn_test", {}).items():
+        for task_offset, virtual_addresses in json.loads(
+            config_options['test_data']).items():
+
             task = session.profile._EPROCESS(
                 vm=session.kernel_address_space,
                 offset=int(task_offset, 16))

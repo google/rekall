@@ -215,15 +215,14 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReade
         return longval
 
     def get_available_addresses(self):
-        '''
-        Return a list of lists of available memory pages.
-        Each entry in the list is the starting virtual address
-        and the size of the memory page.
-        '''
+        """Enumerate all valid memory ranges.
+
+        Yields:
+          tuples of (starting virtual address, size) for valid the memory ranges.
+        """
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is four bytes. Thus there are 0x1000 / 4 = 0x400
         # PDEs and PTEs we must test
-
         for pde in range(0, 0x400):
             vaddr = pde << 22
             pde_value = self.get_pde(vaddr)

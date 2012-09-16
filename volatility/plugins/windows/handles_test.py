@@ -26,14 +26,12 @@ from volatility import testlib
 class TestHandles(testlib.VolatilityBaseUnitTestCase):
     """Test the Handler module."""
 
-    trunk_launch_args = [['handles', "--pid", "1484"]]
-    ng_launch_args = [['handles', {"pid": 1484}]]
+    PARAMETERS = dict(commandline="handles --pid 1484")
 
     def testHandle(self):
         """Test the modules plugin."""
-        previous_meta, current_meta = self.ReRunVolatilityTest('handles', pid=1484)
-        previous = previous_meta['output']
-        current = current_meta['output']
+        previous = self.baseline['output']
+        current = self.current['output']
 
         # Compare virtual addresses.
         self.assertIntegerListEqual(

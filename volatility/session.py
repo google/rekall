@@ -170,8 +170,8 @@ class Session(object):
             return result
 
         except plugin.InvalidArgs, e:
-            logging.warning("Invalid Args (Try info plugins.%s): %s",
-                            plugin_cls.name, e)
+            logging.error("Invalid Args (Try info plugins.%s): %s",
+                          plugin_cls.name, e)
 
         except plugin.Error, e:
             logging.error("Failed running plugin %s: %s",

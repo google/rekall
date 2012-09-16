@@ -2,7 +2,11 @@ from volatility.plugins.windows import common
 from volatility.plugins.windows import connections
 from volatility.plugins.windows import connscan
 from volatility.plugins.windows import crashinfo
-from volatility.plugins.windows import disassembler
+try:
+    from volatility.plugins.windows import disassembler
+except ImportError:
+    pass
+
 from volatility.plugins.windows import filescan
 from volatility.plugins.windows import handles
 #from volatility.plugins.windows import hibinfo

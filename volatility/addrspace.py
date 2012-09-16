@@ -135,21 +135,24 @@ class BaseAddressSpace(object):
             pass
 
         result = []
-        contiguous_offset = 0
+        contiguous_voffset = 0
+        contiguous_poffset = 0
         total_length = 0
-        for (offset, length) in self.get_available_addresses():
+        for (voffset, length) in self.get_available_addresses():
             # Try to join up adjacent pages as much as possible.
-            if offset == contiguous_offset + total_length:
+            if (voffset == contiguous_voffset + total_length and
+                self.vtop(voffset) == contiguous_poffset + total_length):
                 total_length += length
             else:
-                result.append((contiguous_offset, total_length))
+                result.append((contiguous_voffset, total_length))
 
                 # Reset the contiguous range.
-                contiguous_offset = offset
+                contiguous_voffset = voffset
+                contiguous_poffset = self.vtop(voffset)
                 total_length = length
 
         if total_length > 0:
-            result.append((contiguous_offset, total_length))
+            result.append((contiguous_voffset, total_length))
 
         # Sort in virtual addresses.
         result.sort()

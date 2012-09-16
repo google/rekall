@@ -106,6 +106,6 @@ class Disassemble(plugin.Command):
                                ('Op Codes', "opcode", '<20'),
                                ('Instruction', "instruction", '<40')],
                               suppress_headers=self.suppress_headers)
-        for (offset, instruction, hexdump) in self.disassemble(self.offset):
+        for (offset, hexdump, instruction) in self.disassemble(self.offset):
             renderer.table_row(offset, hexdump, instruction)
 

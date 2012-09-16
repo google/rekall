@@ -138,9 +138,6 @@ class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(RegDump, cls).args(parser)
-        parser.add_argument("-k", "--key", default=False,
-                            help="Registry key to print.")
-
         parser.add_argument("-o", "--hive_offsets", action=args.ArrayIntParser,
                             nargs="+", help='Hive offsets to search (virtual)')
 

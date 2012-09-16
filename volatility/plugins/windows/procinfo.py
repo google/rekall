@@ -24,6 +24,7 @@ Output is similar to objdump or pefile.
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from volatility import plugin
+from volatility.plugins.addrspaces import standard
 from volatility.plugins.overlays.windows import pe_vtypes
 from volatility.plugins.windows import common
 
@@ -33,7 +34,8 @@ class PEInfo(plugin.Command):
 
     __name = "peinfo"
 
-    def __init__(self, address_space=None, image_base=None, **kwargs):
+    def __init__(self, address_space=None, image_base=0, filename=None,
+                 **kwargs):
         """Dump a PE binary from memory.
 
         Status is shown for each exported function:
@@ -43,9 +45,12 @@ class PEInfo(plugin.Command):
         Args:
           address_space: The address space which contains the PE image.
           image_base: The address of the image base (dos header).
+          filename: If provided we create an address space from this file.
         """
         super(PEInfo, self).__init__(**kwargs)
         self.address_space = address_space
+        if filename:
+            self.address_space = standard.FileAddressSpace(filename=filename)
         self.image_base = image_base
 
     def render(self, renderer):

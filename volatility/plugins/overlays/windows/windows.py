@@ -832,7 +832,8 @@ class _MMVAD_FLAGS(obj.CType):
 
             try:
                 attribute = getattr(self, name)
-                result.append("%s: %s" % (name, attribute))
+                if attribute.v():
+                    result.append("%s: %s" % (name, attribute))
             except AttributeError: pass
 
         return ", ".join(result)

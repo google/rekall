@@ -26,24 +26,25 @@ from volatility import testlib
 class TestPS(testlib.VolatilityBaseUnitTestCase):
     """Test the pslist module."""
 
-    trunk_launch_args = [['pslist'],
-                         ['dlllist'],
-                         ['memmap', "--pid", "2624"]]
-
-    ng_launch_args = [['pslist', {}],
-                      ['dlllist', {}],
-                      ['memmap', dict(pid=2624)]]
+    PARAMETERS = dict(commandline="pslist")
 
     def testPslist(self):
-        previous, current = self.ReRunVolatilityTest('pslist')
-
         # Compare filenames.
-        self.assertListEqual(self.ExtractColumn(current['output'], 1, 2),
-                             self.ExtractColumn(previous['output'], 1, 2))
+        self.assertListEqual(self.ExtractColumn(self.current['output'], 1, 2),
+                             self.ExtractColumn(self.baseline['output'], 1, 2))
 
         # Compare virtual addresses.
-        self.assertListEqual(self.ExtractColumn(current['output'], 0, 2),
-                             self.ExtractColumn(previous['output'], 0, 2))
+        self.assertListEqual(self.ExtractColumn(self.current['output'], 0, 2),
+                             self.ExtractColumn(self.baseline['output'], 0, 2))
+
+
+class TestDLLList(testlib.VolatilityBaseUnitTestCase):
+    """Test the dlllist module."""
+
+    PARAMETERS = dict(commandline="dlllist",
+                      # Trunk volatility does not print anything for invalid
+                      # addresses.
+                      trunk_replace_regex = "s/\|\|\n/||-\n/")
 
     def ParseDllist(self, output):
         map = {}
@@ -58,9 +59,8 @@ class TestPS(testlib.VolatilityBaseUnitTestCase):
         return map
 
     def testDlllist(self):
-        previous, current = self.ReRunVolatilityTest('dlllist')
-        previous_map = self.ParseDllist(previous['output'])
-        current_map = self.ParseDllist(current['output'])
+        previous_map = self.ParseDllist(self.baseline['output'])
+        current_map = self.ParseDllist(self.current['output'])
 
         self.assertListEqual(previous_map, current_map)
         for pid in previous_map:
@@ -74,20 +74,32 @@ class TestPS(testlib.VolatilityBaseUnitTestCase):
                 self.ExtractColumn(previous_map[pid], 2, 1),
                 self.ExtractColumn(current_map[pid], 2, 1))
 
-    def testMemmap(self):
-        previous, current = self.ReRunVolatilityTest('memmap', pid=2624)
 
+class TestMemmap(testlib.VolatilityBaseUnitTestCase):
+    """Test the pslist module."""
+
+    PARAMETERS = dict(commandline="memmap --pid=2624")
+
+    def testMemmap(self):
         # Virtual address - Hex formatting might be different so convert it from
         # hex and compare the ints themselves.
-        skip = 4
-        if previous['mode'] == 'trunk':
+        skip = 7
+
+        if self.baseline['options']['mode'] == 'trunk':
             skip = 3
 
         self.assertIntegerListEqual(
-            self.ExtractColumn(previous['output'], 0, skip),
-            self.ExtractColumn(current['output'], 0, 4))
+            self.ExtractColumn(self.baseline['output'], 0, skip),
+            self.ExtractColumn(self.current['output'], 0, 7))
 
         # Physical address.
         self.assertIntegerListEqual(
-            self.ExtractColumn(previous['output'], 1, skip),
-            self.ExtractColumn(current['output'], 1, 4))
+            self.ExtractColumn(self.baseline['output'], 1, skip),
+            self.ExtractColumn(self.current['output'], 1, 7))
+
+
+
+class TestMemmapCoalesce(testlib.SimpleTestCase):
+    """Make sure that memmaps are coalesced properly."""
+
+    PARAMETERS = dict(ng_commandline="memmap --pid=2624 --coalesce")

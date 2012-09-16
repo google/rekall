@@ -29,19 +29,23 @@ from volatility import testlib
 class TestPrintkey(testlib.VolatilityBaseUnitTestCase):
     """Test the printkey module."""
 
-    trunk_launch_args = [['printkey']]
-    ng_launch_args = [['printkey', {}]]
+    PARAMETERS = dict(commandline="printkey")
 
     def testPrintkey(self):
         """Tests the printkey module."""
-        previous, current = self.ReRunVolatilityTest('printkey')
+        previous = self.baseline['output']
+        current = self.current['output']
 
-        if previous.get('mode') == 'trunk':
-            for i, line in enumerate(current['output']):
-                current['output'][i] = re.sub(r"(Registry: [^@]+) @ .+", r"\1", line)
+        if self.baseline_mode == 'trunk':
+            for i, line in enumerate(current):
+                current[i] = re.sub(
+                    r"(Registry: [^@]+) @ .+", r"\1", line)
 
-        previous_blocks = sorted(self.SplitLines(previous['output'], "----------"))
-        current_blocks = sorted(self.SplitLines(current['output'], "----------"))
+        previous_blocks = sorted(
+            self.SplitLines(previous, "----------"))
+
+        current_blocks = sorted(
+            self.SplitLines(current, "----------"))
 
         for x, y in zip(previous_blocks, current_blocks):
             self.assertEqual(x, y)
@@ -50,35 +54,26 @@ class TestPrintkey(testlib.VolatilityBaseUnitTestCase):
 class TestRegDump(testlib.VolatilityBaseUnitTestCase):
     """Test dumping of registry hives."""
 
-    ng_launch_args = [['regdump', {}]]
+    PARAMETERS = dict(ng_commandline="regdump --dump-dir %(tempdir)s")
 
-    def RunVolatilityModule(self, **kwargs):
-        # Get a temp directory
-        with testlib.TempDirectory() as directory:
-            result = super(TestRegDump, self).RunVolatilityModule(
-                dump_dir=directory, **kwargs)
+    def BuildBaseLineData(self, config_options):
+        """We need to calculate the hash of the image we produce."""
+        baseline = super(TestRegDump, self).BuildBaseLineData(config_options)
 
-            result['hashes'] = {}
-            for filename in os.listdir(directory):
-                md5 = hashlib.md5()
-                with open(os.path.join(directory, filename), "rb") as fd:
-                    data = fd.read(1024*1024)
-                    if not data: break
-                    md5.update(data)
+        # Filename should be stored in the temp directory and have a name which
+        # ends with the pid:
 
-                result['hashes'][filename] = md5.hexdigest()
+        filenames = sorted(
+            [x for x in os.listdir(self.temp_directory) if "@" in x])
 
-        return result
+        baseline['hashes'] = []
+        for filename in filenames:
+            with open(os.path.join(self.temp_directory, filename)) as fd:
+                md5 = hashlib.md5(fd.read())
+                baseline['hashes'].append(md5.hexdigest())
+
+        return baseline
 
     def testRegDump(self):
-        try:
-            previous_run_data = self.LoadPreviousRunData('regdump')
-        except IOError:
-            return
-
-        result = self.RunVolatilityModule(profile=previous_run_data['profile'],
-                                          image=previous_run_data['filename'],
-                                          module='regdump')
-
-        self.assertEqual(previous_run_data['hashes'], result['hashes'])
+       self.assertEqual(self.baseline['hashes'], self.current['hashes'])
 

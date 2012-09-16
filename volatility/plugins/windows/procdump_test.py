@@ -29,92 +29,58 @@ from volatility import testlib
 class TestProcdump(testlib.VolatilityBaseUnitTestCase):
     """Test the Procdump module."""
 
-    trunk_launch_args = [['procexedump', '--pid', '2536', '--dump-dir']]
-    ng_launch_args = [['procdump', dict(pid=1700)]]
+    PARAMETERS = dict(
+        ng_commandline="procdump --pid 2536 --dump-dir %(tempdir)s",
+        trunk_commandline="procexedump --pid 2536 --dump-dir %(tempdir)s",
+        pid=2536)
 
-    def LaunchTrunkVolatility(self, args=None, **kwargs):
-        # Get a temp directory
-        with testlib.TempDirectory() as directory:
-            args.append(directory)
+    def BuildBaseLineData(self, config_options):
+        """We need to calculate the hash of the image we produce."""
+        baseline = super(TestProcdump, self).BuildBaseLineData(config_options)
 
-            result = super(TestProcdump, self).LaunchTrunkVolatility(
-                args=args, **kwargs)
+        # Filename should be stored in the temp directory and have a name which
+        # ends with the pid:
 
-            filename = os.listdir(directory)[0]
-            with open(os.path.join(directory, filename)) as fd:
-                md5 = hashlib.md5(fd.read())
-                result['hash'] = md5.hexdigest()
+        filenames = [x for x in os.listdir(self.temp_directory)
+                     if x.endswith("%s.exe" % config_options['pid'])]
 
-            return result
+        self.assertEqual(len(filenames), 1)
 
-    def RunVolatilityModule(self, pid=None, **kwargs):
-        with testlib.TempDirectory() as directory:
-            result = super(TestProcdump, self).RunVolatilityModule(
-                dump_dir=directory, pid=pid, **kwargs)
+        with open(os.path.join(self.temp_directory, filenames[0])) as fd:
+            md5 = hashlib.md5(fd.read())
+            baseline['hash'] = md5.hexdigest()
 
-            filename = os.listdir(directory)[0]
-            with open(os.path.join(directory, filename)) as fd:
-                md5 = hashlib.md5(fd.read())
-                result['hash'] = md5.hexdigest()
-
-            return result
+        return baseline
 
     def testProcDump(self):
-        try:
-            previous_run_data = self.LoadPreviousRunData('procdump')
-        except IOError:
-            previous_run_data = self.LoadPreviousRunData('procexedump')
-
-        result = self.RunVolatilityModule(profile=previous_run_data['profile'],
-                                          image=previous_run_data['filename'],
-                                          module='procdump', pid=1700)
-
-        self.assertEqual(previous_run_data['hash'], result['hash'])
+        self.assertEqual(self.baseline['hash'], self.current['hash'])
 
 
 class TestDLLDump(testlib.VolatilityBaseUnitTestCase):
     """Test the dlldump module."""
 
-    trunk_launch_args = [['dlldump', '--pid', '4012', '--dump-dir']]
-    ng_launch_args = [['dlldump', dict(pid=4012)]]
+    PARAMETERS = dict(commandline="dlldump --pid 4012 --dump-dir %(tempdir)s",
+                      pid=4012)
 
-    def LaunchTrunkVolatility(self, args=None, **kwargs):
-        # Get a temp directory
-        with testlib.TempDirectory() as directory:
-            args.append(directory)
+    def BuildBaseLineData(self, config_options):
+        """We need to calculate the hash of the image we produce."""
+        baseline = super(TestDLLDump, self).BuildBaseLineData(config_options)
 
-            result = super(TestDLLDump, self).LaunchTrunkVolatility(args=args, **kwargs)
-            file_hashes = {}
+        # Filename should be stored in the temp directory and have a name which
+        # ends with the pid:
 
-            for filename in os.listdir(directory):
-                with open(os.path.join(directory, filename)) as fd:
-                    md5 = hashlib.md5(fd.read())
-                    file_hashes[filename] = md5.hexdigest()
+        filenames = sorted(
+            [x for x in os.listdir(self.temp_directory)
+             if x.startswith("module.%s" % config_options['pid'])])
 
-            result['hashes'] = file_hashes
+        baseline['hashes'] = []
+        for filename in filenames:
+            with open(os.path.join(self.temp_directory, filename)) as fd:
+                md5 = hashlib.md5(fd.read())
+                baseline['hashes'].append(md5.hexdigest())
 
-            return result
+        return baseline
 
-    def RunVolatilityModule(self, pid=None, **kwargs):
-        with testlib.TempDirectory() as directory:
-
-            kwargs['dump_dir'] = directory
-            result = super(TestDLLDump, self).RunVolatilityModule(
-                pid=pid, **kwargs)
-
-            file_hashes = {}
-
-            for filename in os.listdir(directory):
-                with open(os.path.join(directory, filename)) as fd:
-                    md5 = hashlib.md5(fd.read())
-                    file_hashes[filename] = md5.hexdigest()
-
-            result['hashes'] = file_hashes
-
-            return result
-
-    def testDlldump(self):
-        previous, current = self.ReRunVolatilityTest('dlldump', pid=4012)
-
-        self.assertEqual(previous['hashes'], current['hashes'])
-
+    def testProcDump(self):
+        self.assertEqual(self.baseline['hashes'],
+                         self.current['hashes'])

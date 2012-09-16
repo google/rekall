@@ -26,15 +26,13 @@ from volatility import testlib
 class TestConnectionScanners(testlib.VolatilityBaseUnitTestCase):
     """Test the ConnScan module."""
 
-    trunk_launch_args = [['connscan']]
-    ng_launch_args = [['connscan', {}]]
+    PARAMETERS = dict(commandline="connscan")
 
     def testConnectionss(self):
-        previous_meta, current_meta = self.ReRunVolatilityTest('connscan')
-        previous = previous_meta['output']
-        current = current_meta['output']
+        previous = self.baseline['output']
+        current = self.current['output']
 
-        if previous_meta['mode'] == 'trunk':
+        if self.baseline['options']['mode'] == 'trunk':
             sep = " +"
         else:
             sep = r"\|\|"
@@ -43,4 +41,4 @@ class TestConnectionScanners(testlib.VolatilityBaseUnitTestCase):
         for i in range(4):
             self.assertListEqual(
                 sorted(self.ExtractColumn(current, i, 2)),
-                sorted(self.ExtractColumn(previous, i, 2, seperator=sep)))
+                sorted(self.ExtractColumn(previous, i, 2)))

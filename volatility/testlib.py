@@ -22,9 +22,9 @@
 
 Volatility tests have these goals:
 
-- Detect regression bugs with previous versions of Volatility NG.
+- Detect regression bugs with previous versions of Volatility.
 
-- Detect differences between Volatility 2.X trunk and Volatility NG.
+- Detect differences between Volatility 2.X trunk and Volatility TP.
 
 - Once differences are detected, make it easier to understand why the
   differences arise.
@@ -42,7 +42,7 @@ Solution Outline
 
 A baseline of running each test is written by the test suite itself. The user
 can write a baseline for all the modules by issuing the make_suite binary. A
-baseline for each module can be written for either volatility NG or Volatility
+baseline for each module can be written for either volatility TP or Volatility
 2.x (trunk). The baseline for each module will generate a number of files in a
 given directory.
 
@@ -73,34 +73,51 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
-    def __init__(self, method_name="__init__"):
+    PARAMETERS = {}
+
+    def __init__(self, method_name="__init__", baseline=None, current=None,
+                 debug=False, temp_directory=None, running_mode="ng"):
+        self.baseline = baseline
+        self.current = current
+        self.debug = debug
+        self.temp_directory = temp_directory
+
+        # The mode of this test indicates which version of Volatility is
+        # used. It can be either "ng" for the tech preview version, or "trunk"
+        # for the old version.  We need to know the mode in two contexts - the
+        # baseline_mode is the mode which was used to generate the baseline,
+        # while the running_mode is the mode for the current run.
+
+        # The mode is used in order to intelligently compare output from the two
+        # versions.
+        self.running_mode = running_mode
+        if baseline:
+            self.baseline_mode = self.baseline['options']['mode']
+        else:
+            self.baseline_mode = self.running_mode
+
         super(VolatilityBaseUnitTestCase, self).__init__(method_name)
 
-    def defaultTestResult(self):
-        return VolatilityTestResult()
+    def TransformOutput(self, config_options, output):
+        # Force the output to be unicode by default. Overridable by a specific
+        # test.
+        if not config_options.get("binary"):
+            output = output.decode("utf8", "ignore")
 
-    def LoadPreviousRunData(self, module):
-        # Module names are only lower case letters
-        if re.search("[^a-z_]", module):
-            raise AttributeError("Module name is not valid.")
+        # Apply this transformation to the data.
+        regexes = config_options.get("%s_replace_regex" % self.running_mode)
+        if regexes:
+            for regex in regexes.splitlines():
+                if not regex: continue
 
-        try:
-            with open(os.path.join(self.flags.path[0], module)) as fd:
-                data = json.loads(fd.read(10 * 1024 * 1024))
-        except IOError:
-            logging.warn("Baseline for %s is missing.", module)
-            raise
+                separator = regex[1]
+                parts = regex.split(separator)
+                if parts[0] != "s" or len(parts) != 4:
+                    raise RuntimeError("Regex transform invalid: %s" % regex)
 
-        # Try to apply the patch.
-        try:
-            patch = json.loads(
-                open(os.path.join(self.flags.path[0], module + ".patch")).read(
-                    10 * 1024 * 1024))
-            self.ApplyPatch(patch, data)
-        except IOError:
-            pass
+                output = re.sub(parts[1], parts[2], output)
 
-        return data
+        return output
 
     def ApplyPatch(self, patch, data):
         for k, v in patch.items():
@@ -116,88 +133,62 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
                 else:
                     logging.warn("Unknown patch action %s" % operation)
 
-    def SaveRunData(self, path, module_name, data):
-        # Module names are only lower case letters
-        if re.search("[^a-z_]", module_name):
-            raise AttributeError("Module name is not valid.")
+    def LaunchExecutable(self, config_options):
+        """Launches the volatility executable with the config specified.
 
-        with open(os.path.join(path, module_name), "w") as fd:
-            logging.info("Writing %s" % fd.name)
-            fd.write(json.dumps(data, indent=4))
-
-    def BuildUserSession(self, module):
-        """Creates a new session object for testing."""
-        previous_run_data = self.LoadPreviousRunData(module)
-
-        user_session = session.Session()
-        user_session.filename = previous_run_data['filename']
-        user_session.profile = previous_run_data['profile']
-        return user_session
-
-    def LaunchTrunkVolatility(self, executable=None, profile=None, image=None,
-                              args=None, **kwargs):
-        """Launches the Volatility trunk binary.
-
-        Launches external binary and capture its output into a metadata dict.
+        Returns:
+          A baseline data structure which contains meta data from running
+          volatility over the test case.
         """
-        if args is None:
-            args = []
+        tmp_filename = os.path.join(self.temp_directory, self.__class__.__name__)
 
-        args = [executable, "--profile", profile, "--file", image] + args
-        metadata = {}
+        # A different command line can be specified for each mode.
+        baseline_commandline = (
+            config_options.get("%s_commandline" % self.running_mode) or
+            config_options.get("commandline"))
 
-        t = time.time()
-        logging.info("Launching %s" % (args,))
-        pipe = subprocess.Popen(args, stderr=subprocess.PIPE,
-                                stdout=subprocess.PIPE)
+        if baseline_commandline:
+            for k, v in config_options.items():
+                # prepend all global options to the command line.
+                if k.startswith("-"):
+                    baseline_commandline = "%s '%s' %s" % (k, v, baseline_commandline)
 
-        output, err = pipe.communicate()
+            cmdline = config_options["executable"] + " " + baseline_commandline
+            logging.debug("%s: Launching %s", self.__class__.__name__, cmdline)
 
-        # Just a simple measure of time, so we can detect extreme slow down
-        # regressions.
-        metadata['time_used'] = time.time() - t
-        logging.info("Completed in %s seconds" % metadata['time_used'])
+            config_options["executed_command"] = baseline_commandline
 
-        metadata['output'] = output.splitlines()
-        metadata['number_of_lines'] = len(metadata['output'])
-        metadata['profile'] = profile
-        metadata['filename'] = image
-        metadata['mode'] = "trunk"
+            with open(tmp_filename, "wb") as output_fd:
+                pipe = subprocess.Popen(cmdline, shell=True, stdout=output_fd)
 
-        return metadata
+                pipe.wait()
 
-    def RunVolatilityModule(self, profile=None, image=None, module=None, **kwargs):
-        """Runs the module and generates metadata describing the test."""
-        # Module names are only lower case letters
-        if re.search("[^a-z_]", module):
-            raise AttributeError("Module name is not valid.")
+                # Done running the command, now prepare the json baseline file.
+                output_fd.flush()
 
-        t = time.time()
-        user_session = session.Session(filename=image, profile=profile)
+                output = self.TransformOutput(
+                    config_options, open(tmp_filename).read(10 * 1024 * 1024))
 
-        fd = StringIO.StringIO()
-        # To make it easier to seperate columns we use the seperator ||. It is
-        # unlikely to occur naturally in a table.
-        ui_renderer = renderer.TextRenderer(session=user_session, fd=fd,
-                                            tablesep="||")
+                baseline_data = dict(output=output.splitlines())
 
-        user_session.vol(module, renderer=ui_renderer, **kwargs)
+                return baseline_data
 
-        # Just a simple measure of time, so we can detect extreme slow down
-        # regressions.
-        metadata = dict(output = fd.getvalue().decode("utf8", "ignore").
-                        splitlines())
+        else:
+            # No valid command line - this baseline is aborted.
+            config_options["aborted"] = True
 
-        metadata['time_used'] = time.time() - t
-        logging.info("Completed in %s seconds" % metadata['time_used'])
+            return {}
 
-        metadata['number_of_lines'] = len(metadata['output'])
-        metadata['profile'] = profile
-        metadata['filename'] = image
-        metadata['mode'] = 'ng'
-        metadata['kwargs'] = kwargs
+    def BuildBaseLineData(self, config_options):
+        return self.LaunchExecutable(config_options)
 
-        return metadata
+    def MakeUserSession(self, config_options):
+        args = {}
+        for k, v in config_options.items():
+            if k.startswith("--"):
+                args[k[2:]] = v
+
+        return session.Session(**args)
 
     def ExtractColumn(self, lines, column, skip_headers=0, seperator=r"\|\|"):
         """Iterates over the lines and extracts the column number specified.
@@ -225,67 +216,6 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
                 previous['output'], previous_column, skip_headers=skip_headers))
 
         self.assertEqual(current_column, previous_column)
-
-    def ReRunVolatilityTest(self, module, **kwargs):
-        """Loads and reruns the test stored in this module baseline file.
-
-        Note that we use the metadata stored in the baseline file to rerun this
-        test.
-        """
-        previous_run_data = self.LoadPreviousRunData(module)
-        current_run_data = self.RunVolatilityModule(
-            profile=previous_run_data['profile'],
-            image=previous_run_data['filename'],
-            module=module, **previous_run_data.get('kwargs', kwargs))
-
-        return previous_run_data, current_run_data
-
-
-    trunk_launch_args = []
-    def MakeBaseLineFromTrunk(self, executable=None, image=None, path=None,
-                              profile=None, modules=None, **kwargs):
-        """Same as MakeBaseLine except we need to generate this from Trunk.
-
-        Usually this means launching the trunk program externally.
-
-        Args:
-          executable: Use this executable to launch the binary.
-          image: The image that will be tested.
-          path: The path which the baseline metadata files are written in.
-          profile: The profile to use.
-          modules: If set, only run modules in this set.
-        """
-        for args in self.trunk_launch_args:
-            module = args[0]
-
-            # Skip it if we dont need it.
-            if modules and module not in modules: continue
-
-            metadata = self.LaunchTrunkVolatility(executable=executable, profile=profile,
-                                                  image=image, args=args)
-
-            self.SaveRunData(path, module, metadata)
-
-    ng_launch_args = []
-    def MakeBaseLine(self, image=None, path=None, profile=None, modules=None,
-                     **kwargs):
-        """Create all baseline files in path.
-
-        This should be extended by TestCases to set up their baselines.
-
-        Args:
-           image: The image file to operate on.
-           path: The directory path to store the baseline file.
-           profile: The profile to use.
-           modules: only run these modules.
-        """
-        for module, kwargs in self.ng_launch_args:
-            # Skip it if we dont need it.
-            if modules and module not in modules: continue
-
-            metadata = self.RunVolatilityModule(profile=profile, image=image,
-                                                module=module, **kwargs)
-            self.SaveRunData(path, module, metadata)
 
     def assertListEqual(self, a, b):
         a = list(a)
@@ -320,6 +250,10 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
             section.append(line)
         yield section
 
+    def ReplaceOutput(self, search_regex, replace, output):
+        for line in output:
+            yield re.sub(search_regex, replace, line)
+
     def FilterOutput(self, output, regex):
         """Filter the output lines using a regex."""
         regex_c = re.compile(regex)
@@ -338,76 +272,65 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
                 yield m.group(group)
 
 
-class VolatilityTestLoader(unittest.TestLoader):
-    """A test suite loader which searches for tests in all the plugins."""
-
-    # We load all tests extending this class.
-    base_class = VolatilityBaseUnitTestCase
-
-    def __init__(self, flags):
-        super(VolatilityTestLoader, self).__init__()
-        self.flags = flags
-
-    def loadTestsFromModule(self, _):
-        """Just return all the tests as if they were in the same module."""
-        test_cases = [
-            self.loadTestsFromTestCase(x) for x in self.base_class.classes.values()]
-        return self.suiteClass(test_cases)
-
-    def loadTestsFromTestCase(self, testCaseClass):
-        result = super(VolatilityTestLoader, self).loadTestsFromTestCase(testCaseClass)
-
-        # Attach the flags to the test suites.
-        testCaseClass.flags = self.flags
-
-        return result
-
-    def loadTestsFromName(self, name, module=None):
-        """Load the tests named."""
-        parts = name.split(".")
+    def run(self, result=None):
+        if result is None: result = self.defaultTestResult()
+        result.startTest(self)
+        testMethod = getattr(self, self._testMethodName)
         try:
-            test_cases = self.loadTestsFromTestCase(self.base_class.classes[parts[0]])
-        except KeyError:
-            logging.error("Testsuite %s not known", parts[0])
-            print "The following suites are known."
-            for cls in sorted(self.base_class.classes):
-                print "Suite %s" % cls
+            try:
+                self.setUp()
+            except KeyboardInterrupt:
+                raise
+            except Exception:
+                if self.debug:
+                    pdb.post_mortem()
 
-            sys.exit(-1)
+                result.addError(self, self._exc_info())
+                return
 
-        # Specifies the whole test suite.
-        if len(parts) == 1:
-            return self.suiteClass(test_cases)
-        elif len(parts) == 2:
-            cls = self.base_class.classes[parts[0]]
-            return unittest.TestSuite([cls(parts[1])])
+            ok = False
+            try:
+                testMethod()
+                ok = True
+            except self.failureException:
+                if self.debug:
+                    pdb.post_mortem()
+
+                result.addFailure(self, self._exc_info())
+            except KeyboardInterrupt:
+                raise
+            except Exception:
+                if self.debug:
+                    pdb.post_mortem()
+
+                result.addError(self, self._exc_info())
+
+            try:
+                self.tearDown()
+            except KeyboardInterrupt:
+                raise
+            except Exception:
+                if self.debug:
+                    pdb.post_mortem()
+
+                result.addError(self, self._exc_info())
+                ok = False
+            if ok: result.addSuccess(self)
+        finally:
+            result.stopTest(self)
 
 
-class VolatilityTestResult(unittest._TextTestResult):
-    def addError(self, test, err):
-        pdb.post_mortem(err[2])
-        super(VolatilityTestResult, self).addFailure(test, err)
+class SimpleTestCase(VolatilityBaseUnitTestCase):
+    """A simple test which just compares with the baseline output."""
 
-    def addFailure(self, test, err):
-        pdb.post_mortem(err[2])
-        super(VolatilityTestResult, self).addFailure(test, err)
+    __abstract = True
 
+    def testCase(self):
+        previous = self.baseline['output']
+        current = self.current['output']
 
-class VolatilityTestRunner(unittest.TextTestRunner):
-    def _makeResult(self):
-        return VolatilityTestResult(self.stream, self.descriptions, self.verbosity)
-
-
-class VolatilityTestProgram(unittest.TestProgram):
-    def __init__(self, flags):
-        argv = [sys.argv[0]]
-        if flags.test:
-            argv.append(flags.test)
-
-        super(VolatilityTestProgram, self).__init__(
-            testRunner=VolatilityTestRunner(),
-            argv=argv, testLoader=VolatilityTestLoader(flags))
-
+        # Compare the entire table
+        self.assertEqual(previous, current)
 
 
 class TempDirectory(object):

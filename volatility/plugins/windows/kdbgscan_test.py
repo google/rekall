@@ -26,8 +26,7 @@ from volatility import testlib
 class TestKDBGScan(testlib.VolatilityBaseUnitTestCase):
     """Test the kdbgscan module."""
 
-    trunk_launch_args = [['kdbgscan']]
-    ng_launch_args = [['kdbgscan', {}]]
+    PARAMETERS = dict(commandline="kdbgscan")
 
     fields = ["Offset (V)", "Offset (P)", "KDBG owner tag check",
               "Version64", "Service Pack", "Build string",
@@ -50,9 +49,8 @@ class TestKDBGScan(testlib.VolatilityBaseUnitTestCase):
         return result
 
     def testKDBGScan(self):
-        previous_meta, current_meta = self.ReRunVolatilityTest('kdbgscan')
-        previous = previous_meta['output']
-        current = current_meta['output']
+        previous = self.baseline['output']
+        current = self.current['output']
 
         current_sections = list(self.SplitLines(current, seperator="***********"))
         previous_sections = list(self.SplitLines(previous, seperator="***********"))

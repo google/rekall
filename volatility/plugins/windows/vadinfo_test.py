@@ -23,17 +23,14 @@
 from volatility import testlib
 
 
-class TestVad(testlib.VolatilityBaseUnitTestCase):
+class TestVadInfo(testlib.VolatilityBaseUnitTestCase):
     """Test the vadinfo module."""
 
-    trunk_launch_args = [['vadinfo', "--pid", "2624"]]
-    ng_launch_args = [['vadinfo', dict(pid=2624)],
-                      ['vad', dict(pid=2624)]]
+    PARAMETERS = dict(commandline="vadinfo --pid 2624")
 
     def testVadInfo(self):
-        previous_meta, current_meta = self.ReRunVolatilityTest('vadinfo', pid=2624)
-        previous = previous_meta['output']
-        current = current_meta['output']
+        previous = self.baseline['output']
+        current = self.current['output']
 
         self.assertListEqual(
             self.FilterOutput(previous, "VAD node"),
@@ -44,14 +41,13 @@ class TestVad(testlib.VolatilityBaseUnitTestCase):
         self.assertListEqual(file_objects,
                              self.MatchOutput(current, "FileObject @[0-9a-z]+"))
 
+
+class TestVad(testlib.VolatilityBaseUnitTestCase):
+    """Test the vad module."""
+
+    # This command only exists in technology preview.
+    PARAMETERS = dict(ng_commandline="vad --pid 2624")
+
     def testVad(self):
-        try:
-            previous_meta, current_meta = self.ReRunVolatilityTest(
-                'vad', pid=2624)
-
-            for x, y in zip(previous_meta['output'], current_meta['output']):
-                self.assertTableRowsEqual(x, y)
-
-        except IOError:
-            # Module does not exist in trunk.
-            return
+        for x, y in zip(self.baseline['output'], self.current['output']):
+            self.assertTableRowsEqual(x, y)

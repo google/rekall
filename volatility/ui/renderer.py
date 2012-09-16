@@ -20,6 +20,11 @@
 
 A renderer is used by plugins to produce formatted output.
 """
+try:
+    import curses
+except ImportError:
+    curses = None
+
 import logging
 import json
 import re
@@ -116,7 +121,8 @@ class UnicodeWrapper(object):
     def flush(self):
         self.fd.flush()
 
-
+    def isatty(self):
+        return self.fd.isatty()
 
 
 class Formatter(string.Formatter):
@@ -163,7 +169,10 @@ class Formatter(string.Formatter):
         except AttributeError:
             raise re.error("No formatter for type %s" % type)
 
-        return format(value, format_spec)
+        try:
+            return format(value, format_spec)
+        except ValueError:
+            return str(value)
 
     def format_type_s(self, value, fields):
         try:
@@ -187,6 +196,12 @@ class Formatter(string.Formatter):
 
     def format_type_r(self, value, fields):
         return repr(value)
+
+    def format_type_f(self, value, fields):
+        if isinstance(value, (float, int, long)):
+            return float(value)
+
+        return value
 
 
 class TextColumn(object):
@@ -296,9 +311,16 @@ class TextColumn(object):
         if formatstring is None:
             formatstring = self.formatstring
 
+        if isinstance(target, Colorizer):
+            result = []
+            for x in self.render_cell(target.target, formatstring=formatstring,
+                                      elide=elide):
+                result.append(target.Render(x))
+            return result
+
         # For NoneObjects we just render dashes. (Other renderers might want to
         # actually record the error, we ignore it here.).
-        if target is None or isinstance(target, obj.NoneObject):
+        elif target is None or isinstance(target, obj.NoneObject):
             return ['-' * len(self.formatter.format_field(1, formatstring))]
 
         # Simple formatting.
@@ -354,6 +376,7 @@ class TextTable(object):
             justified_cell = []
             for line in cell:
                 justified_cell.append(line + (' ' * (max_width-len(line))))
+
             justified_cells.append(justified_cell)
             cell_widths.append(max_width)
 
@@ -462,6 +485,10 @@ class RendererBaseClass(object):
 
         self.format("\n")
 
+    def color(self, target, **kwargs):
+        return Colorizer(target, self.fd, **kwargs)
+
+
 class TextRenderer(RendererBaseClass):
     """Plugins can receive a renderer object to assist formatting of output."""
 
@@ -493,8 +520,8 @@ class TextRenderer(RendererBaseClass):
            kwargs: The args for this plugin.
         """
         # This handles the progress messages from volatility for the duration of
-        # the rendering.
-        if self.session:
+        # the rendering but only if we output to a tty.
+        if self.session and self.fd.isatty():
             self.session.progress = self.RenderProgress
 
     def end(self):
@@ -504,10 +531,6 @@ class TextRenderer(RendererBaseClass):
             self.session.progress = None
 
     def write(self, data):
-        self.data += data
-        # Only keep some of the last data.
-        self.data = self.data[-self.max_data:]
-
         self.fd.write(data)
         self.fd.flush()
 
@@ -681,3 +704,50 @@ class JsonRenderer(TextRenderer):
 
     def write(self, data):
         self.data['data'].append(data)
+
+
+class TestRenderer(TextRenderer):
+    """A special renderer which makes parsing the output of tables easier."""
+
+    def __init__(self, **kwargs):
+        super(TestRenderer, self).__init__(tablesep="||", **kwargs)
+
+
+class Colorizer(object):
+    """An object which makes its target colorful."""
+
+    COLORS = "BLACK BLUE GREEN CYAN RED MAGENTA YELLOW WHITE"
+    COLOR_MAP = dict([(x, i) for i, x in enumerate(COLORS.split())])
+
+    terminal_capable = False
+
+    def __init__(self, target, stream, foreground=None, background=None):
+        self.target = target
+        self.foreground = foreground
+        self.background = background
+        if stream is None:
+            stream = sys.stdout
+
+        try:
+            if curses and stream.isatty():
+                curses.setupterm()
+                self.terminal_capable = True
+        except AttributeError:
+            pass
+
+    def Render(self, string):
+        """Decorate the string with the ansii escapes for the color."""
+        color = self.foreground or self.background
+
+        if not self.terminal_capable or color not in self.COLOR_MAP:
+            return self.target
+
+        escape_seq = ""
+        if self.foreground:
+            escape_seq += curses.tparm(curses.tigetstr("setf"), self.COLOR_MAP[color])
+
+        if self.background:
+            escape_seq += curses.tparm(curses.tigetstr("setb"), self.COLOR_MAP[color])
+
+        return (escape_seq + string + curses.tigetstr("sgr0"))
+
