@@ -30,7 +30,7 @@ from volatility.plugins.addrspaces import standard
 PAGE_SHIFT = 12
 
 
-class WindowsCrashDumpSpace32(addrspace.PagedReader):
+class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
     """ This AS supports windows Crash Dump format """
     order = 30
 
@@ -51,7 +51,10 @@ class WindowsCrashDumpSpace32(addrspace.PagedReader):
         file_offset = self.header.size()
 
         for run in self.header.PhysicalMemoryBlockBuffer.Run:
-            self.runs.append((int(run.BasePage), file_offset, int(run.PageCount)))
+            self.runs.append((int(run.BasePage) * self.PAGE_SIZE,
+                              file_offset,
+                              int(run.PageCount) * self.PAGE_SIZE))
+
             file_offset += run.PageCount * self.PAGE_SIZE
 
         self.session.dtb = int(self.header.DirectoryTableBase)
@@ -78,51 +81,6 @@ class WindowsCrashDumpSpace32(addrspace.PagedReader):
             raise IOError("This is not a full memory crash dump. "
                           "Kernel crash dumps are not supported.")
 
-    def _read_chunk(self, addr, length, pad):
-        file_offset, available_length = self._get_available_buffer(addr, length)
-
-        # Mapping not valid.
-        if file_offset is None:
-            return "\x00" * available_length
-
-        else:
-            return self.base.read(file_offset, min(length, available_length))
-
-    def vtop(self, addr):
-        file_offset, _ = self._get_available_buffer(addr, 1)
-        return file_offset
-
-    def _get_available_buffer(self, addr, length):
-        """Resolves the address into the file offset.
-
-        In a crash dump, pages are stored back to back in runs. This function
-        finds the run that contains this page and returns the file address where
-        this page can be found.
-
-        Returns:
-          A tuple of (physical_offset, available_length). The physical_offset
-          can be None to signify that the address is not valid.
-        """
-        page_offset = (addr & 0x00000FFF)
-        page = addr >> PAGE_SHIFT
-
-        for base_page, file_run_offset, page_count in self.runs:
-            # Required page is before this run (i.e. the read is outside any
-            # run).
-            if page < base_page:
-                available_length = min(length, (base_page - page) * self.PAGE_SIZE)
-                return (None, available_length)
-
-            # The required page is inside this run.
-            if page >= base_page and page < base_page + page_count:
-                file_offset = file_run_offset + (page - base_page) * self.PAGE_SIZE + page_offset
-                available_length = (base_page + page_count) * self.PAGE_SIZE - addr
-
-                # Offset of page in the run.
-                return (file_offset, available_length)
-
-        return None, 0
-
     def write(self, vaddr, buf):
         # Support writes straddling page runs.
         while len(buf):
@@ -132,10 +90,6 @@ class WindowsCrashDumpSpace32(addrspace.PagedReader):
 
             self.base.write(baddr, buf[:available_length])
             buf = buf[available_length:]
-
-    def get_available_pages(self):
-        for page_offset, _, page_count in self.runs:
-            yield page_offset, page_count
 
 
 class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):

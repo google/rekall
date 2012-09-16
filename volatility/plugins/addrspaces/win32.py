@@ -38,7 +38,7 @@ INFO_IOCTRL = CTL_CODE(0x22, 0x100, 0, 3)
 PAGE_SHIFT = 12
 
 
-class Win32FileAddressSpace(addrspace.PagedReader):
+class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
     """ This is a direct file AS for use in windows.
 
     In windows, in order to open raw devices we need to use the win32 apis. This
@@ -108,41 +108,3 @@ class Win32FileAddressSpace(addrspace.PagedReader):
 
     def close(self):
         win32file.CloseHandle(self.fhandle)
-
-    def vtop(self, addr):
-        file_offset, _ = self._get_available_buffer(addr, 1)
-        return file_offset
-
-    def _get_available_buffer(self, addr, length):
-        """Resolves the address into the file offset.
-
-        In a crash dump, pages are stored back to back in runs. This function
-        finds the run that contains this page and returns the file address where
-        this page can be found.
-
-        Returns:
-          A tuple of (physical_offset, available_length). The physical_offset
-          can be None to signify that the address if not valid.
-        """
-        for start, run_length in self.runs:
-            # Required address is before this run (i.e. the read is
-            # outside any run).
-            if addr < start:
-                available_length = min(length, start - addr)
-                return (None, available_length)
-
-            # The required page is inside this run.
-            if addr >= start and addr < start + run_length:
-                available_length = min(length, start + run_length - addr)
-
-                # Offset of page in the run.
-                return (addr, available_length)
-
-        return None, 0
-
-    def get_available_pages(self):
-        for start, length in self.runs:
-            yield start >> PAGE_SHIFT, length >> PAGE_SHIFT
-
-    def is_valid_address(self, addr):
-        return self.vtop(addr) is not None

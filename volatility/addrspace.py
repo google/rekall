@@ -359,6 +359,60 @@ class PagedReader(BaseAddressSpace):
             yield start * self.PAGE_SIZE, length * self.PAGE_SIZE
 
 
+class RunBasedAddressSpace(PagedReader):
+    """An address space which uses a list of runs to specify a mapping."""
+
+    # This is a list of (memory_offset, file_offset, length) tuples.
+    runs = []
+    __abstract = True
+
+    def _read_chunk(self, addr, length, pad):
+        file_offset, available_length = self._get_available_buffer(addr, length)
+
+        # Mapping not valid.
+        if file_offset is None:
+            return "\x00" * available_length
+
+        else:
+            return self.base.read(file_offset, min(length, available_length))
+
+    def vtop(self, addr):
+        file_offset, _ = self._get_available_buffer(addr, 1)
+        return file_offset
+
+    def get_available_pages(self):
+        for page_offset, _, page_count in self.runs:
+            yield page_offset, page_count
+
+    def _get_available_buffer(self, addr, length):
+        """Resolves the address into the file offset.
+
+        This function finds the run that contains this page and returns the file
+        address where this page can be found.
+
+        Returns:
+          A tuple of (physical_offset, available_length). The physical_offset
+          can be None to signify that the address is not valid.
+        """
+        for virt_addr, file_address, length in self.runs:
+            if addr < virt_addr:
+                available_length = min(length, virt_addr - addr)
+                return (None, available_length)
+
+            # The required page is inside this run.
+            if addr >= virt_addr and addr < virt_addr + length:
+                file_offset = file_address + (addr - virt_addr)
+                available_length = virt_addr + length - addr
+
+                # Offset of page in the run.
+                return (file_offset, available_length)
+
+        return None, 0
+
+    def is_valid_address(self, addr):
+        return self.vtop(addr) is not None
+
+
 class Error(Exception):
     """Address space errors."""
 
