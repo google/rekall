@@ -130,7 +130,8 @@ class Formatter(string.Formatter):
     # This comes from http://docs.python.org/library/string.html
     # 7.1.3.1. Format Specification Mini-Language
     standard_format_specifier_re = re.compile("""
-(?P<fill>[^{}<>=^])?   # The fill parameter.
+(?P<fill>[^{}<>=^bcdeEfFgGnosxX])?   # The fill parameter. This can not be a
+                                     # format string or it is ambiguous.
 (?P<align>[<>=^])?     # The alignment.
 (?P<sign>[+\- ])?      # Sign extension.
 (?P<hash>\#)?          # Hash means to preceed the whole thing with 0x.

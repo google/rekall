@@ -251,17 +251,24 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
         yield section
 
     def ReplaceOutput(self, search_regex, replace, output):
-        for line in output:
-            yield re.sub(search_regex, replace, line)
+        return [re.sub(search_regex, replace, x) for x in output]
 
-    def FilterOutput(self, output, regex):
+    def FilterOutput(self, output, regex, exclude=False):
         """Filter the output lines using a regex."""
         regex_c = re.compile(regex)
-
+        result = []
         for line in output:
             m = regex_c.search(line)
-            if m:
-                yield line
+
+            if exclude:  # Remove lines that match.
+                if m is None:
+                    result.append(line)
+
+            else:  # Only include lines that match
+                if m:
+                    result.append(line)
+
+        return result
 
     def MatchOutput(self, output, regex, group=0):
         regex_c = re.compile(regex)

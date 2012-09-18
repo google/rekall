@@ -8,6 +8,7 @@ except ImportError:
     pass
 
 from volatility.plugins.windows import filescan
+from volatility.plugins.windows import gui
 from volatility.plugins.windows import handles
 #from volatility.plugins.windows import hibinfo
 from volatility.plugins.windows import kdbgscan
