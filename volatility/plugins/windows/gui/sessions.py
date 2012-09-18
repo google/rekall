@@ -49,7 +49,7 @@ class Sessions(common.WinProcessFilter):
                         offset=proc.Session.v(), vm=ps_ad)
 
     def find_session_space(self, session_id):
-        """ Get a session address space by its ID.
+        """ Get a _MM_SESSION_SPACE object by its ID.
 
         Args:
           session_id: the session ID to find.

@@ -305,28 +305,19 @@ class tagWINDOWSTATION(obj.CType):
     """A class for Windowstation objects"""
 
     def is_valid(self):
-        return obj.CType.is_valid(self) and self.dwSessionId < 0xFF
-
-    @property
-    def PhysicalAddress(self):
-        """This is a simple wrapper to always return the object's
-        physical offset regardless of what AS its instantiated in"""
-        if hasattr(self.obj_vm, "vtop"):
-            return self.obj_vm.vtop(self.obj_offset)
-        else:
-            return self.obj_offset
+        return (super(tagWINDOWSTATION, self).is_valid() and
+                self.dwSessionId < 0xFF)
 
     @property
     def LastRegisteredViewer(self):
-        """The EPROCESS of the last registered
-        clipboard viewer"""
+        """The EPROCESS of the last registered clipboard viewer"""
         return self.spwndClipViewer.head.pti.ppi.Process
 
-    @property
-    def AtomTable(self):
+    def AtomTable(self, vm=None):
         """This atom table belonging to this window
         station object"""
-        return self.pGlobalAtomTable.dereference_as("_RTL_ATOM_TABLE")
+        return self.pGlobalAtomTable.dereference_as("_RTL_ATOM_TABLE",
+                                                    vm=vm)
 
     @property
     def Interactive(self):
@@ -342,31 +333,32 @@ class tagWINDOWSTATION(obj.CType):
         processes, threads, etc, there is an object
         header which stores the name.
         """
+        object_hdr = self.obj_profile._OBJECT_HEADER(
+            vm = self.obj_vm,
+            offset = self.obj_offset - self.obj_profile.get_obj_offset(
+                '_OBJECT_HEADER', 'Body')
+            )
 
-        object_hdr = obj.Object("_OBJECT_HEADER",
-            vm = self.obj_vm, offset = self.obj_offset - \
-            self.obj_vm.profile.get_obj_offset('_OBJECT_HEADER', 'Body'),
-            native_vm = self.obj_native_vm)
+        return object_hdr.NameInfo.Name
 
-        return str(object_hdr.NameInfo.Name or '')
-
-    def traverse(self):
+    def traverse(self, vm=None):
         """A generator that yields window station objects"""
 
-        # Include this object in the results
+        # Include this object in the results.
         yield self
-        # Now walk the singly-linked list
-        nextwinsta = self.rpwinstaNext.dereference()
-        while nextwinsta.is_valid() and nextwinsta.v() != 0:
-            yield nextwinsta
-            nextwinsta = nextwinsta.rpwinstaNext.dereference()
 
-    def desktops(self):
+        # Now walk the singly-linked list.
+        nextwinsta = self.rpwinstaNext.dereference(vm=vm)
+        while nextwinsta.is_valid() and nextwinsta.v(vm=vm) != 0:
+            yield nextwinsta
+            nextwinsta = nextwinsta.rpwinstaNext.dereference(vm=vm)
+
+    def desktops(self, vm=None):
         """A generator that yields the window station's desktops"""
-        desk = self.rpdeskList.dereference()
-        while desk.is_valid() and desk.v() != 0:
+        desk = self.rpdeskList.dereference(vm=vm)
+        while desk.is_valid() and desk.v(vm=vm) != 0:
             yield desk
-            desk = desk.rpdeskNext.dereference()
+            desk = desk.rpdeskNext.dereference(vm=vm)
 
 class tagDESKTOP(tagWINDOWSTATION):
     """A class for Desktop objects"""
@@ -596,29 +588,29 @@ class tagEVENTHOOK(obj.CType):
 
         return '|'.join(flags)
 
-class _RTL_ATOM_TABLE(tagWINDOWSTATION):
+class _RTL_ATOM_TABLE(obj.CType):
     """A class for atom tables"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         """Give ourselves an atom cache for quick lookups"""
         self.atom_cache = {}
-        tagWINDOWSTATION.__init__(self, *args, **kwargs)
+        super(_RTL_ATOM_TABLE, self).__init__(**kwargs)
 
     def is_valid(self):
         """Check for validity based on the atom table signature
         and the maximum allowed number of buckets"""
-        return (obj.CType.is_valid(self) and
-                    self.Signature == 0x6d6f7441 and
-                    self.NumBuckets < 0xFFFF)
+        return (super(_RTL_ATOM_TABLE, self).is_valid() and
+                self.Signature == 0x6d6f7441 and
+                self.NumBuckets < 0xFFFF)
 
-    def atoms(self):
+    def atoms(self, vm=None):
         """Carve all atoms out of this atom table"""
         # The default hash buckets should be 0x25
         for bkt in self.Buckets:
-            cur = bkt.dereference()
-            while cur.is_valid() and cur.v() != 0:
+            cur = bkt.dereference(vm=vm)
+            while cur.is_valid() and cur.v(vm=vm) != 0:
                 yield cur
-                cur = cur.HashLink.dereference()
+                cur = cur.HashLink.dereference(vm=vm)
 
     def find_atom(self, atom_to_find):
         """Find an atom by its ID.
@@ -638,6 +630,7 @@ class _RTL_ATOM_TABLE(tagWINDOWSTATION):
 
         return self.atom_cache.get(atom_to_find.v(), None)
 
+
 class _RTL_ATOM_TABLE_ENTRY(obj.CType):
     """A class for atom table entries"""
 
@@ -656,8 +649,9 @@ class _RTL_ATOM_TABLE_ENTRY(obj.CType):
 
     def is_valid(self):
         """Perform some sanity checks on the Atom"""
-        if not obj.CType.is_valid(self):
+        if not super(_RTL_ATOM_TABLE_ENTRY, self).is_valid():
             return False
+
         # There is only one flag (and zero)
         if self.Flags not in (0, 1):
             return False
@@ -673,6 +667,11 @@ class Win32GUIProfile(obj.ProfileModification):
 
     @classmethod
     def modify(cls, profile):
+        # Some constants - These will probably change in win8 which does not
+        # allow non ascii tags.
+        profile.add_constants(PoolTag_WindowStation="Win\xe4",
+                              PoolTag_Atom="AtmT")
+
         profile.add_classes({
             'tagWINDOWSTATION': tagWINDOWSTATION,
             'tagDESKTOP': tagDESKTOP,
@@ -690,13 +689,22 @@ class Win32GUIProfile(obj.ProfileModification):
             'tagCLIPDATA': tagCLIPDATA,
             })
 
-        version = profile.metadatas('major', 'minor')
+        version = profile.metadatas('major', 'minor', 'build')
+        memory_model = profile.metadata("memory_model")
 
         ## Windows 7 and above
-        if version >= (6, 1):
+        if version >= (6, 1, 0):
             num_handles = len(constants.HANDLE_TYPE_ENUM_SEVEN)
         else:
             num_handles = len(constants.HANDLE_TYPE_ENUM)
+
+        # Add autogenerated vtypes for the different versions.
+        if version[:2] == (6, 1):  # Windows 7
+            from volatility.plugins.windows.gui.vtypes import win7
+
+            profile = win7.Win32GUIWin7.modify(profile)
+        else:
+            raise RuntimeError("profile %s not supported.")
 
         # The type we want to use is not the same as the one already defined
         # see http://code.google.com/p/volatility/issues/detail?id=131
@@ -718,7 +726,7 @@ class Win32GUIProfile(obj.ProfileModification):
                                     )]],
                         }],
                 '_RTL_ATOM_TABLE_ENTRY': [None, {
-                        'Name': [None, ['String', dict(
+                        'Name': [None, ['UnicodeString', dict(
                                     encoding='utf16',
                                     length=lambda x : x.NameLength * 2)]],
                         }],
@@ -777,7 +785,7 @@ class Win32GUIProfile(obj.ProfileModification):
 
         # The 64 bit versions of these structs just have their members in
         # different offsets.
-        if profile.metadata("memory_model") == "64bit":
+        if memory_model == "64bit":
             profile.add_overlay({
                     '_RTL_ATOM_TABLE': [None, {
                             'NumBuckets': [0x18, None],
@@ -812,252 +820,11 @@ class Win32GUIProfile(obj.ProfileModification):
                     })
 
         # This field appears in the auto-generated vtypes for all OS except XP
-        if profile.metadata("memory_model") == "32bit" and version == (5, 1):
+        if memory_model == "32bit" and version[:2] == (5, 1):
             profile.add_overlay({
                     '_MM_SESSION_SPACE': [ None, {
                             # nt!MiDereferenceSession
                             'ResidentProcessCount': [ 0x248, ['long']],
                             }]})
 
-
-class Win32KCoreClasses(obj.ProfileModification):
-    """Apply the core object classes"""
-
-    before = ["WindowsObjectClasses"]
-
-    conditions = {'os': lambda x: x == 'windows'}
-
-    def modification(self, profile):
-
-        profile.object_classes.update({
-            'tagWINDOWSTATION': tagWINDOWSTATION,
-            'tagDESKTOP': tagDESKTOP,
-            '_RTL_ATOM_TABLE': _RTL_ATOM_TABLE,
-            '_RTL_ATOM_TABLE_ENTRY': _RTL_ATOM_TABLE_ENTRY,
-            'tagTHREADINFO': tagTHREADINFO,
-            'tagHOOK': tagHOOK,
-            '_LARGE_UNICODE_STRING': windows._UNICODE_STRING, #pylint: disable-msg=W0212
-            'tagWND': tagWND,
-            '_MM_SESSION_SPACE': _MM_SESSION_SPACE,
-            'tagSHAREDINFO': tagSHAREDINFO,
-            '_HANDLEENTRY': _HANDLEENTRY,
-            'tagEVENTHOOK': tagEVENTHOOK,
-            'tagRECT': tagRECT,
-            'tagCLIPDATA': tagCLIPDATA,
-            })
-
-class Win32KGahtiVType(obj.ProfileModification):
-    """Apply a vtype for win32k!gahti. Adjust the number of
-    handles according to the OS version"""
-
-    conditions = {'os': lambda x: x == 'windows'}
-
-    def modification(self, profile):
-
-        version = (profile.metadata.get('major', 0), profile.metadata.get('minor', 0))
-
-        ## Windows 7 and above
-        if version >= (6, 1):
-            num_handles = len(con.HANDLE_TYPE_ENUM_SEVEN)
-        else:
-            num_handles = len(consts.HANDLE_TYPE_ENUM)
-
-        profile.vtypes.update({
-            'gahti' : [ None, {
-            'types': [ 0, ['array', num_handles, ['tagHANDLETYPEINFO']]],
-            }]})
-
-class AtomTablex86Overlay(obj.ProfileModification):
-    """Apply the atom table overlays for all x86 Windows"""
-
-    before = ["WindowsVTypes"]
-
-    conditions = {'os': lambda x: x == 'windows',
-                'memory_model': lambda x: x == '32bit'}
-
-    def modification(self, profile):
-        # The type we want to use is not the same as the one already defined
-        # see http://code.google.com/p/volatility/issues/detail?id=131
-        profile.merge_overlay({
-            '_RTL_ATOM_TABLE': [ None, {
-            'Signature': [ 0x0, ['unsigned long']],
-            'NumBuckets': [ 0xC, ['unsigned long']],
-            'Buckets': [ 0x10, ['array', lambda x : x.NumBuckets,
-                ['pointer', ['_RTL_ATOM_TABLE_ENTRY']]]],
-            }],
-            '_RTL_ATOM_TABLE_ENTRY': [ None, {
-            'Name': [ None, ['String', dict(encoding = 'utf16',
-                length = lambda x : x.NameLength * 2)]],
-            }]})
-
-class AtomTablex64Overlay(obj.ProfileModification):
-    """Apply the atom table overlays for all x64 Windows"""
-
-    conditions = {'os': lambda x: x == 'windows',
-                'memory_model': lambda x: x == '64bit'}
-
-    def modification(self, profile):
-        # The type we want to use is not the same as the one already defined
-        # see http://code.google.com/p/volatility/issues/detail?id=131
-        profile.merge_overlay({
-            '_RTL_ATOM_TABLE': [ None, {
-            'Signature': [ 0, ['unsigned long']],
-            'NumBuckets': [ 0x18, ['unsigned long']],
-            'Buckets': [ 0x20, ['array', lambda x : x.NumBuckets,
-                ['pointer', ['_RTL_ATOM_TABLE_ENTRY']]]],
-            }],
-            '_RTL_ATOM_TABLE_ENTRY': [ None, {
-            'Name': [ None, ['String', dict(encoding = 'utf16',
-                length = lambda x : x.NameLength * 2)]],
-            }]})
-
-class XP2003x86TimerVType(obj.ProfileModification):
-    """Apply the tagTIMER for XP and 2003 x86"""
-
-    conditions = {'os': lambda x: x == 'windows',
-                 'memory_model': lambda x: x == '32bit',
-                 'major': lambda x: x < 6}
-
-    def modification(self, profile):
-        # http://doxygen.reactos.org/d5/dd0/timer_8h_source.html#l00019
-        profile.vtypes.update({
-            'tagTIMER' : [ None, {
-            'head' : [ 0x00, ['_HEAD']],
-            'ListEntry' : [ 0x08, ['_LIST_ENTRY']],
-            'pti' : [ 0x10, ['pointer', ['tagTHREADINFO']]],
-            'spwnd' : [ 0x14, ['pointer', ['tagWND']]],
-            'nID' : [ 0x18, ['unsigned short']],
-            'cmsCountdown' : [ 0x1C, ['unsigned int']],
-            'cmsRate' : [ 0x20, ['unsigned int']],
-            'flags' : [ 0x24, ['Flags', {'bitmap': consts.TIMER_FLAGS}]],
-            'pfn' : [ 0x28, ['pointer', ['void']]],
-            }]})
-
-class XP2003x64TimerVType(obj.ProfileModification):
-    """Apply the tagTIMER for XP and 2003 x64"""
-
-    conditions = {'os': lambda x: x == 'windows',
-                 'memory_model': lambda x: x == '64bit',
-                 'major': lambda x: x < 6}
-
-    def modification(self, profile):
-        profile.vtypes.update({
-            # http://doxygen.reactos.org/d5/dd0/timer_8h_source.html#l00019
-            'tagTIMER' : [ None, {
-            'head' : [ 0x00, ['_HEAD']],
-            'ListEntry' : [ 0x18, ['_LIST_ENTRY']],
-            'spwnd' : [ 0x28, ['pointer', ['tagWND']]],
-            'pti' : [ 0x20, ['pointer', ['tagTHREADINFO']]],
-            'nID' : [ 0x30, ['unsigned short']],
-            'cmsCountdown' : [ 0x38, ['unsigned int']],
-            'cmsRate' : [ 0x3C, ['unsigned int']],
-            'flags' : [ 0x40, ['Flags', {'bitmap': consts.TIMER_FLAGS}]],
-            'pfn' : [ 0x48, ['pointer', ['void']]],
-            }]})
-
-class Win32Kx86VTypes(obj.ProfileModification):
-    """Applies to all x86 windows profiles.
-
-    These are vtypes not included in win32k.sys PDB.
-    """
-
-    conditions = {'os': lambda x: x == 'windows',
-                'memory_model': lambda x: x == '32bit'}
-
-    def modification(self, profile):
-        profile.vtypes.update({
-            'tagWIN32HEAP': [ None, {
-            'Heap': [ 0, ['_HEAP']],
-            }],
-            'tagCLIPDATA' : [ None, {
-            'cbData' : [ 0x08, ['unsigned int']],
-            'abData' : [ 0x0C, ['array', lambda x: x.cbData, ['unsigned char']]],
-            }],
-            '_IMAGE_ENTRY_IN_SESSION': [ None, {
-            'Link': [ 0, ['_LIST_ENTRY']],
-            'Address': [ 8, ['pointer', ['address']]],
-            'LastAddress': [ 12, ['pointer', ['address']]],
-            # This is optional and usually supplied as null
-            'DataTableEntry': [ 24, ['pointer', ['_LDR_DATA_TABLE_ENTRY']]],
-            }],
-            'tagEVENTHOOK' : [ 0x30, {
-            'phkNext' : [ 0xC, ['pointer', ['tagEVENTHOOK']]],
-            'eventMin' : [ 0x10, ['Enumeration', dict(target = 'unsigned long', choices = consts.EVENT_ID_ENUM)]],
-            'eventMax' : [ 0x14, ['Enumeration', dict(target = 'unsigned long', choices = consts.EVENT_ID_ENUM)]],
-            'dwFlags' : [ 0x18, ['unsigned long']],
-            'idProcess' : [ 0x1C, ['unsigned long']],
-            'idThread' : [ 0x20, ['unsigned long']],
-            'offPfn' : [ 0x24, ['unsigned long']],
-            'ihmod' : [ 0x28, ['long']],
-            }],
-            'tagHANDLETYPEINFO' : [ 12, {
-            'fnDestroy' : [ 0, ['pointer', ['void']]],
-            'dwAllocTag' : [ 4, ['String', dict(length = 4)]],
-            'bObjectCreateFlags' : [ 8, ['Flags', {'target': 'unsigned char', 'bitmap': {'OCF_THREADOWNED': 0, 'OCF_PROCESSOWNED': 1, 'OCF_MARKPROCESS': 2, 'OCF_USEPOOLQUOTA': 3, 'OCF_DESKTOPHEAP': 4, 'OCF_USEPOOLIFNODESKTOP': 5, 'OCF_SHAREDHEAP': 6, 'OCF_VARIABLESIZE': 7}}]],
-            }],
-        })
-
-class Win32Kx64VTypes(obj.ProfileModification):
-    """Applies to all x64 windows profiles.
-
-    These are vtypes not included in win32k.sys PDB.
-    """
-
-    conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '64bit'}
-
-    def modification(self, profile):
-        # Autogen'd vtypes from win32k.sys do not contain these
-        profile.vtypes.update({
-            'tagWIN32HEAP': [ None, {
-            'Heap': [ 0, ['_HEAP']],
-            }],
-            '_IMAGE_ENTRY_IN_SESSION': [ None, {
-            'Link': [ 0, ['_LIST_ENTRY']],
-            'Address': [ 0x10, ['pointer', ['void']]],
-            'LastAddress': [ 0x18, ['pointer', ['address']]],
-            # This is optional and usually supplied as null
-            'DataTableEntry': [ 0x20, ['pointer', ['_LDR_DATA_TABLE_ENTRY']]], #??
-            }],
-            'tagCLIPDATA' : [ None, {
-            'cbData' : [ 0x10, ['unsigned int']],
-            'abData' : [ 0x14, ['array', lambda x: x.cbData, ['unsigned char']]],
-            }],
-            'tagEVENTHOOK' : [ None, {
-            'phkNext' : [ 0x18, ['pointer', ['tagEVENTHOOK']]],
-            'eventMin' : [ 0x20, ['Enumeration', dict(target = 'unsigned long', choices = consts.EVENT_ID_ENUM)]],
-            'eventMax' : [ 0x24, ['Enumeration', dict(target = 'unsigned long', choices = consts.EVENT_ID_ENUM)]],
-            'dwFlags' : [ 0x28, ['unsigned long']],
-            'idProcess' : [ 0x2C, ['unsigned long']],
-            'idThread' : [ 0x30, ['unsigned long']],
-            'offPfn' : [ 0x40, ['unsigned long long']],
-            'ihmod' : [ 0x48, ['long']],
-            }],
-            'tagHANDLETYPEINFO' : [ 16, {
-            'fnDestroy' : [ 0, ['pointer', ['void']]],
-            'dwAllocTag' : [ 8, ['String', dict(length = 4)]],
-            'bObjectCreateFlags' : [ 12, ['Flags', {'target': 'unsigned char', 'bitmap': {'OCF_THREADOWNED': 0, 'OCF_PROCESSOWNED': 1, 'OCF_MARKPROCESS': 2, 'OCF_USEPOOLQUOTA': 3, 'OCF_DESKTOPHEAP': 4, 'OCF_USEPOOLIFNODESKTOP': 5, 'OCF_SHAREDHEAP': 6, 'OCF_VARIABLESIZE': 7}}]],
-            }],
-        })
-
-class XPx86SessionOverlay(obj.ProfileModification):
-    """Apply the ResidentProcessCount overlay for x86 XP session spaces"""
-
-    ## This just ensures we have an _MM_SESSION_SPACE to overlay
-    before = ["WindowsOverlay"]
-
-    conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
-                  'major': lambda x: x == 5,
-                  'minor': lambda x: x == 1}
-
-    def modification(self, profile):
-        # This field appears in the auto-generated vtypes for all OS except XP
-        profile.merge_overlay({
-            '_MM_SESSION_SPACE': [ None, {
-            'ResidentProcessCount': [ 0x248, ['long']], # nt!MiDereferenceSession
-            }]})
-
-
-
-
+        return profile

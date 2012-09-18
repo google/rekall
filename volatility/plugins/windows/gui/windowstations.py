@@ -17,18 +17,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import volatility.obj as obj
-import volatility.scan as scan
-import volatility.utils as utils
-import volatility.plugins.filescan as filescan
-import volatility.plugins.common as common
-import volatility.plugins.gui.sessions as sessions
-
 from volatility import obj
 from volatility import scan
 from volatility import utils
 
 from volatility.plugins.windows import common
+from volatility.plugins.windows.gui import win32k_core
 
 
 class PoolScanWind(common.PoolScanner):
@@ -36,89 +30,105 @@ class PoolScanWind(common.PoolScanner):
 
     def __init__(self, **kwargs):
         super(PoolScanWind, self).__init__(**kwargs)
+        self.checks = [('PoolTagCheck', dict(
+                    tag=self.profile.get_constant("PoolTag_WindowStation"))),
 
-        self.checks = [ ('PoolTagCheck', dict(tag = "Win\xe4")),
-                        # seen as 0x98 on xpsp2 and xpsp3, 0x90 on w2k3*, 0xa0 on w7sp0
-                        ('CheckPoolSize', dict(condition = lambda x: x >= 0x90)),
-                        # only look in non-paged or free pools
-                        ('CheckPoolType', dict(paged = False, non_paged = True, free = True)),
-                        ('CheckPoolIndex', dict(value = 0)),
-                        ]
+                       ('CheckPoolSize',  dict(
+                    min_size=self.profile.get_obj_size("tagWINDOWSTATION"))),
 
-class WndScan(filescan.FileScan, sessions.SessionsMixin):
+                       # only look in non-paged or free pools
+                       ('CheckPoolType', dict(paged=False, non_paged=True,
+                                              free=True)),
+                       ('CheckPoolIndex', dict(value = 0)),
+                       ]
+
+
+class WndScan(common.PoolScannerPlugin):
     """Pool scanner for tagWINDOWSTATION (window stations)"""
+
+    __name = "wndscan"
 
     allocation = ['_POOL_HEADER', '_OBJECT_HEADER', 'tagWINDOWSTATION']
 
-    def calculate(self):
-        flat_space = utils.load_as(self._config, astype = 'physical')
-        kernel_space = utils.load_as(self._config)
+    def __init__(self, **kwargs):
+        super(WndScan, self).__init__(**kwargs)
+        self.profile = win32k_core.Win32GUIProfile(self.profile)
 
-        # Scan for window station objects
-        for offset in PoolScanWind().scan(flat_space):
+    def generate_hits(self):
+        sessions_plugin = self.session.plugins.sessions()
 
-            window_station = obj.Object("tagWINDOWSTATION",
-                offset = offset, vm = flat_space)
+        scanner = PoolScanWind(profile=self.profile, session=self.session,
+                               address_space=self.address_space)
+
+        for pool_obj in scanner.scan():
+            window_station = pool_obj.get_object("tagWINDOWSTATION",
+                                                 self.allocation)
 
             # Basic sanity checks are included here
             if not window_station.is_valid():
                 continue
 
             # Find an address space for this window station's session
-            session = self.find_session_space(
-                kernel_space, window_station.dwSessionId)
+            session_space = sessions_plugin.find_session_space(
+                window_station.dwSessionId)
 
-            if not session:
+            if not session_space:
                 continue
 
-            # Reset the object's native VM so pointers are
-            # dereferenced in session space
-            window_station.set_native_vm(session.obj_vm)
-
-            for winsta in window_station.traverse():
+            # Traverse the tagWINDOWSTATION list in the session address space.
+            for winsta in window_station.traverse(session_space.obj_vm):
                 if winsta.is_valid():
-                    yield winsta
+                    yield winsta, session_space.obj_vm
 
-    def render_text(self, outfd, data):
-
+    def render(self, renderer):
         seen = []
-
-        for window_station in data:
-
-            offset = window_station.PhysicalAddress
+        for window_station, session_address_space in self.generate_hits():
+            # Always store the physical addresses to prevent duplicates.
+            offset = window_station.obj_vm.vtop(window_station.obj_offset)
             if offset in seen:
                 continue
-            seen.append(offset)
 
-            outfd.write("*" * 50 + "\n")
-            outfd.write("WindowStation: {0:#x}, Name: {1}, Next: {2:#x}\n".format(
-                offset,
-                window_station.Name,
-                window_station.rpwinstaNext.v(),
-                ))
-            outfd.write("SessionId: {0}, AtomTable: {1:#x}, Interactive: {2}\n".format(
-                window_station.dwSessionId,
-                window_station.pGlobalAtomTable,
-                window_station.Interactive,
-                ))
-            outfd.write("Desktops: {0}\n".format(
-                ', '.join([desk.Name for desk in window_station.desktops()])
-                ))
-            outfd.write("ptiDrawingClipboard: pid {0} tid {1}\n".format(
-                window_station.ptiDrawingClipboard.pEThread.Cid.UniqueProcess,
-                window_station.ptiDrawingClipboard.pEThread.Cid.UniqueThread
-                ))
-            outfd.write("spwndClipOpen: {0:#x}, spwndClipViewer: {1:#x} {2} {3}\n".format(
-                window_station.spwndClipOpen.v(),
-                window_station.spwndClipViewer.v(),
-                str(window_station.LastRegisteredViewer.UniqueProcessId or ""),
-                str(window_station.LastRegisteredViewer.ImageFileName or ""),
-                ))
-            outfd.write("cNumClipFormats: {0}, iClipSerialNumber: {1}\n".format(
-                window_station.cNumClipFormats,
-                window_station.iClipSerialNumber,
-                ))
-            outfd.write("pClipBase: {0:#x}, Formats: {1}\n".format(
+            seen.append(offset)
+            renderer.section()
+
+            renderer.format("WindowStation: {0:#x}, Name: {1}, Next: {2:#x}\n",
+                            offset,
+                            window_station.Name.v(vm=session_address_space),
+                            window_station.rpwinstaNext)
+
+            renderer.format("SessionId: {0}, AtomTable: {1:#x}, "
+                            "Interactive: {2}\n",
+                            window_station.dwSessionId,
+                            window_station.pGlobalAtomTable,
+                            window_station.Interactive)
+
+            renderer.format(
+                "Desktops: {0:L}\n",
+                [desk.Name.v(vm=session_address_space)
+                 for desk in window_station.desktops(vm=session_address_space)])
+
+            ethread = window_station.ptiDrawingClipboard.pEThread.deref(
+                vm=session_address_space)
+
+            renderer.format(
+                "ptiDrawingClipboard: pid {0} tid {1}\n",
+                ethread.Cid.UniqueProcess, ethread.Cid.UniqueThread)
+
+            last_registered_viewer = window_station.LastRegisteredViewer.deref(
+                vm=session_address_space)
+
+            renderer.format("spwndClipOpen: {0:#x}, spwndClipViewer: {1:#x} "
+                            "{2} {3}\n",
+                            window_station.spwndClipOpen,
+                            window_station.spwndClipViewer,
+                            last_registered_viewer.UniqueProcessId,
+                            last_registered_viewer.ImageFileName)
+
+            renderer.format("cNumClipFormats: {0}, iClipSerialNumber: {1}\n",
+                            window_station.cNumClipFormats,
+                            window_station.iClipSerialNumber)
+
+            renderer.format(
+                "pClipBase: {0:#x}, Formats: {1:L}\n",
                 window_station.pClipBase,
-                ",".join([str(clip.fmt) for clip in window_station.pClipBase.dereference()]),
-                ))
+                [clip.fmt for clip in window_station.pClipBase.dereference()])

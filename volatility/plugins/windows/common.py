@@ -220,16 +220,9 @@ class CheckPoolType(scan.ScannerCheck):
         pool_hdr = self.profile.Object('_POOL_HEADER', vm = self.address_space,
                                        offset = offset)
 
-        ptype = pool_hdr.PoolType.v()
-
-        if self.non_paged and (ptype % 2) == 1:
-            return True
-
-        if self.free and ptype == 0:
-            return True
-
-        if self.paged and (ptype % 2) == 0 and ptype > 0:
-            return True
+        return ((self.non_paged and pool_hdr.NonPagedPool) or
+                (self.free and pool_hdr.FreePool) or
+                (self.paged and pool_hdr.PagedPool))
 
 
 class CheckPoolIndex(scan.ScannerCheck):
@@ -263,12 +256,20 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
     """A base class for all pool scanner plugins."""
     __abstract = True
 
+    @classmethod
+    def args(cls, parser):
+        parser.add_argument(
+            "--scan_in_kernel", default=False, action="store_true",
+            help="Scan in the kernel address space")
+
     def __init__(self, address_space=None, scan_in_kernel=False, **kwargs):
         """Scan the address space for pool allocations.
 
         Args:
           address_space: If provided we scan this address space, else we use the
           physical_address_space.
+
+          scan_in_kernel: Scan in the kernel address space.
         """
         super(PoolScannerPlugin, self).__init__(**kwargs)
         scan_in_kernel = scan_in_kernel or self.session.scan_in_kernel

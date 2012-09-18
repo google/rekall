@@ -415,6 +415,11 @@ class RunBasedAddressSpace(PagedReader):
     def is_valid_address(self, addr):
         return self.vtop(addr) is not None
 
+    def get_available_addresses(self):
+        for start, _, length in self.runs:
+            yield start, length
+
+
 
 class Error(Exception):
     """Address space errors."""

@@ -186,6 +186,18 @@ class _MMADDRESS_NODE(windows.VadTraverser):
               }
 
 
+class _POOL_HEADER(windows._POOL_HEADER):
+    """A class for pool headers"""
+
+    @property
+    def NonPagedPool(self):
+        return self.PoolType.v() % 2 == 0 and self.PoolType.v() > 0
+
+    @property
+    def PagedPool(self):
+        return self.PoolType.v() % 2 == 1
+
+
 class Win7BaseProfile(windows.BaseWindowsProfile):
     """The common ancestor of all windows 7 profiles."""
 
@@ -200,6 +212,7 @@ class Win7BaseProfile(windows.BaseWindowsProfile):
 
         self.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
                               _MMADDRESS_NODE=_MMADDRESS_NODE,
+                              _POOL_HEADER=_POOL_HEADER,
                               pointer64=obj.Pointer))
 
 
@@ -207,6 +220,7 @@ class Win7SP0x86(basic.Profile32Bits, Win7BaseProfile):
     """ A Profile for Windows 7 SP0 x86 """
     _md_major = 6
     _md_minor = 1
+    _md_build = 7600
     _md_type = "Kernel"
 
     def __init__(self, **kwargs):
@@ -222,6 +236,7 @@ class Win7SP0x64(basic.Profile64Bits, Win7BaseProfile):
     """ A Profile for Windows 7 SP0 x64 """
     _md_major = 6
     _md_minor = 1
+    _md_build = 7600
     _md_type = "Kernel"
 
     def __init__(self, **kwargs):
@@ -254,6 +269,7 @@ class Win7SP1x64(basic.Profile64Bits, Win7BaseProfile):
     """ A Profile for Windows 7 SP1 x64 """
     _md_major = 6
     _md_minor = 1
+    _md_build = 7601
     _md_type = "Kernel"
 
     def __init__(self, **kwargs):

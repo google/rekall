@@ -116,7 +116,6 @@ class UnicodeString(String):
         self.encoding = encoding or self.obj_profile.get_constant(
             'default_text_encoding')
 
-
     def v(self, vm=None):
         vm = vm or self.obj_vm
 

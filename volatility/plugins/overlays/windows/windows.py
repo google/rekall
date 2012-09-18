@@ -328,7 +328,7 @@ class _UNICODE_STRING(obj.CType):
         return unicode(self) == utils.SmartUnicode(other)
 
     def __str__(self):
-        return self.v()
+        return self.v() or ""
 
 
 
@@ -537,6 +537,18 @@ class _POOL_HEADER(obj.CType):
             offset -= obj.preamble_size()
 
         raise KeyError("object not present in preamble.")
+
+    @property
+    def FreePool(self):
+        return self.PoolType.v() == 0
+
+    @property
+    def NonPagedPool(self):
+        return self.PoolType.v() % 2 == 1
+
+    @property
+    def PagedPool(self):
+        return self.PoolType.v() % 2 == 0 and self.PoolType.v() > 0
 
 
 class _TOKEN(obj.CType):

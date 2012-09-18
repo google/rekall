@@ -130,7 +130,7 @@ class Formatter(string.Formatter):
     # This comes from http://docs.python.org/library/string.html
     # 7.1.3.1. Format Specification Mini-Language
     standard_format_specifier_re = re.compile("""
-(?P<fill>[^{}<>=^bcdeEfFgGnosxX])?   # The fill parameter. This can not be a
+(?P<fill>[^{}<>=^bcdeEfFgGnLosxX])?   # The fill parameter. This can not be a
                                      # format string or it is ambiguous.
 (?P<align>[<>=^])?     # The alignment.
 (?P<sign>[+\- ])?      # Sign extension.
@@ -139,7 +139,7 @@ class Formatter(string.Formatter):
 (?P<width>\d+)?        # The minimum width.
 (?P<comma>,)?
 (?P<precision>.\d+)?   # Precision
-(?P<type>[bcdeEfFgGnosxX%])?  # The format string (Not all are supported).
+(?P<type>[bcdeEfFgGnosxXL%])?  # The format string (Not all are supported).
 """, re.X)
 
     def format_field(self, value, format_spec):
@@ -166,7 +166,8 @@ class Formatter(string.Formatter):
         # Format the value according to the basic type.
         type = fields["type"] or "s"
         try:
-            value = getattr(self, "format_type_%s" % type)(value, fields)
+            value = getattr(
+                self, "format_type_%s" % type)(value, fields)
         except AttributeError:
             raise re.error("No formatter for type %s" % type)
 
@@ -204,15 +205,19 @@ class Formatter(string.Formatter):
 
         return value
 
+    def format_type_L(self, value, fields):
+        """Support extended list format."""
+        return ", ".join(value)
+
 
 class TextColumn(object):
     """An implementation of a Column."""
 
     def __init__(self, name=None, cname=None, formatstring="s", address_size=14,
-                 header_format=None, elide=False, **kwargs):
+                 header_format=None, table=None):
         self.name = name or "-"
         self.cname = cname or "-"
-        self.elide = elide
+        self.table = table
         self.wrap = None
 
         # How many places should addresses be padded?
@@ -237,7 +242,7 @@ class TextColumn(object):
         """
         # Leading ! turns off eliding.
         if formatstring.startswith("!"):
-            self.elide = True
+            self.table.elide = True
             formatstring = formatstring[1:]
 
         # This means unlimited width.
@@ -245,7 +250,7 @@ class TextColumn(object):
             self.header_format = self.formatstring = ""
 
             # Eliding is not possible without column width limits.
-            self.elide = False
+            self.table.elide = False
             return
 
         m = re.search("\[addrpad\]", formatstring)
@@ -253,14 +258,14 @@ class TextColumn(object):
             self.formatstring = "#0%sx" % self.address_size
             self.header_format = "^%ss" % self.address_size
             # Never elide addresses - makes them unreadable.
-            self.elide = False
+            self.table.elide = False
             return
 
         m = re.search("\[addr\]", formatstring)
         if m:
             self.formatstring = ">#%sx" % self.address_size
             self.header_format = "^%ss" % self.address_size
-            self.elide = False
+            self.table.elide = False
             return
 
         # Look for the wrap specifier.
@@ -335,12 +340,16 @@ class TextColumn(object):
                 result.extend(textwrap.wrap(line, self.wrap))
 
         elif elide is None:
-            elide = self.elide
+            elide = self.table.elide
 
         if elide:
             # we take the header width as the maximum width of this column.
             result = [
                 self.elide_string(line, self.header_width) for line in result]
+
+        if isinstance(target, bool):
+            color = "GREEN" if target else "RED"
+            result = [self.table.renderer.color(x, foreground=color) for x in result]
 
         return result or [""]
 
@@ -352,9 +361,12 @@ class TextTable(object):
     """
 
     def __init__(self, columns=None, tablesep=" ", elide=False,
-                 suppress_headers=False, address_size=10):
-        self.columns = [TextColumn(*args, elide=elide, address_size=address_size)
-                        for args in columns]
+                 suppress_headers=False, address_size=10, renderer=None):
+        self.columns = [
+            TextColumn(*args, address_size=address_size, table=self)
+            for args in columns]
+
+        self.renderer = renderer  # Our parent renderer.
         self.tablesep = tablesep
         self.elide = elide
         self.suppress_headers = suppress_headers
@@ -416,6 +428,7 @@ class RendererBaseClass(object):
         self.fd = fd
         self.isatty = False
         self.formatter = Formatter()
+        self.colorizer = Colorizer(fd)
 
     def start(self, plugin_name=None, kwargs=None):
         """The method is called when new output is required.
@@ -487,7 +500,7 @@ class RendererBaseClass(object):
         self.format("\n")
 
     def color(self, target, **kwargs):
-        return Colorizer(target, self.fd, **kwargs)
+        return self.colorizer.Render(target, **kwargs)
 
 
 class TextRenderer(RendererBaseClass):
@@ -561,7 +574,8 @@ class TextRenderer(RendererBaseClass):
 
         self.table = TextTable(columns=columns, tablesep=self.tablesep,
                                suppress_headers=suppress_headers,
-                               elide=self.elide, address_size=address_size)
+                               address_size=address_size,
+                               renderer=self)
         self.table.render_header(self)
 
     def table_row(self, *args):
@@ -722,10 +736,7 @@ class Colorizer(object):
 
     terminal_capable = False
 
-    def __init__(self, target, stream, foreground=None, background=None):
-        self.target = target
-        self.foreground = foreground
-        self.background = background
+    def __init__(self, stream):
         if stream is None:
             stream = sys.stdout
 
@@ -736,18 +747,18 @@ class Colorizer(object):
         except AttributeError:
             pass
 
-    def Render(self, string):
+    def Render(self, string, foreground=None, background=None):
         """Decorate the string with the ansii escapes for the color."""
-        color = self.foreground or self.background
+        color = foreground or background
 
         if not self.terminal_capable or color not in self.COLOR_MAP:
-            return self.target
+            return string
 
         escape_seq = ""
-        if self.foreground:
+        if foreground:
             escape_seq += curses.tparm(curses.tigetstr("setf"), self.COLOR_MAP[color])
 
-        if self.background:
+        if background:
             escape_seq += curses.tparm(curses.tigetstr("setb"), self.COLOR_MAP[color])
 
         return (escape_seq + string + curses.tigetstr("sgr0"))
