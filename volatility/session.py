@@ -59,6 +59,7 @@ class Session(object):
 
         # The default renderer.
         self.renderer = "TextRenderer"
+        self.paging_limit = None
 
         # Merge in defaults.
         for k, v in kwargs.items():
@@ -112,7 +113,12 @@ class Session(object):
         flags = kwargs.get("flags")
 
         if isinstance(plugin_cls, basestring):
-            plugin_cls = getattr(self.plugins, plugin_cls)
+            plugin_name = plugin_cls
+            plugin_cls = getattr(self.plugins, plugin_cls, None)
+            if plugin_cls is None:
+                logging.error("Plugin %s is not active. Is it supported with "
+                              "this profile?", plugin_name)
+                return
 
         # If the args came from the command line parse them now:
         if flags:
@@ -140,7 +146,8 @@ class Session(object):
                     fd = open(output, "w")
 
             # Allow per call overriding of the output file descriptor.
-            ui_renderer = ui_renderer_cls(session=self, fd=fd)
+            ui_renderer = ui_renderer_cls(session=self, fd=fd,
+                                          paging_limit=self.paging_limit)
 
         try:
             kwargs['session'] = self
@@ -160,9 +167,10 @@ class Session(object):
 
             # If there was too much data and a pager is specified, simply pass
             # the data to the pager:
-            if self.pager and len(ui_renderer.data.split("\n", 50)) >= 50:
+            if self.pager and len(ui_renderer.data) >= self.paging_limit:
                 pager = renderer.Pager(self)
-                pager.write(ui_renderer.data)
+                for data in ui_renderer.data:
+                    pager.write(data)
 
                 # Now wait for the user to exit the pager.
                 pager.flush()
@@ -225,6 +233,10 @@ class Session(object):
         else:
             raise RuntimeError("A profile must be a string.")
 
+    def _set_filename(self, filename):
+        self.__dict__['filename'] = filename
+        self.__dict__['base_filename'] = os.path.basename(filename)
+
     def __unicode__(self):
         return u"Session"
 
@@ -260,6 +272,7 @@ class InteractiveSession(Session):
         self.overwrite = False
 
         super(InteractiveSession, self).__init__()
+        self.paging_limit = 50
 
         self._ready = True
 

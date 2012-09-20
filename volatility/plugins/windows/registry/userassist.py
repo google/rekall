@@ -171,32 +171,19 @@ class UserAssistModification(obj.ProfileModification):
             profile.add_types(ua_vtypes)
 
 
-class UserAssist(common.WindowsCommandPlugin):
+class UserAssist(registry.RegistryPlugin):
     "Print userassist registry keys and information"
 
     __name = "userassist"
 
-    def __init__(self, hive_offsets=None, **kwargs):
-        """Search the hives for userassist keys.
-
-        Args:
-          hive_offset: A list of hive offsets as found by hivelist (virtual
-            address). If not provided we call hivescan ourselves and list the
-            key on all hives.
-        """
+    def __init__(self, **kwargs):
+        """Search the hives for userassist keys."""
         super(UserAssist, self).__init__(**kwargs)
-        self.hive_offsets = hive_offsets
 
         # Profile to deal with userassist data.
         self.ua_profile = UserAssistModification(self.profile)
 
-        # Install our specific implementation of registry support.
-        self.profile = registry.VolatilityRegisteryImplementation(self.profile)
-
     def find_count_keys(self):
-        if not self.hive_offsets:
-            self.hive_offsets = list(self.get_plugin("hivescan").list_hives())
-
         for hive_offset in self.hive_offsets:
             hive_address_space = registry.HiveAddressSpace(
                 base=self.kernel_address_space,

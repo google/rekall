@@ -44,6 +44,19 @@ def Shell(user_session):
     cfg = Config()
     cfg.InteractiveShellEmbed.autocall = 2
 
+    cfg.PromptManager.in_template = (
+        r'{color.LightCyan}'
+        '{session.profile.__class__.__name__}:{session.base_filename}'
+        '{color.LightBlue}{color.Green} \T> ')
+
+    cfg.PromptManager.in2_template = (
+        r'{color.Green}|{color.LightGreen}\D{color.Green}> ')
+
+    cfg.PromptManager.out_template = r'Out<\#> '
+    cfg.InteractiveShell.separate_in = ''
+    cfg.InteractiveShell.separate_out = ''
+    cfg.InteractiveShell.separate_out2 = ''
+
     shell = InteractiveShellEmbed(config=cfg, user_ns=user_session._locals,
                                   banner2=constants.BANNER)
 

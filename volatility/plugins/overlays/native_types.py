@@ -16,6 +16,7 @@ generic_native_types = {
     'unsigned short int' : obj.Curry(obj.NativeType, theType='unsigned short int', format_string='<H'),
     'unsigned short' : obj.Curry(obj.NativeType, theType='unsigned short', format_string='<H'),
     'unsigned be short' : obj.Curry(obj.NativeType, theType='unsigned be short', format_string='>H'),
+    'unsigned be int' : obj.Curry(obj.NativeType, theType='unsigned be int', format_string='>I'),
     'short' : obj.Curry(obj.NativeType, theType='short', format_string='<h'),
     'long long' : obj.Curry(obj.NativeType, theType='long long', format_string='<q'),
     'unsigned long long' : obj.Curry(obj.NativeType, theType='unsigned long long', format_string='<Q'),

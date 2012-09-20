@@ -182,7 +182,7 @@ class Formatter(string.Formatter):
             # from __unicode__ (e.g. NoneObject).
             result = value.__unicode__()
         except AttributeError:
-            result = unicode(value)
+            result = utils.SmartUnicode(value)
 
         # None objects get a -.
         if result is None or isinstance(result, obj.NoneObject):
@@ -514,13 +514,15 @@ class TextRenderer(RendererBaseClass):
     last_message_len = 0
     isatty = False
 
-    def __init__(self, tablesep=" ", elide=False, max_data=1024*1024, **kwargs):
+    def __init__(self, tablesep=" ", elide=False, max_data=1024*1024,
+                 paging_limit=None, **kwargs):
         super(TextRenderer, self).__init__(**kwargs)
         self.tablesep = tablesep
         self.elide = elide
+        self.paging_limit = paging_limit
 
         # We keep the data that we produce in memory for while.
-        self.data = ''
+        self.data = []
         self.max_data = max_data
 
         # Make sure that our output is unicode safe.
@@ -545,10 +547,23 @@ class TextRenderer(RendererBaseClass):
             self.session.progress = None
 
     def write(self, data):
-        self.fd.write(data)
-        self.fd.flush()
+        self.data.append(data)
+
+        if self.paging_limit is None:
+            self.fd.write(data)
+            return
+
+        elif len(self.data) < self.paging_limit:
+            self.fd.write(data)
+            self.fd.flush()
+        elif len(self.data) == self.paging_limit:
+            self.fd.write(
+                self.color("Please wait while the rest is paged...",
+                           foreground="YELLOW") + "\r\n")
+            self.fd.flush()
 
     def flush(self):
+        self.data = []
         self.fd.flush()
 
     def table_header(self, columns = None, suppress_headers=False,

@@ -1,5 +1,7 @@
 # Module for memory analysis of the windows registry.
+from volatility.plugins.windows.registry import evtlogs
 from volatility.plugins.windows.registry import getsids
+from volatility.plugins.windows.registry import getservicesids
 from volatility.plugins.windows.registry import hivescan
 
 try:

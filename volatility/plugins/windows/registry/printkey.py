@@ -60,7 +60,12 @@ class PrintKey(common.WindowsCommandPlugin):
                             action=args.ArrayIntParser, nargs="+",
                             help = 'Hive offsets to search (virtual)')
 
-    def __init__(self, hive_offsets=None, key="", **kwargs):
+        parser.add_argument("-r", "--recursive", default=False,
+                            action="store_true",
+                            help = 'If set print the entire subtree.')
+
+
+    def __init__(self, hive_offsets=None, key="", recursive=False, **kwargs):
         """Print all keys and values contained by a registry key.
 
         Args:
@@ -70,11 +75,22 @@ class PrintKey(common.WindowsCommandPlugin):
 
           key: The key name to list. If not provided we list the root key in the
             hive.
+
+          recursive: If set print the entire subtree.
         """
         super(PrintKey, self).__init__(**kwargs)
         self.profile = registry.VolatilityRegisteryImplementation(self.profile)
         self.hive_offsets = hive_offsets
         self.key = key
+        self.recursive = recursive
+
+    def _list_keys(self, reg, key=None):
+        yield reg, key
+
+        if self.recursive:
+            for subkey in key.subkeys():
+                for reg, subkey in self._list_keys(reg, subkey):
+                    yield reg, subkey
 
     def list_keys(self):
         """Return the keys that match."""
@@ -92,7 +108,8 @@ class PrintKey(common.WindowsCommandPlugin):
                 profile=self.profile, kernel_address_space=self.kernel_address_space,
                 hive_offset=hive_offset)
 
-            yield reg, reg.open_key(self.key)
+            key = reg.open_key(self.key)
+            return self._list_keys(reg, key)
 
     def voltext(self, key):
         """Returns a string representing (S)table or (V)olatile keys."""
@@ -122,7 +139,9 @@ class PrintKey(common.WindowsCommandPlugin):
                 renderer.format("Values:\n")
                 for value in key.values():
                     if value.Type == 'REG_BINARY':
-                        utils.WriteHexdump(renderer, value.DecodedData)
+                        data = value.DecodedData
+                        if isinstance(data, basestring):
+                            utils.WriteHexdump(renderer, value.DecodedData)
                     else:
                         renderer.format(u"{0:13} {1:15} : {3:3s} {2}\n",
                                         value.Type, value.Name, value.DecodedData,

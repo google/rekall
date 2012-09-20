@@ -156,10 +156,8 @@ class VADTree(VADInfo):
                                    ("End","End", "[addrpad]")
                                    ], suppress_headers=True)
 
-            levels = {}
             for vad in task.RealVadRoot.traverse():
-                level = levels.get(vad.Parent.v(), -1) + 1
-                levels[vad.obj_offset] = level
+                level = vad.obj_context.get('depth', 0)
                 renderer.table_row(u" " * level, vad.Start, vad.End)
 
     def render_dot(self, outfd):
@@ -339,6 +337,7 @@ class VAD(common.WinProcessFilter):
             renderer.section()
             renderer.format("Pid: {0} {1}\n", task.UniqueProcessId,
                             task.ImageFileName)
+            renderer.RenderProgress("Pid: %s" % task.UniqueProcessId)
             self.render_vadroot(renderer, task.RealVadRoot)
 
 

@@ -32,8 +32,10 @@ class Sessions(common.WinProcessFilter):
         self.profile = win32k_core.Win32GUIProfile(self.profile)
 
     def session_spaces(self):
-        """ Generators unique _MM_SESSION_SPACE objects
-        referenced by active processes.
+        """Generates unique _MM_SESSION_SPACE objects.
+
+        Generates unique _MM_SESSION_SPACE objects referenced by active
+        processes.
 
         Yields:
           _MM_SESSION_SPACE instantiated from the session space's address space.

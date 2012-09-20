@@ -25,12 +25,15 @@ __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
               "by Brendan Dolan-Gavitt")
 
 import logging
+import ntpath
 import re
 import struct
 
 from volatility import addrspace
 from volatility import obj
 from volatility import utils
+
+from volatility.plugins.windows import common
 
 
 registry_overlays = {
@@ -288,6 +291,21 @@ class _CM_KEY_NODE(obj.CType):
 
         return "/".join(reversed(path))
 
+    @property
+    def Name(self):
+        """The name of the key is actually a unicode object.
+        This is encoded either in ascii or utf16 according to the Flags.
+        """
+        if self.Flags.KEY_COMP_NAME:
+            return self.obj_profile.String(
+                vm=self.obj_vm, offset=self.get_obj_offset("Name"),
+                length=self.NameLength)
+        else:
+            return self.obj_profile.UnicodeString(
+                vm=self.obj_vm, offset=self.get_obj_offset("Name"),
+                length=self.NameLength, encoding="utf-16")
+
+
 
 class _CM_KEY_INDEX(obj.CType):
     """This is a list of pointers to key nodes.
@@ -379,6 +397,20 @@ class _CM_KEY_VALUE(obj.CType):
 
         return data
 
+    @property
+    def Name(self):
+        """The name of the key is actually a unicode object.
+        This is encoded either in ascii or utf16 according to the Flags.
+        """
+        if self.Flags.KEY_COMP_NAME:
+            return self.obj_profile.String(
+                vm=self.obj_vm, offset=self.get_obj_offset("Name"),
+                length=self.NameLength)
+        else:
+            return self.obj_profile.UnicodeString(
+                vm=self.obj_vm, offset=self.get_obj_offset("Name"),
+                length=self.NameLength, encoding="utf-16-le")
+
 
 class VolatilityRegisteryImplementation(obj.ProfileModification):
     """The standard volatility registry parsing subsystem."""
@@ -441,6 +473,19 @@ class Registry(object):
 
         return result
 
+    def open_value(self, path):
+        key = self.open_key(ntpath.dirname(path))
+
+        return key.open_value(ntpath.basename(path))
+
+    def CurrentControlSet(self):
+        """Return the key for the CurrentControlSet."""
+        current = self.open_value("Select/Current").DecodedData
+        if not current:
+            current = 1
+
+        return self.open_key("ControlSet00%s" % current)
+
 
 class RegistryHive(Registry):
     def __init__(self, hive_offset=None, kernel_address_space=None, profile=None,
@@ -461,4 +506,34 @@ class RegistryHive(Registry):
                                               session=session)
 
         super(RegistryHive, self).__init__(
-            session=session, profile=profile, address_space=hive_address_space, **kwargs)
+            session=session, profile=profile, address_space=hive_address_space,
+            **kwargs)
+
+
+class RegistryPlugin(common.WindowsCommandPlugin):
+    """A generic registry plugin."""
+
+    __abstract = True
+
+    @classmethod
+    def args(cls, parser):
+        parser.add_argument("-o", "--hive-offsets", default=None,
+                            help="A list of hive offsets as found by hivelist. "
+                            "If not provided we call hivescan ourselves and list "
+                            "the keys on all hives.")
+
+    def __init__(self, hive_offsets=None, **kwargs):
+        """Operate on in memory registry hives.
+
+        Args:
+          hive_offset: A list of hive offsets as found by hivelist (virtual
+            address). If not provided we call hivescan ourselves and list the
+            key on all hives.
+        """
+        super(RegistryPlugin, self).__init__(**kwargs)
+        self.hive_offsets = hive_offsets
+        if not self.hive_offsets:
+            self.hive_offsets = list(self.get_plugin("hivescan").list_hives())
+
+        # Install our specific implementation of registry support.
+        self.profile = VolatilityRegisteryImplementation(self.profile)

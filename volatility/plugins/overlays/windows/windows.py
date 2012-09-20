@@ -636,7 +636,7 @@ class _HANDLE_TABLE(obj.CType):
                     # The size of a handle table entry.
                     handle_entry_size = self.obj_profile.get_obj_size("_HANDLE_TABLE_ENTRY")
                     # Finally, compute the handle value for this object.
-                    handle_value = ((entry.obj_offset - offset) /
+                    handle_value = ((entry.obj_offset - table[0].obj_offset) /
                                    (handle_entry_size / handle_multiplier)) + handle_level_base
 
                     ## OK We got to the bottom table, we just resolve
@@ -879,7 +879,7 @@ class VadTraverser(obj.CType):
         We try to be tolerant of cycles by storing all offsets visited.
         """
         if depth > 100:
-            import pdb; pdb.set_trace()
+            raise RuntimeError("Vad tree too deep - something went wrong!")
 
         if visited == None:
             visited = set()

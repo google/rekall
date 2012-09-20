@@ -40,18 +40,19 @@ class _MM_SESSION_SPACE(win32k_core._MM_SESSION_SPACE):
 
         The HeEntrySize member didn't exist before Windows 7
         thus the need for separate methods."""
+        handle_table_size = self.obj_profile.get_obj_size("_HANDLEENTRY")
 
-        handle_table_size = self.profile.get_obj_size("_HANDLEENTRY")
-
-        handle_entry_offset = self.profile.get_obj_offset(
+        handle_entry_offset = self.obj_profile.get_obj_offset(
             "tagSHAREDINFO", "HeEntrySize")
+
+        import pdb; pdb.set_trace()
 
         for chunk in self._section_chunks(".data"):
 
             if chunk != handle_table_size:
                 continue
 
-            shared_info = self.profile.tagSHAREDINFO(
+            shared_info = self.obj_profile.tagSHAREDINFO(
                 offset = chunk.obj_offset - handle_entry_offset,
                 vm = self.obj_vm)
 

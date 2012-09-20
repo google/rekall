@@ -110,8 +110,11 @@ def UpdateSessionFromArgv(user_session, FLAGS):
 
     return result
 
-if __name__ == '__main__':
-    FLAGS = args.parse_args()
+
+def main(argv=None):
+    global FLAGS
+
+    FLAGS = args.parse_args(argv=argv)
 
     logging.basicConfig(level=logging.INFO)
 
@@ -138,3 +141,6 @@ if __name__ == '__main__':
     (IPython011Support(user_session) or
      IPython012Support(user_session) or
      NativePythonSupport(user_session))
+
+if __name__ == '__main__':
+    main()

@@ -1061,6 +1061,7 @@ class Profile(object):
         result = self.__class__(session=self.session)
         result.vtypes = copy.deepcopy(self.vtypes)
         result.overlays = copy.deepcopy(self.overlays)
+        result.applied_modifications = self.applied_modifications[:]
 
         # Object classes are shallow dicts.
         result.object_classes = self.object_classes.copy()
@@ -1485,7 +1486,9 @@ class ProfileModification(object):
         except KeyError:
             # Return a copy of the profile.
             result = profile.copy()
-            cls.modify(result)
+            res = cls.modify(result)
+            result = res or result
+
             result.applied_modifications.append(cls.__name__)
 
             PROFILE_CACHE.Put(key, result)

@@ -41,7 +41,6 @@ class Info(plugin.Command):
 
     __name = "info"
 
-
     standard_options = [("output", " Save output to this file."),
                         ("overwrite", " Must be set to overwrite an output "
                          "file. You can also set this in the session as a "
@@ -63,6 +62,11 @@ class Info(plugin.Command):
         for name, cls in plugin.Command.classes.items():
             if name:
                 yield name, cls.name, cls.__doc__.splitlines()[0]
+
+    def profiles(self):
+        for name, cls in obj.Profile.classes.items():
+            if name:
+                yield name, cls.__doc__.splitlines()[0].strip()
 
     def address_spaces(self):
         for name, cls in addrspaces.BaseAddressSpace.classes.items():
@@ -207,13 +211,22 @@ class Info(plugin.Command):
 
     def render_general_info(self, renderer):
         renderer.write(constants.BANNER)
+        renderer.section()
         renderer.table_header([('Plugin', 'function', "20"),
                                ('Provider Class', 'provider', '20'),
                                ('Docs', 'docs', '[wrap:50]'),
                                ])
 
-        for cls, name, doc in self.plugins():
+        for cls, name, doc in sorted(self.plugins()):
             renderer.table_row(name, cls, doc)
+
+        renderer.section()
+        renderer.table_header([('Profile', 'profile', "20"),
+                               ('Docs', 'docs', '[wrap:70]'),
+                               ])
+
+        for name, doc in sorted(self.profiles()):
+            renderer.table_row(name, doc)
 
 
 

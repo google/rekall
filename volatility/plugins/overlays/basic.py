@@ -139,6 +139,7 @@ class UnicodeString(String):
         return super(UnicodeString, self).__str__().encode("utf8")
 
     def size(self):
+        return len(self.v()) * 2
         # This will only work if the encoding and decoding are equivalent.
         return len(self.v().encode(self.encoding, 'ignore'))
 
@@ -191,8 +192,8 @@ class Flags(obj.NativeType):
 class Enumeration(obj.NativeType):
     """Enumeration class for handling multiple possible meanings for a single value"""
 
-    def __init__(self, choices = None, target = "unsigned long", value=None,
-                 default = None, **kwargs):
+    def __init__(self, choices = None, target="unsigned long", value=None,
+                 default=None, target_args={}, **kwargs):
         super(Enumeration, self).__init__(**kwargs)
         self.choices = choices or {}
         self.default = default
@@ -203,7 +204,8 @@ class Enumeration(obj.NativeType):
         if value is None:
             self.target = target
             self.target_obj = self.obj_profile.Object(
-                target, offset=self.obj_offset, vm=self.obj_vm, context=self.obj_context)
+                target, offset=self.obj_offset, vm=self.obj_vm, context=self.obj_context,
+                **target_args)
 
     def v(self, vm=None):
         if self.value is None:
@@ -368,6 +370,10 @@ class UnixTimeStamp(obj.NativeType):
             return str(timefmt.display_datetime(dt))
 
         return "-"
+
+    def __repr__(self):
+        return "%s (%s)" % (super(UnixTimeStamp, self).__repr__(),
+                            str(self))
 
     def as_datetime(self):
         try:

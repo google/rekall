@@ -19,6 +19,7 @@
 
 from volatility import obj
 from volatility.plugins.windows.gui import constants
+from volatility.plugins.overlays.windows import pe_vtypes
 from volatility.plugins.overlays.windows import windows
 
 
@@ -68,47 +69,26 @@ class _MM_SESSION_SPACE(obj.CType):
 
         @returns all chunks on a 4-byte boundary.
         """
-
-        dos_header = obj.Object("_IMAGE_DOS_HEADER",
-                offset = self.Win32KBase, vm = self.obj_vm)
-
-        if dos_header:
-            try:
-                nt_header = dos_header.get_nt_header()
-
-                sections = [
-                    sec for sec in nt_header.get_sections(False)
-                    if str(sec.Name) == sec_name
-                    ]
-
-                # There should be exactly one section
-                if sections:
-                    desired_section = sections[0]
-                    return obj.Object("Array", targetType = "unsigned long",
-                                        offset = desired_section.VirtualAddress + dos_header.obj_offset,
-                                        count = desired_section.Misc.VirtualSize / 4,
-                                        vm = self.obj_vm)
-            except ValueError:
-                ## This catches PE header parsing exceptions
-                pass
-
         ## In the rare case when win32k.sys PE header is paged or corrupted
         ## thus preventing us from parsing the sections, use the fallback
         ## mechanism of just reading 5 MB (max size of win32k.sys) from the
         ## base of the kernel module.
-        data = self.obj_vm.zread(self.Win32KBase, 0x500000)
+        section_base = self.Win32KBase
+        section_size = 0x500000
 
-        ## Fill a Buffer AS with the zread data and set its base to win32k.sys
-        ## so we can still instantiate an Array and have each chunk at the
-        ## correct offset in virtual memory.
-        buffer_as = addrspace.BufferAddressSpace(conf.ConfObject(),
-                                            data = data,
-                                            base_offset = self.Win32KBase)
+        dos_header = self.obj_profile._IMAGE_DOS_HEADER(
+            offset=self.Win32KBase, vm=self.obj_vm)
 
-        return obj.Object("Array", targetType = "unsigned long",
-                          offset = self.Win32KBase,
-                          count = len(data) / 4,
-                          vm = buffer_as)
+        for section in dos_header.NTHeader.Sections:
+            if section.Name == sec_name:
+                section_base = section.VirtualAddress
+                section_size = section.Misc.VirtualSize / 4
+                break
+
+
+        return self.obj_profile.Array(targetType="unsigned long",
+                                      offset=section_base,
+                                      count=section_size, vm=self.obj_vm)
 
     def find_gahti(self):
         """Find this session's gahti.
@@ -147,7 +127,7 @@ class _MM_SESSION_SPACE(obj.CType):
         iterate over each DWORD-aligned possibility and treat
         it as a tagSHAREDINFO until the sanity checks are met.
         """
-
+        import pdb; pdb.set_trace()
         for chunk in self._section_chunks(".data"):
             # If the base of the value is paged
             if not chunk.is_valid():
@@ -667,6 +647,8 @@ class Win32GUIProfile(obj.ProfileModification):
 
     @classmethod
     def modify(cls, profile):
+        profile = pe_vtypes.PEFileImplementation(profile)
+
         # Some constants - These will probably change in win8 which does not
         # allow non ascii tags.
         profile.add_constants(PoolTag_WindowStation="Win\xe4",
