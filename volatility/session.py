@@ -146,8 +146,12 @@ class Session(object):
                     fd = open(output, "w")
 
             # Allow per call overriding of the output file descriptor.
+            paging_limit = self.paging_limit
+            if not self.pager:
+                paging_limit = None
+
             ui_renderer = ui_renderer_cls(session=self, fd=fd,
-                                          paging_limit=self.paging_limit)
+                                          paging_limit=paging_limit)
 
         try:
             kwargs['session'] = self
@@ -316,12 +320,8 @@ class InteractiveSession(Session):
         self._locals['profile'] = self.profile
 
         # The handler for the vol command.
-        self._locals['vol'] = session.vol
         self._locals['vhelp'] = session.vhelp
-        self._locals['p'] = session.printer
-        self._locals['l'] = session.lister
         self._locals['v'] = session.v
-        self._locals['dis'] = obj.Curry(session.vol, "dis")
 
         # Add all plugins to the local namespace and to their own container.
         self._update_runners()
@@ -330,10 +330,6 @@ class InteractiveSession(Session):
         """Re-execute the previous command."""
         if self.last:
             self.vol(self.last)
-
-    def printer(self, string):
-        if string is not None:
-            print string
 
     def lister(self, arg):
         for x in arg:

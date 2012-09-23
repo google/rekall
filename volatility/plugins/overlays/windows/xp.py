@@ -61,8 +61,6 @@ win_xp_overlays = {
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
-
-
     }
 
 

@@ -895,7 +895,7 @@ class VadTraverser(obj.CType):
             yield self.cast(self.tag_map[self.Tag])
 
         # This tag is valid for the Root.
-        elif self.Tag.v() != "\x00":
+        elif depth and self.Tag.v() != "\x00":
             return
 
         for c in self.LeftChild.traverse(visited=visited, depth=depth+1):

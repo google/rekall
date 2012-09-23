@@ -398,6 +398,57 @@ class LoadPlugins(plugin.Command):
         args.LoadPlugins(path)
 
 
+class Printer(plugin.Command):
+    """A plugin to print an object."""
+
+    __name = "p"
+
+    def __init__(self, target=None, **kwargs):
+        """Prints an object to the screen."""
+        super(Printer, self).__init__(**kwargs)
+        self.target = target
+
+    def render(self, renderer):
+        for line in utils.SmartStr(self.target).splitlines():
+            renderer.write(line + "\n")
+
+
+class Lister(Printer):
+    """A plugin to list objects."""
+
+    __name = "l"
+
+    def render(self, renderer):
+        for item in self.target:
+            self.session.plugins.p(target=item).render(renderer)
+
+
+class DT(plugin.ProfileCommand):
+    """Print a symbol.
+
+    Really just a convenience function for instantiating the object over the
+    dummy address space.
+    """
+
+    __name = "dt"
+
+    def __init__(self, target=None, profile=None, **kwargs):
+        """Prints an object to the screen."""
+        super(DT, self).__init__(**kwargs)
+        self.profile = profile or self.session.profile
+        self.target = target
+        if target is None:
+            raise plugin.PluginError("You must specify something to print.")
+
+    def render(self, renderer):
+        # Make a big buffer of zeros to instantiate the object over.
+        address_space = addrspace.BufferAddressSpace(
+            data="\x00" * 10240)
+
+        obj = self.profile.Object(self.target, vm=address_space)
+        self.session.plugins.p(obj).render(renderer)
+
+
 class Dump(plugin.Command):
     """Hexdump an object or memory location."""
 

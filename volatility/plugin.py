@@ -107,16 +107,16 @@ class Command(object):
 
         return fd.getvalue()
 
-    def render(self, fd = None):
+    def render(self, renderer=None):
         """Produce results on the fd given."""
 
     @classmethod
-    def is_active(cls, config):
+    def is_active(cls, session):
         """Checks we are active.
 
-        This method will be with a configuration variable to check if this
-        specific class is active. This mechanism allows multiple implementations
-        to all share the same name, as long as only one is actually active. For
+        This method will be called with the session to check if this specific
+        class is active. This mechanism allows multiple implementations to all
+        share the same name, as long as only one is actually active. For
         example, we can have a linux, windows and mac version of plugins with
         the "pslist" name.
         """
