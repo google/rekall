@@ -397,15 +397,15 @@ class RunBasedAddressSpace(PagedReader):
           A tuple of (physical_offset, available_length). The physical_offset
           can be None to signify that the address is not valid.
         """
-        for virt_addr, file_address, length in self.runs:
+        for virt_addr, file_address, file_length in self.runs:
             if addr < virt_addr:
                 available_length = min(length, virt_addr - addr)
                 return (None, available_length)
 
             # The required page is inside this run.
-            if addr >= virt_addr and addr < virt_addr + length:
+            if addr >= virt_addr and addr < virt_addr + file_length:
                 file_offset = file_address + (addr - virt_addr)
-                available_length = virt_addr + length - addr
+                available_length = min(length, virt_addr + file_length - addr)
 
                 # Offset of page in the run.
                 return (file_offset, available_length)

@@ -95,15 +95,15 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
         for x in range(number_of_runs):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
-            self.runs.append((start,length))
+            self.runs.append((start, start, length))
 
     def _read_chunk(self, addr, length, pad):
-        offset, length = self._get_available_buffer(addr, length)
+        offset, available_length = self._get_available_buffer(addr, length)
         if offset is None:
-            return "\x00" * length
+            return "\x00" * min(length, available_length)
 
         win32file.SetFilePointer(self.fhandle, offset, 0)
-        _, data = win32file.ReadFile(self.fhandle, length)
+        _, data = win32file.ReadFile(self.fhandle, min(length, available_length))
         return data
 
     def close(self):
