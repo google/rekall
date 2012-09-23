@@ -262,8 +262,6 @@ class EvtLogs(registry.RegistryPlugin):
         for sid, service_name in getservicesids.get_service_sids():
             sid_cache[sid] = "(Service: %s)" % service_name
 
-        import pdb; pdb.set_trace()
-
     def render(self, renderer):
         if self.verbose:
             self.PrecacheSids()
