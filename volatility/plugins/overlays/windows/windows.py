@@ -183,7 +183,7 @@ windows_overlay = {
                     4: 'VadWriteWatch',
                     5: 'VadLargePages',
                     6: 'VadRotatePhysical',
-                    7:'VadLargePageSection',
+                    7: 'VadLargePageSection',
                     },
                 value=x.m("VadType"), name=x.obj_name, theType=x.obj_type),
             }],
@@ -934,6 +934,8 @@ crash_overlays['_DMP_HEADER64'] = copy.deepcopy(crash_overlays['_DMP_HEADER'])
 class BaseWindowsProfile(basic.BasicWindowsClasses):
     """Common symbols for all of windows kernel profiles."""
     _md_os = "windows"
+
+    __abstract = True
 
     def __init__(self, **kwargs):
         super(BaseWindowsProfile, self).__init__(**kwargs)

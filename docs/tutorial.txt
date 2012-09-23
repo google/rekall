@@ -2,9 +2,8 @@ Volatility Technology preview tutorial
 ======================================
 Michael Cohen <scudette@gmail.com>
 August 2012
-:toc:
+:toc2:
 :icons:
-:data-uri:
 :numbered:
 :website: http://code.google.com/p/volatility/
 

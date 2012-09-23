@@ -2,4 +2,5 @@ Volatility Technology Preview Documentation.
 ============================================
 
 1. link:tutorial.html[Tutorial]
-2. link:development.html[Developer Information]
+2. link:user_manual.html[User Manual]
+3. link:development.html[Developer Information]

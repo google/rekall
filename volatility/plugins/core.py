@@ -65,6 +65,9 @@ class Info(plugin.Command):
 
     def profiles(self):
         for name, cls in obj.Profile.classes.items():
+            if self.verbosity == 0 and not cls.metadata("os"):
+                continue
+
             if name:
                 yield name, cls.__doc__.splitlines()[0].strip()
 
@@ -323,8 +326,8 @@ class LoadAddressSpace(plugin.ProfileCommand):
         if base_as:
             logging.info("Autodetected %s address space %s", astype, base_as)
         else:
-            logging.info("Failed to autodetect %s address space. Try running "
-                         "plugin.load_as with a spec.", astype)
+            logging.error("Failed to autodetect %s address space. Try running "
+                          "plugins.load_as with a spec.", astype)
 
         return base_as
 

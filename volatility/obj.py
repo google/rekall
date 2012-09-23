@@ -3,6 +3,7 @@
 #
 # Copyright (C) 2005,2006 4tphi Research
 # Author: {npetroni,awalters}@4tphi.net (Nick Petroni and AAron Walters)
+# Author: Michael Cohen scudette@gmail.com.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -987,12 +988,6 @@ class Profile(object):
     system. We parse the abstract_types and join them with
     native_types to make everything work together.
     """
-    _md_os = 'undefined'
-    _md_major = 0
-    _md_minor = 0
-    _md_build = 0
-    _md_memory_model = None
-
     # This is the dict which holds the overlays to be applied to the vtypes when
     # compiling into types.
     overlay = None

@@ -361,7 +361,7 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
                             help="One or more pids of processes to select.")
 
         parser.add_argument("--proc_regex", default=None,
-                            help="A regex to select a profile by name.")
+                            help="A regex to select a process by name.")
 
 
     def __init__(self, eprocess=None, phys_eprocess=None, pid=None,

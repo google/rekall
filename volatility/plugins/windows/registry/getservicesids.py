@@ -49,12 +49,8 @@ class GetServiceSids(registry.RegistryPlugin):
     def get_service_sids(self):
         # Search for the current_control_set in all hives.
         for hive_offset in self.hive_offsets:
-            hive_address_space = registry.HiveAddressSpace(
-                base=self.kernel_address_space,
-                hive_addr=hive_offset, profile=self.profile)
-
-            reg = registry.Registry(
-                profile=self.profile, address_space=hive_address_space)
+            reg = registry.RegistryHive(
+                hive_offset=hive_offset, session=self.session)
 
             current_control_set = reg.CurrentControlSet()
 

@@ -432,24 +432,36 @@ class Registry(object):
 
     BIG_DATA_MAGIC = 0x3fd8
 
-    def __init__(self, session=None, profile=None, address_space=None, stable=True):
+    def __init__(self, session=None, profile=None, address_space=None,
+                 filename=None, stable=True):
         """Abstract a registry hive.
 
         Args:
            session: An optional session object.
-           profile: A profile to operate on. If not provided we use session.profile.
+           profile: A profile to operate on. If not provided we use
+             session.profile.
            address_space: An instance of the HiveBaseAddressSpace.
+           filename: If the registry exists in a file, specify the filename to
+             save instantiating the address_space.
            stable: Should we try to open the unstable registry area?
         """
         self.session = session
-        self.profile = VolatilityRegisteryImplementation(profile or session.profile)
+        self.profile = VolatilityRegisteryImplementation(
+            profile or session.profile)
+
+        if filename is not None:
+            base_as = HiveFileAddressSpace.classes['FileAddressSpace'](
+                filename=filename, session=session)
+            address_space = HiveFileAddressSpace(base=base_as)
+
         self.address_space = address_space
 
         root_index = self.ROOT_INDEX
         if not stable:
             root_index = self.ROOT_INDEX | 0x80000000
 
-        self.root = self.profile.Object("_CM_KEY_NODE", offset=root_index, vm=address_space)
+        self.root = self.profile.Object(
+            "_CM_KEY_NODE", offset=root_index, vm=address_space)
 
     @property
     def Name(self):

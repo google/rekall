@@ -656,6 +656,8 @@ class Profile64Bits(obj.Profile):
 class BasicWindowsClasses(obj.Profile):
     """Basic profile which introduces the basic classes."""
 
+    __abstract = True
+
     def __init__(self, **kwargs):
         super(BasicWindowsClasses, self).__init__(**kwargs)
         self.add_classes({

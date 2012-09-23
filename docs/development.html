@@ -533,6 +533,40 @@ body.manpage div.sectionbody {
 }
 
 
+@media screen {
+  body {
+    max-width: 50em; /* approximately 80 characters wide */
+    margin-left: 16em;
+  }
+
+  #toc {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 13em;
+    padding: 0.5em;
+    padding-bottom: 1.5em;
+    margin: 0;
+    overflow: auto;
+    border-right: 3px solid #f8f8f8;
+    background-color: white;
+  }
+
+  #toc .toclevel1 {
+    margin-top: 0.5em;
+  }
+
+  #toc .toclevel2 {
+    margin-top: 0.25em;
+    display: list-item;
+    color: #aaaaaa;
+  }
+
+  #toctitle {
+    margin-top: 0.5em;
+  }
+}
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -741,8 +775,771 @@ asciidoc.install(2);
 </div>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>Volatility is a powerful framework with many components. It is not necessary to
+be intimately familiar with all components to be able to contribute. This
+document attempts to cover as much internal API information as possible, but if
+you already have a good idea of what you wish to accomplish, the
+<a href="#overview">Overview</a> section will direct new users to the most relevant
+section.</p></div>
+</div>
+</div>
 <div class="sect1">
-<h2 id="_testing">1. Testing</h2>
+<h2 id="overview">1. Overview</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The following usage examples are typical areas where people would like to
+contribute:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Adding support to a new image format
+</dt>
+<dd>
+<p>
+ You will probably want to add a new address space by reading
+ <a href="#as">Address Spaces</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+Using volatility as a library
+</dt>
+<dd>
+<p>
+ You will want to read the section <a href="#library">Using Volatility as a Libarary</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+I want to add new functionality
+</dt>
+<dd>
+<p>
+ If your code will be useful to all Volatility users and you would like to
+ contribute it upstream you might want to read <a href="#commands">Command Plugins</a>, else
+ you might want to write a standalone script and read <a href="#library">Using Volatility  as a Libarary</a>.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="commands">2. Plugins and Commands.</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Volatility is a modular framework. This means that most of the functionality of
+the framework is implemented by plugins, enabling the framework to support
+multiple operating systems. Even when using volatility as a library it is easy
+to extend the library from within your own code (i.e. plugins do not need to be
+embedded in the library itself).</p></div>
+<div class="paragraph"><p>A plugin is simply a piece of python code which declares a class extending one
+of the special classes providing some kind of functionality. For example to
+create a new address space, one simply defines a class extending
+BaseAddressSpace. Once that happens, the framework automatically knows about
+this new class and can use it e.g. in address space voting (there is no need to
+call any initialization functions).</p></div>
+<div class="paragraph"><p>Plugins auto-register to the baseclass by means of a python metaclass. This
+places a reference to all plugins of the same class in a class variable called
+<em>classes</em>. This mechanism provides a simple way for one plugin to access another
+plugin without needing to explicitly import its module.</p></div>
+<div class="sect2">
+<h3 id="_command_plugin">2.1. Command Plugin</h3>
+<div class="paragraph"><p>A command is a reusable plugin which implements a user runnable command. For
+example, when the user issues the <em>pslist</em> command, the WinPSList plugin is
+run. Therefore in order to be accessible to the user, a command plugin must
+extend the plugin.Command class.</p></div>
+<div class="paragraph"><p>However it is not sufficient to simply extend the plugin.Command class, the
+class must also declare what the name of the command it implements is. For
+example the WinPSList class implements the <em>pslist</em> command.</p></div>
+<div class="paragraph"><p>At any given moment there can be a number of command plugins which define a
+particular user command. For example, LinPSList, WinPSList and MacPSList all
+define a command called <em>pslist</em>. The correct class to run is chosen based on
+the profile.</p></div>
+<div class="paragraph"><p>Here is the base minimum that should be defined for a new command plugin:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>args(cls, parser)</code>
+</dt>
+<dd>
+<p>
+  This is a classmethod called in order to construct the command line
+  options. See below.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>__init__(**args)</code>
+</dt>
+<dd>
+<p>
+  This is the constructor which should take any parameters you wish to
+  accept. If you also want the user to be able to provide these parameters
+  through the command line you will need to add them to the parser provided in
+  args() above.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>is_active(cls, session)</code>
+</dt>
+<dd>
+<p>
+  This method will be called with the session to check if this specific class is
+  active. This mechanism allows multiple implementations to all share the same
+  name, as long as only one is actually active. For example, we can have a
+  linux, windows and mac version of plugins with the same "pslist" name.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>render(renderer)</code>
+</dt>
+<dd>
+<p>
+  This is the main entry point for the command when called from the Volatility
+  UI. The plugin should render any output using the renderer (see
+  <a href="#renderer">Rendering Output</a>).
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>In addition to these methods the plugin should define any other methods that can
+be reusable by other components.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_command_line_invocation">2.2. Command line Invocation</h3>
+<div class="paragraph"><p>So what happens when a user invokes volatility from the command line? Assume the
+following comamnd is issued:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>    <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />        <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />                                                 <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" />       <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" />
+$ vol.py --profile Win7SP0x64 --filename win7_trial_64bit.raw pslist --proc_reg DumpIt
+  Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+-------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -</code></pre>
+</div></div>
+<div class="colist arabic"><table>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+The volatility program name (vol.py).
+</td></tr>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+These are global options which are processed by the main volatility
+executable (in this case --profile, --filename).
+</td></tr>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
+The name of the command plugin to run. This will actually run the first
+class to extend plugin.Command() which is also active (in this case
+pslist. Since the profile is a windows profile, the WinPSList class will be
+invoked).
+</td></tr>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" /></td><td>
+These options are specific to the plugin - i.e. they have been defined in
+the args() classmethod (in this case the process name regex selector).
+</td></tr>
+</table></div>
+<div class="paragraph"><p>Volatility is strict with the order in which commands are supplied. For example
+it is not valid to provide the --proc_reg parameter before the pslist keyword
+(since it is a module level parameter). Similarly it is not legal to provide the
+--filename parameter after the command name (pslist). This strictness allows
+different modules to define the same command line option for their own needs and
+avoids any command line option clashes between different plugins.</p></div>
+<div class="paragraph"><p>This strictness can easily be observed when requesting help. Without a module
+name, the help output simply lists those options processed by the main program
+(i.e. global options). It also provides a list of available modules:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ vol.py --help
+usage: vol.py [-h] [--pager PAGER]
+              [--logging {debug,info,warning,critical,error}] [--debug]
+              [-p PROFILE] [-f FILENAME] [--renderer RENDERER]
+              [--plugin PLUGIN [PLUGIN ...]] [--output OUTPUT] [--overwrite]
+              Plugin ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --pager PAGER         The pager to use when output is larger than a screen
+                        full.
+  --logging {debug,info,warning,critical,error}
+                        Logging level to show messages.
+  --debug               If set we break into the debugger on error conditions.
+  -p PROFILE, --profile PROFILE
+                        Name of the profile to load.
+  -f FILENAME, --filename FILENAME
+                        The raw image to load.
+  --renderer RENDERER   The renderer to use. e.g. (TextRenderer,
+                        JsonRenderer).
+  --plugin PLUGIN [PLUGIN ...]
+                        Load user provided plugin bundle.
+  --output OUTPUT       Write to this output file.
+  --overwrite           Allow overwriting of output files.
+
+subcommands:
+  The following plugins can be selected.
+
+  Plugin
+    modscan             Scan Physical memory for _LDR_DATA_TABLE_ENTRY
+                        objects.
+    driverscan          Scan for driver objects _DRIVER_OBJECT
+    memmap              Calculates the memory regions mapped by a process.
+    load_as             Load address spaces into the session if its not
+                        already loaded.</code></pre>
+</div></div>
+<div class="paragraph"><p>Once the module is provided, we see a per-module help output:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ vol.py pslist --help
+usage: vol.py pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
+                     [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
+                     [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
+
+List processes for windows.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --kdbg KDBG           Location of the KDBG structure.
+  --eprocess EPROCESS [EPROCESS ...]
+                        Kernel addresses of eprocess structs.
+  --phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]
+                        Physical addresses of eprocess structs.
+  --pid PID [PID ...]   One or more pids of processes to select.
+  --proc_regex PROC_REGEX
+                        A regex to select a profile by name.</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_interactive_session_invocation">2.3. Interactive Session Invocation.</h3>
+<div class="paragraph"><p>When invoked without a command name, Volatility drops into the interactive
+shell. This mode of operation is more efficient as many commands can be run
+without needing to reinitialize the framework each time.</p></div>
+<div class="paragraph"><p>This is what happens during initialization:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ vol.py --profile Win7SP0x64 --filename win7_trial_64bit.raw
+Python 2.6.5 (r265:79063, Apr 16 2010, 13:57:41)
+Type "copyright", "credits" or "license" for more information.
+
+The Volatility Memory Forensic Framework technology preview (3.0_tp2).
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
+
+Win7SP0x64:win7_trial_64bit.raw 01:32:55&gt; print session               <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
+Volatility session Started on Sun Sep 23 01:32:57 2012.
+
+Config:
+ base_filename:  'win7_trial_64bit.raw'
+ filename:  'win7_trial_64bit.raw'                                    <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />
+ logging:  'INFO'
+ overwrite:  False
+ pager:  &lt;Set this to your favourite pager.&gt;
+ paging_limit:  50
+...
+
+Win7SP0x64:win7_trial_64bit.raw 01:33:07&gt; plugins.[tab][tab]          <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" />
+plugins.atoms           plugins.dlldump         plugins.handles
+plugins.atomscan        plugins.dlllist         plugins.hivedump
+plugins.callbacks       plugins.driverirp       plugins.hivescan
+plugins.clipboard       plugins.driverscan      plugins.imagecopy
+....
+
+Win7SP0x64:win7_trial_64bit.raw 01:34:57&gt; pslist proc_regex="DumpIt"  <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" />
+----------------------------------------&gt; pslist(proc_regex="DumpIt")
+  Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+-------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -</code></pre>
+</div></div>
+<div class="colist arabic"><table>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+A new session.Session() object is created. This holds all information about
+the current running session.
+</td></tr>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+Global command line args are parsed into the session - so for example, the
+--filename argument is parsed into session.filename.
+</td></tr>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
+The is_active() method for all command plugins is called, and the names of
+all active plugins are collected. For example, if we have a windows based
+profile, WinPSList will return True for is_active() and will be considered
+active.
+</td></tr>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" /></td><td>
+For all active commands, we create wrapper functions in the session object
+and the namespace of the interactive shell. The wrapper will automatically set
+up a TextRenderer, instantiate the plugin and call its render method with the
+text renderer. For example, when the user types pslist() in the interactive UI,
+we create a new TextRenderer, instantiate the WinPSList class and call its
+render method.
+</td></tr>
+</table></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="as">3. Address Spaces.</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Volatility uses an address space to abstract the handling of different images
+and formats and therefore allow plugins to support multiple kind of input images
+(or indeed live memory) easiy.</p></div>
+<div class="paragraph"><p>An <em>address space</em> is an object which can satisfy a read request for data at a
+certain offset. Exactly how this read request is satisfied is not important to
+the rest of the code, so long as the read request is satisfied.</p></div>
+<div class="paragraph"><p>There are a number of simple address spaces which simply provide access to a
+specific data source:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+FileAddressSpace - Simply opens a file and satisfies read requests from it.
+</p>
+</li>
+<li>
+<p>
+WindowsHiberFileSpace - Supports windows hibernation files.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>However, many other address spaces satisfy their read requests by translating
+these to an underlying <em>base</em> address space which does the actual reading. This
+is called <em>Address Space Stacking</em> since address spaces are stacked over one
+another.</p></div>
+<div class="paragraph"><p>For example, the WindowsCrashDumpSpace32 address space usually stacks over a
+FileAddressSpace - which does the actual reading. All the
+WindowsCrashDumpSpace32 does it translate the read request from a the provided
+offset to another read request at a different offset. Commonly address space
+stacking occurs when volatility emulates the hardware page translation by
+creating a <em>Virtual Address Space</em> with the IA32PagedMemory and Amd64 paged
+address spaces stacked over the <em>Physical Address Space</em>.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="images/address_space.jpg" alt="images/address_space.jpg" />
+</div>
+<div class="title">Figure 1. A sample address space stacking.</div>
+</div>
+<div class="paragraph"><p>The figure above shows an IA32PagedMemory Virtual address space stacked over a
+FileAddressSpace physical address space. A read request to the virtual address
+space get translated through the page tables into a read in the physical memory
+address space. The other interesting point is that the Virtual Address space is
+sparse - i.e. there are regions where a read request is meaningless because
+there is no valid mapping. This happens in the IA32PagedMemory address space
+whenever there is no corresponding page translation.</p></div>
+<div class="paragraph"><p>New address spaces, should extend the BaseAddressSpace class and implement at
+least:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+<code>__init__(base, **kwargs)</code>
+</dt>
+<dd>
+<p>
+ You will receive the address space you need to stack over. The constructor is
+ supposed to implement the required sanity checks. If it is not possible to
+ stack over the base address for some reason, you must raise an
+ ASAssertionError(). Its best to use self.as_assert() to test for various
+ conditions.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>read(address, length)</code>
+</dt>
+<dd>
+<p>
+ This function should return a buffer read at the specified address. If the
+ address is invalid it should return None. Note that in general memory forensics
+ should expect a read to fail since any page can be invalid at any
+ time. Therefore use of this function is discouraged in favour of the zread()
+ function below. This function will probably be deprecated in future.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>zread(address, length)</code>
+</dt>
+<dd>
+<p>
+ This variant is almost always called.  If the address is invalid, returns a
+ null padded buffer instead.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>vtop(address)</code>
+</dt>
+<dd>
+<p>
+ This function returns the physical translation for the virtual address. I.e. it
+ returns the offset that this AS will be reading into its base. If the address
+ is invalid returns None. This is a quick way to check if a certain address is
+ valid.
+</p>
+</dd>
+<dt class="hdlist1">
+<code>get_address_ranges()</code>
+</dt>
+<dd>
+<p>
+ Many address spaces are sparse and quite large (e.g. AMD64PagedMemory). When
+ scanning these address spaces we need to know which regions are valid so we can
+ skip unmapped regions. This function basically returns a list of ranges which
+ are valid.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Many image file formats implement essentially a sparse file (i.e. the image
+consists of sections which are stored back to back but which refer to sparse
+memory regions.). To make it easier to support these there is a generic
+RunBasedAddressSpace. Extending this class and populating the self.runs array
+with the mappings from virtual space to physical space is all that is required
+to support these image file formats. Currents the address spaces which are
+supported in this way are WindowsCrashDumpSpace, Elf64CoreDump (for virtual
+box), MACHOCoreDump (for osx).</p></div>
+<div class="sect2">
+<h3 id="_automatic_address_space_selection">3.1. Automatic Address Space Selection</h3>
+<div class="paragraph"><p>Most volatility plugins expect to have valid address spaces set in the session
+object before they run. There are two main session parameters which are commonly
+required, the <em>session.physical_address_space</em> and
+<em>session.kernel_address_space</em>. Usually if these parameters are not provided in
+the session, the plugins will automatically invoke the <em>load_as()</em> plugin.</p></div>
+<div class="paragraph"><p>The load_as plugin is just a regular command plugin, which means that it can be
+implemented by different plugin.Command() classes (autoselected via the
+is_active() class method - see <a href="#commands">Command Plugin</a>). This means we can
+have one implementation for windows, one for linux etc. The following discusses
+the windows implementation since that is much more complex.</p></div>
+<div class="paragraph"><p>The physical address space is derived by an automatic voting algorithm:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Start with the None address space and pass it to all address spaces in their
+requested order (classes are sorted by their <em>order</em> attribute). Address spaces
+which are incompatible with the base address space will raise ASAssertionError
+and will be skipped.
+</p>
+</li>
+<li>
+<p>
+The first address space which instantiates successfully, will be accepted as
+the next base address space.
+</p>
+</li>
+<li>
+<p>
+The process is repeated until all address spaces failed to instantiate. We then return the last successfully instantiated address space.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>In the windows load_as() plugin, the virtual address space is created from the
+kernel&#8217;s Directory Table Base (DTB). This is usually obtained by scanning the
+image for the Idle process - implemented by the find_dtb() command
+plugin. Therefore load_as automatically calls the find_dtb() plugin. In other
+implementations, the kernel DTB is calculated using some other way (e.g. from
+debug symbols).</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_object_parsing_system">4. The object parsing system.</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Computers use volatility memory in order to organize data and for program
+control. Memory analysis is ultimately all about trying to make sense of a
+memory image, and deducing higher level constructs from these.</p></div>
+<div class="paragraph"><p>For example, if a C program defines the following struct:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>typedef unsigned char uchar;
+enum {
+  OPT1,
+  OPT2
+} options;
+
+struct foobar {
+    enum options flags;
+    short int bar;
+    uchar *foo;
+}</code></pre>
+</div></div>
+<div class="paragraph"><p>What should the memory layout be? The answer is not so simple - it depends on
+many things such as the compiler used, architecture etc. For example, the
+compiler might enforce an alignment on the struct members by inserting padding
+between elements.</p></div>
+<div class="paragraph"><p>In practice it is impossible to predict from source code alone what the memory
+layout should be. We therefore need the compiler itself to inform us about how
+its planning to layout the memory in practice. This information is available
+through debug symbol.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/home/scudette/build/asciidoc-8.6.8/images/icons/note.png" alt="Note" />
+</td>
+<td class="content">
+<div class="paragraph"><p>Volatility is in many ways emulating a native debugger. Just like a debugger,
+volatility is making sense from the memory image, using debugging symbols.</p></div>
+</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>There are basically two types of debugging systems - the Microsoft PDB system and the DWARF standard.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+DWARF
+</dt>
+<dd>
+<p>
+  This standard is used mostly on unix like operating systems (and OSX). It
+  consists of a DWARF section attached to the binary object (e.g. ELF file) with
+  a specially encoded stream providing information about symbols, structures and
+  offsets. In order to obtain debugging information, the binary must be rebuilt
+  with the appropriate flags.
+</p>
+</dd>
+<dt class="hdlist1">
+Microsoft PDB
+</dt>
+<dd>
+<p>
+ This standard keeps debugging information outside the final binary. The pdb
+ file contains the debugging information, and is stored on a server (may be
+ private or public). The advantage of this system is that debugging symbols may
+ be obtained for release binaries as well (i.e. you do not need to build with
+ debugging turned on before hand).
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Another important concept to understand is that of a <em>Compilation Unit</em>. A
+compilation unit is a self consistent unit of compiled code which uses the same
+memory layout for structs. For example a DLL or an object file is a compilation
+unit. It is important to note that the same struct may be defined with the same
+name but different layout in different compilation units without any problem.</p></div>
+<div class="sect2">
+<h3 id="_the_vtypes_language">4.1. The VTypes language.</h3>
+<div class="paragraph"><p>Some symbols may not have debugging information, and so we need to write their
+definition by hand (say from reverse engineering the symbol). The VTypes
+language was developed as an intuitive way to write human readable structure
+definitions.</p></div>
+<div class="paragraph"><p>The VTypes language was designed to allow:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Partial definition of struct members - not all members in the struct must be
+  defined. The offset of the member in the struct is explicitly given.
+</p>
+</li>
+<li>
+<p>
+Struct members are simply names of special classes (inherited from
+  obj.BaseObject). These classes take care of actually parsing the data. This
+  allows us to interpret the memory offset in arbitrary ways.  These classes are
+  instantiated at the required offset.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The following is an example of a vtype definition:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  '_EPROCESS' : [ 0x270, {                                          <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
+    'Pcb' : [ 0x0, ['_KPROCESS']],                                  <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />
+    'ProcessLock' : [ 0x80, ['_EX_PUSH_LOCK']],
+    'CreateTime' : [ 0x88, ['_LARGE_INTEGER']],
+    'ExitTime' : [ 0x90, ['_LARGE_INTEGER']],
+    'RundownProtect' : [ 0x98, ['_EX_RUNDOWN_REF']],
+    'UniqueProcessId' : [ 0x9c, ['Pointer', dict(target="Void")]],  <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" />
+    'ActiveProcessLinks' : [ 0xa0, ['_LIST_ENTRY']],
+    'QuotaUsage' : [ 0xa8, ['Array', dict(                          <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" />
+                   target='unsigned long',
+                   count=3
+                   )]],
+    'QuotaPeak' : [ 0xb4, ['Array',  dict(
+                   target='unsigned long',
+                   count=3
+                   )]],
+    'CommitCharge' : [ 0xc0, ['unsigned long']],
+    'PeakVirtualSize' : [ 0xc4, ['unsigned long']],
+    'VirtualSize' : [ 0xc8, ['unsigned long']],
+    'SessionProcessLinks' : [ 0xcc, ['_LIST_ENTRY']],</code></pre>
+</div></div>
+<div class="colist arabic"><table>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+This defines the <em>_EPROCESS</em> struct as having a size of 0x270 bytes.
+</td></tr>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+The <em>Pcb</em> member of this struct is found at offset 0 and it is of type
+<em>_KPROCESS</em>.
+</td></tr>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
+The <em>UniqueProcessId</em> member is a pointer to void and is found at offset 0x9c.
+</td></tr>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" /></td><td>
+The <em>QuotaUsage</em> member is an array which will be instantiated at offset
+0xa8 from the start of the _EPROCESS struct. The array will have 3 members each
+of type <em>unsigned long</em>.
+</td></tr>
+</table></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="/home/scudette/build/asciidoc-8.6.8/images/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">
+<div class="paragraph"><p>To generate a vtypes file for an executable, simple use the pdbparse project to
+fetch the pdb for the binary and convert it to vtypes:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>pdbparse/trunk$ python examples/symchk.py ntoskrnl.exe
+Trying http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/7A6629B2016A41D3A5D3E7129430544D2/ntkrnlmp.pd_
+Connected. Downloading data...
+0% 5% 10% 15% 20% 25% 30% 35% 40% 45% 50% 55% 60% 65% 70% 75% 80% 85% 90% 95% 100%
+Saved symbols to ntkrnlmp.pd_
+Extracting cabinet: ntkrnlmp.pd_
+  extracting ntkrnlmp.pdb
+
+All done, no errors.
+pdbparse/trunk$ python examples/tpi_vtypes.py ntkrnlmp.pdb &gt; ntkrnlmp.py
+pdbparse/trunk$ head ntkrnlmp.py
+ntkrnlmp_types = {
+  'LIST_ENTRY64' : [ 0x10, {
+    'Flink' : [ 0x0, ['unsigned long long']],
+    'Blink' : [ 0x8, ['unsigned long long']],
+} ],
+  'LIST_ENTRY32' : [ 0x8, {
+    'Flink' : [ 0x0, ['unsigned long']],
+    'Blink' : [ 0x4, ['unsigned long']],
+} ],
+  '_KUSER_SHARED_DATA' : [ 0x5f0, {</code></pre>
+</div></div>
+</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Usually vtypes are automatically generated from debug information, such as PDB
+files or DWARF file. It is not enough to specify this information in practice
+however, since PDB files may be incomplete, or just incorrect.</p></div>
+<div class="paragraph"><p>Volatility allows vtypes to be overlayed. This means that some fields in
+autogenerated definitions can be overridden by user defined <em>overlays</em>. For example consider the vtype definition generated from debugging symbols:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>'_EPROCESS' : [ 0x4d0, {
+    'Pcb' : [ 0x0, ['_KPROCESS']],
+    'ProcessLock' : [ 0x160, ['_EX_PUSH_LOCK']],
+    'CreateTime' : [ 0x168, '_LARGE_INTEGER']],
+    'ExitTime' : [ 0x170, ['_LARGE_INTEGER']],
+    .....
+}],</code></pre>
+</div></div>
+<div class="paragraph"><p>Although technically CreateTime is stored as a _LARGE_INTEGER, semantically it
+is interpreted as a timestamp. We therefore apply the following overlay:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>'_EPROCESS' : [ None, {
+    'CreateTime' : [ None, ['WinTimeStamp', {}]]],
+    'ExitTime' : [ None, ['WinTimeStamp', {}]],
+    .....
+}],</code></pre>
+</div></div>
+<div class="paragraph"><p>Note how the overlay does not actually specify the struct offset of the fields -
+these are still obtained from the debugging symbols. We only specify the
+semantic meaning of these fields - information which is not captured in the
+debugging symbols.</p></div>
+<div class="paragraph"><p>The WinTimeStamp object is a class which extends the basic BaseObject to provide
+special methods to handle the value as a timestamp.</p></div>
+<div class="paragraph"><p>The Volatility object parsing system is the workhorse under the entire
+volatility system. It is used to build semantic information from the underlying
+memory data by combining debug symbols (for offsets) with user provided semantic
+meaning (using overlays and high level classes).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_the_profile">4.2. The Profile.</h3>
+<div class="paragraph"><p>A profile is an object which unifies semantic information about a particular
+compilation unit. The profile is built by applying all relevant overlays and
+classes to parse the compilation unit it cares about. For example the following
+is a base profile for parsing the Windows kernel:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>class BaseWindowsProfile(basic.BasicWindowsClasses):
+    """Common symbols for all of windows kernel profiles."""
+    _md_os = "windows"
+
+    def __init__(self, **kwargs):
+        super(BaseWindowsProfile, self).__init__(**kwargs)
+
+        self.add_classes({
+            '_UNICODE_STRING': _UNICODE_STRING,
+            '_EPROCESS': _EPROCESS,
+            '_MMVAD_FLAGS2': _MMVAD_FLAGS2,
+            '_MMSECTION_FLAGS': _MMSECTION_FLAGS,
+            })
+
+        self.add_overlay(windows_overlay)
+
+        # Pooltags for common objects.
+        self.add_constants(DRIVER_POOLTAG="Dri\xf6",
+                           EPROCESS_POOLTAG="Pro\xe3",
+                           THREAD_POOLTAG='\x54\x68\x72\xe5',
+                           )</code></pre>
+</div></div>
+<div class="paragraph"><p>We can see this profile is applying classes, overlays and constants to the
+profile. Viewed as a whole, the profile can be said to implement a parsing
+system for the windows kernel.  When a user select the profile with the
+--profile command line arg, they are really selecting which profile should be
+created for parsing the kernel.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_profile_modifications">4.3. Profile Modifications</h3>
+<div class="paragraph"><p>The profile is a self contained system for parsing the kernel data
+structures. However, some modules would like to alter the profile slightly - for
+example to add new classes replacing the default classes (with additional
+methods), or maybe adding new information obtained by reverse engineering
+certain data structures. In these cases we wish to <em>modify</em> the profile
+definition by adding an improved class definition system.</p></div>
+<div class="paragraph"><p>It is normally discouraged to directly add new BaseObject class implementations
+to the volatility framework since the changes will appear in all users of the
+profile - potentially clashing with others' modifications. In other words we
+want to modify the profile only for the users of this profile.</p></div>
+<div class="paragraph"><p>This can be done by explicitly calling the ProfileModification class in your
+plugin. This will install the updated implementation in your profile - without
+affecting other profiles. This localized change opens the door for multiple implementations of profile parsing systems.</p></div>
+<div class="paragraph"><p>For example consider the standard registry parsing implementation in
+<em>volatility.plugins.windows.registry.registry</em>. This implementation is a fast,
+self contained and complete implementation of registry parsing in the windows
+kernel. For a plugin to use this implementation, they will need to add it to
+their current profile:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>class VolatilityRegisteryImplementation(obj.ProfileModification):
+    """The standard volatility registry parsing subsystem."""
+
+    @classmethod
+    def modify(cls, profile):                                           <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
+        profile.add_classes(dict(
+                _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
+                _CM_KEY_VALUE=_CM_KEY_VALUE, _CMHIVE=_CMHIVE
+                ))
+
+        profile.add_overlay(registry_overlays)
+
+
+class RegistryPlugin(common.WindowsCommandPlugin):
+    def __init__(self, **kwargs):
+        """Operate on in memory registry hives.
+        super(RegistryPlugin, self).__init__(**kwargs)
+
+        # Install our specific implementation of registry support.
+        self.profile = VolatilityRegisteryImplementation(self.profile)  <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></code></pre>
+</div></div>
+<div class="colist arabic"><table>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+The VolatilityRegisteryImplementation profile modification implements a
+complete registry parsing system. It does this by modifying a profile and
+replacing certain classes within it with newer classes with additional
+functionality.
+</td></tr>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+A plugin wishing to use this new functionality, can upgrade its profile
+using the VolatilityRegisteryImplementation modification. Note that the
+modification simply produces a new, enhanced profile - the plugin could use the
+modified profile interchangeably with the old unmodified profile.  The
+modification does not affect other users of the profile.
+</td></tr>
+</table></div>
+<div class="sect3">
+<h4 id="_the_registry_parsing_implementation">4.3.1. The Registry parsing implementation.</h4>
+<div class="paragraph"><p>This section describes the Volatility registry parsing implementation found in
+<em>volatility.plugins.windows.registry.registry</em>.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_the_pe_parsing_implementation">4.3.2. The PE parsing implementation.</h4>
+<div class="paragraph"><p>The PE parsing implementation is found in <em>volatility.plugins.overlays.windows.pe_vtypes</em>.</p></div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_testing">5. Testing</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Previously testing was ad-hoc in the sense that users would run the
 plugins they were interested in on their own images, and report any obvious
@@ -790,38 +1587,14 @@ active = True</code></pre>
 </div></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ python tools/testing/build_suite.py template \                <img alt="1" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
-VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
-gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
-YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
-dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
-ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" />
-  --file xp-laptop-2005-06-25_trunk/xp-laptop-2005-06-25.img    <img alt="2" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
-HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
-Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
-izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
-MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
-MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></code></pre>
+<pre><code>$ python tools/testing/build_suite.py template \                <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
+  --file xp-laptop-2005-06-25_trunk/xp-laptop-2005-06-25.img    <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
-VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
-gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
-YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
-dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
-ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></td><td>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
 Run the tool in template mode.
 </td></tr>
-<tr><td><img alt="2" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
-HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
-Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
-izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
-MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
-MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></td><td>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
 Specify the image the template will use - the template file is placed in the
 same directory.
 <div class="ulist"><ul>
@@ -837,55 +1610,18 @@ have changed between the old and new versions.).
 </table></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ python tools/testing/build_suite.py baseline \                <img alt="1" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
-VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
-gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
-YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
-dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
-ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" />
-  --config xp-laptop-2005-06-25_trunk/tests.config \            <img alt="2" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
-HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
-Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
-izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
-MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
-MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" />
-  -e "python branches/2.3-devel/vol.py"                         <img alt="3" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
-JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
-7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
-Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
-cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
-NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
-SUVORK5CYII=" /></code></pre>
+<pre><code>$ python tools/testing/build_suite.py baseline \                <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
+  --config xp-laptop-2005-06-25_trunk/tests.config \            <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />
+  -e "python branches/2.3-devel/vol.py"                         <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
-VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
-gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
-YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
-dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
-ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></td><td>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
 Run the tool in baseline mode.
 </td></tr>
-<tr><td><img alt="2" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
-HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
-Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
-izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
-MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
-MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></td><td>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
 Specify the testing template to use.
 </td></tr>
-<tr><td><img alt="3" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
-JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
-7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
-Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
-cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
-NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
-SUVORK5CYII=" /></td><td>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
 Specify the binary to run - in this case we use the 2.3-dev version as a
 baseline.
 </td></tr>
@@ -923,38 +1659,14 @@ Finally test the current output against the baseline:
 </ul></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ python tools/testing/build_suite.py test \                    <img alt="1" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
-VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
-gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
-YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
-dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
-ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" />
-  --config xp-laptop-2005-06-25_trunk/tests.config              <img alt="2" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
-HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
-Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
-izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
-MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
-MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></code></pre>
+<pre><code>$ python tools/testing/build_suite.py test \                    <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
+  --config xp-laptop-2005-06-25_trunk/tests.config              <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
-VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
-gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
-YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
-dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
-ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></td><td>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
 Run the tool in test mode.
 </td></tr>
-<tr><td><img alt="2" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
-HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
-Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
-izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
-MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
-MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></td><td>
+<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
 Specify the testing template to use.
 </td></tr>
 </table></div>
@@ -963,55 +1675,11 @@ was any discrepancy with the baseline.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img alt="Note" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAJhUlEQVRoge2ZWWycVxXHf+fce7/v
-m/GaGCde4pI0aQlJC0kRtE1L00JbLIjY4QkeUB9YHhAIJFCExAsKUkE8IAFFPIDUIqhBRSDRBUqC
-CimFFBCBpCWx02IaZ3G2SdyxPZ7vHh6+mcnSZnFjKIge6Wj8zYzvPf9z/me5d8TM+F8WfbkNuFx5
-BcDLLf/fAEZGRmx4eNh6enqsp6fHhoeHbWRk5D9aFeSlVqHNmzfb6H33sHnT7ZQmD5GfOMax6Sm+
-Pl5h1Yc+xpYtW2SBbX1ReUkRGBkZsdH77mHLW95EOv4Ms3ueJh6YYPHUFF9aljJ63z3cf//9/5FI
-vKQIDA8P293L2yhVjjH7t51ocDiviFecF46n7XzBreChhx4qNhH5t0XjJUVgx44ddGUZ9b/vIpQD
-oRQIWSDJAiFL6B9axo4dO4gxAmANWVDLG+Ln82URMRGhVCqRHxonlAPqFXWKC4r6IhI6OMjMzBN4
-/4LlTUQQEZxzZ32QJAlpmrb+p16vU6vVOHXq1AWjN18AnDj0F971vrs4OnmYJVkoDA4FCPUO172I
-Cgnt7SV++4vvsGhRJx3tJbIsRVVpsUnOBBABBVFEClKYwbKr7sTM7EIUnBcA7z21k7t49x1X8JXv
-bOWra7rw5QRtcN8PLCfvvZJvb9vJycpJpg4/hp/N0I4SMQs4Jw0A5zBXHGiCaIZIKABgpGlKjPEF
-0TpT5pUDRXiVt99+Le03r+WzuytM1gO6pB/3+o0cbxvk8yOPMjW6i2iR2lxOjJDHSDMFogmGwzQ7
-rRJAUpAENAGXIZq2AFzQpvkACCEQcahP+cRH3sKHn9zHXU+MM7rtGeD33NDXzaZynZU9gcezpUw9
-X6OzIyOakkfF4QEpPG6nDRNNEA2FSgKimETSNCXPc0II57VpXhEolUqoOrxPSLOMT330Dv5SqfKD
-NR388Y2L+caQsjITNv3pMBs3rOT56ZyZGaM+J0QUxDc0INrWUgggoRGBAOIRAt77hY1AmqaoeJxP
-cN645jVDbNn8Hj73o8fZ/af9mEE9j9y2YRXt5YzZWmRmzjj1/BwhTXAKzitOHEbeWlc0AVwDnCv8
-KoZzjotV33lTSL1HNKAuEtKM1169jM98/E6mTk3x4Nbd7Bk7TEdHRvAeVY+hmDqmZwx1kIkiqrhz
-S2zL+AbNMC6l/80LgHMOEY9oQvBCks5RKpXo7JhFxbhz42pet2aQet1YtLiDJAkIDq8BHwJmwlwO
-UaD0ojsrNKuUReIZyb9gABCHcwWFgg+0lTPyvIRToVzKWLpkMfV6REQplYvmZCj1uuBUSdJwTg8A
-XBdoCZMOsBkQBeGi/J83gBgjmABC8AlJGsjzFLMyaXDM1etEA0VR50iCx6mSZhkiijpPjEpQD+SF
-4WdJrTAewdCFB1CtVlFVVATnhMQnWJqC5aTBk+c5IIgWRoTgSZJAmiZAo1s7hwsppglI+fTiljeY
-nyHkLQotKIAYI4igzpFHISQOiwEnKTEG8hhRVZw6YjRQLfJGHcF7jleqTBw8znXr12MABnv37efY
-iSnesG4tiUsRUQwD7JIAzKsPqCqiRbVwweM04XdPjhJN+dvTBxgbn6G9q59yZx9/3HWEb33vN+zc
-/RzOJ+w/eJLtO8Z5ZNtT7PvHIUQTvvv9X/Lc/mN0d3by3fseRLQwvWh0Fy+h8wbQ2VFG1KM+xfuA
-qufo8So/fejPPD/rqJys8pvf7eLAoeNMHqnw2U9+kH3jVQ5MClMzKUla5obr13HliiEMmDx6gltv
-uY7Vr1nBQF8PJopQ9AFTt/AROFfMjCW9XTy19xB33Hodb924jr1j+/nDk3/nzTdei4jw3nfeyCOP
-bufa1y5jzeoVrcHM8HR3dfHlr/2Q+x94jFtuuh44/9B2PplXDryYLF3STXd3e+t5UXcHY89OsOH6
-NS2Qed7wpM1Rm50G4MGHH2P961Zy3bqreXrPP5mrzwLt5y6/cACq1eoLCKm+TN/SAebmfn8aUG83
-PYs7+cnPH+eqKwd5as8/edc7bi02847pmVkATk1VWbF8AOcca1Yv59DkqcYK0tCL02deACqVCldc
-0YdIwLmEPM9RV6NnUZlPf3wT6oqJcePN6wHhzTeu4/CRCrfctJ4sSxBRli7pYfHEMUSU97/7Th75
-1RP8eec+Yp5zzTVXM9DfDyogBvHS6HTJACYmJnjVoq5GFw0454gCEOnoaMfiNGZFFRFxJGkbywZ6
-i1NWoy9kWYmbb1gHKCHApuGbisVFGyoYUswa5OR5ftF56JIBjI6OMtDfWwAQ35jnc8AVpRXBohVq
-UowECKqK4RBxoE0W6gvGCcEjaOEAwEQWdpgbGxujt7erOLO2mk3R8i0Wz9EiuUGz+qlKEQEUaJbI
-4lTHmTVePKgWzpDGJGpc8CDTlEsuo88++wxXDA0UIUbAOP23KGZKjI48KnkuhcbiPbPCOBoeBikO
-Lk2VxjqNRilaAEqSZGEAbN261bZt+zW33XY7IAXXm6Ou0YhIMamaaUOl5WRrzg00viuKWWxpQUOH
-NAZFQRpD48Xlkig0MTHBB95zG+VSylz1KCbWyDOh2XyK+56IqjWMKigkUnzWnPPFFFRRLZ29SQRU
-ELOGY4pZ6LKOlM07mZ07d/KOtw1TcB4sGkTDiDQ9K1IkrKeYmQC08d7pZLSiRBpE5s7aS0XAHFEK
-AGY51Wr18g80Zmb33nsvX/z8XdSmj2AWOXhwkrxe46+79jB55Dh/3T2GxUhHextdXW2sXN7PNWtW
-IQKDA71FFBoAjIgQkVg/a5+oHrU5zIznDhxk964xKpXKggAoTlWW8+OfPorlOQ//cjsDy1bS2dFO
-W+diVly1iL6+Pqanpzl5qsL4pPHwN3/G1InDlMsZ7Z1tDA30cfWqIa5dexV9fb2YnT7UTxw4xsHJ
-o4yOjfOP8QOMjx/k4OQx7r777lY0zycXvJ02M4sxMjg4SL1eR0TYsGEDw8PD9PX10d7ejogUN3a1
-GqpKCIE8z5mdnUVVqVarbN++nba2Nvbu3csDDzyAqrJ8+atb+zjn6e/vZ/Xq1axatYq1a9fS29tL
-lmUMDQ1RKpXOm9EXvV6v1+tWr9eZnp5mZmaGWq1GjLHF62aiNZ+bnPfe45xrvTZzxMyYmZk56+LX
-zKjX661DvHOOJElIkoRSqYT3/vLvRlW15eHCa4VxzdvmpjZDfubzuXeb3vuzqCEixBhbo0NTkyS5
-PAr9L8j/96+U/w3yCoCXW14B8HLLvwDd67nwZIEPdgAAAABJRU5ErkJggg==" />
+<img src="/home/scudette/build/asciidoc-8.6.8/images/icons/note.png" alt="Note" />
 </td>
 <td class="content">
 <div class="paragraph"><p>The --executable and --mode parameters specify the path to the binary and its
-type used for running the test. This is used to used to compensate for expected
+type used for running the test. This is used to compensate for expected
 differences in output (by applying regex&#8217;es for example). If you are testing the
 technology preview against the trunk version you would specify --mode=trunk when
 building the baseline, but not when running the test.</p></div>
@@ -1024,7 +1692,7 @@ building the baseline, but not when running the test.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-09-16 16:29:17 CEST
+Last updated 2012-09-23 15:46:09 CEST
 </div>
 </div>
 </body>
