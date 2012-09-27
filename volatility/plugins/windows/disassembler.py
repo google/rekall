@@ -57,8 +57,8 @@ class Disassemble(plugin.Command):
 
     __name = "dis"
 
-    def __init__(self, offset=None, address_space=None, length=80, mode=None,
-                 suppress_headers=False, **kwargs):
+    def __init__(self, offset=0, address_space=None, length=80, mode=None,
+                 suppress_headers=False, target=None, **kwargs):
         """Dumps a disassembly of a location.
 
         Args:
@@ -67,16 +67,19 @@ class Disassemble(plugin.Command):
           length: The number of instructions (lines) to disassemble.
           mode: The mode (32/64 bit)- if not set taken from profile.
           suppress_headers: If set we do not write headers.
+          target: An ObjBase instance. If specified we do not need the offset
+            and address_space.
         """
         super(Disassemble, self).__init__(**kwargs)
+        if target is not None:
+            address_space = target.obj_vm
+            offset = target.offset
+
         self.address_space = address_space or self.session.default_address_space
         self.offset = offset
         self.length = length
         self.suppress_headers = suppress_headers
         self.mode = mode or self.session.profile.metadata("memory_model", "32bit")
-        if offset is None:
-            raise plugin.PluginError("You must specify an offset to "
-                                     "disassemble from.")
 
         if self.mode == "32bit":
             self.distorm_mode = distorm3.Decode32Bits

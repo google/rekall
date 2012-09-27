@@ -259,6 +259,8 @@ class Win8BaseProfile(windows.BaseWindowsProfile):
 
 class Win8SP0x86(basic.Profile32Bits, Win8BaseProfile):
     """ A Profile for Windows 8 SP0 x86 """
+    __abstract = True   # Not implemented yet.
+
     _md_major = 6
     _md_minor = 2
 
