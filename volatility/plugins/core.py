@@ -238,55 +238,84 @@ class LoadAddressSpace(plugin.ProfileCommand):
 
     __name = "load_as"
 
-    def __init__(self, vas_spec = "auto", pas_spec = "auto", **kwargs):
+    def __init__(self, pas_spec = "auto", **kwargs):
         """Tries to create the address spaces and assigns them to the session.
 
         An address space specification is a column delimited list of AS
         constructors which will be stacked. For example:
 
-        FileAddressSpace:EWF:JKIA32PagedMemory
+        FileAddressSpace:EWF
 
         if the specification is "auto" we guess by trying every combintion until
         a virtual AS is obtained.
 
+        The virtual address space is chosen based on the profile.
+
         Args:
-          vas_spec: A Virtual address space specification - a column delimited
-            list of ASs.
           pas_spec: A Physical address space specification.
         """
         super(LoadAddressSpace, self).__init__(**kwargs)
+        self.pas_spec = pas_spec
+
+    def GetPhysicalAddressSpace(self):
         try:
             # Try to get a physical address space.
-            if pas_spec == "auto":
-                self.session.physical_address_space = self.GuessAddressSpace(
-                    astype = 'physical', **kwargs)
+            if self.pas_spec == "auto":
+                self.session.physical_address_space = self.GuessAddressSpace()
             else:
                 self.session.physical_address_space = self.AddressSpaceFactory(
-                    specification=pas_spec, astype='physical')
-
-            if vas_spec == "auto":
-                self.session.kernel_address_space = self.GuessAddressSpace(
-                    astype = 'virtual',
-                    base_as=self.session.physical_address_space,
-                    **kwargs)
-
-                # Set the default address space to the kernel.
-                self.session.default_address_space = self.session.kernel_address_space
-            else:
-                self.kernel_address_space = self.AddressSpaceFactory(
-                    specification=vas_spec, astype='virtual')
+                    specification=self.pas_spec)
 
         except addrspace.ASAssertionError, e:
             logging.error("Could not create address space: %s" % e)
 
+    def GetVirtualAddressSpace(self):
+        # The virual address space implementation is chosen by the profile.
+        memory_model = self.profile.metadata("memory_model")
+        if memory_model == "64bit":
+            as_class = addrspace.BaseAddressSpace.classes['AMD64PagedMemory']
 
-    def GuessAddressSpace(self, session=None, astype = 'physical', base_as=None,
-                          **kwargs):
+        # PAE profiles go with the pae address space.
+        elif memory_model == "32bit" and self.profile.metadata("pae"):
+            as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemoryPae']
+
+        else:
+            as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemory']
+
+        address_space_curry = obj.Curry(
+            as_class, base=self.session.physical_address_space,
+            session=self.session, profile=self.profile)
+
+        # If dtb is not known, find it though a (profile specific) plugin.
+        if not self.session.dtb:
+            logging.debug("DTB is not specified, about to search for it.")
+
+            # Delegate to the find_dtb plugin.
+            find_dtb = self.session.plugins.find_dtb()
+
+            for dtb in find_dtb.dtb_hits():
+                # Found it!
+                # Ask the find_dtb plugin to make sure this dtb works with the
+                # address space.
+                test_as = address_space_curry(dtb=dtb)
+                if find_dtb.verify_address_space(test_as):
+                    self.session.kernel_address_space = test_as
+                    self.session.dtb = dtb
+                    return
+
+            raise plugin.PluginError(
+                "A DTB value was found but failed to verify. "
+                "You can try setting it manualy using --dtb. "
+                "This could also happen when the profile is incorrect.")
+
+        else:
+            self.session.kernel_address_space = address_space_curry(
+                dtb=self.session.dtb)
+
+    def GuessAddressSpace(self, base_as=None, **kwargs):
         """Loads an address space by stacking valid ASes on top of each other
         (priority order first).
         """
-        logging.debug("Guess %s address space", astype)
-
         base_as = base_as or obj.NoneObject("Address space not found.")
         error = addrspace.AddrSpaceError()
 
@@ -300,7 +329,7 @@ class LoadAddressSpace(plugin.ProfileCommand):
                 logging.debug("Trying %s ", cls)
                 try:
                     base_as = cls(base=base_as, session=self.session,
-                                  astype=astype, profile=self.profile, **kwargs)
+                                  profile=self.profile, **kwargs)
                     logging.debug("Succeeded instantiating %s", base_as)
                     found = True
                     break
@@ -319,19 +348,15 @@ class LoadAddressSpace(plugin.ProfileCommand):
             if not found:
                 break
 
-        # Virtual AS's must have a dtb:
-        if astype == 'virtual' and getattr(base_as, "dtb", None) is None:
-            base_as = None
-
         if base_as:
-            logging.info("Autodetected %s address space %s", astype, base_as)
+            logging.info("Autodetected address space %s", base_as)
         else:
-            logging.error("Failed to autodetect %s address space. Try running "
-                          "plugins.load_as with a spec.", astype)
+            logging.error("Failed to autodetect address space. Try running "
+                          "plugins.load_as with a spec.")
 
         return base_as
 
-    def AddressSpaceFactory(self, specification = '', astype = 'virtual'):
+    def AddressSpaceFactory(self, specification = ''):
         """Build the address space from the specification.
 
         Args:
@@ -343,8 +368,7 @@ class LoadAddressSpace(plugin.ProfileCommand):
             if as_cls is None:
                 raise addrspace.Error("No such address space %s" % as_name)
 
-            base_as = as_cls(base=base_as, session=self.session, astype=astype,
-                             **kwargs)
+            base_as = as_cls(base=base_as, session=self.session, **kwargs)
 
         return base_as
 

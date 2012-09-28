@@ -197,22 +197,6 @@ class DummyAddressSpace(BaseAddressSpace):
         return '0x00' * length
 
 
-class AbstractVirtualAddressSpace(BaseAddressSpace):
-    """Base Ancestor for all Virtual address spaces, as determined by astype"""
-    __abstract = True
-
-    def __init__(self, astype = 'virtual', **kwargs):
-        super(AbstractVirtualAddressSpace, self).__init__(**kwargs)
-        self.astype = astype
-
-        self.as_assert(self.astype == 'virtual' or self.astype == 'any',
-                       "User requested non-virtual AS")
-
-    def vtop(self, vaddr):
-        raise NotImplementedError("This is a virtual class and should not be "
-                                  "referenced directly")
-
-
 ## This is a specialised AS for use internally - Its used to provide
 ## transparent support for a string buffer so types can be
 ## instantiated off the buffer.

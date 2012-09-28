@@ -51,14 +51,6 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
     _md_memory_model = "64bit"
 
-    def __init__(self, **kwargs):
-        super(AMD64PagedMemory, self).__init__(**kwargs)
-
-        # Make sure that we only support 64 bit profiles here.
-        if (self.session and
-            self.session.profile.metadata('memory_model') == "64bit"):
-            self.as_assert(0, "Only supporting 64 memory models.")
-
     def pml4e_index(self, vaddr):
         '''
         Returns the Page Map Level 4 Entry Index number from the given

@@ -171,7 +171,8 @@ class KernelASMixin(object):
 
         if self.kernel_address_space is None:
             # Try to guess the AS
-            self.session.plugins.load_as()
+            self.session.plugins.load_as().GetVirtualAddressSpace()
+
             self.kernel_address_space = self.session.kernel_address_space
 
         if self.kernel_address_space is None:
@@ -204,7 +205,7 @@ class PhysicalASMixin(object):
 
         if self.physical_address_space is None:
             # Try to guess the AS
-            self.session.plugins.load_as(session=self.session)
+            self.session.plugins.load_as().GetPhysicalAddressSpace()
             self.physical_address_space = self.session.physical_address_space
 
         if self.physical_address_space is None:

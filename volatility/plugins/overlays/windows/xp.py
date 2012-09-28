@@ -119,6 +119,7 @@ class WinXPSP3x86PAE(AbstractWinXPProfile, basic.Profile32Bits):
     _md_major = 5
     _md_minor = 1
     _md_type = "Kernel"
+    _md_pae = True
 
     def __init__(self, **kwargs):
         super(WinXPSP3x86PAE, self).__init__(**kwargs)

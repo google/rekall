@@ -33,7 +33,7 @@ from volatility import obj
 # WritablePagedMemory must be BEFORE base address, since it adds the concrete
 # method get_available_addresses If it's second, BaseAddressSpace's abstract
 # version will take priority
-class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReader):
+class IA32PagedMemory(addrspace.PagedReader):
     """ Standard x86 32 bit non PAE address space.
 
     Provides an address space for IA32 paged memory, aka the x86
@@ -72,9 +72,6 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReade
         ## We must be stacked on someone else:
         self.as_assert(self.base, "No base Address Space")
 
-        self.as_assert(self.astype == 'virtual',
-                       "Can only create a virtual AS.")
-
         ## We can not stack on someone with a dtb
         try:
             self.as_assert(not self.base.paging_address_space,
@@ -85,20 +82,6 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReade
         # If the underlying address space already knows about the dtb we use it.
         # Allow the dtb to be specified in the session.
         self.dtb = dtb or self.session.dtb
-
-        if self.dtb is None:
-            logging.debug("DTB is not specified, about to search for it.")
-            find_dtb = self.session.plugins.find_dtb(session=self.session)
-            for dtb in find_dtb.dtb_hits():
-                # Found it!
-                logging.debug("A DTB value is found, hope its right. "
-                              "If not, set it manualy using plugin.find_dtb.")
-                self.dtb = dtb
-
-                # Ask the find_dtb plugin to make sure this dtb works with us.
-                find_dtb.verify_address_space(self)
-                self.session.dtb = dtb
-                break
 
         self.as_assert(self.dtb != None, "No valid DTB specified. Try the find_dtb"
                        " plugin to search for the dtb.")

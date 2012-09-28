@@ -81,7 +81,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
         parser.add_argument("--process_name",
                             help="The name of the process to search for.")
 
-    def __init__(self, process_name = "Idle", **kwargs):
+    def __init__(self, process_name=None, **kwargs):
         """Scans the image for the Idle process.
 
         Args:
@@ -95,7 +95,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
         """
         super(WinFindDTB, self).__init__(**kwargs)
 
-        self.process_name = process_name
+        self.process_name = process_name or "Idle"
 
         # This is the offset from the ImageFileName member to the start of the
         # _EPROCESS
@@ -139,17 +139,14 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
         version = self.profile.metadata("major"), self.profile.metadata("minor")
         # The test below does not work on windows 8 with the idle process.
-        if version >= (6, 2):
-            return True
-
-        # Reflect through the address space at ourselves. Note that the Idle
-        # process is not usually in the PsActiveProcessHead list, so we use the
-        # ThreadListHead instead.
-        list_head = self.eprocess.ThreadListHead.Flink
-        me = list_head.dereference(vm=address_space).Blink.dereference()
-        if me.v() != list_head.v():
-            raise addrspace.ASAssertionError(
-                "Unable to reflect _EPROCESS through this address space.")
+        if version < (6, 2):
+            # Reflect through the address space at ourselves. Note that the Idle
+            # process is not usually in the PsActiveProcessHead list, so we use the
+            # ThreadListHead instead.
+            list_head = self.eprocess.ThreadListHead.Flink
+            me = list_head.dereference(vm=address_space).Blink.dereference()
+            if me.v() != list_head.v():
+                return False
 
         return True
 
