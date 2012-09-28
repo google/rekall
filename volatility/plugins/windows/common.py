@@ -62,6 +62,11 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
       DTB from its Process Environment Block (PEB).
 
     - Get the DTB from the KPCR structure.
+
+    - Note that the kernel is mapped into every process's address space (with
+      the exception of session space which might be different) so using any
+      process's DTB from the same session will work to read kernel data
+      structures. If this plugin fails, try psscan to find potential DTBs.
     """
 
     __name = "find_dtb"

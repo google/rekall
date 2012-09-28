@@ -330,7 +330,8 @@ int set_write_enabled(void) {
   // Get the memory ranges.
   if(!DeviceIoControl(pmem_fd, PMEM_WRITE_ENABLE, &mode, 4, NULL, 0,
                       &size, NULL)) {
-    LogError(TEXT("Failed to set acquisition mode. %s\n"));
+    LogError(TEXT("Failed to set write mode. Maybe these drivers do "
+                  "not support this mode?\n"));
   };
 
   CloseHandle(pmem_fd);
@@ -484,12 +485,10 @@ int _tmain(int argc, _TCHAR* argv[]) {
     return -1;
   } else {
     wprintf(L"Will write to %s\n", argv[i]);
-    if(load_driver() && install_driver()) {
-      write_raw_image(argv[i], mode);
-      DeleteFile(driver_filename);
-      uninstall_driver();
-      return 0;
-    };
-    return -1;
+    load_driver() && install_driver();
+    write_raw_image(argv[i], mode);
+    DeleteFile(driver_filename);
+    uninstall_driver();
+    return 0;
   }
 }

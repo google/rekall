@@ -97,7 +97,8 @@ class VtoP(common.WinProcessFilter):
 
         Args:
           virtual_address: The virtual address to describe.
-          address_space: The address space to use (default the kernel_address_space).
+          address_space: The address space to use (default the
+            kernel_address_space).
         """
         super(VtoP, self).__init__(**kwargs)
         self.address_space = address_space or self.kernel_address_space
@@ -203,8 +204,11 @@ class VtoP(common.WinProcessFilter):
 
         yield "PTE mapped", address_space.get_phys_addr(vaddr, pte_value), pte_addr
 
-    def vtop(self, virtual_address, address_space):
+    def vtop(self, virtual_address, address_space=None):
         """Translate the virtual_address using the address_space."""
+        if address_space is None:
+            address_space = self.kernel_address_space
+
         if address_space.metadata("memory_model") == "64bit":
             function = self._vtop_64bit
         else:

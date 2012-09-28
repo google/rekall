@@ -32,7 +32,7 @@ NTSTATUS IoUnload(IN PDRIVER_OBJECT DriverObject) {
   NTSTATUS NtStatus;
   PDEVICE_OBJECT pDeviceObject = DriverObject->DeviceObject;
 
-  RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\DosDevices\\" 
+  RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\DosDevices\\"
 			PMEM_DEVICE_NAME);
   NtStatus = IoDeleteSymbolicLink (&DeviceLinkUnicodeString);
 
@@ -62,7 +62,7 @@ int AddMemoryRanges(struct PmemMemroyInfo *info, int len) {
   };
 
   /** Find out how many ranges there are. */
-  for(number_of_runs=0; 
+  for(number_of_runs=0;
       (MmPhysicalMemoryRange[number_of_runs].BaseAddress.QuadPart) ||
         (MmPhysicalMemoryRange[number_of_runs].NumberOfBytes.QuadPart);
       number_of_runs++);
@@ -91,7 +91,6 @@ static NTSTATUS wddCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
   PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
   PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
-  WinDbgPrint("Created driver.");
   ext->MemoryHandle = 0;
 
   Irp->IoStatus.Status = STATUS_SUCCESS;
@@ -104,8 +103,6 @@ static NTSTATUS wddCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
 static NTSTATUS wddClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
  PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
  PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
-
- WinDbgPrint("Close driver.");
 
  if(ext->MemoryHandle != 0) {
    ZwClose(ext->MemoryHandle);
@@ -200,14 +197,17 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     };
   }; break;
 
+#if PMEM_WRITE_ENABLED
   case IOCTL_WRITE_ENABLE: {
     ext->WriteEnabled = !ext->WriteEnabled;
     WinDbgPrint("Write mode is %d. Do you know what you are doing?\n",
 		ext->WriteEnabled);
   }; break;
+#endif
 
   default: {
     WinDbgPrint("Invalid IOCTRL %d\n", IoControlCode);
+    status = STATUS_INVALID_PARAMETER;
   };
   }
 
@@ -227,6 +227,11 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   PDEVICE_EXTENSION extension;
 
   WinDbgPrint("WinPMEM - " PMEM_VERSION " - Physical memory acquisition\n");
+
+#if PMEM_WRITE_ENABLED
+  WinDbgPrint("WinPMEM write support available!");
+#endif
+
   WinDbgPrint("Copyright (c) 2012, Michael Cohen <scudette@gmail.com> based "
               "on win32dd code by Matthieu Suiche <http://www.msuiche.net>\n");
 

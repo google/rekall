@@ -1,9 +1,11 @@
 WinPMEM - a kernel mode driver for gaining access to physical memory.
-Version 0.2
+Version 1.1
+Copyright 2012 Michael Cohen <scudette@gmail.com>
 
 This code is inspired by the old win32dd codebase, main changes:
 
-- The crashdump producing code is removed.
+- The crashdump producing code is removed - this can be done in userspace using
+  the volatility raw2dump plugin.
 
 - A read device interface is used instead of writing the image from the
   kernel. This allows us to have complex userspace imager (e.g. copy across
@@ -12,8 +14,6 @@ This code is inspired by the old win32dd codebase, main changes:
 
 - This code builds on 64 bit windows as well as 32 bit windows.
 
-
-Copyright 2012, Michael Cohen (scudette@gmail.com)
 
 The files in this directory (Including the winpmem sources and signed binaries),
 are available under the following license: Apache License, Version 2.0
@@ -38,7 +38,7 @@ This release comes with signed binary drivers and a python program which uses
 this driver to create raw images. (Note that in order to load the driver on 64
 bit windows the driver _must_ be signed). Below we assume we are running on a 64
 bit system. The driver for 32 bit systems can be found in
-binaries\i386\winpmem.sys.
+binaries\i386\winpmem_32.sys.
 
 To get help about the acquisition tool:
 
@@ -58,7 +58,7 @@ Options:
   -u, --unload          Unload the driver and immediately quit.
 
 To acquire memory into the file foobar.raw:
-c:\..> winpmem.py -d binaries\amd64\winpmem.sys -f foobar.raw
+c:\..> winpmem.py -d binaries\amd64\winpmem_64.sys -f foobar.raw
 CR3 = 0x187000
 Memory ranges:
 Start           Length
@@ -88,7 +88,9 @@ driver loaded:
 c:\..> winpmem.py -d binaries\amd64\winpmem.sys -l
 Loaded the winpmem driver. You can now attach volatility to \\.\pmem
 
-and once we finished with it we can unload it:
+and once we finished with it we can unload it (Make sure to exit volatility
+before unloading the driver):
+
 c:\..> winpmem.py -d binaries\amd64\winpmem.sys -u
 (1073, 'CreateService', 'The specified service already exists.')
 unloaded winpmem driver.
@@ -140,7 +142,7 @@ The driver will be automatically unloaded after the image is acquired.
 Experimental write support
 --------------------------
 
-As from Version 0.2, the winpmem drivers support writing to memory as well as
+As from Version 1.1, the winpmem drivers support writing to memory as well as
 reading. This capability is a great learning tool since many rootkit hiding
 techniques can be emulated by writing to memory directly. For example the
 following Volatility session illustrates changing the name of the binary:
@@ -171,7 +173,8 @@ Additionally, Write support must also be enabled at load time:
 
 winpmem_write.exe -w -l
 
-This will load the drivers and turn on write support. Then we can run volatility interactively:
+This will load the drivers and turn on write support. Then we can run volatility
+interactively, as usual on the raw device:
 
 vol.exe --profile Win7SP1x64 --file \\.\pmem
 
