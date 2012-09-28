@@ -26,7 +26,8 @@ $ vol.py --profile Win7SP0x64 --filename win7_trial_64bit.raw pslist --proc_reg 
 <2> These are global options which are processed by the main volatility
 executable (in this case --profile, --filename).
 
-<3> The name of the command plugin to run. To find all command available run the info command or simply issue --help.
+<3> The name of the command plugin to run. To find all command available run the
+info command or simply issue --help.
 
 <4> These options are specific to the command. Each command can specify
 additional options that will be used by it alone.
@@ -3028,66 +3029,3 @@ Volatile Systems Volatility Framework 2.1_rc1
 (V): 0x07a41000 [PDE] 0x05103067 [PTE] 0x1fe05047 (P): 0x1fe05000 Size: 0x00001000
 (V): 0x07c05000 [PDE] 0x103f7067 [PTE] 0x1fe30047 (P): 0x1fe30000 Size: 0x00001000
 ...
-Linux
-Processes
-linux_pslist
-linux_psaux
-linux_pstree
-linux_pslist_cache
-linux_psxview
-Process Memory
-linux_dump_map
-linux_memmap
-linux_pidhashtable
-linux_proc_maps
-linux_bash
-The argument to the -H/--history_list parameter can be gathered as shown below. The value you supply is 0x6ed4a0.
-
-mhl@ubuntu:~$ gdb /bin/bash
-GNU gdb (Ubuntu/Linaro 7.4-2012.02-0ubuntu2) 7.4-2012.02
-Copyright (C) 2012 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-and "show warranty" for details.
-This GDB was configured as "x86_64-linux-gnu".
-For bug reporting instructions, please see:
-<http://bugs.launchpad.net/gdb-linaro/>...
-Reading symbols from /bin/bash...(no debugging symbols found)...done.
-
-(gdb) disassemble history_list
-Dump of assembler code for function history_list:
-   0x00000000004a5030 <+0>:     mov    0x248469(%rip),%rax        # 0x6ed4a0
-   0x00000000004a5037 <+7>:     retq
-End of assembler dump.
-
-(gdb) q
-Kernel Memory and Objects
-linux_lsmod
-linux_lsof
-linux_tmpfs
-Rootkit Detection
-linux_check_afinfo
-linux_check_creds
-linux_check_fop
-linux_check_idt
-linux_check_modules
-This plugin finds rootkits that break themselves from the module list but not sysfs. We have never found a rootkit that actually removes itself from sysfs, so on a live system they are hidden from lsmod and /proc/modules, but can still be found under /sys/modules. We perform the same differnecing with the in-memory data structures.
-
-linux_check_creds
-The purpose of this plugin is to check if any processes are sharing 'cred' structures. In the beginning of the 2.6 kernel series, the user ID and group ID were just simple integers, so rootkits could elevate the privleges of userland processes by setting these to 0 (root). In later kernels, credentials are kept in a fairly complicated 'cred' structure. So now rootkits instead of allocating and setting their own 'cred' structure simply set a processes cred structure to be that of another root process that does not exit (usually init / pid 1). This plugin checks for any processes sharing 'cred' structures and reports them as the kernel would normally never do this. It finds a wide range of rootkits and rootkit activity and you can focus your investigation on elevated process (i.e. bash)
-
-Networking
-linux_arp
-linux_ifconfig
-linux_route_cache
-linux_netstat
-linux_pkt_queues
-linux_sk_buff_cache
-System Information
-linux_cpuinfo
-linux_dmesg
-linux_iomem
-linux_mount
-linux_mount_cache
-

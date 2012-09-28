@@ -653,6 +653,17 @@ class Profile64Bits(obj.Profile):
                            MaxPointer=2**48-1)
 
 
+common_overlay =  {
+    'LIST_ENTRY32' : [ 0x8, {
+            'Flink' : [ 0x0, ['pointer', ['LIST_ENTRY32']]],
+            'Blink' : [ 0x4, ['pointer', ['LIST_ENTRY32']]],
+            }],
+    'LIST_ENTRY64' : [ 0x10, {
+            'Flink' : [ 0x0, ['pointer', ['LIST_ENTRY64']]],
+            'Blink' : [ 0x8, ['pointer', ['LIST_ENTRY64']]],
+            }]}
+
+
 class BasicWindowsClasses(obj.Profile):
     """Basic profile which introduces the basic classes."""
 
@@ -677,3 +688,4 @@ class BasicWindowsClasses(obj.Profile):
             })
 
         self.add_constants(default_text_encoding="utf-16-le")
+        self.add_overlay(common_overlay)

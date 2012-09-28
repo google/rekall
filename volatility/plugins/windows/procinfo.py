@@ -55,8 +55,9 @@ class PEInfo(plugin.Command):
 
     def render(self, renderer):
         """Print information about a PE file from memory."""
-        disassembler = self.session.plugins.dis(address_space=self.address_space,
-                                                session=self.session, length=50)
+        disassembler = self.session.plugins.dis(
+            address_space=self.address_space, offset=0,
+            session=self.session, length=50)
 
         # Get our helper object to parse the PE file.
         pe_helper = pe_vtypes.PE(address_space=self.address_space,

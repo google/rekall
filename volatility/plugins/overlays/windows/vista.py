@@ -214,7 +214,7 @@ class VistaSP2x86(basic.Profile32Bits, AbstractVistaProfile):
     _md_memory_model = '32bit'
 
     def __init__(self, **kwargs):
-        super(VistaSP1x86, self).__init__(**kwargs)
+        super(VistaSP2x86, self).__init__(**kwargs)
         from volatility.plugins.overlays.windows import vista_sp2_x86_vtypes
 
         self.add_types(vista_sp2_x86_vtypes.ntkrnlmp_types)
@@ -225,7 +225,7 @@ class VistaSP2x64(basic.Profile64Bits, AbstractVistaProfile):
     _md_memory_model = '64bit'
 
     def __init__(self, **kwargs):
-        super(VistaSP1x64, self).__init__(**kwargs)
+        super(VistaSP2x64, self).__init__(**kwargs)
         from volatility.plugins.overlays.windows import vista_sp2_x64_vtypes
 
         self.add_types(vista_sp2_x64_vtypes.ntkrnlmp_types)
