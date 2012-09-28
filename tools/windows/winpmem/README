@@ -1,4 +1,5 @@
 WinPMEM - a kernel mode driver for gaining access to physical memory.
+Version 0.2
 
 This code is inspired by the old win32dd codebase, main changes:
 
@@ -134,3 +135,43 @@ To acquire using the MmMapIoSpace method:
 c:\..> tools\windows\winpmem\executable\Release\winpmem.exe -1 myimage.raw
 
 The driver will be automatically unloaded after the image is acquired.
+
+
+Experimental write support
+--------------------------
+
+As from Version 0.2, the winpmem drivers support writing to memory as well as
+reading. This capability is a great learning tool since many rootkit hiding
+techniques can be emulated by writing to memory directly. For example the
+following Volatility session illustrates changing the name of the binary:
+
+WinXPSP2x86:pmem 03:10:40> task = session.profile._EPROCESS(0x82079c18)
+WinXPSP2x86:pmem 03:10:57> task.ImageFileName
+                    Out<3>  [String:ImageFileName]: 'cmd.exe\x00'
+WinXPSP2x86:pmem 03:11:15> task.ImageFileName = "foo.exe\x00"
+WinXPSP2x86:pmem 03:11:21> task.ImageFileName
+                    Out<6>  [String:ImageFileName]: 'foo.exe\x00'
+
+NOTE: Since this is a rather dangerous capability, the signed binary drivers
+have write support disabled. The unsigned binaries (really self signed with a
+test certificate) can not load on a regular system due to them being test self
+signed. You can allow the unsigned drivers to be loaded on a test system by
+issuing (see
+http://msdn.microsoft.com/en-us/library/windows/hardware/ff553484(v=vs.85).aspx):
+
+Bcdedit.exe -set TESTSIGNING ON
+
+and reboot. You will see a small "Test Mode" text on the desktop to remind you
+that this machine is configured for test signed drivers.
+
+Alternatively you can test this on XP or Vista32 which have no driver signing
+restrictions.
+
+Additionally, Write support must also be enabled at load time:
+
+winpmem_write.exe -w -l
+
+This will load the drivers and turn on write support. Then we can run volatility interactively:
+
+vol.exe --profile Win7SP1x64 --file \\.\pmem
+

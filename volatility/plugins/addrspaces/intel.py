@@ -231,14 +231,21 @@ class IA32PagedMemory(standard.AbstractWritablePagedMemory, addrspace.PagedReade
 
             if self.page_size_flag(pde_value):
                 yield (vaddr, 0x400000)
+                continue
 
-            else:
-                tmp = vaddr
-                for pte in range(0, 0x400):
-                    vaddr = tmp | (pte << 12)
-                    pte_value = self.get_pte(vaddr, pde_value)
-                    if self.entry_present(pte_value):
-                        yield (vaddr, 0x1000)
+            # This reads the entire PTE table at once - On
+            # windows where IO is extremely expensive, its
+            # about 10 times more efficient than reading it
+            # one value at the time - and this loop is HOT!
+            pte_table_addr = ((pde_value & 0xfffff000) |
+                              ((vaddr & 0x3ff000) >> 10))
+
+            data = self.base.zread(pte_table_addr, 4 * 0x400)
+            pte_table = struct.unpack("<" + "I" * 0x400, data)
+
+            for i, pte_value in enumerate(pte_table):
+                if self.entry_present(pte_value):
+                    yield (vaddr | i << 12, 0x1000)
 
     def __str__(self):
         return "%s@0x%08X (%s)" % (self.__class__.__name__, self.dtb, self.name)
@@ -391,9 +398,16 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                     yield (vaddr, 0x200000)
                     continue
 
-                tmp = vaddr
-                for pte in range(0, 0x200):
-                    vaddr = tmp | (pte << 12)
-                    pte_value = self.get_pte(vaddr, pde_value)
+                # This reads the entire PTE table at once - On
+                # windows where IO is extremely expensive, its
+                # about 10 times more efficient than reading it
+                # one value at the time - and this loop is HOT!
+                pte_table_addr = ((pde_value & 0xffffffffff000) |
+                                  ((vaddr & 0x1ff000) >> 9))
+
+                data = self.base.zread(pte_table_addr, 8 * 0x200)
+                pte_table = struct.unpack("<" + "Q" * 0x200, data)
+
+                for i, pte_value in enumerate(pte_table):
                     if self.entry_present(pte_value):
-                        yield (vaddr, 0x1000)
+                        yield (vaddr | i << 12, 0x1000)

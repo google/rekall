@@ -148,7 +148,7 @@ class BaseAddressSpace(object):
 
                 # Reset the contiguous range.
                 contiguous_voffset = voffset
-                contiguous_poffset = self.vtop(voffset)
+                contiguous_poffset = self.vtop(voffset) or 0
                 total_length = length
 
         if total_length > 0:

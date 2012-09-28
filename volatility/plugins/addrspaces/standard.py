@@ -225,41 +225,27 @@ class AbstractWritablePagedMemory(AbstractPagedMemory):
 
     __abstract = True
 
+    PAGE_SIZE = 0x1000
+
+    def _partial_write(self, vaddr, data):
+        page_offset = vaddr % self.PAGE_SIZE
+        to_write = max(len(data), self.PAGE_SIZE - page_offset)
+
+        # Pass the write to the base address space at the physical
+        # offset.
+        self.base.write(self.vtop(vaddr), data[:to_write])
+
+        return to_write
+
     def write(self, vaddr, buf):
-        if not self.writeable:
-            return False
+        to_write = len(buf)
 
-        length = len(buf)
-        first_block = 0x1000 - vaddr % 0x1000
-        full_blocks = ((length + (vaddr % 0x1000)) / 0x1000) - 1
-        left_over = (length + vaddr) % 0x1000
+        while len(buf) > 0:
+            written = self._partial_write(vaddr, buf)
+            buf = buf[written:]
+            vaddr += written
 
-        paddr = self.vtop(vaddr)
-        if paddr == None:
-            return False
-
-        if length < first_block:
-            return self.base.write(paddr, buf)
-
-        self.base.write(paddr, buf[:first_block])
-        buf = buf[first_block:]
-
-        new_vaddr = vaddr + first_block
-        for _i in range(0, full_blocks):
-            paddr = self.vtop(new_vaddr)
-            if paddr == None:
-                raise Exception("Failed to write to page at {0:#x}".format(new_vaddr))
-            if not self.base.write(paddr, buf[:0x1000]):
-                return False
-            new_vaddr = new_vaddr + 0x1000
-            buf = buf[0x1000:]
-
-        if left_over > 0:
-            paddr = self.vtop(new_vaddr)
-            if paddr == None:
-                raise Exception("Failed to write to page at {0:#x}".format(new_vaddr))
-            assert len(buf) == left_over
-            return self.base.write(paddr, buf)
+        return to_write
 
     def write_long_phys(self, addr, val):
         if not self.writeable:

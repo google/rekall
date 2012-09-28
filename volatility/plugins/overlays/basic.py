@@ -72,6 +72,9 @@ class String(obj.StringProxyMixIn, obj.NativeType):
 
         return data
 
+    def write(self, data):
+        return self.obj_vm.write(self.obj_offset, data)
+
     def proxied(self, name):
         """ Return an object to be proxied """
         return self.v()
@@ -142,6 +145,10 @@ class UnicodeString(String):
         return len(self.v()) * 2
         # This will only work if the encoding and decoding are equivalent.
         return len(self.v().encode(self.encoding, 'ignore'))
+
+    def write(self, data):
+        self.obj_vm.write(self.obj_offset, 
+                          data.encode(self.encoding, "ignore"))
 
 
 class Flags(obj.NativeType):

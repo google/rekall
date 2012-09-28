@@ -75,7 +75,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         try:
             self.ParseMemoryRuns()
         except Exception:
-            self.runs = [[0, win32file.GetFileSize(self.fhandle)]]
+            self.runs = [[0, 0, win32file.GetFileSize(self.fhandle)]]
 
         # IO on windows is extremely slow so we are better off using a
         # cache.
@@ -105,6 +105,19 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         win32file.SetFilePointer(self.fhandle, offset, 0)
         _, data = win32file.ReadFile(self.fhandle, min(length, available_length))
         return data
+
+    def write(self, addr, data):
+        length=len(data)
+        offset, available_length = self._get_available_buffer(addr, length)
+        if offset is None:
+            return
+
+        to_write = min(len(data), available_length)
+        win32file.SetFilePointer(self.fhandle, offset, 0)
+
+        win32file.WriteFile(self.fhandle, data[:to_write])
+
+        return to_write
 
     def close(self):
         win32file.CloseHandle(self.fhandle)

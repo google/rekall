@@ -51,7 +51,7 @@ class SentinalArray(obj.Array):
 
 class RVAPointer(obj.Pointer):
     """A pointer through a relative virtual address."""
-    ImageBase = 0
+    image_base = 0
 
     def __init__(self, image_base=None, **kwargs):
         super(RVAPointer, self).__init__(**kwargs)

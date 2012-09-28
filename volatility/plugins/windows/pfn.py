@@ -31,7 +31,7 @@ class ValueEnumeration(basic.Enumeration):
     """An enumeration which receives its value from a callable."""
 
     def __init__(self, choices=None, value=None, parent=None, **kwargs):
-        obj.NativeType.__init__(self, parent=parent, **kwargs)
+        super(ValueEnumeration, self).__init__(parent=parent, **kwargs)
         self.choices = choices
         if callable(value):
             value = value(parent)
@@ -100,7 +100,7 @@ class VtoP(common.WinProcessFilter):
           address_space: The address space to use (default the kernel_address_space).
         """
         super(VtoP, self).__init__(**kwargs)
-        self.address_space = address_space
+        self.address_space = address_space or self.kernel_address_space
         self.address = virtual_address
 
     def _vtop_32bit(self, vaddr, address_space):
@@ -340,7 +340,7 @@ class PTE(common.WindowsCommandPlugin):
 
         if self.virtual_address is not None:
             for name, address, value in self.vtop.vtop(
-                self.virtual_address):
+                self.virtual_address, self.kernel_address_space):
                 if name == "pte":
                     pte_address = address
                     break

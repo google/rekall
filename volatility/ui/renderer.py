@@ -598,6 +598,9 @@ class TextRenderer(RendererBaseClass):
         return self.table.render_row(self, *args)
 
     def RenderProgress(self, message="", force=False, **_):
+        if not sys.stdout.isatty():
+            return
+
         # Only write once per second.
         now = time.time()
         if force or now > self.last_spin_time + 0.2:

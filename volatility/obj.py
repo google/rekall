@@ -186,6 +186,9 @@ class BaseObject(object):
     obj_parent = NoneObject("No parent")
     obj_name = NoneObject("No name")
 
+    # This is set when the object is completed initialization.
+    _initialized = False
+
     # We have **kwargs here, but it's unclear if it's a good idea
     # Benefit is objects will never fail with duff parameters
     # Downside is typos won't show up and be difficult to diagnose
@@ -506,6 +509,7 @@ class Pointer(NativeType):
         self.target_args = target_args or {}
         self.target_size = 0
         self.kwargs = kwargs
+        self._initialized = True
 
     def size(self):
         return self._proxy.size()
@@ -529,6 +533,12 @@ class Pointer(NativeType):
 
     def __getitem__(self, item):
         return self.dereference()[item]
+
+    def __setattr__(self, attr, value):
+        if attr in self.__dict__ or hasattr(self.__class__, attr) or not self._initialized:
+            return super(Pointer, self).__setattr__(attr, value)
+
+        getattr(self.dereference(), attr).write(value)
 
     def dereference(self, vm=None):
         offset = self.v()
@@ -694,7 +704,8 @@ class Array(BaseObject):
         self.target_args = target_args or {}
         self.target_size = target_size or self.obj_profile.get_obj_size(
             target)
-        self.__initialized = True
+
+        self._initialized = True
 
     def size(self):
         """The size of the entire array."""
@@ -827,7 +838,7 @@ class CType(BaseObject):
 
         self.members = members
         self.struct_size = struct_size
-        self.__initialized = True
+        self._initialized = True
 
     def __int__(self):
         """Return our offset as an integer.
@@ -935,11 +946,7 @@ class CType(BaseObject):
         """Change underlying members"""
         # Special magic to allow initialization this test allows attributes to
         # be set in the __init__ method.
-        if not self.__dict__.has_key('_CType__initialized'):
-            return super(CType, self).__setattr__(attr, value)
-
-        # any normal attributes are handled normally
-        elif hasattr(self.__class__, attr) or self.__dict__.has_key(attr):
+        if attr in self.__dict__ or not self._initialized:
             return super(CType, self).__setattr__(attr, value)
 
         else:

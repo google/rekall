@@ -31,7 +31,7 @@
 #define WINPMEM_32BIT_DRIVER 105
 
 // Executable version.
-static TCHAR version[] = TEXT("20120724");
+static TCHAR version[] = TEXT("20120927");
 
 // This is the filename of the driver we drop.
 static TCHAR driver_filename[MAX_PATH];
@@ -41,12 +41,13 @@ static TCHAR driver_filename[MAX_PATH];
 // ioctl to get memory ranges from our driver.
 #define PMEM_INFO_IOCTRL CTL_CODE(0x22, 0x100, 0, 3)
 #define PMEM_CTRL_IOCTRL CTL_CODE(0x22, 0x101, 0, 3)
-
+#define PMEM_WRITE_ENABLE CTL_CODE(0x22, 0x102, 0, 3)
 
 // Available modes
 #define PMEM_MODE_IOSPACE 0
 #define PMEM_MODE_PHYSICAL 1
 
+#define PMEM_WRITE_MODE 1
 
 #pragma pack(2)
 struct pmem_info_runs {
@@ -89,7 +90,6 @@ int extract_file(int driver_id) {
   }
 
   DWORD size = SizeofResource(NULL, hRes);
-  wprintf(L"Size is %d\n", size);
 
   //  Gets the temp path env string (no guarantee it's a valid path).
   if(!GetTempPath(MAX_PATH, path)) {
@@ -228,6 +228,9 @@ void help(TCHAR *ExeName)
   wprintf(L"  -l    Load the driver and exit.\n"
           L"  -u    Unload the driver and exit.\n"
           L"  -h    Display this help.\n"
+#if PMEM_WRITE_MODE
+          L"  -w    Turn on/off write mode.\n"
+#endif
           L"  -1    Use MmMapIoSpace method.\n"
           L"  -2    Use \\\\Device\\PhysicalMemory method (Default).\n"
           L"\n");
@@ -303,6 +306,42 @@ int copy_memory(HANDLE out_fd, HANDLE in_fd, __int64 start, __int64 end) {
   return 0;
 };
 
+
+#if PMEM_WRITE_MODE
+// Turn on write support in the driver.
+int set_write_enabled(void) {
+  _int32 mode;
+  DWORD size;
+
+  HANDLE pmem_fd = CreateFile(TEXT("\\\\.\\") TEXT(PMEM_DEVICE_NAME),
+                              // Write is needed for IOCTL.
+                              GENERIC_READ | GENERIC_WRITE,
+                              FILE_SHARE_READ | FILE_SHARE_WRITE,
+                              NULL,
+                              OPEN_EXISTING,
+                              FILE_ATTRIBUTE_NORMAL,
+                              NULL);
+
+  if(pmem_fd == INVALID_HANDLE_VALUE) {
+    LogError(TEXT("Can not open raw device."));
+    goto error;
+  }
+
+  // Get the memory ranges.
+  if(!DeviceIoControl(pmem_fd, PMEM_WRITE_ENABLE, &mode, 4, NULL, 0,
+                      &size, NULL)) {
+    LogError(TEXT("Failed to set acquisition mode. %s\n"));
+  };
+
+  CloseHandle(pmem_fd);
+  return 1;
+
+ error:
+  CloseHandle(pmem_fd);
+  return -1;
+};
+#endif
+
 int write_raw_image(TCHAR *output_filename, __int32 mode) {
   // Somewhere to store the info from the driver;
   char info_buffer[4096];
@@ -369,7 +408,6 @@ int write_raw_image(TCHAR *output_filename, __int32 mode) {
     offset = info->runs[i].start + info->runs[i].length;
   };
 
- error_out_fd:
   CloseHandle(out_fd);
 
  error_fd:
@@ -383,6 +421,9 @@ int write_raw_image(TCHAR *output_filename, __int32 mode) {
 int _tmain(int argc, _TCHAR* argv[]) {
   int i;
   int mode = PMEM_MODE_PHYSICAL;
+  int write_mode = 0;
+  int only_load_driver = 0;
+  int only_unload_driver = 0;
 
   if(argc < 2) {
     help(argv[0]);
@@ -393,20 +434,11 @@ int _tmain(int argc, _TCHAR* argv[]) {
     if(argv[i][0] == '-') {
       switch(argv[i][1]) {
       case 'l': {
-        if(load_driver() && install_driver()) {
-          DeleteFile(driver_filename);
-          wprintf(L"Loaded Driver.\n", argv[i]);
-          return 0;
-        };
-        return -1;
-      };
+        only_load_driver=1;
+      }; break;
 
       case 'u': {
-        if(uninstall_driver()) {
-          wprintf(L"Driver Unloaded.\n", argv[i]);
-          return 0;
-        };
-        return -1;
+        only_unload_driver=1;
       };
       case '1': {
         mode = PMEM_MODE_IOSPACE;
@@ -416,24 +448,48 @@ int _tmain(int argc, _TCHAR* argv[]) {
         mode = PMEM_MODE_PHYSICAL;
         break;
       }
-
+#if PMEM_WRITE_MODE
+      case 'w': {
+        wprintf(L"Will enable write mode\n");
+        write_mode = 1;
+      }; break;
+#endif
       default: {
         help(argv[0]);
         return -1;
-      };
-      };
-    } else {
-      wprintf(L"Will write to %s\n", argv[i]);
-      if(load_driver() && install_driver()) {
-        write_raw_image(argv[i], mode);
-        DeleteFile(driver_filename);
-        uninstall_driver();
-        return 0;
-      };
-      return -1;
-    }
+      }; break;
+
+      };  // Switch.
+
+    } else break;   //First option without - means end of options.
+  };
+
+  // Now run what the user wanted.
+  if (only_load_driver) {
+    if(load_driver() && install_driver()) {
+      DeleteFile(driver_filename);
+      wprintf(L"Loaded Driver.\n", argv[i]);
+
+      if (write_mode) {
+        set_write_enabled();
+      }
+
+      return 0;
+    };
+  } else if (only_unload_driver) {
+    if(uninstall_driver()) {
+      wprintf(L"Driver Unloaded.\n", argv[i]);
+      return 0;
+    };
+    return -1;
+  } else {
+    wprintf(L"Will write to %s\n", argv[i]);
+    if(load_driver() && install_driver()) {
+      write_raw_image(argv[i], mode);
+      DeleteFile(driver_filename);
+      uninstall_driver();
+      return 0;
+    };
+    return -1;
   }
-
-  return 0;
 }
-

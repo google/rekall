@@ -109,7 +109,8 @@ class PrintKey(common.WindowsCommandPlugin):
                 hive_offset=hive_offset)
 
             key = reg.open_key(self.key)
-            return self._list_keys(reg, key)
+            for reg, subkey in self._list_keys(reg, key):
+                yield reg, subkey
 
     def voltext(self, key):
         """Returns a string representing (S)table or (V)olatile keys."""

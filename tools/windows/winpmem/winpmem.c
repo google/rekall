@@ -32,7 +32,8 @@ NTSTATUS IoUnload(IN PDRIVER_OBJECT DriverObject) {
   NTSTATUS NtStatus;
   PDEVICE_OBJECT pDeviceObject = DriverObject->DeviceObject;
 
-  RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\DosDevices\\" PMEM_DEVICE_NAME);
+  RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\DosDevices\\" 
+			PMEM_DEVICE_NAME);
   NtStatus = IoDeleteSymbolicLink (&DeviceLinkUnicodeString);
 
   if (DriverObject != NULL) {
@@ -61,8 +62,10 @@ int AddMemoryRanges(struct PmemMemroyInfo *info, int len) {
   };
 
   /** Find out how many ranges there are. */
-  for(number_of_runs=0; (MmPhysicalMemoryRange[number_of_runs].BaseAddress.QuadPart) ||
-        (MmPhysicalMemoryRange[number_of_runs].NumberOfBytes.QuadPart); number_of_runs++);
+  for(number_of_runs=0; 
+      (MmPhysicalMemoryRange[number_of_runs].BaseAddress.QuadPart) ||
+        (MmPhysicalMemoryRange[number_of_runs].NumberOfBytes.QuadPart);
+      number_of_runs++);
 
   required_length = (sizeof(struct PmemMemroyInfo) +
                      number_of_runs * sizeof(PHYSICAL_MEMORY_RANGE));
@@ -120,17 +123,27 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 {
   UNICODE_STRING DestinationPath;
   PIO_STACK_LOCATION IrpStack;
-  NTSTATUS NtStatus;
+  NTSTATUS status = STATUS_SUCCESS;
   ULONG IoControlCode;
   PVOID IoBuffer;
   PULONG OutputBuffer;
-  PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
+  PDEVICE_EXTENSION ext;
   ULONG InputLen, OutputLen;
 
   ULONG Level;
   ULONG Type;
 
-  Irp->IoStatus.Status = STATUS_SUCCESS;
+  // We must be running in PASSIVE_LEVEL or we bluescreen here. We
+  // theoretically should always be running at PASSIVE_LEVEL here, but
+  // in case we ended up here at the wrong IRQL its better to bail
+  // than to bluescreen.
+  if(KeGetCurrentIrql() != PASSIVE_LEVEL) {
+    status = STATUS_ABANDONED;
+    goto exit;
+  };
+
+  ext = (PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
+
   Irp->IoStatus.Information = 0;
 
   IrpStack = IoGetCurrentIrpStackLocation(Irp);
@@ -154,12 +167,10 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     WinDbgPrint("Returning info on the system memory.\n");
     if(res > 0) {
       Irp->IoStatus.Information = res;
-      NtStatus = STATUS_SUCCESS;
+      status = STATUS_SUCCESS;
     } else {
-      NtStatus = STATUS_INFO_LENGTH_MISMATCH;
+      status = STATUS_INFO_LENGTH_MISMATCH;
     };
-
-    Irp->IoStatus.Status = NtStatus;
   }; break;
 
   case IOCTL_SET_MODE: {
@@ -169,7 +180,6 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
       struct PmemMemoryControl *ctrl = (void *)IoBuffer;
 
       ext->mode = ctrl->mode;
-      NtStatus = STATUS_SUCCESS;
 
       switch(ctrl->mode) {
       case ACQUISITION_MODE_PHYSICAL_MEMORY:
@@ -182,14 +192,18 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 
       default:
         WinDbgPrint("Invalid acquisition mode %d.\n", ctrl->mode);
-        NtStatus = STATUS_INVALID_PARAMETER;
+        status = STATUS_INVALID_PARAMETER;
       };
 
     } else {
-      NtStatus = STATUS_INFO_LENGTH_MISMATCH;
+      status = STATUS_INFO_LENGTH_MISMATCH;
     };
+  }; break;
 
-    Irp->IoStatus.Status = NtStatus;
+  case IOCTL_WRITE_ENABLE: {
+    ext->WriteEnabled = !ext->WriteEnabled;
+    WinDbgPrint("Write mode is %d. Do you know what you are doing?\n",
+		ext->WriteEnabled);
   }; break;
 
   default: {
@@ -197,8 +211,10 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
   };
   }
 
+ exit:
+  Irp->IoStatus.Status = status;
   IoCompleteRequest(Irp,IO_NO_INCREMENT);
-  return STATUS_SUCCESS;
+  return status;
 }
 
 
@@ -208,6 +224,7 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   UNICODE_STRING DeviceName, DeviceLink;
   NTSTATUS NtStatus;
   PDEVICE_OBJECT DeviceObject = NULL;
+  PDEVICE_EXTENSION extension;
 
   WinDbgPrint("WinPMEM - " PMEM_VERSION " - Physical memory acquisition\n");
   WinDbgPrint("Copyright (c) 2012, Michael Cohen <scudette@gmail.com> based "
@@ -235,7 +252,12 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   DriverObject->MajorFunction[IRP_MJ_CREATE] = wddCreate;
   DriverObject->MajorFunction[IRP_MJ_CLOSE] = wddClose;
   DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = wddDispatchDeviceControl;
-  DriverObject->MajorFunction[IRP_MJ_READ] =  PmemRead;
+  DriverObject->MajorFunction[IRP_MJ_READ] = PmemRead;
+
+#if PMEM_WRITE_ENABLED == 1
+  // Support writing.
+  DriverObject->MajorFunction[IRP_MJ_WRITE] = PmemWrite;
+#endif
   DriverObject->DriverUnload = IoUnload;
 
   // Use buffered IO - a bit slower but simpler to implement, and more
@@ -255,6 +277,10 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
 
   // Populate globals in kernel context.
   CR3.QuadPart = __readcr3();
+
+  // Initialize the device extension with safe defaults.
+  extension = DeviceObject->DeviceExtension;
+  extension->mode = ACQUISITION_MODE_PHYSICAL_MEMORY;
 
   return NtStatus;
 }

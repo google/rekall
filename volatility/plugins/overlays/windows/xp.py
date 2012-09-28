@@ -112,3 +112,18 @@ class WinXPSP3x86(AbstractWinXPProfile, basic.Profile32Bits):
         from volatility.plugins.overlays.windows import xp_sp3_x86_vtypes
 
         self.add_types(xp_sp3_x86_vtypes.ntkrnlmp_types)
+
+
+class WinXPSP3x86PAE(AbstractWinXPProfile, basic.Profile32Bits):
+    """A Profile for Windows XP SP3 x86 PAE."""
+    _md_major = 5
+    _md_minor = 1
+    _md_type = "Kernel"
+
+    def __init__(self, **kwargs):
+        super(WinXPSP3x86PAE, self).__init__(**kwargs)
+
+        # Import the actual vtypes on demand here to reduce memory usage.
+        from volatility.plugins.overlays.windows import xp_sp3_x86_pae_vtypes
+
+        self.add_types(xp_sp3_x86_pae_vtypes.ntkrnlpa_types)
