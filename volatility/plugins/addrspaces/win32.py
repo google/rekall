@@ -50,8 +50,8 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
     ## We should be the AS of last resort but in front of the non win32 version.
     order = 90
-
     PAGE_SIZE = 0x10000
+    _md_image = True
 
     def __init__(self, base=None, filename=None, session=None, **kwargs):
         self.as_assert(base == None, 'Must be first Address Space')

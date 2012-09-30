@@ -38,6 +38,9 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
     ## We should be first.
     order = 0
 
+    # This address space handles images.
+    _md_image = True
+
     def __init__(self, fhandle=None, **kwargs):
         super(FDAddressSpace, self).__init__(**kwargs)
         self.as_assert(self.base == None, 'Must be first Address Space')

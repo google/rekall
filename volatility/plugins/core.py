@@ -326,6 +326,9 @@ class LoadAddressSpace(plugin.ProfileCommand):
             logging.debug("Voting round")
             found = False
             for cls in address_spaces:
+                # Only try address spaces which claim to support images.
+                if not cls.metadata("image"): continue
+
                 logging.debug("Trying %s ", cls)
                 try:
                     base_as = cls(base=base_as, session=self.session,
@@ -349,10 +352,11 @@ class LoadAddressSpace(plugin.ProfileCommand):
                 break
 
         if base_as:
-            logging.info("Autodetected address space %s", base_as)
+            logging.info("Autodetected physical address space %s", base_as)
         else:
-            logging.error("Failed to autodetect address space. Try running "
-                          "plugins.load_as with a spec.")
+            logging.error("Failed to autodetect image file format. "
+                          "Try running plugins.load_as with the pas_spec "
+                          "parameter.")
 
         return base_as
 

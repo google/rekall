@@ -44,6 +44,13 @@ class BaseAddressSpace(object):
     # This can be used to name the address space (e.g. process if etc).
     name = ""
 
+    # Some useful metadata for address spaces.
+
+    # The signifies that this address space normally operates on memory
+    # images. This flag controls if this address space will participate in
+    # address space autoselection for image detection.
+    _md_image = False
+
     def __init__(self, base=None, session=None, write=False, profile=None,
                  **kwargs):
         """Base is the AS we will be stacking on top of, opts are options which
@@ -339,7 +346,7 @@ class PagedReader(BaseAddressSpace):
 
     def is_valid_address(self, addr):
         vaddr = self.vtop(addr)
-        return self.base.is_valid_address(vaddr)
+        return vaddr is not None and self.base.is_valid_address(vaddr)
 
     def get_available_addresses(self):
         for start, length in self.get_available_pages():

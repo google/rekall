@@ -216,6 +216,7 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
     """
 
     __name = "hiber"
+    _md_image = True
 
     order = 100
 
