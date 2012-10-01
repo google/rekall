@@ -301,16 +301,20 @@ class LoadAddressSpace(plugin.ProfileCommand):
                 if find_dtb.verify_address_space(test_as):
                     self.session.kernel_address_space = test_as
                     self.session.dtb = dtb
-                    return
+                    break
 
-            raise plugin.PluginError(
-                "A DTB value was found but failed to verify. "
-                "You can try setting it manualy using --dtb. "
-                "This could also happen when the profile is incorrect.")
+            if not self.session.kernel_address_space:
+                raise plugin.PluginError(
+                    "A DTB value was found but failed to verifyo. "
+                    "You can try setting it manualy using --dtb. "
+                    "This could also happen when the profile is incorrect.")
 
         else:
             self.session.kernel_address_space = address_space_curry(
                 dtb=self.session.dtb)
+
+        if self.session.default_address_space is None:
+            self.session.default_address_space = self.session.kernel_address_space
 
     def GuessAddressSpace(self, base_as=None, **kwargs):
         """Loads an address space by stacking valid ASes on top of each other
@@ -420,6 +424,7 @@ class LoadPlugins(plugin.Command):
     """
 
     __name = "load_plugin"
+    _interactive = True
 
     def __init__(self, path, **kwargs):
         super(LoadPlugins, self).__init__(**kwargs)
@@ -433,6 +438,7 @@ class Printer(plugin.Command):
     """A plugin to print an object."""
 
     __name = "p"
+    _interactive = True
 
     def __init__(self, target=None, **kwargs):
         """Prints an object to the screen."""
@@ -448,6 +454,7 @@ class Lister(Printer):
     """A plugin to list objects."""
 
     __name = "l"
+    _interactive = True
 
     def render(self, renderer):
         for item in self.target:
@@ -462,6 +469,12 @@ class DT(plugin.ProfileCommand):
     """
 
     __name = "dt"
+
+    @classmethod
+    def args(cls, parser):
+        super(DT, cls).args(parser)
+        parser.add_argument("target",
+                            help="Name of a struct definition.")
 
     def __init__(self, target=None, profile=None, **kwargs):
         """Prints an object to the screen."""
@@ -484,6 +497,11 @@ class Dump(plugin.Command):
     """Hexdump an object or memory location."""
 
     __name = "dump"
+
+    @classmethod
+    def args(cls, parser):
+        super(Dump, cls).args(parser)
+        parser.add_argument("target", help="Name of a struct definition.")
 
     def __init__(self, target=None, offset=0, width=16, rows=30,
                  suppress_headers=False, **kwargs):

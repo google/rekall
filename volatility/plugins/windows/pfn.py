@@ -223,17 +223,23 @@ class VtoP(common.WinProcessFilter):
         if self.address is None:
             return
 
-        renderer.write("Virtual 0x{0:08X}, Page Directory 0x{1:08X}\n".format(
-                self.address, self.address_space.dtb))
+        renderer.format("Virtual {0:#08x} Page Directory 0x{1:08x}\n",
+                        self.address, self.address_space.dtb)
 
         for name, value, address in self.vtop(self.address, self.address_space):
             if address:
-                renderer.write("{0}@ 0x{2:08X} = 0x{1:08X}\n".format(
-                        name, value, address))
+                renderer.format("{0}@ {2:#08x} = {1:#08x}\n",
+                                name, value, address)
             elif value:
-                renderer.write("{0} 0x{1:08X}\n".format(name, value))
+                renderer.format("{0} {1:#08x}\n", name, value)
             else:
-                renderer.write("{0}\n".format(name))
+                renderer.format("{0}\n", name)
+
+        physical_address = self.address_space.vtop(self.address)
+        if physical_address is None:
+            renderer.format("Physical Address Invalid\n")
+        else:
+            renderer.format("Physical Address {0:#08x}\n", physical_address)
 
 
 class PFNInfo(common.WindowsCommandPlugin):
@@ -543,14 +549,14 @@ class PtoV(common.WinProcessFilter):
 
         result, structures = self.ptov(self.physical_address)
         if result:
-            renderer.format("Physical Address 0x{0:016X} => "
-                            "Virtual Address 0x{1:016X}\n",
+            renderer.format("Physical Address {0:#x} => "
+                            "Virtual Address {1:#x}\n",
                             self.physical_address, result)
 
             for type, phys_addr in structures:
-                renderer.format("{0} @ 0x{1:016X}\n", type, phys_addr)
+                renderer.format("{0} @ {1:#x}\n", type, phys_addr)
         else:
-            renderer.format("Error converting Physical Address 0x{0:016X}: "
+            renderer.format("Error converting Physical Address {0:#x}: "
                             "{1!r}\n", self.physical_address, result)
 
 
@@ -572,6 +578,7 @@ class DTBScan(common.WinProcessFilter):
             dtb_map[task.Pcb.DirectoryTableBase.v()] = task
 
         renderer.table_header([("DTB", "dtb", "[addrpad]"),
+                               ("VAddr", "vaddr", "[addrpad]"),
                                ("_EPROCESS", "task", "[addrpad]"),
                                ("Image Name", "filename", "")])
 
@@ -594,4 +601,5 @@ class DTBScan(common.WinProcessFilter):
                         else:
                             filename = task.ImageFileName
 
-                        renderer.table_row(dtb, task, filename)
+                        va, _ = ptov.ptov(dtb)
+                        renderer.table_row(dtb, va, task, filename)

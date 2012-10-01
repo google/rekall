@@ -55,7 +55,7 @@ class PEDump(plugin.Command):
             self.out_fd = fd
             self.filename = "FD <%s>" % fd
         elif filename:
-            self.out_fd = open(filename, "w")
+            self.out_fd = open(filename, "wb")
             self.filename = filename
 
         # Get the pe profile.
@@ -98,7 +98,7 @@ class PEDump(plugin.Command):
             fd.write(data)
 
     def render(self, renderer):
-        renderer.format("Dumping PE File at image_base 0x%X to %s\n",
+        renderer.format("Dumping PE File at image_base {0:#x} to {1}\n",
                         self.image_base, self.filename)
 
         self.WritePEFile(self.out_fd, self.address_space, self.image_base)

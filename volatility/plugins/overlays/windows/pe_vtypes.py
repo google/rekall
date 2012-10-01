@@ -1328,6 +1328,9 @@ class PEFileImplementation(obj.ProfileModification):
                 })
         profile.add_overlay(pe_overlays)
 
+        return profile
+
+
 class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
     """A profile for PE files."""
 

@@ -34,13 +34,12 @@ import textwrap
 import time
 
 from volatility import addrspace
-from volatility import args
 from volatility import plugin
 from volatility import obj
 from volatility import registry
 from volatility import utils
 from volatility.ui import renderer
-from volatility.plugins import core
+
 
 
 class Container(object):
@@ -122,6 +121,8 @@ class Session(object):
 
         # If the args came from the command line parse them now:
         if flags:
+            from volatility import args
+
             kwargs = args.MockArgParser().build_args_dict(plugin_cls, flags)
 
         # Select the renderer from the session or from the kwargs.
@@ -298,7 +299,10 @@ class InteractiveSession(Session):
                 try:
                     runner.__doc__ = getattr(cls, "_%s__doc" % cls.__name__)
                 except AttributeError:
-                    runner.__doc__ = utils.SmartUnicode(core.Info(cls))
+                    # Use the info class to build docstrings for all plugins.
+                    info_class = plugin.Command.classes['Info']
+                    runner.__doc__ = utils.SmartUnicode(info_class(cls))
+
                     setattr(cls, "_%s__doc" % cls.__name__, runner.__doc__)
 
                 setattr(self._locals['plugins'], name, runner)

@@ -58,6 +58,10 @@ class LinuxMemMap(common.LinProcessFilter):
 
     __name = "memmap"
 
+    @classmethod
+    def args(cls, parser):
+         super(LinuxMemMap, cls).args(parser)
+
     def address_ranges(self, address_space):
       """Combine the addresses into ranges."""
       contiguous_offset = None

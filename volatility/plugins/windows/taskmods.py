@@ -75,10 +75,10 @@ class WinPsList(common.WinProcessFilter):
             yield task
 
     def list_eprocess(self):
-        if self.kdbg:
+        if self.eprocess_head:
+            return self.list_eprocess_from_eprocess(self.eprocess_head)
+        elif self.kdbg:
             return self.list_eprocess_from_kdbg(self.kdbg)
-        elif self.eprocess:
-            return self.list_eprocess_from_eprocess(self.eprocess)
 
         logging.debug("Unable to list processes using any method.")
         return []

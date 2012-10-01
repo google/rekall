@@ -24,6 +24,7 @@
 import volatility.utils    as utils
 import volatility.obj      as obj
 
+from volatility import args
 from volatility import plugin
 
 
@@ -83,6 +84,17 @@ class LinProcessFilter(AbstractLinuxCommandPlugin):
     """A class for filtering processes."""
 
     __abstract = True
+
+    @classmethod
+    def args(cls, parser):
+        super(LinProcessFilter, cls).args(parser)
+        parser.add_argument("--pid",
+                            action=args.ArrayIntParser, nargs="+",
+                            help="One or more pids of processes to select.")
+
+        parser.add_argument("--proc_regex", default=None,
+                            help="A regex to select a process by name.")
+
 
     def __init__(self, phys_task_struct=None, pids=None, pid=None, **kwargs):
         """Lists information about all the dlls mapped by a process.

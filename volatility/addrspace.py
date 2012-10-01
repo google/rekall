@@ -170,9 +170,12 @@ class BaseAddressSpace(object):
         """ Tell us if the address is valid """
         return True
 
-    def write(self, _addr, _buf):
-        raise NotImplementedError("Write support for this type of Address Space"
-                                  " has not been implemented")
+    def write(self, addr, buf):
+        try:
+            return self.base.write(self.vtop(addr, buf))
+        except AttributeError:
+            raise NotImplementedError("Write support for this type of Address Space"
+                                      " has not been implemented")
 
     def vtop(self, addr):
         """Return the physical address of this virtual address."""

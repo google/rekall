@@ -260,6 +260,7 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
 
     @classmethod
     def args(cls, parser):
+        super(PoolScannerPlugin, cls).args(parser)
         parser.add_argument(
             "--scan_in_kernel", default=False, action="store_true",
             help="Scan in the kernel address space")
@@ -301,15 +302,15 @@ class KDBGMixin(plugin.KernelASMixin):
         super(KDBGMixin, self).__init__(**kwargs)
         self.kdbg = kdbg or self.session.kdbg
 
-        # Interpret the session KDB as an int and check kdbg for sanity.
+        # If the user specified the kdbg use it - even if it looks wrong!
         if self.kdbg and not isinstance(self.kdbg, obj.BaseObject):
+            # If the user specified the kdbg use it - even if it looks wrong!
             kdbg = self.profile.Object("_KDDEBUGGER_DATA64", offset=int(self.kdbg),
-                                       vm = self.kernel_address_space)
-            if kdbg.Header.OwnerTag == 0x4742444b:
-                self.kdbg = self.session.kdbg = kdbg
-            else:
-                logging.info("KDBG in location 0x%10X is invalid. ignoring." % self.kdbg)
-                self.kdbg = None
+                                            vm = self.kernel_address_space)
+
+            # If the user specified the kdbg use it - even if it looks wrong!
+            # This allows the user to force a corrupt kdbg.
+            self.kdbg = self.session.kdbg = kdbg
 
         if self.kdbg is None:
             logging.info("KDBG not provided - Volatility will try to "
@@ -365,9 +366,12 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         parser.add_argument("--proc_regex", default=None,
                             help="A regex to select a process by name.")
 
+        parser.add_argument("--eprocess_head", action=args.IntParser,
+                            help="Use this as the process head. If "
+                            "specified we do not use kdbg.")
 
     def __init__(self, eprocess=None, phys_eprocess=None, pid=None,
-                 proc_regex=None, **kwargs):
+                 proc_regex=None, eprocess_head=None, **kwargs):
         """Lists information about all the dlls mapped by a process.
 
         Args:
@@ -412,6 +416,7 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
             proc_regex = re.compile(proc_regex, re.I)
 
         self.proc_regex = proc_regex
+        self.eprocess_head = eprocess_head
 
     def filter_processes(self):
         """Filters eprocess list using phys_eprocess and pids lists."""
@@ -419,7 +424,8 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         if (not self.eprocess and not self.phys_eprocess and not self.pids and
             not self.proc_regex):
             for eprocess in self.session.plugins.pslist(
-                session=self.session, kdbg=self.kdbg).list_eprocess():
+                session=self.session, kdbg=self.kdbg,
+                eprocess_head=self.eprocess_head).list_eprocess():
                 yield eprocess
         else:
             # We need to filter by phys_eprocess
@@ -432,7 +438,8 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
 
             # We need to filter by pids
             for eprocess in self.session.plugins.pslist(
-                session=self.session, kdbg=self.kdbg).list_eprocess():
+                session=self.session, kdbg=self.kdbg,
+                eprocess_head=self.eprocess_head).list_eprocess():
                 if int(eprocess.UniqueProcessId) in self.pids:
                     yield eprocess
                 elif self.proc_regex and self.proc_regex.match(

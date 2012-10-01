@@ -519,6 +519,9 @@ class Pointer(NativeType):
         # bits.
         return 0xffffffffffff & self._proxy.v(vm=vm)
 
+    def write(self, data):
+        return self.proxy.write(data)
+
     def __eq__(self, other):
         try:
             # Must use __int__() because int(other) when other is a string will
@@ -535,7 +538,8 @@ class Pointer(NativeType):
         return self.dereference()[item]
 
     def __setattr__(self, attr, value):
-        if attr in self.__dict__ or hasattr(self.__class__, attr) or not self._initialized:
+        if (attr in self.__dict__ or hasattr(self.__class__, attr) or
+            not self._initialized):
             return super(Pointer, self).__setattr__(attr, value)
 
         getattr(self.dereference(), attr).write(value)
@@ -651,6 +655,9 @@ class Void(Pointer):
 
     def v(self):
         return self.obj_offset
+
+    def dereference(self):
+        return NoneObject("Void reference")
 
     def size(self):
         logging.warning("Void objects have no size! Are you doing pointer "
@@ -783,10 +790,10 @@ class ListArray(Array):
         """
         super(ListArray, self).__init__(**kwargs)
         if callable(maximum_size):
-            maximum_size = maximum_size(self.obj_parent)
+            maximum_size = int(maximum_size(self.obj_parent))
 
         if callable(maximum_offset):
-            maximum_offset = maximum_offset(self.obj_parent)
+            maximum_offset = int(maximum_offset(self.obj_parent))
 
         self.maximum_offset = maximum_offset or (self.obj_offset + maximum_size)
 
@@ -946,7 +953,8 @@ class CType(BaseObject):
         """Change underlying members"""
         # Special magic to allow initialization this test allows attributes to
         # be set in the __init__ method.
-        if attr in self.__dict__ or not self._initialized:
+        if (attr in self.__dict__ or hasattr(self.__class__, attr) or
+            not self._initialized):
             return super(CType, self).__setattr__(attr, value)
 
         else:

@@ -770,7 +770,7 @@ class Colorizer(object):
         color = foreground or background
 
         if not self.terminal_capable or color not in self.COLOR_MAP:
-            return string
+            return utils.SmartUnicode(string)
 
         escape_seq = ""
         if foreground:
@@ -779,5 +779,6 @@ class Colorizer(object):
         if background:
             escape_seq += curses.tparm(curses.tigetstr("setb"), self.COLOR_MAP[color])
 
-        return (escape_seq + string + curses.tigetstr("sgr0"))
+        return (escape_seq + utils.SmartUnicode(string) +
+                curses.tigetstr("sgr0"))
 

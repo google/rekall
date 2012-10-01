@@ -107,9 +107,9 @@ evt_log_types = {
                      ['UnicodeString', dict(
                         length=lambda x: x.RecordLength)]],
 
-        'Sid': [lambda x: x.obj_offset + x.SidOffset, ['_SID']],
+        'Sid': [lambda x: x.obj_offset + x.SidOffset.v(), ['_SID']],
 
-        'Data':[lambda x: x.obj_offset + x.StringOffset, [
+        'Data':[lambda x: x.obj_offset + x.StringOffset.v(), [
                     "ListArray", dict(
                         target="UnicodeString",
                         target_args=dict(encoding="utf16"),

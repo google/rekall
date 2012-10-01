@@ -23,6 +23,7 @@ Output is similar to objdump or pefile.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+from volatility import args
 from volatility import plugin
 from volatility.plugins.addrspaces import standard
 from volatility.plugins.overlays.windows import pe_vtypes
@@ -33,6 +34,17 @@ class PEInfo(plugin.Command):
     """Print information about a PE binary."""
 
     __name = "peinfo"
+
+    @classmethod
+    def args(cls, parser):
+        super(PEInfo, cls).args(parser)
+        parser.add_argument("--image_base", default=0, type=args.IntParser,
+                            help="The base of the image.")
+
+        parser.add_argument("--filename", default=None,
+                            help="If provided we create an address space "
+                            "from this file.")
+
 
     def __init__(self, address_space=None, image_base=0, filename=None,
                  **kwargs):

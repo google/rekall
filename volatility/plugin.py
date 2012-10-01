@@ -61,6 +61,9 @@ class Command(object):
     __abstract = True
     __metaclass__ = registry.MetaclassRegistry
 
+    # This declares that this plugin only exists in the interactive session.
+    _interactive = False
+
     @classmethod
     def args(cls, parser):
         """Declare the command line args we need."""
@@ -136,6 +139,10 @@ class ProfileCommand(Command):
 
     __abstract = True
 
+    @classmethod
+    def is_active(cls, session):
+        return session.profile is not None
+
     def __init__(self, profile=None, **kwargs):
         """Baseclass for all plugins which accept a profile.
 
@@ -156,12 +163,24 @@ class KernelASMixin(object):
 
     This class ensures a valid kernel AS exists or an exception is raised.
     """
-    def __init__(self, kernel_address_space=None, **kwargs):
+
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(KernelASMixin, cls).args(parser)
+        from volatility import args
+
+        parser.add_argument("--dtb", action=args.IntParser,
+                            help="The DTB physical address.")
+
+    def __init__(self, kernel_address_space=None, dtb=None, **kwargs):
         """A mixin for plugins which require a valid kernel address space.
 
         Args:
           kernel_address_space: The kernel address space to use. If not
             specified, we use the session.
+
+          dtb: A potential dtb to be used.
         """
         super(KernelASMixin, self).__init__(**kwargs)
 

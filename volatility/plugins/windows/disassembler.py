@@ -116,3 +116,6 @@ class Disassemble(plugin.Command):
         for (offset, hexdump, instruction) in self.disassemble(self.offset):
             renderer.table_row(offset, hexdump, instruction)
 
+        # Continue from where we left off when the user calls us again with the
+        # v() plugin.
+        self.offset = offset

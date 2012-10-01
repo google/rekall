@@ -29,6 +29,7 @@ import sys
 import zipfile
 
 from volatility import constants
+from volatility import session
 from volatility import plugin
 
 
@@ -73,13 +74,15 @@ class ArrayIntParser(IntParser):
 
 
 class MockArgParser(object):
-    def add_argument(self, short_flag=None, long_flag=None, dest=None, **kwargs):
+    def add_argument(self, short_flag="", long_flag="", dest="", **kwargs):
         if short_flag.startswith("--"):
             flag = short_flag
         elif long_flag.startswith("--"):
             flag = long_flag
-        else:
+        elif dest:
             flag = dest
+        else:
+            flag = short_flag
 
         # This function will be called by the args() class method, and we just
         # keep track of the args this module defines.
@@ -190,6 +193,7 @@ def parse_args(argv=None):
     """Parse the args from the command line argv."""
     parser =  VolatilityArgParser(description=constants.BANNER,
                                   conflict_handler='resolve',
+                                  add_help=False,
                                   epilog='When no module is provided, '
                                   'drops into interactive mode')
 
@@ -222,48 +226,68 @@ def parse_args(argv=None):
     parser.add_argument("--output", default=None,
                         help="Write to this output file.")
 
+    parser.add_argument("-h", "--help", default=False, action="store_true",
+                        help="Show help about global paramters.")
+
     parser.add_argument("--overwrite", action="store_true", default=False,
                         help="Allow overwriting of output files.")
 
-    # Module specific args.
-    subparsers = parser.add_subparsers(
-        description="The following plugins can be selected.",
-        metavar='Plugin',
-        )
 
-    parsers = {}
+    # Figure out the profile
+    known_args, unknown_args = parser.parse_known_args(args=argv)
+    try:
+        user_session = session.Session(profile=known_args.profile)
 
-    # Check for additional user modules first since they may introduce more
-    # options and plugins.
-    namespace = argparse.Namespace()
+        # Module specific args.
+        subparsers = parser.add_subparsers(
+            description="The following plugins can be selected.",
+            metavar='Plugin',
+            )
 
-    # The parser may complain here if we are using options etc that are
-    # introduced by user plugins - so we suppress it for this run.
-    parser.parse_known_args(argv, namespace, force=True)
+        parsers = {}
 
-    # This is the earliest point we can initialize the logger:
-    logging.getLogger().setLevel(getattr(logging, namespace.logging.upper()))
+        # Check for additional user modules first since they may introduce more
+        # options and plugins.
+        namespace = argparse.Namespace()
 
-    # Now load the user plugins.
-    LoadPlugins(namespace.plugin)
+        # The parser may complain here if we are using options etc that are
+        # introduced by user plugins - so we suppress it for this run.
+        parser.parse_known_args(argv, namespace, force=True)
 
-    # Add module specific parser for each module.
-    for cls in plugin.Command.classes.values():
-        if cls.name:
-            doc = cls.__doc__.splitlines()[0]
-            name = cls.name
-            try:
-                module_parser = parsers[name]
-            except KeyError:
-                parsers[name] = module_parser = subparsers.add_parser(
-                    cls.name, help=doc, description=cls.__doc__)
+        # This is the earliest point we can initialize the logger:
+        logging.getLogger().setLevel(getattr(logging, namespace.logging.upper()))
 
-            cls.args(module_parser)
-            module_parser.set_defaults(module=cls.name)
+        # Now load the user plugins.
+        LoadPlugins(namespace.plugin)
+
+        # Add module specific parser for each module.
+        classes = []
+        for cls in plugin.Command.classes.values():
+            if (cls.name and cls.is_active(user_session) and not
+                cls._interactive):
+                classes.append(cls)
+
+        for cls in sorted(classes, key=lambda x: x.name):
+                doc = cls.__doc__.splitlines()[0]
+                name = cls.name
+                try:
+                    module_parser = parsers[name]
+                except KeyError:
+                    parsers[name] = module_parser = subparsers.add_parser(
+                        cls.name, help=doc, description=cls.__doc__)
+
+                cls.args(module_parser)
+                module_parser.set_defaults(module=cls.name)
+    except KeyError:
+        pass
 
     # Parse the command line.
     result = parser.parse_args(argv)
 
     result.plugin = None
+
+    if result.help:
+        parser.print_help()
+        sys.exit(-1)
 
     return result
