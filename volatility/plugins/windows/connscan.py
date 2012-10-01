@@ -53,6 +53,12 @@ class ConnScan(common.PoolScannerPlugin):
 
     __name = "connscan"
 
+    @classmethod
+    def is_active(cls, session):
+        # These only work for XP.
+        return (super(ConnScan, cls).is_active(session) and
+                session.profile.metadata("major") == 5)
+
 
     def __init__(self, **kwargs):
         super(ConnScan, self).__init__(**kwargs)

@@ -269,6 +269,12 @@ class Connections(common.AbstractWindowsCommandPlugin):
 
     __name = "connections"
 
+    @classmethod
+    def is_active(cls, session):
+        # These only work for XP.
+        return (super(Connections, cls).is_active(session) and
+                session.profile.metadata("major") == 5)
+
     def __init__(self, **kwargs):
         """Enumerates the active connections in tcpip.sys's data structures."""
         super(Connections, self).__init__(**kwargs)
@@ -349,6 +355,12 @@ class Sockets(common.AbstractWindowsCommandPlugin):
     """
 
     __name = "sockets"
+
+    @classmethod
+    def is_active(cls, session):
+        # These only work for XP.
+        return (super(Sockets, cls).is_active(session) and
+                session.profile.metadata("major") == 5)
 
     def __init__(self, **kwargs):
         """Enumerates the active sockets in tcpip.sys's data structures."""

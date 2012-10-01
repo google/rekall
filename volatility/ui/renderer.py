@@ -704,7 +704,7 @@ class JsonRenderer(TextRenderer):
         self.data = dict(plugin_name=plugin_name,
                          tool_name="volatility-ng",
                          tool_version=constants.VERSION,
-                         kwargs=self.formatter.format_dict(kwargs),
+                         kwargs=self.formatter.format_dict(kwargs or {}),
                          data=[])
 
         super(JsonRenderer, self).start(plugin_name=plugin_name,

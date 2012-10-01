@@ -392,6 +392,11 @@ class DirectoryDumperMixin(object):
                             help="Path suitable for dumping files (required).")
 
     def __init__(self, dump_dir=None, **kwargs):
+        """Dump to a directory.
+
+        Args:
+          dump_dir: The directory where files should be dumped.
+        """
         super(DirectoryDumperMixin, self).__init__(**kwargs)
 
         self.dump_dir = dump_dir or self.session.dump_dir

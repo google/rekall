@@ -157,6 +157,8 @@ class Session(object):
         try:
             kwargs['session'] = self
 
+            ui_renderer.start()
+
             # If we were passed an instance we do not instantiate it.
             if inspect.isclass(plugin_cls) or isinstance(plugin_cls, obj.Curry):
                 result = plugin_cls(*pos_args, **kwargs)

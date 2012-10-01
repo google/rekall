@@ -45,7 +45,8 @@ class WinPas2Vas(common.WinProcessFilter):
 
         self.maps = self.session.process_maps
 
-        self.memmap = self.session.plugins.memmap(session=self.session)
+
+    def BuildMaps(self):
         if "Kernel" not in self.maps:
             self.build_address_map(self.kernel_address_space, "Kernel", None)
 
@@ -71,7 +72,7 @@ class WinPas2Vas(common.WinProcessFilter):
           # This lookup map is sorted by the physical address. We then use
           # bisect to efficiently look up the physical page.
         tmp_lookup_map = []
-        for va, length in self.memmap.address_ranges(virtual_address_space):
+        for va, length in virtual_address_space.get_available_addresses():
             pa = virtual_address_space.vtop(va)
             tmp_lookup_map.append((pa, length, va, task))
 
@@ -113,6 +114,8 @@ class WinPas2Vas(common.WinProcessFilter):
                                ('Virtual', 'physical_offset', '[addrpad]'),
                                ('Pid', 'pid', '>6'),
                                ('Name', 'name', '')])
+
+        self.BuildMaps()
 
         for physical_address in self.physical_address:
             for virtual_address, task in self.get_virtual_address(

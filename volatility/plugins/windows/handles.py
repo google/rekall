@@ -20,6 +20,7 @@
 #
 
 from volatility import obj
+from volatility import utils
 from volatility.plugins.windows import common
 
 
@@ -74,10 +75,15 @@ class Handles(common.WinProcessFilter):
                     name = key_obj.full_key_name()
                 elif object_type == "Process":
                     proc_obj = handle.dereference_as("_EPROCESS")
-                    name = u"{0}({1})".format(proc_obj.ImageFileName, proc_obj.UniqueProcessId)
+                    name = u"{0}({1})".format(
+                        utils.SmartUnicode(proc_obj.ImageFileName),
+                        proc_obj.UniqueProcessId)
+
                 elif object_type == "Thread":
                     thrd_obj = handle.dereference_as("_ETHREAD")
-                    name = u"TID {0} PID {1}".format(thrd_obj.Cid.UniqueThread, thrd_obj.Cid.UniqueProcess)
+                    name = u"TID {0} PID {1}".format(
+                        thrd_obj.Cid.UniqueThread,
+                        thrd_obj.Cid.UniqueProcess)
 
                 elif handle.NameInfo.Name == None:
                     name = ""

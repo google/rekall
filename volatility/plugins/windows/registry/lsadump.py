@@ -116,24 +116,10 @@ class HashDump(LSADump):
 
 
 
-class HiveDump(common.WindowsCommandPlugin):
+class HiveDump(registry.RegistryPlugin):
     """Prints out a hive"""
 
     __name = "hivedump"
-
-    def __init__(self, hive_offset=None, **kwargs):
-        super(HiveDump, self).__init__(**kwargs)
-        self.hive_offset = hive_offset
-
-    def get_keys(self, hive_offset=None):
-        """Iterate over all keys in this hive."""
-        hive_offset = hive_offset or self.hive_offset
-
-        reg = registry.RegistryHive(hive_offset=hive_offset,
-                                    kernel_address_space=self.kernel_address_space,
-                                    profile=self.profile)
-
-        return self._key_iterator(reg.root)
 
     def _key_iterator(self, key):
         for subkey in key.subkeys():
@@ -141,7 +127,22 @@ class HiveDump(common.WindowsCommandPlugin):
             for subsubkey in self._key_iterator(subkey):
                 yield subsubkey
 
-    def render(self, outfd):
-        outfd.write("{0:20s} {1}\n".format("Last Written", "Key"))
-        for key in self.get_keys():
-            outfd.write("{0:20s} {1}\n".format(key.LastWriteTime, key.Path))
+    def render(self, renderer):
+        seen = set()
+
+        for hive_offset in self.hive_offsets:
+            if hive_offset in seen: continue
+
+            reg = registry.RegistryHive(
+                hive_offset=hive_offset,
+                kernel_address_space=self.kernel_address_space,
+                profile=self.profile)
+
+            renderer.section()
+            renderer.format("Hive {0}\n\n", reg.Name)
+
+            renderer.table_header([("Last Written", "timestamp", "<20"),
+                                   ("Key", "key", "")])
+
+            for key in self._key_iterator(reg.root):
+                renderer.table_row(key.LastWriteTime, key.Path)
