@@ -905,27 +905,27 @@ be reusable by other components.</p></div>
 following comamnd is issued:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>    <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />        <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />                                                 <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" />       <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" />
+<pre><code>    <img src="images/icons/callouts/1.png" alt="1" />        <img src="images/icons/callouts/2.png" alt="2" />                                                 <img src="images/icons/callouts/3.png" alt="3" />       <img src="images/icons/callouts/4.png" alt="4" />
 $ vol.py --profile Win7SP0x64 --filename win7_trial_64bit.raw pslist --proc_reg DumpIt
   Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 -------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -</code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 The volatility program name (vol.py).
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 These are global options which are processed by the main volatility
 executable (in this case --profile, --filename).
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
+<tr><td><img src="images/icons/callouts/3.png" alt="3" /></td><td>
 The name of the command plugin to run. This will actually run the first
 class to extend plugin.Command() which is also active (in this case
 pslist. Since the profile is a windows profile, the WinPSList class will be
 invoked).
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" /></td><td>
+<tr><td><img src="images/icons/callouts/4.png" alt="4" /></td><td>
 These options are specific to the plugin - i.e. they have been defined in
 the args() classmethod (in this case the process name regex selector).
 </td></tr>
@@ -1016,47 +1016,47 @@ The Volatility Memory Forensic Framework technology preview (3.0_tp2).
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License.
 
-Win7SP0x64:win7_trial_64bit.raw 01:32:55&gt; print session               <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
+Win7SP0x64:win7_trial_64bit.raw 01:32:55&gt; print session               <img src="images/icons/callouts/1.png" alt="1" />
 Volatility session Started on Sun Sep 23 01:32:57 2012.
 
 Config:
  base_filename:  'win7_trial_64bit.raw'
- filename:  'win7_trial_64bit.raw'                                    <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />
+ filename:  'win7_trial_64bit.raw'                                    <img src="images/icons/callouts/2.png" alt="2" />
  logging:  'INFO'
  overwrite:  False
  pager:  &lt;Set this to your favourite pager.&gt;
  paging_limit:  50
 ...
 
-Win7SP0x64:win7_trial_64bit.raw 01:33:07&gt; plugins.[tab][tab]          <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" />
+Win7SP0x64:win7_trial_64bit.raw 01:33:07&gt; plugins.[tab][tab]          <img src="images/icons/callouts/3.png" alt="3" />
 plugins.atoms           plugins.dlldump         plugins.handles
 plugins.atomscan        plugins.dlllist         plugins.hivedump
 plugins.callbacks       plugins.driverirp       plugins.hivescan
 plugins.clipboard       plugins.driverscan      plugins.imagecopy
 ....
 
-Win7SP0x64:win7_trial_64bit.raw 01:34:57&gt; pslist proc_regex="DumpIt"  <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" />
+Win7SP0x64:win7_trial_64bit.raw 01:34:57&gt; pslist proc_regex="DumpIt"  <img src="images/icons/callouts/4.png" alt="4" />
 ----------------------------------------&gt; pslist(proc_regex="DumpIt")
   Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 -------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -</code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 A new session.Session() object is created. This holds all information about
 the current running session.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 Global command line args are parsed into the session - so for example, the
 --filename argument is parsed into session.filename.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
+<tr><td><img src="images/icons/callouts/3.png" alt="3" /></td><td>
 The is_active() method for all command plugins is called, and the names of
 all active plugins are collected. For example, if we have a windows based
 profile, WinPSList will return True for is_active() and will be considered
 active.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" /></td><td>
+<tr><td><img src="images/icons/callouts/4.png" alt="4" /></td><td>
 For all active commands, we create wrapper functions in the session object
 and the namespace of the interactive shell. The wrapper will automatically set
 up a TextRenderer, instantiate the plugin and call its render method with the
@@ -1257,7 +1257,7 @@ through debug symbol.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/home/scudette/build/asciidoc-8.6.8/images/icons/note.png" alt="Note" />
+<img src="images/icons/note.png" alt="Note" />
 </td>
 <td class="content">
 <div class="paragraph"><p>Volatility is in many ways emulating a native debugger. Just like a debugger,
@@ -1324,15 +1324,15 @@ Struct members are simply names of special classes (inherited from
 <div class="paragraph"><p>The following is an example of a vtype definition:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>  '_EPROCESS' : [ 0x270, {                                          <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
-    'Pcb' : [ 0x0, ['_KPROCESS']],                                  <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />
+<pre><code>  '_EPROCESS' : [ 0x270, {                                          <img src="images/icons/callouts/1.png" alt="1" />
+    'Pcb' : [ 0x0, ['_KPROCESS']],                                  <img src="images/icons/callouts/2.png" alt="2" />
     'ProcessLock' : [ 0x80, ['_EX_PUSH_LOCK']],
     'CreateTime' : [ 0x88, ['_LARGE_INTEGER']],
     'ExitTime' : [ 0x90, ['_LARGE_INTEGER']],
     'RundownProtect' : [ 0x98, ['_EX_RUNDOWN_REF']],
-    'UniqueProcessId' : [ 0x9c, ['Pointer', dict(target="Void")]],  <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" />
+    'UniqueProcessId' : [ 0x9c, ['Pointer', dict(target="Void")]],  <img src="images/icons/callouts/3.png" alt="3" />
     'ActiveProcessLinks' : [ 0xa0, ['_LIST_ENTRY']],
-    'QuotaUsage' : [ 0xa8, ['Array', dict(                          <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" />
+    'QuotaUsage' : [ 0xa8, ['Array', dict(                          <img src="images/icons/callouts/4.png" alt="4" />
                    target='unsigned long',
                    count=3
                    )]],
@@ -1346,17 +1346,17 @@ Struct members are simply names of special classes (inherited from
     'SessionProcessLinks' : [ 0xcc, ['_LIST_ENTRY']],</code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 This defines the <em>_EPROCESS</em> struct as having a size of 0x270 bytes.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 The <em>Pcb</em> member of this struct is found at offset 0 and it is of type
 <em>_KPROCESS</em>.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
+<tr><td><img src="images/icons/callouts/3.png" alt="3" /></td><td>
 The <em>UniqueProcessId</em> member is a pointer to void and is found at offset 0x9c.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" /></td><td>
+<tr><td><img src="images/icons/callouts/4.png" alt="4" /></td><td>
 The <em>QuotaUsage</em> member is an array which will be instantiated at offset
 0xa8 from the start of the _EPROCESS struct. The array will have 3 members each
 of type <em>unsigned long</em>.
@@ -1365,7 +1365,7 @@ of type <em>unsigned long</em>.
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/home/scudette/build/asciidoc-8.6.8/images/icons/tip.png" alt="Tip" />
+<img src="images/icons/tip.png" alt="Tip" />
 </td>
 <td class="content">
 <div class="paragraph"><p>To generate a vtypes file for an executable, simple use the pdbparse project to
@@ -1497,7 +1497,7 @@ their current profile:</p></div>
     """The standard volatility registry parsing subsystem."""
 
     @classmethod
-    def modify(cls, profile):                                           <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
+    def modify(cls, profile):                                           <img src="images/icons/callouts/1.png" alt="1" />
         profile.add_classes(dict(
                 _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
                 _CM_KEY_VALUE=_CM_KEY_VALUE, _CMHIVE=_CMHIVE
@@ -1512,16 +1512,16 @@ class RegistryPlugin(common.WindowsCommandPlugin):
         super(RegistryPlugin, self).__init__(**kwargs)
 
         # Install our specific implementation of registry support.
-        self.profile = VolatilityRegisteryImplementation(self.profile)  <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></code></pre>
+        self.profile = VolatilityRegisteryImplementation(self.profile)  <img src="images/icons/callouts/2.png" alt="2" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 The VolatilityRegisteryImplementation profile modification implements a
 complete registry parsing system. It does this by modifying a profile and
 replacing certain classes within it with newer classes with additional
 functionality.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 A plugin wishing to use this new functionality, can upgrade its profile
 using the VolatilityRegisteryImplementation modification. Note that the
 modification simply produces a new, enhanced profile - the plugin could use the
@@ -1591,14 +1591,14 @@ active = True</code></pre>
 </div></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ python tools/testing/build_suite.py template \                <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
-  --file xp-laptop-2005-06-25_trunk/xp-laptop-2005-06-25.img    <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></code></pre>
+<pre><code>$ python tools/testing/build_suite.py template \                <img src="images/icons/callouts/1.png" alt="1" />
+  --file xp-laptop-2005-06-25_trunk/xp-laptop-2005-06-25.img    <img src="images/icons/callouts/2.png" alt="2" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 Run the tool in template mode.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 Specify the image the template will use - the template file is placed in the
 same directory.
 <div class="ulist"><ul>
@@ -1614,18 +1614,18 @@ have changed between the old and new versions.).
 </table></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ python tools/testing/build_suite.py baseline \                <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
-  --config xp-laptop-2005-06-25_trunk/tests.config \            <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />
-  -e "python branches/2.3-devel/vol.py"                         <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></code></pre>
+<pre><code>$ python tools/testing/build_suite.py baseline \                <img src="images/icons/callouts/1.png" alt="1" />
+  --config xp-laptop-2005-06-25_trunk/tests.config \            <img src="images/icons/callouts/2.png" alt="2" />
+  -e "python branches/2.3-devel/vol.py"                         <img src="images/icons/callouts/3.png" alt="3" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 Run the tool in baseline mode.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 Specify the testing template to use.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
+<tr><td><img src="images/icons/callouts/3.png" alt="3" /></td><td>
 Specify the binary to run - in this case we use the 2.3-dev version as a
 baseline.
 </td></tr>
@@ -1663,14 +1663,14 @@ Finally test the current output against the baseline:
 </ul></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ python tools/testing/build_suite.py test \                    <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
-  --config xp-laptop-2005-06-25_trunk/tests.config              <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></code></pre>
+<pre><code>$ python tools/testing/build_suite.py test \                    <img src="images/icons/callouts/1.png" alt="1" />
+  --config xp-laptop-2005-06-25_trunk/tests.config              <img src="images/icons/callouts/2.png" alt="2" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 Run the tool in test mode.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 Specify the testing template to use.
 </td></tr>
 </table></div>
@@ -1679,7 +1679,7 @@ was any discrepancy with the baseline.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/home/scudette/build/asciidoc-8.6.8/images/icons/note.png" alt="Note" />
+<img src="images/icons/note.png" alt="Note" />
 </td>
 <td class="content">
 <div class="paragraph"><p>The --executable and --mode parameters specify the path to the binary and its
@@ -1696,7 +1696,7 @@ building the baseline, but not when running the test.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-09-26 13:16:13 CEST
+Last updated 2012-10-02 16:26:21 CEST
 </div>
 </div>
 </body>

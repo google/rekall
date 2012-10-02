@@ -783,25 +783,25 @@ asciidoc.install(2);
 <div class="paragraph"><p>Volatility can be invoked from the command line. For example:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>    <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />        <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />                                                 <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" />       <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" />
+<pre><code>    <img src="images/icons/callouts/1.png" alt="1" />        <img src="images/icons/callouts/2.png" alt="2" />                                                 <img src="images/icons/callouts/3.png" alt="3" />       <img src="images/icons/callouts/4.png" alt="4" />
 $ vol.py --profile Win7SP0x64 --filename win7_trial_64bit.raw pslist --proc_reg DumpIt
   Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 -------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -</code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 The volatility program name (vol.py).
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 These are global options which are processed by the main volatility
 executable (in this case --profile, --filename).
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
+<tr><td><img src="images/icons/callouts/3.png" alt="3" /></td><td>
 The name of the command plugin to run. To find all command available run the
 info command or simply issue --help.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" /></td><td>
+<tr><td><img src="images/icons/callouts/4.png" alt="4" /></td><td>
 These options are specific to the command. Each command can specify
 additional options that will be used by it alone.
 </td></tr>
@@ -892,47 +892,47 @@ The Volatility Memory Forensic Framework technology preview (3.0_tp2).
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License.
 
-Win7SP0x64:win7_trial_64bit.raw 01:32:55&gt; print session               <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
+Win7SP0x64:win7_trial_64bit.raw 01:32:55&gt; print session               <img src="images/icons/callouts/1.png" alt="1" />
 Volatility session Started on Sun Sep 23 01:32:57 2012.
 
 Config:
  base_filename:  'win7_trial_64bit.raw'
- filename:  'win7_trial_64bit.raw'                                    <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />
+ filename:  'win7_trial_64bit.raw'                                    <img src="images/icons/callouts/2.png" alt="2" />
  logging:  'INFO'
  overwrite:  False
  pager:  &lt;Set this to your favourite pager.&gt;
  paging_limit:  50
 ...
 
-Win7SP0x64:win7_trial_64bit.raw 01:33:07&gt; plugins.[tab][tab]          <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" />
+Win7SP0x64:win7_trial_64bit.raw 01:33:07&gt; plugins.[tab][tab]          <img src="images/icons/callouts/3.png" alt="3" />
 plugins.atoms           plugins.dlldump         plugins.handles
 plugins.atomscan        plugins.dlllist         plugins.hivedump
 plugins.callbacks       plugins.driverirp       plugins.hivescan
 plugins.clipboard       plugins.driverscan      plugins.imagecopy
 ....
 
-Win7SP0x64:win7_trial_64bit.raw 01:34:57&gt; pslist proc_regex="DumpIt"  <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" />
+Win7SP0x64:win7_trial_64bit.raw 01:34:57&gt; pslist proc_regex="DumpIt"  <img src="images/icons/callouts/4.png" alt="4" />
 ----------------------------------------&gt; pslist(proc_regex="DumpIt")
   Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 -------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -</code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 A new session.Session() object is created. This holds all information about
 the current running session.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 Global command line args are parsed into the session - so for example, the
 --filename argument is parsed into session.filename.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
+<tr><td><img src="images/icons/callouts/3.png" alt="3" /></td><td>
 The is_active() method for all command plugins is called, and the names of
 all active plugins are collected. For example, if we have a windows based
 profile, WinPSList will return True for is_active() and will be considered
 active.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" /></td><td>
+<tr><td><img src="images/icons/callouts/4.png" alt="4" /></td><td>
 For all active commands, we create wrapper functions in the session object
 and the namespace of the interactive shell. The wrapper will automatically set
 up a TextRenderer, instantiate the plugin and call its render method with the
@@ -1967,7 +1967,7 @@ Offset(P)          #Ptr #Hnd Signal Thread                   CID Name
 0x000000001724f4c0    4    3      1 0x0000000000000000           _!SHMSFTHISTORY!_
 0x00000000172517c0    2    1      1 0x0000000000000000           __DDrawExclMode__
 0x00000000172783a0    2    1      1 0x0000000000000000           Lowhttp://sourceforge.net/
-0x00000000172db840    4    3      1 0x0000000000000000           ConnHashTable<img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1892.png" alt="1892" />_HashTable_Mutex
+0x00000000172db840    4    3      1 0x0000000000000000           ConnHashTable<img src="images/icons/callouts/1892.png" alt="1892" />_HashTable_Mutex
 0x00000000172de1d0    2    1      1 0x0000000000000000           Feeds Store Mutex S-1-5-21-2628989162-3383567662-1028919141-1000
 0x00000000173b8080    2    1      1 0x0000000000000000           DDrawDriverObjectListMutex
 0x00000000173bd340    2    1      0 0xfffffa8000a216d0 1652:2000 ALTTAB_RUNNING_MUTEX
@@ -3811,7 +3811,7 @@ Volatile Systems Volatility Framework 2.1_rc1
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-09-26 00:05:00 CEST
+Last updated 2012-10-02 16:26:21 CEST
 </div>
 </div>
 </body>

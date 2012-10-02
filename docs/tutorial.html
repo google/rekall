@@ -1014,18 +1014,18 @@ output lines are marked as "Out [line number]:". In order to run a plugin simply
 type its name and press enter:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [1]: pslist   <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
-------&gt; pslist() <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" />
+<pre><code>In [1]: pslist   <img src="images/icons/callouts/1.png" alt="1" />
+------&gt; pslist() <img src="images/icons/callouts/2.png" alt="2" />
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0x823c87c0 System                    4      0     61     1140 ------  False -                    -
 0x81fdf020 smss.exe                448      4      3       21 ------  False 2005-06-25 16:47:28  -</code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 The user enters the bare word pslist as a command.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 IPython is configured for auto-execution and assumed the user wants to run a
 function called pslist()
 </td></tr>
@@ -1108,7 +1108,7 @@ Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Star
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/home/scudette/build/asciidoc-8.6.8/images/icons/note.png" alt="Note" />
+<img src="images/icons/note.png" alt="Note" />
 </td>
 <td class="content">
 <div class="paragraph"><p>Since important information is already stored in the interactive session between
@@ -1375,10 +1375,10 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #000000">    1:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> StringIO
 <span style="color: #000000">    2:</span>
 <span style="color: #000000">    3:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> volatility <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
-<span style="color: #000000">    4:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> volatility <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins        <span style="font-style: italic"><span style="color: #9A1900"># <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></span></span>
+<span style="color: #000000">    4:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> volatility <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins        <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/1.png" alt="1" /></span></span>
 <span style="color: #000000">    5:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> volatility<span style="color: #990000">.</span>ui <span style="font-weight: bold"><span style="color: #000080">import</span></span> renderer
 <span style="color: #000000">    6:</span>
-<span style="color: #000000">    7:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                  <span style="font-style: italic"><span style="color: #9A1900"># <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></span></span>
+<span style="color: #000000">    7:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                  <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/2.png" alt="2" /></span></span>
 <span style="color: #000000">    8:</span>     filename<span style="color: #990000">=</span><span style="color: #FF0000">"xp-laptop-2005-06-25.img"</span><span style="color: #990000">,</span>
 <span style="color: #000000">    9:</span>     profile<span style="color: #990000">=</span><span style="color: #FF0000">"WinXPSP2x86"</span><span style="color: #990000">)</span>
 <span style="color: #000000">   10:</span>
@@ -1386,22 +1386,22 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #000000">   12:</span>
 <span style="color: #000000">   13:</span> r <span style="color: #990000">=</span> renderer<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">TextRenderer</span></span><span style="color: #990000">(</span>fd<span style="color: #990000">=</span>fd<span style="color: #990000">)</span>
 <span style="color: #000000">   14:</span>
-<span style="color: #000000">   15:</span> plugin <span style="color: #990000">=</span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">()</span>           <span style="font-style: italic"><span style="color: #9A1900"># <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></span></span>
-<span style="color: #000000">   16:</span> plugin<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">render</span></span><span style="color: #990000">(</span>r<span style="color: #990000">)</span>                      <span style="font-style: italic"><span style="color: #9A1900"># <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" /></span></span>
+<span style="color: #000000">   15:</span> plugin <span style="color: #990000">=</span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">()</span>           <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/3.png" alt="3" /></span></span>
+<span style="color: #000000">   16:</span> plugin<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">render</span></span><span style="color: #990000">(</span>r<span style="color: #990000">)</span>                      <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/4.png" alt="4" /></span></span>
 <span style="color: #000000">   17:</span>
 <span style="color: #000000">   18:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> fd<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getvalue</span></span><span style="color: #990000">()</span></tt></pre></div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 Importing the plugins is required to make volatility load all the default
 plugins. At this point any third party plugins will need to be imported too.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/2.png" alt="2" /></td><td>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
 The session object is created with initial values for some parameters.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/3.png" alt="3" /></td><td>
+<tr><td><img src="images/icons/callouts/3.png" alt="3" /></td><td>
 The plugin is instantiated from the session object.
 </td></tr>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/4.png" alt="4" /></td><td>
+<tr><td><img src="images/icons/callouts/4.png" alt="4" /></td><td>
 The output is rendered into the renderer and becomes available in the
 StringIO.
 </td></tr>
@@ -1444,7 +1444,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><code>$ vol.py -f \\.\pmem --profile Win7SP0x64
 ...
 
-In [1]: run -i dumper.py  <img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" />
+In [1]: run -i dumper.py  <img src="images/icons/callouts/1.png" alt="1" />
 In [2]: ls -l
 
 total 300
@@ -1452,7 +1452,7 @@ total 300
 ....</code></pre>
 </div></div>
 <div class="colist arabic"><table>
-<tr><td><img src="/home/scudette/build/asciidoc-8.6.8/images/icons/callouts/1.png" alt="1" /></td><td>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 Running the script with the -i flag ensures that the script receives the
 same namespace as the interactive shell. This means that it can use the same
 session and we can see all variables defined by the script.
@@ -1461,7 +1461,7 @@ session and we can see all variables defined by the script.
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
-<img src="/home/scudette/build/asciidoc-8.6.8/images/icons/important.png" alt="Important" />
+<img src="images/icons/important.png" alt="Important" />
 </td>
 <td class="content">
 <div class="paragraph"><p>In the interactive shell IPython will automatically attempt to execute plugins
@@ -1531,7 +1531,7 @@ Plugins
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-09-23 16:01:57 CEST
+Last updated 2012-10-02 16:26:21 CEST
 </div>
 </div>
 </body>
