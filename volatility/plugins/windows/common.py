@@ -381,7 +381,10 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
            pid: A single pid.
 
            proc_regex: A regular expression for filtering process name (using
-              _EPROCESS.ImageFileName).
+             _EPROCESS.ImageFileName).
+
+           eprocess_head: Use this as the start of the process listing (in case
+             PsActiveProcessHead is missing).
         """
         super(WinProcessFilter, self).__init__(**kwargs)
 

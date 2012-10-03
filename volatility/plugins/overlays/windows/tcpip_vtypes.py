@@ -210,7 +210,7 @@ tcpip_vtypes_vista_64 = {
     'Local' : [ 0x0, ['pointer', ['_LOCAL_ADDRESS']]],
     'Remote' : [ 0x10, ['pointer', ['_IN_ADDR']]],
     }],
-    '_TCP_ENDPOINT': [ 0x320, { # TcpE
+    '_TCP_ENDPOINT': [ 0x210, { # TcpE
     'InetAF' : [ 0x18, ['pointer', ['_INETAF']]],
     'AddrInfo' : [ 0x20, ['pointer', ['_ADDRINFO']]],
     'ListEntry': [ 0x28, ['_LIST_ENTRY']],
@@ -242,7 +242,7 @@ tcpip_vtypes_vista_64 = {
     'RemoteAddress' : [ 0x40, ['pointer', ['_IN_ADDR']]],
     'CreateTime' : [ 0, ['WinTimeStamp', {}]],
     }],
-    '_UDP_ENDPOINT': [ 0x150, { # UdpA
+    '_UDP_ENDPOINT': [ 0x82, { # UdpA
     'Owner' : [ 0x28, ['pointer', ['_EPROCESS']]],
     'CreateTime' : [ 0x58, ['WinTimeStamp', {}]],
     'LocalAddr' : [ 0x60, ['pointer', ['_LOCAL_ADDRESS']]],

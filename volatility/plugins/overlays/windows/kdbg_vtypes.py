@@ -119,7 +119,7 @@ kdbg_overlay = {
 kdbg_vtypes = {
 '_DBGKD_DEBUG_DATA_HEADER64' : [  0x18, {
   'List' : [ 0x0, ['LIST_ENTRY64']],
-  'OwnerTag' : [ 0x10, ['unsigned long']],
+  'OwnerTag' : [ 0x10, ['String', dict(length=4)]],
   'Size' : [ 0x14, ['unsigned long']],
 } ],
 

@@ -113,36 +113,3 @@ class HashDump(LSADump):
     def render(self, outfd):
         for d in self.calculate():
             outfd.write(d + "\n")
-
-
-
-class HiveDump(registry.RegistryPlugin):
-    """Prints out a hive"""
-
-    __name = "hivedump"
-
-    def _key_iterator(self, key):
-        for subkey in key.subkeys():
-            yield subkey
-            for subsubkey in self._key_iterator(subkey):
-                yield subsubkey
-
-    def render(self, renderer):
-        seen = set()
-
-        for hive_offset in self.hive_offsets:
-            if hive_offset in seen: continue
-
-            reg = registry.RegistryHive(
-                hive_offset=hive_offset,
-                kernel_address_space=self.kernel_address_space,
-                profile=self.profile)
-
-            renderer.section()
-            renderer.format("Hive {0}\n\n", reg.Name)
-
-            renderer.table_header([("Last Written", "timestamp", "<20"),
-                                   ("Key", "key", "")])
-
-            for key in self._key_iterator(reg.root):
-                renderer.table_row(key.LastWriteTime, key.Path)
