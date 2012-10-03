@@ -70,6 +70,10 @@ def Shell(user_session):
 
     shell.Completer._default_arguments = _default_arguments
 
+    # Do we need to pre-run something?
+    if user_session.run is not None:
+        execfile(user_session.run, user_session._locals)
+
     shell(local_ns=user_session._locals)
 
     return True

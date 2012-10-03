@@ -332,6 +332,10 @@ class InteractiveSession(Session):
         # Add all plugins to the local namespace and to their own container.
         self._update_runners()
 
+        # Some useful modules which should be available always.
+        self._locals["sys"] = sys
+        self._locals["os"] = os
+
     def v(self):
         """Re-execute the previous command."""
         if self.last:
