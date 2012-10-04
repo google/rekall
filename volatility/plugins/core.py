@@ -388,7 +388,7 @@ class DirectoryDumperMixin(object):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(DirectoryDumperMixin, cls).args(parser)
-        parser.add_argument("--dump-dir", required=True,
+        parser.add_argument("-D", "--dump-dir", required=True,
                             help="Path suitable for dumping files (required).")
 
     def __init__(self, dump_dir=None, **kwargs):

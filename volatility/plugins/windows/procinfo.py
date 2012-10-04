@@ -130,6 +130,13 @@ class PEInfo(plugin.Command):
             status = 'M' if function.dereference() else "-"
             renderer.table_row(function, status, ordinal, u"%s!%s" % (dll, name))
 
+        renderer.format("Version Information:\n")
+        renderer.table_header([('key', 'key', '<20'),
+                               ('value', 'value', '')])
+
+        for k, v in pe_helper.VersionInformation():
+            renderer.table_row(k, v)
+
 
 class ProcInfo(common.WinProcessFilter):
     """Dump detailed information about a running process."""

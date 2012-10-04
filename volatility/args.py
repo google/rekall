@@ -73,6 +73,18 @@ class ArrayIntParser(IntParser):
         setattr(namespace, self.dest, result)
 
 
+class ArrayStringParser(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        result = []
+        if isinstance(values, basestring):
+            values = [values]
+
+        for value in values:
+            result.extend([x for x in value.split(",")])
+
+        setattr(namespace, self.dest, result)
+
+
 class MockArgParser(object):
     def add_argument(self, short_flag="", long_flag="", dest="", **kwargs):
         if short_flag.startswith("--"):

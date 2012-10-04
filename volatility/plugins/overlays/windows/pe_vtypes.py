@@ -1094,7 +1094,7 @@ class _IMAGE_RESOURCE_DIRECTORY(obj.CType):
     def Open(self, node_name):
         """Opens a specific node child."""
         for entry in self.Entries:
-            if entry.Name == node_name:
+            if entry.Name == node_name or entry.Type == node_name:
                 return entry.Entry
 
         return obj.NoneObject("node %s not found" % node_name)

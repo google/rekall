@@ -1,0 +1,16 @@
+Volatility Technology Preview Further Information
+=================================================
+
+This document outlines futher information specifically focused on the Volatility
+Technology Preview. As the new framework matures and eabled further development,
+more information is becoming available online.
+
+
+Conferences and Workshops.
+--------------------------
+
+The following list are links to presentations and workshops that have been
+developed specifically for the Tech Preview release.
+
+- http://bit.ly/DFRWS_2012_Memory_Workshop[DFRWS 2012: Memory Forensics With Volatility Workshop]
+- http://bit.ly/OSDFC_Memory_Workshop[Open Source Digital Forensics Conference 2012]

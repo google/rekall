@@ -19,6 +19,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from volatility import args
 from volatility import obj
 from volatility import utils
 from volatility.plugins.windows import common
@@ -33,11 +34,12 @@ class Handles(common.WinProcessFilter):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(Handles, cls).args(parser)
-        parser.add_argument("--object_type", nargs="+",
-                            help="Types of objects to show.")
+        parser.add_argument(
+            "-t", "--object_types", action=args.ArrayStringParser, nargs="+",
+            help="Types of objects to show.")
 
 
-    def __init__(self, object_type=None, silent=None, **kwargs):
+    def __init__(self, object_types=None, silent=None, **kwargs):
         """Lists the handles for processes.
 
         Args:
@@ -45,10 +47,7 @@ class Handles(common.WinProcessFilter):
           silent: Suppress less meaningful results
         """
         super(Handles, self).__init__(**kwargs)
-        if isinstance(object_type, basestring):
-            object_type = ",".split(object_type)
-
-        self.object_list = object_type
+        self.object_list = object_types
         self.silent = silent
 
     def full_key_name(self, handle):

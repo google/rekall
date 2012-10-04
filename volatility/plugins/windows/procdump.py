@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+import logging
 import os
 import re
 import struct
@@ -26,16 +27,29 @@ import struct
 from volatility.plugins.overlays.windows import pe_vtypes
 from volatility.plugins.windows import common
 from volatility.plugins import core
+from volatility import args
 from volatility import plugin
 from volatility import utils
 
 
-class PEDump(plugin.Command):
+class PEDump(common.WinProcessFilter):
     """Dump a PE binary from memory."""
 
     __name = "pedump"
 
-    def __init__(self, address_space=None, image_base=None, fd=None, filename=None,
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(PEDump, cls).args(parser)
+        parser.add_argument(
+            "--image-base", default=0, action=args.IntParser,
+            help="The address of the image base (dos header).")
+
+        parser.add_argument("--output", default=None,
+                            help="The file name to write.")
+
+
+    def __init__(self, address_space=None, image_base=None, fd=None, output=None,
                  **kwargs):
         """Dump a PE binary from memory.
 
@@ -45,7 +59,7 @@ class PEDump(plugin.Command):
           fd: The output file like object which will be used to write the file
             onto.
 
-          filename: Alternatively a filename can be provided to write the PE
+          output: Alternatively a filename can be provided to write the PE
             file to.
         """
         super(PEDump, self).__init__(**kwargs)
@@ -54,9 +68,11 @@ class PEDump(plugin.Command):
         if fd:
             self.out_fd = fd
             self.filename = "FD <%s>" % fd
-        elif filename:
-            self.out_fd = open(filename, "wb")
-            self.filename = filename
+        elif output:
+            self.out_fd = open(output, "wb")
+            self.filename = output
+        else:
+            logging.error("No output filename specified.")
 
         # Get the pe profile.
         self.pe_profile = pe_vtypes.PEProfile()
@@ -98,6 +114,23 @@ class PEDump(plugin.Command):
             fd.write(data)
 
     def render(self, renderer):
+        # Find the address_space requested by the user.
+        if self.address_space is None:
+            # The user wants to filter some process out - use its address space.
+            if self.filtering_applied:
+                for task in self.filter_processes():
+                    self.address_space = task.get_process_address_space()
+
+                    # Find only the first one.
+                    if self.address_space:
+                        logging.info("Selected process %s pid %s",
+                                     task.ImageFileName, task.UniqueProcessId)
+                        break
+            else:
+                # The user did not filter any process - use the kernel address
+                # space.
+                self.address_space = self.kernel_address_space
+
         renderer.format("Dumping PE File at image_base {0:#x} to {1}\n",
                         self.image_base, self.filename)
 
