@@ -113,35 +113,3 @@ class HashDump(LSADump):
     def render(self, outfd):
         for d in self.calculate():
             outfd.write(d + "\n")
-
-
-
-class HiveDump(common.WindowsCommandPlugin):
-    """Prints out a hive"""
-
-    __name = "hivedump"
-
-    def __init__(self, hive_offset=None, **kwargs):
-        super(HiveDump, self).__init__(**kwargs)
-        self.hive_offset = hive_offset
-
-    def get_keys(self, hive_offset=None):
-        """Iterate over all keys in this hive."""
-        hive_offset = hive_offset or self.hive_offset
-
-        reg = registry.RegistryHive(hive_offset=hive_offset,
-                                    kernel_address_space=self.kernel_address_space,
-                                    profile=self.profile)
-
-        return self._key_iterator(reg.root)
-
-    def _key_iterator(self, key):
-        for subkey in key.subkeys():
-            yield subkey
-            for subsubkey in self._key_iterator(subkey):
-                yield subsubkey
-
-    def render(self, outfd):
-        outfd.write("{0:20s} {1}\n".format("Last Written", "Key"))
-        for key in self.get_keys():
-            outfd.write("{0:20s} {1}\n".format(key.LastWriteTime, key.Path))

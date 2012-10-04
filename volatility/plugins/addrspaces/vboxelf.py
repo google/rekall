@@ -31,6 +31,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
     order = 30
 
     __name = "elf64"
+    _md_image = True
 
     def __init__(self, **kwargs):
         super(Elf64CoreDump, self).__init__(**kwargs)

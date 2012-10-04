@@ -50,8 +50,8 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
     ## We should be the AS of last resort but in front of the non win32 version.
     order = 90
-
     PAGE_SIZE = 0x10000
+    _md_image = True
 
     def __init__(self, base=None, filename=None, session=None, **kwargs):
         self.as_assert(base == None, 'Must be first Address Space')
@@ -75,7 +75,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         try:
             self.ParseMemoryRuns()
         except Exception:
-            self.runs = [[0, win32file.GetFileSize(self.fhandle)]]
+            self.runs = [[0, 0, win32file.GetFileSize(self.fhandle)]]
 
         # IO on windows is extremely slow so we are better off using a
         # cache.
@@ -105,6 +105,19 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         win32file.SetFilePointer(self.fhandle, offset, 0)
         _, data = win32file.ReadFile(self.fhandle, min(length, available_length))
         return data
+
+    def write(self, addr, data):
+        length=len(data)
+        offset, available_length = self._get_available_buffer(addr, length)
+        if offset is None:
+            return
+
+        to_write = min(len(data), available_length)
+        win32file.SetFilePointer(self.fhandle, offset, 0)
+
+        win32file.WriteFile(self.fhandle, data[:to_write])
+
+        return to_write
 
     def close(self):
         win32file.CloseHandle(self.fhandle)

@@ -16,21 +16,13 @@
 
 #include "read.h"
 
-static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension,
-                                      LARGE_INTEGER offset, PCHAR buf,
-                                      ULONG count) {
-  ULONG page_offset = offset.QuadPart % PAGE_SIZE;
-  ULONG to_read = min(PAGE_SIZE - page_offset, count);
-  PUCHAR mapped_buffer = NULL;
-  SIZE_T ViewSize = PAGE_SIZE;
+static int EnsureExtensionHandle(PDEVICE_EXTENSION extension) {
   NTSTATUS NtStatus;
-
+  UNICODE_STRING PhysicalMemoryPath;
+  OBJECT_ATTRIBUTES MemoryAttributes;
 
   /* Make sure we have a valid handle now. */
   if(!extension->MemoryHandle) {
-    UNICODE_STRING PhysicalMemoryPath;
-    OBJECT_ATTRIBUTES MemoryAttributes;
-
     RtlInitUnicodeString(&PhysicalMemoryPath, L"\\Device\\PhysicalMemory");
 
     InitializeObjectAttributes(&MemoryAttributes,
@@ -44,22 +36,38 @@ static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension,
 
     if (!NT_SUCCESS(NtStatus)) {
       WinDbgPrint("Failed ZwOpenSection(MemoryHandle) => %08X\n", NtStatus);
-      return -1;
+      return 0;
     }
   };
 
-  /* Map page into the Kernel AS */
-  NtStatus = ZwMapViewOfSection(extension->MemoryHandle, (HANDLE) -1,
-                                &mapped_buffer, 0L, PAGE_SIZE, &offset,
-                                &ViewSize, ViewUnmap, 0, PAGE_READONLY);
+  return 1;
+}
 
-  if (NT_SUCCESS(NtStatus)) {
-    RtlCopyMemory(buf, mapped_buffer + page_offset, to_read);
-    ZwUnmapViewOfSection((HANDLE)-1, mapped_buffer);
 
-  } else {
-    WinDbgPrint("Failed to Map page at 0x%llX\n", offset.QuadPart);
-    RtlZeroMemory(buf, to_read);
+static LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension,
+                                      LARGE_INTEGER offset, PCHAR buf,
+                                      ULONG count) {
+  ULONG page_offset = offset.QuadPart % PAGE_SIZE;
+  ULONG to_read = min(PAGE_SIZE - page_offset, count);
+  PUCHAR mapped_buffer = NULL;
+  SIZE_T ViewSize = PAGE_SIZE;
+  NTSTATUS NtStatus;
+
+
+  if (EnsureExtensionHandle(extension)) {
+    /* Map page into the Kernel AS */
+    NtStatus = ZwMapViewOfSection(extension->MemoryHandle, (HANDLE) -1,
+				  &mapped_buffer, 0L, PAGE_SIZE, &offset,
+				  &ViewSize, ViewUnmap, 0, PAGE_READONLY);
+
+    if (NT_SUCCESS(NtStatus)) {
+      RtlCopyMemory(buf, mapped_buffer + page_offset, to_read);
+      ZwUnmapViewOfSection((HANDLE)-1, mapped_buffer);
+
+    } else {
+      WinDbgPrint("Failed to Map page at 0x%llX\n", offset.QuadPart);
+      RtlZeroMemory(buf, to_read);
+    };
   };
 
   return to_read;
@@ -125,8 +133,19 @@ NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
   LARGE_INTEGER BufOffset; // The file offset requested from userspace.
   ULONG DataLen;  //Buffer length for Driver Data Buffer
   PIO_STACK_LOCATION pIoStackIrp;
-  PDEVICE_EXTENSION extension = DeviceObject->DeviceExtension;
+  PDEVICE_EXTENSION extension;
   NTSTATUS status = STATUS_SUCCESS;
+
+  // We must be running in PASSIVE_LEVEL or we bluescreen here. We
+  // theoretically should always be running at PASSIVE_LEVEL here, but
+  // in case we ended up here at the wrong IRQL its better to bail
+  // than to bluescreen.
+  if(KeGetCurrentIrql() != PASSIVE_LEVEL) {
+    status = STATUS_ABANDONED;
+    goto exit;
+  };
+
+  extension = DeviceObject->DeviceExtension;
 
   pIoStackIrp = IoGetCurrentIrpStackLocation(Irp);
   BufLen = pIoStackIrp->Parameters.Read.Length;
@@ -150,13 +169,82 @@ NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
 
   default:
     WinDbgPrint("Acquisition mode %u not supported.\n", extension->mode);
-    status = -1;
+    status = STATUS_NOT_IMPLEMENTED;
     BufLen = 0;
   }
 
+ exit:
   Irp->IoStatus.Status = status;
   IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-  return STATUS_SUCCESS;
+  return status;
 }
 
+#if PMEM_WRITE_ENABLED == 1
+
+NTSTATUS PmemWrite(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
+  PVOID Buf;       //Buffer provided by user space.
+  ULONG BufLen;    //Buffer length for user provided buffer.
+  LARGE_INTEGER BufOffset; // The file offset requested from userspace.
+  PIO_STACK_LOCATION pIoStackIrp;
+  PDEVICE_EXTENSION extension;
+  NTSTATUS status = STATUS_SUCCESS;
+  SIZE_T ViewSize = PAGE_SIZE;
+  PUCHAR mapped_buffer = NULL;
+  ULONG page_offset = 0;
+  LARGE_INTEGER offset;
+
+  // We must be running in PASSIVE_LEVEL or we bluescreen here. We
+  // theoretically should always be running at PASSIVE_LEVEL here, but
+  // in case we ended up here at the wrong IRQL its better to bail
+  // than to bluescreen.
+  if(KeGetCurrentIrql() != PASSIVE_LEVEL) {
+    status = STATUS_ABANDONED;
+    goto exit;
+  };
+
+  extension = DeviceObject->DeviceExtension;
+
+  if (!extension->WriteEnabled) {
+    status = STATUS_ACCESS_DENIED;
+    WinDbgPrint("Write mode not enabled.\n");
+    goto exit;
+  };
+
+  pIoStackIrp = IoGetCurrentIrpStackLocation(Irp);
+  BufLen = pIoStackIrp->Parameters.Write.Length;
+
+  // Where to write exactly.
+  BufOffset = pIoStackIrp->Parameters.Write.ByteOffset;
+  Buf = (PCHAR)(Irp->AssociatedIrp.SystemBuffer);
+
+  page_offset = BufOffset.QuadPart % PAGE_SIZE;
+  offset.QuadPart = BufOffset.QuadPart - page_offset;  // Page aligned.
+
+  // How much we need to write rounded up to the next page.
+  ViewSize = BufLen + page_offset;
+  ViewSize += PAGE_SIZE - (ViewSize % PAGE_SIZE);
+
+  /* Map memory into the Kernel AS */
+  if (EnsureExtensionHandle(extension)) {
+    status = ZwMapViewOfSection(extension->MemoryHandle, (HANDLE) -1,
+				&mapped_buffer, 0L, PAGE_SIZE, &offset,
+				&ViewSize, ViewUnmap, 0, PAGE_READWRITE);
+
+    if (NT_SUCCESS(status)) {
+      RtlCopyMemory(mapped_buffer + page_offset, Buf, BufLen);
+      ZwUnmapViewOfSection((HANDLE)-1, mapped_buffer);
+    } else {
+      WinDbgPrint("Failed to map view %lld %ld (%ld).\n", offset, ViewSize,
+		  status);
+    }
+  }
+
+ exit:
+  Irp->IoStatus.Status = status;
+  IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+  return status;
+}
+
+#endif

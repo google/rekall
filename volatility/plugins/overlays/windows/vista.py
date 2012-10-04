@@ -195,6 +195,12 @@ class VistaSP1x86(basic.Profile32Bits, AbstractVistaProfile):
 
         self.add_types(vista_sp1_x86_vtypes.ntkrnlmp_types)
 
+class VistaSP1x86PAE(VistaSP1x86):
+    """A Profile for Windows Vista SP1 x86 PAE."""
+    # For now we pretend its the same as the non PAE version. TODO: generate
+    # profiles.
+    _md_pae = True
+
 
 class VistaSP1x64(basic.Profile64Bits, AbstractVistaProfile):
     """A Profile for Windows Vista SP1 x64."""

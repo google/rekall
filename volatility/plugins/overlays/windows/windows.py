@@ -31,6 +31,13 @@ from volatility.plugins.overlays.windows import pe_vtypes
 # files, collecting debugging symbol data etc. This file defines
 # fixups and improvements to the standard types.
 windows_overlay = {
+    '_UNICODE_STRING': [None, {
+            'Buffer': [None, ['Pointer', dict(
+                        target='UnicodeString', 
+                        target_args=dict(length=lambda x: x.Length)
+                        )]],
+            }],
+
     '_EPROCESS' : [ None, {
     'CreateTime' : [ None, ['WinTimeStamp', {}]],
     'ExitTime' : [ None, ['WinTimeStamp', {}]],
@@ -330,6 +337,9 @@ class _UNICODE_STRING(obj.CType):
     def __str__(self):
         return self.v() or ""
 
+    def write(self, string):
+        self.Buffer.dereference().write(string)
+        self.Length = len(string) * 2
 
 
 class _EPROCESS(obj.CType):

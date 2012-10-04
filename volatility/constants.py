@@ -16,8 +16,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-VERSION = "3.0_tp1"
+VERSION = "3.0_tp2"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
+
 BANNER = """
 The Volatility Memory Forensic Framework technology preview (%s).
 

@@ -41,6 +41,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
     """
     ## We should be the AS of last resort but before the FileAddressSpace
     order = 90
+    _md_image = True
 
     def __init__(self, filename=None, **kwargs):
         super(MmapFileAddressSpace, self).__init__(**kwargs)

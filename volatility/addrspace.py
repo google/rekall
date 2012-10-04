@@ -44,6 +44,13 @@ class BaseAddressSpace(object):
     # This can be used to name the address space (e.g. process if etc).
     name = ""
 
+    # Some useful metadata for address spaces.
+
+    # The signifies that this address space normally operates on memory
+    # images. This flag controls if this address space will participate in
+    # address space autoselection for image detection.
+    _md_image = False
+
     def __init__(self, base=None, session=None, write=False, profile=None,
                  **kwargs):
         """Base is the AS we will be stacking on top of, opts are options which
@@ -139,6 +146,9 @@ class BaseAddressSpace(object):
         contiguous_poffset = 0
         total_length = 0
         for (voffset, length) in self.get_available_addresses():
+            # This can take sometime as we enumerate all the address ranges.
+            self.session.report_progress()
+
             # Try to join up adjacent pages as much as possible.
             if (voffset == contiguous_voffset + total_length and
                 self.vtop(voffset) == contiguous_poffset + total_length):
@@ -148,7 +158,7 @@ class BaseAddressSpace(object):
 
                 # Reset the contiguous range.
                 contiguous_voffset = voffset
-                contiguous_poffset = self.vtop(voffset)
+                contiguous_poffset = self.vtop(voffset) or 0
                 total_length = length
 
         if total_length > 0:
@@ -163,9 +173,12 @@ class BaseAddressSpace(object):
         """ Tell us if the address is valid """
         return True
 
-    def write(self, _addr, _buf):
-        raise NotImplementedError("Write support for this type of Address Space"
-                                  " has not been implemented")
+    def write(self, addr, buf):
+        try:
+            return self.base.write(self.vtop(addr), buf)
+        except AttributeError:
+            raise NotImplementedError("Write support for this type of Address Space"
+                                      " has not been implemented")
 
     def vtop(self, addr):
         """Return the physical address of this virtual address."""
@@ -195,22 +208,6 @@ class DummyAddressSpace(BaseAddressSpace):
 
     def read(self, _offset, length):
         return '0x00' * length
-
-
-class AbstractVirtualAddressSpace(BaseAddressSpace):
-    """Base Ancestor for all Virtual address spaces, as determined by astype"""
-    __abstract = True
-
-    def __init__(self, astype = 'virtual', **kwargs):
-        super(AbstractVirtualAddressSpace, self).__init__(**kwargs)
-        self.astype = astype
-
-        self.as_assert(self.astype == 'virtual' or self.astype == 'any',
-                       "User requested non-virtual AS")
-
-    def vtop(self, vaddr):
-        raise NotImplementedError("This is a virtual class and should not be "
-                                  "referenced directly")
 
 
 ## This is a specialised AS for use internally - Its used to provide
@@ -355,7 +352,7 @@ class PagedReader(BaseAddressSpace):
 
     def is_valid_address(self, addr):
         vaddr = self.vtop(addr)
-        return self.base.is_valid_address(vaddr)
+        return vaddr is not None and self.base.is_valid_address(vaddr)
 
     def get_available_addresses(self):
         for start, length in self.get_available_pages():

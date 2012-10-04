@@ -27,6 +27,7 @@ class MACHOCoreDump(addrspace.RunBasedAddressSpace):
     """This AS supports MACH-O coredump files."""
 
     __name = "macho64"
+    _md_image = True
 
     def __init__(self, **kwargs):
         super(MACHOCoreDump, self).__init__(**kwargs)

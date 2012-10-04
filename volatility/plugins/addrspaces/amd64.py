@@ -51,14 +51,6 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
     _md_memory_model = "64bit"
 
-    def __init__(self, **kwargs):
-        super(AMD64PagedMemory, self).__init__(**kwargs)
-
-        # Make sure that we only support 64 bit profiles here.
-        if (self.session and
-            self.session.profile.metadata('memory_model') == "64bit"):
-            self.as_assert(0, "Only supporting 64 memory models.")
-
     def pml4e_index(self, vaddr):
         '''
         Returns the Page Map Level 4 Entry Index number from the given
@@ -168,9 +160,16 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                         yield (vaddr, 0x200000)
                         continue
 
-                    tmp = vaddr
-                    for pte in range(0, 0x200):
-                        vaddr = tmp | (pte << 12)
-                        pte_value = self.get_pte(vaddr, pde_value)
+                    # This reads the entire PTE table at once - On
+                    # windows where IO is extremely expensive, its
+                    # about 10 times more efficient than reading it
+                    # one value at the time - and this loop is HOT!
+                    pte_table_addr = ((pde_value & 0xffffffffff000) |
+                                      ((vaddr & 0x1ff000) >> 9))
+
+                    data = self.base.zread(pte_table_addr, 8 * 0x200)
+                    pte_table = struct.unpack("<" + "Q" * 0x200, data)
+
+                    for i, pte_value in enumerate(pte_table):
                         if self.entry_present(pte_value):
-                            yield (vaddr, 0x1000)
+                            yield (vaddr | i << 12, 0x1000)

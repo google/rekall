@@ -51,7 +51,7 @@ class SentinalArray(obj.Array):
 
 class RVAPointer(obj.Pointer):
     """A pointer through a relative virtual address."""
-    ImageBase = 0
+    image_base = 0
 
     def __init__(self, image_base=None, **kwargs):
         super(RVAPointer, self).__init__(**kwargs)
@@ -1094,7 +1094,7 @@ class _IMAGE_RESOURCE_DIRECTORY(obj.CType):
     def Open(self, node_name):
         """Opens a specific node child."""
         for entry in self.Entries:
-            if entry.Name == node_name:
+            if entry.Name == node_name or entry.Type == node_name:
                 return entry.Entry
 
         return obj.NoneObject("node %s not found" % node_name)
@@ -1327,6 +1327,9 @@ class PEFileImplementation(obj.ProfileModification):
                 "VS_VERSIONINFO": VS_VERSIONINFO,
                 })
         profile.add_overlay(pe_overlays)
+
+        return profile
+
 
 class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
     """A profile for PE files."""

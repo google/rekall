@@ -30,6 +30,7 @@ class PoolScanWind(common.PoolScanner):
 
     def __init__(self, **kwargs):
         super(PoolScanWind, self).__init__(**kwargs)
+
         self.checks = [('PoolTagCheck', dict(
                     tag=self.profile.get_constant("PoolTag_WindowStation"))),
 

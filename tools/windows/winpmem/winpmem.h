@@ -17,6 +17,17 @@
 #ifndef _WINPMEM_H_
 #define _WINPMEM_H_
 
+/* These should be changed for incident response purposes to prevent trivial
+ * rootkit subversion.
+ */
+#define SILENT_OPERATION 0
+#define PMEM_DEVICE_NAME L"pmem"
+#define PMEM_VERSION "v1.1"
+
+// In order to enable writing this must be set to 1 and the
+// appropriate IOCTL must be sent to switch the deriver to write mode.
+#define PMEM_WRITE_ENABLED 1
+
 #include <ntifs.h>
 #include <wdmsec.h>
 #include <initguid.h>
@@ -32,6 +43,8 @@
 #define IOCTL_GET_INFO CTL_CODE(FILE_DEVICE_UNKNOWN, 0x100, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
 
 #define IOCTL_SET_MODE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x101, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+
+#define IOCTL_WRITE_ENABLE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x102, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
 
 // This is the structure which is returned.
 #pragma pack(push, 2)
@@ -56,13 +69,6 @@ struct PmemMemoryControl {
 };
 
 
-/* These should be changed for incident response purposes to prevent trivial
- * rootkit subversion.
- */
-#define SILENT_OPERATION 0
-#define PMEM_DEVICE_NAME L"pmem"
-#define PMEM_VERSION "v1.0"
-
 /* When we are silent we do not emit any debug messages. */
 #if SILENT_OPERATION == 1
 #define WinDbgPrint(fmt, ...)
@@ -80,6 +86,8 @@ typedef struct _DEVICE_EXTENSION {
 
   /* If we read from \\Device\\PhysicalMemory, this is the handle to that. */
   HANDLE MemoryHandle;
+
+  int WriteEnabled;
 } DEVICE_EXTENSION, *PDEVICE_EXTENSION;
 
 // 5e1ce668-47cb-410e-a664-5c705ae4d71b

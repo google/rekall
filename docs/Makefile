@@ -8,7 +8,7 @@ html_files := $(patsubst %.txt,%.html,$(wildcard *.txt))
 all: $(html_files)
 
 %.html: %.txt
-	asciidoc $(<F)
+	asciidoc -a icons -a iconsdir=images/icons $(<F)
 
 .PHONY: clean
 clean:

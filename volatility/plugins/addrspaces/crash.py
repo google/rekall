@@ -36,6 +36,8 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
 
     PAGE_SIZE = 0x1000
 
+    _md_image = True
+
     def __init__(self, **kwargs):
         super(WindowsCrashDumpSpace32, self).__init__(**kwargs)
 

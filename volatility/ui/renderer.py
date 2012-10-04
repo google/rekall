@@ -598,6 +598,9 @@ class TextRenderer(RendererBaseClass):
         return self.table.render_row(self, *args)
 
     def RenderProgress(self, message="", force=False, **_):
+        if not sys.stdout.isatty():
+            return
+
         # Only write once per second.
         now = time.time()
         if force or now > self.last_spin_time + 0.2:
@@ -701,7 +704,7 @@ class JsonRenderer(TextRenderer):
         self.data = dict(plugin_name=plugin_name,
                          tool_name="volatility-ng",
                          tool_version=constants.VERSION,
-                         kwargs=self.formatter.format_dict(kwargs),
+                         kwargs=self.formatter.format_dict(kwargs or {}),
                          data=[])
 
         super(JsonRenderer, self).start(plugin_name=plugin_name,
@@ -767,7 +770,7 @@ class Colorizer(object):
         color = foreground or background
 
         if not self.terminal_capable or color not in self.COLOR_MAP:
-            return string
+            return utils.SmartUnicode(string)
 
         escape_seq = ""
         if foreground:
@@ -776,5 +779,6 @@ class Colorizer(object):
         if background:
             escape_seq += curses.tparm(curses.tigetstr("setb"), self.COLOR_MAP[color])
 
-        return (escape_seq + string + curses.tigetstr("sgr0"))
+        return (escape_seq + utils.SmartUnicode(string) +
+                curses.tigetstr("sgr0"))
 
