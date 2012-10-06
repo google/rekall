@@ -233,7 +233,7 @@ class Info(plugin.Command):
 
 
 
-class LoadAddressSpace(plugin.ProfileCommand):
+class LoadAddressSpace(plugin.Command):
     """Load address spaces into the session if its not already loaded."""
 
     __name = "load_as"
@@ -266,10 +266,20 @@ class LoadAddressSpace(plugin.ProfileCommand):
                 self.session.physical_address_space = self.AddressSpaceFactory(
                     specification=self.pas_spec)
 
+
+            return self.session.physical_address_space
+
         except addrspace.ASAssertionError, e:
             logging.error("Could not create address space: %s" % e)
 
     def GetVirtualAddressSpace(self):
+        if not self.session.physical_address_space:
+            raise plugin.PluginError("Unable to find kernel address space.")
+
+        self.profile = self.session.profile
+        if self.profile is None:
+            raise plugin.PluginError("Must specify a profile to load virtual AS.")
+
         # The virual address space implementation is chosen by the profile.
         memory_model = self.profile.metadata("memory_model")
         if memory_model == "64bit":
@@ -336,7 +346,7 @@ class LoadAddressSpace(plugin.ProfileCommand):
                 logging.debug("Trying %s ", cls)
                 try:
                     base_as = cls(base=base_as, session=self.session,
-                                  profile=self.profile, **kwargs)
+                                  **kwargs)
                     logging.debug("Succeeded instantiating %s", base_as)
                     found = True
                     break
@@ -379,6 +389,12 @@ class LoadAddressSpace(plugin.ProfileCommand):
             base_as = as_cls(base=base_as, session=self.session, **kwargs)
 
         return base_as
+
+    def render(self, renderer):
+        self.session.kdbg = None
+
+        self.GetPhysicalAddressSpace()
+        self.GetVirtualAddressSpace()
 
 
 class DirectoryDumperMixin(object):
@@ -462,6 +478,10 @@ class Lister(Printer):
     _interactive = True
 
     def render(self, renderer):
+        if self.target is None:
+            logging.error("You must list something.")
+            return
+
         for item in self.target:
             self.session.plugins.p(target=item).render(renderer)
 

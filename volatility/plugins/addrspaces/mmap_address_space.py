@@ -73,9 +73,6 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
 
         return self.map[addr:addr+length]
 
-    def zread(self, addr, length):
-        return self.read(addr, length)
-
     def get_available_addresses(self):
         # TODO: Explain why this is always fsize - 1?
         yield (0, self.fsize - 1)

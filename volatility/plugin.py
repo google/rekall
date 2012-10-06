@@ -153,7 +153,7 @@ class ProfileCommand(Command):
 
         # Require a valid profile.
         self.profile = profile or self.session.profile
-        if self.profile is None:
+        if not self.profile:
             raise PluginError("Profile not specified. (use vol(plugins.info) "
                               "to see available profiles.).")
 

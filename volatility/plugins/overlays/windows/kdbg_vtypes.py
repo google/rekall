@@ -112,6 +112,15 @@ kdbg_overlay = {
                             "target_args": dict(target="_KPRCB"),
                             }
                         }]],
+
+            'MmPhysicalMemoryBlock': [None, [
+                    'Pointer', dict(
+                        target='Pointer',
+                        target_args=dict(
+                            target='_PHYSICAL_MEMORY_DESCRIPTOR'
+                            )
+                        )
+                    ]],
             }],
     }
 

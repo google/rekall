@@ -102,7 +102,7 @@ class BaseAddressSpace(object):
         return data
 
     def get_available_addresses(self):
-        """Generates of address ranges as (offset, size) for by this AS."""
+        """Generates address ranges as (offset, size) for by this AS."""
         return []
 
     def get_address_ranges(self, start=0, end=None):

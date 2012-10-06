@@ -21,6 +21,7 @@
 @license:      GNU General Public License 2.0 or later
 """
 import logging
+import re
 import sys
 
 from volatility import registry
@@ -113,7 +114,9 @@ class BaseScanner(object):
         Yields:
           offsets where all the constrainst are satisfied.
         """
-        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+        if maxlen is None:
+            last_range = list(self.address_space.get_available_addresses())[-1]
+            maxlen = last_range[0] + last_range[1]
 
         # Delay building the constraints so they can be added after scanner
         # construction.
@@ -243,6 +246,44 @@ class MultiStringFinderCheck(ScannerCheck):
                 nextval = min(nextval, dindex + 1)
 
         return nextval - offset
+
+
+class StringCheck(ScannerCheck):
+    maxlen = 100
+
+    def __init__(self, needle=None, **kwargs):
+        super(StringCheck, self).__init__(**kwargs)
+        self.needle = needle
+
+    def check(self, offset):
+        return self.address_space.read(offset, len(self.needle)) == self.needle
+
+    def skip(self, data, offset, base_offset=None):
+        dindex = data.find(self.needle, offset + 1)
+        if dindex > -1:
+            return dindex + 1 - offset
+
+        return len(data) - offset
+
+
+class RegexCheck(ScannerCheck):
+    """This check can be quite slow."""
+    maxlen = 100
+
+    def __init__(self, regex = None, **kwargs):
+        super(RegexCheck, self).__init__(**kwargs)
+        self.regex = re.compile(regex)
+
+    def check(self, offset):
+        verify = self.address_space.read(offset, self.maxlen)
+        return bool(self.regex.match(verify))
+
+    def skip(self, data, offset, base_offset=None):
+        m = self.regex.search(data[offset:])
+        if m:
+            return m.start() + 1
+
+        return len(data) - offset
 
 
 class ScannerGroup(BaseScanner):

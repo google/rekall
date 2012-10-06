@@ -201,7 +201,17 @@ def LoadPlugins(paths=None):
             logging.error("Plugin %s has incorrect extension.", path)
 
 
-def parse_args(argv=None):
+def UpdateSessionFromArgv(user_session, FLAGS):
+    result = {}
+    for k, v in FLAGS.__dict__.items():
+        if v is not None:
+            setattr(user_session, k.replace("-", "_"), v)
+            result[k] = v
+
+    return result
+
+
+def parse_args(argv=None, user_session=None):
     """Parse the args from the command line argv."""
     parser =  VolatilityArgParser(description=constants.BANNER,
                                   conflict_handler='resolve',
@@ -251,8 +261,15 @@ def parse_args(argv=None):
 
     # Figure out the profile
     known_args, unknown_args = parser.parse_known_args(args=argv)
+    logging.getLogger().setLevel(
+        getattr(logging, known_args.logging.upper()))
+
     try:
-        user_session = session.Session(profile=known_args.profile)
+        UpdateSessionFromArgv(user_session, known_args)
+
+        if not user_session.profile:
+            guesser = user_session.plugins.guess_profile()
+            guesser.update_session()
 
         # Module specific args.
         subparsers = parser.add_subparsers(
@@ -269,9 +286,6 @@ def parse_args(argv=None):
         # The parser may complain here if we are using options etc that are
         # introduced by user plugins - so we suppress it for this run.
         parser.parse_known_args(argv, namespace, force=True)
-
-        # This is the earliest point we can initialize the logger:
-        logging.getLogger().setLevel(getattr(logging, namespace.logging.upper()))
 
         # Now load the user plugins.
         LoadPlugins(namespace.plugin)

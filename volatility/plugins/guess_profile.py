@@ -20,6 +20,10 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import logging
+
+from volatility import addrspace
+
 from volatility import plugin
 from volatility import obj
 from volatility import scan
@@ -36,73 +40,168 @@ from volatility.plugins.overlays import basic
 class IdleScanner(scan.BaseScanner):
     def __init__(self, process_names=None, **kwargs):
         super(IdleScanner, self).__init__(**kwargs)
-        self.checks = [('MultiStringFinderCheck', dict(needles=process_names))]
+        self.checks = [('MultiStringFinderCheck', dict(
+                    needles=process_names))]
 
 
-class TestProfile(basic.Profile64Bits, basic.BasicWindowsClasses):
+class TestProfile32(basic.Profile32Bits, basic.BasicWindowsClasses):
     def __init__(self, **kwargs):
-        super(TestProfile, self).__init__(**kwargs)
+        super(TestProfile32, self).__init__(**kwargs)
         self.add_overlay(eprocess_vtypes)
 
 
-class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
+class TestProfile64(basic.Profile64Bits, basic.BasicWindowsClasses):
+    def __init__(self, **kwargs):
+        super(TestProfile64, self).__init__(**kwargs)
+        self.add_overlay(eprocess_vtypes)
+
+
+class GuessProfile(plugin.Command):
     """Guess the exact windows profile using heuristics."""
 
     __name = "guess_profile"
 
-    def __init__(self, process_names=("Idle",), **kwargs):
-        super(GuessProfile, self).__init__(**kwargs)
-        self.process_names = process_names
+    DEFAULT_PROCESS_NAMES = ['System']
 
-    def guess_using_idle_process(self):
+    def __init__(self, process_names=None, quick=True, **kwargs):
+        """Guess the potential windows profiles which could be used.
+
+        Args:
+          process_names: A list of process names to search for - default System.
+
+          quick: If set we just update the session profile and quit after the
+            first result is found.
+        """
+        super(GuessProfile, self).__init__(**kwargs)
+        self.process_names = process_names or self.DEFAULT_PROCESS_NAMES
+        self.process_names = [
+            x + "\x00" * (15 - len(x)) for x in self.process_names]
+
+        self.quick = quick
+
+    def guess_profile(self):
         """Guess using the Idle process technique."""
-        test_profile = TestProfile()
+        # First ensure there is an address space
+        if not self.session.physical_address_space:
+            return
+
+        test_profile32 = TestProfile32()
+        test_profile64 = TestProfile64()
 
         scanner = IdleScanner(session=self.session,
                               process_names=self.process_names,
                               address_space=self.session.physical_address_space)
 
+        # Precalculate the offsets to save time later.
+        lookup_map = {}
+        for name, cls in obj.Profile.classes.items():
+            if cls.metadata("os") == "windows":
+                if cls.metadata("memory_model") == "64bit":
+                    test_profile = test_profile64
+                else:
+                    test_profile = test_profile32
+
+                try:
+                    eprocess_offset = test_profile.get_obj_offset(
+                        name, 'ImageFileName')
+                except AttributeError:
+                    logging.warning("Missing definition for profile %s", name)
+                    continue
+
+                lookup_map[name] = (test_profile, eprocess_offset, cls)
+
+        logging.info("Searching for suitable System Process")
         for hit in scanner.scan():
             # Try every profile until one works.
-            for name, cls in obj.Profile.classes.items():
-                if cls.metadata("os") == "windows":
-                    eprocess_offset = hit - test_profile.get_obj_offset(
-                        name, 'ImageFileName')
+            for name, (test_profile, eprocess_offset, cls) in lookup_map.items():
+                eprocess = test_profile.Object(
+                    name, vm=self.session.physical_address_space,
+                    offset=hit - eprocess_offset)
 
-                    if eprocess_offset == 0x02813140:
-                        import pdb; pdb.set_trace()
+                if eprocess.UniqueProcessId == 0 or eprocess.UniqueProcessId > 10:
+                    continue
 
-                    eprocess = test_profile.Object(
-                        name,
-                        vm=self.session.physical_address_space,
-                        offset=eprocess_offset)
+                dtb = eprocess.DirectoryTableBase.v()
 
-                    dtb = eprocess.DirectoryTableBase.v()
-                    # In windows the DTB must be page aligned.
-                    if dtb < 0xFF or dtb & 0xFFF != 0:
-                        continue
+                address_space = self.verify_profile(cls, eprocess, dtb)
+                if address_space:
+                    yield cls(), address_space
 
-                    try:
-                        # Make an address space to test the dtb
-                        if cls.metadata("memory_model") == "64bit":
-                            virtual_as = amd64.AMD64PagedMemory(
-                                session=self.session,
-                                base=self.session.physical_address_space,
-                                dtb=dtb)
-                        else:
-                            virtual_as = intel.IA32PagedMemoryPae(
-                                session=self.session,
-                                base=self.session.physical_address_space,
-                                dtb=dtb)
-                    except addrspaces.Error:
-                        continue
+    def verify_address_space(self, profile_cls, eprocess, address_space):
+        """Check the eprocess for sanity."""
 
-                    import pdb; pdb.set_trace()
+        # In windows the DTB must be page aligned.
+        if address_space.dtb & 0xFFF != 0:
+            return False
 
+        # Reflect through the address space at ourselves.
+        list_head = eprocess.ThreadListHead.Flink
+        if list_head == 0:
+            return False
+
+        me = list_head.dereference(vm=address_space).Blink.Flink
+        if me.v() != list_head.v():
+            return False
+
+        return True
+
+    def verify_profile(self, profile_cls, eprocess, dtb):
+        """Verify potential profiles against the dtb hit."""
+
+        # Make an address space to test the dtb
+        try:
+            if profile_cls.metadata("memory_model") == "64bit":
+                virtual_as = amd64.AMD64PagedMemory(
+                    session=self.session,
+                    base=self.session.physical_address_space,
+                    dtb=dtb)
+            elif profile_cls.metadata("pae"):
+                virtual_as = intel.IA32PagedMemoryPae(
+                    session=self.session,
+                    base=self.session.physical_address_space,
+                    dtb=dtb)
+            else:
+                virtual_as = intel.IA32PagedMemory(
+                    session=self.session,
+                    base=self.session.physical_address_space,
+                    dtb=dtb)
+
+        except addrspace.Error:
+            return
+
+        # Do some basic checks of the address space.
+        if not self.verify_address_space(profile_cls, eprocess, virtual_as):
+            return
+
+        return virtual_as
+
+    def update_session(self):
+        """Try to update the session from the profile guess."""
+        logging.info("Examining image for possible profiles.")
+
+        for profile, virtual_as in self.guess_profile():
+            self.session.profile = profile
+            self.session.kernel_address_space = virtual_as
+            self.session.dtb = virtual_as.dtb
+            logging.info("Autoselected profile %s", profile.__class__.__name__)
+
+            return True
+
+        logging.error("Can not autodetect profile - please set it "
+                      "explicitely.")
 
     def render(self, renderer):
-        self.guess_using_idle_process()
+        if self.quick:
+            renderer.format("Updating session profile and address spaces.\n")
+            self.update_session()
+            return
 
+        renderer.table_header([("Potential Profile", "profile", "<30"),
+                               ("Address Space", "as", "")])
+
+        for profile, virtual_as in self.guess_profile():
+            renderer.table_row(profile.__class__.__name__,
+                               virtual_as.name)
 
 
 def generate_idle_lookup_list():
@@ -124,6 +223,8 @@ def generate_idle_lookup_list():
                     "ImageFileName": [eprocess.ImageFileName.obj_offset, [
                             'String', dict(length=16)]],
                     "ThreadListHead": [eprocess.ThreadListHead.obj_offset, [list_entry]],
+                    "ActiveProcessLinks": [eprocess.ActiveProcessLinks.obj_offset, [list_entry]],
+                    "UniqueProcessId": [eprocess.UniqueProcessId.obj_offset, ['unsigned int']],
                     "DirectoryTableBase": [
                         eprocess.Pcb.DirectoryTableBase.obj_offset, ["unsigned long"]],
                     }]
@@ -132,94 +233,118 @@ def generate_idle_lookup_list():
 
 # The following is generated from generate_idle_lookup_list() above.
 eprocess_vtypes = {
-    'VistaSP1x64': [0, {
-            'DirectoryTableBase': [40, ['unsigned long']],
-            'ImageFileName': [568, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSVistaSP1x64']],
-            'ThreadListHead': [608, ['LIST_ENTRY64']]
-            }],
-    'VistaSP1x86': [0, {
-            'DirectoryTableBase': [24, ['unsigned long']],
-            'ImageFileName': [332, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSVistaSP1x86']],
-            'ThreadListHead': [360, ['LIST_ENTRY64']]
-            }],
-    'VistaSP2x64': [0, {
-            'DirectoryTableBase': [40, ['unsigned long']],
-            'ImageFileName': [568, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSVistaSP2x64']],
-            'ThreadListHead': [608, ['LIST_ENTRY64']]
-            }],
-    'VistaSP2x86': [0, {
-            'DirectoryTableBase': [24, ['unsigned long']],
-            'ImageFileName': [332, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSVistaSP2x86']],
-            'ThreadListHead': [360, ['LIST_ENTRY64']]
-            }],
-    'Win2008R2SP0x64': [0, {
-            'DirectoryTableBase': [40, ['unsigned long']],
-            'ImageFileName': [736, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin2008R2SP0x64']],
-            'ThreadListHead': [776, ['LIST_ENTRY64']]}],
-    'Win2008R2SP1x64': [0, {
-            'DirectoryTableBase': [40, ['unsigned long']],
-            'ImageFileName': [736, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin2008R2SP1x64']],
-            'ThreadListHead': [776, ['LIST_ENTRY64']]}],
-    'Win2008SP1x64': [0, {
-            'DirectoryTableBase': [40, ['unsigned long']],
-            'ImageFileName': [568, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin2008SP1x64']],
-            'ThreadListHead': [608, ['LIST_ENTRY64']]}],
-    'Win2008SP1x86': [0, {
-            'DirectoryTableBase': [24, ['unsigned long']],
-            'ImageFileName': [332, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin2008SP1x86']],
-            'ThreadListHead': [360, ['LIST_ENTRY64']]}],
-    'Win2008SP2x64': [0, {
-            'DirectoryTableBase': [40, ['unsigned long']],
-            'ImageFileName': [568, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin2008SP2x64']],
-            'ThreadListHead': [608, ['LIST_ENTRY64']]}],
-    'Win2008SP2x86': [0,  {
-            'DirectoryTableBase': [24, ['unsigned long']],
-            'ImageFileName': [332, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin2008SP2x86']],
-            'ThreadListHead': [360, ['LIST_ENTRY64']]}],
-    'Win7SP0x64': [0,  {
-            'DirectoryTableBase': [40, ['unsigned long']],
-            'ImageFileName': [736, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin7SP0x64']],
-            'ThreadListHead': [776, ['LIST_ENTRY64']]}],
-    'Win7SP0x86': [0,  {
-            'DirectoryTableBase': [24, ['unsigned long']],
-            'ImageFileName': [364, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin7SP0x86']],
-            'ThreadListHead': [392, ['LIST_ENTRY64']]}],
-    'Win7SP1x64': [0,  {
-            'DirectoryTableBase': [40, ['unsigned long']],
-            'ImageFileName': [736, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin7SP1x64']],
-            'ThreadListHead': [776, ['LIST_ENTRY64']]}],
-    'Win7SP1x86': [0,  {
-            'DirectoryTableBase': [24, ['unsigned long']],
-            'ImageFileName': [364, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin7SP1x86']],
-            'ThreadListHead': [392, ['LIST_ENTRY64']]}],
-    'Win8SP0x64': [0,  {
-            'DirectoryTableBase': [40, ['unsigned long']],
-            'ImageFileName': [1080, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWin8SP0x64']],
-            'ThreadListHead': [1136, ['LIST_ENTRY64']]}],
-    'WinXPSP2x86': [0,  {
-            'DirectoryTableBase': [24, ['unsigned long']],
-            'ImageFileName': [372, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWinXPSP2x86']],
-            'ThreadListHead': [400, ['LIST_ENTRY64']]}],
-    'WinXPSP3x86': [0,  {
-            'DirectoryTableBase': [24, ['unsigned long']],
-            'ImageFileName': [372, ['String', dict(length=16)]],
-            'Pcb': [0, ['_KPROCESSWinXPSP3x86']],
-            'ThreadListHead': [400, ['LIST_ENTRY64']]}]}
-
+  'VistaSP1x64': [0,
+  {'ActiveProcessLinks': [232, ['LIST_ENTRY64']],
+   'DirectoryTableBase': [40, ['unsigned long']],
+   'ImageFileName': [568, ['String', {'length': 16}]],
+   'ThreadListHead': [608, ['LIST_ENTRY64']],
+   'UniqueProcessId': [224, ['unsigned int']]}],
+ 'VistaSP1x86': [0,
+  {'ActiveProcessLinks': [160, ['LIST_ENTRY32']],
+   'DirectoryTableBase': [24, ['unsigned long']],
+   'ImageFileName': [332, ['String', {'length': 16}]],
+   'ThreadListHead': [360, ['LIST_ENTRY32']],
+   'UniqueProcessId': [156, ['unsigned int']]}],
+ 'VistaSP1x86PAE': [0,
+  {'ActiveProcessLinks': [160, ['LIST_ENTRY32']],
+   'DirectoryTableBase': [24, ['unsigned long']],
+   'ImageFileName': [332, ['String', {'length': 16}]],
+   'ThreadListHead': [360, ['LIST_ENTRY32']],
+   'UniqueProcessId': [156, ['unsigned int']]}],
+ 'VistaSP2x64': [0,
+  {'ActiveProcessLinks': [232, ['LIST_ENTRY64']],
+   'DirectoryTableBase': [40, ['unsigned long']],
+   'ImageFileName': [568, ['String', {'length': 16}]],
+   'ThreadListHead': [608, ['LIST_ENTRY64']],
+   'UniqueProcessId': [224, ['unsigned int']]}],
+ 'VistaSP2x86': [0,
+  {'ActiveProcessLinks': [160, ['LIST_ENTRY32']],
+   'DirectoryTableBase': [24, ['unsigned long']],
+   'ImageFileName': [332, ['String', {'length': 16}]],
+   'ThreadListHead': [360, ['LIST_ENTRY32']],
+   'UniqueProcessId': [156, ['unsigned int']]}],
+ 'Win2008R2SP0x64': [0,
+  {'ActiveProcessLinks': [392, ['LIST_ENTRY64']],
+   'DirectoryTableBase': [40, ['unsigned long']],
+   'ImageFileName': [736, ['String', {'length': 16}]],
+   'ThreadListHead': [776, ['LIST_ENTRY64']],
+   'UniqueProcessId': [384, ['unsigned int']]}],
+ 'Win2008R2SP1x64': [0,
+  {'ActiveProcessLinks': [392, ['LIST_ENTRY64']],
+   'DirectoryTableBase': [40, ['unsigned long']],
+   'ImageFileName': [736, ['String', {'length': 16}]],
+   'ThreadListHead': [776, ['LIST_ENTRY64']],
+   'UniqueProcessId': [384, ['unsigned int']]}],
+ 'Win2008SP1x64': [0,
+  {'ActiveProcessLinks': [232, ['LIST_ENTRY64']],
+   'DirectoryTableBase': [40, ['unsigned long']],
+   'ImageFileName': [568, ['String', {'length': 16}]],
+   'ThreadListHead': [608, ['LIST_ENTRY64']],
+   'UniqueProcessId': [224, ['unsigned int']]}],
+ 'Win2008SP1x86': [0,
+  {'ActiveProcessLinks': [160, ['LIST_ENTRY32']],
+   'DirectoryTableBase': [24, ['unsigned long']],
+   'ImageFileName': [332, ['String', {'length': 16}]],
+   'ThreadListHead': [360, ['LIST_ENTRY32']],
+   'UniqueProcessId': [156, ['unsigned int']]}],
+ 'Win2008SP2x64': [0,
+  {'ActiveProcessLinks': [232, ['LIST_ENTRY64']],
+   'DirectoryTableBase': [40, ['unsigned long']],
+   'ImageFileName': [568, ['String', {'length': 16}]],
+   'ThreadListHead': [608, ['LIST_ENTRY64']],
+   'UniqueProcessId': [224, ['unsigned int']]}],
+ 'Win2008SP2x86': [0,
+  {'ActiveProcessLinks': [160, ['LIST_ENTRY32']],
+   'DirectoryTableBase': [24, ['unsigned long']],
+   'ImageFileName': [332, ['String', {'length': 16}]],
+   'ThreadListHead': [360, ['LIST_ENTRY32']],
+   'UniqueProcessId': [156, ['unsigned int']]}],
+ 'Win7SP0x64': [0,
+  {'ActiveProcessLinks': [392, ['LIST_ENTRY64']],
+   'DirectoryTableBase': [40, ['unsigned long']],
+   'ImageFileName': [736, ['String', {'length': 16}]],
+   'ThreadListHead': [776, ['LIST_ENTRY64']],
+   'UniqueProcessId': [384, ['unsigned int']]}],
+ 'Win7SP0x86': [0,
+  {'ActiveProcessLinks': [184, ['LIST_ENTRY32']],
+   'DirectoryTableBase': [24, ['unsigned long']],
+   'ImageFileName': [364, ['String', {'length': 16}]],
+   'ThreadListHead': [392, ['LIST_ENTRY32']],
+   'UniqueProcessId': [180, ['unsigned int']]}],
+ 'Win7SP1x64': [0,
+  {'ActiveProcessLinks': [392, ['LIST_ENTRY64']],
+   'DirectoryTableBase': [40, ['unsigned long']],
+   'ImageFileName': [736, ['String', {'length': 16}]],
+   'ThreadListHead': [776, ['LIST_ENTRY64']],
+   'UniqueProcessId': [384, ['unsigned int']]}],
+ 'Win7SP1x86': [0,
+  {'ActiveProcessLinks': [184, ['LIST_ENTRY32']],
+   'DirectoryTableBase': [24, ['unsigned long']],
+   'ImageFileName': [364, ['String', {'length': 16}]],
+   'ThreadListHead': [392, ['LIST_ENTRY32']],
+   'UniqueProcessId': [180, ['unsigned int']]}],
+ 'Win8SP0x64': [0,
+  {'ActiveProcessLinks': [744, ['LIST_ENTRY64']],
+   'DirectoryTableBase': [40, ['unsigned long']],
+   'ImageFileName': [1080, ['String', {'length': 16}]],
+   'ThreadListHead': [1136, ['LIST_ENTRY64']],
+   'UniqueProcessId': [736, ['unsigned int']]}],
+ 'WinXPSP2x86': [0,
+  {'ActiveProcessLinks': [136, ['LIST_ENTRY32']],
+   'DirectoryTableBase': [24, ['unsigned long']],
+   'ImageFileName': [372, ['String', {'length': 16}]],
+   'ThreadListHead': [400, ['LIST_ENTRY32']],
+   'UniqueProcessId': [132, ['unsigned int']]}],
+ 'WinXPSP3x86': [0,
+  {'ActiveProcessLinks': [136, ['LIST_ENTRY32']],
+   'DirectoryTableBase': [24, ['unsigned long']],
+   'ImageFileName': [372, ['String', {'length': 16}]],
+   'ThreadListHead': [400, ['LIST_ENTRY32']],
+   'UniqueProcessId': [132, ['unsigned int']]}],
+ 'WinXPSP3x86PAE': [0,
+  {'ActiveProcessLinks': [136, ['LIST_ENTRY32']],
+   'DirectoryTableBase': [24, ['unsigned long']],
+   'ImageFileName': [372, ['String', {'length': 16}]],
+   'ThreadListHead': [400, ['LIST_ENTRY32']],
+   'UniqueProcessId': [132, ['unsigned int']]}]}
 

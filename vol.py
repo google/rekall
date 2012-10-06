@@ -112,17 +112,17 @@ def UpdateSessionFromArgv(user_session, FLAGS):
 
 
 def main(argv=None):
+    # New user interactive session (with extra bells and whistles).
+    user_session = session.InteractiveSession()
+
     global FLAGS
 
-    FLAGS = args.parse_args(argv=argv)
+    FLAGS = args.parse_args(argv=argv, user_session=user_session)
 
     logging.basicConfig(level=logging.INFO)
 
     # Run a module and do not drop into the shell.
     if getattr(FLAGS, "module", None):
-        user_session = session.Session()
-        UpdateSessionFromArgv(user_session, FLAGS)
-
         # Run the module
         try:
             user_session.vol(FLAGS.module, flags=FLAGS)
@@ -134,8 +134,7 @@ def main(argv=None):
 
         sys.exit()
 
-    # New user interactive session (with extra bells and whistles).
-    user_session = session.InteractiveSession()
+    user_session.mode = "Interactive"
 
     # Try to launch the session using something.
     (IPython011Support(user_session) or

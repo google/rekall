@@ -1093,6 +1093,9 @@ class Profile(object):
         return tuple([getattr(cls, prefix + x, None) for x in args])
 
     def has_type(self, theType):
+        # Compile on demand
+        if not self._ready: self.compile()
+
         return theType in self.object_classes or theType in self.vtypes
 
     def add_classes(self, classes_dict):
@@ -1237,6 +1240,9 @@ class Profile(object):
         Note that this can be wrong if the offset is a callable.
         """
         tmp = self._get_dummy_obj(name)
+        if tmp is None:
+            raise AttributeError("Object %s not known" % name)
+
         offset, _cls = tmp.members[member]
 
         return offset

@@ -33,7 +33,7 @@ from volatility.plugins.overlays.windows import pe_vtypes
 windows_overlay = {
     '_UNICODE_STRING': [None, {
             'Buffer': [None, ['Pointer', dict(
-                        target='UnicodeString', 
+                        target='UnicodeString',
                         target_args=dict(length=lambda x: x.Length)
                         )]],
             }],
@@ -115,10 +115,6 @@ windows_overlay = {
     '_CM_KEY_INDEX' : [ None, {
     'Signature' : [ None, ['String', dict(length = 2)]],
     'List' : [ None, ['array', lambda x: x.Count.v() * 2, ['pointer', ['_CM_KEY_NODE']]]],
-    }],
-
-    '_PHYSICAL_MEMORY_DESCRIPTOR' : [ None, {
-    'Run' : [ None, ['array', lambda x: x.NumberOfRuns, ['_PHYSICAL_MEMORY_RUN']]],
     }],
 
     '_TOKEN' : [ None, {
@@ -936,9 +932,31 @@ crash_overlays = {
                             },
                         'target': 'unsigned int'}]],
             }],
+    '_PHYSICAL_MEMORY_DESCRIPTOR' : [ None, {
+            'Run' : [ None, ['Array', dict(
+                        count=lambda x: x.NumberOfRuns,
+                        target='_PHYSICAL_MEMORY_RUN')]],
+            }],
     }
 
 crash_overlays['_DMP_HEADER64'] = copy.deepcopy(crash_overlays['_DMP_HEADER'])
+
+
+class CrashDump32Profile(basic.Profile32Bits, basic.BasicWindowsClasses):
+    """A profile for crash dumps."""
+    def __init__(self, **kwargs):
+        super(CrashDump32Profile, self).__init__(**kwargs)
+        self.add_overlay(crash_vtypes.crash_vtypes)
+        self.add_overlay(crash_overlays)
+
+
+class CrashDump64Profile(basic.Profile64Bits, basic.BasicWindowsClasses):
+    """A profile for crash dumps."""
+    def __init__(self, **kwargs):
+        super(CrashDump64Profile, self).__init__(**kwargs)
+        self.add_overlay(crash_vtypes.crash_vtypes)
+        self.add_overlay(crash_vtypes.crash_64_vtypes)
+        self.add_overlay(crash_overlays)
 
 
 class BaseWindowsProfile(basic.BasicWindowsClasses):
@@ -949,10 +967,6 @@ class BaseWindowsProfile(basic.BasicWindowsClasses):
 
     def __init__(self, **kwargs):
         super(BaseWindowsProfile, self).__init__(**kwargs)
-
-        # Crash support.
-        self.add_types(crash_vtypes.crash_vtypes)
-        self.add_overlay(crash_overlays)
 
         # KDBG types.
         self.add_types(kdbg_vtypes.kdbg_vtypes)
