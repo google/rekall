@@ -156,4 +156,3 @@ class ELFProfile(basic.Profile64Bits, basic.BasicWindowsClasses):
     def __init__(self, **kwargs):
         super(ELFProfile, self).__init__(**kwargs)
         ELFFileImplementation.Modify(self)
-

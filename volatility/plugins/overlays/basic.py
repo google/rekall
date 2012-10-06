@@ -147,7 +147,7 @@ class UnicodeString(String):
         return len(self.v().encode(self.encoding, 'ignore'))
 
     def write(self, data):
-        self.obj_vm.write(self.obj_offset, 
+        self.obj_vm.write(self.obj_offset,
                           data.encode(self.encoding, "ignore"))
 
 

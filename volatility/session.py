@@ -24,6 +24,7 @@ way for people to save their own results.
 """
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
+
 import inspect
 import logging
 import pdb
@@ -55,6 +56,7 @@ class Session(object):
         self.profile = obj.NoneObject("Set this to a valid profile (e.g. type profiles. and tab).")
         self.profile_file = obj.NoneObject("Some profiles accept a data file (e.g. Linux).")
         self.filename = obj.NoneObject("Set this to the image filename.")
+        self.basename = obj.NoneObject("Unset")
 
         # The default renderer.
         self.renderer = "TextRenderer"
@@ -241,8 +243,15 @@ class Session(object):
             raise RuntimeError("A profile must be a string.")
 
     def _set_filename(self, filename):
-        self.__dict__['filename'] = filename
-        self.__dict__['base_filename'] = os.path.basename(filename)
+        if filename != self.filename:
+            self.__dict__['filename'] = filename
+            self.__dict__['base_filename'] = os.path.basename(filename)
+            self.vol("load_as")
+
+            # If the user changes the filename in interactive mode we need to
+            # check that the profile is still ok.
+            if self.mode == "Interactive":
+                self.vol("guess_profile")
 
     def __unicode__(self):
         return u"Session"

@@ -766,9 +766,6 @@ asciidoc.install(2);
 <body class="article">
 <div id="header">
 <h1>Volatility Technology Preview User manual</h1>
-<span id="author">Michael Cohen</span><br />
-<span id="email"><code>&lt;<a href="mailto:scudette@gmail.com">scudette@gmail.com</a>&gt;</code></span><br />
-<span id="revdate">September 2012</span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
@@ -848,17 +845,50 @@ subcommands:
   The following plugins can be selected.
 
   Plugin
-    modscan             Scan Physical memory for _LDR_DATA_TABLE_ENTRY
-                        objects.
-    driverscan          Scan for driver objects _DRIVER_OBJECT
-    memmap              Calculates the memory regions mapped by a process.
+    dis                 Disassemble the given address space.
+    dt                  Print a symbol.
+    dump                Hexdump an object or memory location.
+    find_dtb            A scanner for DTB values.
+    guess_profile       Guess the exact windows profile using heuristics.
+    imagecopy           Copies a physical address space out as a raw DD image
+    info                Print information about various subsystems.
     load_as             Load address spaces into the session if its not
-                        already loaded.</code></pre>
+                        already loaded.
+    null                This plugin does absolutely nothing.
+    peinfo              Print information about a PE binary.</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that when not providing a profile, the list of subcommands only shows the
+plugins which can be run without a profile. If you want to check the plugins
+which can be run on the current image or on a specific profile, simply provide
+the --profile or --filename option:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ python vol.py -f ~/images/win7_trial_64bit.raw --help
+
+usage: vol.py [--pager PAGER] [--logging {debug,info,warning,critical,error}]
+              [--debug] [-p PROFILE] [-r RUN] [-f FILENAME]
+              [--renderer RENDERER] [--plugin PLUGIN [PLUGIN ...]]
+              [--output OUTPUT] [-h] [--overwrite]
+              Plugin ...
+
+optional arguments:
+...
+
+subcommands:
+  The following plugins can be selected.
+
+  Plugin
+    atoms               Print session and window station atom tables
+    atomscan            Pool scanner for _RTL_ATOM_TABLE
+    callbacks           Print system-wide notification routines.
+    cmdscan             Extract command history by scanning for
+                        _COMMAND_HISTORY
+....</code></pre>
 </div></div>
 <div class="paragraph"><p>Once the module is provided, we see a per-module help output:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ vol.py pslist --help
+<pre><code>$ vol.py --profile WinXPSP1x86 pslist --help
 usage: vol.py pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
                      [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
                      [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
@@ -876,6 +906,23 @@ optional arguments:
   --proc_regex PROC_REGEX
                         A regex to select a profile by name.</code></pre>
 </div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="images/icons/note.png" alt="Note" />
+</td>
+<td class="content">
+<div class="paragraph"><p>Volatility plugins provide a name by which they can be called. This name depends
+on the currently specified profile. This allows the same name to be provided by
+different plugins - for example, there is a linux pslist and a windows
+pslist. Although both commands are called pslist, they may have slightly
+different options.</p></div>
+<div class="paragraph"><p>This is the reason you need to specify the --profile option even while issuing
+the --help parameter. This is so that correct version of the pslist plugin be
+chosen and the correct help printed out.</p></div>
+</td>
+</tr></table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_interactive_session_invocation">1.2. Interactive Session Invocation.</h3>
@@ -957,6 +1004,23 @@ psxview()
 # This will exit the program and skip the interactive shell.
 sys.exit()</code></pre>
 </div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="images/icons/note.png" alt="Note" />
+</td>
+<td class="content">
+<div class="paragraph"><p>Recent versions of Volatility have a fairly reliable profile autodetection
+system. This means that often the --profile parameter can be omitted - in that
+case Volatility will just automatically select the most appropriate profile.</p></div>
+<div class="paragraph"><p>If this autoselection does not work, it is still possible to override it by
+using the --profile parameter. In the remainder of this document we explicitely
+set the parameter in order to illustrate the type of image used.</p></div>
+<div class="paragraph"><p>In the interactive shell you can see what profile was autoselected by examining
+the prompt or printing session.profile.</p></div>
+</td>
+</tr></table>
+</div>
 </div>
 </div>
 </div>
@@ -3958,7 +4022,7 @@ Baby.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-10-03 19:59:37 CEST
+Last updated 2012-10-06 02:15:18 CEST
 </div>
 </div>
 </body>

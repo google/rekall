@@ -26,8 +26,10 @@ import logging
 from volatility import addrspace
 from volatility import obj
 from volatility.plugins.addrspaces import standard
+from volatility.plugins.overlays.windows import windows
 
 PAGE_SHIFT = 12
+
 
 
 class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
@@ -40,7 +42,6 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
 
     def __init__(self, **kwargs):
         super(WindowsCrashDumpSpace32, self).__init__(**kwargs)
-
         self.runs = []
         self.offset = 0
         self.fname = ''
@@ -76,6 +77,7 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
             self.profile.has_type("_DMP_HEADER"),
             "_DMP_HEADER not available in profile")
 
+        self.profile = windows.CrashDump32Profile()
         self.header = self.profile.Object(
             "_DMP_HEADER", offset=self.offset, vm=self.base)
 
@@ -100,10 +102,12 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
 
     def check_file(self):
         """Check specifically for 64 bit crash dumps."""
+
         ## Must start with the magic PAGEDU64
         self.as_assert((self.base.read(0, 8) == 'PAGEDU64'),
                        "Header signature invalid")
 
+        self.profile = windows.CrashDump64Profile()
         self.as_assert(self.profile.has_type("_DMP_HEADER64"),
                        "_DMP_HEADER64 not available in profile")
         self.header = self.profile.Object("_DMP_HEADER64",

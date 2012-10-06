@@ -1,7 +1,5 @@
 Volatility Technology Preview User manual
 =========================================
-Michael Cohen <scudette@gmail.com>
-September 2012
 :toc2:
 :icons:
 :numbered:
@@ -75,17 +73,52 @@ subcommands:
   The following plugins can be selected.
 
   Plugin
-    modscan             Scan Physical memory for _LDR_DATA_TABLE_ENTRY
-                        objects.
-    driverscan          Scan for driver objects _DRIVER_OBJECT
-    memmap              Calculates the memory regions mapped by a process.
+    dis                 Disassemble the given address space.
+    dt                  Print a symbol.
+    dump                Hexdump an object or memory location.
+    find_dtb            A scanner for DTB values.
+    guess_profile       Guess the exact windows profile using heuristics.
+    imagecopy           Copies a physical address space out as a raw DD image
+    info                Print information about various subsystems.
     load_as             Load address spaces into the session if its not
                         already loaded.
+    null                This plugin does absolutely nothing.
+    peinfo              Print information about a PE binary.
 ------------------------------------------------------------------------
+
+Note that when not providing a profile, the list of subcommands only shows the
+plugins which can be run without a profile. If you want to check the plugins
+which can be run on the current image or on a specific profile, simply provide
+the --profile or --filename option:
+
+------------------------------------------------------------------------
+$ python vol.py -f ~/images/win7_trial_64bit.raw --help
+
+usage: vol.py [--pager PAGER] [--logging {debug,info,warning,critical,error}]
+              [--debug] [-p PROFILE] [-r RUN] [-f FILENAME]
+              [--renderer RENDERER] [--plugin PLUGIN [PLUGIN ...]]
+              [--output OUTPUT] [-h] [--overwrite]
+              Plugin ...
+
+optional arguments:
+...
+
+subcommands:
+  The following plugins can be selected.
+
+  Plugin
+    atoms               Print session and window station atom tables
+    atomscan            Pool scanner for _RTL_ATOM_TABLE
+    callbacks           Print system-wide notification routines.
+    cmdscan             Extract command history by scanning for
+                        _COMMAND_HISTORY
+....
+------------------------------------------------------------------------
+
 
 Once the module is provided, we see a per-module help output:
 ------------------------------------------------------------------------
-$ vol.py pslist --help
+$ vol.py --profile WinXPSP1x86 pslist --help
 usage: vol.py pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
                      [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
                      [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
@@ -103,6 +136,20 @@ optional arguments:
   --proc_regex PROC_REGEX
                         A regex to select a profile by name.
 ------------------------------------------------------------------------
+
+[NOTE]
+===============================================================================
+
+Volatility plugins provide a name by which they can be called. This name depends
+on the currently specified profile. This allows the same name to be provided by
+different plugins - for example, there is a linux pslist and a windows
+pslist. Although both commands are called pslist, they may have slightly
+different options.
+
+This is the reason you need to specify the --profile option even while issuing
+the --help parameter. This is so that correct version of the pslist plugin be
+chosen and the correct help printed out.
+===============================================================================
 
 
 Interactive Session Invocation.
@@ -182,6 +229,21 @@ psxview()
 # This will exit the program and skip the interactive shell.
 sys.exit()
 ----------------------------------------------------------------------------
+
+
+[NOTE]
+===============================================================================
+Recent versions of Volatility have a fairly reliable profile autodetection
+system. This means that often the --profile parameter can be omitted - in that
+case Volatility will just automatically select the most appropriate profile.
+
+If this autoselection does not work, it is still possible to override it by
+using the --profile parameter. In the remainder of this document we explicitely
+set the parameter in order to illustrate the type of image used.
+
+In the interactive shell you can see what profile was autoselected by examining
+the prompt or printing session.profile.
+================================================================================
 
 
 Command Reference
