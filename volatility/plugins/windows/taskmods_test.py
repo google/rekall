@@ -90,12 +90,12 @@ class TestMemmap(testlib.VolatilityBaseUnitTestCase):
 
         self.assertIntegerListEqual(
             self.ExtractColumn(self.baseline['output'], 0, skip),
-            self.ExtractColumn(self.current['output'], 0, 7))
+            self.ExtractColumn(self.current['output'], 0, 4))
 
         # Physical address.
         self.assertIntegerListEqual(
             self.ExtractColumn(self.baseline['output'], 1, skip),
-            self.ExtractColumn(self.current['output'], 1, 7))
+            self.ExtractColumn(self.current['output'], 1, 4))
 
 
 

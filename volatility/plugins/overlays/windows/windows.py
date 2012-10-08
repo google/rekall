@@ -384,7 +384,7 @@ class _EPROCESS(obj.CType):
         try:
             process_as = self.obj_vm.__class__(
                 base=self.obj_vm.base,
-                session=self.obj_profile.session,
+                session=self.obj_vm.session,
                 dtb = directory_table_base, astype='virtual')
         except AssertionError, e:
             return obj.NoneObject("Unable to get process AS: %s" % e)
@@ -691,7 +691,7 @@ class _PSP_CID_TABLE(_HANDLE_TABLE):
 
         handle = self.obj_profile.Object(
             "_OBJECT_HEADER",
-            offset=(p & ~7) - self.obj_vm.profile.get_obj_offset(
+            offset=(p & ~7) - self.obj_profile.get_obj_offset(
                 '_OBJECT_HEADER', 'Body'),
             vm = self.obj_vm)
 

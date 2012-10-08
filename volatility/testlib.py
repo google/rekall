@@ -217,7 +217,7 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
 
         self.assertEqual(current_column, previous_column)
 
-    def assertListEqual(self, a, b):
+    def assertListEqual(self, a, b, msg=None):
         a = list(a)
         b = list(b)
         self.assertEqual(len(a), len(b))
@@ -225,12 +225,12 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
         for x, y in zip(a, b):
             self.assertEqual(x, y)
 
-    def assertTableRowsEqual(self, a, b):
+    def assertTableRowsEqual(self, a, b, msg=None):
         a = [x.strip() for x in a.split("||")]
         b = [x.strip() for x in b.split("||")]
         self.assertEqual(a, b)
 
-    def assertIntegerListEqual(self, a, b, base=16):
+    def assertIntegerListEqual(self, a, b, base=16, msg=None):
         """Compares two list of printed integers."""
         a = [int(x, base) for x in a]
         b = [int(x, base) for x in b]
@@ -292,7 +292,7 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
                 if self.debug:
                     pdb.post_mortem()
 
-                result.addError(self, self._exc_info())
+                result.addError(self, sys.exc_info())
                 return
 
             ok = False
@@ -303,14 +303,14 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
                 if self.debug:
                     pdb.post_mortem()
 
-                result.addFailure(self, self._exc_info())
+                result.addFailure(self, sys.exc_info())
             except KeyboardInterrupt:
                 raise
             except Exception:
                 if self.debug:
                     pdb.post_mortem()
 
-                result.addError(self, self._exc_info())
+                result.addError(self, sys.exc_info())
 
             try:
                 self.tearDown()
@@ -320,7 +320,7 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
                 if self.debug:
                     pdb.post_mortem()
 
-                result.addError(self, self._exc_info())
+                result.addError(self, sys.exc_info())
                 ok = False
             if ok: result.addSuccess(self)
         finally:

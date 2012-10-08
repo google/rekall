@@ -125,4 +125,4 @@ class WinPas2Vas(common.WinProcessFilter):
                                        0, 'Kernel')
                 else:
                     renderer.table_row(physical_address, virtual_address,
-                                       task.pid, task.comm)
+                                       task.UniqueProcessId, task.ImageFileName)

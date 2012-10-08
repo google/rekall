@@ -200,7 +200,7 @@ class VADWalk(VADInfo):
                 # Ignore Vads with bad tags (which we explicitly include as None)
                 if vad:
                     renderer.table_row(vad.obj_offset,
-                                       vad.Parent.obj_offset or 0,
+                                       vad.obj_parent.obj_offset or 0,
                                        vad.LeftChild.dereference().obj_offset or 0,
                                        vad.RightChild.dereference().obj_offset or 0,
                                        vad.Start,

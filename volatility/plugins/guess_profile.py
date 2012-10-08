@@ -182,6 +182,7 @@ class GuessProfile(plugin.Command):
         for profile, virtual_as in self.guess_profile():
             self.session.profile = profile
             self.session.kernel_address_space = virtual_as
+            self.session.default_address_space = virtual_as
             self.session.dtb = virtual_as.dtb
             logging.info("Autoselected profile %s", profile.__class__.__name__)
 

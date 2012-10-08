@@ -73,6 +73,7 @@ class PEDump(common.WinProcessFilter):
             self.filename = output
         else:
             logging.error("No output filename specified.")
+            self.filename = None
 
         # Get the pe profile.
         self.pe_profile = pe_vtypes.PEProfile()
@@ -131,12 +132,15 @@ class PEDump(common.WinProcessFilter):
                 # space.
                 self.address_space = self.kernel_address_space
 
-        renderer.format("Dumping PE File at image_base {0:#x} to {1}\n",
-                        self.image_base, self.filename)
+        if self.filename is None:
+            logging.error("output file must be specified.")
+        else:
+            renderer.format("Dumping PE File at image_base {0:#x} to {1}\n",
+                            self.image_base, self.filename)
 
-        self.WritePEFile(self.out_fd, self.address_space, self.image_base)
+            self.WritePEFile(self.out_fd, self.address_space, self.image_base)
 
-        renderer.format("Done!\n")
+            renderer.format("Done!\n")
 
 
 class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):

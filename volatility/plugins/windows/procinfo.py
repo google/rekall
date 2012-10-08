@@ -67,9 +67,12 @@ class PEInfo(plugin.Command):
 
     def render(self, renderer):
         """Print information about a PE file from memory."""
-        disassembler = self.session.plugins.dis(
-            address_space=self.address_space, offset=0,
-            session=self.session, length=50)
+        try:
+            disassembler = self.session.plugins.dis(
+                address_space=self.address_space, offset=0,
+                session=self.session, length=50)
+        except AttributeError:
+            disassembler = None
 
         # Get our helper object to parse the PE file.
         pe_helper = pe_vtypes.PE(address_space=self.address_space,
@@ -115,9 +118,12 @@ class PEInfo(plugin.Command):
 
         for name, function, ordinal in pe_helper.IAT():
             disassembly = []
-            for i, (_, _, x) in enumerate(disassembler.disassemble(function)):
-                if i >= 5: break
-                disassembly.append(x.strip())
+
+            if disassembler:
+                for i, (_, _, x) in enumerate(disassembler.disassemble(function)):
+                    if i >= 5: break
+                    disassembly.append(x.strip())
+
             renderer.table_row(name, function, "\n".join(disassembly))
 
         renderer.format("\nExport Directory:\n")
