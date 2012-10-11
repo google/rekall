@@ -125,7 +125,7 @@ class GuessProfile(plugin.Command):
 
                 address_space = self.verify_profile(cls, eprocess, dtb)
                 if address_space:
-                    yield cls(), address_space
+                    yield cls(session=self.session), address_space, eprocess
 
     def verify_address_space(self, profile_cls, eprocess, address_space):
         """Check the eprocess for sanity."""
@@ -179,11 +179,17 @@ class GuessProfile(plugin.Command):
         """Try to update the session from the profile guess."""
         logging.info("Examining image for possible profiles.")
 
-        for profile, virtual_as in self.guess_profile():
+        for profile, virtual_as, eprocess in self.guess_profile():
             self.session.profile = profile
             self.session.kernel_address_space = virtual_as
             self.session.default_address_space = virtual_as
             self.session.dtb = virtual_as.dtb
+
+            # Try to set the correct _EPROCESS here.
+            self.session.system_eprocess = profile._EPROCESS(
+                vm=self.session.physical_address_space,
+                offset=eprocess.obj_offset)
+
             logging.info("Autoselected profile %s", profile.__class__.__name__)
 
             return True
@@ -200,7 +206,7 @@ class GuessProfile(plugin.Command):
         renderer.table_header([("Potential Profile", "profile", "<30"),
                                ("Address Space", "as", "")])
 
-        for profile, virtual_as in self.guess_profile():
+        for profile, virtual_as, _ in self.guess_profile():
             renderer.table_row(profile.__class__.__name__,
                                virtual_as.name)
 

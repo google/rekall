@@ -137,15 +137,21 @@ class ThrdScan(ModScan):
                                ("PID", "pid", ">6"),
                                ("TID", "tid", ">6"),
                                ("Start Address", "start", "[addr]"),
-                               ("Create Time", "create_time", "25"),
-                               ("Exit Time", "exit_time", "25"),
+                               ("Create Time", "create_time", "20"),
+                               ("Exit Time", "exit_time", "20"),
+                               ("Process", "name", ""),
                                ])
 
         for thread in self.generate_hits():
+            # Resolve the thread back to an owning process if possible.
+            task = thread.Tcb.ApcState.Process.dereference_as(
+                "_EPROCESS", vm=self.session.kernel_address_space)
+
             renderer.table_row(thread.obj_offset,
                                thread.Cid.UniqueProcess,
                                thread.Cid.UniqueThread,
                                thread.StartAddress,
                                thread.CreateTime,
-                               thread.ExitTime
+                               thread.ExitTime,
+                               task.ImageFileName,
                                )

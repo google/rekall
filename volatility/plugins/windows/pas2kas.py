@@ -6,6 +6,11 @@ import sys
 from volatility.plugins.windows import common
 
 
+class ProcessMap(dict):
+    def __str__(self):
+        return "<process maps>"
+
+
 class WinPas2Vas(common.WinProcessFilter):
     """Resolves a physical address to a virtual addrress in a process."""
 
@@ -41,10 +46,9 @@ class WinPas2Vas(common.WinProcessFilter):
 
         # Cache the process maps in the session.
         if self.session.process_maps is None:
-          self.session.process_maps = {}
+          self.session.process_maps = ProcessMap()
 
         self.maps = self.session.process_maps
-
 
     def BuildMaps(self):
         if "Kernel" not in self.maps:

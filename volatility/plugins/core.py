@@ -512,7 +512,7 @@ class DT(plugin.ProfileCommand):
     def render(self, renderer):
         # Make a big buffer of zeros to instantiate the object over.
         address_space = addrspace.BufferAddressSpace(
-            data="\x00" * 10240)
+            data="\x00" * 102400)
 
         obj = self.profile.Object(self.target, vm=address_space)
         self.session.plugins.p(obj).render(renderer)

@@ -33,79 +33,21 @@ import ConfigParser
 import logging
 import json
 import os
-import Queue
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
-import threading
 import traceback
 import unittest
 
 from volatility import testlib
+from volatility import threadpool
 from volatility.ui import renderer
 
 # Bring in all the tests
 from volatility.plugins import tests
-
-
-# Simple threadpool implementation - we just run all tests in the pool for
-# maximum concurrency.
-class Worker(threading.Thread):
-    """A Threadpool worker.
-
-    Reads jobs from the queue and runs them. Quits when a None job is received
-    on the queue.
-    """
-    def __init__(self, queue):
-        super(Worker, self).__init__()
-        self.queue = queue
-        self.daemon = True
-
-        # Start the thread immediately.
-        self.start()
-
-    def run(self):
-        while True:
-            # Great a callable from the queue.
-            task, args = self.queue.get()
-
-            try:
-                # Stop the worker by sending it a task of None.
-                if task is None:
-                    break
-
-                task(*args)
-            except Exception, e:
-                logging.error("Worker raised %s", e)
-                traceback.print_exc()
-
-            finally:
-                self.queue.task_done()
-
-
-class ThreadPool(object):
-    lock = threading.Lock()
-
-    def __init__(self, number_of_threads):
-        self.number_of_threads = number_of_threads
-        self.queue = Queue.Queue(2 * number_of_threads)
-        self.workers = [Worker(self.queue) for _ in range(number_of_threads)]
-
-    def Stop(self):
-        """Stop all the threads when they are ready."""
-        # Send all workers the stop message.
-        for worker in self.workers:
-            self.AddTask(None)
-
-        self.queue.join()
-        for worker in self.workers:
-            worker.join()
-
-    def AddTask(self, task, args=None):
-        self.queue.put((task, args or []))
 
 
 class VolatilityTester(object):
@@ -113,7 +55,7 @@ class VolatilityTester(object):
 
     def __init__(self, argv=None):
         self.FLAGS = self.ProcessCommandLineArgs(argv)
-        self.threadpool = ThreadPool(self.FLAGS.processes)
+        self.threadpool = threadpool.ThreadPool(self.FLAGS.processes)
         self.test_directory = os.path.dirname(self.FLAGS.config)
         if self.FLAGS.verbose:
             logging.getLogger().setLevel(logging.DEBUG)

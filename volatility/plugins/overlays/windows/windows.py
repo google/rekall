@@ -64,8 +64,20 @@ windows_overlay = {
             # The processor block has varying names between windows versions so
             # we just make them synonyms.
             'ProcessorBlock': lambda x: x.m("Prcb") or x.m("PrcbData"),
-            'IDT': lambda x: x.m("IDT") or x.m("IdtBase"),
-            'GDT': lambda x: x.m("GDT") or x.m("GdtBase"),
+            '_IDT': lambda x: x.m("IDT") or x.m("IdtBase"),
+            '_GDT': lambda x: x.m("GDT") or x.m("GdtBase"),
+            'KdVersionBlock': [None, ['Pointer', dict(target='_KDDEBUGGER_DATA64')]],
+            }],
+
+    '_KPRCB': [None, {
+            'CurrentThread': [None, ['Pointer', dict(
+                        target='_ETHREAD')]],
+            'IdleThread': [None, ['Pointer', dict(
+                        target='_ETHREAD')]],
+            'NextThread': [None, ['Pointer', dict(
+                        target='_ETHREAD')]],
+            'VendorString': [None, ['String', dict(length=13)]],
+
             }],
 
     # The DTB is really an array of 2 ULONG_PTR but we only need the first one
@@ -581,7 +593,7 @@ class _ETHREAD(obj.CType):
 
     def owning_process(self):
         """Return the EPROCESS that owns this thread"""
-        return self.ThreadsProcess.dereference()
+        return self.Tcb.ApcState.Process.dereference_as("_EPROCESS")
 
     def attached_process(self):
         """Return the EPROCESS that this thread is currently
