@@ -40,7 +40,7 @@
 // IOCTL
 //
 // This is used to query the driver about memory stats.
-#define IOCTL_GET_INFO CTL_CODE(FILE_DEVICE_UNKNOWN, 0x100, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+#define IOCTL_GET_INFO CTL_CODE(FILE_DEVICE_UNKNOWN, 0x103, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
 
 #define IOCTL_SET_MODE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x101, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
 
@@ -49,10 +49,22 @@
 // This is the structure which is returned.
 #pragma pack(push, 2)
 
+extern PUSHORT NtBuildNumber;
+
 struct PmemMemroyInfo {
   LARGE_INTEGER CR3;
-  LARGE_INTEGER KPCR;
-  ULONG NumberOfRuns;
+  LARGE_INTEGER NtBuildNumber; // Version of this kernel.
+  LARGE_INTEGER KernBase;  // The base of the kernel image.
+  LARGE_INTEGER KDBG;  // The address of KDBG
+
+  // Support up to 32 processors for KPCR.
+  LARGE_INTEGER KPCR[32];
+
+  // As the driver is extended we can add fields here maintaining
+  // driver alignment..
+  LARGE_INTEGER Padding[0xff];
+
+  LARGE_INTEGER NumberOfRuns;
 
   // A Null terminated array of ranges.
   PHYSICAL_MEMORY_RANGE Run[1];

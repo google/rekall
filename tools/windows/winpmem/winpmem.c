@@ -17,6 +17,7 @@
 #include "winpmem.h"
 
 #include "read.h"
+#include "kd.h"
 
 
 // The following globals are populated in the kernel context from DriverEntry
@@ -75,9 +76,12 @@ int AddMemoryRanges(struct PmemMemroyInfo *info, int len) {
     return -1;
   };
 
+  // Ensure exception bubbles up here to be caught by our caller.
+  //ProbeForWrite(info, required_length, 1);
+
   RtlZeroMemory(info, required_length);
 
-  info->NumberOfRuns = number_of_runs;
+  info->NumberOfRuns.QuadPart = number_of_runs;
   RtlCopyMemory(&info->Run[0], MmPhysicalMemoryRange,
                 number_of_runs * sizeof(PHYSICAL_MEMORY_RANGE));
 
@@ -116,7 +120,7 @@ static NTSTATUS wddClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
 }
 
 NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
-                                      IN PIRP Irp)
+				  IN PIRP Irp)
 {
   UNICODE_STRING DestinationPath;
   PIO_STACK_LOCATION IrpStack;
@@ -155,14 +159,41 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     // Return information about memory layout etc through this ioctrl.
   case IOCTL_GET_INFO: {
     struct PmemMemroyInfo *info = (void *)IoBuffer;
-    int res = AddMemoryRanges(info, OutputLen);
+    int res;
+    IMAGE_DOS_HEADER *KernBase;
 
-    // We are currently running in user context which means __readcr3() will
-    // return the process CR3. So we return the kernel CR3 we found before.
-    info->CR3.QuadPart = CR3.QuadPart;
+    // Check we have enough room here.
+    if (OutputLen < sizeof(struct PmemMemroyInfo)) {
+      status = STATUS_INFO_LENGTH_MISMATCH;
+      break;
+    };
+
+    __try {
+      res = AddMemoryRanges(info, OutputLen);
+    } __except(EXCEPTION_EXECUTE_HANDLER) {
+      status = STATUS_INFO_LENGTH_MISMATCH;
+      break;
+    }
 
     WinDbgPrint("Returning info on the system memory.\n");
     if(res > 0) {
+      KernBase = KernelGetModuleBaseByPtr(NtBuildNumber, "NtBuildNumber");
+
+      // We are currently running in user context which means __readcr3() will
+      // return the process CR3. So we return the kernel CR3 we found
+      // when loading. Alternatively we could get the kernel DTB from
+      // the KDBG but that is less accurate.
+      info->CR3.QuadPart = CR3.QuadPart;
+
+      info->NtBuildNumber.QuadPart = *NtBuildNumber;
+
+      // Fill in KPCR.
+      GetKPCR(info);
+
+      // The kernel base.
+      info->KernBase.QuadPart = (uintptr_t)KernBase;
+      info->KDBG.QuadPart = (uintptr_t)KDBGScan(KernBase);
+
       Irp->IoStatus.Information = res;
       status = STATUS_SUCCESS;
     } else {

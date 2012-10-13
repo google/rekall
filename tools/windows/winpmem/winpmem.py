@@ -52,8 +52,8 @@ def CTL_CODE(DeviceType, Function, Method, Access):
 
 
 # IOCTLS for interacting with the driver.
-INFO_IOCTRL = CTL_CODE(0x22, 0x100, 0, 3)
 CTRL_IOCTRL = CTL_CODE(0x22, 0x101, 0, 3)
+INFO_IOCTRL = CTL_CODE(0x22, 0x103, 0, 3)
 
 
 class Image(object):
@@ -65,12 +65,32 @@ class Image(object):
 
         # Tell the driver what acquisition mode we want.
         self.SetMode()
+        self.GetInfo()
 
-        result = win32file.DeviceIoControl(self.fd, INFO_IOCTRL, "", 1024, None)
-        fmt_string = "QQl"
-        self.cr3, self.kpcr, number_of_runs = struct.unpack_from(fmt_string, result)
+    def GetInfo(self):
+        result = win32file.DeviceIoControl(self.fd, INFO_IOCTRL, "", 
+                                           0x1000, None)
 
+        fmt_string = "Q" * (37 + 0xff)
+        fields = struct.unpack_from(fmt_string, result)
+        self.cr3 = fields[0]
         print "CR3 = 0x%X" % self.cr3
+
+        self.nt_build = fields[1]
+        print "nt_build = %d" % self.nt_build
+
+        self.kernbase = fields[2]
+        print "kernbase = 0x%X" % self.kernbase
+
+        self.kdbg = fields[3]
+        print "kdbg = 0x%X" % self.kdbg
+
+        self.kpcr = fields[4:4+32]
+        for kpcr in self.kpcr:
+            if kpcr == 0: break
+            print "kpcr = 0x%X" % kpcr
+
+        number_of_runs = fields[-1]
 
         self.runs = []
         offset = struct.calcsize(fmt_string)
@@ -167,10 +187,6 @@ def main():
     except win32service.error, e:
         print "%s: will try to continue" % e
 
-    if FLAGS.load:
-        print r"Loaded the winpmem driver. You can now attach volatility to \\.\pmem"
-        return
-
     try:
         fd = win32file.CreateFile(
             "\\\\.\\" + FLAGS.name,
@@ -180,6 +196,14 @@ def main():
             win32file.OPEN_EXISTING,
             win32file.FILE_ATTRIBUTE_NORMAL,
             None)
+
+        if FLAGS.load:
+            print (r"Loaded the winpmem driver. You can now attach "
+                   r"volatility to \\.\pmem")
+            image = Image(fd)
+
+            return
+
         try:
             t = time.time()
             image = Image(fd)

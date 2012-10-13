@@ -33,7 +33,7 @@ def CTL_CODE(DeviceType, Function, Method, Access):
 
 
 # IOCTLS for interacting with the driver.
-INFO_IOCTRL = CTL_CODE(0x22, 0x100, 0, 3)
+INFO_IOCTRL = CTL_CODE(0x22, 0x103, 0, 3)
 
 PAGE_SHIFT = 12
 
@@ -53,10 +53,11 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
     PAGE_SIZE = 0x10000
     _md_image = True
 
-    def __init__(self, base=None, filename=None, session=None, **kwargs):
-        self.as_assert(base == None, 'Must be first Address Space')
+    def __init__(self, filename=None, **kwargs):
+        super(Win32FileAddressSpace, self).__init__(**kwargs)
 
-        path = (session and session.filename) or filename
+        path = filename or (self.session and self.session.filename)
+
         self.as_assert(path, "Filename must be specified in session (e.g. "
                        "session.filename = 'MyFile.raw').")
 
@@ -73,29 +74,39 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         # Try to get the memory runs from the winpmem driver.
         self.runs = []
         try:
-            self.ParseMemoryRuns()
+            self.GetInfo()
         except Exception:
             self.runs = [[0, 0, win32file.GetFileSize(self.fhandle)]]
 
-        # IO on windows is extremely slow so we are better off using a
-        # cache.
-        self.cache = utils.FastStore(1000)
+    def GetInfo(self):
+        result = win32file.DeviceIoControl(self.fhandle, INFO_IOCTRL, "",
+                                           0x1000, None)
 
-        super(Win32FileAddressSpace, self).__init__(
-            session=session, base=base, **kwargs)
+        fmt_string = "Q" * (37 + 0xff)
+        fields = struct.unpack_from(fmt_string, result)
+        self.dtb = fields[0]
+        self.nt_build = fields[1]
+        self.kernbase = fields[2]
 
-    def ParseMemoryRuns(self):
-        result = win32file.DeviceIoControl(
-            self.fhandle, INFO_IOCTRL, "", 1024, None)
+        self.kdbg = fields[3]
+        self.kpcr = fields[4:4+32]
 
-        fmt_string = "QQl"
-        self.dtb, _, number_of_runs = struct.unpack_from(fmt_string, result)
+        for kpcr in self.kpcr:
+            if kpcr == 0: break
 
+        number_of_runs = fields[-1]
+
+        self.runs = []
         offset = struct.calcsize(fmt_string)
 
         for x in range(number_of_runs):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
             self.runs.append((start, start, length))
+
+        # Set these in the session so we do not need to scan for them. This
+        # makes windows live analysis extremely fast.
+        self.session.dtb = int(self.dtb)
+        self.session.kdbg = int(self.kdbg)
 
     def _read_chunk(self, addr, length, pad):
         offset, available_length = self._get_available_buffer(addr, length)

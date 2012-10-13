@@ -8,4 +8,5 @@ DDKROOT=$(BASEDIR)
 INCLUDES=$(DDK_INC_PATH);
 
 SOURCES= winpmem.c \
-         read.c
+         read.c \
+         kd.c

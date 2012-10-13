@@ -82,6 +82,8 @@ class KPCR(common.AbstractWindowsCommandPlugin):
             for kwaiter in kthread.WaitListEntry.list_of_type(
                 "_KTHREAD", "WaitListEntry"):
 
+                self.session.report_progress()
+
                 if kwaiter.obj_offset in seen_threads:
                     break
 
