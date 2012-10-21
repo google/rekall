@@ -56,6 +56,8 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
     def __init__(self, filename=None, **kwargs):
         super(Win32FileAddressSpace, self).__init__(**kwargs)
 
+        self.as_assert(self.base == None, 'Must be first Address Space')
+
         path = filename or (self.session and self.session.filename)
 
         self.as_assert(path, "Filename must be specified in session (e.g. "
@@ -74,39 +76,35 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         # Try to get the memory runs from the winpmem driver.
         self.runs = []
         try:
-            self.GetInfo()
-        except Exception:
+            self.ParseMemoryRuns()
+        except Exception, e:
+            if self.session.debug:
+                import pdb
+                pdb.post_mortem()
+
             self.runs = [[0, 0, win32file.GetFileSize(self.fhandle)]]
 
-    def GetInfo(self):
-        result = win32file.DeviceIoControl(self.fhandle, INFO_IOCTRL, "",
-                                           0x1000, None)
+    FIELDS = (["CR3", "NtBuildNumber", "KernBase", "KDBG"] +
+              ["KPCR%s" % i for i in range(32)] + 
+              ["PfnDataBase", "PsLoadedModuleList", "PsActiveProcessHead"] +
+              ["Padding%s" % i for i in range(0xff)] +
+              ["NumberOfRuns"])
 
-        fmt_string = "Q" * (37 + 0xff)
-        fields = struct.unpack_from(fmt_string, result)
-        self.dtb = fields[0]
-        self.nt_build = fields[1]
-        self.kernbase = fields[2]
+    def ParseMemoryRuns(self):
+        result = win32file.DeviceIoControl(
+            self.fhandle, INFO_IOCTRL, "", 102400, None)
 
-        self.kdbg = fields[3]
-        self.kpcr = fields[4:4+32]
+        fmt_string = "Q" * len(self.FIELDS)
+        self.memory_parameters = dict(zip(self.FIELDS, struct.unpack_from(fmt_string, result)))
 
-        for kpcr in self.kpcr:
-            if kpcr == 0: break
+        self.session.dtb = self.dtb = self.memory_parameters["CR3"]
+        self.session.kdbg = self.kdbg = self.memory_parameters["KDBG"]
 
-        number_of_runs = fields[-1]
-
-        self.runs = []
         offset = struct.calcsize(fmt_string)
-
-        for x in range(number_of_runs):
+        
+        for x in range(self.memory_parameters["NumberOfRuns"]):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
             self.runs.append((start, start, length))
-
-        # Set these in the session so we do not need to scan for them. This
-        # makes windows live analysis extremely fast.
-        self.session.dtb = int(self.dtb)
-        self.session.kdbg = int(self.kdbg)
 
     def _read_chunk(self, addr, length, pad):
         offset, available_length = self._get_available_buffer(addr, length)

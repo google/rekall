@@ -187,7 +187,7 @@ def main():
     except win32service.error, e:
         print "%s: will try to continue" % e
 
-    try:
+    if FLAGS.load:
         fd = win32file.CreateFile(
             "\\\\.\\" + FLAGS.name,
             win32file.GENERIC_READ | win32file.GENERIC_WRITE,
@@ -197,12 +197,21 @@ def main():
             win32file.FILE_ATTRIBUTE_NORMAL,
             None)
 
-        if FLAGS.load:
-            print (r"Loaded the winpmem driver. You can now attach "
-                   r"volatility to \\.\pmem")
-            image = Image(fd)
+        print (r"Loaded the winpmem driver. You can now attach "
+               r"volatility to \\.\pmem")
+        image = Image(fd)
 
-            return
+        return
+
+    try:
+        fd = win32file.CreateFile(
+            "\\\\.\\" + FLAGS.name,
+            win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+            win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
+            None,
+            win32file.OPEN_EXISTING,
+            win32file.FILE_ATTRIBUTE_NORMAL,
+            None)
 
         try:
             t = time.time()

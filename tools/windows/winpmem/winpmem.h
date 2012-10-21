@@ -51,7 +51,7 @@
 
 extern PUSHORT NtBuildNumber;
 
-struct PmemMemroyInfo {
+struct PmemMemoryInfo {
   LARGE_INTEGER CR3;
   LARGE_INTEGER NtBuildNumber; // Version of this kernel.
   LARGE_INTEGER KernBase;  // The base of the kernel image.
@@ -59,6 +59,10 @@ struct PmemMemroyInfo {
 
   // Support up to 32 processors for KPCR.
   LARGE_INTEGER KPCR[32];
+
+  LARGE_INTEGER PfnDataBase;
+  LARGE_INTEGER PsLoadedModuleList;
+  LARGE_INTEGER PsActiveProcessHead;
 
   // As the driver is extended we can add fields here maintaining
   // driver alignment..

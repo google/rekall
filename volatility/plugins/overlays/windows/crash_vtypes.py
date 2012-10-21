@@ -43,6 +43,16 @@ crash_vtypes = {
     'BasePage' : [ 0x0, ['unsigned long']],
     'PageCount' : [ 0x4, ['unsigned long']],
 } ],
+
+  '_EXCEPTION_RECORD32' : [ 0x50, {
+    'ExceptionCode' : [ 0x0, ['long']],
+    'ExceptionFlags' : [ 0x4, ['unsigned long']],
+    'ExceptionRecord' : [ 0x8, ['unsigned long']],
+    'ExceptionAddress' : [ 0xc, ['unsigned long']],
+    'NumberParameters' : [ 0x10, ['unsigned long']],
+    'ExceptionInformation' : [ 0x14, ['array', 15, ['unsigned long']]],
+} ],
+
 }
 
 
@@ -89,6 +99,16 @@ crash_64_vtypes = {
   '_PHYSICAL_MEMORY_RUN' : [ 0x10, {
     'BasePage' : [ 0x0, ['unsigned long long']],
     'PageCount' : [ 0x8, ['unsigned long long']],
+} ],
+
+  '_EXCEPTION_RECORD64' : [ 0x98, {
+    'ExceptionCode' : [ 0x0, ['long']],
+    'ExceptionFlags' : [ 0x4, ['unsigned long']],
+    'ExceptionRecord' : [ 0x8, ['unsigned long long']],
+    'ExceptionAddress' : [ 0x10, ['unsigned long long']],
+    'NumberParameters' : [ 0x18, ['unsigned long']],
+    '__unusedAlignment' : [ 0x1c, ['unsigned long']],
+    'ExceptionInformation' : [ 0x20, ['array', 15, ['unsigned long long']]],
 } ],
 
 }

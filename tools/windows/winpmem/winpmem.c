@@ -1,17 +1,17 @@
 /*
-   Copyright 2012 Michael Cohen <scudette@gmail.com>
+  Copyright 2012 Michael Cohen <scudette@gmail.com>
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+  http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 */
 
 #include "winpmem.h"
@@ -26,22 +26,18 @@
 // The kernel CR3
 LARGE_INTEGER CR3;
 
-
-
-NTSTATUS IoUnload(IN PDRIVER_OBJECT DriverObject) {
+DRIVER_UNLOAD IoUnload;
+VOID IoUnload(IN PDRIVER_OBJECT DriverObject) {
   UNICODE_STRING DeviceLinkUnicodeString;
-  NTSTATUS NtStatus;
   PDEVICE_OBJECT pDeviceObject = DriverObject->DeviceObject;
 
   RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\DosDevices\\"
 			PMEM_DEVICE_NAME);
-  NtStatus = IoDeleteSymbolicLink (&DeviceLinkUnicodeString);
+  IoDeleteSymbolicLink (&DeviceLinkUnicodeString);
 
   if (DriverObject != NULL) {
     IoDeleteDevice(pDeviceObject);
   }
-
-  return NtStatus;
 }
 
 
@@ -49,8 +45,8 @@ NTSTATUS IoUnload(IN PDRIVER_OBJECT DriverObject) {
   Gets information about the memory layout.
 
   - The Physical memory address ranges.
- */
-int AddMemoryRanges(struct PmemMemroyInfo *info, int len) {
+*/
+int AddMemoryRanges(struct PmemMemoryInfo *info, int len) {
   PPHYSICAL_MEMORY_RANGE MmPhysicalMemoryRange;
   int number_of_runs = 0;
   int required_length;
@@ -68,7 +64,7 @@ int AddMemoryRanges(struct PmemMemroyInfo *info, int len) {
         (MmPhysicalMemoryRange[number_of_runs].NumberOfBytes.QuadPart);
       number_of_runs++);
 
-  required_length = (sizeof(struct PmemMemroyInfo) +
+  required_length = (sizeof(struct PmemMemoryInfo) +
                      number_of_runs * sizeof(PHYSICAL_MEMORY_RANGE));
 
   /* Do we have enough space? */
@@ -90,7 +86,8 @@ int AddMemoryRanges(struct PmemMemroyInfo *info, int len) {
   return required_length;
 };
 
-
+__drv_dispatchType(IRP_MJ_CREATE)
+DRIVER_DISPATCH wddCreate;
 static NTSTATUS wddCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
   PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
   PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
@@ -104,21 +101,26 @@ static NTSTATUS wddCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
   return STATUS_SUCCESS;
 };
 
+
+__drv_dispatchType(IRP_MJ_CLOSE)
+DRIVER_DISPATCH wddClose;
 static NTSTATUS wddClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
- PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
- PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
+  PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
+  PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
- if(ext->MemoryHandle != 0) {
-   ZwClose(ext->MemoryHandle);
- };
+  if(ext->MemoryHandle != 0) {
+    ZwClose(ext->MemoryHandle);
+  };
 
- Irp->IoStatus.Status = STATUS_SUCCESS;
- Irp->IoStatus.Information = 0;
+  Irp->IoStatus.Status = STATUS_SUCCESS;
+  Irp->IoStatus.Information = 0;
 
- IoCompleteRequest(Irp,IO_NO_INCREMENT);
- return STATUS_SUCCESS;
+  IoCompleteRequest(Irp,IO_NO_INCREMENT);
+  return STATUS_SUCCESS;
 }
 
+__drv_dispatchType(IRP_MJ_DEVICE_CONTROL)
+DRIVER_DISPATCH wddDispatchDeviceControl;
 NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 				  IN PIRP Irp)
 {
@@ -158,12 +160,12 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 
     // Return information about memory layout etc through this ioctrl.
   case IOCTL_GET_INFO: {
-    struct PmemMemroyInfo *info = (void *)IoBuffer;
+    struct PmemMemoryInfo *info = (void *)IoBuffer;
     int res;
     IMAGE_DOS_HEADER *KernBase;
 
     // Check we have enough room here.
-    if (OutputLen < sizeof(struct PmemMemroyInfo)) {
+    if (OutputLen < sizeof(struct PmemMemoryInfo)) {
       status = STATUS_INFO_LENGTH_MISMATCH;
       break;
     };
@@ -177,12 +179,16 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 
     WinDbgPrint("Returning info on the system memory.\n");
     if(res > 0) {
+      KDDEBUGGER_DATA64 *kdbg = NULL;
       KernBase = KernelGetModuleBaseByPtr(NtBuildNumber, "NtBuildNumber");
+      if (KernBase)
+	kdbg = KDBGScan(KernBase);
 
       // We are currently running in user context which means __readcr3() will
       // return the process CR3. So we return the kernel CR3 we found
       // when loading. Alternatively we could get the kernel DTB from
-      // the KDBG but that is less accurate.
+      // the KDBG but here we prefer to return the actual register
+      // contents.
       info->CR3.QuadPart = CR3.QuadPart;
 
       info->NtBuildNumber.QuadPart = *NtBuildNumber;
@@ -190,12 +196,18 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
       // Fill in KPCR.
       GetKPCR(info);
 
-      // The kernel base.
-      info->KernBase.QuadPart = (uintptr_t)KernBase;
-      info->KDBG.QuadPart = (uintptr_t)KDBGScan(KernBase);
+      if (kdbg) {
+        // The kernel base.
+        info->KernBase.QuadPart = (uintptr_t)KernBase;
+        info->KDBG.QuadPart = (uintptr_t)kdbg;
 
-      Irp->IoStatus.Information = res;
-      status = STATUS_SUCCESS;
+	info->PfnDataBase.QuadPart = kdbg->MmPfnDatabase;
+	info->PsLoadedModuleList.QuadPart = kdbg->PsLoadedModuleList;
+	info->PsActiveProcessHead.QuadPart = kdbg->PsActiveProcessHead;
+
+	Irp->IoStatus.Information = res;
+	status = STATUS_SUCCESS;
+      };
     } else {
       status = STATUS_INFO_LENGTH_MISMATCH;
     };
@@ -249,6 +261,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 }
 
 
+DRIVER_INITIALIZE DriverEntry;
 NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
                       IN PUNICODE_STRING RegistryPath)
 {

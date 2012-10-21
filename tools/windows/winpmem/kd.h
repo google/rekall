@@ -332,6 +332,6 @@ KDDEBUGGER_DATA64 *KDBGScan(IMAGE_DOS_HEADER *image_base);
 
 void *KernelGetProcAddress(void *image_base, char *func_name);
 
-int GetKPCR(struct PmemMemroyInfo *info);
+int GetKPCR(struct PmemMemoryInfo *info);
 
 #endif // _WINPMEM_KD_H

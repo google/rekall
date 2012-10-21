@@ -25,6 +25,7 @@ from volatility import plugin
 from volatility.plugins.windows import common
 from volatility.plugins.addrspaces import crash
 from volatility.plugins.addrspaces import standard
+from volatility.plugins.overlays.windows import windows
 
 
 class CrashInfo(common.AbstractWindowsCommandPlugin):
@@ -66,6 +67,8 @@ class Raw2Dump(common.WindowsCommandPlugin):
           overwrite: Should the output be overwritten?
         """
         super(Raw2Dump, self).__init__(**kwargs)
+        self.profile = windows.CrashDump64Profile()
+
         self.buffer_size = buffer_size
         self.destination = destination
         if not destination:

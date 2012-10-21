@@ -34,7 +34,12 @@ NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset,
 
 
 /* Actual read handler. */
+__drv_dispatchType(IRP_MJ_READ)
+DRIVER_DISPATCH PmemRead;
 NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp);
+
+__drv_dispatchType(IRP_MJ_WRITE)
+DRIVER_DISPATCH PmemWrite;
 NTSTATUS PmemWrite(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp);
 
 #endif
