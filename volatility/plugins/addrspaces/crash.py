@@ -73,10 +73,6 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
         self.as_assert((self.base.read(0, 8) == 'PAGEDUMP'),
                        "Header signature invalid")
 
-        self.as_assert(
-            self.profile.has_type("_DMP_HEADER"),
-            "_DMP_HEADER not available in profile")
-
         self.profile = windows.CrashDump32Profile()
         self.header = self.profile.Object(
             "_DMP_HEADER", offset=self.offset, vm=self.base)

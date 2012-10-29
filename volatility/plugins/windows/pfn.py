@@ -572,15 +572,18 @@ class DTBScan(common.WinProcessFilter):
     def render(self, renderer):
         ptov = self.session.plugins.ptov(session=self.session)
         pslist = self.session.plugins.pslist(session=self.session)
-        # Known DTBs:
-        dtb_map = {}
+        pfn_plugin = self.session.plugins.pfn(session=self.session)
+
+        # Known tasks:
+        known_tasks = set()
         for task in pslist.list_eprocess():
-            dtb_map[task.Pcb.DirectoryTableBase.v()] = task
+            known_tasks.add(task.obj_offset)
 
         renderer.table_header([("DTB", "dtb", "[addrpad]"),
                                ("VAddr", "vaddr", "[addrpad]"),
                                ("_EPROCESS", "task", "[addrpad]"),
-                               ("Image Name", "filename", "")])
+                               ("Image Name", "filename", "<20"),
+                               ("Known", "known", "") ])
 
         seen_dtbs = set()
 
@@ -594,12 +597,19 @@ class DTBScan(common.WinProcessFilter):
                     dtb = results[0][1]
                     if dtb not in seen_dtbs:
                         seen_dtbs.add(dtb)
-                        task = dtb_map.get(dtb)
-                        if task is None:
+
+                        # The _EPROCESS address is stored as the
+                        # KernelStackOwner for the pfn of this dtb.
+                        task = pfn_plugin.pfn_record(
+                            dtb >> 12).u1.Flink.dereference_as(
+                            "_EPROCESS")
+
+                        if not task:
                             task = obj.NoneObject("Invalid")
                             filename = "Process not Found!"
                         else:
                             filename = task.ImageFileName
 
                         va, _ = ptov.ptov(dtb)
-                        renderer.table_row(dtb, va, task, filename)
+                        renderer.table_row(dtb, va, task, filename,
+                                           task.obj_offset in known_tasks)

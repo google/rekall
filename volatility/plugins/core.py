@@ -400,11 +400,14 @@ class LoadAddressSpace(plugin.Command):
 class DirectoryDumperMixin(object):
     """A mixin for plugins that want to dump files to a directory."""
 
+    # Set this to True if the dump_dir parameter should be optional.
+    dump_dir_optional = False
+
     @classmethod
     def args(cls, parser):
         """Declare the command line args we need."""
         super(DirectoryDumperMixin, cls).args(parser)
-        parser.add_argument("-D", "--dump-dir", required=True,
+        parser.add_argument("-D", "--dump-dir", required=not cls.dump_dir_optional,
                             help="Path suitable for dumping files (required).")
 
     def __init__(self, dump_dir=None, **kwargs):
@@ -419,10 +422,11 @@ class DirectoryDumperMixin(object):
         self.check_dump_dir(self.dump_dir)
 
     def check_dump_dir(self, dump_dir=None):
-        if not dump_dir:
-            raise plugin.PluginError("Please specify a dump directory.")
+        # If the dump_dir parameter is not optional insist its there.
+        if not self.dump_dir_optional and not dump_dir:
+                raise plugin.PluginError("Please specify a dump directory.")
 
-        if not os.path.isdir(dump_dir):
+        if dump_dir and not os.path.isdir(dump_dir):
             raise plugin.PluginError("%s is not a directory" % self.dump_dir)
 
 

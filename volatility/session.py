@@ -92,6 +92,10 @@ class Session(object):
         return None
         return obj.NoneObject("Session has not attribute %s" % attr)
 
+    def error(self, plugin_cls, e):
+        """An error handler for plugin errors."""
+        raise e
+
     def vol(self, plugin_cls, *pos_args, **kwargs):
         """Launch a plugin and its render() method automatically.
 
@@ -191,8 +195,7 @@ class Session(object):
                           plugin_cls.name, e)
 
         except plugin.Error, e:
-            logging.error("Failed running plugin %s: %s",
-                          plugin_cls.name, e)
+            self.error(plugin_cls, e)
 
         except KeyboardInterrupt:
             if self.debug:
@@ -379,6 +382,11 @@ Config:
 
         logging.info("Logging level set to %s", value)
         logging.getLogger().setLevel(int(level))
+
+    def error(self, plugin_cls, e):
+        """Swallow the error but report it."""
+        logging.error("Failed running plugin %s: %s",
+                      plugin_cls.name, e)
 
     def vhelp(self, item=None):
         """Prints some helpful information."""

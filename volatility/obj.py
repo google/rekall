@@ -520,7 +520,7 @@ class Pointer(NativeType):
         return 0xffffffffffff & self._proxy.v(vm=vm)
 
     def write(self, data):
-        return self.proxy.write(data)
+        return self._proxy.write(data)
 
     def __eq__(self, other):
         try:
