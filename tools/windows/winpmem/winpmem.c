@@ -46,7 +46,7 @@ VOID IoUnload(IN PDRIVER_OBJECT DriverObject) {
 
   - The Physical memory address ranges.
 */
-int AddMemoryRanges(struct PmemMemoryInfo *info, int len) {
+NTSTATUS AddMemoryRanges(struct PmemMemoryInfo *info, int len) {
   PPHYSICAL_MEMORY_RANGE MmPhysicalMemoryRange;
   int number_of_runs = 0;
   int required_length;
@@ -55,7 +55,7 @@ int AddMemoryRanges(struct PmemMemoryInfo *info, int len) {
   MmPhysicalMemoryRange = MmGetPhysicalMemoryRanges();
 
   if (MmPhysicalMemoryRange == NULL) {
-    return -1;
+    return STATUS_ACCESS_DENIED;
   };
 
   /** Find out how many ranges there are. */
@@ -69,11 +69,8 @@ int AddMemoryRanges(struct PmemMemoryInfo *info, int len) {
 
   /* Do we have enough space? */
   if(len < required_length) {
-    return -1;
+    return STATUS_INFO_LENGTH_MISMATCH;
   };
-
-  // Ensure exception bubbles up here to be caught by our caller.
-  //ProbeForWrite(info, required_length, 1);
 
   RtlZeroMemory(info, required_length);
 
@@ -83,7 +80,7 @@ int AddMemoryRanges(struct PmemMemoryInfo *info, int len) {
 
   ExFreePool(MmPhysicalMemoryRange);
 
-  return required_length;
+  return STATUS_SUCCESS;
 };
 
 __drv_dispatchType(IRP_MJ_CREATE)
@@ -126,7 +123,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 {
   UNICODE_STRING DestinationPath;
   PIO_STACK_LOCATION IrpStack;
-  NTSTATUS status = STATUS_SUCCESS;
+  NTSTATUS status = STATUS_INVALID_PARAMETER;
   ULONG IoControlCode;
   PVOID IoBuffer;
   PULONG OutputBuffer;
@@ -158,58 +155,84 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 
   switch ((IoControlCode & 0xFFFFFF0F)) {
 
+    // The old deprecated ioctrl interface for backwards
+    // compatibility. Do not use for new code.
+  case IOCTL_GET_INFO_DEPRECATED: {
+    char buffer[0x1000];
+
+    struct DeprecatedPmemMemoryInfo *info = (void *)IoBuffer;
+    struct PmemMemoryInfo *memory_info = (void *)buffer;
+
+    status = AddMemoryRanges(memory_info, sizeof(buffer));
+    if (status != STATUS_SUCCESS)
+      goto exit;
+
+    info->CR3.QuadPart = CR3.QuadPart;
+    info->NumberOfRuns = (unsigned long)memory_info->NumberOfRuns.QuadPart;
+
+    // Is there enough space in the user supplied buffer?
+    if (OutputLen < (info->NumberOfRuns * sizeof(PHYSICAL_MEMORY_RANGE) +
+		     sizeof(struct DeprecatedPmemMemoryInfo))) {
+      status = STATUS_INFO_LENGTH_MISMATCH;
+      goto exit;
+    };
+
+    // Copy the runs over.
+    RtlCopyMemory(&info->Run[0], &memory_info->Run[0],
+		  info->NumberOfRuns * sizeof(PHYSICAL_MEMORY_RANGE));
+
+    // This is the total length of the response.
+    Irp->IoStatus.Information =
+      sizeof(struct DeprecatedPmemMemoryInfo) +
+      info->NumberOfRuns * sizeof(PHYSICAL_MEMORY_RANGE);
+
+    WinDbgPrint("Returning info on the system memory using deprecated interface!\n");
+
+    status = STATUS_SUCCESS;
+  }; break;
+
     // Return information about memory layout etc through this ioctrl.
   case IOCTL_GET_INFO: {
     struct PmemMemoryInfo *info = (void *)IoBuffer;
-    int res;
     IMAGE_DOS_HEADER *KernBase;
+    KDDEBUGGER_DATA64 *kdbg = NULL;
 
-    // Check we have enough room here.
-    if (OutputLen < sizeof(struct PmemMemoryInfo)) {
-      status = STATUS_INFO_LENGTH_MISMATCH;
-      break;
+    status = AddMemoryRanges(info, OutputLen);
+    if (status != STATUS_SUCCESS) {
+      goto exit;
     };
 
-    __try {
-      res = AddMemoryRanges(info, OutputLen);
-    } __except(EXCEPTION_EXECUTE_HANDLER) {
-      status = STATUS_INFO_LENGTH_MISMATCH;
-      break;
-    }
-
     WinDbgPrint("Returning info on the system memory.\n");
-    if(res > 0) {
-      KDDEBUGGER_DATA64 *kdbg = NULL;
-      KernBase = KernelGetModuleBaseByPtr(NtBuildNumber, "NtBuildNumber");
-      if (KernBase)
-	kdbg = KDBGScan(KernBase);
+    KernBase = KernelGetModuleBaseByPtr(NtBuildNumber, "NtBuildNumber");
+    if (KernBase)
+      kdbg = KDBGScan(KernBase);
 
-      // We are currently running in user context which means __readcr3() will
-      // return the process CR3. So we return the kernel CR3 we found
-      // when loading. Alternatively we could get the kernel DTB from
-      // the KDBG but here we prefer to return the actual register
-      // contents.
-      info->CR3.QuadPart = CR3.QuadPart;
+    // We are currently running in user context which means __readcr3() will
+    // return the process CR3. So we return the kernel CR3 we found
+    // when loading. Alternatively we could get the kernel DTB from
+    // the KDBG but here we prefer to return the actual register
+    // contents.
+    info->CR3.QuadPart = CR3.QuadPart;
 
-      info->NtBuildNumber.QuadPart = *NtBuildNumber;
+    info->NtBuildNumber.QuadPart = *NtBuildNumber;
 
-      // Fill in KPCR.
-      GetKPCR(info);
+    // Fill in KPCR.
+    GetKPCR(info);
 
-      if (kdbg) {
-        // The kernel base.
-        info->KernBase.QuadPart = (uintptr_t)KernBase;
-        info->KDBG.QuadPart = (uintptr_t)kdbg;
+    if (kdbg) {
+      // The kernel base.
+      info->KernBase.QuadPart = (uintptr_t)KernBase;
+      info->KDBG.QuadPart = (uintptr_t)kdbg;
+      info->PfnDataBase.QuadPart = kdbg->MmPfnDatabase;
+      info->PsLoadedModuleList.QuadPart = kdbg->PsLoadedModuleList;
+      info->PsActiveProcessHead.QuadPart = kdbg->PsActiveProcessHead;
 
-	info->PfnDataBase.QuadPart = kdbg->MmPfnDatabase;
-	info->PsLoadedModuleList.QuadPart = kdbg->PsLoadedModuleList;
-	info->PsActiveProcessHead.QuadPart = kdbg->PsActiveProcessHead;
+      // This is the length of the response.
+      Irp->IoStatus.Information =
+	sizeof(struct PmemMemoryInfo) +
+	info->NumberOfRuns.LowPart * sizeof(PHYSICAL_MEMORY_RANGE);
 
-	Irp->IoStatus.Information = res;
-	status = STATUS_SUCCESS;
-      };
-    } else {
-      status = STATUS_INFO_LENGTH_MISMATCH;
+      status = STATUS_SUCCESS;
     };
   }; break;
 
@@ -224,10 +247,12 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
       switch(ctrl->mode) {
       case ACQUISITION_MODE_PHYSICAL_MEMORY:
         WinDbgPrint("Using physical memory device for acquisition.\n");
+	status = STATUS_SUCCESS;
         break;
 
       case ACQUISITION_MODE_MAP_IO_SPACE:
         WinDbgPrint("Using MmMapIoSpace for acquisition.\n");
+	status = STATUS_SUCCESS;
         break;
 
       default:
@@ -276,8 +301,7 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   WinDbgPrint("WinPMEM write support available!");
 #endif
 
-  WinDbgPrint("Copyright (c) 2012, Michael Cohen <scudette@gmail.com> based "
-              "on win32dd code by Matthieu Suiche <http://www.msuiche.net>\n");
+  WinDbgPrint("Copyright (c) 2012, Michael Cohen <scudette@gmail.com>");
 
   RtlInitUnicodeString (&DeviceName, L"\\Device\\" PMEM_DEVICE_NAME);
 

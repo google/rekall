@@ -4,7 +4,7 @@
 #include "Dump.h"
 
 // Executable version.
-static TCHAR version[] = TEXT("20121021");
+static TCHAR version[] = TEXT("1.3. Built ") TEXT(__DATE__);
 #define PMEM_DEVICE_NAME "pmem"
 #define PMEM_SERVICE_NAME TEXT("winpmem")
 
@@ -20,27 +20,35 @@ class WinPmem {
   WinPmem();
   virtual ~WinPmem();
 
-  virtual void LogError(TCHAR *message);
-  virtual void Log(const TCHAR *message, ...);
-
   virtual int install_driver();
   virtual int uninstall_driver();
   virtual int set_write_enabled();
   virtual int set_acquisition_mode(__int32 mode);
 
   virtual void print_memory_info();
+
+  // In order to create an image:
+
+  // 1. Create an output file with create_output_file()
+  // 2. Select either write_raw_image() or write_crashdump().
+  // 3. When thid object is deleted, the file is closed.
+  virtual int create_output_file(TCHAR *output_filename);
   virtual int write_raw_image();
   virtual int write_crashdump();
-  virtual int create_output_file(TCHAR *output_filename);
 
-  // This is set if output should be suppressed (e.g. if we pipe the image to the STDOUT).
+  // This is set if output should be suppressed (e.g. if we pipe the
+  // image to the STDOUT).
   int suppress_output;
   TCHAR last_error[1024];
 
- private:
+ protected:
   int extract_file_(int driver_id);
-  int load_driver_();
-  int write_crashdump_header_(struct PmemMemoryInfo *info);
+  virtual int load_driver_() = 0;
+  virtual int write_crashdump_header_(struct PmemMemoryInfo *info) = 0;
+
+  virtual void LogError(TCHAR *message);
+  virtual void Log(const TCHAR *message, ...);
+
   int pad(__int64 length);
   int copy_memory(__int64 start, __int64 end);
 
@@ -58,6 +66,17 @@ class WinPmem {
   __int64 max_physical_memory_;
 };
 
+class WinPmem32: public WinPmem {
+ protected:
+  virtual int load_driver_();
+  virtual int write_crashdump_header_(struct PmemMemoryInfo *info);
+};
+
+class WinPmem64: public WinPmem {
+ protected:
+  virtual int load_driver_();
+  virtual int write_crashdump_header_(struct PmemMemoryInfo *info);
+};
 
 
 // This is the filename of the driver we drop.

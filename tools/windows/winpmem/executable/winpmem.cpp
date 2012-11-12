@@ -276,7 +276,7 @@ WinPmem::~WinPmem() {
     CloseHandle(fd_);
   };
 
-  if      (buffer_) {
+  if (buffer_) {
     delete [] buffer_;
   }
 }
@@ -298,7 +298,7 @@ void WinPmem::Log(const TCHAR *message, ...) {
 };
 
 int WinPmem::extract_file_(int driver_id) {
-  TCHAR path[MAX_PATH];
+  TCHAR path[MAX_PATH + 1];
 
   // Locate the driver resource in the .EXE file.
   HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(driver_id), L"FILE");
@@ -350,25 +350,6 @@ int WinPmem::extract_file_(int driver_id) {
  error:
   return -1;
 };
-
-int WinPmem::load_driver_() {
-  SYSTEM_INFO sys_info;
-  ZeroMemory(&sys_info, sizeof(sys_info));
-
-  GetNativeSystemInfo(&sys_info);
-  switch(sys_info.wProcessorArchitecture) {
-  case PROCESSOR_ARCHITECTURE_AMD64:
-    return extract_file_(WINPMEM_64BIT_DRIVER);
-
-  case PROCESSOR_ARCHITECTURE_INTEL:
-    return extract_file_(WINPMEM_32BIT_DRIVER);
-
-  default:
-    LogError(TEXT("Unsupported architecture"));
-    return -1;
-  }
-}
-
 
 int WinPmem::install_driver() {
   SC_HANDLE scm, service;
@@ -461,13 +442,14 @@ int WinPmem::uninstall_driver() {
 
   return 1;
 
- error:
   CloseServiceHandle(scm);
   return 0;
 }
 
 
-int WinPmem::write_crashdump_header_(struct PmemMemoryInfo *info) {
+// WinPmem64 - A 64 bit implementation of the imager.
+
+int WinPmem64::write_crashdump_header_(struct PmemMemoryInfo *info) {
   DUMP_HEADER64 header;
   int i;
   __int32 *p = (__int32 *)&header;
@@ -475,11 +457,11 @@ int WinPmem::write_crashdump_header_(struct PmemMemoryInfo *info) {
 
   // Pad with PAGE.
   for(i=0; i<sizeof(header)/4; i++) {
-    p[i] = 0x45474150;
+    p[i] = DUMP_SIGNATURE64;
   }
 
-  header.Signature = 0x45474150;
-  header.ValidDump = 0x34365544;
+  header.Signature = DUMP_SIGNATURE64;
+  header.ValidDump = DUMP_VALID_DUMP64;
 
   header.KdDebuggerDataBlock = info->KDBG.QuadPart;
   header.PhysicalMemoryBlock.NumberOfRuns = 0;
@@ -514,3 +496,65 @@ int WinPmem::write_crashdump_header_(struct PmemMemoryInfo *info) {
 
   return 1;
 };
+
+int WinPmem64::load_driver_() {
+  return extract_file_(WINPMEM_64BIT_DRIVER);
+}
+
+// WinPmem32 - A 32 bit implementation of the imager.
+
+int WinPmem32::write_crashdump_header_(struct PmemMemoryInfo *info) {
+  DUMP_HEADER header;
+  int i;
+  __int32 *p = (__int32 *)&header;
+  DWORD header_size = 0x1000;
+
+  // Pad with PAGE.
+  for(i=0; i<sizeof(header)/4; i++) {
+    p[i] = DUMP_SIGNATURE32;
+  }
+
+  header.Signature = DUMP_SIGNATURE32;
+  header.ValidDump = DUMP_VALID_DUMP32;
+
+  header.KdDebuggerDataBlock = info->KDBG.LowPart;
+  header.PhysicalMemoryBlock.NumberOfRuns = 0;
+  header.PhysicalMemoryBlock.NumberOfPages = 0;
+
+  for(i=0; i < info->NumberOfRuns.QuadPart; i++) {
+    header.PhysicalMemoryBlock.Run[i].BasePage = (ULONG)info->Run[i].start /
+      PAGE_SIZE;
+    header.PhysicalMemoryBlock.Run[i].PageCount = (ULONG)info->Run[i].length /
+      PAGE_SIZE;
+    header.PhysicalMemoryBlock.NumberOfRuns++;
+    header.PhysicalMemoryBlock.NumberOfPages += (ULONG)info->Run[i].length /
+      PAGE_SIZE;
+  };
+
+  // Count how many processors we have.
+  for(i=0; info->KPCR[i].QuadPart; i++);
+  header.KeNumberOfProcessors = i;
+
+  header.DirectoryTableBase = info->CR3.LowPart;
+  header.MajorVersion = 0xf;
+  header.MinorVersion = info->NtBuildNumber.LowPart;
+  header.RequiredDumpSpace.QuadPart = (header.PhysicalMemoryBlock.NumberOfPages +
+                                       header_size / PAGE_SIZE);
+  header.DumpType = 1; // Full kernel dump.
+  header.BugCheckCode = 0x00;
+  // Ideally we check this from the kernel's image but the other types
+  // are kind of weird and we wont see windows running on them.
+  header.MachineImageType = 0x014c;  // See _IMAGE_FILE_HEADER.Machine
+
+  header.PfnDataBase = (PULONG)info->PfnDataBase.LowPart;
+  header.PsActiveProcessHead = (PLIST_ENTRY)info->PsActiveProcessHead.LowPart;
+  header.PsLoadedModuleList = (PLIST_ENTRY)info->PsLoadedModuleList.LowPart;
+
+  WriteFile(out_fd_, &header, header_size, &header_size, NULL);
+
+  return 1;
+}
+
+int WinPmem32::load_driver_() {
+  return extract_file_(WINPMEM_32BIT_DRIVER);
+}

@@ -49,9 +49,29 @@ void help(TCHAR *ExeName)
   wprintf(L"Writes a crashdump file to netcat for network transport.\n");
 }
 
+/* Create the corrent WinPmem object. Currently this selects between
+   32/64 bit implementations.
+*/
+WinPmem *WinPmemFactory() {
+  SYSTEM_INFO sys_info;
+  ZeroMemory(&sys_info, sizeof(sys_info));
+
+  GetNativeSystemInfo(&sys_info);
+  switch(sys_info.wProcessorArchitecture) {
+  case PROCESSOR_ARCHITECTURE_AMD64:
+    return new WinPmem64();
+
+  case PROCESSOR_ARCHITECTURE_INTEL:
+    return new WinPmem32();
+
+  default:
+    return NULL;
+  }
+};
+
 
 int _tmain(int argc, _TCHAR* argv[]) {
-  int i;
+  int i, status;
   int mode = PMEM_MODE_PHYSICAL;
   int write_mode = 0;
   int only_load_driver = 0;
@@ -99,35 +119,37 @@ int _tmain(int argc, _TCHAR* argv[]) {
     } else break;   //First option without - means end of options.
   };
 
-  WinPmem pmem_handle;
+  WinPmem *pmem_handle = WinPmemFactory();
 
   // Now run what the user wanted.
   if (only_load_driver) {
-    pmem_handle.install_driver();
+    status = pmem_handle->install_driver();
 
-    if (write_mode) {
-      pmem_handle.set_write_enabled();
-    }
+    if (status > 0) {
+      if(write_mode) {
+	pmem_handle->set_write_enabled();
+      };
 
-    pmem_handle.print_memory_info();
-
-    return 0;
+      pmem_handle->print_memory_info();
+    };
   } else if (only_unload_driver) {
-    return pmem_handle.uninstall_driver();
+    status = pmem_handle->uninstall_driver();
   } else {
-    int status = pmem_handle.create_output_file(argv[i]);
+    status = pmem_handle->create_output_file(argv[i]);
 
     if (status > 0 &&
-        pmem_handle.install_driver() > 0 &&
-        pmem_handle.set_acquisition_mode(mode) > 0) {
+        pmem_handle->install_driver() > 0 &&
+        pmem_handle->set_acquisition_mode(mode) > 0) {
       if (crashdump_output) {
-        status = pmem_handle.write_crashdump();
+        status = pmem_handle->write_crashdump();
       } else {
-        status = pmem_handle.write_raw_image();
+        status = pmem_handle->write_raw_image();
       };
     };
 
-    pmem_handle.uninstall_driver();
-    return status;
+    pmem_handle->uninstall_driver();
   }
+
+  delete pmem_handle;
+  return status;
 }

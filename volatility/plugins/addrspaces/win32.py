@@ -59,7 +59,6 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         self.as_assert(self.base == None, 'Must be first Address Space')
 
         path = filename or (self.session and self.session.filename)
-
         self.as_assert(path, "Filename must be specified in session (e.g. "
                        "session.filename = 'MyFile.raw').")
 
@@ -84,8 +83,12 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
             self.runs = [[0, 0, win32file.GetFileSize(self.fhandle)]]
 
+        # IO on windows is extremely slow so we are better off using a
+        # cache.
+        self.cache = utils.FastStore(1000)
+
     FIELDS = (["CR3", "NtBuildNumber", "KernBase", "KDBG"] +
-              ["KPCR%s" % i for i in range(32)] + 
+              ["KPCR%s" % i for i in range(32)] +
               ["PfnDataBase", "PsLoadedModuleList", "PsActiveProcessHead"] +
               ["Padding%s" % i for i in range(0xff)] +
               ["NumberOfRuns"])
@@ -101,7 +104,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         self.session.kdbg = self.kdbg = self.memory_parameters["KDBG"]
 
         offset = struct.calcsize(fmt_string)
-        
+
         for x in range(self.memory_parameters["NumberOfRuns"]):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
             self.runs.append((start, start, length))

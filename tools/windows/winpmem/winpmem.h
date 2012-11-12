@@ -22,11 +22,11 @@
  */
 #define SILENT_OPERATION 0
 #define PMEM_DEVICE_NAME L"pmem"
-#define PMEM_VERSION "v1.1"
+#define PMEM_VERSION "v1.3"
 
 // In order to enable writing this must be set to 1 and the
 // appropriate IOCTL must be sent to switch the deriver to write mode.
-#define PMEM_WRITE_ENABLED 1
+#define PMEM_WRITE_ENABLED 0
 
 #include <ntifs.h>
 #include <wdmsec.h>
@@ -46,10 +46,27 @@
 
 #define IOCTL_WRITE_ENABLE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x102, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
 
+// This is the old deprecated interface. Use IOCTL_GET_INFO instead.
+#define IOCTL_GET_INFO_DEPRECATED CTL_CODE(FILE_DEVICE_UNKNOWN, 0x100, METHOD_BUFFERED, FILE_READ_DATA | FILE_WRITE_DATA)
+
 // This is the structure which is returned.
 #pragma pack(push, 2)
 
 extern PUSHORT NtBuildNumber;
+
+/* This is the format of the deprecated IOCTL_GET_INFO_DEPRECATED
+   call.
+*/
+struct DeprecatedPmemMemoryInfo {
+  LARGE_INTEGER CR3;
+  LARGE_INTEGER KPCR;
+  ULONG NumberOfRuns;
+
+  // A Null terminated array of ranges.
+  PHYSICAL_MEMORY_RANGE Run[1];
+};
+
+
 
 struct PmemMemoryInfo {
   LARGE_INTEGER CR3;
@@ -116,4 +133,3 @@ DEFINE_GUID(GUID_DEVCLASS_PMEM_DUMPER,
 #pragma pack(pop)
 
 #endif
-

@@ -54,6 +54,7 @@ def CTL_CODE(DeviceType, Function, Method, Access):
 # IOCTLS for interacting with the driver.
 CTRL_IOCTRL = CTL_CODE(0x22, 0x101, 0, 3)
 INFO_IOCTRL = CTL_CODE(0x22, 0x103, 0, 3)
+INFO_IOCTRL_DEPRECATED = CTL_CODE(0x22, 0x100, 0, 3)
 
 
 class Image(object):
@@ -66,9 +67,21 @@ class Image(object):
         # Tell the driver what acquisition mode we want.
         self.SetMode()
         self.GetInfo()
+        self.GetInfoDeprecated()
+
+    def GetInfoDeprecated(self):
+        result = win32file.DeviceIoControl(self.fd, INFO_IOCTRL_DEPRECATED, "",
+                                           1024, None)
+        fmt_string = "QQl"
+        offset = struct.calcsize(fmt_string)
+
+        cr3, kpcr, number_of_runs = struct.unpack_from(fmt_string, result)
+        for x in range(number_of_runs):
+            start, length = struct.unpack_from("QQ", result, x * 16 + offset)
+            print "0x%X\t\t0x%X" % (start, length)
 
     def GetInfo(self):
-        result = win32file.DeviceIoControl(self.fd, INFO_IOCTRL, "", 
+        result = win32file.DeviceIoControl(self.fd, INFO_IOCTRL, "",
                                            0x1000, None)
 
         fmt_string = "Q" * (37 + 0xff)
