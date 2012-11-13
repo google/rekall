@@ -158,37 +158,43 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     // The old deprecated ioctrl interface for backwards
     // compatibility. Do not use for new code.
   case IOCTL_GET_INFO_DEPRECATED: {
-    char buffer[0x1000];
+    char *buffer = ExAllocatePoolWithTag(PagedPool, 0x1000, PMEM_POOL_TAG);
 
-    struct DeprecatedPmemMemoryInfo *info = (void *)IoBuffer;
-    struct PmemMemoryInfo *memory_info = (void *)buffer;
+    if (buffer) {
+      struct DeprecatedPmemMemoryInfo *info = (void *)IoBuffer;
+      struct PmemMemoryInfo *memory_info = (void *)buffer;
 
-    status = AddMemoryRanges(memory_info, sizeof(buffer));
-    if (status != STATUS_SUCCESS)
-      goto exit;
+      status = AddMemoryRanges(memory_info, 0x1000);
+      if (status != STATUS_SUCCESS) {
+        ExFreePoolWithTag(buffer, PMEM_POOL_TAG);
+        goto exit;
+      };
 
-    info->CR3.QuadPart = CR3.QuadPart;
-    info->NumberOfRuns = (unsigned long)memory_info->NumberOfRuns.QuadPart;
+      info->CR3.QuadPart = CR3.QuadPart;
+      info->NumberOfRuns = (unsigned long)memory_info->NumberOfRuns.QuadPart;
 
-    // Is there enough space in the user supplied buffer?
-    if (OutputLen < (info->NumberOfRuns * sizeof(PHYSICAL_MEMORY_RANGE) +
-		     sizeof(struct DeprecatedPmemMemoryInfo))) {
-      status = STATUS_INFO_LENGTH_MISMATCH;
-      goto exit;
+      // Is there enough space in the user supplied buffer?
+      if (OutputLen < (info->NumberOfRuns * sizeof(PHYSICAL_MEMORY_RANGE) +
+                       sizeof(struct DeprecatedPmemMemoryInfo))) {
+        status = STATUS_INFO_LENGTH_MISMATCH;
+        ExFreePoolWithTag(buffer, PMEM_POOL_TAG);
+        goto exit;
+      };
+
+      // Copy the runs over.
+      RtlCopyMemory(&info->Run[0], &memory_info->Run[0],
+                    info->NumberOfRuns * sizeof(PHYSICAL_MEMORY_RANGE));
+
+      // This is the total length of the response.
+      Irp->IoStatus.Information =
+        sizeof(struct DeprecatedPmemMemoryInfo) +
+        info->NumberOfRuns * sizeof(PHYSICAL_MEMORY_RANGE);
+
+      WinDbgPrint("Returning info on the system memory using deprecated interface!\n");
+
+      ExFreePoolWithTag(buffer, PMEM_POOL_TAG);
+      status = STATUS_SUCCESS;
     };
-
-    // Copy the runs over.
-    RtlCopyMemory(&info->Run[0], &memory_info->Run[0],
-		  info->NumberOfRuns * sizeof(PHYSICAL_MEMORY_RANGE));
-
-    // This is the total length of the response.
-    Irp->IoStatus.Information =
-      sizeof(struct DeprecatedPmemMemoryInfo) +
-      info->NumberOfRuns * sizeof(PHYSICAL_MEMORY_RANGE);
-
-    WinDbgPrint("Returning info on the system memory using deprecated interface!\n");
-
-    status = STATUS_SUCCESS;
   }; break;
 
     // Return information about memory layout etc through this ioctrl.
@@ -270,6 +276,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     ext->WriteEnabled = !ext->WriteEnabled;
     WinDbgPrint("Write mode is %d. Do you know what you are doing?\n",
 		ext->WriteEnabled);
+    status = STATUS_SUCCESS;
   }; break;
 #endif
 

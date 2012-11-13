@@ -1,23 +1,24 @@
 WinPMEM - a kernel mode driver for gaining access to physical memory.
-Version 1.1
+Version 1.3
 Copyright 2012 Michael Cohen <scudette@gmail.com>
 
-This code is inspired by the old win32dd codebase, main changes:
-
-- The crashdump producing code is removed - this can be done in userspace using
-  the volatility raw2dump plugin.
-
-- A read device interface is used instead of writing the image from the
-  kernel. This allows us to have complex userspace imager (e.g. copy across
-  network, hash etc), as well as run analysis on the live system
-  (e.g. volatility can be run directly on the device).
+This is a physical memory imager which implements the following features:
 
 - This code builds on 64 bit windows as well as 32 bit windows.
+
+- A read device interface is used instead of writing the image from the kernel
+  like some other imagers. This allows us to have complex userspace imager
+  (e.g. copy across network, hash etc), as well as run analysis on the live
+  system (e.g. volatility can be run directly on the device).
+
+- The userspace component can write crash dumps of 32 and 64 bit systems.
+
+- The image can be written to stdout (using an output filename of "-"). This can
+  then be piped using the usual ways (netcat, ssh etc).
 
 
 The files in this directory (Including the winpmem sources and signed binaries),
 are available under the following license: Apache License, Version 2.0
-
 
 How to use these drivers.
 =========================
@@ -27,9 +28,10 @@ python acquitision program demonstrates how to use the driver from python and
 can be easily extended to handle the image in another way (e.g. compress, hash,
 send across the network etc).
 
-The executable/Release/winpmem.exe program is a self contained binary with both
-32 and 64 bit drivers embedded. It is the easiest to use for incident response
-since it requires no external dependencies.
+The winpmem_1.3.exe program is a self contained binary with both 32 and 64 bit
+drivers embedded. It is the easiest and most recommended to use for incident
+response since it requires no external dependencies, and automatically installs
+the correct driver.
 
 The Python acquitision tool winpmem.py
 --------------------------------------
@@ -103,41 +105,69 @@ This program is easiest to use for incident response since it requires no other
 dependencies than the executable itself. The program will load the correct
 driver (32 bit or 64 bit) automatically.
 
-c:\..> tools\windows\winpmem\executable\Release\winpmem.exe -h
+c:\..> winpmem_1.3.exe -h
 Winpmem - A memory imager for windows.
 Copyright Michael Cohen (scudette@gmail.com) 2012.
 
+Version 1.3. Built Nov 12 2012
 Usage:
-  tools\windows\winpmem\executable\Release\winpmem.exe [option] [output path]
+  winpmem_1.3.exe [option] [output path]
 
 Option:
   -l    Load the driver and exit.
   -u    Unload the driver and exit.
+  -h    Display this help.
+  -w    Turn on/off write mode.
   -1    Use MmMapIoSpace method.
   -2    Use \\Device\PhysicalMemory method (Default).
-  -h    Display this help.
+  -d    Produce a crashdump file.
 
 
-Sample:
-tools\windows\winpmem\executable\Release\winpmem.exe physmem.raw
-Writes an image to physmem.raw
+NOTE: an output filename of - will write the image to STDOUT.
+
+Examples:
+winpmem_1.3.exe physmem.raw
+Writes a raw image to physmem.raw
+
+winpmem_1.3.exe -d - | nc 192.168.1.1 80
+Writes a crashdump file to netcat for network transport. Output is supressed
+here because STDOUT is redirected.
 
 To load the driver and exit:
-c:\..> tools\windows\winpmem\executable\Release\winpmem.exe -l
+c:\..> winpmem.exe -l
 Loaded Driver.
 
 To unload the driver and exit:
-c:\..> tools\windows\winpmem\executable\Release\winpmem.exe -u
+c:\..> winpmem.exe -u
 Driver Unloaded.
 
-To acquire an image:
-c:\..> tools\windows\winpmem\executable\Release\winpmem.exe myimage.raw
-
-To acquire using the MmMapIoSpace method:
-c:\..> tools\windows\winpmem\executable\Release\winpmem.exe -1 myimage.raw
+To acquire a raw image using the MmMapIoSpace method:
+c:\..> winpmem_1.3.exe -1 myimage.raw
 
 The driver will be automatically unloaded after the image is acquired.
 
+To acquire an image in crashdump format:
+
+c:\..>winpmem_1.3.exe -d c:\temp\test.dmp
+Driver Unloaded.
+Loaded Driver C:\Users\mic\AppData\Local\Temp\win6C6.tmp.
+Will write a crash dump file
+CR3: 0x0000187000
+ 2 memory ranges:
+Start 0x00001000 - Length 0x0009E000
+Start 0x00100000 - Length 0x6F6FB000
+
+
+00% 0x00001000 .
+
+00% 0x00100000 ..................................................
+02% 0x03300000 ..................................................
+05% 0x06500000 ..................................................
+...
+92% 0x67300000 ..................................................
+95% 0x6A500000 ..................................................
+98% 0x6D700000 .................................
+Driver Unloaded.
 
 Experimental write support
 --------------------------
@@ -171,7 +201,7 @@ restrictions.
 
 Additionally, Write support must also be enabled at load time:
 
-winpmem_write.exe -w -l
+winpmem_1.3-write.exe -w -l
 
 This will load the drivers and turn on write support. Then we can run volatility
 interactively, as usual on the raw device:

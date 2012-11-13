@@ -23,6 +23,7 @@
 #define SILENT_OPERATION 0
 #define PMEM_DEVICE_NAME L"pmem"
 #define PMEM_VERSION "v1.3"
+#define PMEM_POOL_TAG 0x4d454d50
 
 // In order to enable writing this must be set to 1 and the
 // appropriate IOCTL must be sent to switch the deriver to write mode.
