@@ -537,6 +537,40 @@ body.manpage div.sectionbody {
 @media print {
   body.manpage div#toc { display: none; }
 }
+@media screen {
+  body {
+    max-width: 50em; /* approximately 80 characters wide */
+    margin-left: 16em;
+  }
+
+  #toc {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 13em;
+    padding: 0.5em;
+    padding-bottom: 1.5em;
+    margin: 0;
+    overflow: auto;
+    border-right: 3px solid #f8f8f8;
+    background-color: white;
+  }
+
+  #toc .toclevel1 {
+    margin-top: 0.5em;
+  }
+
+  #toc .toclevel2 {
+    margin-top: 0.25em;
+    display: list-item;
+    color: #aaaaaa;
+  }
+
+  #toctitle {
+    margin-top: 0.5em;
+  }
+}
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -729,13 +763,20 @@ install: function(toclevels) {
 }
 
 }
-asciidoc.install();
+asciidoc.install(2);
 /*]]>*/
 </script>
 </head>
 <body class="article">
 <div id="header">
 <h1>The Pmem Memory acquisition suite.</h1>
+<span id="author">Michael Cohen</span><br />
+<span id="email"><tt>&lt;<a href="mailto:scudette@gmail.com">scudette@gmail.com</a>&gt;</tt></span><br />
+<span id="revdate">November 2012</span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
 </div>
 <div id="content">
 <div id="preamble">
@@ -758,7 +799,7 @@ information consult the source.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_winpmem">WinPmem</h2>
+<h2 id="_winpmem">1. WinPmem</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The windows memory acquisition tool is called WinPmem.</p></div>
 <div class="paragraph"><p>These are the features it supports:</p></div>
@@ -821,15 +862,15 @@ Optional Write support for manipulating kernel data structures from Volatility.
 </li>
 </ol></div>
 <div class="sect2">
-<h3 id="_download">Download</h3>
-<div class="paragraph"><p>The latest version can be found at
-<a href="http://volatility.googlecode.com/svn/branches/scudette/tools/windows/winpmem/executable/Release/">http://volatility.googlecode.com/svn/branches/scudette/tools/windows/winpmem/executable/Release/</a>
+<h3 id="_download">1.1. Download</h3>
+<div class="paragraph"><p>The latest version can be found
+<a href="http://volatility.googlecode.com/svn/branches/scudette/tools/windows/winpmem/executable/Release/">here</a>
 or on the Volatility download page. You will find the tool released in two
 versions:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-winpmem-1.3.1.exe: is the recommended binary for general use. This binary
+<a href="http://volatility.googlecode.com/svn/branches/scudette/tools/windows/winpmem/executable/Release/winpmem-1.3.1.exe">winpmem-1.3.1.exe</a>: is the recommended binary for general use. This binary
   contains signed drivers so it can load on any windows system (even 64 bit
   ones). This binary does not include write support for memory.
 </p>
@@ -842,6 +883,15 @@ winpmem-1.3.1-write.exe: is the binary with write support enabled. It is not
 </p>
 </li>
 </ul></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="images/icons/important.png" alt="Important" />
+</td>
+<td class="content">The recommended version for regular use is the one without write
+support. The version with write support can not be used on a regular system.</td>
+</tr></table>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>c:\..&gt; winpmem_1.3.exe -h
@@ -866,7 +916,7 @@ NOTE: an output filename of - will write the image to STDOUT.</tt></pre>
 </div></div>
 </div>
 <div class="sect2">
-<h3 id="_examples">Examples</h3>
+<h3 id="_examples">1.2. Examples</h3>
 <div class="paragraph"><p>Writes a raw image to physmem.raw</p></div>
 <div class="literalblock">
 <div class="content">
@@ -934,7 +984,7 @@ Driver Unloaded.</tt></pre>
 </div></div>
 </div>
 <div class="sect2">
-<h3 id="_experimental_write_support">Experimental write support</h3>
+<h3 id="_experimental_write_support">1.3. Experimental write support</h3>
 <div class="paragraph"><p>As from Version 1.1, the winpmem drivers support writing to memory as well as
 reading. This capability is a great learning tool since many rootkit hiding
 techniques can be emulated by writing to memory directly. For example the
@@ -980,21 +1030,32 @@ interactively, as usual on the raw device:</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_osxpmem_mac_os_x_physical_memory_acquisition_tool">OSXPMem - Mac OS X Physical Memory acquisition tool</h2>
+<h2 id="_osxpmem_mac_os_x_physical_memory_acquisition_tool">2. OSXPMem - Mac OS X Physical Memory acquisition tool</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The OSX Memory Imager is an open source tool to acquire physical memory on an
-Intel based Mac. It consists of 2 components:</p></div>
-<div class="paragraph"><p>The usermode acquisition tool <em>osxpmem</em>, which parses the accessible sections of
-physical memory and writes them to disk in a specific format.</p></div>
-<div class="paragraph"><p>A generic kernel extension <em>pmem.kext</em>, that provides read only
-access to physical memory. After loading it into the kernel it provides
-a device file (<em>/dev/pmem/</em>), from which physical memory can be read.</p></div>
+<div class="paragraph"><p>The OSX Memory Imager was written by Johannes Stuettgen
+(<a href="mailto:johannes.stuettgen@gmail.com">johannes.stuettgen@gmail.com</a>) as an open source tool to acquire physical memory
+on an Intel based Mac. It consists of 2 components:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+The usermode acquisition tool <em>osxpmem</em>, which parses the accessible sections
+  of physical memory and writes them to disk in a specific format.
+</p>
+</li>
+<li>
+<p>
+A generic kernel extension <em>pmem.kext</em>, that provides read only access to
+  physical memory. After loading it into the kernel it provides a device file
+  (<em>/dev/pmem/</em>), from which physical memory can be read.
+</p>
+</li>
+</ol></div>
 <div class="sect2">
-<h3 id="_download_2">Download</h3>
+<h3 id="_download_2">2.1. Download</h3>
 <div class="paragraph"><p>The binaries can be found here <a href="http://volatility.googlecode.com/svn/branches/scudette/tools/osx/OSXPMem/">http://volatility.googlecode.com/svn/branches/scudette/tools/osx/OSXPMem/</a> or from the volatility downloads page.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_usage">Usage</h3>
+<h3 id="_usage">2.2. Usage</h3>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
@@ -1027,7 +1088,7 @@ and zero-padded RAW. You can select which output format to use by passing the
 <div class="paragraph"><p>For more information on different command line switches run <em>./osxpmem --help</em>.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_common_pitfalls">Common Pitfalls</h3>
+<h3 id="_common_pitfalls">2.3. Common Pitfalls</h3>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
@@ -1052,7 +1113,7 @@ If you try to run the imager from NFS or another networked file-system,
 </ol></div>
 </div>
 <div class="sect2">
-<h3 id="_compatibility">Compatibility</h3>
+<h3 id="_compatibility">2.4. Compatibility</h3>
 <div class="paragraph"><p>Due to the nature of physical memory access many things are very platform
 dependent. The tool is designed to work on 64 bit Intel Macs. It can probably be
 compiled to work in 32 bit mode, the binary distribution however only contains
@@ -1070,7 +1131,7 @@ so it should work in virtualized environments.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-11-15 11:32:43 CET
+Last updated 2012-11-15 13:37:03 CET
 </div>
 </div>
 </body>
