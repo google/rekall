@@ -43,8 +43,6 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
 
     def __init__(self, fhandle=None, **kwargs):
         super(FDAddressSpace, self).__init__(**kwargs)
-        self.as_assert(self.base == None, 'Must be first Address Space')
-
         fhandle = (self.session and self.session.fhandle) or fhandle
         self.as_assert(fhandle is not None, 'file handle must be provided')
 

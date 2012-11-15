@@ -3,7 +3,13 @@ import sys
 
 from volatility.plugins.addrspaces import amd64
 from volatility.plugins.addrspaces import crash
-#from volatility.plugins.addrspaces import ewf
+
+# Skip ewf if it is not available.
+try:
+    from volatility.plugins.addrspaces import ewf
+except ImportError:
+    pass
+
 from volatility.plugins.addrspaces import hibernate
 #from volatility.plugins.addrspaces import ieee1394
 from volatility.plugins.addrspaces import intel

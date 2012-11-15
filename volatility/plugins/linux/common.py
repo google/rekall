@@ -29,7 +29,6 @@ from volatility import plugin
 
 
 class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
-                                 plugin.KernelASMixin,
                                  plugin.ProfileCommand):
     """A base class for all linux based plugins."""
     __abstract = True
@@ -41,7 +40,7 @@ class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
                 plugin.Command.is_active(config))
 
 
-class LinuxFindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
+class LinuxFindDTB(AbstractLinuxCommandPlugin):
     """A scanner for DTB values.
 
     For linux, the dtb values are taken directly from the symbol file. Linux has
