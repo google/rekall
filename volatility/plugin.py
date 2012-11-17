@@ -189,6 +189,9 @@ class KernelASMixin(object):
                                      self.session.kernel_address_space)
 
         if self.kernel_address_space is None:
+            if dtb:
+                self.session.dtb = dtb
+
             # Try to guess the AS
             self.session.plugins.load_as().GetVirtualAddressSpace()
 

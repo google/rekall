@@ -38,9 +38,6 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
     ## We should be first.
     order = 0
 
-    # This address space handles images.
-    _md_image = True
-
     def __init__(self, fhandle=None, **kwargs):
         super(FDAddressSpace, self).__init__(**kwargs)
         fhandle = (self.session and self.session.fhandle) or fhandle
@@ -102,6 +99,9 @@ class FileAddressSpace(FDAddressSpace):
 
     ## We should be the AS of last resort
     order = 100
+
+    # This address space handles images.
+    _md_image = True
 
     def __init__(self, base=None, filename=None, session=None, **kwargs):
         self.as_assert(base == None, 'Must be first Address Space')

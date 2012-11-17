@@ -249,11 +249,13 @@ class Session(object):
         if filename != self.filename:
             self.__dict__['filename'] = filename
             self.__dict__['base_filename'] = os.path.basename(filename)
-            self.vol("load_as")
+
+            # Only load the physical AS now.
+            self.plugins.load_as().GetPhysicalAddressSpace()
 
             # If the user changes the filename in interactive mode we need to
             # check that the profile is still ok.
-            if self.mode == "Interactive":
+            if not self.profile:
                 self.vol("guess_profile")
 
     def __unicode__(self):

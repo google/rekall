@@ -393,8 +393,11 @@ class LoadAddressSpace(plugin.Command):
     def render(self, renderer):
         self.session.kdbg = None
 
-        self.GetPhysicalAddressSpace()
-        self.GetVirtualAddressSpace()
+        if not self.session.physical_address_space:
+            self.GetPhysicalAddressSpace()
+
+        if not self.session.kernel_address_space:
+            self.GetVirtualAddressSpace()
 
 
 class DirectoryDumperMixin(object):
