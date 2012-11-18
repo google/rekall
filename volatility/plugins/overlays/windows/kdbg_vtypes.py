@@ -121,6 +121,9 @@ kdbg_overlay = {
                             )
                         )
                     ]],
+            'PsActiveProcessHead': [None, [
+                    'Pointer', dict(target='LIST_ENTRY64'),
+                    ]],
             }],
     }
 

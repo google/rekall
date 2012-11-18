@@ -241,16 +241,14 @@ class BufferAddressSpace(BaseAddressSpace):
         yield (self.base_offset, len(self.data))
 
 
-class CachingAddressSpace(BaseAddressSpace):
-    __abstract = True
-
+class CachingAddressSpaceMixIn(object):
     # The size of chunks we cache. This should be large enough to make file
     # reads efficient.
-    CHUNK_SIZE = 10 * 1024 * 1024
-    CACHE_SIZE = 20
+    CHUNK_SIZE = 128 * 1024
+    CACHE_SIZE = 100
 
     def __init__(self, **kwargs):
-        super(CachingAddressSpace, self).__init__(**kwargs)
+        super(CachingAddressSpaceMixIn, self).__init__(**kwargs)
         self._cache = utils.FastStore(self.CACHE_SIZE)
 
     def read(self, addr, length):
@@ -276,13 +274,13 @@ class CachingAddressSpace(BaseAddressSpace):
         try:
             data = self._cache.Get(chunk_number)
         except KeyError:
-            data = self.base.read(chunk_number * self.CHUNK_SIZE, self.CHUNK_SIZE)
+            # Just read the data from the real class.
+            data = super(CachingAddressSpaceMixIn, self).read(
+                chunk_number * self.CHUNK_SIZE, self.CHUNK_SIZE)
+
             self._cache.Put(chunk_number, data)
 
         return data[chunk_offset:chunk_offset+available_length]
-
-    def get_available_addresses(self):
-        return self.base.get_available_addresses()
 
 
 class PagedReader(BaseAddressSpace):

@@ -971,6 +971,24 @@ class CrashDump64Profile(basic.Profile64Bits, basic.BasicWindowsClasses):
         self.add_overlay(crash_overlays)
 
 
+class KDDebuggerProfile(basic.Profile64Bits, basic.BasicWindowsClasses):
+    """A domain specific profile for the kernel debugger structures.
+
+    The kernel debugger strucutures do not vary with windows operating system
+    version very much. This is probably done to make it easier for Windbg to
+    support all the different windows versions.
+    """
+
+    def __init__(self, **kwargs):
+        super(KDDebuggerProfile, self).__init__(**kwargs)
+
+        self.add_types(kdbg_vtypes.kdbg_vtypes)
+        self.add_overlay(kdbg_vtypes.kdbg_overlay)
+        self.add_classes({
+                "_KDDEBUGGER_DATA64": kdbg_vtypes._KDDEBUGGER_DATA64
+                })
+
+
 class BaseWindowsProfile(basic.BasicWindowsClasses):
     """Common symbols for all of windows kernel profiles."""
     _md_os = "windows"

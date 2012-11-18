@@ -101,8 +101,10 @@ class FastStore(object):
   def Expire(self):
     """Expires old cache entries."""
     while len(self._age) > self._limit:
-      x = self._age.pop(0)
-      self.ExpireObject(x)
+        self._age.reverse()
+        x = self._age.pop()
+        self._age.reverse()
+        self.ExpireObject(x)
 
   @Synchronized
   def Put(self, key, obj):

@@ -48,9 +48,6 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
         self.fsize = self.fhandle.tell()
         self.offset = 0
 
-    def fread(self, length):
-        return self.fhandle.read(length)
-
     def read(self, addr, length):
         self.fhandle.seek(addr)
         return self.fhandle.read(length)

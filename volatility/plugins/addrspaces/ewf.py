@@ -5,6 +5,7 @@
 import ctypes
 
 from ctypes import util
+from volatility import addrspace
 from volatility.plugins.addrspaces import standard
 
 
@@ -88,12 +89,16 @@ def ewf_open(volumes):
     return ewffile(volumes)
 
 
-class EWFAddressSpace(standard.FDAddressSpace):
+class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn, standard.FDAddressSpace):
     """ An EWF capable address space.
 
     In order for us to work we need:
     1) There must be a base AS.
     2) The first 6 bytes must be 45 56 46 09 0D 0A (EVF header)
+
+    Volatility usually makes very small reads, and since there is no caching in
+    the ewf library itself we also include the CachingAddressSpaceMixIn to
+    ensure we get reasonable performance here.
     """
     order = 20
     _md_image = True

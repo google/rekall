@@ -31,6 +31,7 @@ from volatility import scan
 from volatility.plugins.addrspaces import amd64
 from volatility.plugins.addrspaces import intel
 from volatility.plugins.overlays import basic
+from volatility.plugins.overlays.windows import windows
 
 
 # The idea is to avoid importing all the plugins at once just to check a couple
@@ -56,7 +57,7 @@ class TestProfile64(basic.Profile64Bits, basic.BasicWindowsClasses):
         self.add_overlay(eprocess_vtypes)
 
 
-class GuessProfile(plugin.Command):
+class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
     """Guess the exact windows profile using heuristics."""
 
     __name = "guess_profile"
@@ -79,18 +80,67 @@ class GuessProfile(plugin.Command):
 
         self.quick = quick
 
-    def guess_profile(self):
-        """Guess using the Idle process technique."""
-        # First ensure there is an address space
-        if not self.session.physical_address_space:
-            return
+    def guess_profile_from_kdbg(self, kdbg):
+        """Guess the profile from the PsActiveProcessList pointer.
 
+        Sometimes we can arrive at a dtb and even a kdbg without needing to know
+        the profile at all (e.g. if thes were provided on the commandline or are
+        known in advance from the image). In this case, it is not necessary to
+        scan the image for the System process since we have a valid
+        PsActiveProcessList. The following algorithm guesses the profile from
+        the PsActiveProcessHead and it much faster.
+
+        We assume a valid physical_address_space is already known here.
+
+        Args:
+          kdbg: A valid _KDDEBUGGER_DATA64 offset.
+        """
+        kdbg_profile = windows.KDDebuggerProfile()
+        lookup_map = self._build_lookup_map()
+
+        # First try to get a valid kernel address space. At this point we dont
+        # even know if its a 32 bit or 64 bit profile so we try both address
+        # spaces.
+        for address_space_cls in [intel.IA32PagedMemoryPae,
+                                  amd64.AMD64PagedMemory]:
+            try:
+                kernel_as = address_space_cls(
+                    base=self.session.physical_address_space,
+                    session=self.session)
+
+                kdbg = kdbg_profile._KDDEBUGGER_DATA64(
+                    offset=self.session.kdbg, vm=kernel_as)
+
+                if not kdbg: continue
+
+                # Now try to see which profile fits the _EPROCESS best.
+                for name, (test_profile, cls) in lookup_map.items():
+                    active_process_list_offset = test_profile.get_obj_offset(
+                        name, "ActiveProcessLinks")
+
+                    # This is the first _EPROCESS linked from PsActiveProcessList.
+                    eprocess = test_profile.Object(
+                        name, vm=kernel_as,
+                        offset=(kdbg.PsActiveProcessHead.Flink.v() -
+                                active_process_list_offset))
+
+                    if (eprocess.UniqueProcessId == 0 or
+                        eprocess.UniqueProcessId > 10):
+                        continue
+
+                    dtb = eprocess.DirectoryTableBase.v()
+
+                    # The first process should be the System process.
+                    address_space = self.verify_profile(cls, eprocess, dtb)
+                    if address_space:
+                        yield cls(session=self.session), kernel_as, eprocess
+
+            except addrspace.ASAssertionError:
+                pass
+
+    def _build_lookup_map(self):
         test_profile32 = TestProfile32()
         test_profile64 = TestProfile64()
-
-        scanner = IdleScanner(session=self.session,
-                              process_names=self.process_names,
-                              address_space=self.session.physical_address_space)
 
         # Precalculate the offsets to save time later.
         lookup_map = {}
@@ -101,6 +151,25 @@ class GuessProfile(plugin.Command):
                 else:
                     test_profile = test_profile32
 
+                lookup_map[name] = (test_profile, cls)
+
+        return lookup_map
+
+    def guess_profile(self):
+        """Guess using the Idle process technique."""
+        # First ensure there is an address space
+        if not self.session.physical_address_space:
+            return
+
+        scanner = IdleScanner(session=self.session,
+                              process_names=self.process_names,
+                              address_space=self.session.physical_address_space)
+
+        lookup_map = self._build_lookup_map()
+        logging.info("Searching for suitable System Process")
+        for hit in scanner.scan():
+            # Try every profile until one works.
+            for name, (test_profile, cls) in lookup_map.items():
                 try:
                     eprocess_offset = test_profile.get_obj_offset(
                         name, 'ImageFileName')
@@ -108,12 +177,6 @@ class GuessProfile(plugin.Command):
                     logging.warning("Missing definition for profile %s", name)
                     continue
 
-                lookup_map[name] = (test_profile, eprocess_offset, cls)
-
-        logging.info("Searching for suitable System Process")
-        for hit in scanner.scan():
-            # Try every profile until one works.
-            for name, (test_profile, eprocess_offset, cls) in lookup_map.items():
                 eprocess = test_profile.Object(
                     name, vm=self.session.physical_address_space,
                     offset=hit - eprocess_offset)
@@ -178,6 +241,18 @@ class GuessProfile(plugin.Command):
     def update_session(self):
         """Try to update the session from the profile guess."""
         logging.info("Examining image for possible profiles.")
+
+        # If we have a kdbg and a valid kernel address space we can try a faster
+        # approach:
+        if self.session.kdbg and self.session.dtb:
+            for profile, virtual_as, eprocess in self.guess_profile_from_kdbg(
+                self.session.kdbg):
+                self.session.profile = profile
+                self.session.kernel_address_space = virtual_as
+                self.session.default_address_space = virtual_as
+                logging.info("Autoselected profile %s", profile.__class__.__name__)
+
+                return True
 
         for profile, virtual_as, eprocess in self.guess_profile():
             self.session.profile = profile

@@ -25,7 +25,6 @@ from volatility import plugin
 from volatility.plugins.windows import common
 
 
-
 class KDBGScanner(scan.DiscontigScanner, scan.BaseScanner):
     """Scans for _KDDEBUGGER_DATA64 structures.
 
