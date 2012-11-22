@@ -63,11 +63,12 @@ class Image(object):
 
     def __init__(self, fd):
         self.fd = fd
+        self.ParseMemoryRuns()
 
         # Tell the driver what acquisition mode we want.
         self.SetMode()
         self.GetInfo()
-        self.GetInfoDeprecated()
+        #self.GetInfoDeprecated()
 
     def GetInfoDeprecated(self):
         result = win32file.DeviceIoControl(self.fd, INFO_IOCTRL_DEPRECATED, "",
@@ -80,40 +81,45 @@ class Image(object):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
             print "0x%X\t\t0x%X" % (start, length)
 
-    def GetInfo(self):
-        result = win32file.DeviceIoControl(self.fd, INFO_IOCTRL, "",
-                                           0x1000, None)
+    FIELDS = (["CR3", "NtBuildNumber", "KernBase", "KDBG"] +
+              ["KPCR%02d" % i for i in range(32)] +
+              ["PfnDataBase", "PsLoadedModuleList", "PsActiveProcessHead"] +
+              ["Padding%s" % i for i in range(0xff)] +
+              ["NumberOfRuns"])
 
-        fmt_string = "Q" * (37 + 0xff)
-        fields = struct.unpack_from(fmt_string, result)
-        self.cr3 = fields[0]
-        print "CR3 = 0x%X" % self.cr3
-
-        self.nt_build = fields[1]
-        print "nt_build = %d" % self.nt_build
-
-        self.kernbase = fields[2]
-        print "kernbase = 0x%X" % self.kernbase
-
-        self.kdbg = fields[3]
-        print "kdbg = 0x%X" % self.kdbg
-
-        self.kpcr = fields[4:4+32]
-        for kpcr in self.kpcr:
-            if kpcr == 0: break
-            print "kpcr = 0x%X" % kpcr
-
-        number_of_runs = fields[-1]
-
+    def ParseMemoryRuns(self):
         self.runs = []
+
+        result = win32file.DeviceIoControl(
+            self.fd, INFO_IOCTRL, "", 102400, None)
+
+        fmt_string = "Q" * len(self.FIELDS)
+        self.memory_parameters = dict(zip(self.FIELDS, struct.unpack_from(
+                    fmt_string, result)))
+
+        self.dtb = self.memory_parameters["CR3"]
+        self.kdbg = self.memory_parameters["KDBG"]
+
         offset = struct.calcsize(fmt_string)
+
+        for x in range(self.memory_parameters["NumberOfRuns"]):
+            start, length = struct.unpack_from("QQ", result, x * 16 + offset)
+            self.runs.append((start, length))
+
+    def GetInfo(self):
+        for k, v in sorted(self.memory_parameters.items()):
+            if k.startswith("Pad"):
+                continue
+
+            if not v: continue
+
+            print "%s: \t%#08x (%s)" % (k, v, v)
+
         print "Memory ranges:"
         print "Start\t\tLength"
 
-        for x in range(number_of_runs):
-            start, length = struct.unpack_from("QQ", result, x * 16 + offset)
+        for start, length in self.runs:
             print "0x%X\t\t0x%X" % (start, length)
-            self.runs.append((start,length))
 
     def SetMode(self):
         if FLAGS.mode == "iospace":

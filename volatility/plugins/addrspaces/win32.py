@@ -88,7 +88,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         self.cache = utils.FastStore(1000)
 
     FIELDS = (["CR3", "NtBuildNumber", "KernBase", "KDBG"] +
-              ["KPCR%s" % i for i in range(32)] +
+              ["KPCR%02d" % i for i in range(32)] +
               ["PfnDataBase", "PsLoadedModuleList", "PsActiveProcessHead"] +
               ["Padding%s" % i for i in range(0xff)] +
               ["NumberOfRuns"])
@@ -98,7 +98,8 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
             self.fhandle, INFO_IOCTRL, "", 102400, None)
 
         fmt_string = "Q" * len(self.FIELDS)
-        self.memory_parameters = dict(zip(self.FIELDS, struct.unpack_from(fmt_string, result)))
+        self.memory_parameters = dict(zip(self.FIELDS, struct.unpack_from(
+                    fmt_string, result)))
 
         self.session.dtb = self.dtb = self.memory_parameters["CR3"]
         self.session.kdbg = self.kdbg = self.memory_parameters["KDBG"]
