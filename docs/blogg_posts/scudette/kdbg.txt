@@ -1,0 +1,128 @@
+Finding the Kernel Debugger Block
+=================================
+
+The kernel debugger block (named KdDebuggerDataBlock of the type
+_KDDEBUGGER_DATA64) is important for many things that Volatility and debuggers
+do. For example, it has a reference to the PsActiveProcessHead which is the list
+head of all processes required for process listing.
+
+Because it is so useful the location of the kernel debugger block is also stored
+in the crash dump header. This assists the kernel debugger to find the
+_KDDEBUGGER_DATA64 quickly.
+
+I wanted to add the ability to write crash dump files to the WinPmem memory
+acquisition tool. Many commercial acquisition tools also offer this useful
+feature. Storing the image in a crash dump format is convenient since it is
+possible to open the image using a variety of tools such as volatility and
+Microsoft's own kernel debugger Windbg.  (Of course its possible to convert a
+raw image to a crash dump using volatility's raw2dmp plugins but its more
+convenient to take the image using a crash dump in the first place).
+
+So I needed a way locate the kernel debugger block (KdDebuggerDataBlock) from
+the running system. Previously there have been two methods published for doing
+this
+link:http://moyix.blogspot.ch/2008/04/finding-kernel-global-variables-in.html[Finding
+Kernel Global Variables in Windows]:
+
+. The first method involves finding the KPCR (Which I talked about previously)
+  and following its KdVersionBlock member. This method is ideal for performing
+  on the running system since the KPCR is simply stored in the fs/gs register of
+  the running thread.
+
+. The second method which is used by Volatility itself is to scan for
+  KdDebuggerDataBlock using a specific signature for a valid _KDDEBUGGER_DATA64.
+
+
+Both of these methods are not ideal. The first method was used by win32dd for a
+time and Matthew Suiche wrote about it
+link:http://www.msuiche.net/2009/01/05/multi-processors-and-kdversionblock/[here].
+Unfortunately this method stopped working in recent versions of
+Windows. Recently the KdVersionBlock member is always 0 and does not link to the
+kernel debugger block.
+
+The second method would work but would be quite slow as it scans the entire
+kernel address space for the KDBG signature. It is also less reliable since
+there could be a number of hits for the KDBG signature and we might get the
+wrong hit.
+
+There has to be an easier way :).
+
+So what exactly is the kernel debugger block? I used google to locate a
+definition for it in the sources for ReactOS (an open source reimplementation of
+windows). The
+link:http://doxygen.reactos.org/db/d88/kddata_8c_source.html#l00392[relevant
+snippet] shows:
+
+--------------------------------------------------------------------
+00392 KDDEBUGGER_DATA64 KdDebuggerDataBlock =
+00393 {
+00394     {{0}},
+00395     0,
+00396     {(ULONG_PTR)RtlpBreakWithStatusInstruction},
+00397     0,
+00398     FIELD_OFFSET(KTHREAD, CallbackStack),
+00399     FIELD_OFFSET(KCALLOUT_FRAME, CallbackStack),
+00400     FIELD_OFFSET(KCALLOUT_FRAME, CBSTACK_FRAME_POINTER),
+00401     FALSE,
+00402     {(ULONG_PTR)KiCallUserMode},
+00403     0,
+00404     {(ULONG_PTR)&PsLoadedModuleList},
+00405     {(ULONG_PTR)&PsActiveProcessHead},
+00406     {(ULONG_PTR)&PspCidTable},
+00407     {(ULONG_PTR)&ExpSystemResourcesList},
+00408     {(ULONG_PTR)ExpPagedPoolDescriptor},
+00409     {(ULONG_PTR)&ExpNumberOfPagedPools},
+00410     {(ULONG_PTR)&KeTimeIncrement},
+...
+00555     {(ULONG_PTR)&IopNumTriageDumpDataBlocks},
+00556     {(ULONG_PTR)IopTriageDumpDataBlocks},
+00557 };
+--------------------------------------------------------------------
+
+So according to the ReactOS sources the debugger block is a statically allocated
+structure which seems to be filled in by
+link:http://doxygen.reactos.org/d9/db6/4_2kdinit_8c_source.html#l00073[KdInitSystem].
+
+This is quite interesting since static structs are always located in the same
+position relative to the PE executable's base address. The compiler usually
+places static variables in the .data section of the PE binary. This means that
+in practice, the KdDebuggerDataBlock can only exist within the .data section of
+the kernel binary.
+
+The problem boils down to finding the kernel base address. Once we know that, we
+can easily find the valid ranges for the data section. In most kernel's the
+.data section is very small (less than 100kb) and is super fast to scan. Also
+since there is only deterministic data there, there will never be another struct
+with the same signature in such a small region.
+
+So how can the WinPmem driver locate the kernel base address? The base address
+itself is not actually exported, but many other symbols are exported from the
+kernel's Export Address Tables (pretty much any kernel API). We know that the
+kernel export address table is usually located at a higher address than the
+kernel base, and that the kernel base address is page aligned. We now can scan
+for it:
+
+.KDBG Scan algorithm
+image::images/KDBG_Scan.png[KDBG]
+
+We choose to use NtBuildNumber as the exported symbol to look for (just in case
+a real API function is hooked). We then round down to page align and step
+backwards looking for the PE header. In Windows 7, there are unmapped guard
+pages between the mapped kernel sections - trying to read from these will blue
+screen the system. We therefore check first that the pages are mapped using the
+MmIsAddressValid() API.
+
+Once the PE header is found, we calculate the region for the .data
+section. Since this region is very small and we do not need to worry about false
+positives, we can relax the search criteria and just search for the OwnerTag
+"KDBG".
+
+The result is an extremely fast and reliable way for locating the kernel
+debugger block in a live system. This allows the WinPmem kernel driver to report
+this address so that the user space component can write the crash dump files
+correctly.
+
+The added benefit of the kernel driver locating the debugger block itself is
+that Volatility does not need to scan for it while it is analysing the live
+system. This saves a rather expensive call for the kdbgscan plugin, which would
+otherwise need to be made before running most plugins.

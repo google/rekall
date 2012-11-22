@@ -8,7 +8,7 @@ html_files := $(patsubst %.txt,%.html,$(wildcard *.txt))
 all: $(html_files)
 
 %.html: %.txt
-	asciidoc -a icons -a iconsdir=../../images/icons -b blogger $(<F)
+	asciidoc -a icons -a iconsdir=../../images/icons -a data-uri $(<F)
 
 .PHONY: clean
 clean:
