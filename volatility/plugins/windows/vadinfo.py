@@ -344,7 +344,7 @@ class VAD(common.WinProcessFilter):
 class VadScanner(scan.BaseScanner):
     """A scanner over all memory regions of a process."""
 
-    def __init__(self, task=None, process_profile=None):
+    def __init__(self, task=None, process_profile=None, **kwargs):
         """Scan the process address space through the Vads.
 
         Args:
@@ -357,7 +357,7 @@ class VadScanner(scan.BaseScanner):
         self.task = task
         super(VadScanner, self).__init__(
             profile=process_profile or task.obj_profile,
-            address_space=task.get_process_address_space())
+            address_space=task.get_process_address_space(), **kwargs)
 
     def scan(self, offset=0, maxlen=None):
         maxlen = maxlen or self.profile.get_constant("MaxPointer")

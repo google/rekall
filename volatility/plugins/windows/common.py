@@ -31,7 +31,8 @@ from volatility import profile
 from volatility import plugin
 from volatility import utils
 
-#pylint: disable-msg=C0111
+from volatility.plugins import core
+
 
 # We require both a physical AS set and a valid profile for
 # AbstractWindowsCommandPlugins.
@@ -104,7 +105,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
     def scan_for_process(self):
         """Scan the image for the idle process."""
-        needle = self.process_name + "\x00" * (16 - len(self.process_name))
+        needle = self.process_name + "\x00" * (15 - len(self.process_name))
         offset = 0
         while 1:
             data = self.physical_address_space.read(offset, self.SCAN_BLOCKSIZE)
@@ -127,14 +128,18 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
             offset += len(data)
 
     def dtb_hits(self):
-        for x in self.scan_for_process():
-            result = x.Pcb.DirectoryTableBase.v()
-            yield result
+        for eprocess in self.scan_for_process():
+            result = eprocess.Pcb.DirectoryTableBase.v()
+            yield result, eprocess
 
-    def verify_address_space(self, address_space):
+    def verify_address_space(self, eprocess, address_space):
         """Check the eprocess for sanity."""
-        # In windows the DTB must be page aligned.
-        if address_space.dtb & 0xFFF != 0:
+        # In windows the DTB must be page aligned, except for PAE images where
+        # its aligned to a 0x20 size.
+        if not self.profile.metadata("pae") and address_space.dtb & 0xFFF != 0:
+            return False
+
+        if self.profile.metadata("pae") and address_space.dtb & 0xF != 0:
             return False
 
         version = self.profile.metadata("major"), self.profile.metadata("minor")
@@ -143,19 +148,31 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
             # Reflect through the address space at ourselves. Note that the Idle
             # process is not usually in the PsActiveProcessHead list, so we use the
             # ThreadListHead instead.
-            list_head = self.eprocess.ThreadListHead.Flink
-            me = list_head.dereference(vm=address_space).Blink.dereference()
+            list_head = eprocess.ThreadListHead.Flink
+
+            if list_head == 0:
+                return False
+
+            me = list_head.dereference(vm=address_space).Blink.Flink
             if me.v() != list_head.v():
                 return False
 
         return True
 
-    def render(self, fd = None):
-        fd.write("_EPROCESS (P)   DTB\n")
+    def render(self, renderer):
+        renderer.table_header([("_EPROCESS (P)", "physical_eprocess", "[addrpad]"),
+                               ("DTB", "dtv", "[addrpad]"),
+                               ("Valid", "valid", "")])
+
         for eprocess in self.scan_for_process():
             dtb = eprocess.Pcb.DirectoryTableBase.v()
+            if not dtb: continue
 
-            fd.write("{0:#010x}  {1:#010x}\n".format(eprocess.obj_offset, dtb))
+            address_space = core.GetAddressSpaceImplementation(self.profile)(
+                session=self.session, base=self.physical_address_space, dtb=dtb)
+
+            renderer.table_row(eprocess.obj_offset, dtb,
+                               self.verify_address_space(eprocess, address_space))
 
 
 ## The following are checks for pool scanners.
@@ -425,11 +442,15 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         self.filtering_applied = (self.pids or self.proc_regex or
                                   self.phys_eprocess or self.eprocess)
 
+    def process_filtering_requested(self):
+        """Returns True if the user requested any form of process filtering."""
+        return (self.eprocess or self.phys_eprocess or self.pids or
+                self.proc_regex)
+
     def filter_processes(self):
         """Filters eprocess list using phys_eprocess and pids lists."""
         # No filtering required:
-        if (not self.eprocess and not self.phys_eprocess and not self.pids and
-            not self.proc_regex):
+        if not self.process_filtering_requested():
             for eprocess in self.session.plugins.pslist(
                 session=self.session, kdbg=self.kdbg,
                 eprocess_head=self.eprocess_head).list_eprocess():

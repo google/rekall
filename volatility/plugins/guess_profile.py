@@ -192,9 +192,12 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
 
     def verify_address_space(self, profile_cls, eprocess, address_space):
         """Check the eprocess for sanity."""
+        # In windows the DTB must be page aligned, except for PAE images where
+        # its aligned to a 0x20 size.
+        if not profile_cls.metadata("pae") and address_space.dtb & 0xFFF != 0:
+            return False
 
-        # In windows the DTB must be page aligned.
-        if address_space.dtb & 0xFFF != 0:
+        if profile_cls.metadata("pae") and address_space.dtb & 0xF != 0:
             return False
 
         # Reflect through the address space at ourselves.
@@ -210,7 +213,6 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
 
     def verify_profile(self, profile_cls, eprocess, dtb):
         """Verify potential profiles against the dtb hit."""
-
         # Make an address space to test the dtb
         try:
             if profile_cls.metadata("memory_model") == "64bit":

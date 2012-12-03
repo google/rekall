@@ -423,8 +423,9 @@ class RendererBaseClass(object):
 
     __metaclass__ = registry.MetaclassRegistry
 
-    def __init__(self, session=None, fd=None):
+    def __init__(self, session=None, fd=None, paging_limit=50):
         self.session = session
+        self.paging_limit = paging_limit
         self.fd = fd
         self.isatty = False
         self.formatter = Formatter()

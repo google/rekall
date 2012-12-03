@@ -89,8 +89,6 @@ static NTSTATUS wddCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
   PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)DeviceObject->DeviceExtension;
   PIO_STACK_LOCATION IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
-  ext->MemoryHandle = 0;
-
   Irp->IoStatus.Status = STATUS_SUCCESS;
   Irp->IoStatus.Information = 0;
 
@@ -107,6 +105,7 @@ static NTSTATUS wddClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
 
   if(ext->MemoryHandle != 0) {
     ZwClose(ext->MemoryHandle);
+    ext->MemoryHandle = 0;
   };
 
   Irp->IoStatus.Status = STATUS_SUCCESS;
@@ -232,14 +231,14 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
       info->PfnDataBase.QuadPart = kdbg->MmPfnDatabase;
       info->PsLoadedModuleList.QuadPart = kdbg->PsLoadedModuleList;
       info->PsActiveProcessHead.QuadPart = kdbg->PsActiveProcessHead;
-
-      // This is the length of the response.
-      Irp->IoStatus.Information =
-	sizeof(struct PmemMemoryInfo) +
-	info->NumberOfRuns.LowPart * sizeof(PHYSICAL_MEMORY_RANGE);
-
-      status = STATUS_SUCCESS;
     };
+
+    // This is the length of the response.
+    Irp->IoStatus.Information =
+      sizeof(struct PmemMemoryInfo) +
+      info->NumberOfRuns.LowPart * sizeof(PHYSICAL_MEMORY_RANGE);
+
+    status = STATUS_SUCCESS;
   }; break;
 
   case IOCTL_SET_MODE: {
@@ -361,6 +360,7 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   // Initialize the device extension with safe defaults.
   extension = DeviceObject->DeviceExtension;
   extension->mode = ACQUISITION_MODE_PHYSICAL_MEMORY;
+  extension->MemoryHandle = 0;
 
   return NtStatus;
 }

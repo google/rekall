@@ -232,6 +232,22 @@ class Info(plugin.Command):
             renderer.table_row(name, doc)
 
 
+def GetAddressSpaceImplementation(profile):
+    """Returns the correct address space class to use for a given profile."""
+    # The virual address space implementation is chosen by the profile.
+    memory_model = profile.metadata("memory_model")
+    if memory_model == "64bit":
+        as_class = addrspace.BaseAddressSpace.classes['AMD64PagedMemory']
+
+    # PAE profiles go with the pae address space.
+    elif memory_model == "32bit" and profile.metadata("pae"):
+        as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemoryPae']
+
+    else:
+        as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemory']
+
+    return as_class
+
 
 class LoadAddressSpace(plugin.Command):
     """Load address spaces into the session if its not already loaded."""
@@ -280,20 +296,10 @@ class LoadAddressSpace(plugin.Command):
         if self.profile is None:
             raise plugin.PluginError("Must specify a profile to load virtual AS.")
 
-        # The virual address space implementation is chosen by the profile.
-        memory_model = self.profile.metadata("memory_model")
-        if memory_model == "64bit":
-            as_class = addrspace.BaseAddressSpace.classes['AMD64PagedMemory']
-
-        # PAE profiles go with the pae address space.
-        elif memory_model == "32bit" and self.profile.metadata("pae"):
-            as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemoryPae']
-
-        else:
-            as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemory']
 
         address_space_curry = obj.Curry(
-            as_class, base=self.session.physical_address_space,
+            GetAddressSpaceImplementation(self.profile),
+            base=self.session.physical_address_space,
             session=self.session, profile=self.profile)
 
         # If dtb is not known, find it though a (profile specific) plugin.
@@ -303,12 +309,13 @@ class LoadAddressSpace(plugin.Command):
             # Delegate to the find_dtb plugin.
             find_dtb = self.session.plugins.find_dtb()
 
-            for dtb in find_dtb.dtb_hits():
+            for dtb, eprocess in find_dtb.dtb_hits():
                 # Found it!
                 # Ask the find_dtb plugin to make sure this dtb works with the
                 # address space.
                 test_as = address_space_curry(dtb=dtb)
-                if find_dtb.verify_address_space(test_as):
+                if find_dtb.verify_address_space(
+                    eprocess=eprocess, address_space=test_as):
                     self.session.kernel_address_space = test_as
                     self.session.dtb = dtb
                     break

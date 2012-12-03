@@ -53,12 +53,14 @@ class ewffile(object):
         return self.readptr
 
     def read(self, length):
-        buf = ctypes.create_string_buffer(length)
+        available_to_read = min(length, self.size - self.readptr)
+        buf = ctypes.create_string_buffer(available_to_read)
+
         length = libewf.libewf_read_random(self.handle, buf,
-                                           ctypes.c_ulong(length),
+                                           ctypes.c_ulong(available_to_read),
                                            ctypes.c_ulonglong(self.readptr))
 
-        return buf.raw[:length]
+        return buf.raw[:available_to_read]
 
     def close(self):
         libewf.libewf_close(self.handle)
