@@ -547,6 +547,10 @@ class TextRenderer(RendererBaseClass):
         if self.session:
             self.session.progress = None
 
+    def format(self, formatstring, *data):
+        self.ClearProgress()
+        super(TextRenderer, self).format(formatstring, *data)
+
     def write(self, data):
         self.data.append(data)
 
@@ -565,6 +569,7 @@ class TextRenderer(RendererBaseClass):
 
     def flush(self):
         self.data = []
+        self.ClearProgress()
         self.fd.flush()
 
     def table_header(self, columns = None, suppress_headers=False,
@@ -598,7 +603,16 @@ class TextRenderer(RendererBaseClass):
         """Outputs a single row of a table"""
         return self.table.render_row(self, *args)
 
-    def RenderProgress(self, message="", force=False, **_):
+    def ClearProgress(self):
+        """Delete the last progress message."""
+        if not sys.stdout.isatty():
+            return
+
+        # Wipe the last message.
+        sys.stdout.write("\r" + " " * self.last_message_len + "\r")
+        sys.stdout.flush()
+
+    def RenderProgress(self, message="%(spinner)s", force=False, **_):
         if not sys.stdout.isatty():
             return
 
@@ -607,13 +621,14 @@ class TextRenderer(RendererBaseClass):
         if force or now > self.last_spin_time + 0.2:
             self.last_spin_time = now
             self.last_spin += 1
-            if not message:
-                message = self.spinner[self.last_spin % len(self.spinner)]
+            message = message % dict(
+                spinner=self.spinner[
+                    self.last_spin % len(self.spinner)])
 
-            # Wipe the last message.
-            sys.stdout.write("\r" + " " * self.last_message_len + "\r")
-            self.last_message_len = len(message)
+            self.ClearProgress()
+
             sys.stdout.write(message + "\r")
+            self.last_message_len = len(message)
             sys.stdout.flush()
 
 

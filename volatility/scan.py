@@ -132,7 +132,7 @@ class BaseScanner(object):
         while i < offset + maxlen:
             # Update the progress bar.
             if self.session:
-                self.session.report_progress("Scanning 0x%08X" % i)
+                self.session.report_progress("Scanning 0x%08X with %s" % (i, self.__class__.__name__))
 
             # Check the current offset for a match.
             if self.check_addr(i):

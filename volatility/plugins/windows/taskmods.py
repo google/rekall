@@ -202,8 +202,11 @@ class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
     __name = "memdump"
 
     def dump_process(self, eprocess, fd):
-        for va, pa, length in self.get_pages_for_eprocess(eprocess):
-            fd.write(self.physical_address_space.read(pa, length))
+        task_as = eprocess.get_process_address_space()
+
+        for virtual_address, length in task_as.get_available_addresses():
+            phys_address = task_as.vtop(virtual_address)
+            fd.write(self.physical_address_space.read(phys_address, length))
 
     def render(self, outfd):
         if self.dump_dir is None:

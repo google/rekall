@@ -148,7 +148,8 @@ class BaseAddressSpace(object):
         for (voffset, length) in self.get_available_addresses():
             # This can take sometime as we enumerate all the address ranges.
             if self.session:
-                self.session.report_progress()
+                self.session.report_progress(
+                    "%s: Merging Address Ranges %%(spinner)s" % self.name)
 
             # Try to join up adjacent pages as much as possible.
             if (voffset == contiguous_voffset + total_length and
