@@ -43,7 +43,8 @@ class Handles(common.WinProcessFilter):
         """Lists the handles for processes.
 
         Args:
-          object_type: Show these object types (comma-separated)
+          object_types: Show these object types (An array of Object Types -
+                        for example: object_types=["Process", "File"]).
           silent: Suppress less meaningful results
         """
         super(Handles, self).__init__(**kwargs)
@@ -111,7 +112,7 @@ class Handles(common.WinProcessFilter):
                     continue
 
                 if self.silent:
-                    if len(name.replace("'", "")) == 0:
+                    if len(utils.SmartUnicode(name).replace("'", "")) == 0:
                         continue
 
                 offset = handle.Body.obj_offset
