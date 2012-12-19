@@ -246,8 +246,8 @@ class BufferAddressSpace(BaseAddressSpace):
 class CachingAddressSpaceMixIn(object):
     # The size of chunks we cache. This should be large enough to make file
     # reads efficient.
-    CHUNK_SIZE = 128 * 1024
-    CACHE_SIZE = 100
+    CHUNK_SIZE = 32 * 1024
+    CACHE_SIZE = 1000
 
     def __init__(self, **kwargs):
         super(CachingAddressSpaceMixIn, self).__init__(**kwargs)

@@ -71,52 +71,144 @@ def Synchronized(f):
   """Synchronization decorator."""
 
   def NewFunction(self, *args, **kw):
-    with self.lock:
-      return f(self, *args, **kw)
+      if self.lock:
+          with self.lock:
+              return f(self, *args, **kw)
+      else:
+          return f(self, *args, **kw)
 
   return NewFunction
+
+
+class Node(object):
+  """An entry to a linked list."""
+  next = None
+  prev = None
+  data = None
+
+  def __init__(self, data):
+    self.data = data
+
+  def __str__(self):
+    return "Node:" + SmartStr(self.data)
+
+  def __repr__(self):
+    return SmartStr(self)
+
+
+class LinkedList(object):
+  """A simple doubly linked list used for fast caches."""
+
+  def __init__(self):
+      # We are the head node.
+      self.next = self.prev = self
+      self.size = 0
+      self.lock = threading.RLock()
+
+  def Append(self, data):
+      return self.AppendNode(Node(data))
+
+  def AppendNode(self, node):
+      self.size += 1
+      last_node = self.prev
+
+      last_node.next = node
+      node.prev = last_node
+      node.next = self
+
+      return node
+
+  def PopLeft(self):
+      """Returns the head node and removes it from the list."""
+      if self.next is self:
+          raise IndexError("Pop from empty list.")
+
+      first_node = self.next
+      self.Unlink(first_node)
+      return first_node.data
+
+  def Pop(self):
+      """Returns the tail node and removes it from the list."""
+      if self.prev is self:
+          raise IndexError("Pop from empty list.")
+
+      last_node = self.tail
+      self.Unlink(last_node)
+      return last_node.data
+
+  def Unlink(self, node):
+      """Removes a given node from the list."""
+      self.size -= 1
+
+      node.prev.next = node.next
+      node.next.prev = node.prev
+      node.next = node.prev = None
+
+  def __iter__(self):
+      p = self.next
+      while p is not self:
+          yield p.data
+          p = p.next
+
+  def __len__(self):
+      return self.size
+
+  def __str__(self):
+      p = self.next
+      s = []
+      while p is not self:
+          s.append(str(p.data))
+          p = p.next
+
+      return "[" + ", ".join(s) + "]"
 
 
 class FastStore(object):
   """This is a cache which expires objects in oldest first manner.
 
   This implementation first appeared in PyFlag and refined in GRR.
+
+  This class implements an LRU cache which needs fast updates of the LRU order
+  for random elements. This is implemented by using a dict for fast lookups and
+  a linked list for quick deletions / insertions.
   """
 
-  def __init__(self, max_size=10, kill_cb=None):
+  def __init__(self, max_size=10, kill_cb=None, lock=False):
     """Constructor.
 
     Args:
        max_size: The maximum number of objects held in cache.
        kill_cb: An optional function which will be called on each
                 object terminated from cache.
+       lock: If True this cache will be thread safe.
     """
-    self._age = []
+    self._age = LinkedList()
     self._hash = {}
     self._limit = max_size
     self._kill_cb = kill_cb
-    self.lock = threading.RLock()
+    self.lock = None
+    if lock:
+        self.lock = threading.RLock()
+
 
   @Synchronized
   def Expire(self):
     """Expires old cache entries."""
     while len(self._age) > self._limit:
-        self._age.reverse()
-        x = self._age.pop()
-        self._age.reverse()
-        self.ExpireObject(x)
+      x = self._age.PopLeft()
+      self.ExpireObject(x)
 
   @Synchronized
   def Put(self, key, obj):
     """Add the object to the cache."""
     try:
-      idx = self._age.index(key)
-      self._age.pop(idx)
-    except ValueError:
+      node, _ = self._hash[key]
+      self._age.Unlink(node)
+    except KeyError:
       pass
 
-    self._hash[key] = obj
-    self._age.append(key)
+    node = self._age.Append(key)
+    self._hash[key] = (node, obj)
 
     self.Expire()
 
@@ -125,7 +217,7 @@ class FastStore(object):
   @Synchronized
   def ExpireObject(self, key):
     """Expire a specific object from cache."""
-    obj = self._hash.pop(key, None)
+    _, obj = self._hash.pop(key, (None, None))
 
     if self._kill_cb and obj is not None:
       self._kill_cb(obj)
@@ -135,8 +227,16 @@ class FastStore(object):
   @Synchronized
   def ExpireRegEx(self, regex):
     """Expire all the objects with the key matching the regex."""
+    reg = re.compile(regex)
     for key in self._hash.keys():
-      if re.match(regex, key):
+      if reg.match(key):
+        self.ExpireObject(key)
+
+  @Synchronized
+  def ExpirePrefix(self, prefix):
+    """Expire all the objects with the key having a given prefix."""
+    for key in self._hash.keys():
+      if key.startswith(prefix):
         self.ExpireObject(key)
 
   @Synchronized
@@ -157,13 +257,13 @@ class FastStore(object):
     """
     # Remove the item and put to the end of the age list
     try:
-      idx = self._age.index(key)
-      self._age.pop(idx)
-      self._age.append(key)
+      node, obj = self._hash[key]
+      self._age.Unlink(node)
+      self._age.AppendNode(node)
     except ValueError:
       raise KeyError(key)
 
-    return self._hash[key]
+    return obj
 
   @Synchronized
   def __contains__(self, obj):
@@ -177,7 +277,7 @@ class FastStore(object):
   def Flush(self):
     """Flush all items from cache."""
     while self._age:
-      x = self._age.pop(0)
+      x = self._age.PopLeft()
       self.ExpireObject(x)
 
     self._hash = {}
