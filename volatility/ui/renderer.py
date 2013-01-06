@@ -429,7 +429,7 @@ class RendererBaseClass(object):
         self.fd = fd
         self.isatty = False
         self.formatter = Formatter()
-        self.colorizer = Colorizer(fd)
+        self.colorizer = Colorizer(fd, nocolor=getattr(session, "nocolors", False))
 
     def start(self, plugin_name=None, kwargs=None):
         """The method is called when new output is required.
@@ -561,6 +561,7 @@ class TextRenderer(RendererBaseClass):
         elif len(self.data) < self.paging_limit:
             self.fd.write(data)
             self.fd.flush()
+
         elif len(self.data) == self.paging_limit:
             self.fd.write(
                 self.color("Please wait while the rest is paged...",
@@ -770,9 +771,21 @@ class Colorizer(object):
 
     terminal_capable = False
 
-    def __init__(self, stream):
+    def __init__(self, stream, nocolor=False):
+        """Initialize a colorizer.
+
+        Args:
+          stream: The stream to write to.
+
+          nocolor: If True we suppress using colors, even if the output stream
+             can support them.
+        """
         if stream is None:
             stream = sys.stdout
+
+        if nocolor:
+            self.terminal_capable = False
+            return
 
         try:
             if curses and stream.isatty():
@@ -780,6 +793,20 @@ class Colorizer(object):
                 self.terminal_capable = True
         except AttributeError:
             pass
+
+    def tparm(self, capabilities, *args):
+        """A simplified version of tigetstr without terminal delays."""
+        for capability in capabilities:
+            term_string = curses.tigetstr(capability)
+            if term_string is not None:
+                term_string = re.sub("\$\<[^>]+>", "",  term_string)
+                break
+
+        try:
+            return curses.tparm(term_string, *args)
+        except Exception, e:
+            logging.debug("Unable to set tparm: %s" % e)
+            return ""
 
     def Render(self, string, foreground=None, background=None):
         """Decorate the string with the ansii escapes for the color."""
@@ -790,11 +817,11 @@ class Colorizer(object):
 
         escape_seq = ""
         if foreground:
-            escape_seq += curses.tparm(curses.tigetstr("setf"), self.COLOR_MAP[color])
+            escape_seq += self.tparm(["setf", "setaf"], self.COLOR_MAP[color])
 
         if background:
-            escape_seq += curses.tparm(curses.tigetstr("setb"), self.COLOR_MAP[color])
+            escape_seq += self.tparm(["setb", "setab"], self.COLOR_MAP[color])
 
         return (escape_seq + utils.SmartUnicode(string) +
-                curses.tigetstr("sgr0"))
+                self.tparm(["sgr0"]))
 

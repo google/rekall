@@ -246,6 +246,9 @@ def parse_args(argv=None, user_session=None):
                         help="The renderer to use. e.g. (TextRenderer, "
                         "JsonRenderer).")
 
+    parser.add_argument("--nocolors", default=False, action="store_true",
+                        help="If set suppress outputting colors.")
+
     parser.add_argument("--plugin", default=[], nargs="+",
                         help="Load user provided plugin bundle.")
 
