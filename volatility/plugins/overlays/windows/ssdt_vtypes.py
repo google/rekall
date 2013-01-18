@@ -1,5 +1,6 @@
+import logging
 import sys
-import volatility.debug as debug
+
 import volatility.obj as obj
 
 # SSDT structures for all x86 profiles *except* Win 2003 Server
@@ -38,7 +39,7 @@ ssdt_vtypes_64 = {
 #### Filthy Hack for backwards compatibility
 
 def syscalls_property(x):
-    debug.debug("Deprecation warning: Please use profile.additional['syscalls'] over profile.syscalls")
+    logging.debug("Deprecation warning: Please use profile.additional['syscalls'] over profile.syscalls")
     return x.additional.get('syscalls', [[], []])
 
 class WinSyscallsAttribute(obj.ProfileModification):

@@ -93,8 +93,8 @@ class WinPsList(common.WinProcessFilter):
                                 ("Hnds", "handle_count", ">8"),
                                 ("Sess", "session_id", ">6"),
                                 ("Wow64", "wow64", ">6"),
-                                ("Start", "process_create_time", "20"),
-                                ("Exit", "process_exit_time", "20")]
+                                ("Start", "process_create_time", "24"),
+                                ("Exit", "process_exit_time", "24")]
                                )
 
         for task in self.filter_processes():

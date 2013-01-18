@@ -9,7 +9,7 @@ from volatility import addrspace
 from volatility.plugins.addrspaces import standard
 
 
-possible_names = ['libewf-1', 'ewf', ]
+possible_names = ['libewf-1', 'ewf']
 for name in possible_names:
     resolved = util.find_library(name)
     if resolved:

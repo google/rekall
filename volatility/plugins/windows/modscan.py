@@ -137,8 +137,8 @@ class ThrdScan(ModScan):
                                ("PID", "pid", ">6"),
                                ("TID", "tid", ">6"),
                                ("Start Address", "start", "[addr]"),
-                               ("Create Time", "create_time", "20"),
-                               ("Exit Time", "exit_time", "20"),
+                               ("Create Time", "create_time", "24"),
+                               ("Exit Time", "exit_time", "24"),
                                ("Process", "name", ""),
                                ])
 

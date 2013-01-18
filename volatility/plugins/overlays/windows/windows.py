@@ -47,7 +47,7 @@ windows_overlay = {
     }],
 
     '_ETHREAD' : [ None, {
-    'CreateTime' : [ None, ['WinTimeStamp', {}]],
+    'CreateTime' : [ None, ['ThreadCreateTimeStamp', {}]],
     'ExitTime' : [ None, ['WinTimeStamp', {}]],
     }],
 

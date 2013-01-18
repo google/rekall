@@ -25,13 +25,13 @@ OS's
 import copy
 import datetime
 import logging
+import pytz
 import re
 import socket
 import struct
 
 from volatility import obj
 from volatility import constants
-from volatility import timefmt
 from volatility import utils
 from volatility.plugins.overlays import native_types
 
@@ -360,7 +360,6 @@ class _LIST_ENTRY(obj.CType):
 
 class UnixTimeStamp(obj.NativeType):
     """A unix timestamp (seconds since the epoch)."""
-    is_utc = True
 
     def __init__(self, **kwargs):
         super(UnixTimeStamp, self).__init__(format_string = "I", **kwargs)
@@ -368,13 +367,38 @@ class UnixTimeStamp(obj.NativeType):
     def __nonzero__(self):
         return self.v() != 0
 
+    def display_datetime(self, dt, custom_tz=None):
+        """Returns a string from a datetime according to the display
+        TZ (or a custom one"""
+        timeformat = "%Y-%m-%d %H:%M:%S%z"
+
+        # Control our behaviour according to the session preferences.
+        session = self.obj_profile.session
+
+        # Default to display in UTC.
+        try:
+            timezone_name = "UTC"
+            if custom_tz:
+                timezone_name = custom_tz
+            elif session and session.timezone:
+                timezone_name = session.timezone
+
+            timezone = pytz.timezone(timezone_name)
+        except pytz.UnknownTimeZoneError:
+            # Cant undestand the timezone - use UTC
+            timezone = pytz.UTC
+
+        local_datetime =  timezone.normalize(dt.astimezone(timezone))
+
+        return local_datetime.strftime(timeformat)
+
     def __str__(self):
         if not self:
             return "-"
 
         dt = self.as_datetime()
-        if dt != None:
-            return str(timefmt.display_datetime(dt))
+        if dt:
+            return self.display_datetime(dt)
 
         return "-"
 
@@ -384,12 +408,11 @@ class UnixTimeStamp(obj.NativeType):
 
     def as_datetime(self):
         try:
-            dt = datetime.datetime.utcfromtimestamp(self.v())
-            if self.is_utc:
-                # Only do dt.replace when dealing with UTC
-                dt = dt.replace(tzinfo = timefmt.UTC())
+            # Return a data time object in UTC.
+            dt = datetime.datetime.utcfromtimestamp(self.v()).replace(tzinfo=pytz.UTC)
         except ValueError, e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
+
         return dt
 
 
@@ -431,6 +454,13 @@ class WinTimeStamp(UnixTimeStamp):
     def v(self, vm=None):
         value = self.as_windows_timestamp()
         return self.windows_to_unix_time(value)
+
+
+class ThreadCreateTimeStamp(WinTimeStamp):
+    """Handles ThreadCreateTimeStamps which are bit shifted WinTimeStamps"""
+
+    def as_windows_timestamp(self):
+        return super(ThreadCreateTimeStamp, self).as_windows_timestamp() >> 3
 
 
 class IndexedArray(obj.Array):
@@ -689,6 +719,7 @@ class BasicWindowsClasses(obj.Profile):
             'LIST_ENTRY32': _LIST_ENTRY,
             'LIST_ENTRY64': _LIST_ENTRY,
             'WinTimeStamp': WinTimeStamp, # WinFileTime.
+            'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
             'UnixTimeStamp': UnixTimeStamp,
             "IndexedArray": IndexedArray,
             'Function': Function,

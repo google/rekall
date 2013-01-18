@@ -27,7 +27,6 @@ from volatility import addrspace
 from volatility import args
 from volatility import scan
 from volatility import obj
-from volatility import profile
 from volatility import plugin
 from volatility import utils
 

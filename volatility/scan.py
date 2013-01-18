@@ -27,7 +27,6 @@ import sys
 from volatility import registry
 from volatility import addrspace
 from volatility import constants
-from volatility import conf
 
 
 class BaseScanner(object):

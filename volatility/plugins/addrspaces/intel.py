@@ -26,7 +26,6 @@ import struct
 
 from volatility.plugins.addrspaces import standard
 from volatility import addrspace
-from volatility import conf
 from volatility import obj
 
 

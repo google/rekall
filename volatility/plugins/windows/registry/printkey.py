@@ -252,7 +252,7 @@ class HiveDump(registry.RegistryPlugin):
             renderer.section()
             renderer.format("Hive {0}\n\n", reg.Name)
 
-            renderer.table_header([("Last Written", "timestamp", "<20"),
+            renderer.table_header([("Last Written", "timestamp", "<24"),
                                    ("Key", "key", "")])
 
             for key in self._key_iterator(reg.root):

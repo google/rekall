@@ -433,8 +433,8 @@ class PSScan(common.PoolScannerPlugin):
                                ('PPID', "ppid", '>6'),
                                ('PDB', "pdb", '[addrpad]'),
                                ('Stat', 'stat', "4"),
-                               ('Time created', "process_create_time", '20'),
-                               ('Time exited', "process_exit_time", '20')]
+                               ('Time created', "process_create_time", '24'),
+                               ('Time exited', "process_exit_time", '24')]
                                )
 
         for eprocess in self.calculate():

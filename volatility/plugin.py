@@ -23,7 +23,6 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 import logging
 import StringIO
 
-from volatility import conf
 from volatility import registry
 from volatility import obj
 from volatility.ui import renderer
@@ -83,7 +82,7 @@ class Command(object):
             session by default, if not provided. This allows users to omit
             specifying many options.
         """
-        self.session = session or conf.GLOBAL_SESSION
+        self.session = session
         if kwargs:
             raise InvalidArgs(unicode(kwargs.keys()))
 

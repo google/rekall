@@ -261,6 +261,8 @@ def parse_args(argv=None, user_session=None):
     parser.add_argument("--overwrite", action="store_true", default=False,
                         help="Allow overwriting of output files.")
 
+    parser.add_argument("--timezone", default="UTC",
+                        help="Timezone to output all times (e.g. Australia/Sydney).")
 
     # Figure out the profile
     known_args, unknown_args = parser.parse_known_args(args=argv)

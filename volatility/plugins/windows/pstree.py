@@ -64,7 +64,7 @@ class PSTree(common.WinProcessFilter):
                                ("PPid", "ppid", ">6"),
                                ("Thds", "thd_count", ">6"),
                                ("Hnds", "hnd_count", ">6"),
-                               ("Time", "process_create_time", "20")])
+                               ("Time", "process_create_time", "24")])
 
         process_dict = self._make_process_dict()
 

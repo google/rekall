@@ -137,7 +137,9 @@ class BaseAddressSpace(object):
     def _get_address_ranges(self):
         """Generates merged address ranges from get_available_addresses()."""
         try:
-            return self.cache.Get("Ranges")
+            # Try to get this from the cache.
+            for x in self.cache.Get("Ranges"):
+                yield x
         except KeyError:
             pass
 
@@ -157,6 +159,7 @@ class BaseAddressSpace(object):
                 total_length += length
             else:
                 result.append((contiguous_voffset, total_length))
+                yield (contiguous_voffset, total_length)
 
                 # Reset the contiguous range.
                 contiguous_voffset = voffset
@@ -165,11 +168,10 @@ class BaseAddressSpace(object):
 
         if total_length > 0:
             result.append((contiguous_voffset, total_length))
+            yield (contiguous_voffset, total_length)
 
-        # Sort in virtual addresses.
-        result.sort()
+        # Cache this for next time.
         self.cache.Put("Ranges", result)
-        return result
 
     def is_valid_address(self, _addr):
         """ Tell us if the address is valid """
