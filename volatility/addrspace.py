@@ -29,6 +29,7 @@
    Alias for all address spaces
 
 """
+from volatility import kb
 from volatility import registry
 from volatility import utils
 
@@ -77,6 +78,11 @@ class BaseAddressSpace(object):
         # not expire, however, when analysing a live system we need to flush the
         # cache frequently.
         self.cache = utils.AgeBasedCache(max_age=20)
+
+    @property
+    def kb(self):
+        """Return the knowledge base entry for this address space."""
+        return kb.SYMBOLS.setdefault(self.name, kb.SymbolAddresses())
 
     def as_assert(self, assertion, error = None):
         """Duplicate for the assert command (so that optimizations don't disable

@@ -619,3 +619,77 @@ class Dump(plugin.Command):
         # Advance the offset so we can continue from this offset next time we
         # get called.
         self.offset += offset
+
+
+class Grep(plugin.Command):
+    """Search an address space for keywords."""
+
+    __name = "grep"
+
+    @classmethod
+    def args(cls, parser):
+        super(Grep, cls).args(parser)
+        parser.add_argument("address_space", help="Name of the address_space to search.")
+        parser.add_argument("offset", default=0,  help="Start searching from this offset.")
+        parser.add_argument("keyword", help="The binary string to find.")
+        parser.add_argument("limit", default=1024*1024, help="The length of data to search.")
+
+    def __init__(self, address_space=None, offset=0, keyword=None, context=20, limit=1024 * 1024,
+                 **kwargs):
+        """Search an address space for keywords.
+
+        Args:
+          address_space: Name of the address_space to search.
+          offset: Start searching from this offset.
+          keyword: The binary string to find.
+          limit: The length of data to search.
+        """
+        super(Grep, self).__init__(**kwargs)
+        self.keyword = keyword
+        self.context = context
+        self.offset = offset
+        self.limit = limit
+        if address_space:
+            self.address_space = address_space
+        elif self.session:
+            self.address_space = self.session.default_address_space
+        else:
+            raise RuntimeError("Address space not specified.")
+
+    def _GenerateHits(self, data):
+        start = 0
+        while 1:
+            idx = data.find(self.keyword, start)
+            if idx == -1:
+                break
+
+            yield idx
+            start = idx + 1
+
+    def render(self, renderer):
+        renderer.table_header([("Offset", "offset", "[addr]"),
+                               ("Hex", "hex", "^" + str(3 * self.context)),
+                               ("Data", "data", "^" + str(self.context)),
+                               ("Comment", "comment","")]
+                              )
+
+        offset = self.offset
+        while offset < self.offset + self.limit:
+            data = self.address_space.zread(offset, 4096)
+            for idx in self._GenerateHits(data):
+                for _, hexdata, translated_data in utils.Hexdump(
+                    data[idx-20:idx+20], width=self.context):
+                    comment = ""
+                    symbol, _ = self.address_space.kb.GetSpan(offset + idx)
+                    if symbol:
+                        comment = "%s+0x%X" % (symbol[0].obj_name,
+                                               offset + idx - int(symbol[0]))
+
+                    renderer.table_row(
+                        offset + idx - 20, hexdata, "".join(translated_data), comment)
+
+            offset += len(data)
+
+        self.offset = offset
+
+

@@ -1257,8 +1257,10 @@ class PE(object):
         for i, name in enumerate(name_table):
             ordinal = int(ordinal_table[i])
             seen_ordinals.add(ordinal)
+            func = function_table[ordinal]
+            func.obj_name = "%s:%s" % (dll, name.dereference())
 
-            yield (dll, function_table[ordinal], name.dereference(), ordinal)
+            yield (dll, func, name.dereference(), ordinal)
 
         # Now the functions without names
         for i, func in enumerate(function_table):

@@ -61,11 +61,15 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
         self.fsize = self.fhandle.tell()
         self.offset = 0
 
-        # On 64 bit architectures we can just map the entire image
-        # into our process. TODO(scudette): Try to make this work on
-        # 32 bit systems by segmenting into several smallish maps.
-        self.map = mmap.mmap(self.fhandle.fileno(), self.fsize,
-                             access=mmap.ACCESS_READ)
+        # On 64 bit architectures we can just map the entire image into our
+        # process. Its probably not worth the effort to make it work on 32 bit
+        # systems, which should just fall back to the slightly slower
+        # FileAddressSpace.
+        try:
+            self.map = mmap.mmap(self.fhandle.fileno(), self.fsize,
+                                 access=mmap.ACCESS_READ)
+        except Exception, e:
+            raise addrspace.ASAssertionError("Unable to mmap: %s" % e)
 
     def read(self, addr, length):
         if addr == None:

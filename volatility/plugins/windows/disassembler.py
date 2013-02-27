@@ -35,6 +35,7 @@ except Exception:
     pass
 
 import distorm3
+import re
 
 from volatility import obj
 from volatility import plugin
@@ -57,7 +58,7 @@ class Disassemble(plugin.Command):
 
     __name = "dis"
 
-    def __init__(self, offset=0, address_space=None, length=80, mode=None,
+    def __init__(self, offset=0, address_space=None, length=50, mode=None,
                  suppress_headers=False, target=None, **kwargs):
         """Dumps a disassembly of a location.
 
@@ -92,7 +93,7 @@ class Disassemble(plugin.Command):
         Returns:
           A tuple of (Address, Opcode, Instructions).
         """
-        data = self.address_space.zread(offset, self.length)
+        data = self.address_space.zread(offset, self.length * 10)
         iterable = distorm3.DecodeGenerator(int(offset), data, self.distorm_mode)
         for (offset, _size, instruction, hexdump) in iterable:
             yield offset, hexdump, instruction
@@ -111,10 +112,27 @@ class Disassemble(plugin.Command):
         """
         renderer.table_header([('Address', "cmd_address", '[addrpad]'),
                                ('Op Codes', "opcode", '<20'),
-                               ('Instruction', "instruction", '<40')],
+                               ('Instruction', "instruction", '<40'),
+                               ('Comment', "comment", "")],
                               suppress_headers=self.suppress_headers)
-        for (offset, hexdump, instruction) in self.disassemble(self.offset):
-            renderer.table_row(offset, hexdump, instruction)
+
+        regex = re.compile("0x[0-9a-fA-F]+$")
+        for i, (offset, hexdump, instruction) in enumerate(self.disassemble(self.offset)):
+            if i > self.length:
+                break
+
+            comment = ""
+            match = regex.search(instruction)
+            if match:
+                operand = int(match.group(0), 16)
+
+                # Try to locate the symbol below it.
+                symbol, _ = self.address_space.kb.GetSpan(operand)
+                if symbol:
+                    comment = "%s+0x%X" % (symbol[0].obj_name,
+                                           operand - int(symbol[0]))
+
+            renderer.table_row(offset, hexdump, instruction, comment)
 
         # Continue from where we left off when the user calls us again with the
         # v() plugin.

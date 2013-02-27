@@ -45,11 +45,11 @@ class PEDump(common.WinProcessFilter):
             "--image-base", default=0, action=args.IntParser,
             help="The address of the image base (dos header).")
 
-        parser.add_argument("--output", default=None,
+        parser.add_argument("--filename", default=None,
                             help="The file name to write.")
 
 
-    def __init__(self, address_space=None, image_base=None, out_fd=None, output=None,
+    def __init__(self, address_space=None, image_base=None, out_fd=None, filename=None,
                  **kwargs):
         """Dump a PE binary from memory.
 
@@ -59,7 +59,7 @@ class PEDump(common.WinProcessFilter):
           out_fd: The output file like object which will be used to write the
             file onto.
 
-          output: Alternatively a filename can be provided to write the PE
+          filename: Alternatively a filename can be provided to write the PE
             file to.
         """
         super(PEDump, self).__init__(**kwargs)
@@ -68,9 +68,9 @@ class PEDump(common.WinProcessFilter):
         if out_fd:
             self.out_fd = out_fd
             self.filename = "FD <%s>" % out_fd
-        elif output:
-            self.out_fd = open(output, "wb")
-            self.filename = output
+        elif filename:
+            self.out_fd = open(filename, "wb")
+            self.filename = filename
         else:
             self.out_fd = None
             self.filename = None

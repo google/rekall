@@ -299,10 +299,10 @@ class PFNInfo(common.WindowsCommandPlugin):
                  "W": "WriteInProgress"}
 
         short_flags_string = "".join(
-            [k for k, v in flags.items() if pfn_obj.u3.e1.m(v)])
+            [k for k, v in flags.items() if pfn_obj.u3.e1.m(v) == 0])
 
         long_flags_string = " ".join(
-            [v for k, v in flags.items() if pfn_obj.u3.e1.m(v)])
+            [v for k, v in flags.items() if pfn_obj.u3.e1.m(v) == 0])
 
         containing_page = int(pfn_obj.u4.PteFrame)
         pte_physical_address = ((containing_page << self.PAGE_BITS) |

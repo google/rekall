@@ -136,6 +136,8 @@ class PEInfo(plugin.Command):
             status = 'M' if function.dereference() else "-"
             renderer.table_row(function, status, ordinal, u"%s!%s" % (dll, name))
 
+            self.address_space.kb.AddMemoryLocation(int(function), function)
+
         renderer.format("Version Information:\n")
         renderer.table_header([('key', 'key', '<20'),
                                ('value', 'value', '')])
