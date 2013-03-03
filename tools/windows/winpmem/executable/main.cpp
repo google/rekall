@@ -124,6 +124,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
   // Now run what the user wanted.
   if (only_load_driver) {
     status = pmem_handle->install_driver();
+    pmem_handle->set_acquisition_mode(mode);
 
     if (status > 0) {
       if(write_mode) {

@@ -22,11 +22,11 @@
  */
 #define SILENT_OPERATION 0
 #define PMEM_DEVICE_NAME L"pmem"
-#define PMEM_VERSION "v1.3"
+#define PMEM_VERSION "v1.4"
 #define PMEM_POOL_TAG 0x4d454d50
 
 // In order to enable writing this must be set to 1 and the
-// appropriate IOCTL must be sent to switch the deriver to write mode.
+// appropriate IOCTL must be sent to switch the driver to write mode.
 #define PMEM_WRITE_ENABLED 0
 
 #include <ntifs.h>
@@ -34,6 +34,14 @@
 #include <initguid.h>
 #include <stdarg.h>
 #include <stdio.h>
+
+#include "api.h"
+
+// Some standard integer sizes.
+typedef unsigned __int64 u64;
+typedef unsigned __int32 u32;
+typedef unsigned __int16 u16;
+typedef unsigned __int8 u8;
 
 #define MI_CONVERT_PHYSICAL_TO_PFN(Pa) (Pa >> 12)
 
@@ -94,20 +102,27 @@ struct PmemMemoryInfo {
 
 
 enum PMEM_ACQUISITION_MODE {
+  // Use the MmMapIoSpace API.
   ACQUISITION_MODE_MAP_IO_SPACE = 0,
-  ACQUISITION_MODE_PHYSICAL_MEMORY = 1
+
+  // Map the \\.\PhysicalMemory device.
+  ACQUISITION_MODE_PHYSICAL_MEMORY = 1,
+
 };
 
 struct PmemMemoryControl {
-  enum PMEM_ACQUISITION_MODE mode;
+  u32 mode;    //really: enum PMEM_ACQUISITION_MODE mode but we want to enforce
+               //standard struct sizes.;
 };
 
 
 /* When we are silent we do not emit any debug messages. */
 #if SILENT_OPERATION == 1
 #define WinDbgPrint(fmt, ...)
+#define vWinDbgPrintEx(x, ...)
 #else
 #define WinDbgPrint DbgPrint
+#define vWinDbgPrintEx vDbgPrintEx
 #endif
 
 

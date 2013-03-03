@@ -63,10 +63,10 @@ class Image(object):
 
     def __init__(self, fd):
         self.fd = fd
+        self.SetMode()
         self.ParseMemoryRuns()
 
         # Tell the driver what acquisition mode we want.
-        self.SetMode()
         self.GetInfo()
         #self.GetInfoDeprecated()
 
@@ -116,10 +116,10 @@ class Image(object):
             print "%s: \t%#08x (%s)" % (k, v, v)
 
         print "Memory ranges:"
-        print "Start\t\tLength"
+        print "Start\t\tEnd\t\tLength"
 
         for start, length in self.runs:
-            print "0x%X\t\t0x%X" % (start, length)
+            print "0x%X\t\t0x%X\t\t0x%X" % (start, start+length, length)
 
     def SetMode(self):
         if FLAGS.mode == "iospace":

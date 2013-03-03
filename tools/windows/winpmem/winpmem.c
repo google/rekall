@@ -15,7 +15,7 @@
 */
 
 #include "winpmem.h"
-
+#include "api.h"
 #include "read.h"
 #include "kd.h"
 
@@ -52,7 +52,7 @@ NTSTATUS AddMemoryRanges(struct PmemMemoryInfo *info, int len) {
   int required_length;
 
   // Enumerate address ranges.
-  MmPhysicalMemoryRange = MmGetPhysicalMemoryRanges();
+  MmPhysicalMemoryRange = Pmem_KernelExports.MmGetPhysicalMemoryRanges();
 
   if (MmPhysicalMemoryRange == NULL) {
     return STATUS_ACCESS_DENIED;
@@ -112,6 +112,7 @@ static NTSTATUS wddClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
   Irp->IoStatus.Information = 0;
 
   IoCompleteRequest(Irp,IO_NO_INCREMENT);
+
   return STATUS_SUCCESS;
 }
 
@@ -189,7 +190,8 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
         sizeof(struct DeprecatedPmemMemoryInfo) +
         info->NumberOfRuns * sizeof(PHYSICAL_MEMORY_RANGE);
 
-      WinDbgPrint("Returning info on the system memory using deprecated interface!\n");
+      WinDbgPrint("Returning info on the system memory using deprecated "
+		  "interface!\n");
 
       ExFreePoolWithTag(buffer, PMEM_POOL_TAG);
       status = STATUS_SUCCESS;
@@ -244,24 +246,40 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
   case IOCTL_SET_MODE: {
     WinDbgPrint("Setting Acquisition mode.\n");
 
-    if (InputLen == sizeof(struct PmemMemoryControl)) {
-      struct PmemMemoryControl *ctrl = (void *)IoBuffer;
+    /* First u32 is the acquisition mode. */
+    if (InputLen >= sizeof(u32)) {
+      enum PMEM_ACQUISITION_MODE mode = *(u32 *)IoBuffer;
 
-      ext->mode = ctrl->mode;
+      ext->mode = mode;
 
-      switch(ctrl->mode) {
+      switch(mode) {
       case ACQUISITION_MODE_PHYSICAL_MEMORY:
-        WinDbgPrint("Using physical memory device for acquisition.\n");
-	status = STATUS_SUCCESS;
+        // These are all the requirements for this method.
+        if (!Pmem_KernelExports.MmGetPhysicalMemoryRanges) {
+          WinDbgPrint("Kernel APIs required for this method are not "
+                      "available.");
+          status = STATUS_UNSUCCESSFUL;
+        } else {
+          WinDbgPrint("Using physical memory device for acquisition.\n");
+          status = STATUS_SUCCESS;
+        };
         break;
 
       case ACQUISITION_MODE_MAP_IO_SPACE:
-        WinDbgPrint("Using MmMapIoSpace for acquisition.\n");
-	status = STATUS_SUCCESS;
+        if (!Pmem_KernelExports.MmGetPhysicalMemoryRanges ||
+            !Pmem_KernelExports.MmMapIoSpace ||
+            !Pmem_KernelExports.MmUnmapIoSpace) {
+          WinDbgPrint("Kernel APIs required for this method are not "
+                      "available.");
+          status = STATUS_UNSUCCESSFUL;
+        } else {
+          WinDbgPrint("Using MmMapIoSpace for acquisition.\n");
+          status = STATUS_SUCCESS;
+        };
         break;
 
       default:
-        WinDbgPrint("Invalid acquisition mode %d.\n", ctrl->mode);
+        WinDbgPrint("Invalid acquisition mode %d.\n", mode);
         status = STATUS_INVALID_PARAMETER;
       };
 
@@ -270,7 +288,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     };
   }; break;
 
-#if PMEM_WRITE_ENABLED
+#if PMEM_WRITE_ENABLED == 1
   case IOCTL_WRITE_ENABLE: {
     ext->WriteEnabled = !ext->WriteEnabled;
     WinDbgPrint("Write mode is %d. Do you know what you are doing?\n",
@@ -303,11 +321,17 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
 
   WinDbgPrint("WinPMEM - " PMEM_VERSION " - Physical memory acquisition\n");
 
-#if PMEM_WRITE_ENABLED
+#if PMEM_WRITE_ENABLED == 1
   WinDbgPrint("WinPMEM write support available!");
 #endif
 
-  WinDbgPrint("Copyright (c) 2012, Michael Cohen <scudette@gmail.com>");
+  WinDbgPrint("Copyright (c) 2012, Michael Cohen <scudette@gmail.com>\n");
+
+  // Initialize import tables:
+  if(PmemGetProcAddresses() != STATUS_SUCCESS) {
+    WinDbgPrint("Failed to initialize import table. Aborting.\n");
+    goto error;
+  };
 
   RtlInitUnicodeString (&DeviceName, L"\\Device\\" PMEM_DEVICE_NAME);
 
@@ -334,6 +358,11 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   DriverObject->MajorFunction[IRP_MJ_READ] = PmemRead;
 
 #if PMEM_WRITE_ENABLED == 1
+  {
+    // Make sure that the drivers with write support are clearly marked as such.
+    static char TAG[] = "Write Supported";
+  }
+
   // Support writing.
   DriverObject->MajorFunction[IRP_MJ_WRITE] = PmemWrite;
 #endif
@@ -363,4 +392,7 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   extension->MemoryHandle = 0;
 
   return NtStatus;
+
+ error:
+  return STATUS_UNSUCCESSFUL;
 }

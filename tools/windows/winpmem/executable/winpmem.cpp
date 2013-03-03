@@ -32,7 +32,11 @@ int WinPmem::pad(__int64 length) {
 
   while(start < length) {
     DWORD to_write = (DWORD)min(buffer_size_, length);
-    WriteFile(out_fd_, buffer_, to_write, &to_write, NULL);
+    if(!WriteFile(out_fd_, buffer_, to_write, &to_write, NULL)) {
+      Log(TEXT("Failed to write padding... Aborting\n"));
+      goto error;
+    };
+
     start += to_write;
     Log(TEXT("."));
 
@@ -45,11 +49,23 @@ int WinPmem::pad(__int64 length) {
   };
 
   return 1;
+
+ error:
+  return 0;
 };
 
-int WinPmem::copy_memory(__int64 start, __int64 end) {
+int WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
   LARGE_INTEGER large_start;
   int count = 0;
+
+  if (start > max_physical_memory_) {
+    return 0;
+  };
+
+  // Clamp the region to the top of physical memory.
+  if (end > max_physical_memory_) {
+    end = max_physical_memory_;
+  };
 
   while(start < end) {
     int to_write = (int)min(buffer_size_, end - start);
@@ -67,7 +83,10 @@ int WinPmem::copy_memory(__int64 start, __int64 end) {
       goto error;
     };
 
-    WriteFile(out_fd_, buffer_, bytes_read, &bytes_read, NULL);
+    if(!WriteFile(out_fd_, buffer_, bytes_read, &bytes_read, NULL)) {
+      Log(TEXT("Failed to write image file... Aborting.\n"));
+      goto error;
+    };
 
     if((count % 50) == 0) {
       Log(TEXT("\n%02lld%% 0x%08llX "), (start * 100) / max_physical_memory_,
@@ -90,7 +109,7 @@ int WinPmem::copy_memory(__int64 start, __int64 end) {
 
 // Turn on write support in the driver.
 int WinPmem::set_write_enabled(void) {
-  _int32 mode;
+  unsigned _int32 mode;
   DWORD size;
 
   if(!DeviceIoControl(fd_, PMEM_WRITE_ENABLE, &mode, 4, NULL, 0,
@@ -133,8 +152,9 @@ void WinPmem::print_memory_info() {
   return;
 };
 
-int WinPmem::set_acquisition_mode(__int32 mode) {
+int WinPmem::set_acquisition_mode(unsigned __int32 mode) {
   DWORD size;
+
   // Set the acquisition mode.
   if(!DeviceIoControl(fd_, PMEM_CTRL_IOCTRL, &mode, 4, NULL, 0,
                       &size, NULL)) {
@@ -142,6 +162,8 @@ int WinPmem::set_acquisition_mode(__int32 mode) {
     return -1;
   };
 
+  Log(TEXT("Setting acquitision mode to %X\n"), mode);
+  mode_ = mode;
   return 1;
 };
 
@@ -200,7 +222,9 @@ int WinPmem::write_crashdump() {
   Log(TEXT("Will write a crash dump file\n"));
   print_memory_info();
 
-  write_crashdump_header_(&info);
+  if(!write_crashdump_header_(&info)) {
+    goto exit;
+  };
 
   __int64 offset = 0;
   for(i=0; i < info.NumberOfRuns.QuadPart; i++) {
@@ -244,7 +268,9 @@ int WinPmem::write_raw_image() {
   for(i=0; i < info.NumberOfRuns.QuadPart; i++) {
     if(info.Run[i].start > offset) {
       Log(TEXT("Padding from 0x%08llX to 0x%08llX\n"), offset, info.Run[i].start);
-      pad(info.Run[i].start - offset);
+      if(!pad(info.Run[i].start - offset)) {
+        goto exit;
+      }
     };
 
     copy_memory(info.Run[i].start, info.Run[i].start + info.Run[i].length);
@@ -492,9 +518,15 @@ int WinPmem64::write_crashdump_header_(struct PmemMemoryInfo *info) {
   header.PsActiveProcessHead = info->PsActiveProcessHead.QuadPart;
   header.PsLoadedModuleList = info->PsLoadedModuleList.QuadPart;
 
-  WriteFile(out_fd_, &header, header_size, &header_size, NULL);
+  if(!WriteFile(out_fd_, &header, header_size, &header_size, NULL)) {
+    Log(TEXT("Failed to write header... Aborting.\n"));
+    goto error;
+  };
 
   return 1;
+
+ error:
+  return 0;
 };
 
 int WinPmem64::load_driver_() {
@@ -546,13 +578,19 @@ int WinPmem32::write_crashdump_header_(struct PmemMemoryInfo *info) {
   // are kind of weird and we wont see windows running on them.
   header.MachineImageType = 0x014c;  // See _IMAGE_FILE_HEADER.Machine
 
-  header.PfnDataBase = (PULONG)info->PfnDataBase.LowPart;
-  header.PsActiveProcessHead = (PLIST_ENTRY)info->PsActiveProcessHead.LowPart;
-  header.PsLoadedModuleList = (PLIST_ENTRY)info->PsLoadedModuleList.LowPart;
+  header.PfnDataBase = (PULONG)(info->PfnDataBase.QuadPart);
+  header.PsActiveProcessHead = (PLIST_ENTRY)(info->PsActiveProcessHead.QuadPart);
+  header.PsLoadedModuleList = (PLIST_ENTRY)(info->PsLoadedModuleList.QuadPart);
 
-  WriteFile(out_fd_, &header, header_size, &header_size, NULL);
+  if(!WriteFile(out_fd_, &header, header_size, &header_size, NULL)) {
+    Log(TEXT("Failed to write header... Aborting.\n"));
+    goto error;
+  };
 
   return 1;
+
+ error:
+  return 0;
 }
 
 int WinPmem32::load_driver_() {

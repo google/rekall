@@ -6,7 +6,7 @@
 // Executable version.
 static TCHAR version[] = TEXT("1.3. Built ") TEXT(__DATE__);
 #define PMEM_DEVICE_NAME "pmem"
-#define PMEM_SERVICE_NAME TEXT("winpmem")
+#define PMEM_SERVICE_NAME TEXT("pmem")
 
 
 // These numbers are set in the resource editor for the FILE resource.
@@ -23,7 +23,7 @@ class WinPmem {
   virtual int install_driver();
   virtual int uninstall_driver();
   virtual int set_write_enabled();
-  virtual int set_acquisition_mode(__int32 mode);
+  virtual int set_acquisition_mode(unsigned __int32 mode);
 
   virtual void print_memory_info();
 
@@ -50,7 +50,7 @@ class WinPmem {
   virtual void Log(const TCHAR *message, ...);
 
   int pad(__int64 length);
-  int copy_memory(__int64 start, __int64 end);
+  int copy_memory(unsigned __int64 start, unsigned __int64 end);
 
   // The file handle to the pmem device.
   HANDLE fd_;
@@ -63,7 +63,10 @@ class WinPmem {
   TCHAR driver_filename[MAX_PATH];
 
   // This is the maximum size of memory calculated.
-  __int64 max_physical_memory_;
+  unsigned __int64 max_physical_memory_;
+
+  // The current acquisition mode.
+  unsigned int mode_;
 };
 
 class WinPmem32: public WinPmem {
@@ -90,6 +93,8 @@ static TCHAR driver_filename[MAX_PATH];
 // Available modes
 #define PMEM_MODE_IOSPACE 0
 #define PMEM_MODE_PHYSICAL 1
+#define PMEM_MODE_PTE 2
+#define PMEM_MODE_PTE_PCI 3
 
 #pragma pack(push, 2)
 typedef struct pmem_info_runs {

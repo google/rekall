@@ -9,4 +9,5 @@ INCLUDES=$(DDK_INC_PATH);
 
 SOURCES= winpmem.c \
          read.c \
+         api.c \
          kd.c

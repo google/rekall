@@ -225,20 +225,22 @@ KDDEBUGGER_DATA64 *KDBGScan(IMAGE_DOS_HEADER *image_base) {
 
 int GetKPCR(struct PmemMemoryInfo *info) {
   __int64 active_processors = KeQueryActiveProcessors();
-  int processor = 0;
   int i;
+
+  for (i=0; i < 32; i++) {
+    info->KPCR[i].QuadPart = 0;
+  };
 
   for (i=0; i < 32; i++) {
     if (active_processors & ((__int64)1 << i)) {
       KeSetSystemAffinityThread((__int64)1 << i);
 #if _WIN64 || __amd64__
       //64 bit uses gs and _KPCR.Self is at 0x18:
-      info->KPCR[processor].QuadPart = (uintptr_t)__readgsqword(0x18);
+      info->KPCR[i].QuadPart = (uintptr_t)__readgsqword(0x18);
 #else
       //32 bit uses fs and _KPCR.SelfPcr is at 0x1c:
-      info->KPCR[processor].QuadPart = (uintptr_t)__readfsword(0x1c);
+      info->KPCR[i].QuadPart = (uintptr_t)__readfsword(0x1c);
 #endif
-      processor ++;
     };
   };
 

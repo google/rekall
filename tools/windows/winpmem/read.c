@@ -89,7 +89,8 @@ static LONG MapIOPagePartialRead(IN PDEVICE_EXTENSION extension,
   ViewBase.QuadPart = offset.QuadPart - page_offset;
 
   // Map exactly one page.
-  mapped_buffer = MmMapIoSpace(ViewBase, PAGE_SIZE, MmNonCached);
+  mapped_buffer = Pmem_KernelExports.MmMapIoSpace(
+    ViewBase, PAGE_SIZE, MmNonCached);
 
   if (mapped_buffer) {
     RtlCopyMemory(buf, mapped_buffer + page_offset, to_read);
@@ -98,7 +99,7 @@ static LONG MapIOPagePartialRead(IN PDEVICE_EXTENSION extension,
     RtlZeroMemory(buf, to_read);
   };
 
-  MmUnmapIoSpace(mapped_buffer, PAGE_SIZE);
+  Pmem_KernelExports.MmUnmapIoSpace(mapped_buffer, PAGE_SIZE);
 
   return to_read;
 };
@@ -109,21 +110,31 @@ static NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset,
                            LONG (*handler)(IN PDEVICE_EXTENSION, LARGE_INTEGER,
                                            PCHAR, ULONG)) {
   int remaining = *count;
+  int result = STATUS_SUCCESS;
+
+  // Ensure we only run on a single CPU.
+  KeSetSystemAffinityThread((__int64)1);
 
   while(remaining > 0) {
-    int result = handler(extension, offset, buf, remaining);
+    result = handler(extension, offset, buf, remaining);
 
     /* Error Occured. */
-    if(result < 0) return result;
+    if(result < 0)
+      break;
+
     /* No data available. */
-    if(result==0) break;
+    if(result==0) {
+      break;
+    };
 
     offset.QuadPart += result;
     buf += result;
     remaining -= result;
   };
 
-  return STATUS_SUCCESS;
+  KeRevertToUserAffinityThread();
+
+  return result;
 };
 
 
