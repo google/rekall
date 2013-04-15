@@ -30,6 +30,7 @@ import re
 import struct
 
 from volatility import addrspace
+from volatility import args
 from volatility import obj
 from volatility import utils
 
@@ -530,6 +531,7 @@ class RegistryPlugin(common.WindowsCommandPlugin):
     @classmethod
     def args(cls, parser):
         parser.add_argument("-o", "--hive-offsets", default=None,
+                            action=args.ArrayIntParser, nargs="+",
                             help="A list of hive offsets as found by hivelist. "
                             "If not provided we call hivescan ourselves and list "
                             "the keys on all hives.")

@@ -53,6 +53,7 @@ class PrintKey(common.WindowsCommandPlugin):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(PrintKey, cls).args(parser)
+
         parser.add_argument("-k", "--key", default="",
                             help="Registry key to print.")
 

@@ -429,6 +429,9 @@ class NativeType(BaseObject, NumericProxyMixIn):
     def proxied(self, attr):
         return self.v()
 
+    def __radd__(self, other):
+        return self.v() + long(other)
+
     def size(self):
         return struct.calcsize(self.format_string)
 

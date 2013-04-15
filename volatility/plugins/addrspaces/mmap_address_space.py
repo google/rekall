@@ -1,5 +1,5 @@
 # Volatility
-# Copyright (C) 2011
+# Copyright (C) 2012
 #
 # Authors:
 # Michael Cohen <scudette@users.sourceforge.net>

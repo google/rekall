@@ -448,7 +448,7 @@ class RendererBaseClass(object):
     def write(self, data):
         """Renderer should write some data."""
 
-    def section(self):
+    def section(self, name=None):
         """Start a new section.
 
         Sections are used to separate distinct entries (e.g. reports of different files).

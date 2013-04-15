@@ -277,6 +277,9 @@ class CachingAddressSpaceMixIn(object):
         return self.read(addr, length)
 
     def read_partial(self, addr, length):
+        if addr == None:
+            return addr
+
         chunk_number = addr / self.CHUNK_SIZE
         chunk_offset = addr % self.CHUNK_SIZE
         available_length = min(length, self.CHUNK_SIZE - chunk_offset)

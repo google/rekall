@@ -202,6 +202,9 @@ class Enumeration(obj.NativeType):
     def __init__(self, choices = None, target="unsigned long", value=None,
                  default=None, target_args={}, **kwargs):
         super(Enumeration, self).__init__(**kwargs)
+        if callable(choices):
+            choices = choices(self.obj_parent)
+
         self.choices = choices or {}
         self.default = default
         if callable(value):

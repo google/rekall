@@ -2,6 +2,7 @@
 # imported only when the profile is instantiated. This leads to much faster
 # startup times, especially when packed.
 from volatility.plugins.overlays.windows import pe_vtypes
+from volatility.plugins.overlays.windows import ntfs
 from volatility.plugins.overlays.windows import vista
 from volatility.plugins.overlays.windows import windows
 from volatility.plugins.overlays.windows import xp
