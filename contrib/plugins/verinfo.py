@@ -299,8 +299,8 @@ resource_types = {
 class VerInfo(procdump.ProcExeDump):
     """Prints out the version information from PE images"""
 
-    def __init__(self, config, *args, **kwargs):
-        procdump.ProcExeDump.__init__(self, config, *args, **kwargs)
+    def __init__(self, config, *args):
+        procdump.ProcExeDump.__init__(self, config, *args)
         config.remove_option("OFFSET")
         config.remove_option("PID")
         config.add_option("OFFSET", short_option = "o", type = 'int',

@@ -10,26 +10,26 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 
 import os
-import volatility.plugins.taskmods as taskmods
-import volatility.plugins.filescan as filescan
+from volatility.plugins.windows import taskmods
+from volatility.plugins.windows import filescan
 import volatility.obj as obj
 import volatility.utils as utils
 import volatility.win32 as win32
 import volatility.debug as debug
 
-class Strings(taskmods.DllList):
+class Strings(object):
     """Match physical offsets to virtual addresses (may take a while, VERY verbose)"""
-    def __init__(self, config, *args, **kwargs):
-        taskmods.DllList.__init__(self, config, *args, **kwargs)
+    def __init__(self, config, *args):
+        taskmods.DllList.__init__(self, config, *args)
         config.remove_option('PID')
         config.add_option('STRING-FILE', short_option = 's', default = None,
                           help = 'File output in strings format (offset:string)',
@@ -97,12 +97,12 @@ class Strings(taskmods.DllList):
         for (offset, string) in parsedStrings:
             if reverse_map.has_key(offset & 0xFFFFF000):
                 outfd.write("{0:08x} [".format(offset))
-                outfd.write(' '.join(["{0}:{1:08x}".format(pid[0], pid[1] | (offset & 0xFFF)) for pid in reverse_map[offset & 0xFFFFF000][1:]]))
+                outfd.write(' '.join(["{0}:{1}".format(pid[0], pid[1] | (offset & 0xFFF)) for pid in reverse_map[offset & 0xFFFFF000][1:]]))
                 outfd.write("] {0}\n".format(string.strip()))
 
     def get_reverse_map(self, addr_space, tasks, verbfd = None):
         """Generates a reverse mapping from physical addresses to the kernel and/or tasks
-        
+
            Returns:
            dict of form phys_page -> [isKernel, (pid1, vaddr1), (pid2, vaddr2) ...]
            where isKernel is True or False. if isKernel is true, list is of all kernel addresses
@@ -123,7 +123,7 @@ class Strings(taskmods.DllList):
         reverse_map = {}
 
         verbfd.write("Calculating kernel mapping...\n")
-        available_pages = addr_space.get_available_pages()
+        available_pages = addr_space.get_available_addresses()
         for (vpage, vpage_size) in available_pages:
             kpage = addr_space.vtop(vpage)
             for i in range(0, vpage_size, 0x1000):
@@ -142,7 +142,7 @@ class Strings(taskmods.DllList):
             verbfd.write("  Task {0} ...".format(task.UniqueProcessId))
             process_id = int(task.UniqueProcessId)
             try:
-                available_pages = task_space.get_available_pages()
+                available_pages = task_space.get_available_addresses()
                 for (vpage, vpage_size) in available_pages:
                     physpage = task_space.vtop(vpage)
                     for i in range(0, vpage_size, 0x1000):

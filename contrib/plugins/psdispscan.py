@@ -77,7 +77,8 @@ class CheckThreadList(scan.ScannerCheck):
 
         list_head = eprocess.ThreadListHead
 
-        if list_head.Flink > kernel and list_head.Blink > kernel:
+        if list_head.Flink > kernel and \
+               list_head.Blink > kernel:
             return True
 
 class CheckDTBAligned(scan.ScannerCheck):
@@ -102,7 +103,7 @@ class CheckSynchronization(scan.ScannerCheck):
         if event.Size == 0x4 and event.Type == 0x1:
             return True
 
-class PSDispScanner(scan.BaseScanner):
+class PSDispScanner(scan.DiscontigScanner):
     """ This scanner carves things that look like _EPROCESS structures.
 
     Since the _EPROCESS does not need to be linked to the process
@@ -115,7 +116,7 @@ class PSDispScanner(scan.BaseScanner):
                ("CheckSynchronization", {})
                ]
 
-class PSDispScan(commands.Command, cache.Testable):
+class PSDispScan(commands.command, cache.Testable):
     """ Scan Physical memory for _EPROCESS objects based on their Dispatch Headers"""
 
     # Declare meta information associated with this plugin
@@ -167,7 +168,7 @@ class PSDispScan(commands.Command, cache.Testable):
 
     def render_text(self, outfd, data):
         ## Just grab the AS and scan it using our scanner
-        outfd.write(" Offset     Name             PID    PPID   PDB        Time created             Time exited             \n" +
+        outfd.write(" Offset     Name             PID    PPID   PDB        Time created             Time exited             \n" + \
                     "---------- ---------------- ------ ------ ---------- ------------------------ ------------------------ \n")
 
         for eprocess in data:

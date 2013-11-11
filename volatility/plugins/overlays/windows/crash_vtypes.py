@@ -33,6 +33,30 @@ crash_vtypes = {
     'SystemTime' : [ 0xfc0, ['unsigned long long']],
     'reserved3' : [ 0xfc8, ['array', 56, ['unsigned char']]],
 } ],
+
+  '_PHYSICAL_MEMORY_DESCRIPTOR' : [ 0x10, {
+    'NumberOfRuns' : [ 0x0, ['unsigned long']],
+    'NumberOfPages' : [ 0x4, ['unsigned long']],
+    'Run' : [ 0x8, ['array', 1, ['_PHYSICAL_MEMORY_RUN']]],
+} ],
+  '_PHYSICAL_MEMORY_RUN' : [ 0x8, {
+    'BasePage' : [ 0x0, ['unsigned long']],
+    'PageCount' : [ 0x4, ['unsigned long']],
+} ],
+
+  '_EXCEPTION_RECORD32' : [ 0x50, {
+    'ExceptionCode' : [ 0x0, ['long']],
+    'ExceptionFlags' : [ 0x4, ['unsigned long']],
+    'ExceptionRecord' : [ 0x8, ['unsigned long']],
+    'ExceptionAddress' : [ 0xc, ['unsigned long']],
+    'NumberParameters' : [ 0x10, ['unsigned long']],
+    'ExceptionInformation' : [ 0x14, ['array', 15, ['unsigned long']]],
+} ],
+
+}
+
+
+crash_64_vtypes = {
   '_DMP_HEADER64' : [ 0x2000, {
     'Signature' : [ 0x0, ['array', 4, ['unsigned char']]],
     'ValidDump' : [ 0x4, ['array', 4, ['unsigned char']]],
@@ -65,4 +89,26 @@ crash_vtypes = {
     'Unused' : [ 0x104e, ['array', 2, ['unsigned char']]],
     '_reserved0' : [ 0x1050, ['array', 4016, ['unsigned char']]],
 } ],
+
+  '_PHYSICAL_MEMORY_DESCRIPTOR' : [ 0x20, {
+    'NumberOfRuns' : [ 0x0, ['unsigned long']],
+    'NumberOfPages' : [ 0x8, ['unsigned long long']],
+    'Run' : [ 0x10, ['array', 1, ['_PHYSICAL_MEMORY_RUN']]],
+    }],
+
+  '_PHYSICAL_MEMORY_RUN' : [ 0x10, {
+    'BasePage' : [ 0x0, ['unsigned long long']],
+    'PageCount' : [ 0x8, ['unsigned long long']],
+} ],
+
+  '_EXCEPTION_RECORD64' : [ 0x98, {
+    'ExceptionCode' : [ 0x0, ['long']],
+    'ExceptionFlags' : [ 0x4, ['unsigned long']],
+    'ExceptionRecord' : [ 0x8, ['unsigned long long']],
+    'ExceptionAddress' : [ 0x10, ['unsigned long long']],
+    'NumberParameters' : [ 0x18, ['unsigned long']],
+    '__unusedAlignment' : [ 0x1c, ['unsigned long']],
+    'ExceptionInformation' : [ 0x20, ['array', 15, ['unsigned long long']]],
+} ],
+
 }

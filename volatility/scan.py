@@ -1,10 +1,5 @@
 # Volatility
-# Copyright (C) 2007,2008 Volatile Systems
-#
-# Derived from source in PyFlag developed by:
-# Copyright 2004: Commonwealth of Australia.
-# Michael Cohen <scudette@users.sourceforge.net> 
-# David Collett <daveco@users.sourceforge.net>
+# Copyright (C) 2012
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,154 +9,184 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 #
-# Special thanks to Michael Cohen for ideas and comments!
-#
-
-#pylint: disable-msg=C0111
-
 """
-@author:       AAron Walters
+@author:       Michael Cohen (scudette@gmail.com)
 @license:      GNU General Public License 2.0 or later
-@contact:      awalters@volatilesystems.com
-@organization: Volatile Systems.
 """
-import volatility.debug as debug
-import volatility.registry as registry
-import volatility.addrspace as addrspace
-import volatility.constants as constants
-import volatility.conf as conf
+import logging
+import re
+import sys
 
-########### Following is the new implementation of the scanning
-########### framework. The old framework was based on PyFlag's
-########### scanning framework which is probably too complex for this.
+from volatility import registry
+from volatility import addrspace
+from volatility import constants
+
 
 class BaseScanner(object):
     """ A more thorough scanner which checks every byte """
+
+    __metaclass__ = registry.MetaclassRegistry
+
     checks = []
-    def __init__(self, window_size = 8):
-        self.buffer = addrspace.BufferAddressSpace(conf.DummyConfig(), data = '\x00' * 1024)
-        self.window_size = window_size
-        self.constraints = []
+    def __init__(self, profile=None, address_space=None, window_size=8,
+                 session=None):
+        """The base scanner.
 
-        self.error_count = 0
-
-    def check_addr(self, found):
-        """ This calls all our constraints on the offset found and
-        returns the number of contraints that matched.
-
-        We shortcut the loop as soon as its obvious that there will
-        not be sufficient matches to fit the criteria. This allows for
-        an early exit and a speed boost.
+        Args:
+           profile: The kernel profile to use for this scan.
+           address_space: The address space we use for scanning.
+           window_size: The size of the overlap window between each buffer read.
         """
-        cnt = 0
+        # We operate on a cached version of the original address space because
+        # we need to read it randomly very frequently.
+
+        # This might only make sense for windows system where IO is very
+        # expensive - for linux systems it makes no difference.
+        #self.address_space = addrspace.CachingAddressSpace(base=address_space)
+        self.address_space = address_space
+        self.window_size = window_size
+        self.constraints = None
+        self.profile = profile or session.profile
+        self.max_length = None
+        self.base_offset = None
+        self.session = session
+
+    def build_constraints(self):
+        self.constraints = []
+        for class_name, args in self.checks:
+            check = ScannerCheck.classes[class_name](
+                profile=self.profile, address_space=self.address_space, **args)
+            self.constraints.append(check)
+
+        self.skippers = [ c for c in self.constraints if hasattr(c, "skip") ]
+        self.hits = None
+
+    def check_addr(self, offset):
+        """Calls our constraints on the offset and returns if any contraints did
+        not match.
+
+        Args:
+           offset: The offset to test (in self.address_space).
+        """
         for check in self.constraints:
-            ## constraints can raise for an error
-            try:
-                val = check.check(found)
-            except Exception:
-                debug.b()
-                val = False
-
+            # Ask the check if this offset is possible.
+            val = check.check(offset)
             if not val:
-                cnt = cnt + 1
-
-            if cnt > self.error_count:
                 return False
 
         return True
 
-    overlap = 20
-    def scan(self, address_space, offset = 0, maxlen = None):
-        self.buffer.profile = address_space.profile
-        current_offset = offset
+    def skip(self, data, data_offset, base_offset=None):
+        """Skip uninteresting regions.
 
-        ## Build our constraints from the specified ScannerCheck
-        ## classes:
-        self.constraints = []
-        for class_name, args in self.checks:
-            check = registry.get_plugin_classes(ScannerCheck)[class_name](self.buffer, **args)
-            self.constraints.append(check)
+        Where should we go next? By default we go 1 byte ahead, but if some of
+        the checkers have skippers, we may actually go much farther. Checkers
+        with skippers basically tell us that there is no way they can match
+        anything before the skipped result, so there is no point in trying them
+        on all the data in between. This optimization is useful to really speed
+        things up.
+        """
+        skip = 1
+        for s in self.skippers:
+            skip_value = s.skip(data, data_offset + skip, base_offset=base_offset)
+            skip = max(skip, skip_value)
 
-        ## Which checks also have skippers?
-        skippers = [ c for c in self.constraints if hasattr(c, "skip") ]
+        return skip
 
-        for (range_start, range_size) in sorted(address_space.get_available_addresses()):
-            # Jump to the next available point to scan from
-            # self.base_offset jumps up to be at least range_start
-            current_offset = max(range_start, current_offset)
-            range_end = range_start + range_size
+    overlap = 1024
+    def scan(self, offset=0, maxlen=None):
+        """Scan the region from offset for maxlen.
 
-            # If we have a maximum length, we make sure it's less than the range_end
-            if maxlen:
-                range_end = min(range_end, offset + maxlen)
+        Args:
+          offset: The starting offset in our current address space to scan.
 
-            while (current_offset < range_end):
-                # We've now got range_start <= self.base_offset < range_end
+          maxlen: The maximum length to scan. If no provided we just scan until
+            there is no data.
 
-                # Figure out how much data to read
-                l = min(constants.SCAN_BLOCKSIZE + self.overlap, range_end - current_offset)
+        Yields:
+          offsets where all the constrainst are satisfied.
+        """
+        if maxlen is None:
+            last_range = list(self.address_space.get_available_addresses())[-1]
+            maxlen = last_range[0] + last_range[1]
 
-                # Populate the buffer with data
-                # We use zread to scan what we can because there are often invalid
-                # pages in the DTB
-                data = address_space.zread(current_offset, l)
-                self.buffer.assign_buffer(data, current_offset)
+        # Delay building the constraints so they can be added after scanner
+        # construction.
+        if self.constraints is None:
+            self.build_constraints()
 
-                ## Run checks throughout this block of data
-                i = 0
-                while i < l:
-                    if self.check_addr(i + current_offset):
-                        ## yield the offset to the start of the memory
-                        ## (after the pool tag)
-                        yield i + current_offset
+        # Start scanning from offset until maxlen:
+        i = offset
 
-                    ## Where should we go next? By default we go 1 byte
-                    ## ahead, but if some of the checkers have skippers,
-                    ## we may actually go much farther. Checkers with
-                    ## skippers basically tell us that there is no way
-                    ## they can match anything before the skipped result,
-                    ## so there is no point in trying them on all the data
-                    ## in between. This optimization is useful to really
-                    ## speed things up. FIXME - currently skippers assume
-                    ## that the check must match, therefore we can skip
-                    ## the unmatchable region, but its possible that a
-                    ## scanner needs to match only some checkers.
-                    skip = 1
-                    for s in skippers:
-                        skip = max(skip, s.skip(data, i))
+        data_offset = 0
+        data = ""
 
-                    i += skip
+        while i < offset + maxlen:
+            # Update the progress bar.
+            if self.session:
+                self.session.report_progress("Scanning 0x%08X with %s" % (i, self.__class__.__name__))
 
-                current_offset += min(constants.SCAN_BLOCKSIZE, l)
+            # Check the current offset for a match.
+            if self.check_addr(i):
+                yield i
 
-class DiscontigScanner(BaseScanner):
-    def scan(self, address_space, offset = 0, maxlen = None):
-        debug.warning("DiscontigScanner has been deprecated, all functionality is now contained in BaseScanner")
-        for match in BaseScanner.scan(self, address_space, offset, maxlen):
-            yield match
+            # Allow us to skip uninteresting regions (default skip is 1).
+            if data_offset + self.overlap >= len(data):
+                to_read = min(constants.SCAN_BLOCKSIZE, maxlen - (i - offset))
+
+                # Refresh the data buffer.
+                data = self.address_space.zread(i, to_read)
+                data_offset = 0
+                if not data:
+                    break
+
+            # First check if we can skip this point.
+            skip = self.skip(data, data_offset, base_offset=i)
+            data_offset += skip
+            i += skip
+
+
+class DiscontigScanner(object):
+    """A Mixin for Discontiguous scanning."""
+
+    def scan(self, offset=0, maxlen=None):
+        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+
+        for (start, length) in self.address_space.get_address_ranges(
+            offset, offset + maxlen):
+            for match in super(DiscontigScanner, self).scan(start, length):
+                yield match
+
 
 class ScannerCheck(object):
-    """ A scanner check is a special class which is invoked on an AS to check for a specific condition.
+    """ A scanner check is a special class which is invoked on an AS to check
+    for a specific condition.
 
     The main method is def check(self, offset):
     This will return True if the condition is true or False otherwise.
 
     This class is the base class for all checks.
     """
-    def __init__(self, address_space, **_kwargs):
+
+    __metaclass__ = registry.MetaclassRegistry
+    __abstract = True
+
+    def __init__(self, profile=None, address_space=None, **_kwargs):
+        """The profile that this scanner check should use."""
+        self.profile = profile
         self.address_space = address_space
 
-    def object_offset(self, offset, address_space):
+    def object_offset(self, offset):
         return offset
 
-    def check(self, _offset):
+    def check(self, offset, buffer_data=None):
         return False
 
     ## If you want to speed up the scanning define this method - it
@@ -169,53 +194,152 @@ class ScannerCheck(object):
     ## match. You will need to return the number of bytes from offset
     ## to skip to. We take the maximum number of bytes to guarantee
     ## that all checks have a chance of passing.
-    #def skip(self, data, offset):
-    #    return -1
+    def skip(self, data, offset, base_offset=None):
+        """Determine how many bytes we can skip.
 
-class PoolScanner(BaseScanner):
+        Args:
+          data: A data buffer we can examine to check for skipping.
+          offset: The offset within the data buffer to look at.
+          base_offset: The data buffer represents this offset within
+            self.address_space.
 
-    def object_offset(self, found, address_space):
-        """ 
-        The name of this function "object_offset" can be misleading depending
-        on how its used. Even before removing the preambles (r1324), it may not
-        always return the offset of an object. Here are the rules:
-
-        If you subclass PoolScanner and do not override this function, it 
-        will return the offset of _POOL_HEADER. If you do override this function,
-        it should be used to calculate and return the offset of your desired 
-        object within the pool. Thus there are two different ways it can be done. 
-
-        Example 1. 
-
-        For an example of subclassing PoolScanner and not overriding this function, 
-        see filescan.PoolScanFile. In this case, the plugin (filescan.FileScan) 
-        treats the offset returned by this function as the start of _POOL_HEADER 
-        and then works out the object from the bottom up: 
-
-            for offset in PoolScanFile().scan(address_space):
-                pool_obj = obj.Object("_POOL_HEADER", vm = address_space,
-                     offset = offset)
-                ##
-                ## Work out objects base here
-                ## 
-
-        Example 2. 
-
-        For an example of subclassing PoolScanner and overriding this function, 
-        see filescan.PoolScanProcess. In this case, the "work" described above is
-        done here (in the sublcassed object_offset). Thus in the plugin (filescan.PSScan)
-        it can directly instantiate _EPROCESS from the offset we return. 
-
-            for offset in PoolScanProcess().scan(address_space):
-                eprocess = obj.Object('_EPROCESS', vm = address_space,
-                        native_vm = kernel_as, offset = offset)
+        Returns:
+          number of bytes to be skipped.
         """
+        return 0
 
-        ## Subtract the offset of the PoolTag member to get the start 
-        ## of _POOL_HEADER. This is done because PoolScanners search 
-        ## for the PoolTag.
-        return found - self.buffer.profile.get_obj_offset('_POOL_HEADER', 'PoolTag')
 
-    def scan(self, address_space, offset = 0, maxlen = None):
-        for i in BaseScanner.scan(self, address_space, offset, maxlen):
-            yield self.object_offset(i, address_space)
+class MultiStringFinderCheck(ScannerCheck):
+    """A scanner checker for multiple strings."""
+
+    def __init__(self, needles = None, **kwargs):
+        """
+        Args:
+          needles: A list of strings we search for.
+        """
+        super(MultiStringFinderCheck, self).__init__(**kwargs)
+        if not needles:
+            needles = []
+        self.needles = needles
+        self.maxlen = 0
+        for needle in needles:
+            self.maxlen = max(self.maxlen, len(needle))
+        if not self.maxlen:
+            raise RuntimeError("No needles of any length were found for the "
+                               "MultiStringFinderCheck")
+
+    def check(self, offset):
+        verify = self.address_space.read(offset, self.maxlen)
+
+        for match in self.needles:
+            if verify[:len(match)] == match:
+                return True
+
+        return False
+
+    def skip(self, data, offset, base_offset=None):
+        nextval = len(data)
+        for needle in self.needles:
+            dindex = data.find(needle, offset + 1)
+            if dindex > -1:
+                nextval = min(nextval, dindex + 1)
+
+        return nextval - offset
+
+
+class StringCheck(ScannerCheck):
+    maxlen = 100
+
+    def __init__(self, needle=None, **kwargs):
+        super(StringCheck, self).__init__(**kwargs)
+        self.needle = needle
+
+    def check(self, offset):
+        return self.address_space.read(offset, len(self.needle)) == self.needle
+
+    def skip(self, data, offset, base_offset=None):
+        dindex = data.find(self.needle, offset + 1)
+        if dindex > -1:
+            return dindex + 1 - offset
+
+        return len(data) - offset
+
+
+class RegexCheck(ScannerCheck):
+    """This check can be quite slow."""
+    maxlen = 100
+
+    def __init__(self, regex = None, **kwargs):
+        super(RegexCheck, self).__init__(**kwargs)
+        self.regex = re.compile(regex)
+
+    def check(self, offset):
+        verify = self.address_space.read(offset, self.maxlen)
+        return bool(self.regex.match(verify))
+
+    def skip(self, data, offset, base_offset=None):
+        m = self.regex.search(data[offset:])
+        if m:
+            return m.start() + 1
+
+        return len(data) - offset
+
+
+class ScannerGroup(BaseScanner):
+    """Runs a bunch of scanners in one pass over the image."""
+
+    def __init__(self, scanners=None, **kwargs):
+        """Create a new scanner group.
+
+        Args:
+          scanners: A dict of BaseScanner instances. Keys will be used to refer
+          to the scanner, while the value is the scanner instance.
+        """
+        super(ScannerGroup, self).__init__(**kwargs)
+        self.scanners = scanners
+        for scanner in scanners.values():
+            scanner.address_space = self.address_space
+
+        # A dict to hold all hits for each scanner.
+        self.result = {}
+
+    def scan(self, offset=0, maxlen=None):
+        available_length = maxlen or self.profile.get_constant("MaxPointer")
+
+        while available_length > 0:
+            to_read = min(constants.SCAN_BLOCKSIZE + self.overlap,
+                          available_length)
+
+            # Now feed all the scanners from the same address space.
+            for name, scanner in self.scanners.items():
+                for hit in scanner.scan(offset=offset, maxlen=to_read):
+                    # Yield the result as well as cache it.
+                    yield name, hit
+
+            # Move to the next scan block.
+            offset += constants.SCAN_BLOCKSIZE
+            available_length -= constants.SCAN_BLOCKSIZE
+
+
+class DiscontigScannerGroup(ScannerGroup):
+    """A scanner group which works over a virtual address space."""
+
+    def scan(self, offset=0, maxlen=None):
+        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+
+        for (start, length) in self.address_space.get_address_ranges(
+            offset, offset + maxlen):
+            for match in super(DiscontigScannerGroup, self).scan(
+                start, maxlen=length):
+                yield match
+
+
+class DebugChecker(ScannerCheck):
+    """A check that breaks into the debugger when a condition is met.
+
+    Insert this check inside the check stack and we will break into the debugger
+    when all the conditions below us are met.
+    """
+    def check(self, offset, buffer_data=None):
+        import pdb; pdb.set_trace()
+        return True

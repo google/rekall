@@ -11,22 +11,22 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 #
 # Code found in WindowsHiberFileSpace32 for parsing meta information
 # is inspired by the work of Matthieu Suiche:  http://sandman.msuiche.net/.
-# A special thanks to Matthieu for all his help integrating 
+# A special thanks to Matthieu for all his help integrating
 # this code in Volatility.
 
 """ A Hiber file Address Space """
-import volatility.plugins.addrspaces.standard as standard
-import volatility.obj as obj
-import volatility.win32.xpress as xpress
+from volatility import addrspace
+from volatility import obj
+from volatility.plugins.addrspaces import xpress
 import struct
 
 
@@ -35,67 +35,226 @@ import struct
 PAGE_SIZE = 0x1000
 page_shift = 12
 
-class Store(object):
-    def __init__(self, limit = 50):
-        self.limit = limit
-        self.cache = {}
-        self.seq = []
-        self.size = 0
 
-    def put(self, key, item):
-        self.cache[key] = item
-        self.size += len(item)
+class HibernationSupport(obj.ProfileModification):
+    """Support hibernation file structures for different versions of windows."""
 
-        self.seq.append(key)
-        if len(self.seq) >= self.limit:
-            key = self.seq.pop(0)
-            self.size -= len(self.cache[key])
-            del self.cache[key]
+    vtypes = {
+        '_PO_MEMORY_RANGE_ARRAY_LINK' : [ 0x10, {
+                'NextTable' : [ 0x4, ['unsigned long']],
+                'EntryCount' : [ 0xc, ['unsigned long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY_RANGE' : [ 0x10, {
+                'StartPage' : [ 0x4, ['unsigned long']],
+                'EndPage' : [ 0x8, ['unsigned long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY' : [ 0x20, {
+                'MemArrayLink' : [ 0x0, ['_PO_MEMORY_RANGE_ARRAY_LINK']],
+                'RangeTable': [ 0x10, ['array', lambda x: x.MemArrayLink.EntryCount,
+                                       ['_PO_MEMORY_RANGE_ARRAY_RANGE']]],
+                } ],
 
-    def get(self, key):
-        return self.cache[key]
+        '_IMAGE_XPRESS_HEADER' : [  0x20 , {
+                'u09' : [ 0x9, ['unsigned char']],
+                'u0A' : [ 0xA, ['unsigned char']],
+                'u0B' : [ 0xB, ['unsigned char']],
+                } ]
+        }
 
-class WindowsHiberFileSpace32(standard.FileAddressSpace):
+    vistasp01_vtypes = {
+        '_PO_MEMORY_RANGE_ARRAY' : [ 0x20, {
+                'RangeTable': [ 0x10, ['array', lambda x: x.Link.EntryCount,
+                                       ['_PO_MEMORY_RANGE_ARRAY_RANGE']]],
+                } ],
+        }
+
+    vistasp2_vtypes = {
+        '_PO_MEMORY_RANGE_ARRAY_LINK' : [ 0x10, {
+                'NextTable' : [ 0x4, ['unsigned long']],
+                'EntryCount' : [ 0x8, ['unsigned long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY_RANGE' : [ 0x8, {
+                'StartPage' : [ 0x0, ['unsigned long']],
+                'EndPage' : [ 0x4, ['unsigned long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY' : [ 0x20, {
+                'MemArrayLink' : [ 0x0, ['_PO_MEMORY_RANGE_ARRAY_LINK']],
+                'RangeTable': [ 0xc, ['array', lambda x: x.MemArrayLink.EntryCount,
+                                      ['_PO_MEMORY_RANGE_ARRAY_RANGE']]],
+                } ],
+        }
+
+    win7_vtypes = {
+        '_PO_MEMORY_RANGE_ARRAY_LINK' : [ 0x10, {
+                'NextTable' : [ 0x0, ['unsigned long']],
+                'EntryCount' : [ 0x4, ['unsigned long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY_RANGE' : [ 0x8, {
+                'StartPage' : [ 0x0, ['unsigned long']],
+                'EndPage' : [ 0x4, ['unsigned long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY' : [ 0x20, {
+                'MemArrayLink' : [ 0x0, ['_PO_MEMORY_RANGE_ARRAY_LINK']],
+                'RangeTable': [ 0x8, ['array', lambda x: x.MemArrayLink.EntryCount,
+                                      ['_PO_MEMORY_RANGE_ARRAY_RANGE']]],
+                } ],
+        }
+
+    win7_x64_vtypes = {
+        '_PO_MEMORY_RANGE_ARRAY_LINK' : [ 0x10, {
+                'NextTable' : [ 0x0, ['unsigned long long']],
+                'EntryCount' : [ 0x8, ['unsigned long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY_RANGE' : [ 0x10, {
+                'StartPage' : [ 0x0, ['unsigned long long']],
+                'EndPage' : [ 0x8, ['unsigned long long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY' : [ 0x20, {
+                'MemArrayLink' : [ 0x0, ['_PO_MEMORY_RANGE_ARRAY_LINK']],
+                'RangeTable': [ 0x10, ['array', lambda x: x.MemArrayLink.EntryCount,
+                                       ['_PO_MEMORY_RANGE_ARRAY_RANGE']]],
+                } ],
+        }
+
+    x64_vtypes = {
+        '_PO_MEMORY_RANGE_ARRAY_LINK' : [ 0x20, {
+                'NextTable' : [ 0x8, ['unsigned long long']],
+                'EntryCount' : [ 0x14, ['unsigned long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY_RANGE' : [ 0x20, {
+                'StartPage' : [ 0x8, ['unsigned long long']],
+                'EndPage' : [ 0x10, ['unsigned long long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY' : [ 0x40, {
+                'MemArrayLink' : [ 0x0, ['_PO_MEMORY_RANGE_ARRAY_LINK']],
+                'RangeTable': [ 0x20, ['array', lambda x: x.MemArrayLink.EntryCount,
+                                       ['_PO_MEMORY_RANGE_ARRAY_RANGE']]],
+                } ],
+        }
+
+    vistaSP2_x64_vtypes = {
+        '_PO_MEMORY_RANGE_ARRAY_LINK' : [ 0x18, {
+                'NextTable' : [ 0x8, ['unsigned long long']],
+                'EntryCount' : [ 0x10, ['unsigned long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY_RANGE' : [ 0x10, {
+                'StartPage' : [ 0x0, ['unsigned long long']],
+                'EndPage' : [ 0x8, ['unsigned long long']],
+                } ],
+        '_PO_MEMORY_RANGE_ARRAY' : [ 0x28, {
+                'MemArrayLink' : [ 0x0, ['_PO_MEMORY_RANGE_ARRAY_LINK']],
+                'RangeTable': [ 0x18, ['array', lambda x: x.MemArrayLink.EntryCount,
+                                       ['_PO_MEMORY_RANGE_ARRAY_RANGE']]],
+                } ],
+        }
+
+    @classmethod
+    def modify(cls, profile):
+        profile.add_overlay(cls.vtypes)
+        profile.add_constants(HibrProcPage=0x2, HibrEntryCount=0xff)
+
+        major = profile.metadata("major")
+        minor = profile.metadata("minor")
+        build = profile.metadata("build")
+        memory_model = profile.metadata("memory_model")
+
+        if memory_model == "32bit":
+            if major == 6 and minor == 0:
+                if build < 6000:
+                    profile.add_overlay(cls.vistasp01_vtypes)
+
+                elif build == 6000:
+                    profile.add_overlay(cls.vistasp01_vtypes)
+                    profile.add_constants(HibrProcPage=0x4, HibrEntryCount=0xff)
+
+                elif build == 6001:
+                    profile.add_overlay(cls.vistasp01_vtypes)
+                    profile.add_constants(HibrProcPage=0x1, HibrEntryCount=0xff)
+
+                elif build == 6002:
+                    profile.add_constants(HibrProcPage=0x1, HibrEntryCount=0x1fe)
+                    profile.add_overlay(cls.vistasp2_vtypes)
+
+            elif major == 6 and minor == 1:
+                profile.add_constants(HibrProcPage=0x1, HibrEntryCount=0x1ff)
+
+                if build <= 7601:
+                    profile.add_overlay(cls.win7_vtypes)
+
+        elif memory_model == "64bit":
+            # Windows 2003
+            if major == 5 and minor == 2 and build <= 3790:
+                profile.add_constants(HibrProcPage=0x2, HibrEntryCount=0x7f)
+                profile.add_overlay(cls.x64_vtypes)
+
+            elif major == 6 and minor == 0:
+                if build <= 6000:
+                    profile.add_constants(HibrProcPage=0x4, HibrEntryCount=0x7f)
+                    profile.add_overlay(cls.x64_vtypes)
+
+                elif build == 6001:
+                    profile.add_constants(HibrProcPage=0x1, HibrEntryCount=0x7f)
+                    profile.add_overlay(cls.x64_vtypes)
+
+                elif build == 6002:
+                    profile.add_constants(HibrProcPage=0x1, HibrEntryCount=0xfe)
+                    profile.add_overlay(cls.vistaSP2_x64_vtypes)
+
+            elif major == 6 and minor == 1:
+                profile.add_constants(HibrProcPage=0x1, HibrEntryCount=0xff)
+
+                if build <= 7601:
+                    profile.add_overlay(cls.win7_x64_vtypes)
+
+
+class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
     """ This is a hibernate address space for windows hibernation files.
 
     In order for us to work we need to:
     1) have a valid baseAddressSpace
     2) the first 4 bytes must be 'hibr'
     """
-    order = 10
-    def __init__(self, base, config, **kwargs):
-        self.as_assert(base, "No base Address Space")
-        standard.FileAddressSpace.__init__(self, base, config, layered = True, **kwargs)
+
+    __name = "hiber"
+    _md_image = True
+
+    order = 100
+
+    def __init__(self, **kwargs):
+        super(WindowsHiberFileSpace, self).__init__(**kwargs)
+
+        self.as_assert(self.base, "No base Address Space")
+        self.as_assert(self.base.read(0, 4).lower() in ["hibr", "wake"])
         self.runs = []
         self.PageDict = {}
         self.HighestPage = 0
         self.PageIndex = 0
         self.AddressList = []
         self.LookupCache = {}
-        self.PageCache = Store(50)
+        self.PageCache = utils.FastStore(500)
         self.MemRangeCnt = 0
         self.offset = 0
         self.entry_count = 0xFF
 
+        # Modify the profile by adding version specific definitions.
+        self.profile = HibernationSupport(self.profile)
+
         # Extract header information
-        self.as_assert(self.profile.has_type("PO_MEMORY_IMAGE"), "PO_MEMORY_IMAGE is not available in profile")
-        self.header = obj.Object('PO_MEMORY_IMAGE', 0, base)
+        self.as_assert(self.profile.has_type("PO_MEMORY_IMAGE"),
+                       "PO_MEMORY_IMAGE is not available in profile")
 
-        ## Is the signature right?
-        if self.header.Signature.lower() not in ['hibr', 'wake']:
-            self.header = obj.NoneObject("Invalid hibernation header")
-            volmag = obj.NoneObject("Invalid hibernation header")
-        else:
-            volmag = obj.VolMagic(base)
-            self.entry_count = volmag.HibrEntryCount.v()
+        self.header = self.profile.Object('PO_MEMORY_IMAGE', offset=0, vm=self.base)
+        self.entry_count = self.profile.get_constant("HibrEntryCount")
 
-        PROC_PAGE = volmag.HibrProcPage.v()
+        proc_page = self.profile.get_constant("HibrProcPage")
 
         # Check it's definitely a hibernation file
-        self.as_assert(self._get_first_table_page() is not None, "No xpress signature found")
+        self.as_assert(self._get_first_table_page() is not None,
+                       "No xpress signature found")
 
         # Extract processor state
-        self.ProcState = obj.Object("_KPROCESSOR_STATE", PROC_PAGE * 4096, base)
+        self.ProcState = self.profile.Object(
+            "_KPROCESSOR_STATE", offset=proc_page * 4096, vm=self.base)
 
         ## This is a pointer to the page table - any ASs above us dont
         ## need to search for it.
@@ -105,40 +264,28 @@ class WindowsHiberFileSpace32(standard.FileAddressSpace):
         # until it's absolutely necessary and/or convert it into a generator...
         self.build_page_cache()
 
-        # FIXME: Remove the cacheing code until we can do hashes and check that the 
-        # data we're reading back has a chance of being right
-        # 
-        #if config.DEBUG:
-        #    try:
-        #        fd = open("/tmp/cache.bin",'rb')
-        #        data = pickle.load(fd)
-        #        self.PageDict , self.LookupCache = data
-        #        fd.close()
-        #    except (IOError, EOFError):
-        #        fd = open("/tmp/cache.bin",'wb')
-        #        pickle.dump((self.PageDict , self.LookupCache), fd, -1)
-        #        fd.close()
-
     def _get_first_table_page(self):
-        if self.header != None:
+        if self.header:
             return self.header.FirstTablePage
+
         for i in range(10):
             if self.base.read(i * PAGE_SIZE, 8) == "\x81\x81xpress":
                 return i - 1
-        return None
 
     def build_page_cache(self):
         XpressIndex = 0
-        XpressHeader = obj.Object("_IMAGE_XPRESS_HEADER",
-                                  (self._get_first_table_page() + 1) * 4096,
-                                  self.base)
+
+        XpressHeader = self.profile.Object("_IMAGE_XPRESS_HEADER",
+            offset=(self._get_first_table_page() + 1) * 4096,
+            vm=self.base)
 
         XpressBlockSize = self.get_xpress_block_size(XpressHeader)
 
         MemoryArrayOffset = self._get_first_table_page() * 4096
 
         while MemoryArrayOffset:
-            MemoryArray = obj.Object('_PO_MEMORY_RANGE_ARRAY', MemoryArrayOffset, self.base)
+            MemoryArray = self.profile.Object(
+                '_PO_MEMORY_RANGE_ARRAY', MemoryArrayOffset, self.base)
 
             EntryCount = MemoryArray.MemArrayLink.EntryCount.v()
             for i in MemoryArray.RangeTable:
@@ -178,13 +325,14 @@ class WindowsHiberFileSpace32(standard.FileAddressSpace):
             if (NextTable and (EntryCount == self.entry_count)):
                 MemoryArrayOffset = NextTable * 0x1000
                 self.MemRangeCnt += 1
-                XpressHeader, XpressBlockSize = \
-                                             self.next_xpress(XpressHeader, XpressBlockSize)
+
+                XpressHeader, XpressBlockSize = self.next_xpress(
+                    XpressHeader, XpressBlockSize)
 
                 # Make sure the xpress block is after the Memory Table
                 while (XpressHeader.obj_offset < MemoryArrayOffset):
-                    XpressHeader, XpressBlockSize = \
-                        self.next_xpress(XpressHeader, 0)
+                    XpressHeader, XpressBlockSize = self.next_xpress(
+                        XpressHeader, 0)
 
                 XpressIndex = 0
             else:
@@ -207,8 +355,8 @@ class WindowsHiberFileSpace32(standard.FileAddressSpace):
             yield page_count
 
     def next_xpress(self, XpressHeader, XpressBlockSize):
-        XpressHeaderOffset = XpressBlockSize + XpressHeader.obj_offset + \
-                             XpressHeader.size()
+        XpressHeaderOffset = int(XpressBlockSize) + XpressHeader.obj_offset + \
+            XpressHeader.size()
 
         ## We only search this far
         BLOCKSIZE = 1024
@@ -219,6 +367,7 @@ class WindowsHiberFileSpace32(standard.FileAddressSpace):
             if Magic_offset >= 0:
                 XpressHeaderOffset += Magic_offset
                 break
+
             else:
                 XpressHeaderOffset += len(data)
 
@@ -226,7 +375,8 @@ class WindowsHiberFileSpace32(standard.FileAddressSpace):
             if XpressHeaderOffset - original_offset > 10240:
                 return None, None
 
-        XpressHeader = obj.Object("_IMAGE_XPRESS_HEADER", XpressHeaderOffset, self.base)
+        XpressHeader = self.profile.Object(
+            "_IMAGE_XPRESS_HEADER", XpressHeaderOffset, self.base)
         XpressBlockSize = self.get_xpress_block_size(XpressHeader)
 
         return XpressHeader, XpressBlockSize
@@ -290,18 +440,17 @@ class WindowsHiberFileSpace32(standard.FileAddressSpace):
         return XpressHeaderOffset != None
 
     def read_xpress(self, baddr, BlockSize):
-        try:
-            return self.PageCache.get(baddr)
-        except KeyError:
+        data_uz = self.PageCache.Get(baddr)
+        if data_uz is None:
             data_read = self.base.read(baddr, BlockSize)
             if BlockSize == 0x10000:
                 data_uz = data_read
             else:
                 data_uz = xpress.xpress_decode(data_read)
 
-                self.PageCache.put(baddr, data_uz)
+                self.PageCache.Put(baddr, data_uz)
 
-            return data_uz
+        return data_uz
 
     def fread(self, length):
         data = self.read(self.offset, length)
@@ -345,7 +494,8 @@ class WindowsHiberFileSpace32(standard.FileAddressSpace):
             result += data
 
         if result == '':
-            result = obj.NoneObject("Unable to read data at " + str(addr) + " for length " + str(length))
+            result = obj.NoneObject("Unable to read data at %s for length %s." % (
+                    addr, length))
 
         return result
 
@@ -389,7 +539,7 @@ class WindowsHiberFileSpace32(standard.FileAddressSpace):
         _baseaddr = self.get_addr(addr)
         string = self.read(addr, 4)
         if not string:
-            return obj.NoneObject("Could not read long at " + str(addr))
+            return obj.NoneObject("Could not read long at %s" % addr)
         (longval,) = struct.unpack('=I', string)
         return longval
 
@@ -417,9 +567,4 @@ class WindowsHiberFileSpace32(standard.FileAddressSpace):
 
     def close(self):
         self.base.close()
-
-    def write(self, _addr, _buf):
-        if not self._config.WRITE:
-            return False
-        raise NotImplementedError("Writing to hibernation files has not been implemented yet")
 

@@ -1,7 +1,7 @@
 # Volatility
 #
 # Authors:
-# Michael Cohen <scudette@users.sourceforge.net>
+# Copyright (C) 2012 Michael Cohen <scudette@users.sourceforge.net>
 # Mike Auty <mike.auty@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -12,89 +12,79 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """ This file defines some basic types which might be useful for many
 OS's
 """
-import struct, socket
+import copy
+import datetime
+import logging
+import pytz
+import re
+import socket
+import struct
 
-import volatility.obj as obj
-import volatility.debug as debug #pylint: disable-msg=W0611
-import volatility.constants as constants
-import volatility.plugins.overlays.native_types as native_types
-import volatility.utils as utils
+from volatility import obj
+from volatility import constants
+from volatility import utils
+from volatility.plugins.overlays import native_types
 
-class String(obj.BaseObject):
-    """Class for dealing with Strings"""
-    def __init__(self, theType, offset, vm = None, encoding = 'ascii',
-                 length = 1, parent = None, profile = None, **kwargs):
+
+class String(obj.StringProxyMixIn, obj.NativeType):
+    """Class for dealing with Null terminated C Strings.
+
+    Note that these strings are _not_ text strings - they are effectively bytes
+    arrays and therefore are not encoded in any particular unicode encoding.
+    """
+    def __init__(self, length = 1024, term="\x00", **kwargs):
+        """Constructor.
+
+        Args:
+           length: The maximum length of the string.
+
+           terminator: The terminator for this string. If None, there will be no
+              checking for null terminations (Pure character array).
+        """
+        super(String, self).__init__(**kwargs)
 
         ## Allow length to be a callable:
         if callable(length):
-            length = length(parent)
+            length = length(self.obj_parent)
 
-        self.length = length
-        self.encoding = encoding
+        self.term = term
+        self.length = int(length)
 
-        ## length must be an integer
-        obj.BaseObject.__init__(self, theType, offset, vm, parent = parent, profile = profile, **kwargs)
+    def startswith(self, other):
+        return str(self).startswith(other)
 
-    def proxied(self, name): #pylint: disable-msg=W0613
+    def v(self, vm=None):
+        vm = vm or self.obj_vm
+        data = vm.zread(self.obj_offset, self.length)
+        if self.term is not None:
+            left, sep, _ = data.partition(self.term)
+            data = left + sep
+
+        return data
+
+    def write(self, data):
+        return self.obj_vm.write(self.obj_offset, data)
+
+    def proxied(self, name):
         """ Return an object to be proxied """
-        return self.__str__()
-
-    def v(self):
-        """
-        Use zread to help emulate reading null-terminated C
-        strings across page boundaries.
-
-        @returns: If all bytes are available, return the full string
-        as a raw byte buffer. If the end of the string is in a page
-        that isn't available, return as much of the string as possible,
-        padded with nulls to the string's length.
-
-        If the string length is 0, vtop() fails, or the physical addr
-        of the string is not valid, return NoneObject.
-
-        Note: to get a null terminated string, use the __str__ method.
-        """
-        result = self.obj_vm.zread(self.obj_offset, self.length)
-        if not result:
-            return obj.NoneObject("Cannot read string length {0} at {1:#x}".format(self.length, self.obj_offset))
-        return result
-
-    def __len__(self):
-        """This returns the length of the string"""
-        return len(unicode(self))
+        return self.v()
 
     def __str__(self):
-        """
-        This function ensures that we always return a string from the __str__ method.
-        Any unusual/unicode characters in the input are replaced with ?.
-
-        Note: this effectively masks the NoneObject alert from .v()
-        """
-        return unicode(self).encode('ascii', 'replace') or ""
+        # Remove any null termination chars.
+        return self.v().rstrip("\x00")
 
     def __unicode__(self):
-        """ This function returns the unicode encoding of the data retrieved by .v()
-            Any unusual characters in the input are replaced with \ufffd.
-        """
-        return self.v().decode(self.encoding, 'replace').split("\x00", 1)[0] or u''
-
-    def __format__(self, formatspec):
-        return format(self.__str__(), formatspec)
-
-    def __cmp__(self, other):
-        if str(self) == other:
-            return 0
-        return -1 if str(self) < other else 1
+        return self.v().decode("utf8", "replace").split("\x00")[0] or u""
 
     def __add__(self, other):
         """Set up mappings for concat"""
@@ -104,139 +94,639 @@ class String(obj.BaseObject):
         """Set up mappings for reverse concat"""
         return other + str(self)
 
+    def __eq__(self, other):
+        return unicode(self) == utils.SmartUnicode(other)
+
+    def size(self):
+        """This is equivalent to strlen()."""
+        # The length is really determined by the terminator here.
+        return len(self.v())
+
+
+class UnicodeString(String):
+    """A class for dealing with encoded text strings.
+
+    Text strings are always encoded in some way in memory. The specific way of
+    encoding them is called the "encoding" - for example usually (but not
+    always) in windows the encoding is called "utf16", while on linux its
+    usually "utf8".
+
+    By default we take the encoding from the profile constant
+    "default_text_encoding".
+    """
+    def __init__(self, encoding=None, **kwargs):
+        super(UnicodeString, self).__init__(**kwargs)
+        self.encoding = encoding or self.obj_profile.get_constant(
+            'default_text_encoding')
+
+    def v(self, vm=None):
+        vm = vm or self.obj_vm
+
+        data = vm.read(self.obj_offset, self.length)
+
+        # Try to interpret it as a unicode encoded string.
+        data = data.decode(self.encoding, "ignore")
+
+        # Now null terminate if needed.
+        if self.term is not None:
+            left, sep, _ = data.partition(self.term)
+            data = left + sep
+
+        return data
+
+    def __unicode__(self):
+        return self.v().split("\x00")[0] or u""
+
+    def __str__(self):
+        """This function returns an encoded string in utf8."""
+        return super(UnicodeString, self).__str__().encode("utf8")
+
+    def size(self):
+        return len(self.v()) * 2
+        # This will only work if the encoding and decoding are equivalent.
+        return len(self.v().encode(self.encoding, 'ignore'))
+
+    def write(self, data):
+        self.obj_vm.write(self.obj_offset,
+                          data.encode(self.encoding, "ignore"))
+
+
 class Flags(obj.NativeType):
     """ This object decodes each flag into a string """
-    ## This dictionary maps each bit to a String
-    bitmap = None
-
-    ## This dictionary maps a string mask name to a bit range
-    ## consisting of a list of start, width bits
+    ## This dictionary maps a string mask name to an integer mask.
     maskmap = None
 
-    def __init__(self, theType = None, offset = 0, vm = None, parent = None,
-                 bitmap = None, maskmap = None, target = "unsigned long",
+    def __init__(self, bitmap = None, maskmap = None, target = "unsigned long",
                  **kwargs):
-        self.bitmap = bitmap or {}
+        super(Flags, self).__init__(**kwargs)
         self.maskmap = maskmap or {}
+        if bitmap:
+            for k, v in bitmap.items():
+                self.maskmap[k] = 1 << v
+
         self.target = target
+        self.target_obj = self.obj_profile.Object(
+            target, offset=self.obj_offset, vm=self.obj_vm,
+            context=self.obj_context)
 
-        self.target_obj = obj.Object(target, offset = offset, vm = vm, parent = parent)
-        obj.NativeType.__init__(self, theType, offset, vm, parent, **kwargs)
-
-    def v(self):
-        return self.target_obj.v()
+    def v(self, vm=None):
+        return self.target_obj.v(vm=vm)
 
     def __str__(self):
         result = []
         value = self.v()
-        keys = self.bitmap.keys()
-        keys.sort()
-        for k in keys:
-            if value & (1 << self.bitmap[k]):
+        for k, v in sorted(self.maskmap.items()):
+            if value & v:
                 result.append(k)
 
         return ', '.join(result)
 
-    def __format__(self, formatspec):
-        return format(self.__str__(), formatspec)
+    def __repr__(self):
+        abridged = str(self)
+        if len(abridged) > 10:
+            abridged = abridged[:40] + " ..."
+
+        return "%s (%s)" % (super(Flags, self).__repr__(), abridged)
 
     def __getattr__(self, attr):
-        maprange = self.maskmap.get(attr)
-        if not maprange:
+        mask = self.maskmap.get(attr)
+        if not mask:
             return obj.NoneObject("Mask {0} not known".format(attr))
-
-        bits = 2 ** maprange[1] - 1
-        mask = bits << maprange[0]
 
         return self.v() & mask
 
-class IpAddress(obj.NativeType):
-    """Provides proper output for IpAddress objects"""
-
-    def __init__(self, theType, offset, vm, **kwargs):
-        obj.NativeType.__init__(self, theType, offset, vm, format_string = vm.profile.native_types['unsigned long'][1], **kwargs)
-
-    def v(self):
-        return utils.inet_ntop(socket.AF_INET, struct.pack("<I", obj.NativeType.v(self)))
-
-class Ipv6Address(obj.NativeType):
-    """Provides proper output for Ipv6Address objects"""
-    def __init__(self, theType, offset, vm, **kwargs):
-        obj.NativeType.__init__(self, theType, offset, vm, format_string = "16s", **kwargs)
-
-    def v(self):
-        return utils.inet_ntop(socket.AF_INET6, obj.NativeType.v(self))
 
 class Enumeration(obj.NativeType):
     """Enumeration class for handling multiple possible meanings for a single value"""
 
-    def __init__(self, theType = None, offset = 0, vm = None, parent = None,
-                 choices = None, target = "unsigned long", **kwargs):
-        self.choices = choices or {}
-        self.target = target
-        self.target_obj = obj.Object(target, offset = offset, vm = vm, parent = parent)
-        obj.NativeType.__init__(self, theType, offset, vm, parent, **kwargs)
+    def __init__(self, choices = None, target="unsigned long", value=None,
+                 default=None, target_args={}, **kwargs):
+        super(Enumeration, self).__init__(**kwargs)
+        if callable(choices):
+            choices = choices(self.obj_parent)
 
-    def v(self):
-        return self.target_obj.v()
+        self.choices = choices or {}
+        self.default = default
+        if callable(value):
+            value = value(self.obj_parent)
+
+        self.value = value
+        if value is None:
+            self.target = target
+            self.target_obj = self.obj_profile.Object(
+                target, offset=self.obj_offset, vm=self.obj_vm, context=self.obj_context,
+                **target_args)
+
+    def v(self, vm=None):
+        if self.value is None:
+            return self.target_obj.v(vm=vm)
+
+        return self.value
+
+    def write(self, data):
+        return self.target_obj.write(data)
 
     def __str__(self):
         value = self.v()
-        if value in self.choices.keys():
-            return self.choices[value]
-        return 'Unknown choice ' + str(value)
+        return self.choices.get(value, self.default) or (
+            "UNKNOWN (%s)" % str(value))
 
-    def __format__(self, formatspec):
-        return format(self.__str__(), formatspec)
+    def __eq__(self, other):
+        if isinstance(other, (int, long)):
+            return self.v() == other
+
+        # Search the choices.
+        for k, v in self.choices.iteritems():
+            if v == other:
+                return self.v() == k
+
+    def __repr__(self):
+        return "%s (%s)" % (super(Enumeration, self).__repr__(),
+                            self.__str__())
 
 
-class VOLATILITY_MAGIC(obj.CType):
-    """Class representing a VOLATILITY_MAGIC namespace
-    
-       Needed to ensure that the address space is not verified as valid for constants
-    """
-    def __init__(self, theType, offset, vm, **kwargs):
+class IpAddress(obj.NativeType):
+    """Provides proper output for IpAddress objects"""
+
+    def __init__(self, **kwargs):
+        super(IpAddress, self).__init__(**kwargs)
+
+        # IpAddress is always a 32 bit int.
+        self.format_string = "<I"
+
+    def v(self, vm=None):
+        value = super(IpAddress, self).v(vm=vm)
+        return socket.inet_ntoa(struct.pack("<I", value))
+
+class Ipv6Address(obj.NativeType):
+    """Provides proper output for Ipv6Address objects"""
+    def __init__(self, **kwargs):
+        super(Ipv6Address, self).__init__(**kwargs)
+        # IpAddress is always a 32 bit int.
+        self.format_string = "16s"
+
+    def v(self):
+        return utils.inet_ntop(socket.AF_INET6, obj.NativeType.v(self))
+
+
+class _LIST_ENTRY(obj.CType):
+    """ Adds iterators for _LIST_ENTRY types """
+
+    def dereference_as(self, type, member, vm=None):
+        """Recasts the list entry as a member in a type, and return the type.
+
+        Args:
+           type: The name of this CType type.
+           member: The name of the member of this CType.
+           address_space: An optional address space to switch during
+              deferencing.
+        """
+        offset = self.obj_profile.get_obj_offset(type, member)
+
+        item = self.obj_profile.Object(
+            theType=type, offset=self.obj_offset - offset,
+            vm=vm or self.obj_vm, parent=self.obj_parent,
+            name=type, context=self.obj_context)
+
+        return item
+
+    def find_all_lists(self, seen):
+        """Follows all the list entries starting from lst.
+
+        We basically convert the list to a tree and recursively search it for
+        new nodes. From each node we follow the Flink and then the Blink. When
+        we see a node we already have, we backtrack. This allows us to find
+        nodes which do not satisfy the relation (Due to smear):
+
+        x.Flink.Blink = x
+        """
+        if not self.is_valid():
+            return
+        elif self in seen:
+            return
+
+        seen.append(self)
+        Flink = self.Flink.dereference()
+        Flink.find_all_lists(seen)
+
+        Blink = self.Blink.dereference()
+        Blink.find_all_lists(seen)
+
+    def list_of_type(self, type, member):
+        result = []
+        self.find_all_lists(result)
+
+        # We traverse all the _LIST_ENTRYs we can find, and cast them all back
+        # to the required member.
+        for lst in result:
+            # Skip ourselves in this (list_of_type is usually invoked on a list
+            # head).
+            if lst.obj_offset == self.obj_offset:
+                continue
+
+            task = lst.dereference_as(type, member)
+            if task:
+                # Only yield valid objects (In case of dangling links).
+                yield task
+
+    def reflect(self, vm=None):
+        """Reflect this list element by following its Flink and Blink.
+
+        This is basically the same as Flink.Blink except that it also checks
+        Blink.Flink. It also ensures that Flink and Blink are dereferences to
+        the correct type in case the vtypes do not specify them as pointers.
+
+        Returns:
+          the result of Flink.Blink.
+        """
+        result1 = self.Flink.dereference_as(self.obj_type, vm=vm).Blink.dereference_as(
+            self.obj_type)
+
+        if not result1:
+            return obj.NoneObject("Flink not valid.")
+
+        result2 = self.Blink.dereference_as(self.obj_type, vm=vm).Flink.dereference_as(
+            self.obj_type)
+
+        if result1 != result2:
+            return obj.NoneObject("Flink and Blink not consistent.")
+
+        return result1
+
+    def __nonzero__(self):
+        ## List entries are valid when both Flinks and Blink are valid
+        return bool(self.Flink) or bool(self.Blink)
+
+    def __iter__(self):
+        return self.list_of_type(self.obj_parent.obj_type, self.obj_name)
+
+
+class UnixTimeStamp(obj.NativeType):
+    """A unix timestamp (seconds since the epoch)."""
+
+    def __init__(self, **kwargs):
+        super(UnixTimeStamp, self).__init__(format_string = "I", **kwargs)
+
+    def __nonzero__(self):
+        return self.v() != 0
+
+    def display_datetime(self, dt, custom_tz=None):
+        """Returns a string from a datetime according to the display
+        TZ (or a custom one"""
+        timeformat = "%Y-%m-%d %H:%M:%S%z"
+
+        # Control our behaviour according to the session preferences.
+        session = self.obj_profile.session
+
+        # Default to display in UTC.
         try:
-            obj.CType.__init__(self, theType, offset, vm, **kwargs)
-        except obj.InvalidOffsetError:
-            # The exception will be raised before this point,
-            # so we must finish off the CType's __init__ ourselves
-            self.__initialized = True
+            timezone_name = "UTC"
+            if custom_tz:
+                timezone_name = custom_tz
+            elif session and session.timezone:
+                timezone_name = session.timezone
+
+            timezone = pytz.timezone(timezone_name)
+        except pytz.UnknownTimeZoneError:
+            # Cant undestand the timezone - use UTC
+            timezone = pytz.UTC
+
+        local_datetime =  timezone.normalize(dt.astimezone(timezone))
+
+        return local_datetime.strftime(timeformat)
+
+    def __str__(self):
+        if not self:
+            return "-"
+
+        dt = self.as_datetime()
+        if dt:
+            return self.display_datetime(dt)
+
+        return "-"
+
+    def __repr__(self):
+        return "%s (%s)" % (super(UnixTimeStamp, self).__repr__(),
+                            str(self))
+
+    def as_datetime(self):
+        try:
+            # Return a data time object in UTC.
+            dt = datetime.datetime.utcfromtimestamp(self.v()).replace(tzinfo=pytz.UTC)
+        except ValueError, e:
+            return obj.NoneObject("Datetime conversion failure: " + str(e))
+
+        return dt
 
 
-class VolatilityDTB(obj.VolatilityMagic):
+class WinTimeStamp(UnixTimeStamp):
+    """Class for handling Windows Time Stamps"""
 
-    def generate_suggestions(self):
-        offset = 0
-        data = self.obj_vm.read(offset, constants.SCAN_BLOCKSIZE)
-        while data:
-            found = data.find(str(self.obj_parent.DTBSignature), 0)
-            while found >= 0:
-                proc = obj.Object("_EPROCESS", offset = offset + found,
-                                  vm = self.obj_vm)
-                if 'Idle' in proc.ImageFileName.v():
-                    yield proc.Pcb.DirectoryTableBase.v()
-                found = data.find(str(self.obj_parent.DTBSignature), found + 1)
+    def __init__(self, is_utc = False, **kwargs):
+        self.is_utc = is_utc
+        obj.NativeType.__init__(self, format_string = "q", **kwargs)
 
-            offset += len(data)
-            data = self.obj_vm.read(offset, constants.SCAN_BLOCKSIZE)
+    def __repr__(self):
+        return "%s (%s)" % (super(WinTimeStamp, self).__repr__(),
+                            str(self))
 
-class BasicObjectClasses(obj.ProfileModification):
+    def windows_to_unix_time(self, windows_time):
+        """
+        Converts Windows 64-bit time to UNIX time
 
-    def modification(self, profile):
-        profile.object_classes.update({
+        @type  windows_time:  Integer
+        @param windows_time:  Windows time to convert (64-bit number)
+
+        @rtype  Integer
+        @return  UNIX time
+        """
+        if(windows_time == 0):
+            unix_time = 0
+        else:
+            unix_time = windows_time / 10000000
+            unix_time = unix_time - 11644473600
+
+        if unix_time < 0:
+            unix_time = 0
+
+        return unix_time
+
+    def as_windows_timestamp(self):
+        return super(WinTimeStamp, self).v(self)
+
+    def v(self, vm=None):
+        value = self.as_windows_timestamp()
+        return self.windows_to_unix_time(value)
+
+
+class ThreadCreateTimeStamp(WinTimeStamp):
+    """Handles ThreadCreateTimeStamps which are bit shifted WinTimeStamps"""
+
+    def as_windows_timestamp(self):
+        return super(ThreadCreateTimeStamp, self).as_windows_timestamp() >> 3
+
+
+class IndexedArray(obj.Array):
+    """An array which can be addressed via constant names."""
+
+    def __init__(self, index_table=None, **kwargs):
+        super(IndexedArray, self).__init__(**kwargs)
+        self.index_table = index_table or {}
+        self.count = len(index_table)
+
+    def __getitem__(self, item):
+        # Still support numeric indexes
+        if isinstance(item, (int, long)):
+            index = item
+
+            # Try to name the object appropriately.
+            for k, v in self.index_table.items():
+                if v == item:
+                    item = k
+                    break
+
+        elif item in self.index_table:
+            index = self.index_table[item]
+        else:
+            raise KeyError("Unknown index %s" % item)
+
+        result = super(IndexedArray, self).__getitem__(index)
+        result.obj_name = str(item)
+
+        return result
+
+
+class Function(obj.BaseObject):
+    """A volatility object representing code snippets."""
+
+    def __int__(self):
+        return self.obj_offset
+
+
+# If distorm3 is available we can do a few more things.
+try:
+    import distorm3
+
+    class Function(Function):
+
+        def __init__(self, mode=None, **kwargs):
+            super(Function, self).__init__(**kwargs)
+
+            if mode is None:
+                self.mode = self.obj_profile.metadata("memory_model")
+
+            if self.mode == "32bit":
+                self.distorm_mode = distorm3.Decode32Bits
+            else:
+                self.distorm_mode = distorm3.Decode64Bits
+
+        def __str__(self):
+            result = []
+            for data in self.Disassemble():
+                result.append("0x%08X %20s %s" % data)
+
+            return "\n".join(result)
+
+        def _call_or_unc_jmp(self, op):
+            """Determine if an instruction is a call or an
+            unconditional jump
+
+            @param op: a distorm3 Op object
+            """
+            return ((op.flowControl == 'FC_CALL' and
+                     op.mnemonic == "CALL") or
+                    (op.flowControl == 'FC_UNC_BRANCH' and
+                     op.mnemonic == "JMP"))
+
+        def DetectJumps(self, size=1000):
+            """A generator for operations that look like jumps.
+
+            Disassemble a block of data and yield possible
+            calls to imported functions. We're looking for
+            instructions such as these:
+
+            x86:
+            CALL DWORD [0x1000400]
+            JMP  DWORD [0x1000400]
+
+            x64:
+            CALL QWORD [RIP+0x989d]
+
+            On x86, the 0x1000400 address is an entry in the
+            IAT or call table. It stores a DWORD which is the
+            location of the API function being called.
+
+            On x64, the 0x989d is a relative offset from the
+            current instruction (RIP).
+
+            Yields:
+              A tuple of source, destination Function objects which are the
+              targets for jumps.
+            """
+            for op in self.Decompose(size=size):
+                iat_loc = None
+
+                if self.mode == '32bit':
+                    if (self._call_or_unc_jmp(op) and
+                        op.operands[0].type == 'AbsoluteMemoryAddress'):
+                        iat_loc = (op.operands[0].disp & 0xffffffff)
+                else:
+                    if (self._call_or_unc_jmp(op) and
+                        'FLAG_RIP_RELATIVE' in op.flags and
+                        op.operands[0].type == 'AbsoluteMemory'):
+                        iat_loc = op.address + op.size + op.operands[0].disp
+
+                if iat_loc:
+                    # This is the address being called
+                    func_pointer = self.obj_profile.Pointer(
+                        target="Function", offset=iat_loc, vm=self.obj_vm,
+                        name="Function")
+
+                    yield op.address, iat_loc, func_pointer
+
+        def Decompose(self, size=0):
+            """A generator for instructions of this object."""
+            overlap = 0x1000
+            data = ''
+            offset = self.obj_offset
+            count = 0
+
+            while size > count:
+                data = self.obj_vm.zread(offset, overlap)
+
+                # This could happen if we hit an unmapped page - we just
+                # abort.
+                if not data:
+                    return
+
+                count += len(data)
+                for op in distorm3.Decompose(offset, data, self.distorm_mode):
+                    if op.address - offset > len(data) - 40:
+                        break
+
+                    if not op.valid:
+                        continue
+
+                    yield op
+
+                offset = op.address
+
+        def Search(self, expressions, instruction_limit=100):
+            """Search forward for a sequence matching the expressions.
+
+            Args:
+              expressions: A list of regular expressions which must all match
+                the instruction.
+              instruction_limit: The number of instructions to search ahead.
+
+            Returns:
+              Another Function object at the matched position or None.
+            """
+            terms = []
+            for e in expressions:
+                if isinstance(e, basestring):
+                    e = re.compile(e)
+                terms.append(e)
+
+            instructions = []
+            for offset, _, instruction in self.Disassemble(instruction_limit):
+                instructions.append((offset, instruction))
+
+            for i in range(len(instructions)):
+                for j in range(len(terms)):
+                    print expressions[j], instructions[i][1]
+                    if not terms[j].match(instructions[i + j][1]):
+                        break
+                else:
+                    return self.obj_profile.Object(
+                        "Function", vm=self.obj_vm, offset=instructions[i][0])
+
+        def __getitem__(self, item):
+            for i, x in enumerate(self.Disassemble):
+                if i == item:
+                    return x
+
+        def Disassemble(self, instructions=10):
+            """Generate some instructions."""
+            overlap = 0x100
+            data = ''
+            offset = self.obj_offset
+            count = 0
+
+            while True:
+                if offset - self.obj_offset > len(data) - 40:
+                    data = self.obj_vm.zread(offset, overlap)
+
+                iterator = distorm3.DecodeGenerator(offset, data, self.distorm_mode)
+                for (offset, _size, instruction, hexdump) in iterator:
+                    yield offset, hexdump, instruction
+                    count += 1
+                    if count >= instructions:
+                        return
+
+except ImportError:
+    pass
+
+
+# We define two kinds of basic profiles, a 32 bit one and a 64 bit one
+class Profile32Bits(obj.Profile):
+    """Basic profile for 32 bit systems."""
+    _md_memory_model = '32bit'
+
+    def __init__(self, **kwargs):
+        super(Profile32Bits, self).__init__(**kwargs)
+        self.add_classes(native_types.generic_native_types)
+        self.add_classes(native_types.x86_native_types)
+        self.add_constants(PoolAlignment=8, MAX_FAST_REF=7,
+                           MaxPointer=2**32-1)
+
+
+class Profile64Bits(obj.Profile):
+    """Basic profile for 64 bit systems."""
+    _md_memory_model = '64bit'
+
+    def __init__(self, **kwargs):
+        super(Profile64Bits, self).__init__(**kwargs)
+        self.add_classes(native_types.generic_native_types)
+        self.add_classes(native_types.x64_native_types)
+        self.add_constants(PoolAlignment=16, MAX_FAST_REF=15,
+                           MaxPointer=2**48-1)
+
+
+common_overlay =  {
+    'LIST_ENTRY32' : [ 0x8, {
+            'Flink' : [ 0x0, ['pointer', ['LIST_ENTRY32']]],
+            'Blink' : [ 0x4, ['pointer', ['LIST_ENTRY32']]],
+            }],
+    'LIST_ENTRY64' : [ 0x10, {
+            'Flink' : [ 0x0, ['pointer', ['LIST_ENTRY64']]],
+            'Blink' : [ 0x8, ['pointer', ['LIST_ENTRY64']]],
+            }]}
+
+
+class BasicWindowsClasses(obj.Profile):
+    """Basic profile which introduces the basic classes."""
+
+    __abstract = True
+
+    def __init__(self, **kwargs):
+        super(BasicWindowsClasses, self).__init__(**kwargs)
+        self.add_classes({
             'String': String,
+            'UnicodeString': UnicodeString,
             'Flags': Flags,
             'Enumeration': Enumeration,
-            'VOLATILITY_MAGIC': VOLATILITY_MAGIC,
-            'VolatilityDTB': VolatilityDTB,
+            'IpAddress': IpAddress,
+            'Ipv6Address': Ipv6Address,
+            '_LIST_ENTRY': _LIST_ENTRY,
+            'LIST_ENTRY32': _LIST_ENTRY,
+            'LIST_ENTRY64': _LIST_ENTRY,
+            'WinTimeStamp': WinTimeStamp, # WinFileTime.
+            'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
+            'UnixTimeStamp': UnixTimeStamp,
+            "IndexedArray": IndexedArray,
+            'Function': Function,
             })
 
-
-### DEPRECATED FEATURES ###
-#
-# These are due from removal after version 2.2,
-# please do not rely upon them
-
-x86_native_types_32bit = native_types.x86_native_types
-x86_native_types_64bit = native_types.x64_native_types
+        self.add_constants(default_text_encoding="utf-16-le")
+        self.add_overlay(common_overlay)

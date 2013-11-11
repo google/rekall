@@ -60,25 +60,25 @@ class _MM_AVL_TABLE(obj.CType):
             yield c
 
 class _MMVAD_SHORT(windows._MMVAD_SHORT):
-
-    @property
-    def Parent(self):
-        """
-        Return the Vad's parent node, being sure to chop off the 
-        lower 3 bits, because _MMADDRESS_NODE.u1.Parent is a 
-        packed union with _MMADDRESS_NODE.u1.Balanced. We do not
-        want the Balanced part of the value. 
-
-        Not chopping off these 3 bits is the reason why our vadtree
-        plugin didn't work since introduction of profiles other 
-        than Windows XP. 
-        """
-        return obj.Object("_MMADDRESS_NODE", vm = self.obj_vm, 
-                    offset = self.u1.Parent.v() & ~0x3, 
-                    parent = self.obj_parent)
+    def get_parent(self):
+        return self.u1.Parent
 
 class _MMVAD_LONG(_MMVAD_SHORT):
     pass
+
+class _EPROCESS(windows._EPROCESS):
+
+    def get_vads(self):
+        """Generator for MMVADs that does not rely on named AS"""
+        procspace = self.get_process_address_space()
+
+        # Potentially get_process_address_space will return obj.NoneObject
+        if procspace != None:
+            vadroot = obj.Object('_MM_AVL_TABLE', offset = self.VadRoot.obj_offset, vm = procspace)
+
+            if vadroot != None:
+                for v in vadroot.traverse():
+                    yield v
 
 class Win2003MMVad(obj.ProfileModification):
     before = ['WindowsOverlay', 'WindowsObjectClasses']
@@ -92,33 +92,8 @@ class Win2003MMVad(obj.ProfileModification):
         profile.object_classes.update({'_MM_AVL_TABLE': _MM_AVL_TABLE,
                                        '_MMADDRESS_NODE': windows._MMVAD,
                                        '_MMVAD_SHORT': _MMVAD_SHORT,
-                                       '_MMVAD_LONG': _MMVAD_LONG})
-
-class Win2003x86Hiber(obj.ProfileModification):
-    before = ['WindowsOverlay']
-    conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
-                  'major': lambda x: x == 5,
-                  'minor': lambda x: x == 2}
-    def modification(self, profile):
-        overlay = {'VOLATILITY_MAGIC': [ None, {
-                        'HibrProcPage' : [ None, ['VolatilityMagic', dict(value = 0x2)]],
-                        'HibrEntryCount' : [ None, ['VolatilityMagic', dict(value = 0xff)]],
-                                        }]}
-        profile.merge_overlay(overlay)
-
-class Win2003x64Hiber(obj.ProfileModification):
-    before = ['WindowsOverlay']
-    conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '64bit',
-                  'major': lambda x: x == 5,
-                  'minor': lambda x: x == 2}
-    def modification(self, profile):
-        overlay = {'VOLATILITY_MAGIC': [ None, {
-                        'HibrProcPage' : [ None, ['VolatilityMagic', dict(value = 0x2)]],
-                        'HibrEntryCount' : [ None, ['VolatilityMagic', dict(value = 0x7f)]],
-                                        }]}
-        profile.merge_overlay(overlay)
+                                       '_MMVAD_LONG': _MMVAD_LONG,
+                                       '_EPROCESS': _EPROCESS})
 
 class Win2003KDBG(windows.AbstractKDBGMod):
     before = ['WindowsOverlay']
@@ -201,7 +176,6 @@ class Win2003SP1x86(obj.Profile):
     _md_os = 'windows'
     _md_major = 5
     _md_minor = 2
-    _md_build = 3790
     _md_memory_model = '32bit'
     _md_vtype_module = 'volatility.plugins.overlays.windows.win2003_sp1_x86_vtypes'
 
@@ -210,8 +184,6 @@ class Win2003SP2x86(obj.Profile):
     _md_os = 'windows'
     _md_major = 5
     _md_minor = 2
-    # This is a fake build number. See the comment in Win2003SP0x86
-    _md_build = 3791 
     _md_memory_model = '32bit'
     _md_vtype_module = 'volatility.plugins.overlays.windows.win2003_sp2_x86_vtypes'
 
@@ -221,7 +193,6 @@ class Win2003SP1x64(obj.Profile):
     _md_os = 'windows'
     _md_major = 5
     _md_minor = 2
-    _md_build = 3790
     _md_vtype_module = 'volatility.plugins.overlays.windows.win2003_sp1_x64_vtypes'
 
 class Win2003SP2x64(obj.Profile):
@@ -230,8 +201,6 @@ class Win2003SP2x64(obj.Profile):
     _md_os = 'windows'
     _md_major = 5
     _md_minor = 2
-    # This is a fake build number. See the comment in Win2003SP0x86
-    _md_build = 3791
     _md_vtype_module = 'volatility.plugins.overlays.windows.win2003_sp2_x64_vtypes'
 
 class WinXPSP1x64(Win2003SP1x64):

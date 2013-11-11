@@ -1,0 +1,1 @@
+cmd_/home/scudette/volatility/svn/tools/linux/module.ko := ld -r -m elf_x86_64 -T /usr/src/linux-headers-3.5.0-27-generic/scripts/module-common.lds --build-id  -o /home/scudette/volatility/svn/tools/linux/module.ko /home/scudette/volatility/svn/tools/linux/module.o /home/scudette/volatility/svn/tools/linux/module.mod.o

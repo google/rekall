@@ -1,18 +1,14 @@
-import volatility.conf as conf
-import volatility.constants as constants
-import os
+# Import and register the core plugins
+from volatility.plugins import addrspaces
+#from volatility.plugins import bioskbd
+from volatility.plugins import core
+from volatility.plugins import imagecopy
+from volatility.plugins import guess_profile
 
-config = conf.ConfObject()
+# This will be removed in favor of profile autodetection + kdbg scan.
+# from volatility.plugins import imageinfo
+from volatility.plugins import linux
+from volatility.plugins import overlays
 
-config.add_option("PLUGINS", default = "",
-                  cache_invalidator = False,
-                  help = "Additional plugin directories to use (colon separated)")
-
-# Add the PLUGINPATH, in case we're frozen
-__path__.extend([constants.PLUGINPATH])
-
-# This causes the config.PLUGINS paths to be treated as extensions of the volatility.plugins package
-# Meaning that each directory is search for module when import volatility.plugins.module is requested
-
-if config.PLUGINS:
-    __path__.extend([ os.path.abspath(x) for x in config.PLUGINS.split(";")])
+# This will be deprecated in favor of the new pfn plugins which are much faster.
+from volatility.plugins import windows

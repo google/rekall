@@ -1,0 +1,32 @@
+// This module uses obfuscated GetProcAddress calls to load certain functions
+// which are usually only used by memory acquisition tools. This makes it a
+// little bit harder to recognize us as an acquisition tool.
+#ifndef _API_H_
+#define _API_H_
+
+#include <ntifs.h>
+#include <wdmsec.h>
+#include <initguid.h>
+#include <stdarg.h>
+#include <stdio.h>
+
+// Select a better/different key or obfuscation scheme here.
+#define OBFUSCATION_KEY "%(key)s"
+
+#define X_MmGetPhysicalMemoryRanges "%(MmGetPhysicalMemoryRanges)s"
+#define X_MmGetVirtualForPhysical "%(MmGetVirtualForPhysical)s"
+#define X_MmMapIoSpace "%(MmMapIoSpace)s"
+#define X_MmUnmapIoSpace "%(MmUnmapIoSpace)s"
+
+struct Pmem_KernelExports_t {
+  PHYSICAL_MEMORY_RANGE *(*MmGetPhysicalMemoryRanges)();
+  void *(*MmGetVirtualForPhysical)(PHYSICAL_ADDRESS);
+  unsigned char *(*MmMapIoSpace)(LARGE_INTEGER, int, int);
+  void (*MmUnmapIoSpace)(unsigned char *, int);
+};
+
+extern struct Pmem_KernelExports_t Pmem_KernelExports;
+
+NTSTATUS PmemGetProcAddresses();
+
+#endif _API_H_

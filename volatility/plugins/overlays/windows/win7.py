@@ -9,11 +9,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
@@ -27,60 +27,64 @@ This file provides support for windows Windows 7 SP 0.
 #pylint: disable-msg=C0111
 
 import windows
-import volatility.obj as obj
-import volatility.debug as debug #pylint: disable-msg=W0611
+from volatility import obj
+from volatility.plugins.overlays import basic
+from volatility.plugins.overlays.windows import windows
 
-class Win7Pointer64(obj.ProfileModification):
-    before = ['WindowsOverlay', 'WindowsVTypes']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x >= 6,
-                  'memory_model': lambda x: x == '32bit'}
 
-    def modification(self, profile):
-        profile.native_types.update({'pointer64': [8, '<Q']})
+# In windows 7 the VadRoot is actually composed from _MMADDRESS_NODEs instead of
+# _MMVAD structs.
+win7_overlays = {
+    '_EPROCESS': [ None, {
+            # A symbolic link to the real vad root.
+            'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
+            }],
 
-class Win7KDBG(windows.AbstractKDBGMod):
-    before = ['WindowsOverlay', 'VistaKDBG']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x == 1}
-    kdbgsize = 0x340
+    '_MMADDRESS_NODE': [ None, {
+            'Tag': [-12, ['String', dict(length=4)]],
+            }],
 
-class Win7x86DTB(obj.ProfileModification):
-    before = ['WindowsOverlay']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x == 1,
-                  'memory_model': lambda x: x == '32bit',
-                  }
+    '_MMVAD_SHORT': [ None, {
+            'Tag': [-12 , ['String', dict(length = 4)]],
+            'Start': lambda x: x.StartingVpn << 12,
+            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
+            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+            }],
 
-    def modification(self, profile):
-        overlay = {'VOLATILITY_MAGIC': [ None, {
-                    'DTBSignature' : [ None, ['VolatilityMagic', dict(value = "\x03\x00\x26\x00")]],
-                                          }]}
-        profile.merge_overlay(overlay)
+    '_MMVAD': [ None, {
+            'Tag': [-12 , ['String', dict(length = 4)]],
+            'ControlArea': lambda x: x.Subsection.ControlArea,
+            'Start': lambda x: x.StartingVpn << 12,
+            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
+            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+            }],
 
-class Win7x64DTB(obj.ProfileModification):
-    before = ['WindowsOverlay', 'Windows64Overlay']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x == 1,
-                  'memory_model': lambda x: x == '64bit',
-                  }
+    '_MMVAD_LONG': [ None, {
+            'Tag': [-12 , ['String', dict(length = 4)]],
+            'ControlArea': lambda x: x.Subsection.ControlArea,
+            'Start': lambda x: x.StartingVpn << 12,
+            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
+            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+            }],
 
-    def modification(self, profile):
-        overlay = {'VOLATILITY_MAGIC': [ None, {
-                    'DTBSignature' : [ None, ['VolatilityMagic', dict(value = "\x03\x00\x58\x00")]],
-                                          }]}
-        profile.merge_overlay(overlay)
+    "_CONTROL_AREA": [None, {
+            'FilePointer': [None, ['_EX_FAST_REF', dict(target="_FILE_OBJECT")]],
+            }],
+    }
+
 
 class _OBJECT_HEADER(windows._OBJECT_HEADER):
     """A Volatility object to handle Windows 7 object headers.
 
     Windows 7 changes the way objects are handled:
     References: http://www.codemachine.com/article_objectheader.html
-    """
 
+    The following debugger command find the type object for index 5:
+    dt nt!_OBJECT_TYPE poi(nt!ObTypeIndexTable + ( 5 * @$ptrsize ))
+    """
     type_map = { 2: 'Type',
                 3: 'Directory',
                 4: 'SymbolicLink',
@@ -139,90 +143,147 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
 
         for name, struct, mask in self.optional_header_mask:
             if info_mask & mask:
-                offset -= self.obj_vm.profile.get_obj_size(struct)
-                o = obj.Object(struct, offset, self.obj_vm, native_vm = self.obj_native_vm)
+                offset -= self.obj_profile.get_obj_size(struct)
+                o = self.obj_profile.Object(theType=struct, offset=offset, vm=self.obj_vm)
+                self._preamble_size += o.size()
             else:
                 o = obj.NoneObject("Header not set")
 
             self.newattr(name, o)
 
-    def get_object_type(self):
+    def get_object_type(self, vm=None):
         """Return the object's type as a string"""
         return self.type_map.get(self.TypeIndex.v(), '')
 
-class Win7ObjectClasses(obj.ProfileModification):
-    before = ['WindowsOverlay', 'WindowsObjectClasses']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x >= 1}
+    def is_valid(self):
+        """Determine if the object makes sense."""
+        # These need to be reasonable.
+        if (self.PointerCount < 0x100000 and self.HandleCount < 0x1000 and
+            self.PointerCount >= 0 and self.HandleCount >= 0 and
+            self.TypeIndex <= len(self.type_map) and
+            self.TypeIndex > 0):
+            return True
 
-    def modification(self, profile):
-        profile.object_classes.update({'_OBJECT_HEADER': _OBJECT_HEADER})
+        return False
 
-class Win7x86Hiber(obj.ProfileModification):
-    before = ['WindowsOverlay']
-    conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x == 1}
-    def modification(self, profile):
-        overlay = {'VOLATILITY_MAGIC': [ None, {
-                        'HibrProcPage' : [ None, ['VolatilityMagic', dict(value = 0x1)]],
-                        'HibrEntryCount' : [ None, ['VolatilityMagic', dict(value = 0x1ff)]],
-                                        }]}
-        profile.merge_overlay(overlay)
 
-class Win7x64Hiber(obj.ProfileModification):
-    before = ['WindowsOverlay']
-    conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '64bit',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x == 1}
-    def modification(self, profile):
-        overlay = {'VOLATILITY_MAGIC': [ None, {
-                        'HibrProcPage' : [ None, ['VolatilityMagic', dict(value = 0x1)]],
-                        'HibrEntryCount' : [ None, ['VolatilityMagic', dict(value = 0xff)]],
-                                        }]}
-        profile.merge_overlay(overlay)
+class _MMADDRESS_NODE(windows.VadTraverser):
+    """In win7 the base of all Vad objects in _MMADDRESS_NODE.
 
-class Win7SP0x86(obj.Profile):
+    The Vad structures can be either _MMVAD_SHORT or _MMVAD or _MMVAD_LONG. At
+    the base of each struct there is an _MMADDRESS_NODE which contains the
+    LeftChild and RightChild members. In order to traverse the tree, we follow
+    the _MMADDRESS_NODE and create the required _MMVAD type at each point
+    depending on their tags.
+    """
+
+    ## The actual type depends on this tag value.
+    tag_map = {'Vadl': '_MMVAD_LONG',
+               'VadS': '_MMVAD_SHORT',
+               'Vad ': '_MMVAD',
+               'VadF': '_MMVAD_SHORT',
+               'Vadm': '_MMVAD_LONG',
+              }
+
+
+class _POOL_HEADER(windows._POOL_HEADER):
+    """A class for pool headers"""
+
+    @property
+    def NonPagedPool(self):
+        return self.PoolType.v() % 2 == 0 and self.PoolType.v() > 0
+
+    @property
+    def PagedPool(self):
+        return self.PoolType.v() % 2 == 1
+
+
+class Win7BaseProfile(windows.BaseWindowsProfile):
+    """The common ancestor of all windows 7 profiles."""
+
+    __abstract = True
+
+    def __init__(self, **kwargs):
+        super(Win7BaseProfile, self).__init__(**kwargs)
+        self.add_types({
+                'pointer64': ['NativeType', dict(format_string='<Q')]
+                })
+        self.add_overlay(win7_overlays)
+
+        self.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
+                              _MMADDRESS_NODE=_MMADDRESS_NODE,
+                              _POOL_HEADER=_POOL_HEADER,
+                              pointer64=obj.Pointer))
+
+
+class Win7SP0x86(basic.Profile32Bits, Win7BaseProfile):
     """ A Profile for Windows 7 SP0 x86 """
-    _md_memory_model = '32bit'
-    _md_os = 'windows'
     _md_major = 6
     _md_minor = 1
     _md_build = 7600
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win7_sp0_x86_vtypes'
+    _md_type = "Kernel"
 
-class Win7SP1x86(obj.Profile):
-    """ A Profile for Windows 7 SP1 x86 """
-    _md_memory_model = '32bit'
-    _md_os = 'windows'
-    _md_major = 6
-    _md_minor = 1
-    _md_build = 7601
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win7_sp1_x86_vtypes'
+    def __init__(self, **kwargs):
+        super(Win7SP0x86, self).__init__(**kwargs)
 
-class Win7SP0x64(obj.Profile):
+        # Import the actual vtypes on demand here to reduce memory usage.
+        from volatility.plugins.overlays.windows import win7_sp0_x86_vtypes
+
+        self.add_types(win7_sp0_x86_vtypes.ntkrnlmp_types)
+
+
+class Win7SP0x64(basic.Profile64Bits, Win7BaseProfile):
     """ A Profile for Windows 7 SP0 x64 """
-    _md_memory_model = '64bit'
-    _md_os = 'windows'
     _md_major = 6
     _md_minor = 1
     _md_build = 7600
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win7_sp0_x64_vtypes'
+    _md_type = "Kernel"
 
-class Win7SP1x64(obj.Profile):
-    """ A Profile for Windows 7 SP1 x64 """
-    _md_memory_model = '64bit'
-    _md_os = 'windows'
+    def __init__(self, **kwargs):
+        super(Win7SP0x64, self).__init__(**kwargs)
+
+        # Import the actual vtypes on demand here to reduce memory usage.
+        from volatility.plugins.overlays.windows import win7_sp0_x64_vtypes
+
+        self.add_types(win7_sp0_x64_vtypes.ntkrnlmp_types)
+
+
+class Win7SP1x86(basic.Profile32Bits, Win7BaseProfile):
+    """ A Profile for Windows 7 SP1 x86 """
     _md_major = 6
     _md_minor = 1
     _md_build = 7601
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win7_sp1_x64_vtypes'
+    _md_type = "Kernel"
+
+    def __init__(self, **kwargs):
+        super(Win7SP1x86, self).__init__(**kwargs)
+        self.add_constants(kdbgsize=0x340)
+
+        # Import the actual vtypes on demand here to reduce memory usage.
+        from volatility.plugins.overlays.windows import win7_sp1_x86_vtypes
+
+        self.add_types(win7_sp1_x86_vtypes.ntkrnlmp_types)
+
+
+class Win7SP1x64(basic.Profile64Bits, Win7BaseProfile):
+    """ A Profile for Windows 7 SP1 x64 """
+    _md_major = 6
+    _md_minor = 1
+    _md_build = 7601
+    _md_type = "Kernel"
+
+    def __init__(self, **kwargs):
+        super(Win7SP1x64, self).__init__(**kwargs)
+        self.add_constants(kdbgsize=0x340)
+
+        # Import the actual vtypes on demand here to reduce memory usage.
+        from volatility.plugins.overlays.windows import win7_sp1_x64_vtypes
+
+        self.add_types(win7_sp1_x64_vtypes.ntkrnlmp_types)
 
 class Win2008R2SP0x64(Win7SP0x64):
     """ A Profile for Windows 2008 R2 SP0 x64 """
+
 
 class Win2008R2SP1x64(Win7SP1x64):
     """ A Profile for Windows 2008 R2 SP1 x64 """

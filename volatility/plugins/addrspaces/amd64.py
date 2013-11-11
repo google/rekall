@@ -11,66 +11,48 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """ This is based on Jesse Kornblum's patch to clean up the standard AS's.
 """
-import volatility.plugins.addrspaces.intel as intel
 import struct
+
+from volatility.plugins.addrspaces import intel
+
 
 # WritablePagedMemory must be BEFORE base address, since it adds the concrete method get_available_addresses
 # If it's second, BaseAddressSpace's abstract version will take priority
-class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
+class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     """ Standard AMD 64-bit address space.
-    
-    Provides an address space for AMD64 paged memory, aka the x86_64 
-    architecture, which is laid out similarly to Physical Address 
-    Extensions (PAE). Allows callers to map virtual address to 
+
+    Provides an address space for AMD64 paged memory, aka the x86_64
+    architecture, which is laid out similarly to Physical Address
+    Extensions (PAE). Allows callers to map virtual address to
     offsets in physical memory.
 
-    Create a new AMD64 address space to sit on top of the base address 
+    Create a new AMD64 address space to sit on top of the base address
     space and a Directory Table Base (CR3 value) of 'dtb'.
 
-    If the 'cache' parameter is true, will cache the Page Directory Entries
-    for extra performance. The cache option requires an additional 4KB of
-    space.
-
-    Comments in this class mostly come from the Intel(R) 64 and IA-32 
-    Architectures Software Developer's Manual Volume 3A: System Programming 
+    Comments in this class mostly come from the Intel(R) 64 and IA-32
+    Architectures Software Developer's Manual Volume 3A: System Programming
     Guide, Part 1, revision 031, pages 4-8 to 4-15. This book is available
     for free at http://www.intel.com/products/processor/manuals/index.htm.
-    Similar information is also available from Advanced Micro Devices (AMD) 
+    Similar information is also available from Advanced Micro Devices (AMD)
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
     """
     order = 60
-    cache = False
     pae = True
-    checkname = 'AMD64ValidAS'
     paging_address_space = True
 
-    def _cache_values(self):
-        '''
-        We cache the Page Map Level 4 Entries to avoid having to 
-        look them up later. There are 0x200 entries of 64-bits each
-        This means there are 0x1000 bytes of data
-        '''
-        buf = self.base.read(self.dtb & 0xffffffffff000, 0x1000)
-        self.cache = False
-        if buf:
-            self.pml4e_cache = struct.unpack('<' + 'Q' * 0x200, buf)
-        else:
-            self.cache = False
-
-    def is_valid_profile(self, profile):
-        return profile.metadata.get('memory_model', '32bit') == '64bit'
+    _md_memory_model = "64bit"
 
     def pml4e_index(self, vaddr):
-        ''' 
+        '''
         Returns the Page Map Level 4 Entry Index number from the given
         virtual address. The index number is in bits 47:39.
         '''
@@ -85,16 +67,13 @@ class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
         Bits 11:3 are bits 47:39 of the linear address
         Bits 2:0 are 0.
         '''
-        if self.cache:
-            return self.pml4e_cache[self.pml4e_index(vaddr)]
-
         pml4e_addr = (self.dtb & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
         return self._read_long_long_phys(pml4e_addr)
 
     def get_pdpte(self, vaddr, pml4e):
         '''
         Return the Page Directory Pointer Table Entry for the given virtual address.
-        
+
         Bits 51:12 are from the PML4E
         Bits 11:3 are bits 38:30 of the linear address
         Bits 2:0 are all 0
@@ -148,10 +127,10 @@ class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
 
         return self.get_phys_addr(vaddr, pte)
 
-    def get_available_pages(self):
+    def get_available_addresses(self):
         '''
         Return a list of lists of available memory pages.
-        Each entry in the list is the starting virtual address 
+        Each entry in the list is the starting virtual address
         and the size of the memory page.
         '''
 
@@ -181,9 +160,16 @@ class AMD64PagedMemory(intel.JKIA32PagedMemoryPae):
                         yield (vaddr, 0x200000)
                         continue
 
-                    tmp = vaddr
-                    for pte in range(0, 0x200):
-                        vaddr = tmp | (pte << 12)
-                        pte_value = self.get_pte(vaddr, pde_value)
+                    # This reads the entire PTE table at once - On
+                    # windows where IO is extremely expensive, its
+                    # about 10 times more efficient than reading it
+                    # one value at the time - and this loop is HOT!
+                    pte_table_addr = ((pde_value & 0xffffffffff000) |
+                                      ((vaddr & 0x1ff000) >> 9))
+
+                    data = self.base.zread(pte_table_addr, 8 * 0x200)
+                    pte_table = struct.unpack("<" + "Q" * 0x200, data)
+
+                    for i, pte_value in enumerate(pte_table):
                         if self.entry_present(pte_value):
-                            yield (vaddr, 0x1000)
+                            yield (vaddr | i << 12, 0x1000)

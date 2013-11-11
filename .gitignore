@@ -1,0 +1,12 @@
+*.pyc
+buildchk_wnet_*
+objchk_wnet_*
+.scons*
+release
+*.sln
+test_data/*/*.img*
+test_data/*.raw*
+test_data/*.dmp*
+test_data/*.hiber*
+test_data/*/Test*
+build

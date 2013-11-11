@@ -1,12 +1,7 @@
 #!/usr/bin/python
-#  -*- mode: python; -*-
-#
+
 # Volatility
-# Copyright (C) 2007,2008 Volatile Systems
-#
-# Original Source:
-# Volatools Basic
-# Copyright (C) 2007 Komoku, Inc.
+# Copyright (C) 2012 Michael Cohen <scudette@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,177 +11,135 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""
-@author:       AAron Walters
-@license:      GNU General Public License 2.0 or later
-@contact:      awalters@volatilesystems.com
-@organization: Volatile Systems
-"""
+__author__ = "Michael Cohen <scudette@gmail.com>"
 
-#pylint: disable-msg=C0111
+import pdb
+import logging
 import sys
 
-if sys.version_info < (2, 6, 0):
-    sys.stderr.write("Volatiltiy requires python version 2.6, please upgrade your python installation.")
-    sys.exit(1)
 
-try:
-    import psyco #pylint: disable-msg=W0611,F0401
-except ImportError:
-    pass
+from volatility import args
+from volatility import constants
+from volatility import session
 
-if False:
-    # Include a fake import for things like pyinstaller to hit
-    # since this is a dependency of the malware plugins
-    import yara
+# Import and register the core plugins
+from volatility import plugins
 
-import textwrap
-import volatility.conf as conf
-config = conf.ConfObject()
-import volatility.constants as constants
-import volatility.registry as registry
-import volatility.exceptions as exceptions
-import volatility.obj as obj
-import volatility.debug as debug
 
-import volatility.addrspace as addrspace
-import volatility.commands as commands
-import volatility.scan as scan
+def IPython011Support(user_session):
+    """Launch the ipython session for pre 0.12 versions.
 
-config.add_option("INFO", default = None, action = "store_true",
-                  cache_invalidator = False,
-                  help = "Print information about all registered objects")
+    Returns:
+      False if we failed to use IPython. True if the session was run and exited.
+    """
+    try:
+        # Try to use the ipython shell
+        from IPython import genutils
+        from IPython import Shell
 
-def list_plugins():
-    result = "\n\tSupported Plugin Commands:\n\n"
-    cmds = registry.get_plugin_classes(commands.Command, lower = True)
-    profs = registry.get_plugin_classes(obj.Profile)
-    if config.PROFILE not in profs:
-        raise BaseException("Invalid profile " + config.PROFILE + " selected")
-    profile = profs[config.PROFILE]()
-    wrongprofile = ""
-    for cmdname in sorted(cmds):
-        command = cmds[cmdname]
-        helpline = command.help() or ''
-        ## Just put the title line (First non empty line) in this
-        ## abbreviated display
-        for line in helpline.splitlines():
-            if line:
-                helpline = line
-                break
-        if command.is_valid_profile(profile):
-            result += "\t\t{0:15}\t{1}\n".format(cmdname, helpline)
-        else:
-            wrongprofile += "\t\t{0:15}\t{1}\n".format(cmdname, helpline)
+        # Fix a bug in IPython which prevents a custom __dir__ handler by
+        # polluting it with additional crap.
+        genutils.dir2 = dir
 
-    if wrongprofile and config.VERBOSE:
-        result += "\n\tPlugins requiring a different profile:\n\n"
-        result += wrongprofile
+        shell = Shell.IPShellEmbed(argv=[], user_ns=user_session._locals,
+                                   banner=constants.BANNER)
+
+        # This must be run here because the IPython shell messes with our user
+        # namespace above (by adding its own help function).
+        user_session._prepare_local_namespace()
+        UpdateSessionFromArgv(user_session, FLAGS)
+
+        shell(local_ns=user_session._locals)
+        return True
+
+    except ImportError:
+        return False
+
+def IPython012Support(user_session):
+    """Launch the ipython session for post 0.12 versions.
+
+    Returns:
+      False if we failed to use IPython. True if the session was run and exited.
+    """
+    try:
+        from volatility import ipython_support
+
+        # This must be run here because the IPython shell messes with our user
+        # namespace above (by adding its own help function).
+        user_session._prepare_local_namespace()
+        UpdateSessionFromArgv(user_session._locals['session'], FLAGS)
+
+        return ipython_support.Shell(user_session)
+    except ImportError:
+        return False
+
+
+def NativePythonSupport(user_session):
+    """Launch the volatility session using the native python interpreter.
+
+    Returns:
+      False if we failed to use IPython. True if the session was run and exited.
+    """
+    # If the ipython shell is not available, we can use the native python shell.
+    import code, inspect
+
+    # Try to enable tab completion
+    try:
+        import rlcompleter, readline #pylint: disable-msg=W0612
+        readline.parse_and_bind("tab: complete")
+    except ImportError:
+        pass
+
+    # Prepare the session for running within the native python interpreter.
+    user_session._prepare_local_namespace()
+    code.interact(banner=constants.BANNER, local=user_session._locals)
+
+def UpdateSessionFromArgv(user_session, FLAGS):
+    result = {}
+    for k, v in FLAGS.__dict__.items():
+        if v is not None:
+            setattr(user_session, k.replace("-", "_"), v)
+            result[k] = v
 
     return result
 
-def command_help(command):
-    result = textwrap.dedent("""
-    ---------------------------------
-    Module {0}
-    ---------------------------------\n""".format(command.__class__.__name__))
 
-    return result + command.help() + "\n\n"
+def main(argv=None):
+    # New user interactive session (with extra bells and whistles).
+    user_session = session.InteractiveSession()
 
-def print_info():
-    """ Returns the results """
-    categories = {addrspace.BaseAddressSpace: 'Address Spaces',
-                  commands.Command : 'Plugins',
-                  obj.Profile: 'Profiles',
-                  scan.ScannerCheck: 'Scanner Checks'}
-    for c, n in sorted(categories.items()):
-        lower = (c == commands.Command)
-        plugins = registry.get_plugin_classes(c, lower = lower)
-        print "\n"
-        print "{0}".format(n)
-        print "-" * len(n)
+    global FLAGS
 
-        result = []
-        max_length = 0
-        for clsname, cls in sorted(plugins.items()):
-            try:
-                doc = cls.__doc__.strip().splitlines()[0]
-            except AttributeError:
-                doc = 'No docs'
-            result.append((clsname, doc))
-            max_length = max(len(clsname), max_length)
+    FLAGS = args.parse_args(argv=argv, user_session=user_session)
 
-        for (name, doc) in result:
-            print "{0:{2}} - {1:15}".format(name, doc, max_length)
+    logging.basicConfig(level=logging.INFO)
 
-def main():
+    # Run a module and do not drop into the shell.
+    if getattr(FLAGS, "module", None):
+        # Run the module
+        try:
+            user_session.vol(FLAGS.module, flags=FLAGS)
+        except Exception as e:
+            if FLAGS.debug:
+                pdb.post_mortem()
+            else:
+                logging.error("%s. Try --debug for more information." % e)
 
-    # Get the version information on every output from the beginning
-    # Exceptionally useful for debugging/telling people what's going on
-    sys.stderr.write("Volatile Systems Volatility Framework {0}\n".format(constants.VERSION))
+        sys.exit()
 
-    # Setup the debugging format
-    debug.setup()
-    # Load up modules in case they set config options
-    registry.PluginImporter()
+    user_session.mode = "Interactive"
 
-    ## Register all register_options for the various classes
-    registry.register_global_options(config, addrspace.BaseAddressSpace)
-    registry.register_global_options(config, commands.Command)
+    # Try to launch the session using something.
+    (IPython011Support(user_session) or
+     IPython012Support(user_session) or
+     NativePythonSupport(user_session))
 
-    if config.INFO:
-        print_info()
-        sys.exit(0)
-
-    ## Parse all the options now
-    config.parse_options(False)
-    # Reset the logging level now we know whether debug is set or not
-    debug.setup(config.DEBUG)
-
-    module = None
-    ## Try to find the first thing that looks like a module name
-    cmds = registry.get_plugin_classes(commands.Command, lower = True)
-    for m in config.args:
-        if m in cmds.keys():
-            module = m
-            break
-
-    if not module:
-        config.parse_options()
-        debug.error("You must specify something to do (try -h)")
-
-    try:
-        if module in cmds.keys():
-            command = cmds[module](config)
-
-            ## Register the help cb from the command itself
-            config.set_help_hook(obj.Curry(command_help, command))
-            config.parse_options()
-
-            if not config.LOCATION:
-                debug.error("Please specify a location (-l) or filename (-f)")
-
-            command.execute()
-    except exceptions.VolatilityException, e:
-        print e
-
-if __name__ == "__main__":
-    config.set_usage(usage = "Volatility - A memory forensics analysis platform.")
-    config.add_help_hook(list_plugins)
-
-    try:
-        main()
-    except Exception, ex:
-        if config.DEBUG:
-            debug.post_mortem()
-        else:
-            raise
-    except KeyboardInterrupt:
-        print "Interrupted"
+if __name__ == '__main__':
+    main()
