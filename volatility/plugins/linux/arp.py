@@ -20,76 +20,103 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
-
+from volatility import obj
 from volatility.plugins.linux import common
 
-class a_ent:
-    def __init__(self, ip, mac, devname):
-        self.ip      = ip
-        self.mac     = mac
-        self.devname = devname
 
-# based off pykdump
-# not 100% this works, will need some testing to verify
-class Arp(common.AbstractLinuxCommandPlugin):
+arp_overlay = {
+    'neigh_table': [None, {
+            # From /include/linux/socket.h
+            'family': [None, ['Enumeration', dict(choices={
+                            0: "AF_UNSPEC",
+                            1: "AF_UNIX",
+                            2: "AF_INET",
+                            10: "AF_INET6",
+                            })]]
+            }],
+    'neighbour': [None, {
+            "ha": [None, ["Array", dict(
+                        target="byte",
+                        count=lambda x: x.dev.addr_len)]],
+            }],
+    }
+
+
+class ArpModification(obj.ProfileModification):
+    @classmethod
+    def modify(cls, profile):
+        profile.add_overlay(arp_overlay)
+
+
+class Arp(common.LinuxPlugin):
     """print the ARP table."""
 
     # This plugin seems broken now.
-    __abstract = True
     __name = "arp"
 
+    def __init__(self, **kwargs):
+        super(Arp, self).__init__(**kwargs)
+        self.profile = ArpModification(self.profile)
+
     def get_handle_tables(self):
-        ntables_ptr = self.profile.Object(
-            theType="Pointer",
+        ntable = self.profile.Pointer(
+            target="neigh_table",
             offset=self.profile.get_constant("neigh_tables"),
             vm=self.kernel_address_space)
 
-        for ntable in common.walk_internal_list("neigh_table", "next", ntables_ptr, self.addr_space):
-            yield self.handle_table(ntable)
+        while ntable:
+            for x in self.handle_table(ntable):
+                yield x
+
+            ntable = ntable.next.deref()
 
     def handle_table(self, ntable):
+        # Support a few ways of finding these parameters depending on kernel
+        # versions.
+        hash_size = (ntable.m("hash_mask") or
+                     ntable.nht.m("hash_mask") or
+                     1 << ntable.nht.hash_shift)
 
-        ret = []
-        hash_size = ntable.hash_mask
+        hash_table = ntable.m("hash_buckets") or ntable.nht.hash_buckets
 
-        buckets = obj.Object(theType='Array', offset=ntable.hash_buckets, vm=self.addr_space, target='Pointer', count=hash_size)
+        buckets = self.profile.Array(offset=hash_table,
+                                     vm=self.kernel_address_space,
+                                     target='Pointer', count=hash_size,
+                                     target_args=dict(target="neighbour"))
 
-        for i in xrange(0, hash_size):
-            if buckets[i]:
-                neighbor = obj.Object("neighbour", offset=buckets[i], vm=self.addr_space)
-
-                ret.append(self.walk_neighbor(neighbor))
-
-        # collapse all lists into one
-        return sum(ret, [])
+        for neighbour in buckets:
+            if neighbour:
+                for x in self.walk_neighbor(neighbour.deref()):
+                    yield x
 
     def walk_neighbor(self, neighbor):
-
-        ret = []
-
-        for n in linux_common.walk_internal_list("neighbour", "next", neighbor.v(), self.addr_space):
-
+        while 1:
             # get the family from each neighbour in order to work with ipv4 and 6
-            family = n.tbl.family
+            family = neighbor.tbl.family
 
-            if family == 2: # AF_INET
-                key = obj.Object("unsigned int", offset=n.primary_key.obj_offset, vm=self.addr_space)
-                ip = linux_common.ip2str(key)
+            if family == "AF_INET":
+                ip = neighbor.primary_key.cast("IpAddress")
 
-            elif family == 10: # AF_INET6
-                key = obj.Object("in6_addr", offset=n.primary_key.obj_offset, vm=self.addr_space)
-                ip  = linux_common.ip62str(key)
+            elif family == "AF_INET6":
+                ip = neighbor.primary_key.cast("Ipv6Address")
             else:
                 ip = '?'
 
-            mac     = ":".join(["%.02x" % x for x in n.ha][:n.dev.addr_len])
-            devname = n.dev.name
+            mac = ":".join(["%.02x" % x for x in neighbor.ha])
+            devname = neighbor.dev.name
 
-            ret.append(a_ent(ip, mac, devname))
+            yield ip, mac, devname
 
-        return ret
+            neighbour = neighbor.next.deref()
 
-    def render(self, outfd):
-        for arp_list in self.get_handle_tables():
-            for ent in arp_list:
-                outfd.write("[{0:42s}] at {1:20s} on {2:s}\n".format(ent.ip, ent.mac, ent.devname))
+            if not neighbour:
+                break
+
+    def render(self, renderer):
+        renderer.table_header([("IP Address", "ip", ">10"),
+                               ("MAC", "mac", ">20"),
+                               ("Device", "dev", ">24")
+                               ])
+
+        for ip, mac, devname in self.get_handle_tables():
+            renderer.table_row(ip, mac, devname)

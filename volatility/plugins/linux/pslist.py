@@ -63,56 +63,52 @@ class LinuxPsList(common.LinProcessFilter):
                                dtb, start_time)
 
 
-class LinuxMemMap(common.LinProcessFilter):
+class LinMemMap(common.LinProcessFilter):
     """Dumps the memory map for linux tasks."""
 
     __name = "memmap"
 
     @classmethod
     def args(cls, parser):
-         super(LinuxMemMap, cls).args(parser)
+        """Declare the command line args we need."""
+        super(LinMemMap, cls).args(parser)
+        parser.add_argument(
+            "--coalesce", default=False, action="store_true",
+            help="Merge contiguous pages into larger ranges.")
 
-    def address_ranges(self, address_space):
-      """Combine the addresses into ranges."""
-      contiguous_offset = None
-      total_length = 0
+    def __init__(self, coalesce=False, **kwargs):
+        """Calculates the memory regions mapped by a process.
 
-      for (offset, length) in address_space.get_available_addresses():
-          # Try to join up adjacent pages as much as possible.
-          if contiguous_offset is None:
-              # Reset the contiguous range.
-              contiguous_offset = offset
-              total_length = length
+        Args:
+          coalesce: Merge pages which are contiguous in memory into larger
+             ranges.
+        """
+        self.coalesce = coalesce
+        super(LinMemMap, self).__init__(**kwargs)
 
-          elif offset == contiguous_offset + total_length:
-              total_length += length
-          else:
-              # Scan the last contiguous range.
-              yield contiguous_offset, total_length
-
-              # Reset the contiguous range.
-              contiguous_offset = offset
-              total_length = length
-
-      if total_length > 0:
-          # Do the last range.
-          yield contiguous_offset, total_length
-
-    def render(self, outfd):
-        outfd.write("*" * 72 + "\n")
-
+    def render(self, renderer):
         for task in self.filter_processes():
+            renderer.section()
+            renderer.RenderProgress("Dumping pid {0}".format(
+                    task.pid))
+
             task_space = task.get_process_address_space()
-            outfd.write("Process '{0}' pid: {1:6}\n".format(
-                    task.comm, task.pid))
+            renderer.format(u"Process: '{0}' pid: {1:6}\n",
+                            task.comm, task.pid)
 
-            outfd.write("{0:12} {1:12} {2:12}\n".format(
-                    'Virtual', 'Physical', 'Size'))
+            if not task_space:
+                renderer.write("Unable to read pages for task.\n")
+                continue
 
-            for va, length in self.address_ranges(task_space):
-                pa = task_space.vtop(va)
-                if pa == None:
-                    continue
+            renderer.table_header([("Virtual", "offset_v", "[addrpad]"),
+                                   ("Physical", "offset_p", "[addrpad]"),
+                                   ("Size", "process_size", "[addr]")])
 
-                outfd.write("0x{0:010x} 0x{1:010x} 0x{2:012x}\n".format(
-                        va, pa, length))
+            if self.coalesce:
+                ranges = task_space.get_address_ranges()
+            else:
+                ranges = task_space.get_available_addresses()
+
+            for virtual_address, length in ranges:
+                phys_address = task_space.vtop(virtual_address)
+                renderer.table_row(virtual_address, phys_address, length)

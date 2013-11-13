@@ -262,15 +262,17 @@ class Ipv6Address(obj.NativeType):
     """Provides proper output for Ipv6Address objects"""
     def __init__(self, **kwargs):
         super(Ipv6Address, self).__init__(**kwargs)
-        # IpAddress is always a 32 bit int.
+        # IpAddress is always a 128 bit int.
         self.format_string = "16s"
 
     def v(self):
         return utils.inet_ntop(socket.AF_INET6, obj.NativeType.v(self))
 
 
-class _LIST_ENTRY(obj.CType):
-    """ Adds iterators for _LIST_ENTRY types """
+class ListMixIn(object):
+    """A helper for following lists."""
+    _forward = "Flink"
+    _backward = "Blink"
 
     def dereference_as(self, type, member, vm=None):
         """Recasts the list entry as a member in a type, and return the type.
@@ -306,10 +308,10 @@ class _LIST_ENTRY(obj.CType):
             return
 
         seen.append(self)
-        Flink = self.Flink.dereference()
+        Flink = self.m(self._forward).dereference()
         Flink.find_all_lists(seen)
 
-        Blink = self.Blink.dereference()
+        Blink = self.m(self._backward).dereference()
         Blink.find_all_lists(seen)
 
     def list_of_type(self, type, member):
@@ -339,14 +341,15 @@ class _LIST_ENTRY(obj.CType):
         Returns:
           the result of Flink.Blink.
         """
-        result1 = self.Flink.dereference_as(self.obj_type, vm=vm).Blink.dereference_as(
+        result1 = self.m(self._forward).dereference_as(
+            self.obj_type, vm=vm).m(self._backward).dereference_as(
             self.obj_type)
 
         if not result1:
             return obj.NoneObject("Flink not valid.")
 
-        result2 = self.Blink.dereference_as(self.obj_type, vm=vm).Flink.dereference_as(
-            self.obj_type)
+        result2 = self.Blink.dereference_as(self.obj_type, vm=vm).m(
+            self._forward).dereference_as(self.obj_type)
 
         if result1 != result2:
             return obj.NoneObject("Flink and Blink not consistent.")
@@ -355,10 +358,15 @@ class _LIST_ENTRY(obj.CType):
 
     def __nonzero__(self):
         ## List entries are valid when both Flinks and Blink are valid
-        return bool(self.Flink) or bool(self.Blink)
+        return bool(self.m(self._forward)) or bool(self.m(self._backward))
 
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_type, self.obj_name)
+
+
+class _LIST_ENTRY(ListMixIn, obj.CType):
+    """ Adds iterators for _LIST_ENTRY types """
+
 
 
 class UnixTimeStamp(obj.NativeType):

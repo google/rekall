@@ -20,12 +20,15 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+import re
 
-import volatility.utils    as utils
-import volatility.obj      as obj
+import volatility.utils as utils
+import volatility.obj as obj
 
 from volatility import args
 from volatility import plugin
+
+from volatility.plugins import core
 
 
 class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
@@ -73,13 +76,22 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin):
         # we just keep going.
         return True
 
-    def render(self, fd = None):
-        fd.write("DTB\n")
-        for dtb in self.dtb_hits():
-            fd.write("{0:#010x}\n".format(dtb))
+    def render(self, renderer):
+        renderer.table_header([("DTB", "dtv", "[addrpad]"),
+                               ("Valid", "valid", "")])
+
+        for dtb, _ in self.dtb_hits():
+            address_space = core.GetAddressSpaceImplementation(self.profile)(
+                session=self.session, base=self.physical_address_space, dtb=dtb)
+
+            renderer.table_row(
+                dtb, self.verify_address_space(address_space=address_space))
+
+class LinuxPlugin(plugin.KernelASMixin, AbstractLinuxCommandPlugin):
+    """Plugin which requires the kernel Address space to be loaded."""
 
 
-class LinProcessFilter(plugin.KernelASMixin, AbstractLinuxCommandPlugin):
+class LinProcessFilter(LinuxPlugin):
     """A class for filtering processes."""
 
     __abstract = True

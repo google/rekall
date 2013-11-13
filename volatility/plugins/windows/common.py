@@ -129,7 +129,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
     def dtb_hits(self):
         for eprocess in self.scan_for_process():
             result = eprocess.Pcb.DirectoryTableBase.v()
-            yield result, eprocess
+            if result:
+                yield result, eprocess
 
     def verify_address_space(self, eprocess, address_space):
         """Check the eprocess for sanity."""
@@ -163,10 +164,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
                                ("DTB", "dtv", "[addrpad]"),
                                ("Valid", "valid", "")])
 
-        for eprocess in self.scan_for_process():
-            dtb = eprocess.Pcb.DirectoryTableBase.v()
-            if not dtb: continue
-
+        for dtb, eprocess in self.dtb_hits():
             address_space = core.GetAddressSpaceImplementation(self.profile)(
                 session=self.session, base=self.physical_address_space, dtb=dtb)
 

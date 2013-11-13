@@ -87,48 +87,10 @@ class linux_file(obj.CType):
         return ret
 
 
-class list_head(obj.CType):
+class list_head(basic.ListMixIn, obj.CType):
     """A list_head makes a doubly linked list."""
-    def list_of_type(self, type, member, forward = True):
-        if not self.is_valid():
-            return
-
-        ## Get the first element
-        if forward:
-            lst = self.next.dereference()
-        else:
-            lst = self.prev.dereference()
-
-        offset = self.obj_profile.get_obj_offset(type, member)
-
-        seen = set()
-        seen.add(lst.obj_offset)
-
-        while 1:
-            ## Instantiate the object
-            item = self.obj_profile.Object(theType=type, offset=lst.obj_offset - offset,
-                                           vm = self.obj_vm,
-                                           parent = self.obj_parent,
-                                           name = type)
-
-
-            if forward:
-                lst = item.m(member).next.dereference()
-            else:
-                lst = item.m(member).prev.dereference()
-
-            if not lst.is_valid() or lst.obj_offset in seen:
-                return
-            seen.add(lst.obj_offset)
-
-            yield item
-
-    def __nonzero__(self):
-        ## List entries are valid when both Flinks and Blink are valid
-        return bool(self.next) or bool(self.prev)
-
-    def __iter__(self):
-        return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
+    _forward = "next"
+    _backward = "prev"
 
 
 class files_struct(obj.CType):
@@ -275,7 +237,7 @@ class timespec(obj.CType):
         sec = other.tv_sec + self.tv_sec
         nsec = other.tv_nsec + self.tv_nsec
 
-        sec = nsec / self.NSEC_PER_SEC
+        sec += nsec / self.NSEC_PER_SEC
         nsec = nsec % self.NSEC_PER_SEC
 
         result = self.obj_profile.timespec()

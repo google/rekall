@@ -171,6 +171,10 @@ class NoneObject(object):
     __rxor__ = __call__
     __ror__ = __call__
 
+    # Override these methods too.
+    dereference_as = __call__
+    __getitem__ = __call__
+
 
 class Error(Exception):
     """All object related exceptions come from this one."""
@@ -643,13 +647,15 @@ class Pointer(NativeType):
         """Delegate the iterator to the target."""
         return iter(self.dereference())
 
-    def dereference_as(self, derefType, vm=None, **kwargs):
+    def dereference_as(self, type, vm=None, **kwargs):
         """Dereference ourselves into another type, or address space."""
         vm = vm or self.obj_vm
+        if vm.is_valid_address(self.v()):
+            return self.obj_profile.Object(
+                theType=type, offset=self.v(), vm=vm,
+                parent=self.obj_parent, context=self.obj_context, **kwargs)
 
-        return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm,
-                                       parent=self.obj_parent,
-                                       context=self.obj_context, **kwargs)
+        return NoneObject("Target invalid")
 
 
 class Void(Pointer):
