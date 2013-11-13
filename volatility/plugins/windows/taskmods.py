@@ -65,8 +65,7 @@ class WinPsList(common.WinProcessFilter):
                 "_EPROCESS", "ActiveProcessLinks"))
 
     def list_eprocess_from_eprocess(self, eprocess_offset):
-        eprocess = self.profile.Object(
-            theType="_EPROCESS",
+        eprocess = self.profile._EPROCESS(
             offset=eprocess_offset, vm=self.kernel_address_space)
 
         for task in eprocess.ActiveProcessLinks:

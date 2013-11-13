@@ -24,7 +24,7 @@
 from volatility.plugins.linux import common
 
 
-class LinuxPsList(common.AbstractLinuxCommandPlugin):
+class LinuxPsList(common.LinProcessFilter):
     """Gathers active tasks by walking the task_struct->task list."""
 
     __name = "pslist"
@@ -32,25 +32,35 @@ class LinuxPsList(common.AbstractLinuxCommandPlugin):
     def __init__(self, **kwargs):
         super(LinuxPsList, self).__init__(**kwargs)
 
-    def pslist(self):
-        """A generator of task_struct objects for all running tasks."""
-        init_task_addr = self.profile.constants["init_task"]
+    def list_tasks(self):
+        task = self.profile.task_struct(
+            offset=self.task_head, vm=self.kernel_address_space)
 
-        init_task = self.profile.Object(theType="task_struct",
-                                        vm=self.kernel_address_space,
-                                        offset=init_task_addr)
+        return iter(task.tasks)
 
-        # walk the ->tasks list, note that this will *not* display "swapper"
-        for task in init_task.tasks:
-            yield task
+    def render(self, renderer):
+    	renderer.table_header( [("Offset (V)", "offset_v", "[addrpad]"),
+                                ("Name", "file_name", "20s"),
+                                ("PID", "pid", ">6"),
+                                ("PPID", "ppid", ">6"),
+                                ("UID", "uid", ">6"),
+                                ("GID", "gid", ">6"),
+                                ("DTB", "dtb", "[addrpad]"),
+                                ("Start Time", "start_time", ">24"),
+                                ])
 
-    def render(self, outfd):
-        outfd.write("{0:8s} {1:20s} {2:15s} {3:15s}\n".format(
-            "Offset", "Name", "Pid", "Uid"))
+        for task in self.filter_processes():
+            start_time = (task.start_time.as_timestamp()+
+                          task.start_time.getboottime())
 
-        for task in self.pslist():
-            outfd.write("0x{0:08x} {1:20s} {2:15s} {3:15s}\n".format(
-                task.obj_offset, task.comm, str(task.pid), str(task.uid)))
+            dtb = self.kernel_address_space.vtop(task.mm.pgd)
+            renderer.table_row(task.obj_offset,
+                               task.comm,
+                               task.pid,
+                               task.parent.pid,
+                               task.uid,
+                               task.gid,
+                               dtb, start_time)
 
 
 class LinuxMemMap(common.LinProcessFilter):

@@ -2,7 +2,7 @@ Linux support in Volatility
 ===========================
 
 Linux support in Volatility requires a tailoured profile to the running kernel
-as we as the System map file. Volatility calls this system specific information
+as well as the System map file. Volatility calls this system specific information
 a "profile".
 
 For linux a profile file is simply a zip file which contains:

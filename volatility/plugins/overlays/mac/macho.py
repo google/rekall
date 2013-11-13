@@ -144,7 +144,7 @@ class MACHOFileImplementation(obj.ProfileModification):
         profile.add_types(macho_vtypes)
 
 
-class MACHO64Profile(basic.Profile64Bits, basic.BasicWindowsClasses):
+class MACHO64Profile(basic.ProfileLP64, basic.BasicWindowsClasses):
     """A profile for MAC-O files."""
 
     def __init__(self, **kwargs):

@@ -214,6 +214,85 @@ class linux_fs_struct(obj.CType):
         return ret
 
 
+class timespec(obj.CType):
+    # The following calculate the number of ns each tick is.
+    # http://lxr.free-electrons.com/source/include/linux/jiffies.h?v=2.6.32#L12
+
+    # The HZ value should be obtained from the auxilary vector but for now we
+    # hard code it. TODO: http://lwn.net/Articles/519085/
+    HZ = 1000
+
+    # The clock frequency of the i8253/i8254 PIT
+    CLOCK_TICK_RATE = PIT_TICK_RATE = 1193182
+
+    # LATCH is used in the interval timer and ftape setup.
+    LATCH = ((CLOCK_TICK_RATE + HZ/2) / HZ)
+
+    # HZ is the requested value. ACTHZ is actual HZ
+    ACTHZ = (CLOCK_TICK_RATE / LATCH)
+
+    # TICK_NSEC is the time between ticks in nsec assuming real ACTHZ
+    TICK_NSEC = 1000000 * 1000 /  ACTHZ
+
+    NSEC_PER_SEC = 1000000000
+
+    @property
+    def wall_to_monotonic(self):
+        wall_addr = self.obj_profile.get_constant("wall_to_monotonic")
+        if wall_addr:
+            return self.obj_profile.timespec(vm=self.obj_vm, offset=wall_addr)
+
+        # After Kernel 3.3 wall_to_monotonic is stored inside the timekeeper.
+        timekeeper_addr = self.obj_profile.get_constant("timekeeper")
+        if timekeeper_addr:
+            return  self.obj_profile.timekeeper(
+                vm=self.obj_vm, offset=timekeeper_addr).wall_to_monotonic
+
+    @property
+    def total_sleep_time(self):
+        total_sleep_time_addr = self.obj_profile.get_constant("total_sleep_time")
+        if total_sleep_time_addr:
+            return self.obj_profile.timespec(
+                vm=self.obj_vm, offset=total_sleep_time)
+
+        # After Kernel 3.3 wall_to_monotonic is stored inside the timekeeper.
+        timekeeper_addr = self.obj_profile.get_constant("timekeeper")
+        if timekeeper_addr:
+            return  self.obj_profile.timekeeper(
+                vm=self.obj_vm, offset=timekeeper_addr).total_sleep_time
+
+        # Just return an empty timespec.
+        return self.obj_profile.timespec()
+
+    def __add__(self, other):
+        """Properly normalize this object from sec and nsec.
+
+        based on set_normalized_timespec function.
+        """
+        if not isinstance(other, self.__class__):
+            raise TypeError("Can only add timespec to timespec")
+
+        sec = other.tv_sec + self.tv_sec
+        nsec = other.tv_nsec + self.tv_nsec
+
+        sec = nsec / self.NSEC_PER_SEC
+        nsec = nsec % self.NSEC_PER_SEC
+
+        result = self.obj_profile.timespec()
+        result.tv_sec = sec
+        result.tv_nsec = nsec
+
+        return result
+
+    def getboottime(self):
+        result = self.wall_to_monotonic + self.total_sleep_time
+        return result.tv_sec + result.tv_nsec / self.NSEC_PER_SEC
+
+    def as_timestamp(self):
+        secs = self.tv_sec + self.tv_nsec / self.NSEC_PER_SEC
+        return self.obj_profile.UnixTimeStamp(value=secs)
+
+
 class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
     """A Linux profile which works with dwarfdump output files.
 
@@ -227,9 +306,11 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
     def __init__(self, profile_file=None, **kwargs):
         super(Linux32, self).__init__(**kwargs)
         self.profile_file = profile_file
-        self.add_classes(dict(file=linux_file, list_head=list_head,
-                              files_struct=files_struct, task_struct=task_struct,
-                              fs_struct=linux_fs_struct))
+        self.add_classes(dict(
+                file=linux_file, list_head=list_head,
+                files_struct=files_struct, task_struct=task_struct,
+                fs_struct=linux_fs_struct, timespec=timespec,
+                ))
         self.add_overlay(linux_overlay)
         self.add_constants(default_text_encoding="utf8")
 
@@ -322,6 +403,5 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
         return sys_map
 
 
-class Linux64(basic.Profile64Bits, Linux32):
+class Linux64(basic.ProfileLP64, Linux32):
     """Support for 64 bit linux systems."""
-    _md_memory_model = "64bit"

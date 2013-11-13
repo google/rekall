@@ -61,14 +61,14 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin):
             PAGE_OFFSET = (self.profile.get_constant("_text") -
                            self.profile.get_constant("phys_startup_32"))
 
-            yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
+            yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET, None
         else:
             PAGE_OFFSET = (self.profile.get_constant("_text") -
                            self.profile.get_constant("phys_startup_64"))
 
-            yield self.profile.get_constant("init_level4_pgt") - PAGE_OFFSET
+            yield self.profile.get_constant("init_level4_pgt") - PAGE_OFFSET, None
 
-    def verify_address_space(self, address_space):
+    def verify_address_space(self, address_space=None, **kwargs):
         # There is not really much we can do if the address space is wrong, so
         # we just keep going.
         return True
@@ -79,7 +79,7 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin):
             fd.write("{0:#010x}\n".format(dtb))
 
 
-class LinProcessFilter(AbstractLinuxCommandPlugin):
+class LinProcessFilter(plugin.KernelASMixin, AbstractLinuxCommandPlugin):
     """A class for filtering processes."""
 
     __abstract = True
@@ -94,9 +94,21 @@ class LinProcessFilter(AbstractLinuxCommandPlugin):
         parser.add_argument("--proc_regex", default=None,
                             help="A regex to select a process by name.")
 
+        parser.add_argument("--phys_task",
+                            action=args.ArrayIntParser, nargs="+",
+                            help="Physical addresses of task structs.")
 
-    def __init__(self, phys_task_struct=None, pids=None, pid=None, **kwargs):
-        """Lists information about all the dlls mapped by a process.
+        parser.add_argument("--task", action=args.ArrayIntParser, nargs="+",
+                            help="Kernel addresses of task structs.")
+
+        parser.add_argument("--task_head", action=args.IntParser,
+                            help="Use this as the process head. If "
+                            "specified we do not use kdbg.")
+
+
+    def __init__(self, pid=None, proc_regex=None, phys_task=None, task=None,
+                 task_head=None, **kwargs):
+        """Filters processes by parameters.
 
         Args:
            phys_task_struct: One or more task structs or offsets defined in
@@ -107,41 +119,77 @@ class LinProcessFilter(AbstractLinuxCommandPlugin):
         """
         super(LinProcessFilter, self).__init__(**kwargs)
 
-        if isinstance(phys_task_struct, (int, long)):
-            phys_task_struct = [phys_task_struct]
-        elif phys_task_struct is None:
-            phys_task_struct = []
+        if isinstance(phys_task, (int, long)):
+            phys_task = [phys_task]
+        elif phys_task is None:
+            phys_task = []
 
-        self.phys_task_struct = phys_task_struct
+        if isinstance(task, (int, long)):
+            task = [task]
+        elif isinstance(task, obj.CType):
+            task = [task.obj_offset]
+        elif task is None:
+            task = []
 
-        if pids is None:
-            pids = []
+        self.phys_task = phys_task
+        self.task = task
 
-        if pid is not None:
+        pids = []
+        if isinstance(pid, list):
+            pids.extend(pid)
+
+        elif isinstance(pid, (int, long)):
             pids.append(pid)
 
+        if self.session.pid and not pid:
+            pids.append(self.session.pid)
+
         self.pids = pids
+        self.proc_regex_text = proc_regex
+        if isinstance(proc_regex, basestring):
+            proc_regex = re.compile(proc_regex, re.I)
+
+        self.proc_regex = proc_regex
+
+        # Without a specified task head, we use the init_task from the symbol
+        # table.
+        if task_head is None:
+            task_head = self.profile.get_constant("init_task")
+
+        self.task_head = task_head
+
+        # Sometimes its important to know if any filtering is specified at all.
+        self.filtering_requested = (self.pids or self.proc_regex or
+                                    self.phys_task or self.task)
 
     def filter_processes(self):
-        """Filters eprocess list using phys_eprocess and pids lists."""
+        """Filters task list using phys_task and pids lists."""
         # No filtering required:
-        if not self.phys_task_struct and not self.pids:
+        if not self.filtering_requested:
             for task in self.session.plugins.pslist(
-                session=self.session).pslist():
+                session=self.session, task_head=self.task_head).list_tasks():
                 yield task
         else:
-            # We need to filter by phys_task_struct
-            for offset in self.phys_task_struct:
+            # We need to filter by phys_task
+            for offset in self.phys_task:
                 yield self.virtual_process_from_physical_offset(offset)
+
+            for offset in self.task:
+                yield self.profile.task_struct(vm=self.kernel_address_space,
+                                               offset=int(offset))
 
             # We need to filter by pids
             for task in self.session.plugins.pslist(
-                session=self.session).pslist():
+                session=self.session, task_head=self.task_head).list_tasks():
                 if int(task.pid) in self.pids:
                     yield task
+                elif self.proc_regex and self.proc_regex.match(
+                    utils.SmartUnicode(task.comm)):
+                    yield task
+
 
     def virtual_process_from_physical_offset(self, physical_offset):
-        """Tries to return an eprocess in virtual space from a physical offset.
+        """Tries to return an task in virtual space from a physical offset.
 
         We do this by reflecting off the list elements.
 
@@ -149,11 +197,10 @@ class LinProcessFilter(AbstractLinuxCommandPlugin):
            physical_offset: The physcial offset of the process.
 
         Returns:
-           an _EPROCESS object or a NoneObject on failure.
+           an _TASK object or a NoneObject on failure.
         """
-        physical_task = self.profile.Object(
-            theType="task_struct", offset=int(physical_offset),
-            vm=self.kernel_address_space.base)
+        physical_task = self.profile.eprocess(offset=int(physical_offset),
+                                              vm=self.kernel_address_space.base)
 
         # We cast our list entry in the kernel AS by following Flink into the
         # kernel AS and then the Blink. Note the address space switch upon
@@ -161,9 +208,8 @@ class LinProcessFilter(AbstractLinuxCommandPlugin):
         our_list_entry = physical_task.tasks.next.dereference(
             vm=self.kernel_address_space).prev.dereference()
 
-        # Now we get the EPROCESS object from the list entry.
+        # Now we get the task_struct object from the list entry.
         return our_list_entry.dereference_as("task_struct", "tasks")
-
 
 
 

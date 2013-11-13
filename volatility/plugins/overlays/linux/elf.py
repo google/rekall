@@ -150,7 +150,7 @@ class ELFFileImplementation(obj.ProfileModification):
 
 
 
-class ELFProfile(basic.Profile64Bits, basic.BasicWindowsClasses):
+class ELFProfile(basic.ProfileLP64, basic.BasicWindowsClasses):
     """A profile for ELF files."""
 
     def __init__(self, **kwargs):

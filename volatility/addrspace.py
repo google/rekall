@@ -208,18 +208,6 @@ class BaseAddressSpace(object):
         return "<%s @ %#x %s>" % (self.__class__.__name__, hash(self), self.name)
 
 
-class DummyAddressSpace(BaseAddressSpace):
-    """An AS which always returns nulls."""
-    __name = 'dummy'
-    __abstract = True
-
-    def is_valid_address(self, _offset):
-        return True
-
-    def read(self, _offset, length):
-        return '0x00' * length
-
-
 ## This is a specialised AS for use internally - Its used to provide
 ## transparent support for a string buffer so types can be
 ## instantiated off the buffer.

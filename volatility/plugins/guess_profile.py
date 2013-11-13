@@ -51,7 +51,7 @@ class TestProfile32(basic.Profile32Bits, basic.BasicWindowsClasses):
         self.add_overlay(eprocess_vtypes)
 
 
-class TestProfile64(basic.Profile64Bits, basic.BasicWindowsClasses):
+class TestProfile64(basic.ProfileLLP64, basic.BasicWindowsClasses):
     def __init__(self, **kwargs):
         super(TestProfile64, self).__init__(**kwargs)
         self.add_overlay(eprocess_vtypes)

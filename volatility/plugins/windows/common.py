@@ -388,7 +388,7 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
 
     def __init__(self, eprocess=None, phys_eprocess=None, pid=None,
                  proc_regex=None, eprocess_head=None, **kwargs):
-        """Lists information about all the dlls mapped by a process.
+        """Filters processes by parameters.
 
         Args:
            physical_eprocess: One or more EPROCESS structs or offsets defined in
@@ -441,15 +441,10 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         self.filtering_applied = (self.pids or self.proc_regex or
                                   self.phys_eprocess or self.eprocess)
 
-    def process_filtering_requested(self):
-        """Returns True if the user requested any form of process filtering."""
-        return (self.eprocess or self.phys_eprocess or self.pids or
-                self.proc_regex)
-
     def filter_processes(self):
         """Filters eprocess list using phys_eprocess and pids lists."""
         # No filtering required:
-        if not self.process_filtering_requested():
+        if not self.filtering_requested:
             for eprocess in self.session.plugins.pslist(
                 session=self.session, kdbg=self.kdbg,
                 eprocess_head=self.eprocess_head).list_eprocess():

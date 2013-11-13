@@ -962,7 +962,7 @@ class CrashDump32Profile(basic.Profile32Bits, basic.BasicWindowsClasses):
         self.add_overlay(crash_overlays)
 
 
-class CrashDump64Profile(basic.Profile64Bits, basic.BasicWindowsClasses):
+class CrashDump64Profile(basic.ProfileLLP64, basic.BasicWindowsClasses):
     """A profile for crash dumps."""
     def __init__(self, **kwargs):
         super(CrashDump64Profile, self).__init__(**kwargs)
@@ -971,7 +971,7 @@ class CrashDump64Profile(basic.Profile64Bits, basic.BasicWindowsClasses):
         self.add_overlay(crash_overlays)
 
 
-class KDDebuggerProfile(basic.Profile64Bits, basic.BasicWindowsClasses):
+class KDDebuggerProfile(basic.ProfileLLP64, basic.BasicWindowsClasses):
     """A domain specific profile for the kernel debugger structures.
 
     The kernel debugger strucutures do not vary with windows operating system

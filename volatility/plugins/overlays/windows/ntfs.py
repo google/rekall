@@ -387,7 +387,7 @@ class NTFS_ATTRIBUTE(obj.CType):
                 yield i
 
 
-class NTFSProfile(basic.Profile64Bits, basic.BasicWindowsClasses):
+class NTFSProfile(basic.ProfileLLP64, basic.BasicWindowsClasses):
     """A profile for the NTFS."""
 
     def __init__(self, **kwargs):

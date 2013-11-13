@@ -24,6 +24,7 @@
 import os
 
 from volatility import obj
+from volatility import plugin
 from volatility.plugins.windows import common
 from volatility.plugins.overlays import basic
 
@@ -83,7 +84,7 @@ class PFNModification(obj.ProfileModification):
                 })
 
 
-class VtoP(common.WinProcessFilter):
+class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
     """Prints information about the virtual to physical translation."""
 
     __name = "vtop"

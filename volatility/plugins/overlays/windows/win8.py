@@ -273,7 +273,7 @@ class Win8SP0x86(basic.Profile32Bits, Win8BaseProfile):
         self.add_types(win8_sp0_x86_vtypes.ntkrnlmp_types)
 
 
-class Win8SP0x64(basic.Profile64Bits, Win8BaseProfile):
+class Win8SP0x64(basic.ProfileLLP64, Win8BaseProfile):
     """ A Profile for Windows 8 SP0 x64 """
     _md_major = 6
     _md_minor = 2

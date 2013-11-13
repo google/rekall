@@ -235,6 +235,9 @@ def parse_args(argv=None, user_session=None):
     parser.add_argument("-p", "--profile", default=None,
                         help="Name of the profile to load.")
 
+    parser.add_argument("--profile_file", default=None,
+                        help="Some profiles take an additional file.")
+
     parser.add_argument("-r", "--run", default=None,
                         help="Run this script before dropping into the "
                         "interactive shell.")

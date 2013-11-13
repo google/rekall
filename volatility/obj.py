@@ -40,7 +40,6 @@ from volatility import addrspace
 from volatility import registry
 from volatility import utils
 
-
 import traceback
 
 
@@ -226,7 +225,7 @@ class BaseObject(object):
 
         # 64 bit addresses are always sign extended, so we need to clear the top
         # bits.
-        self.obj_offset = int(offset) & 0xffffffffffff
+        self.obj_offset = int(offset or 0) & 0xffffffffffff
         self.obj_vm = vm
         self.obj_parent = parent
         self.obj_name = name
@@ -417,9 +416,10 @@ CreateMixIn(StringProxyMixIn)
 
 
 class NativeType(BaseObject, NumericProxyMixIn):
-    def __init__(self, format_string = None, **kwargs):
+    def __init__(self, value=None, format_string = None, **kwargs):
         super(NativeType, self).__init__(**kwargs)
         self.format_string = format_string
+        self.value = value
 
     def write(self, data):
         """Writes the data back into the address space"""
@@ -436,6 +436,9 @@ class NativeType(BaseObject, NumericProxyMixIn):
         return struct.calcsize(self.format_string)
 
     def v(self, vm=None):
+        if self.value is not None:
+            return self.value
+
         data = self.obj_vm.zread(self.obj_offset, self.size())
         if not data:
             return NoneObject("Unable to read {0} bytes from {1}".format(
@@ -605,8 +608,7 @@ class Pointer(NativeType):
         """
         # Find out our target size for pointer arithmetics.
         self.target_size = (self.target_size or
-                            self.obj_profile.Object(
-                self.target, vm=addrspace.DummyAddressSpace()).size())
+                            self.obj_profile.Object(self.target).size())
 
         offset = self.obj_offset + int(other) * self.target_size
         if not self.obj_vm.is_valid_address(offset):
@@ -622,8 +624,7 @@ class Pointer(NativeType):
 
     def __iadd__(self, other):
         # Increment our own offset.
-        self.target_size = (self.target_size or
-                            self.target(vm=addrspace.DummyAddressSpace()).size())
+        self.target_size = (self.target_size or self.target().size())
         self.obj_offset += self.target_size * other
 
     def __repr__(self):
@@ -1354,7 +1355,6 @@ class Profile(object):
         result = self.constants.get(constant)
         if result is None:
             result = NoneObject("Constant %s does not exist in profile." % constant)
-            logging.error("Constant %s does not exist in profile.", constant)
 
         return result
 
@@ -1382,7 +1382,7 @@ class Profile(object):
 
         return Curry(self.Object, attr)
 
-    def Object(self, theType=None, offset=0, vm=None, name=None, parent=None,
+    def Object(self, theType=None, offset=None, vm=None, name=None, parent=None,
                context=None, **kwargs):
         """ A function which instantiates the object named in theType (as
         a string) from the type in profile passing optional args of
@@ -1408,13 +1408,19 @@ class Profile(object):
         if not self._ready: self.compile()
 
         name = name or theType
-        offset = int(offset)
 
         if vm is None:
             if self.session and self.session.default_address_space:
                 vm = self.session.kernel_address_space
             else:
                 vm = self._dummy
+
+        if offset is None:
+            offset = 0
+            vm = addrspace.BaseAddressSpace.classes["DummyAddressSpace"](
+                size=self.get_obj_size(name))
+
+        offset = int(offset)
 
         if not vm.is_valid_address(offset):
             # If we can not instantiate the object here, we just error out:

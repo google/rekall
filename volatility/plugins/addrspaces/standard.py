@@ -23,6 +23,7 @@
 #
 
 """ These are standard address spaces supported by Volatility """
+import StringIO
 import struct
 import urllib
 import os
@@ -68,7 +69,7 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
     def is_valid_address(self, addr):
         if addr == None:
             return False
-        return addr < self.fsize
+        return addr <= self.fsize
 
     def close(self):
         self.fhandle.close()
@@ -117,27 +118,12 @@ class FileAddressSpace(FDAddressSpace):
             fhandle=fhandle, session=session, base=base, **kwargs)
 
 
-class WriteableAddressSpace(FDAddressSpace):
+class WriteableAddressSpaceMixIn(object):
     """This address space can be used to create new files.
 
     NOTE: The does not participate in voting or gets automatically selected. It
     can only be instantiated directly.
     """
-
-    # This prevents this class from being automatically registered.
-    __abstract = True
-
-    def __init__(self, filename=None, mode="w+b", **kwargs):
-        self.as_assert(filename, "Filename must be specified.")
-
-        self.name = os.path.abspath(filename)
-        self.fname = self.name
-        self.mode = mode
-        self.writeable = True
-
-        fhandle = open(self.fname, self.mode)
-        super(WriteableAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
-        self.as_assert(self.base == None, 'Must be first Address Space')
 
     def write(self, addr, data):
         try:
@@ -162,3 +148,35 @@ class WriteableAddressSpace(FDAddressSpace):
             data += "\x00" * (length - len(data))
 
         return data
+
+class WriteableAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
+    # This prevents this class from being automatically registered.
+    __abstract = True
+
+    def __init__(self, filename=None, mode="w+b", **kwargs):
+        self.as_assert(filename, "Filename must be specified.")
+
+        self.name = os.path.abspath(filename)
+        self.fname = self.name
+        self.mode = mode
+        self.writeable = True
+
+        fhandle = open(self.fname, self.mode)
+        super(WriteableAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
+        self.as_assert(self.base == None, 'Must be first Address Space')
+
+
+
+
+
+class DummyAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
+    """An AS which always returns nulls."""
+    __name = 'dummy'
+
+    def __init__(self, size=None, **kwargs):
+        self.as_assert(size is not None)
+        self.mode = "w+b"
+        self.writeable = True
+
+        kwargs["fhandle"] = StringIO.StringIO(size * "\x00")
+        super(DummyAddressSpace, self).__init__(**kwargs)

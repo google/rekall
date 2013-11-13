@@ -232,7 +232,7 @@ class Win7SP0x86(basic.Profile32Bits, Win7BaseProfile):
         self.add_types(win7_sp0_x86_vtypes.ntkrnlmp_types)
 
 
-class Win7SP0x64(basic.Profile64Bits, Win7BaseProfile):
+class Win7SP0x64(basic.ProfileLLP64, Win7BaseProfile):
     """ A Profile for Windows 7 SP0 x64 """
     _md_major = 6
     _md_minor = 1
@@ -265,7 +265,7 @@ class Win7SP1x86(basic.Profile32Bits, Win7BaseProfile):
         self.add_types(win7_sp1_x86_vtypes.ntkrnlmp_types)
 
 
-class Win7SP1x64(basic.Profile64Bits, Win7BaseProfile):
+class Win7SP1x64(basic.ProfileLLP64, Win7BaseProfile):
     """ A Profile for Windows 7 SP1 x64 """
     _md_major = 6
     _md_minor = 1

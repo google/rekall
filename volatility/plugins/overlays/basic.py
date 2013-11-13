@@ -147,8 +147,8 @@ class UnicodeString(String):
         return len(self.v().encode(self.encoding, 'ignore'))
 
     def write(self, data):
-        self.obj_vm.write(self.obj_offset,
-                          data.encode(self.encoding, "ignore"))
+        return self.obj_vm.write(
+            self.obj_offset, data.encode(self.encoding, "ignore"))
 
 
 class Flags(obj.NativeType):
@@ -394,6 +394,12 @@ class UnixTimeStamp(obj.NativeType):
         local_datetime =  timezone.normalize(dt.astimezone(timezone))
 
         return local_datetime.strftime(timeformat)
+
+    def __add__(self, other):
+        if isinstance(other, (float, int, long)):
+            return UnixTimeStamp(value=self.v() + other, profile=self.obj_profile)
+
+        raise NotImplemented
 
     def __str__(self):
         if not self:
@@ -668,29 +674,38 @@ except ImportError:
     pass
 
 
-# We define two kinds of basic profiles, a 32 bit one and a 64 bit one
+# We define two kinds of basic profiles, a 32 bit one and two 64 bit ones.
 class Profile32Bits(obj.Profile):
     """Basic profile for 32 bit systems."""
     _md_memory_model = '32bit'
+    _md_data_model = "ILP32"
 
     def __init__(self, **kwargs):
         super(Profile32Bits, self).__init__(**kwargs)
-        self.add_classes(native_types.generic_native_types)
-        self.add_classes(native_types.x86_native_types)
+        self.add_classes(native_types.ILP32)
         self.add_constants(PoolAlignment=8, MAX_FAST_REF=7,
                            MaxPointer=2**32-1)
 
 
-class Profile64Bits(obj.Profile):
-    """Basic profile for 64 bit systems."""
+class ProfileLLP64(obj.Profile):
+    """Basic profile for 64 bit Windows systems."""
     _md_memory_model = '64bit'
+    _md_data_model = "LLP64"
 
     def __init__(self, **kwargs):
-        super(Profile64Bits, self).__init__(**kwargs)
-        self.add_classes(native_types.generic_native_types)
-        self.add_classes(native_types.x64_native_types)
+        super(ProfileLLP64, self).__init__(**kwargs)
+        self.add_classes(native_types.LLP64)
         self.add_constants(PoolAlignment=16, MAX_FAST_REF=15,
                            MaxPointer=2**48-1)
+
+class ProfileLP64(obj.Profile):
+    """Basic profile for 64 bit Linux systems."""
+    _md_memory_model = '64bit'
+    _md_data_model = "LP64"
+
+    def __init__(self, **kwargs):
+        super(ProfileLP64, self).__init__(**kwargs)
+        self.add_classes(native_types.LP64)
 
 
 common_overlay =  {
