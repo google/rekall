@@ -128,6 +128,7 @@ for model in [LP64, ILP32, LLP64]:
 
         ['long', 'long int'],
         ['unsigned long', 'unsigned long int'],
+        ['unsigned long', 'long unsigned int'],
 
         ['long long', 'long long int'],
         ['unsigned long long', 'unsigned long long int'],

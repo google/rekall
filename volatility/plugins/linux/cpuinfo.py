@@ -24,7 +24,7 @@
 from volatility.plugins.linux import common
 
 
-class CpuInfo(common.AbstractLinuxCommandPlugin):
+class CpuInfo(common.LinuxPlugin):
     ''' prints info about each active processor '''
 
     __name = "cpuinfo"
@@ -71,9 +71,9 @@ class CpuInfo(common.AbstractLinuxCommandPlugin):
         # get the highest numbered cpu
         max_cpu = cpus[-1]
 
-        per_offsets = self.profile.Object(
-            theType='Array', target='unsigned long',
-            count=max_cpu, offset=self.profile.get_constant("__per_cpu_offset"),
+        per_offsets = self.profile.Array(
+            target='unsigned long', count=max_cpu,
+            offset=self.profile.get_constant("__per_cpu_offset"),
             vm=self.kernel_address_space)
 
         i = 0
@@ -86,10 +86,11 @@ class CpuInfo(common.AbstractLinuxCommandPlugin):
                                       vm=self.kernel_address_space)
             yield i, var
 
-    def render(self, outfd):
-
-        outfd.write("{0:12s} {1:16s} {2:64s}\n".format("Processor", "Vendor", "Model"))
-        for i, cpu in self.calculate():
-            outfd.write("{0:12s} {1:16s} {2:64s}\n".format(
-                    str(i), cpu.x86_vendor_id, cpu.x86_model_id))
+    def render(self, renderer):
+        renderer.table_header([("CPU", "processor", "<4"),
+                               ("Vendor", "vendor", "<20"),
+                               ("Model", "model", "<80")
+                               ])
+        for processor, cpu in self.calculate():
+            renderer.table_row(processor, cpu.x86_vendor_id, cpu.x86_model_id)
 

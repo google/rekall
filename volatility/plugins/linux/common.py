@@ -224,6 +224,16 @@ class LinProcessFilter(LinuxPlugin):
         return our_list_entry.dereference_as("task_struct", "tasks")
 
 
+class HeapScannerMixIn(object):
+    """A mixin for converting a scanner into a heap only scanner."""
+    def scan(self, **kwargs):
+        for vma in self.task.mm.mmap:
+            # Only use the vmas inside the heap area.
+            if (vma.vm_start >= self.task.mm.start_brk or
+                vma.vm_end <= self.task.mm.brk):
+                for hit in super(HeapScannerMixIn, self).scan(
+                    offset=vma.vm_start, maxlen=vma.vm_end-vma.vm_start):
+                    yield hit
 
 
 # TODO: Deprecate this when all plugins have been converted.

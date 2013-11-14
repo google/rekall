@@ -254,6 +254,15 @@ class timespec(obj.CType):
         secs = self.tv_sec + self.tv_nsec / self.NSEC_PER_SEC
         return self.obj_profile.UnixTimeStamp(value=secs)
 
+class vm_area_struct(obj.CType):
+    def __iter__(self):
+        mmap = self
+        while mmap:
+            yield mmap
+
+            mmap = mmap.vm_next.deref()
+
+
 
 class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
     """A Linux profile which works with dwarfdump output files.
@@ -272,6 +281,7 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
                 file=linux_file, list_head=list_head,
                 files_struct=files_struct, task_struct=task_struct,
                 fs_struct=linux_fs_struct, timespec=timespec,
+                vm_area_struct=vm_area_struct,
                 ))
         self.add_overlay(linux_overlay)
         self.add_constants(default_text_encoding="utf8")

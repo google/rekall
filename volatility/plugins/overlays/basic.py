@@ -86,6 +86,9 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def __unicode__(self):
         return self.v().decode("utf8", "replace").split("\x00")[0] or u""
 
+    def __getitem__(self, *args):
+        return unicode(self).__getitem__(*args)
+
     def __add__(self, other):
         """Set up mappings for concat"""
         return str(self) + other

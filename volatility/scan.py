@@ -165,6 +165,70 @@ class DiscontigScanner(object):
                 yield match
 
 
+class PointerScanner(DiscontigScanner, BaseScanner):
+    """Scan for a bunch of pointers at the same time.
+
+    This scanner takes advantage of the fact that usually the most significant
+    bytes of a group of pointers is the same. This common part is scanned for
+    first, thereby taking advantage of the scanner skippers.
+    """
+    def __init__(self, pointers=None, **kwargs):
+        """Creates the Pointer Scanner.
+
+        Args:
+          pointers: A list of Pointer objects, or simply memory addresses. This
+            scanner finds direct references to these addresses in memory.
+        """
+        super(PointerScanner, self).__init__(**kwargs)
+
+        # The size of a pointer depends on the profile.
+        self.address_size = self.profile.get_obj_size("address")
+        self.needles = []
+
+        # Find the common string between all the addresses.
+        for address in pointers:
+            # Encode the address as a pointer according to the current profile.
+            tmp = self.profile.address()
+            tmp.write(address)
+
+            self.needles.append(tmp.obj_vm.read(0, tmp.size()))
+
+        # The common string between all the needles.
+        self.common = self.FindCommonString(self.needles)
+        self.checks = [
+            ('StringCheck', dict(needle=self.common)),
+            ]
+
+    def FindCommonString(self, needles):
+        """Find the largest common suffix among all the needles.
+
+        Note we assume all the needles are the same size and pointers are little
+        endian (so we work from the end of the string to the beginning).
+        """
+        common = ""
+        for i in range(1, self.address_size):
+            possible_match = None
+            for needle in needles:
+                # If this does not match we stop early.
+                if possible_match is not None and possible_match != needle[-i]:
+                    return common
+
+                possible_match = needle[-i]
+
+            common = possible_match + common
+
+        return common
+
+    def scan(self, **kwargs):
+        for hit in super(PointerScanner, self).scan(**kwargs):
+            # Correct the hit for the common suffix.
+            hit -= self.address_size - len(self.common)
+            data = self.address_space.read(hit, self.address_size)
+
+            if data in self.needles:
+                yield hit
+
+
 class ScannerCheck(object):
     """ A scanner check is a special class which is invoked on an AS to check
     for a specific condition.

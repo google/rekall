@@ -1,4 +1,5 @@
 from volatility.plugins.linux import arp
+from volatility.plugins.linux import bash
 from volatility.plugins.linux import common
 from volatility.plugins.linux import cpuinfo
 from volatility.plugins.linux import dmesg
