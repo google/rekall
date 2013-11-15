@@ -50,7 +50,22 @@ linux_overlay = {
         }],
     'module'      : [None, {
         'name'          : [ None , ['UnicodeString', dict(length = 60)]],
+        'kp': [None, ['Pointer', dict(
+                        target='Array',
+                        target_args=dict(
+                            target='kernel_param',
+                            count=lambda x: x.num_kp))]],
         }],
+
+    'kernel_param': [None, {
+            'name' : [None , ['Pointer', dict(target='UnicodeString')]],
+            'getter': lambda x: (x.m("get") or x.ops.get),
+            }],
+
+    'kparam_array': [None, {
+            'getter': lambda x: (x.m("get") or x.ops.get),
+            }],
+
     'super_block' : [None, {
         's_id'          : [ None , ['UnicodeString', dict(length = 32)]],
         }],
@@ -64,6 +79,10 @@ linux_overlay = {
         'x86_model_id'  : [ None , ['UnicodeString', dict(length = 64)]],
         'x86_vendor_id' : [ None,  ['UnicodeString', dict(length = 16)]],
         }],
+
+    'module_sect_attr': [None, {
+            'name': [None, ['Pointer', dict(target='UnicodeString')]]
+            }],
     }
 
 
