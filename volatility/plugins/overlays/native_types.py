@@ -12,6 +12,8 @@ from volatility import obj
 
 # Model on 64 bit unix like operating systems.
 LP64 = {
+    'bool' : obj.Curry(obj.Bool, theType='bool', format_string='<c'),
+
     # Char is 8 bits.
     'char' : obj.Curry(obj.NativeType, theType='char', format_string='<c'),
     'unsigned char' : obj.Curry(
@@ -48,6 +50,8 @@ LP64 = {
 
 # Model on 64 bit Windows.
 LLP64 = {
+    'bool' : obj.Curry(obj.Bool, theType='bool', format_string='<c'),
+
     # Char is 8 bits.
     'char' : obj.Curry(obj.NativeType, theType='char', format_string='<c'),
     'unsigned char' : obj.Curry(
@@ -84,6 +88,8 @@ LLP64 = {
 
 # Model on 32 bit systems.
 ILP32 = {
+    'bool' : obj.Curry(obj.Bool, theType='bool', format_string='<c'),
+
     # Char is 8 bits.
     'char' : obj.Curry(obj.NativeType, theType='char', format_string='<c'),
     'unsigned char' : obj.Curry(

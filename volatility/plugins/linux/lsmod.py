@@ -20,8 +20,10 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+import logging
 
 from volatility.plugins.linux import common
+
 
 class Lsmod(common.LinuxPlugin):
     '''Gathers loaded kernel modules.'''
@@ -44,6 +46,25 @@ class Lsmod(common.LinuxPlugin):
         self.render_sections = sections
         self.render_parameters = parameters
 
+        # Resolve the parameter's type based on the address of the getter
+        # function.
+        self.arg_lookuptable = {
+            "param_get_bool": ("bool", {}),
+            "param_get_byte": ("char", {}),
+            "param_get_charp": ("Pointer", dict(target="String")),
+            "param_get_int": ("int", {}),
+            "param_get_invbool": ("byte", {}),
+            "param_get_long": ("long", {}),
+            "param_get_short": ("short", {}),
+            "param_get_uint": ("unsigned int", {}),
+            "param_get_ulong": ("unsigned long", {}),
+            "param_get_ushort": ("unsigned short", {}),
+            }
+
+        self.arg_lookuptable = dict(
+            (self.profile.get_constant_pointer(x), y)
+            for x, y in self.arg_lookuptable.items())
+
     def get_module_sections(self, module):
         num_sects = module.sect_attrs.nsections or 25
         for i in range(num_sects):
@@ -51,25 +72,42 @@ class Lsmod(common.LinuxPlugin):
             yield section_attr
 
     def get_module_parameters(self, module):
-        # Resolve the parameter's type based on the address of the getter
-        # function.
-        lookup_table = {
-            self.profile.get_constant("param_get_invbool") : "int",
-            self.profile.get_constant("param_get_bool") : "int",
-            self.profile.get_constant("param_get_int") : "int",
-            self.profile.get_constant("param_get_ulong") : "unsigned long",
-            self.profile.get_constant("param_get_long") : "long",
-            self.profile.get_constant("param_get_uint") : "unsigned int",
-            self.profile.get_constant("param_get_ushort") : "unsigned short",
-            self.profile.get_constant("param_get_short") : "short",
-            self.profile.get_constant("param_get_byte") : "char",
-            }
-
         for kernel_param in module.kp:
+            getter_function = kernel_param.getter
+            lookup = self.arg_lookuptable.get(getter_function)
+            if lookup:
+                type, args = lookup
 
-            import pdb; pdb.set_trace()
+                # The arg type is a pointer to a basic type.
+                value = kernel_param.u1.arg.dereference_as(type, **args)
 
-        return []
+            elif getter_function == self.profile.get_constant_pointer(
+                "param_get_string"):
+                value = kernel_param.u1.str.deref()
+
+            #It is an array of values.
+            elif getter_function == self.profile.get_constant_pointer(
+                "param_array_get"):
+                array = kernel_param.u1.arr
+                getter_function = array.getter
+                lookup = self.arg_lookuptable.get(getter_function)
+                if lookup and array.elemsize:
+                    type, args = lookup
+                    result = []
+                    offset = array.elem.deref().obj_offset
+                    number_of_elements = array.num.deref() or array.max
+                    while len(result) < number_of_elements:
+                        result.append(
+                            self.profile.Object(type, offset=offset,
+                                                vm=self.kernel_address_space))
+                        offset += array.elemsize
+
+                    value = ",".join([str(x) for x in result])
+            else:
+                logging.debug("Unknown function getter %r", getter_function)
+                value = None
+
+            yield kernel_param.name.deref(), value
 
     def get_module_list(self):
         modules = self.profile.Object(
@@ -107,11 +145,9 @@ class Lsmod(common.LinuxPlugin):
         if self.render_parameters:
             renderer.section("Module Parameters")
             renderer.table_header([("Name", "name", "<20"),
-                                   ("Key", "key", ">10"),
+                                   ("Key", "key", "<40"),
                                    ("Value", "value", "<20")])
 
             for module in self.get_module_list():
-                for section_attr in self.get_module_parameters(module):
-                    renderer.table_row(
-                    module.name, section_attr.name.deref(),
-                    section_attr.address)
+                for key, value in self.get_module_parameters(module):
+                    renderer.table_row(module.name, key, value)

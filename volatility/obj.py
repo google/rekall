@@ -464,6 +464,12 @@ class NativeType(BaseObject, NumericProxyMixIn):
                                             repr(self.v()))
 
 
+class Bool(NativeType):
+    def __str__(self):
+        """Format boolean values nicely."""
+        return str(bool(self))
+
+
 class BitField(NativeType):
     """ A class splitting an integer into a bunch of bit. """
     def __init__(self, start_bit = 0, end_bit = 32, native_type = None,
@@ -1362,6 +1368,12 @@ class Profile(object):
         if result is None:
             result = NoneObject("Constant %s does not exist in profile." % constant)
 
+        return result
+
+    def get_constant_pointer(self, constant):
+        """A help function for retrieving pointers from the symbol table."""
+        result = self.Pointer(profile=self)
+        result.write(self.get_constant(constant))
         return result
 
     def __dir__(self):
