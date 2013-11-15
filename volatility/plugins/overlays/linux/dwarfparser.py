@@ -84,10 +84,19 @@ class DW_TAG_structure_type(DIETag):
             pass
 
     def Definition(self):
+        count = 1
         result = [self.size, {}]
         for member in self.members:
-            vtype = member.VType()
-            result[1][member.name] = vtype
+            if isinstance(member, DW_TAG_member):
+                child = member.delegate()
+                name = member.name
+
+                # Make nicer names for annonymous things (usually unions).
+                if name.startswith("__unnamed_"):
+                    name = "u%s" % count
+                    count += 1
+
+                result[1][name] = member.VType()
 
         # Only emit structs with actual members in them.
         if result[1]:
@@ -95,8 +104,7 @@ class DW_TAG_structure_type(DIETag):
 
 
 class DW_TAG_union_type(DW_TAG_structure_type):
-    def Definition(self):
-        pass
+    pass
 
 
 class DW_TAG_pointer_type(DIETag):
@@ -159,7 +167,7 @@ def describe_DWARF_expr(expr, structs):
 
 
 class DW_TAG_member(DIETag):
-    offset = None
+    offset = 0
     type = None
 
     def __init__(self, die, types, parents):
@@ -178,11 +186,18 @@ class DW_TAG_member(DIETag):
                 if op_code=="DW_OP_plus_uconst":
                     self.offset = int(value)
 
+    def delegate(self):
+        """A member is just a place holder for another type in the struct.
+
+        Thie method returns the delegate.
+        """
+        return self.types[self.type_id]
+
     def VType(self):
         if self.type_id not in self.types:
             import pdb; pdb.set_trace()
 
-        member_type = self.types[self.type_id].VType()
+        member_type = self.delegate().VType()
 
         # Does this member represent a bitfield?
         if "DW_AT_bit_size" in self.attributes:
@@ -208,6 +223,7 @@ class DW_TAG_member(DIETag):
 
         if not isinstance(member_type, list):
             member_type = [member_type]
+
         return [self.offset, member_type]
 
 
@@ -322,4 +338,4 @@ if __name__ == "__main__":
             parser = DWARFParser(fd)
             vtypes = parser.VType()
 
-            print json.dumps(vtypes)
+            print json.dumps(vtypes, indent=1)

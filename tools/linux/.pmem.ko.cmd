@@ -1,1 +1,0 @@
-cmd_/home/scudette/volatility/svn/tools/linux/pmem.ko := ld -r -m elf_x86_64 -T /usr/src/linux-headers-3.5.0-27-generic/scripts/module-common.lds --build-id  -o /home/scudette/volatility/svn/tools/linux/pmem.ko /home/scudette/volatility/svn/tools/linux/pmem.o /home/scudette/volatility/svn/tools/linux/pmem.mod.o
