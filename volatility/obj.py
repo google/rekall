@@ -322,15 +322,15 @@ class BaseObject(object):
     def dereference(self, vm=None):
         return NoneObject("Can't dereference {0}".format(self.obj_name), self.obj_profile)
 
-    def dereference_as(self, derefType, vm=None, **kwargs):
+    def dereference_as(self, target=None, vm=None, **kwargs):
         vm = vm or self.obj_vm
 
-        return self.obj_profile.Object(theType=derefType, offset=self.v(), vm=vm,
+        return self.obj_profile.Object(theType=target, offset=self.v(), vm=vm,
                                        parent=self.obj_parent, name=self.obj_name,
                                        context=self.obj_context, **kwargs)
 
-    def cast(self, castString, **kwargs):
-        return self.obj_profile.Object(theType=castString, offset=self.obj_offset,
+    def cast(self, type=None, **kwargs):
+        return self.obj_profile.Object(theType=type, offset=self.obj_offset,
                                        vm=self.obj_vm, parent=self.obj_parent,
                                        context=self.obj_context, **kwargs)
 
@@ -653,15 +653,14 @@ class Pointer(NativeType):
         """Delegate the iterator to the target."""
         return iter(self.dereference())
 
-    def dereference_as(self, type, vm=None, **kwargs):
+    def dereference_as(self, target=None, vm=None, target_args={}):
         """Dereference ourselves into another type, or address space."""
         vm = vm or self.obj_vm
-        if vm.is_valid_address(self.v()):
-            return self.obj_profile.Object(
-                theType=type, offset=self.v(), vm=vm,
-                parent=self.obj_parent, context=self.obj_context, **kwargs)
 
-        return NoneObject("Target invalid")
+        return self.obj_profile.Object(
+            theType=target or self.target, offset=self.v(), vm=vm,
+            parent=self.obj_parent, context=self.obj_context,
+            **target_args)
 
 
 class Void(Pointer):
@@ -672,7 +671,7 @@ class Void(Pointer):
     def v(self):
         return self.obj_offset
 
-    def dereference(self):
+    def dereference(self, vm=None):
         return NoneObject("Void reference")
 
     def size(self):
@@ -1114,10 +1113,13 @@ class Profile(object):
 
         return theType in self.object_classes or theType in self.vtypes
 
-    def add_classes(self, classes_dict):
+    def add_classes(self, classes_dict=None, **kwargs):
         """Add the classes in the dict to our object classes mapping."""
         self._ready = False
-        self.object_classes.update(classes_dict)
+        if classes_dict:
+            self.object_classes.update(classes_dict)
+
+        self.object_classes.update(kwargs)
 
     def add_constants(self, **kwargs):
         """Add the kwargs as constants for this profile."""
@@ -1165,7 +1167,7 @@ class Profile(object):
         self._ready = True
 
 
-    def list_to_target(self, typeList):
+    def legacy_field_descriptor(self, typeList):
         """Converts the list expression into a target, target_args notation.
 
         Legacy vtypes use lists to specify the objects. This function is used to
@@ -1191,12 +1193,12 @@ class Profile(object):
         ## Target is the first item, args is the second item.
         elif typeList[0] == 'pointer' or typeList[0] == 'pointer64':
             target = "Pointer"
-            target_args = self.list_to_target(typeList[1])
+            target_args = self.legacy_field_descriptor(typeList[1])
 
         ## This is an array: [ 'array', count, ['foobar'] ]
         elif typeList[0] == 'array':
             target = "Array"
-            target_args = self.list_to_target(typeList[2])
+            target_args = self.legacy_field_descriptor(typeList[2])
             target_args['count'] = typeList[1]
 
         elif len(typeList) > 2:
@@ -1217,7 +1219,7 @@ class Profile(object):
         This is the core function which effectively parses the VType language.
         """
         # Convert legacy typeList expressions to the modern format.
-        target_spec = self.list_to_target(typeList)
+        target_spec = self.legacy_field_descriptor(typeList)
 
         # The modern format uses a target, target_args notation.
         target = target_spec['target']
@@ -1279,45 +1281,127 @@ class Profile(object):
         self.overlays.append(copy.deepcopy(overlay))
 
     def _merge_overlay(self, overlay):
-        """Applies an overlay to the profile's vtypes"""
+        """Applies an overlay to the profile's vtypes.
+
+        Args:
+          overlay: A dict representing the types to overlay. Keys are struct
+             names, values are overlay descriptors.
+        """
         for k, v in overlay.items():
             if k in self.vtypes:
-                self.vtypes[k] = self._apply_overlay(self.vtypes[k], v)
+                self.vtypes[k] = self._apply_type_overlay(self.vtypes[k], v)
+
             else:
                 # The vtype does not have anything to overlay, we just create a
                 # new definition.
                 self.vtypes[k] = v
 
-    def _apply_overlay(self, type_member, overlay):
-        """ Update the overlay with the missing information from type.
+    def _apply_type_overlay(self, type_member, overlay):
+        """Update the overlay with the missing information from type.
 
-        Basically if overlay has None in any slot it gets applied from vtype.
+        If overlay has None in any slot it gets applied from vtype.
+
+        Args:
+         type_member: A descriptor for a single type struct. This is always of
+           the following form:
+
+           [StructSize, {
+             field_name_1: [.... Field descriptor ...],
+             field_name_2: [.... Field descriptor ...],
+            }]
+
+         overlay: An overlay descriptor for the same type described by
+           type_member or a callable which will be used to instantiate the
+           required type.
         """
         # A None in the overlay allows the vtype to bubble up.
         if overlay is None:
             return type_member
 
-        if type(type_member) == dict:
-            for k, v in type_member.items():
-                if k not in overlay:
-                    overlay[k] = v
-                else:
-                    overlay[k] = self._apply_overlay(v, overlay[k])
-
-        elif callable(overlay):
+        if type_member is None:
             return overlay
 
-        elif type(overlay) == list:
-            if len(overlay) != len(type_member):
-                return overlay
+        # this allows the overlay to just specify a class directly to be
+        # instantiated for a particular type.
+        if callable(overlay):
+            return overlay
 
-            for i in range(len(overlay)):
-                if overlay[i] == None:
-                    overlay[i] = type_member[i]
-                else:
-                    overlay[i] = self._apply_overlay(type_member[i], overlay[i])
+        # Check the overlay and type descriptor for sanity.
+        if len(overlay) != 2 or not isinstance(overlay[1], dict):
+            raise RuntimeError("Overlay error: Invalid overlay %s" % overlay)
+
+        if len(type_member) != 2 or not isinstance(type_member[1], dict):
+            raise RuntimeError("VType error: Invalid type descriptor %s" %
+                               type_member)
+
+        # Allow the overlay to override the struct size.
+        if overlay[0] is None:
+            overlay[0] = type_member[0]
+
+        # The field overlay describes each field in the struct.
+        field_overlay = overlay[1]
+
+        # Now go over all the fields in the type_member and copy them into the
+        # overlay.
+        for k, v in type_member[1].items():
+            if k not in field_overlay:
+                field_overlay[k] = v
+            else:
+                field_overlay[k] = self._apply_field_overlay(v, field_overlay[k])
 
         return overlay
+
+    def _apply_field_overlay(self, field_member, field_overlay):
+        """Update the field overlay with the missing information from type.
+
+        If the overlay has None in any slot it gets applied from vtype.
+
+        Args:
+          field_member: A field descriptor. This can be of the modern form:
+
+              [Offset, [TargetName, dict(arg1=value1, arg2=value2)]]
+
+              The second part is termed the field descriptor. If the overlay
+              specifies a field descriptor it will completely replace the
+              vtype's descriptor.
+
+              Alternatively we also support the legacy form:
+              [TargetName, [values]]
+
+
+              Note that if the Target name differs we deem the entire field to
+              be overlayed and replace the entire definition with the overlayed
+              one.
+
+          field_overlay: Can be a field descriptor as above, or a callable - in
+             which case this field member will be called when the field is
+             accessed.
+        """
+        # A None in the overlay allows the vtype to bubble up.
+        if field_overlay is None:
+            return field_member
+
+        # this allows the overlay to just specify a class directly to be
+        # instantiated for a particular type.
+        if callable(field_overlay):
+            return field_overlay
+
+        # Check the overlay and type descriptor for sanity.
+        if len(field_overlay) != 2 or not isinstance(field_overlay[1], list):
+            raise RuntimeError("Overlay error: Invalid overlay %s" % field_overlay)
+
+        if len(field_member) != 2 or not isinstance(field_member[1], list):
+            raise RuntimeError("VType error: Invalid field type descriptor %s" %
+                               field_member)
+
+        offset, field_descrition = field_member
+        if field_overlay[0] is None:
+            field_overlay[0] = offset
+
+        if field_overlay[1] is None:
+            field_overlay[1] = field_descrition
+
+        return field_overlay
 
     def _convert_members(self, cname, expression, overlay):
         """ Convert the member named by cname from the c description
@@ -1341,7 +1425,8 @@ class Profile(object):
 
         We return a list of CTypeMember objects.
         """
-        size, ctype_definition = self._apply_overlay(expression, overlay.get(cname))
+        size, ctype_definition = self._apply_field_overlay(
+            expression, overlay.get(cname))
 
         members = {}
         for k, v in ctype_definition.items():
@@ -1427,24 +1512,25 @@ class Profile(object):
 
         name = name or theType
 
-        if vm is None:
-            if self.session and self.session.default_address_space:
-                vm = self.session.kernel_address_space
-            else:
-                vm = self._dummy
-
         if offset is None:
             offset = 0
-            vm = addrspace.BaseAddressSpace.classes["DummyAddressSpace"](
-                size=self.get_obj_size(name))
+            if vm is None:
+                vm = addrspace.BaseAddressSpace.classes["DummyAddressSpace"](
+                    size=self.get_obj_size(name))
 
-        offset = int(offset)
+        else:
+            offset = int(offset)
+            if vm is None:
+                if self.session and self.session.default_address_space:
+                    vm = self.session.kernel_address_space
+                else:
+                    vm = self._dummy
 
-        if not vm.is_valid_address(offset):
-            # If we can not instantiate the object here, we just error out:
-            return NoneObject(
-                "Invalid Address 0x{0:08X}, instantiating {1}".format(
-                    offset, name))
+            if not vm.is_valid_address(offset):
+                # If we can not instantiate the object here, we just error out:
+                return NoneObject(
+                    "Invalid Address 0x{0:08X}, instantiating {1}".format(
+                        offset, name))
 
         kwargs['profile'] = self
 

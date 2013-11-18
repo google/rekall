@@ -83,6 +83,33 @@ linux_overlay = {
     'module_sect_attr': [None, {
             'name': [None, ['Pointer', dict(target='UnicodeString')]]
             }],
+
+    # The size of the log record is stored in the len member.
+    'log': [lambda x: x.len, {
+            # The log message starts after the level member.
+            'message': [lambda x: x.flags.obj_offset + x.flags.size(),
+                        ['UnicodeString', dict(
+
+                        # The length of the message is the text and an optional
+                        # dict.
+                        length=lambda x: x.text_len + x.dict_len)]],
+
+            'level': [None, ['Enumeration', {
+                        'choices': {
+                            0: 'LOG_EMERG',
+                            1: 'LOG_ALERT',
+                            2: 'LOG_CRIT',
+                            3: 'LOG_ERR',
+                            4: 'LOG_WARNING',
+                            5: 'LOG_NOTICE',
+                            6: 'LOG_INFO',
+                            7: 'LOG_DEBUG'
+                            },
+                        'target': 'BitField',
+                        'target_args': dict(
+                            start_bit=0, end_bit=3),
+                        }]],
+            }],
     }
 
 
@@ -273,6 +300,7 @@ class timespec(obj.CType):
         secs = self.tv_sec + self.tv_nsec / self.NSEC_PER_SEC
         return self.obj_profile.UnixTimeStamp(value=secs)
 
+
 class vm_area_struct(obj.CType):
     def __iter__(self):
         mmap = self
@@ -280,7 +308,6 @@ class vm_area_struct(obj.CType):
             yield mmap
 
             mmap = mmap.vm_next.deref()
-
 
 
 class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):

@@ -79,7 +79,8 @@ class Lsmod(common.LinuxPlugin):
                 type, args = lookup
 
                 # The arg type is a pointer to a basic type.
-                value = kernel_param.u1.arg.dereference_as(type, **args)
+                value = kernel_param.u1.arg.dereference_as(
+                    target=type, target_args=args)
 
             elif getter_function == self.profile.get_constant_pointer(
                 "param_get_string"):

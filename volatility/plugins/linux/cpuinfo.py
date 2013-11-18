@@ -23,6 +23,19 @@
 
 from volatility.plugins.linux import common
 
+class Banner(common.LinuxPlugin):
+    """Prints the Linux banner information."""
+
+    __name = "banner"
+
+    def render(self, renderer):
+        renderer.table_header([("Banner", "banner", "<80")])
+
+        banner = self.profile.get_constant_pointer("linux_banner")
+
+        renderer.table_row(banner.dereference_as(
+                "String", vm=self.kernel_address_space))
+
 
 class CpuInfo(common.LinuxPlugin):
     ''' prints info about each active processor '''

@@ -23,15 +23,55 @@
 
 from volatility.plugins.linux import common
 
-class LinuxDmesg(common.AbstractLinuxCommandPlugin):
+
+class LinuxDmesg(common.LinuxPlugin):
     '''Gathers dmesg buffer.'''
 
     __name = "dmesg"
 
     def render(self, renderer):
-        renderer.format("{0}", self.profile.Object(
-            "Pointer",
-            vm=self.kernel_address_space,
-            offset=self.profile.get_constant("log_buf"),
-            target='UnicodeString',
-            target_args=dict(length=self.profile.get_constant("log_buf_len"))))
+        dmesg_ptr = self.profile.get_constant_pointer("log_buf")
+
+        if self.profile.has_type("log"):
+            # Linux 3.x uses a log struct to keep log messages. In this case the log
+            # is a pointer to a variable length array of log messages.
+            dmesg = dmesg_ptr.dereference_as(
+                vm=self.kernel_address_space,
+                target="Pointer",
+                target_args=dict(
+                    target="ListArray",
+                    target_args=dict(
+                        target="log",
+                        maximum_size=self.profile.get_constant("log_buf_len")
+                        )
+                    )
+                )
+
+            renderer.table_header([
+                    ("Timestamp", "timestamp", ">9.02f"),
+                    ("Facility", "facility", "<2"),
+                    ("Level", "level", "<2"),
+                    ("Message", "message", "<80")])
+
+            for message in dmesg:
+                renderer.table_row(
+                    message.ts_nsec / 1e9, message.facility, message.level,
+                    message.message)
+
+        else:
+            # Older kernels just use the area as a single unicode string.
+            dmesg = dmesg_ptr.dereference_as(
+                vm=self.kernel_address_space,
+                target="Pointer",
+                target_args = dict(
+                    target="UnicodeString",
+                    target_args=dict(
+                        length=self.profile.get_constant("log_buf_len")
+                        )
+                    )
+                )
+
+            renderer.table_header([
+                    ("Message", "message", "<80")])
+
+            renderer.table_row(dmesg.deref())
