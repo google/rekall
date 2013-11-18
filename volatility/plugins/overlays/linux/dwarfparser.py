@@ -217,6 +217,16 @@ class DW_TAG_member(DIETag):
             converted_start_bit = full_size - end_bit
             converted_end_bit = full_size - start_bit
 
+            # Sometimes the member is an Enumeration. In that case we need to
+            # return something slightly different.
+            if member_type[0] == "Enumeration":
+                member_type[1]["target"] = "BitField"
+                member_type[1]["target_args"] = {
+                    'start_bit': converted_start_bit,
+                    'end_bit': converted_end_bit
+                    }
+                return [self.offset, member_type]
+
             return [self.offset, ['BitField', {'start_bit': converted_start_bit,
                                                'native_type': member_type,
                                                'end_bit': converted_end_bit}]]

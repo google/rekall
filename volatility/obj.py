@@ -862,6 +862,9 @@ class CType(BaseObject):
         self.struct_size = struct_size
         self._initialized = True
 
+    def __hash__(self):
+        return self.obj_offset + hash(self.obj_vm)
+
     def __int__(self):
         """Return our offset as an integer.
 
@@ -1008,6 +1011,23 @@ class CType(BaseObject):
 
     def __ge__(self, other):
         return not self < other
+
+    def walk_list(self, list_member, include_current=True):
+        """Walk a single linked list in this struct.
+
+        The current object can be optionally yielded as the first element.
+
+        Args:
+          list_member: The member name which points to the next item in the
+          list.
+        """
+        while True:
+            if include_current:
+                yield self
+
+            next_item = getattr(self, list_member).deref()
+            if not next_item:
+                break
 
 
 ## Profiles are the interface for creating/interpreting
@@ -1455,10 +1475,13 @@ class Profile(object):
 
         return result
 
-    def get_constant_pointer(self, constant):
+    def get_constant_object(self, constant, target=None, target_args={}, **kwargs):
         """A help function for retrieving pointers from the symbol table."""
-        result = self.Pointer(profile=self)
-        result.write(self.get_constant(constant))
+        kwargs.update(target_args)
+
+        result = self.Object(target, profile=self, offset=self.get_constant(constant),
+                             **kwargs)
+
         return result
 
     def __dir__(self):

@@ -17,7 +17,7 @@ LP64 = {
     # Char is 8 bits.
     'char' : obj.Curry(obj.NativeType, theType='char', format_string='<c'),
     'unsigned char' : obj.Curry(
-        obj.NativeType, theType='unsigned char', format_string='<b'),
+        obj.NativeType, theType='unsigned char', format_string='<B'),
 
     # Shorts are 16 bits.
     'short' : obj.Curry(obj.NativeType, theType='short', format_string='<h'),
@@ -55,7 +55,7 @@ LLP64 = {
     # Char is 8 bits.
     'char' : obj.Curry(obj.NativeType, theType='char', format_string='<c'),
     'unsigned char' : obj.Curry(
-        obj.NativeType, theType='unsigned char', format_string='<b'),
+        obj.NativeType, theType='unsigned char', format_string='<B'),
 
     # Shorts are 16 bits.
     'short' : obj.Curry(obj.NativeType, theType='short', format_string='<h'),
@@ -93,7 +93,7 @@ ILP32 = {
     # Char is 8 bits.
     'char' : obj.Curry(obj.NativeType, theType='char', format_string='<c'),
     'unsigned char' : obj.Curry(
-        obj.NativeType, theType='unsigned char', format_string='<b'),
+        obj.NativeType, theType='unsigned char', format_string='<B'),
 
     # Shorts are 16 bits.
     'short' : obj.Curry(obj.NativeType, theType='short', format_string='<h'),

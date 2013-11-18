@@ -62,7 +62,7 @@ class Lsmod(common.LinuxPlugin):
             }
 
         self.arg_lookuptable = dict(
-            (self.profile.get_constant_pointer(x), y)
+            (self.profile.get_constant_object(x, target="Function"), y)
             for x, y in self.arg_lookuptable.items())
 
     def get_module_sections(self, module):
@@ -73,7 +73,10 @@ class Lsmod(common.LinuxPlugin):
 
     def get_module_parameters(self, module):
         for kernel_param in module.kp:
-            getter_function = kernel_param.getter
+            getter_function = self.profile.Function(
+                offset=kernel_param.getter_addr,
+                vm=self.kernel_address_space)
+
             lookup = self.arg_lookuptable.get(getter_function)
             if lookup:
                 type, args = lookup
@@ -82,17 +85,27 @@ class Lsmod(common.LinuxPlugin):
                 value = kernel_param.u1.arg.dereference_as(
                     target=type, target_args=args)
 
-            elif getter_function == self.profile.get_constant_pointer(
-                "param_get_string"):
+            elif getter_function == self.profile.get_constant_object(
+                "param_get_string", target="Function",
+                vm=self.kernel_address_space):
+
                 value = kernel_param.u1.str.deref()
 
             #It is an array of values.
-            elif getter_function == self.profile.get_constant_pointer(
-                "param_array_get"):
+            elif getter_function == self.profile.get_constant_object(
+                "param_array_get", target="Function",
+                vm=self.kernel_address_space):
+
                 array = kernel_param.u1.arr
-                getter_function = array.getter
+
+                getter_function = self.profile.Function(
+                    offset=array.getter_addr, vm=self.kernel_address_space)
+
+                # Is this a known getter function?
                 lookup = self.arg_lookuptable.get(getter_function)
                 if lookup and array.elemsize:
+
+                    # Decode according to this function.
                     type, args = lookup
                     result = []
                     offset = array.elem.deref().obj_offset

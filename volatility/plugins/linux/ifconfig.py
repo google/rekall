@@ -20,12 +20,13 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+import itertools
 import logging
 
 from volatility.plugins.linux import common
 
 
-class Ifconfig(common.AbstractLinuxCommandPlugin):
+class Ifconfig(common.LinuxPlugin):
     '''Gathers active interfaces.'''
 
     __name = "ifconfig"
@@ -34,67 +35,40 @@ class Ifconfig(common.AbstractLinuxCommandPlugin):
         """A generator over devices.
 
         Yields:
-          a tuple of (network_dev, interface_dev) object.
+          a tuple of (name, ip_addr, mac_addr, promisc).
         """
-        # newer kernels
-        if self.profile.get_constant("net_namespace_list"):
-            return self.get_devs_namespace()
-
-        elif self.profile.get_constant("dev_base"):
-            return self.get_devs_base()
-
-        else:
-            logging.error("Dont know how to ifconfig this kernel.")
-            return []
+        return itertools.chain(self.get_devs_namespace(),
+                               self.get_devs_base())
 
     def get_devs_base(self):
-        net_device_ptr = self.profile.Object(
-            "Pointer",
-            offset=self.profile.get_constant("dev_base"),
-            vm=self.kernel_address_space)
+        net_device = self.profile.get_constant_object(
+            "dev_base", target="net_device", vm=self.kernel_address_space)
 
-        net_device = self.profile.Object(
-            "net_device",
-            offset=net_device_ptr,
-            vm=self.kernel_address_space)
+        for net_dev in net_device.walk_list("next"):
+            yield net_dev
 
-        for net_dev in common.walk_internal_list("net_device", "next", net_device.v(), self.addr_space):
+    def gather_net_dev_info(self, net_dev):
+        mac_addr = net_dev.mac_addr
 
-            in_dev = obj.Object("in_device", offset = net_dev.ip_ptr, vm = self.addr_space)
-
-            yield net_dev, in_dev
+        for dev in net_dev.ip_ptr.ifa_list.walk_list("ifa_next"):
+            yield dev.ifa_label, dev.ifa_address, mac_addr, net_dev.flags
 
     def get_devs_namespace(self):
-        nslist_addr = self.profile.get_constant("net_namespace_list")
-        nethead = self.profile.Object("list_head", offset = nslist_addr,
-                                      vm = self.kernel_address_space)
+        nethead = self.profile.get_constant_object(
+            "net_namespace_list", target="list_head",
+            vm=self.kernel_address_space)
 
-        # walk each network namespace
-        # http://www.linuxquestions.org/questions/linux-kernel-70/accessing-ip-address-from-kernel-ver-2-6-31-13-module-815578/
         for net in nethead.list_of_type("net", "list"):
-            # walk each device in the current namespace
-            for net_dev in net.dev_base_head.list_of_type("net_device", "dev_list"):
-                in_dev = self.profile.Object(
-                    "in_device", offset = net_dev.ip_ptr, vm = self.kernel_address_space)
+            for net_dev in net.dev_base_head.list_of_type("net_device",
+                                                          "dev_list"):
+                yield net_dev
 
-                yield net_dev, in_dev
+    def render(self, renderer):
+        renderer.table_header([("Interface", "interface", "<16"),
+                               ("IpAddress", "ipv4", "<20"),
+                               ("MAC", "mac", "18"),
+                               ("Flags", "flags", "<20")])
 
-    def render(self, outfd):
-        for net_dev, in_dev in self.enumerate_devices():
-            if in_dev.ifa_list:
-                # This is actually an IpAddress field.
-                ip = in_dev.ifa_list.ifa_address.cast("IpAddress")
-            else:
-                # for interfaces w/o an ip address (dummy/bond)
-                ip = "0.0.0.0"
-
-            if self.profile.obj_has_member("net_device", "perm_addr"):
-                hwaddr = net_dev.perm_addr
-            else:
-                hwaddr = net_dev.dev_addr
-
-            mac_addr = ":".join(["%.02x" % x for x in hwaddr][:6])
-
-            outfd.write("{0:8s} {1:16s} {2:32s}\n".format(
-                    net_dev.name, ip, mac_addr))
-
+        for net_dev in self.enumerate_devices():
+            for name, ipv4, mac, flags in self.gather_net_dev_info(net_dev):
+                renderer.table_row(name, ipv4, mac, flags)

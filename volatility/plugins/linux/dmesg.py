@@ -30,12 +30,11 @@ class LinuxDmesg(common.LinuxPlugin):
     __name = "dmesg"
 
     def render(self, renderer):
-        dmesg_ptr = self.profile.get_constant_pointer("log_buf")
-
         if self.profile.has_type("log"):
             # Linux 3.x uses a log struct to keep log messages. In this case the log
             # is a pointer to a variable length array of log messages.
-            dmesg = dmesg_ptr.dereference_as(
+            dmesg = self.profile.get_constant_object(
+                "log_buf",
                 vm=self.kernel_address_space,
                 target="Pointer",
                 target_args=dict(

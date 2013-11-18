@@ -31,10 +31,10 @@ class Banner(common.LinuxPlugin):
     def render(self, renderer):
         renderer.table_header([("Banner", "banner", "<80")])
 
-        banner = self.profile.get_constant_pointer("linux_banner")
+        banner = self.profile.get_constant_object(
+            "linux_banner", target="String", vm=self.kernel_address_space)
 
-        renderer.table_row(banner.dereference_as(
-                "String", vm=self.kernel_address_space))
+        renderer.table_row(banner)
 
 
 class CpuInfo(common.LinuxPlugin):

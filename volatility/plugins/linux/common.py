@@ -325,19 +325,6 @@ def walk_list_head(struct_name, list_member, list_head_ptr, addr_space):
             break
 
 
-def walk_internal_list(struct_name, list_member, list_start, addr_space):
-
-    while 1:
-
-        list_struct = obj.Object(struct_name, vm = addr_space, offset = list_start)
-
-        yield list_struct
-
-        list_start = list_struct.__getattribute__(list_member)
-
-        if not list_start:
-            break
-
 def get_string(addr, addr_space, maxlen = 256):
 
     name = addr_space.read(addr, maxlen)

@@ -59,22 +59,50 @@ linux_overlay = {
 
     'kernel_param': [None, {
             'name' : [None , ['Pointer', dict(target='UnicodeString')]],
-            'getter': lambda x: (x.m("get") or x.ops.get),
+            'getter_addr': lambda x: (x.m("get") or x.ops.get),
             }],
 
     'kparam_array': [None, {
-            'getter': lambda x: (x.m("get") or x.ops.get),
+            'getter_addr': lambda x: (x.m("get") or x.ops.get),
             }],
 
     'super_block' : [None, {
-        's_id'          : [ None , ['UnicodeString', dict(length = 32)]],
+        's_id' : [None , ['UnicodeString', dict(length = 32)]],
         }],
+
     'net_device'  : [None, {
-        'name'          : [ None , ['UnicodeString', dict(length = 16)]],
-        }],
+            # Flags defined in include/linux/if.h
+            'flags': [None, ['Flags', dict(
+                        maskmap={
+                            "IFF_UP":           0x1,  # interface is up
+                            "IFF_BROADCAST":    0x2,  # broadcast address valid
+                            "IFF_DEBUG":        0x4,  # turn on debugging
+                            "IFF_LOOPBACK":     0x8,  # is a loopback net
+                            "IFF_POINTOPOINT": 0x10,  # interface is has p-p link
+                            "IFF_NOTRAILERS":  0x20,  # avoid use of trailers
+                            "IFF_RUNNING":     0x40,  # interface RFC2863 OPER_UP
+                            "IFF_NOARP":       0x80,  # no ARP protocol
+                            "IFF_PROMISC":     0x100, # receive all packets
+                            "IFF_ALLMULTI":    0x200,
+                            }
+                        )]],
+
+            'name' : [None , ['UnicodeString', dict(length = 16)]],
+
+            'mac_addr': lambda x: (x.perm_addr or x.dev_addr).cast("MacAddress"),
+
+            'ip_ptr': [None, ['Pointer', dict(target="in_device")]],
+            }],
+
+    'in_ifaddr': [None, {
+            'ifa_address': [None, ['IpAddress']],
+            'ifa_label': [None, ['String']],
+            }],
+
     'sockaddr_un' : [None, {
         'sun_path'      : [ None , ['UnicodeString', dict(length =108)]],
         }],
+
     'cpuinfo_x86' : [None, {
         'x86_model_id'  : [ None , ['UnicodeString', dict(length = 64)]],
         'x86_vendor_id' : [ None,  ['UnicodeString', dict(length = 16)]],
