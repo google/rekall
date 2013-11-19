@@ -33,6 +33,7 @@ import sys
 
 from volatility import plugin
 from volatility import scan
+from volatility.plugins import core
 from volatility.plugins.windows import common
 
 
@@ -207,30 +208,15 @@ class VADWalk(VADInfo):
                                        vad.End,
                                        vad.Tag)
 
-class VADDump(VADInfo):
+class VADDump(core.DirectoryDumperMixin, VADInfo):
     """Dumps out the vad sections to a file"""
 
     __name = "vaddump"
 
-    def __init__(self, dump_dir=None, verbose=False, **kwargs):
+    def __init__(self, **kwargs):
         """Dump all the memory reserved for a process in its vad tree.
-
-        Args:
-           dump_dir: Directory in which to dump the VAD files
-           verbose: Print verbose progress information
         """
         super(VADDump, self).__init__(**kwargs)
-        if self.session:
-            dump_dir = dump_dir or self.session.dump_dir
-
-        self.dump_dir = dump_dir
-        if self.dump_dir is None:
-            raise plugin.PluginError("Dump directory not specified.")
-
-        if not os.path.isdir(self.dump_dir):
-            debug.error(self.dump_dir + " is not a directory")
-
-        self.verbose = verbose
 
     def render(self, renderer):
         for task in self.filter_processes():
@@ -264,32 +250,6 @@ class VADDump(VADInfo):
                 with open(path, 'wb') as fd:
                     self.session.report_progress("Dumping %s" % filename)
                     self.CopyToFile(task_space, start, end + 1, fd)
-
-    def CopyToFile(self, addrspace, start, end, outfd):
-        """Copy a part of the address space to the output file.
-
-        This utility function allows the writing of sparse files correctly. We
-        pass over the address space, automatically skipping regions which are
-        not valid. For file systems which support sparse files (e.g. in Linux),
-        no additional disk space will be used for unmapped regions.
-
-        If a region has no mapped pages, the resulting file will be of 0 bytes
-        long.
-        """
-        BUFFSIZE = 1024 * 1024
-
-        for offset, length in addrspace.get_address_ranges(start, end):
-            outfd.seek(offset - start)
-            i = offset
-
-            # Now copy the region in fixed size buffers.
-            while i < offset + length:
-                to_read = min(BUFFSIZE, length)
-
-                data = addrspace.zread(i, to_read)
-                outfd.write(data)
-
-                i += to_read
 
 
 class VAD(common.WinProcessFilter):

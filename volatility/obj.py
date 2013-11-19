@@ -1021,13 +1021,20 @@ class CType(BaseObject):
           list_member: The member name which points to the next item in the
           list.
         """
-        while True:
-            if include_current:
-                yield self
+        if include_current:
+            yield self
 
-            next_item = getattr(self, list_member).deref()
-            if not next_item:
+        seen = set()
+        seen.add(self.obj_offset)
+
+        item = self
+        while True:
+            item = item.m(list_member).deref()
+            if not item or item.obj_offset in seen:
                 break
+
+            seen.add(item.obj_offset)
+            yield item
 
 
 ## Profiles are the interface for creating/interpreting

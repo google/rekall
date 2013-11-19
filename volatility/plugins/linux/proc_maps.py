@@ -8,11 +8,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
 @author:       Andrew Case
@@ -20,79 +20,89 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+import os
 
-import volatility.obj as obj
-import linux_common
-import linux_task_list_ps as ltps
-import linux_flags as flags
+from volatility.plugins import core
+from volatility.plugins.linux import common
 
-mn = linux_common.mask_number
 
-class linux_proc_maps(ltps.linux_task_list_ps):
+class ProcMaps_maps(common.LinProcessFilter):
+    """Gathers process maps for linux."""
 
-    ''' gathers process maps for linux '''
+    __name = "maps"
 
-    MINORBITS = 20
-    MINORMASK = ((1 << MINORBITS) - 1)
+    def render(self, renderer):
+        renderer.table_header([("Pid", "pid", "8"),
+                               ("Start", "start", "[addrpad]"),
+                               ("End",   "end", "[addrpad]"),
+                               ("Flags", "flags", "6"),
+                               ("Pgoff", "pgoff", "[addrpad]"),
+                               ("Major", "major", "6"),
+                               ("Minor", "minor", "6"),
+                               ("Inode", "inode", "13"),
+                               ("File Path", "file_path", "80"),
+                               ])
 
-    def calculate(self):
-        tasks = ltps.linux_task_list_ps.calculate(self)
+        for task in self.filter_processes():
+            if not task.mm:
+                continue
 
-        for task in tasks:
-            if task.mm:
-                for vinfo in self.get_vma_info(task):
-                    yield vinfo
-
-    def get_vma_info(self, task):
-
-        for vma in linux_common.walk_internal_list("vm_area_struct", "vm_next", task.mm.mmap, self.addr_space):
-            yield task, vma
-
-    def render_text(self, outfd, data):
-        for task, vma in data:
-
-            mm = task.mm
-
-            if vma.vm_file:
-                inode = vma.vm_file.get_dentry().d_inode
-                sb = obj.Object("super_block", offset = inode.i_sb, vm = self.addr_space)
-                dev = sb.s_dev
-                ino = inode.i_ino
-                pgoff = vma.vm_pgoff << 12 #fixme 64bit 
-                fname = linux_common.get_path(task, vma.vm_file, self.addr_space)
-            else:
-                (dev, ino, pgoff) = [0] * 3
-
-                if vma.vm_start <= mm.start_brk and vma.vm_end >= mm.brk:
-                    fname = "[heap]"
-
-                elif vma.vm_start <= mm.start_stack and vma.vm_end >= mm.start_stack:
-                    fname = "[stack]"
-
+            for vma in task.mm.mmap.walk_list("vm_next"):
+                if vma.vm_file:
+                    inode = vma.vm_file.dentry.d_inode
+                    major, minor = inode.i_sb.major, inode.i_sb.minor
+                    ino = inode.i_ino
+                    pgoff = vma.vm_pgoff << 12
+                    fname = common.get_path(task, vma.vm_file)
                 else:
-                    fname = ""
+                    (major, minor, ino, pgoff) = [0] * 4
 
-            outfd.write("{0:#8x}-{1:#8x} {2:3} {3:10d} {4:#2d}:{5:#2d} {6:#12d} {7}\n".format(
-                    mn(vma.vm_start), mn(vma.vm_end), self.format_perms(vma.vm_flags),
-                    pgoff, self.MAJOR(dev), self.MINOR(dev), ino, fname))
+                    if (vma.vm_start <= task.mm.start_brk and
+                        vma.vm_end >= task.mm.brk):
+                        fname = "[heap]"
+                    elif (vma.vm_start <= task.mm.start_stack and
+                          vma.vm_end >= task.mm.start_stack):
+                        fname = "[stack]"
+                    else:
+                        fname = ""
+
+                renderer.table_row(task.pid,
+                                   vma.vm_start,
+                                   vma.vm_end,
+                                   vma.vm_flags,
+                                   pgoff,
+                                   major,
+                                   minor,
+                                   ino,
+                                   fname)
 
 
-    def format_perms(self, vma_flags):
+class LinVadDump(core.DirectoryDumperMixin, common.LinProcessFilter):
+    """Dump the VMA memory for a process."""
 
-        ret = ""
-        check = [flags.VM_READ, flags.VM_WRITE, flags.VM_EXEC]
-        perms = "rwx"
+    __name = "vaddump"
 
-        for idx in xrange(0, len(check)):
-            if vma_flags & check[idx]:
-                ret = ret + perms[idx]
-            else:
-                ret = ret + "-"
-        return ret
+    def render(self, renderer):
+        for task in self.filter_processes():
+            if not task.mm:
+                continue
 
+            renderer.format("Pid: {0:6}\n", task.pid)
 
-    def MAJOR(self, num):
-        return num >> self.MINORBITS
+            # Get the task and all process specific information
+            task_space = task.get_process_address_space()
+            name = task.comm
+            offset = task.obj_offset
 
-    def MINOR(self, num):
-        return num & self.MINORMASK
+            for vma in task.mm.mmap.walk_list("vm_next"):
+                if not vma.vm_file:
+                    continue
+
+                filename = "{0}.{1:x}.{2:08x}-{3:08x}.dmp".format(
+                    name, task.pid, vma.vm_start, vma.vm_end)
+
+                renderer.format(u"Writing {0}, pid {1} to {2}\n",
+                                task.comm, task.pid, filename)
+
+                with open(os.path.join(self.dump_dir, filename), 'wb') as fd:
+                    self.CopyToFile(task_space, vma.vm_start, vma.vm_end, fd)

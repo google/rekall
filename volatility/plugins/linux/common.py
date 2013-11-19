@@ -22,11 +22,10 @@
 """
 import re
 
-import volatility.utils as utils
-import volatility.obj as obj
-
 from volatility import args
+from volatility import obj
 from volatility import plugin
+from volatility import utils
 
 from volatility.plugins import core
 
@@ -227,7 +226,7 @@ class LinProcessFilter(LinuxPlugin):
 class HeapScannerMixIn(object):
     """A mixin for converting a scanner into a heap only scanner."""
     def scan(self, **kwargs):
-        for vma in self.task.mm.mmap:
+        for vma in self.task.mm.mmap.walk_list("vm_next"):
             # Only use the vmas inside the heap area.
             if (vma.vm_start >= self.task.mm.start_brk or
                 vma.vm_end <= self.task.mm.brk):
@@ -302,131 +301,70 @@ def walk_per_cpu_var(obj_ref, per_var, var_type):
 
         yield i, var
 
-# similar to for_each_process for this usage
-def walk_list_head(struct_name, list_member, list_head_ptr, addr_space):
+def container_of(ptr, type, member):
+    """cast a member of a structure out to the containing structure.
 
-    list_ptr = list_head_ptr.next
-    offset = offsetof(struct_name, list_member, addr_space.profile)
-
-    # this happens in rare instances where list_heads get pre-initlized
-    # the caller needs to check for not return value
-    # currently only needed by linux_mount when walking mount_hashtable
-    if list_ptr == list_head_ptr or not list_ptr:
-        return
-
-    while 1:
-
-        # return the address of the beginning of the strucutre, similar to list.h in kernel
-        yield obj.Object(struct_name, offset = list_ptr - offset, vm = addr_space)
-
-        list_ptr = list_ptr.next
-
-        if list_ptr == list_head_ptr or not list_ptr:
-            break
+    http://lxr.free-electrons.com/source/include/linux/kernel.h?v=3.7#L677
+    """
+    offset = ptr.obj_offset - ptr.obj_profile.get_obj_offset(type, member)
+    return ptr.obj_profile.Object(type, offset=offset, vm=ptr.obj_vm)
 
 
-def get_string(addr, addr_space, maxlen = 256):
+def real_mount(vfsmnt):
+    """Return the mount container of the vfsmnt object.
 
-    name = addr_space.read(addr, maxlen)
-    ret = ""
-
-    for n in name:
-        if ord(n) == 0:
-            break
-        ret = ret + n
-
-    return ret
+    http://lxr.free-electrons.com/source/fs/mount.h?v=3.7#L53
+    """
+    return container_of(vfsmnt, "mount", "mnt")
 
 
-def format_path(path_list):
+def prepend_path(path, root):
+    """Return the path of a dentry.
 
-    path = '/'.join(path_list)
+    http://lxr.free-electrons.com/source/fs/dcache.c?v=3.7#L2576
+    """
+    dentry = path.dentry
+    vfsmnt = path.mnt
+    mnt = real_mount(vfsmnt)
 
-    return path
+    path_components = []
 
-def IS_ROOT(dentry):
-
-    return dentry == dentry.d_parent
-
-# based on __d_path
-# TODO: (deleted) support
-def do_get_path(rdentry, rmnt, dentry, vfsmnt, addr_space):
-
-    ret_path = []
-
-    inode = dentry.d_inode
+    # Check for deleted dentry.
+    if dentry.d_flags.DCACHE_UNHASHED and not dentry.is_root_dentry:
+        return " (deleted) "
 
     while 1:
-
-        dname = get_string(dentry.d_name.name, addr_space)
-
-        if dname != '/':
-            ret_path.append(dname)
-
-        if dentry == rdentry and vfsmnt == rmnt:
+        if dentry == root.dentry and vfsmnt == root.mnt:
             break
 
-        if dentry == vfsmnt.mnt_root or IS_ROOT(dentry):
-            if vfsmnt.mnt_parent == vfsmnt:
+        if dentry == vfsmnt.mnt_root or dentry.is_root_dentry:
+            # Global root
+            if mnt.mnt_parent.deref() != mnt:
                 break
-            dentry = vfsmnt.mnt_mountpoint
-            vfsmnt = vfsmnt.mnt_parent
+
+            dentry = mnt.mnt_mountpoint
+            mnt = mnt.mnt_parent
+            vfsmnt = mnt.mnt
+
             continue
 
-        parent = dentry.d_parent
+        component = utils.SmartUnicode(dentry.d_name.name.deref())
+        path_components = [component] + path_components
+        dentry = dentry.d_parent
 
-        dentry = parent
+    result = '/'.join(filter(None, path_components))
 
-    ret_path.reverse()
+    if result.startswith(("socket:", "pipe:")):
+        if result.find("]") == -1:
+            result += ":[{0}]".format(inode.i_ino)
 
-    ret_val = format_path(ret_path)
+    elif result != "inotify":
+        result = '/' + result
 
-    if ret_val.startswith(("socket:", "pipe:")):
-        if ret_val.find("]") == -1:
-            ret_val = ret_val[:-1] + "[{0}]".format(inode.i_ino)
-        else:
-            ret_val = ret_val.replace("/","")
+    return result
 
-    elif ret_val != "inotify":
-        ret_val = '/' + ret_val
-
-    return ret_val
-
-def get_path(task, filp, addr_space):
-
-    rdentry  = task.fs.get_root_dentry()
-    rmnt     = task.fs.get_root_mnt()
-    dentry = filp.get_dentry()
-    vfsmnt = filp.get_vfsmnt()
-
-    return do_get_path(rdentry, rmnt, dentry, vfsmnt, addr_space)
-
-# this is here b/c python is retarded and its inet_ntoa can't handle integers...
-def ip2str(ip):
-
-    a = ip & 0xff
-    b = (ip >> 8) & 0xff
-    c = (ip >> 16) & 0xff
-    d = (ip >> 24) & 0xff
-
-    return "%d.%d.%d.%d" % (a, b, c, d)
-
-def ip62str(in6addr):
-
-    ret     = ""
-    ipbytes = in6addr.in6_u.u6_addr8
-    ctr     = 0
-
-    for byte in ipbytes:
-        ret = ret + "%.02x" % byte
-
-        # make it the : notation
-        if ctr % 2 and ctr != 15:
-            ret = ret + ":"
-
-        ctr = ctr + 1
-
-    return ret
+def get_path(task, filp):
+    return prepend_path(filp.f_path, task.fs.root)
 
 def S_ISDIR(mode):
     return (mode & linux_flags.S_IFMT) == linux_flags.S_IFDIR

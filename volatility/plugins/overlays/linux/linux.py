@@ -25,6 +25,7 @@
 """
 import logging
 import json
+import posixpath
 import re
 import sys
 import zipfile
@@ -32,6 +33,7 @@ import StringIO
 
 from volatility import obj
 from volatility import plugin
+from volatility import utils
 
 from volatility.plugins.overlays import basic
 from volatility.plugins.overlays.linux import dwarfdump
@@ -68,6 +70,8 @@ linux_overlay = {
 
     'super_block' : [None, {
         's_id' : [None , ['UnicodeString', dict(length = 32)]],
+        'major': lambda x: x.s_dev >> 20,
+        'minor': lambda x: x.s_dev & ((1 << 20) - 1),
         }],
 
     'net_device'  : [None, {
@@ -138,26 +142,87 @@ linux_overlay = {
                             start_bit=0, end_bit=3),
                         }]],
             }],
+
+    "file": [None, {
+            "dentry": lambda x: x.m("f_dentry") or x.f_path.dentry,
+            "vfsmnt": lambda x: x.m("f_vfsmnt") or x.f_path.mnt,
+            }],
+
+    'vm_area_struct' : [ None, {
+            'vm_flags' : [None, ['PermissionFlags', dict(
+                        bitmap={
+                            'r': 0,
+                            'w': 1,
+                            'x': 2
+                            }
+                        )]],
+            }],
+    'fs_struct': [None, {
+            # Support both before and after 2.6.26.
+            'root_dentry': lambda x: x.root if x.m("rootmnt") else x.root.dentry,
+            'root_mnt': lambda x: x.m("rootmnt") or x.root.mnt,
+            }],
+
+    'dentry': [None, {
+            'd_flags': [None, ['Flags', dict(
+                        maskmap={
+                            # /* autofs: "under construction" */
+                            "DCACHE_AUTOFS_PENDING": 0x0001,
+                            #     /* this dentry has been "silly renamed" and
+                            #     has to be deleted on the last dput() */
+                            "DCACHE_NFSFS_RENAMED":  0x0002,
+                            "DCACHE_DISCONNECTED":  0x0004,
+                            #  /* Recently used, don't discard. */
+                            "DCACHE_REFERENCED": 0x0008,
+                            "DCACHE_UNHASHED": 0x0010,
+                            #  /* Parent inode is watched by inotify */
+                            "DCACHE_INOTIFY_PARENT_WATCHED": 0x0020,
+                            #  /* Parent inode is watched by some fsnotify
+                            #  listener */
+                            "DCACHE_FSNOTIFY_PARENT_WATCHED":  0x0080,
+                            },
+                        target="unsigned int",
+                        )]],
+            'is_root_dentry': lambda x: x == x.d_parent.deref(),
+            }],
+
+    'qstr': [None, {
+            'name': [None, ['Pointer', dict(
+                        target='UnicodeString',
+                        target_args=dict(
+                            length=lambda x: x.u1.u1.len,
+                            )
+                        )]],
+            }],
     }
 
 
-# really 'file' but don't want to mess with python's version
-class linux_file(obj.CType):
+class vfsmount(obj.CType):
 
-    def get_dentry(self):
-        if hasattr(self, "f_dentry"):
-            ret = self.f_dentry
+    def _get_real_mnt(self):
+
+        offset = self.obj_vm.profile.get_obj_offset("mount", "mnt")
+        mnt = obj.Object("mount", offset = self.obj_offset - offset, vm = self.obj_vm)
+        return mnt
+
+    @property
+    def mnt_parent(self):
+
+        ret = self.members.get("mnt_parent")
+        if ret is None:
+            ret = self._get_real_mnt().mnt_parent
         else:
-            ret = self.f_path.dentry
-
+            ret = self.m("mnt_parent")
         return ret
 
-    def get_vfsmnt(self):
-        if hasattr(self, "f_vfsmnt"):
-            ret = self.f_vfsmnt
-        else:
-            ret = self.f_path.mnt
+    @property
+    def mnt_mountpoint(self):
 
+        ret = self.members.get("mnt_mountpoint")
+        if ret is None:
+            ret = self._get_real_mnt().mnt_mountpoint
+        else:
+            ret = self.m("mnt_mountpoint")
         return ret
 
 
@@ -185,6 +250,37 @@ class files_struct(obj.CType):
             ret = self.max_fds
 
         return ret
+
+
+class dentry(obj.CType):
+    @property
+    def path(self):
+        dentry = self
+
+        path_components = []
+
+        # Check for deleted dentry.
+        if self.d_flags.DCACHE_UNHASHED and not self.is_root_dentry:
+            return " (deleted) "
+
+        while len(path_components) < 50:
+            if dentry.is_root_dentry:
+                break
+
+            component = utils.SmartUnicode(dentry.d_name.name.deref())
+            path_components = [component] + path_components
+            dentry = dentry.d_parent
+
+        result = '/'.join(filter(None, path_components))
+
+        if result.startswith(("socket:", "pipe:")):
+            if result.find("]") == -1:
+                result += ":[{0}]".format(self.d_inode.i_ino)
+
+        elif result != "inotify":
+            result = '/' + result
+
+        return result
 
 
 class task_struct(obj.CType):
@@ -227,27 +323,6 @@ class task_struct(obj.CType):
         process_as.name = "Process {0}".format(self.pid)
 
         return process_as
-
-
-class linux_fs_struct(obj.CType):
-
-    def get_root_dentry(self):
-        # < 2.6.26
-        if hasattr(self, "rootmnt"):
-            ret = self.root
-        else:
-            ret = self.root.dentry
-
-        return ret
-
-    def get_root_mnt(self):
-        # < 2.6.26
-        if hasattr(self, "rootmnt"):
-            ret = self.rootmnt
-        else:
-            ret = self.root.mnt
-
-        return ret
 
 
 class timespec(obj.CType):
@@ -329,13 +404,32 @@ class timespec(obj.CType):
         return self.obj_profile.UnixTimeStamp(value=secs)
 
 
-class vm_area_struct(obj.CType):
-    def __iter__(self):
-        mmap = self
-        while mmap:
-            yield mmap
+class PermissionFlags(basic.Flags):
+    """A Flags object for printing vm_area_struct permissions
+    in a format like rwx or r-x"""
 
-            mmap = mmap.vm_next.deref()
+    def __str__(self):
+        result = []
+        value = self.v()
+        for k, v in sorted(self.maskmap.items()):
+            if value & v:
+                result.append(k)
+            else:
+                result.append("-")
+
+        return ''.join(result)
+
+    def is_flag(self, flag):
+        return self.v() & (1 << self.bitmap[flag])
+
+    def is_executable(self):
+        return self.is_flag('x')
+
+    def is_readable(self):
+        return self.is_flag('r')
+
+    def is_writable(self):
+        return self.is_flag('w')
 
 
 class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
@@ -352,10 +446,9 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
         super(Linux32, self).__init__(**kwargs)
         self.profile_file = profile_file
         self.add_classes(dict(
-                file=linux_file, list_head=list_head,
+                list_head=list_head, dentry=dentry,
                 files_struct=files_struct, task_struct=task_struct,
-                fs_struct=linux_fs_struct, timespec=timespec,
-                vm_area_struct=vm_area_struct,
+                timespec=timespec, PermissionFlags=PermissionFlags,
                 ))
         self.add_overlay(linux_overlay)
         self.add_constants(default_text_encoding="utf8")

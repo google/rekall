@@ -439,6 +439,32 @@ class DirectoryDumperMixin(object):
         if dump_dir and not os.path.isdir(dump_dir):
             raise plugin.PluginError("%s is not a directory" % self.dump_dir)
 
+    def CopyToFile(self, addrspace, start, end, outfd):
+        """Copy a part of the address space to the output file.
+
+        This utility function allows the writing of sparse files correctly. We
+        pass over the address space, automatically skipping regions which are
+        not valid. For file systems which support sparse files (e.g. in Linux),
+        no additional disk space will be used for unmapped regions.
+
+        If a region has no mapped pages, the resulting file will be of 0 bytes
+        long.
+        """
+        BUFFSIZE = 1024 * 1024
+
+        for offset, length in addrspace.get_address_ranges(start, end):
+            outfd.seek(offset - start)
+            i = offset
+
+            # Now copy the region in fixed size buffers.
+            while i < offset + length:
+                to_read = min(BUFFSIZE, length)
+
+                data = addrspace.zread(i, to_read)
+                outfd.write(data)
+
+                i += to_read
+
 
 class Null(plugin.Command):
     """This plugin does absolutely nothing.

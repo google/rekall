@@ -21,6 +21,7 @@
 @organization: Digital Forensics Solutions
 """
 
+from volatility.plugins import core
 from volatility.plugins.linux import common
 
 
@@ -112,3 +113,30 @@ class LinMemMap(common.LinProcessFilter):
             for virtual_address, length in ranges:
                 phys_address = task_space.vtop(virtual_address)
                 renderer.table_row(virtual_address, phys_address, length)
+
+
+class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
+    """Dump the addressable memory for a process."""
+
+    __name = "memdump"
+
+    def dump_process(self, task, fd):
+        task_as = task.get_process_address_space()
+
+        for virtual_address, length in task_as.get_available_addresses():
+            phys_address = task_as.vtop(virtual_address)
+            fd.write(self.physical_address_space.read(phys_address, length))
+
+    def render(self, renderer):
+        if self.dump_dir is None:
+            raise plugin.PluginError("Dump directory not specified.")
+
+        for task in self.filter_processes():
+            outfd.write("*" * 72 + "\n")
+            filename = u"{0}_{1:d}.dmp".format(task.comm, task.pid)
+
+            renderer.write(u"Writing {0} {1:6} to {2}\n".format(
+                    task.comm, task, filename))
+
+            with open(os.path.join(self.dump_dir, filename), 'wb') as fd:
+                self.dump_process(task, fd)
