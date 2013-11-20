@@ -219,7 +219,7 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         return self.hive.Name
 
 
-class _CMHIVE(obj.CType):
+class _CMHIVE(obj.Struct):
     @property
     def Name(self):
         name = "[no name]"
@@ -232,7 +232,7 @@ class _CMHIVE(obj.CType):
         return u"{0} @ {1:#010x}".format(name, self.obj_offset)
 
 
-class _CM_KEY_NODE(obj.CType):
+class _CM_KEY_NODE(obj.Struct):
     """A registry key."""
     NK_SIG = "nk"
     VK_SIG = "vk"
@@ -308,7 +308,7 @@ class _CM_KEY_NODE(obj.CType):
 
 
 
-class _CM_KEY_INDEX(obj.CType):
+class _CM_KEY_INDEX(obj.Struct):
     """This is a list of pointers to key nodes.
 
     This work different depending on the Signature.
@@ -349,7 +349,7 @@ class _CM_KEY_INDEX(obj.CType):
                     yield nk
 
 
-class _CM_KEY_VALUE(obj.CType):
+class _CM_KEY_VALUE(obj.Struct):
     """A registry value."""
 
     value_formats = {"REG_DWORD": "<L",

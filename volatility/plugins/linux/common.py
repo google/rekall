@@ -137,7 +137,7 @@ class LinProcessFilter(LinuxPlugin):
 
         if isinstance(task, (int, long)):
             task = [task]
-        elif isinstance(task, obj.CType):
+        elif isinstance(task, obj.Struct):
             task = [task.obj_offset]
         elif task is None:
             task = []

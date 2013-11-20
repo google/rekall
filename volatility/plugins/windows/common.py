@@ -409,7 +409,7 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
 
         if isinstance(eprocess, (int, long)):
             eprocess = [eprocess]
-        elif isinstance(eprocess, obj.CType):
+        elif isinstance(eprocess, obj.Struct):
             eprocess = [eprocess.obj_offset]
         elif eprocess is None:
             eprocess = []

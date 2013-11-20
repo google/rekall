@@ -662,7 +662,7 @@ pe_vtypes = {
     }
 
 
-class _IMAGE_EXPORT_DIRECTORY(obj.CType):
+class _IMAGE_EXPORT_DIRECTORY(obj.Struct):
     """Class for PE export directory"""
 
     def valid(self, nt_header):
@@ -801,7 +801,7 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
                 yield ordinal, func_rva, obj.NoneObject("Name RVA not accessible")
 
 
-class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
+class _IMAGE_IMPORT_DESCRIPTOR(obj.Struct):
     """Handles IID entries for imported functions"""
 
     def valid(self, nt_header):
@@ -896,7 +896,7 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
         return data.count(chr(0)) == len(data)
 
 
-class _LDR_DATA_TABLE_ENTRY(obj.CType):
+class _LDR_DATA_TABLE_ENTRY(obj.Struct):
     """
     Class for PE file / modules
 
@@ -1008,7 +1008,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
                 yield o, f, n
 
 
-class _IMAGE_DOS_HEADER(obj.CType):
+class _IMAGE_DOS_HEADER(obj.Struct):
     """DOS header"""
 
     #Put checks in constructor.
@@ -1032,7 +1032,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
         return nt_header
 
 
-class _IMAGE_NT_HEADERS(obj.CType):
+class _IMAGE_NT_HEADERS(obj.Struct):
     """PE header"""
 
     @property
@@ -1044,7 +1044,7 @@ class _IMAGE_NT_HEADERS(obj.CType):
         return optional_header
 
 
-class _IMAGE_SECTION_HEADER(obj.CType):
+class _IMAGE_SECTION_HEADER(obj.Struct):
     """PE section"""
 
     def sanity_check_section(self):
@@ -1064,7 +1064,7 @@ class _IMAGE_SECTION_HEADER(obj.CType):
                              'size.'.format(self.SizeOfRawData))
 
 
-class _IMAGE_DATA_DIRECTORY(obj.CType):
+class _IMAGE_DATA_DIRECTORY(obj.Struct):
     """A data directory."""
 
     def dereference(self):
@@ -1084,7 +1084,7 @@ class _IMAGE_DATA_DIRECTORY(obj.CType):
         return result.dereference()
 
 
-class _IMAGE_RESOURCE_DIRECTORY(obj.CType):
+class _IMAGE_RESOURCE_DIRECTORY(obj.Struct):
     """Represents a node in the resource tree."""
 
     def __iter__(self):
@@ -1109,7 +1109,7 @@ class _IMAGE_RESOURCE_DIRECTORY(obj.CType):
                 yield entry.OffsetToData.dereference()
 
 
-class _IMAGE_RESOURCE_DIRECTORY_ENTRY(obj.CType):
+class _IMAGE_RESOURCE_DIRECTORY_ENTRY(obj.Struct):
 
     @property
     def Name(self):
@@ -1141,7 +1141,7 @@ class ThunkArray(SentinalArray):
         super(ThunkArray, self).__init__(target=target, parent=parent,
                                          **kwargs)
 
-class VS_VERSIONINFO(obj.CType):
+class VS_VERSIONINFO(obj.Struct):
 
     @property
     def Children(self):

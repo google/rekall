@@ -197,7 +197,7 @@ linux_overlay = {
     }
 
 
-class vfsmount(obj.CType):
+class vfsmount(obj.Struct):
 
     def _get_real_mnt(self):
 
@@ -226,13 +226,13 @@ class vfsmount(obj.CType):
         return ret
 
 
-class list_head(basic.ListMixIn, obj.CType):
+class list_head(basic.ListMixIn, obj.Struct):
     """A list_head makes a doubly linked list."""
     _forward = "next"
     _backward = "prev"
 
 
-class files_struct(obj.CType):
+class files_struct(obj.Struct):
 
     def get_fds(self):
         if hasattr(self, "fdt"):
@@ -252,7 +252,7 @@ class files_struct(obj.CType):
         return ret
 
 
-class dentry(obj.CType):
+class dentry(obj.Struct):
     @property
     def path(self):
         dentry = self
@@ -283,7 +283,7 @@ class dentry(obj.CType):
         return result
 
 
-class task_struct(obj.CType):
+class task_struct(obj.Struct):
 
     @property
     def uid(self):
@@ -325,7 +325,7 @@ class task_struct(obj.CType):
         return process_as
 
 
-class timespec(obj.CType):
+class timespec(obj.Struct):
     # The following calculate the number of ns each tick is.
     # http://lxr.free-electrons.com/source/include/linux/jiffies.h?v=2.6.32#L12
 

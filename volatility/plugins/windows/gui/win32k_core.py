@@ -27,7 +27,7 @@ from volatility.plugins.overlays.windows import windows
 # object classes
 #--------------------------------------------------------------------------------
 
-class _MM_SESSION_SPACE(obj.CType):
+class _MM_SESSION_SPACE(obj.Struct):
     """A class for session spaces"""
 
     def processes(self):
@@ -144,13 +144,13 @@ class _MM_SESSION_SPACE(obj.CType):
 
         return obj.NoneObject("Cannot find win32k!gSharedInfo")
 
-class tagSHAREDINFO(obj.CType):
+class tagSHAREDINFO(obj.Struct):
     """A class for shared info blocks"""
 
     def is_valid(self):
         """The sanity checks for tagSHAREDINFO structures"""
 
-        if not obj.CType.is_valid(self):
+        if not super(tagSHAREDINFO, self).is_valid():
             return False
 
         # The kernel's version of tagSHAREDINFO should always have
@@ -214,7 +214,7 @@ class tagSHAREDINFO(obj.CType):
             if not b:
                 yield h
 
-class _HANDLEENTRY(obj.CType):
+class _HANDLEENTRY(obj.Struct):
     """A for USER handle entries"""
 
     def reference_object(self):
@@ -281,7 +281,7 @@ class _HANDLEENTRY(obj.CType):
                         ppi.Process.dereference()
         return obj.NoneObject("Cannot find process")
 
-class tagWINDOWSTATION(obj.CType):
+class tagWINDOWSTATION(obj.Struct):
     """A class for Windowstation objects"""
 
     def is_valid(self):
@@ -344,7 +344,7 @@ class tagDESKTOP(tagWINDOWSTATION):
     """A class for Desktop objects"""
 
     def is_valid(self):
-        return (obj.CType.is_valid(self) and self.dwSessionId < 0xFF)
+        return (obj.Struct.is_valid(self) and self.dwSessionId < 0xFF)
 
     @property
     def WindowStation(self):
@@ -450,7 +450,7 @@ class tagDESKTOP(tagWINDOWSTATION):
             yield nextdesk
             nextdesk = nextdesk.rpdeskNext.dereference()
 
-class tagWND(obj.CType):
+class tagWND(obj.Struct):
     """A class for window structures"""
 
     @property
@@ -500,14 +500,14 @@ class tagWND(obj.CType):
         """The extended style flags as a string"""
         return self._get_flags(self.m('ExStyle').v(), constants.WINDOW_STYLES_EX)
 
-class tagRECT(obj.CType):
+class tagRECT(obj.Struct):
     """A class for window rects"""
 
     def get_tup(self):
         """Return a tuple of the rect's coordinates"""
         return (self.left, self.top, self.right, self.bottom)
 
-class tagCLIPDATA(obj.CType):
+class tagCLIPDATA(obj.Struct):
     """A class for clipboard objects"""
 
     def as_string(self, fmt):
@@ -544,7 +544,7 @@ class tagTHREADINFO(tagDESKTOP):
         """Parameters for the _hooks() function"""
         return (self.fsHooks, self.aphkStart)
 
-class tagHOOK(obj.CType):
+class tagHOOK(obj.Struct):
     """A class for message hooks"""
 
     def traverse(self):
@@ -554,7 +554,7 @@ class tagHOOK(obj.CType):
             yield hook
             hook = hook.phkNext.dereference()
 
-class tagEVENTHOOK(obj.CType):
+class tagEVENTHOOK(obj.Struct):
     """A class for event hooks"""
 
     @property
@@ -568,7 +568,7 @@ class tagEVENTHOOK(obj.CType):
 
         return '|'.join(flags)
 
-class _RTL_ATOM_TABLE(obj.CType):
+class _RTL_ATOM_TABLE(obj.Struct):
     """A class for atom tables"""
 
     def __init__(self, **kwargs):
@@ -611,7 +611,7 @@ class _RTL_ATOM_TABLE(obj.CType):
         return self.atom_cache.get(atom_to_find.v(), None)
 
 
-class _RTL_ATOM_TABLE_ENTRY(obj.CType):
+class _RTL_ATOM_TABLE_ENTRY(obj.Struct):
     """A class for atom table entries"""
 
     @property

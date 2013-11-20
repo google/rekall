@@ -10,11 +10,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 """
@@ -22,7 +22,7 @@
 @license:      GNU General Public License 2.0 or later
 @contact:      jamie.levy@gmail.com
 
-This file provides support for Windows 2003 SP0. 
+This file provides support for Windows 2003 SP0.
 """
 
 #pylint: disable-msg=C0111
@@ -31,7 +31,7 @@ import windows
 import volatility.debug as debug #pylint: disable-msg=W0611
 import volatility.obj as obj
 
-class _MM_AVL_TABLE(obj.CType):
+class _MM_AVL_TABLE(obj.Struct):
     def traverse(self):
         """
         This is a hack to get around the fact that _MM_AVL_TABLE.BalancedRoot (an _MMADDRESS_NODE) doesn't
@@ -41,14 +41,14 @@ class _MM_AVL_TABLE(obj.CType):
         due to the fact that there is not a valid VAD tag at self.BalancedRoot.obj_offset - 4 (as _MMVAD expects).
 
         We want to start traversing from self.BalancedRoot.RightChild. The self.BalancedRoot.LeftChild member
-        will always be 0. However, we can't call get_obj_offset("_MMADDRESS_NODE", "RightChild") or it will 
+        will always be 0. However, we can't call get_obj_offset("_MMADDRESS_NODE", "RightChild") or it will
         result in a TypeError: __new__() takes exactly 5 non-keyword arguments (4 given). Therefore, we hard-code
-        the offset to the RightChild and treat it as a pointer to the first real _MMADDRESS_NODE. 
+        the offset to the RightChild and treat it as a pointer to the first real _MMADDRESS_NODE.
 
-        Update: hard-coding the offset to RightChild breaks x64 (since the offset is 8 on x86 and 16 on x64). 
-        Thus to fix the vad plugins for x64 we assume that the offset of RightChild in _MMVAD_SHORT is the 
+        Update: hard-coding the offset to RightChild breaks x64 (since the offset is 8 on x86 and 16 on x64).
+        Thus to fix the vad plugins for x64 we assume that the offset of RightChild in _MMVAD_SHORT is the
         same as the offset of RightChild in _MMADDRESS_NODE. We can call get_obj_offset on _MMVAD_SHORT since
-        it isn't in the _MMVAD factory like _MMADDRESS_NODE; and we won't get the above TypeError. 
+        it isn't in the _MMVAD factory like _MMADDRESS_NODE; and we won't get the above TypeError.
         """
         right_child_offset = self.obj_vm.profile.get_obj_offset("_MMVAD_SHORT", "RightChild")
 

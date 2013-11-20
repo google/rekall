@@ -139,7 +139,7 @@ evt_log_types = {
 
 
 
-class _SID(obj.CType):
+class _SID(obj.Struct):
     """A Pretty printing implementation of sids.
 
     Reference: http://www.sekchek.com/downloads/white-papers/windows-about-sids.pdf

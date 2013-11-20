@@ -163,7 +163,7 @@ class _OBJECT_HEADER(win7._OBJECT_HEADER):
         return True
 
 
-class _HANDLE_TABLE(obj.CType):
+class _HANDLE_TABLE(obj.Struct):
     @property
     def HandleCount(self):
         # We dont know how to figure this out yet!
@@ -171,7 +171,7 @@ class _HANDLE_TABLE(obj.CType):
 
 
 
-class _POOL_HEADER(obj.CType):
+class _POOL_HEADER(obj.Struct):
     MAX_PREAMBLE_SIZE = 0xa0
 
     def get_next_object(self, offset, object_name):

@@ -283,7 +283,7 @@ tcpip_vtypes_win7_64 = {
 # object classes
 #--------------------------------------------------------------------------------
 
-class _TCP_LISTENER(obj.CType):
+class _TCP_LISTENER(obj.Struct):
     """Class for objects found in TcpL pools"""
 
     def dual_stack_sockets(self, vm=None):

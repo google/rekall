@@ -19,7 +19,7 @@ import volatility.obj as obj
 
 
 
-class _KDDEBUGGER_DATA64(obj.CType):
+class _KDDEBUGGER_DATA64(obj.Struct):
     """A class for KDBG"""
 
     def is_valid(self):

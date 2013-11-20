@@ -318,7 +318,7 @@ windows_overlay = {
 }
 
 
-class _UNICODE_STRING(obj.CType):
+class _UNICODE_STRING(obj.Struct):
     """Class representing a _UNICODE_STRING
 
     Adds the following behavior:
@@ -350,7 +350,7 @@ class _UNICODE_STRING(obj.CType):
         self.Length = len(string) * 2
 
 
-class _EPROCESS(obj.CType):
+class _EPROCESS(obj.Struct):
     """ An extensive _EPROCESS with bells and whistles """
     @property
     def Peb(self):
@@ -454,7 +454,7 @@ class _EPROCESS(obj.CType):
 
 
 
-class _POOL_HEADER(obj.CType):
+class _POOL_HEADER(obj.Struct):
     """Extension to support retrieving allocations inside the pool."""
 
     def get_rounded_size(self, object_name):
@@ -569,13 +569,14 @@ class _POOL_HEADER(obj.CType):
         return self.PoolType.v() % 2 == 0 and self.PoolType.v() > 0
 
 
-class _TOKEN(obj.CType):
+class _TOKEN(obj.Struct):
     """A class for Tokens"""
 
     def is_valid(self):
         """Override BaseObject.is_valid with some additional
         checks specific to _TOKEN objects."""
-        return obj.CType.is_valid(self) and self.TokenInUse in (0, 1) and self.SessionId < 10
+        return (super(_TOKEN, self).is_valid() and
+                self.TokenInUse in (0, 1) and self.SessionId < 10)
 
     def get_sids(self):
         """Generator for process SID strings"""
@@ -588,7 +589,7 @@ class _TOKEN(obj.CType):
                                       tuple(sid.SubAuthority))
 
 
-class _ETHREAD(obj.CType):
+class _ETHREAD(obj.Struct):
     """ A class for threads """
 
     def owning_process(self):
@@ -601,7 +602,7 @@ class _ETHREAD(obj.CType):
         return self.Tcb.ApcState.Process.dereference_as("_EPROCESS")
 
 
-class _HANDLE_TABLE(obj.CType):
+class _HANDLE_TABLE(obj.Struct):
     """ A class for _HANDLE_TABLE.
 
     This used to be a member of _EPROCESS but it was isolated per issue
@@ -710,7 +711,7 @@ class _PSP_CID_TABLE(_HANDLE_TABLE):
         return handle
 
 
-class _OBJECT_HEADER(obj.CType):
+class _OBJECT_HEADER(obj.Struct):
     """A Volatility object to handle Windows object headers.
 
     This object applies only to versions below windows 7.
@@ -777,7 +778,7 @@ class _OBJECT_HEADER(obj.CType):
 
 
 
-class _FILE_OBJECT(obj.CType):
+class _FILE_OBJECT(obj.Struct):
     """Class for file objects"""
 
     @property
@@ -810,7 +811,7 @@ class _FILE_OBJECT(obj.CType):
         return name
 
 
-class _EX_FAST_REF(obj.CType):
+class _EX_FAST_REF(obj.Struct):
     """This type allows instantiating an object from its .Object member."""
 
     def __init__(self, target=None, **kwargs):
@@ -838,7 +839,7 @@ class _EX_FAST_REF(obj.CType):
         return self.dereference().__getattr__(attr)
 
 
-class _CM_KEY_BODY(obj.CType):
+class _CM_KEY_BODY(obj.Struct):
     """Registry key"""
 
     def full_key_name(self):
@@ -851,7 +852,7 @@ class _CM_KEY_BODY(obj.CType):
             kcb = kcb.ParentKcb
         return "\\".join(reversed(output))
 
-class _MMVAD_FLAGS(obj.CType):
+class _MMVAD_FLAGS(obj.Struct):
     """This is for _MMVAD_SHORT.u.VadFlags"""
 
     def __str__(self):
@@ -877,7 +878,7 @@ class _MMSECTION_FLAGS(_MMVAD_FLAGS):
     pass
 
 
-class VadTraverser(obj.CType):
+class VadTraverser(obj.Struct):
     """The windows Vad tree is basically the same in all versions of windows,
     but the exact name of the stucts vary with version. This is the base class
     for all Vad traversor.

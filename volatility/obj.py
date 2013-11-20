@@ -843,19 +843,30 @@ class ListArray(Array):
         return NoneObject("Pos seems to be outside the array maximum_size.")
 
 
-class CType(BaseObject):
-    """ A CType is an object which represents a c struct """
+class Struct(BaseObject):
+    """ A Struct is an object which represents a c struct
+
+    Structs have members at various fixed relative offsets from our own base
+    offset.
+    """
     def __init__(self, members = None, struct_size = 0, **kwargs):
         """ This must be instantiated with a dict of members. The keys
         are the offsets, the values are Curried Object classes that
         will be instantiated when accessed.
+
+        Args:
+           members: A dict of callables to use for retrieving each member. (Key
+             is member name, value is a callable). Normally these are populated
+             by the profile system
+
+           struct_size: The size of this struct if known (Can be None).
         """
-        super(CType, self).__init__(**kwargs)
+        super(Struct, self).__init__(**kwargs)
 
         if not members:
             # Warn rather than raise an error, since some types (_HARDWARE_PTE,
             # for example) are generated without members
-            logging.debug("No members specified for CType %s named %s",
+            logging.debug("No members specified for Struct %s named %s",
                           self.obj_type, self.obj_name)
             members = {}
 
@@ -869,7 +880,7 @@ class CType(BaseObject):
     def __int__(self):
         """Return our offset as an integer.
 
-        This allows us to interchange CTypes and offsets.
+        This allows us to interchange Struct and offsets.
         """
         return self.obj_offset
 
@@ -974,7 +985,7 @@ class CType(BaseObject):
         # be set in the __init__ method.
         if (attr in self.__dict__ or hasattr(self.__class__, attr) or
             not self._initialized):
-            return super(CType, self).__setattr__(attr, value)
+            return super(Struct, self).__setattr__(attr, value)
 
         else:
             member = self.m(attr)
@@ -988,7 +999,7 @@ class CType(BaseObject):
 
     def __dir__(self):
         """This is useful for tab completion in an ipython volshell."""
-        result = self.members.keys() + super(CType, self).__dir__()
+        result = self.members.keys() + super(Struct, self).__dir__()
 
         return result
 
@@ -1113,7 +1124,7 @@ class Profile(object):
                                'Array': Array,
                                'ListArray': ListArray,
                                'NativeType': NativeType,
-                               'CType': CType}
+                               'Struct': Struct}
 
     def flush_cache(self):
         self.types = {}
@@ -1161,6 +1172,8 @@ class Profile(object):
 
     def add_constants(self, **kwargs):
         """Add the kwargs as constants for this profile."""
+        self.flush_cache()
+
         self.constants.update(kwargs)
 
     def add_types(self, abstract_types):
@@ -1221,7 +1234,7 @@ class Profile(object):
                     members[k] = (v[0], self.list_to_type(k, v[1]))
 
             ## Allow the class plugins to override the class constructor here
-            cls = self.object_classes.get(type_name, CType)
+            cls = self.object_classes.get(type_name, Struct)
 
             self.types[type_name] =  Curry(
                 cls, theType=type_name, members=members, struct_size=size)
@@ -1496,7 +1509,7 @@ class Profile(object):
         kwargs.
 
         Args:
-          theType: The name of the CType to instantiate (e.g. _EPROCESS).
+          theType: The name of the Struct to instantiate (e.g. _EPROCESS).
 
           vm: The address space to instantiate the object onto. If not provided
             we use a dummy null padded address space.
@@ -1554,9 +1567,9 @@ class Profile(object):
                                                   context=context,
                                                   **kwargs)
 
-            if isinstance(result, CType):
+            if isinstance(result, Struct):
                 # This should not normally happen.
-                logging.error("Instantiating a CType class without an overlay. "
+                logging.error("Instantiating a Struct class without an overlay. "
                               "Please ensure an overlay is defined.")
 
             return result
@@ -1593,7 +1606,7 @@ class ProfileModification(object):
     Now suppose that ScudetteRegistrySupport introduces an advanced class with
     extra methods:
 
-    class _CM_KEY_INDEX(obj.CType):
+    class _CM_KEY_INDEX(obj.Struct):
        .....
        def SpecialMethod(...):
           ....

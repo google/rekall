@@ -11,11 +11,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
 import re
@@ -106,7 +106,7 @@ ver_types = {
 } ],
 }
 
-class VerStruct(obj.CType):
+class VerStruct(obj.Struct):
     """Generic Version Structure"""
 
     def _determine_key(self, findend = False):
@@ -137,7 +137,7 @@ class VerStruct(obj.CType):
         """Returns the available children"""
         offset = self.offset_pad(self._determine_key(True))
         if self.ValueLength > 0:
-            # Nasty hardcoding unicode (length*2) length in here, 
+            # Nasty hardcoding unicode (length*2) length in here,
             # but what else can we do?
             return self.obj_vm.read(offset, self.ValueLength * 2)
         else:
@@ -161,7 +161,7 @@ class _VS_VERSION_INFO(VerStruct):
         offset = self.offset_pad(self.FileInfo.obj_offset + self.ValueLength)
         return self._recurse_children(offset)
 
-class _VS_FIXEDFILEINFO(obj.CType):
+class _VS_FIXEDFILEINFO(obj.Struct):
     """Fixed (language and codepage independent) information"""
 
     def file_version(self):
@@ -235,7 +235,7 @@ class _VS_FIXEDFILEINFO(obj.CType):
                                                  self.flags(), self.FileOS, self.file_type(), self.FileDate or '')
         return val
 
-class _IMAGE_RESOURCE_DIR_STRING_U(obj.CType):
+class _IMAGE_RESOURCE_DIR_STRING_U(obj.Struct):
     """Handles Unicode-esque strings in IMAGE_RESOURCE_DIRECTORY structures"""
     # This is very similar to a UNICODE object, perhaps they should be merged somehow?
     def v(self):
@@ -249,11 +249,11 @@ class _IMAGE_RESOURCE_DIR_STRING_U(obj.CType):
         except Exception, _e:
             return ''
 
-class _IMAGE_RESOURCE_DIRECTORY(obj.CType):
+class _IMAGE_RESOURCE_DIRECTORY(obj.Struct):
     """Handles Directory Entries"""
     def __init__(self, theType = None, offset = None, vm = None, parent = None, *args, **kwargs):
         self.sectoffset = offset
-        obj.CType.__init__(self, theType = theType, offset = offset, vm = vm, parent = parent, *args, **kwargs)
+        obj.Struct.__init__(self, theType = theType, offset = offset, vm = vm, parent = parent, *args, **kwargs)
 
     def get_entries(self):
         """Gets a tree of the entries from the top level IRD"""
@@ -351,7 +351,7 @@ class VerInfo(procdump.ProcExeDump):
 
     def get_version_info(self, addr_space, offset):
         """Accepts an address space and an executable image offset
-        
+
            Returns a VS_VERSION_INFO object of NoneObject
         """
         if not addr_space.is_valid_address(offset):

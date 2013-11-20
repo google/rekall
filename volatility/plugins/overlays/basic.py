@@ -295,8 +295,8 @@ class ListMixIn(object):
         """Recasts the list entry as a member in a type, and return the type.
 
         Args:
-           type: The name of this CType type.
-           member: The name of the member of this CType.
+           type: The name of this Struct type.
+           member: The name of the member of this Struct.
            address_space: An optional address space to switch during
               deferencing.
         """
@@ -381,7 +381,7 @@ class ListMixIn(object):
         return self.list_of_type(self.obj_parent.obj_type, self.obj_name)
 
 
-class _LIST_ENTRY(ListMixIn, obj.CType):
+class _LIST_ENTRY(ListMixIn, obj.Struct):
     """ Adds iterators for _LIST_ENTRY types """
 
 

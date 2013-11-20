@@ -238,7 +238,7 @@ class RunListAddressSpace(addrspace.PagedReader):
 
 
 
-class MFT_ENTRY(obj.CType):
+class MFT_ENTRY(obj.Struct):
     """An MFT Entry."""
 
     def __init__(self, **kwargs):
@@ -261,7 +261,7 @@ class MFT_ENTRY(obj.CType):
             yield attribute
 
 
-class NTFS_BOOT_SECTOR(obj.CType):
+class NTFS_BOOT_SECTOR(obj.Struct):
     """A class to parse and access the NTFS boot sector."""
 
     # The mft_record_size in bytes
@@ -292,7 +292,7 @@ class NTFS_BOOT_SECTOR(obj.CType):
             raise NTFSParseError("Volume size is 0")
 
 
-class NTFS_ATTRIBUTE(obj.CType):
+class NTFS_ATTRIBUTE(obj.Struct):
     """The NTFS attribute."""
 
     # A quick lookup to decode the runlist. Key is the byte size, value is a
