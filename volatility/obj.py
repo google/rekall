@@ -223,7 +223,8 @@ class BaseObject(object):
              the vtype language definition.
         """
         if kwargs:
-            logging.error("Unknown keyword args {0}".format(kwargs))
+            logging.error("Unknown keyword args {0} for {1}".format(
+                    kwargs, self.__class__.__name__))
 
         self.obj_type = theType
 
@@ -1071,6 +1072,9 @@ class Profile(object):
     # profile.
     applied_modifications = None
 
+    # An empty type descriptor.
+    EMPTY_DESCRIPTOR = [0, {}]
+
     def __init__(self, session=None, **kwargs):
         if kwargs:
             logging.error("Unknown keyword args {0}".format(kwargs))
@@ -1081,6 +1085,9 @@ class Profile(object):
         self.constants = {}
         self.applied_modifications = []
         self.applied_modifications.append(self.__class__.__name__)
+
+        # This is the local cache of compiled expressions.
+        self.flush_cache()
 
         class dummy(object):
             profile = self
@@ -1107,6 +1114,9 @@ class Profile(object):
                                'ListArray': ListArray,
                                'NativeType': NativeType,
                                'CType': CType}
+
+    def flush_cache(self):
+        self.types = {}
 
     def copy(self):
         """Makes a copy of this profile."""
@@ -1136,13 +1146,14 @@ class Profile(object):
 
     def has_type(self, theType):
         # Compile on demand
-        if not self._ready: self.compile()
+        self.compile_type(theType)
 
         return theType in self.object_classes or theType in self.vtypes
 
     def add_classes(self, classes_dict=None, **kwargs):
         """Add the classes in the dict to our object classes mapping."""
-        self._ready = False
+        self.flush_cache()
+
         if classes_dict:
             self.object_classes.update(classes_dict)
 
@@ -1153,7 +1164,8 @@ class Profile(object):
         self.constants.update(kwargs)
 
     def add_types(self, abstract_types):
-        self._ready = False
+        self.flush_cache()
+
         abstract_types = copy.deepcopy(abstract_types)
 
         ## we merge the abstract_types with self.vtypes and then recompile
@@ -1172,27 +1184,47 @@ class Profile(object):
 
                 self.vtypes[k] = original
 
-    def compile(self):
-        """Compiles the vtypes, overlays, object_classes, etc into a types
-        dictionary."""
-        self.types = {}
+    def compile_type(self, type_name):
+        """Compile the specific type and ensure it exists in the type cache."""
+        if type_name in self.types:
+            return
 
-        # Merge all the overlays in order.
+        type_descriptor = copy.deepcopy(
+            self.vtypes.get(type_name, self.EMPTY_DESCRIPTOR))
+
+        # An overlay which specifies a string as a definition is simply an
+        # alias for another struct.
+        if isinstance(type_descriptor, str):
+            type_descriptor = self.vtypes[type_descriptor]
+
         for overlay in self.overlays:
-            self._merge_overlay(overlay)
+            type_overlay = copy.deepcopy(overlay.get(type_name))
+            type_descriptor = self._apply_type_overlay(
+                type_descriptor, type_overlay)
 
-        for name, definition in self.vtypes.items():
-            # An overlay which specifies a string as a definition is simply an
-            # alias for another struct.
-            if isinstance(definition, str):
-                definition = self.vtypes[definition]
+        if type_descriptor == self.EMPTY_DESCRIPTOR:
+            # Mark that this is a pure object - not described by a vtype.
+            self.types[type_name] = None
+        else:
+            # Now type_overlay will have all the overlays applied on it.
+            members = {}
+            size, field_descrition = type_descriptor
 
-            self.types[name] = self._convert_members(
-                name, definition, copy.deepcopy(self.overlayDict))
+            for k, v in field_descrition.items():
+                if callable(v):
+                    members[k] = v
+                elif v[0] == None:
+                    logging.warning(
+                        "{0} has no offset in object {1}. Check that vtypes "
+                        "has a concrete definition for it.".format(k, type_name))
+                else:
+                    members[k] = (v[0], self.list_to_type(k, v[1]))
 
-        # We are ready to go now.
-        self._ready = True
+            ## Allow the class plugins to override the class constructor here
+            cls = self.object_classes.get(type_name, CType)
 
+            self.types[type_name] =  Curry(
+                cls, theType=type_name, members=members, struct_size=size)
 
     def legacy_field_descriptor(self, typeList):
         """Converts the list expression into a target, target_args notation.
@@ -1255,7 +1287,7 @@ class Profile(object):
         ## This is currently the recommended way to specify a type:
         ## e.g. [ 'Pointer', {target="int"}]
         if isinstance(target_args, dict):
-            return Curry(self.Object, theType = target, name = name,
+            return Curry(self.Object, theType=target, name=name,
                          **target_args)
 
         # This is of the deprecated form ['class_name', ['arg1', 'arg2']].
@@ -1304,24 +1336,8 @@ class Profile(object):
 
     def add_overlay(self, overlay):
         """Add an overlay to the current overlay stack."""
-        self._ready = False
+        self.flush_cache()
         self.overlays.append(copy.deepcopy(overlay))
-
-    def _merge_overlay(self, overlay):
-        """Applies an overlay to the profile's vtypes.
-
-        Args:
-          overlay: A dict representing the types to overlay. Keys are struct
-             names, values are overlay descriptors.
-        """
-        for k, v in overlay.items():
-            if k in self.vtypes:
-                self.vtypes[k] = self._apply_type_overlay(self.vtypes[k], v)
-
-            else:
-                # The vtype does not have anything to overlay, we just create a
-                # new definition.
-                self.vtypes[k] = v
 
     def _apply_type_overlay(self, type_member, overlay):
         """Update the overlay with the missing information from type.
@@ -1430,52 +1446,9 @@ class Profile(object):
 
         return field_overlay
 
-    def _convert_members(self, cname, expression, overlay):
-        """ Convert the member named by cname from the c description
-        provided by vtypes into a list of members that can be used
-        for later parsing.
-
-        cname is the name of the struct.
-
-        We expect vtypes[cname] to be a list of the following format
-
-        [ Size of struct, members_dict ]
-
-        members_dict is a dict of all members (fields) in this
-        struct. The key is the member name, and the value is a list of
-        this form:
-
-        [ offset_from_start_of_struct, specification_list ]
-
-        The specification list has the form specified by self.list_to_type()
-        above.
-
-        We return a list of CTypeMember objects.
-        """
-        size, ctype_definition = self._apply_field_overlay(
-            expression, overlay.get(cname))
-
-        members = {}
-        for k, v in ctype_definition.items():
-            if callable(v):
-                members[k] = v
-            elif v[0] == None:
-                logging.warning("{0} has no offset in object {1}. Check that vtypes "
-                                "has a concrete definition for it.".format(k, cname))
-            else:
-                members[k] = (v[0], self.list_to_type(k, v[1]))
-
-        ## Allow the plugins to over ride the class constructor here
-        if cname in self.object_classes:
-            cls = self.object_classes[cname]
-        else:
-            cls = CType
-
-        return Curry(cls, theType=cname, members=members, struct_size=size)
-
     def get_constant(self, constant):
-        # Compile on demand
-        if not self._ready: self.compile()
+        self.compile_type(constant)
+
         result = self.constants.get(constant)
         if result is None:
             result = NoneObject("Constant %s does not exist in profile." % constant)
@@ -1484,6 +1457,8 @@ class Profile(object):
 
     def get_constant_object(self, constant, target=None, target_args={}, **kwargs):
         """A help function for retrieving pointers from the symbol table."""
+        self.compile_type(constant)
+
         kwargs.update(target_args)
 
         result = self.Object(target, profile=self, offset=self.get_constant(constant),
@@ -1493,10 +1468,9 @@ class Profile(object):
 
     def __dir__(self):
         """Support tab completion."""
-        # Compile on demand
-        if not self._ready: self.compile()
-
-        return sorted(self.__dict__.keys()) + sorted(self.types.keys())
+        return sorted(set(self.__dict__.keys() +
+                          self.vtypes.keys() +
+                          self.object_classes.keys()))
 
     def __getattr__(self, attr):
         """Make it easier to instantiate individual members.
@@ -1508,9 +1482,9 @@ class Profile(object):
         Which is easier to type and works well with attribute completion
         (provided by __dir__).
         """
-        if not self._ready: self.compile()
+        self.compile_type(attr)
 
-        if attr not in self.types and attr not in self.object_classes:
+        if self.types[attr] is None and attr not in self.object_classes:
             raise AttributeError("No such vtype")
 
         return Curry(self.Object, attr)
@@ -1537,9 +1511,6 @@ class Profile(object):
 
           parent: The object can maintain a reference to its parent object.
         """
-        # Compile on demand
-        if not self._ready: self.compile()
-
         name = name or theType
 
         if offset is None:
@@ -1564,7 +1535,12 @@ class Profile(object):
 
         kwargs['profile'] = self
 
-        if theType in self.types:
+        # Compile the type on demand.
+        self.compile_type(theType)
+
+        # If the cache contains a None, this member is not represented by a
+        # vtype (it might be a pure object class or a constant).
+        if self.types[theType] is not None:
             result = self.types[theType](offset=offset, vm=vm, name=name,
                                          parent=parent, context=context, **kwargs)
             return result

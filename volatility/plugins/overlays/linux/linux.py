@@ -452,18 +452,23 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
                 ))
         self.add_overlay(linux_overlay)
         self.add_constants(default_text_encoding="utf8")
+        self._ready = False
 
-    def compile(self):
+    def compile_type(self, type_name):
         """Delay checking the profile as much as possible.
 
         This allows the user to set the profile file after setting the profile.
         """
-        profile_file = self.profile_file or self.session.profile_file
-        if not profile_file:
-            raise obj.ProfileError("No profile dwarf pack specified (session.profile_file).")
+        if not self._ready:
+            profile_file = self.profile_file or self.session.profile_file
+            if not profile_file:
+                raise obj.ProfileError(
+                    "No profile dwarf pack specified (session.profile_file).")
 
-        self.parse_profile_file(profile_file)
-        super(Linux32, self).compile()
+            self.parse_profile_file(profile_file)
+            self._ready = True
+
+        super(Linux32, self).compile_type(type_name)
 
     def _match_filename(self, regex, profile_zipfile):
         """A generator of filenames from the zip file which match the regex."""
