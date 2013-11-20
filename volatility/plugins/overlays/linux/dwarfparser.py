@@ -113,11 +113,12 @@ class DW_TAG_pointer_type(DIETag):
             target = self.types[self.type_id]
             target_type = target.VType()
             if not isinstance(target_type, list):
-                target_type = [target_type]
+                target_type = [target_type, None]
 
-            return ['pointer', target_type]
+            return ['Pointer', dict(target=target_type[0],
+                                    target_args=target_type[1])]
 
-        return ['pointer', ['void']]
+        return ['Pointer', dict(target="Void")]
 
 
 class DW_TAG_subroutine_type(DIETag):
@@ -132,10 +133,12 @@ class DW_TAG_array_type(DIETag):
         if 'DW_AT_type' in self.attributes:
             target_type = self.types[self.type_id].VType()
             if not isinstance(target_type, list):
-                target_type = [target_type]
-            return ['array', self.count, target_type]
+                target_type = [target_type, None]
+            return ['Array', dict(target=target_type[0],
+                                  target_args=target_type[1],
+                                  count=self.count)]
 
-        return ['array', self.count, ['void']]
+        return ['Array', dict(count=self.count)]
 
 
 class DW_TAG_subrange_type(DIETag):
