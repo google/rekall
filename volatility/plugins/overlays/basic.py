@@ -774,3 +774,14 @@ class BasicWindowsClasses(obj.Profile):
 
         self.add_constants(default_text_encoding="utf-16-le")
         self.add_overlay(common_overlay)
+
+
+def container_of(ptr, type, member):
+    """cast a member of a structure out to the containing structure.
+
+    http://lxr.free-electrons.com/source/include/linux/kernel.h?v=3.7#L677
+    """
+    offset = ptr.obj_offset - ptr.obj_profile.get_obj_offset(type, member)
+    return ptr.obj_profile.Object(type, offset=offset, vm=ptr.obj_vm)
+
+

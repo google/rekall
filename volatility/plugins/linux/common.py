@@ -301,50 +301,31 @@ def walk_per_cpu_var(obj_ref, per_var, var_type):
 
         yield i, var
 
-def container_of(ptr, type, member):
-    """cast a member of a structure out to the containing structure.
 
-    http://lxr.free-electrons.com/source/include/linux/kernel.h?v=3.7#L677
-    """
-    offset = ptr.obj_offset - ptr.obj_profile.get_obj_offset(type, member)
-    return ptr.obj_profile.Object(type, offset=offset, vm=ptr.obj_vm)
-
-
-def real_mount(vfsmnt):
-    """Return the mount container of the vfsmnt object.
-
-    http://lxr.free-electrons.com/source/fs/mount.h?v=3.7#L53
-    """
-    return container_of(vfsmnt, "mount", "mnt")
-
-
-def prepend_path(path, root):
+def prepend_path(dentry, path_mnt, root_dentry, root_mnt):
     """Return the path of a dentry.
 
     http://lxr.free-electrons.com/source/fs/dcache.c?v=3.7#L2576
     """
-    dentry = path.dentry
-    vfsmnt = path.mnt
-    mnt = real_mount(vfsmnt)
-
     path_components = []
 
     # Check for deleted dentry.
-    if dentry.d_flags.DCACHE_UNHASHED and not dentry.is_root_dentry:
+    if (dentry.d_flags.DCACHE_UNHASHED and not dentry.is_root_dentry and
+        dentry.d_name.len == 0):
         return " (deleted) "
 
     while 1:
-        if dentry == root.dentry and vfsmnt == root.mnt:
+        if dentry == root_dentry and path_mnt == root_mnt:
             break
 
-        if dentry == vfsmnt.mnt_root or dentry.is_root_dentry:
+        if dentry == path_mnt.mnt_root or dentry.is_root_dentry:
             # Global root
-            if mnt.mnt_parent.deref() != mnt:
+            if root_mnt.mnt_parent.deref() != root_mnt:
                 break
 
-            dentry = mnt.mnt_mountpoint
-            mnt = mnt.mnt_parent
-            vfsmnt = mnt.mnt
+            dentry = root_mnt.mnt_mountpoint
+            root_mnt = root_mnt.mnt_parent
+            path_mnt = root_mnt
 
             continue
 
@@ -364,7 +345,20 @@ def prepend_path(path, root):
     return result
 
 def get_path(task, filp):
-    return prepend_path(filp.f_path, task.fs.root)
+    path = filp.f_path
+    path_dentry = path.dentry
+    path_mnt = real_mount(path.mnt)
+
+    root = task.fs.root
+    # On modern kernels the root member is a path struct.
+    if root.deref().obj_type == "path":
+        root_dentry = root.dentry
+        root_mnt = root.mnt
+    else:
+        root_dentry = root
+        root_mnt = task.fs.root_mnt
+
+    return prepend_path(path_dentry, path_mnt, root_dentry, root_mnt)
 
 def S_ISDIR(mode):
     return (mode & linux_flags.S_IFMT) == linux_flags.S_IFDIR

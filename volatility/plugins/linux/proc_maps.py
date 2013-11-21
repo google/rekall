@@ -53,7 +53,7 @@ class ProcMaps_maps(common.LinProcessFilter):
                     major, minor = inode.i_sb.major, inode.i_sb.minor
                     ino = inode.i_ino
                     pgoff = vma.vm_pgoff << 12
-                    fname = common.get_path(task, vma.vm_file)
+                    fname = task.get_path(vma.vm_file)
                 else:
                     (major, minor, ino, pgoff) = [0] * 4
 

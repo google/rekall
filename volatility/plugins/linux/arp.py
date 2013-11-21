@@ -27,12 +27,15 @@ from volatility.plugins.linux import common
 arp_overlay = {
     'neigh_table': [None, {
             # From /include/linux/socket.h
-            'family': [None, ['Enumeration', dict(choices={
+            'family': [None, ['Enumeration', dict(
+                        choices={
                             0: "AF_UNSPEC",
                             1: "AF_UNIX",
                             2: "AF_INET",
                             10: "AF_INET6",
-                            })]]
+                            },
+                        target="unsigned int",
+                        )]]
             }],
     'neighbour': [None, {
             "ha": [None, ["Array", dict(

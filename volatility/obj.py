@@ -536,6 +536,9 @@ class Pointer(NativeType):
         # bits.
         return 0xffffffffffff & self._proxy.v(vm=vm)
 
+    def m(self, attr):
+        return self.deref().m(attr)
+
     def write(self, data):
         return self._proxy.write(data)
 
@@ -639,9 +642,8 @@ class Pointer(NativeType):
         self.obj_offset += self.target_size * other
 
     def __repr__(self):
-        target = self.dereference()
         return "<{0} {3} to [0x{2:08X}] ({1})>".format(
-            target.__class__.__name__, self.obj_name or '', self.v(),
+            self.target, self.obj_name or '', self.v(),
             self.__class__.__name__)
 
     def __getattr__(self, attr):

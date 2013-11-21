@@ -43,6 +43,7 @@
 #include <linux/init.h>
 #include <asm/io.h>
 #include <linux/io.h>
+#include <linux/ioport.h>
 #include <asm/uaccess.h>
 #include <asm/types.h>
 

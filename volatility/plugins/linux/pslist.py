@@ -59,8 +59,8 @@ class LinuxPsList(common.LinProcessFilter):
                                task.comm,
                                task.pid,
                                task.parent.pid,
-                               task.uid,
-                               task.gid,
+                               task.Uid,
+                               task.Gid,
                                dtb, start_time)
 
 

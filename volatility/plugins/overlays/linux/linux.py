@@ -36,11 +36,13 @@ from volatility import plugin
 from volatility import utils
 
 from volatility.plugins.overlays import basic
+from volatility.plugins.overlays.linux import vfs
 from volatility.plugins.overlays.linux import dwarfdump
 
 # Try to use the elftools directly if they are present.
 try:
     from volatility.plugins.overlays.linux import dwarfparser
+
     logging.info("Unable to load the dwarfparser module. Do you have "
                  "elftools installed?")
 except ImportError:
@@ -48,16 +50,20 @@ except ImportError:
 
 linux_overlay = {
     'task_struct' : [None, {
-        'comm'          : [ None , ['UnicodeString', dict(length = 16)]],
-        }],
-    'module'      : [None, {
-        'name'          : [ None , ['UnicodeString', dict(length = 60)]],
-        'kp': [None, ['Pointer', dict(
+            'comm': [None , ['UnicodeString', dict(length = 16)]],
+            'Uid': lambda x: x.m("uid") or x.cred.uid,
+            'Gid': lambda x: x.m("gid") or x.cred.gid,
+            'EUid': lambda x: x.m("euid") or x.cred.euid,
+            }],
+
+    'module' : [None, {
+            'name': [None , ['UnicodeString', dict(length = 60)]],
+            'kp': [None, ['Pointer', dict(
                         target='Array',
                         target_args=dict(
                             target='kernel_param',
                             count=lambda x: x.num_kp))]],
-        }],
+            }],
 
     'kernel_param': [None, {
             'name' : [None , ['Pointer', dict(target='UnicodeString')]],
@@ -157,11 +163,6 @@ linux_overlay = {
                             }
                         )]],
             }],
-    'fs_struct': [None, {
-            # Support both before and after 2.6.26.
-            'root_dentry': lambda x: x.root if x.m("rootmnt") else x.root.dentry,
-            'root_mnt': lambda x: x.m("rootmnt") or x.root.mnt,
-            }],
 
     'dentry': [None, {
             'd_flags': [None, ['Flags', dict(
@@ -183,47 +184,18 @@ linux_overlay = {
                             },
                         target="unsigned int",
                         )]],
-            'is_root_dentry': lambda x: x == x.d_parent.deref(),
+            'is_root': lambda x: x == x.d_parent,
             }],
 
     'qstr': [None, {
             'name': [None, ['Pointer', dict(
                         target='UnicodeString',
                         target_args=dict(
-                            length=lambda x: x.u1.u1.len,
+                            length=lambda x: x.m("len") or x.u1.u1.len,
                             )
                         )]],
             }],
     }
-
-
-class vfsmount(obj.Struct):
-
-    def _get_real_mnt(self):
-
-        offset = self.obj_vm.profile.get_obj_offset("mount", "mnt")
-        mnt = obj.Object("mount", offset = self.obj_offset - offset, vm = self.obj_vm)
-        return mnt
-
-    @property
-    def mnt_parent(self):
-
-        ret = self.members.get("mnt_parent")
-        if ret is None:
-            ret = self._get_real_mnt().mnt_parent
-        else:
-            ret = self.m("mnt_parent")
-        return ret
-
-    @property
-    def mnt_mountpoint(self):
-
-        ret = self.members.get("mnt_mountpoint")
-        if ret is None:
-            ret = self._get_real_mnt().mnt_mountpoint
-        else:
-            ret = self.m("mnt_mountpoint")
-        return ret
 
 
 class list_head(basic.ListMixIn, obj.Struct):
@@ -260,11 +232,11 @@ class dentry(obj.Struct):
         path_components = []
 
         # Check for deleted dentry.
-        if self.d_flags.DCACHE_UNHASHED and not self.is_root_dentry:
+        if self.d_flags.DCACHE_UNHASHED and not self.is_root:
             return " (deleted) "
 
         while len(path_components) < 50:
-            if dentry.is_root_dentry:
+            if dentry.is_root:
                 break
 
             component = utils.SmartUnicode(dentry.d_name.name.deref())
@@ -285,29 +257,22 @@ class dentry(obj.Struct):
 
 class task_struct(obj.Struct):
 
-    @property
-    def uid(self):
-        ret = self.members.get("uid")
-        if ret is None:
-            ret = self.cred.uid
+    def get_path(self, filp):
+        """Resolve the dentry, vfsmount relative to this task's chroot.
 
-        return ret
+        Returns:
+          An absolute path to the global filesystem mount. (I.e. we do not
+          truncate the path at the chroot point as the kernel does).
+        """
+        # The specific implementation depends on the kernel version.
+        try:
+            # Newer kernels have mnt_parent in the mount struct, not in the
+            # vfsmount struct.
+            self.obj_profile.get_obj_offset("vfsmount", "mnt_parent")
 
-    @property
-    def gid(self):
-        ret = self.members.get("gid")
-        if ret is None:
-            ret = self.cred.gid
-
-        return ret
-
-    @property
-    def euid(self):
-        ret = self.members.get("euid")
-        if ret is None:
-            ret = self.cred.euid
-
-        return ret
+            return vfs.Linux26VFS().get_path(self, filp)
+        except KeyError:
+            return vfs.Linux3VFS().get_path(self, filp)
 
     def get_process_address_space(self):
         directory_table_base = self.obj_vm.vtop(self.mm.pgd.v())
@@ -364,7 +329,7 @@ class timespec(obj.Struct):
         total_sleep_time_addr = self.obj_profile.get_constant("total_sleep_time")
         if total_sleep_time_addr:
             return self.obj_profile.timespec(
-                vm=self.obj_vm, offset=total_sleep_time)
+                vm=self.obj_vm, offset=total_sleep_time_addr)
 
         # After Kernel 3.3 wall_to_monotonic is stored inside the timekeeper.
         timekeeper_addr = self.obj_profile.get_constant("timekeeper")
@@ -499,14 +464,6 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
         for dwarf_file in  self._match_filename("\\.dwarf$", profile_zipfile):
             logging.info("Found dwarfdump file %s" % dwarf_file)
             return self.parse_dwarf_from_dump(profile_zipfile.read(dwarf_file))
-
-        # This is dangerous and is currently disabled.
-        if 0:
-            for vtype_file in  self._match_filename("\\.vtype$", profile_zipfile):
-                logging.info("Found vtype file %s" % vtype_file)
-                env = {}
-                exec(profile_zipfile.read(vtype_file), dict(__builtins__=None), env)
-                return env["linux_types"]
 
     def parse_profile_file(self, filename):
         """Parse the profile file into vtypes."""

@@ -59,13 +59,15 @@ class LinuxDmesg(common.LinuxPlugin):
 
         else:
             # Older kernels just use the area as a single unicode string.
-            dmesg = dmesg_ptr.dereference_as(
+            dmesg = self.profile.get_constant_object(
+                "log_buf",
                 vm=self.kernel_address_space,
                 target="Pointer",
                 target_args = dict(
                     target="UnicodeString",
                     target_args=dict(
-                        length=self.profile.get_constant("log_buf_len")
+                        length=int(self.profile.get_constant_object(
+                            "log_buf_len", target="unsigned int"))
                         )
                     )
                 )
