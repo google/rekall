@@ -20,7 +20,7 @@
 
 This file encapsulates various virtual file system operations for supported
 linux versions. The code is basically copied from the kernel sources of the
-relevant sections.
+relevant versions.
 """
 from volatility import utils
 from volatility.plugins.overlays import basic

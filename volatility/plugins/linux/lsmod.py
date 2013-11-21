@@ -20,8 +20,10 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+import bisect
 import logging
 
+from volatility import obj
 from volatility.plugins.linux import common
 
 
@@ -64,6 +66,10 @@ class Lsmod(common.LinuxPlugin):
         self.arg_lookuptable = dict(
             (self.profile.get_constant_object(x, target="Function"), y)
             for x, y in self.arg_lookuptable.items())
+
+        # Cache of modules and their start addresses.
+        self.modlist = None
+        self.mod_lookup = {}
 
     def get_module_sections(self, module):
         num_sects = module.sect_attrs.nsections or 25
@@ -123,10 +129,40 @@ class Lsmod(common.LinuxPlugin):
 
             yield kernel_param.name.deref(), value
 
+    def _make_cache(self):
+        self.mod_lookup = {}
+        for module in self.get_module_list():
+            self.mod_lookup[int(module.module_core.deref())] = module
+
+        # The start addresses in sorted order.
+        self.modlist = sorted(self.mod_lookup.keys())
+
+    def find_module(self, addr):
+        """Returns the module which contains this address.
+
+        If the address does not exist in any module, returns a NoneObject.
+        """
+        if self.modlist is None:
+            self._make_cache()
+
+        addr = int(addr)
+        pos = bisect.bisect_right(self.modlist, addr) - 1
+        if pos == -1:
+            return obj.NoneObject("Unknown address")
+
+        # Get the module.
+        module = self.mod_lookup[self.modlist[pos]]
+        start = int(module.module_core.deref())
+
+        if (addr >= start and
+            addr < start + module.core_size):
+            return module
+
+        return obj.NoneObject("Unknown address")
+
     def get_module_list(self):
-        modules = self.profile.Object(
-            "list_head", offset = self.profile.get_constant("modules"),
-            vm=self.kernel_address_space)
+        modules = self.profile.get_constant_object(
+            "modules", target="list_head", vm=self.kernel_address_space)
 
         # walk the modules list
         for module in modules.list_of_type("module", "list"):
@@ -135,12 +171,14 @@ class Lsmod(common.LinuxPlugin):
     def render(self, renderer):
         renderer.section("Overview")
         renderer.table_header([("Virtual", "virtual", "[addrpad]"),
+                               ("Core Start", "start", "[addrpad]"),
                                ("Total Size", "size", ">10"),
                                ("Name", "name", "<20"),
                                ("Section", "section", "<20")])
 
         for module in self.get_module_list():
             renderer.table_row(module.obj_offset,
+                               module.module_core.deref(),
                                module.init_size + module.core_size,
                                module.name)
 

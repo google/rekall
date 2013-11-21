@@ -235,6 +235,18 @@ class HeapScannerMixIn(object):
                     yield hit
 
 
+class KernelAddressCheckerMixIn(object):
+    """A plugin mixin which does kernel address checks."""
+
+    def __init__(self, **kwargs):
+        super(KernelAddressCheckerMixIn, self).__init__(**kwargs)
+
+        # We use the module plugin to help us local addresses inside kernel
+        # modules.
+        self.module_plugin = self.session.plugins.lsmod(session=self.session)
+
+
+
 # TODO: Deprecate this when all plugins have been converted.
 class AbstractLinuxCommand(object):
 
@@ -301,64 +313,6 @@ def walk_per_cpu_var(obj_ref, per_var, var_type):
 
         yield i, var
 
-
-def prepend_path(dentry, path_mnt, root_dentry, root_mnt):
-    """Return the path of a dentry.
-
-    http://lxr.free-electrons.com/source/fs/dcache.c?v=3.7#L2576
-    """
-    path_components = []
-
-    # Check for deleted dentry.
-    if (dentry.d_flags.DCACHE_UNHASHED and not dentry.is_root_dentry and
-        dentry.d_name.len == 0):
-        return " (deleted) "
-
-    while 1:
-        if dentry == root_dentry and path_mnt == root_mnt:
-            break
-
-        if dentry == path_mnt.mnt_root or dentry.is_root_dentry:
-            # Global root
-            if root_mnt.mnt_parent.deref() != root_mnt:
-                break
-
-            dentry = root_mnt.mnt_mountpoint
-            root_mnt = root_mnt.mnt_parent
-            path_mnt = root_mnt
-
-            continue
-
-        component = utils.SmartUnicode(dentry.d_name.name.deref())
-        path_components = [component] + path_components
-        dentry = dentry.d_parent
-
-    result = '/'.join(filter(None, path_components))
-
-    if result.startswith(("socket:", "pipe:")):
-        if result.find("]") == -1:
-            result += ":[{0}]".format(inode.i_ino)
-
-    elif result != "inotify":
-        result = '/' + result
-
-    return result
-
-def get_path(task, filp):
-    path = filp.f_path
-    path_dentry = path.dentry
-    path_mnt = real_mount(path.mnt)
-
-    root = task.fs.root
-    # On modern kernels the root member is a path struct.
-    if root.deref().obj_type == "path":
-        root_dentry = root.dentry
-        root_mnt = root.mnt
-    else:
-        root_dentry = root
-        root_mnt = task.fs.root_mnt
-
-    return prepend_path(path_dentry, path_mnt, root_dentry, root_mnt)
 
 def S_ISDIR(mode):
     return (mode & linux_flags.S_IFMT) == linux_flags.S_IFDIR

@@ -527,7 +527,7 @@ class IndexedArray(obj.Array):
         return result
 
 
-class Function(obj.BaseObject):
+class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
     """A volatility object representing code snippets."""
 
     def __int__(self):

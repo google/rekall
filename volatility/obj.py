@@ -845,7 +845,34 @@ class ListArray(Array):
         return NoneObject("Pos seems to be outside the array maximum_size.")
 
 
-class Struct(BaseObject):
+class BaseAddressComparisonMixIn(object):
+    """A mixin which provides the normal comparison operators for its base offset."""
+    def __comparator__(self, other, method):
+        # 64 bit addresses are always sign extended so we need to clear the top
+        # bits.
+        return method(0xffffffffffff & self.__int__(),
+                      0xffffffffffff & other.__int__())
+
+    def __eq__(self, other):
+        return self.__comparator__(other, operator.__eq__)
+
+    def __lt__(self, other):
+        return self.__comparator__(other, operator.__lt__)
+
+    def __gt__(self, other):
+        return self.__comparator__(other, operator.__gt__)
+
+    def __le__(self, other):
+        return self.__comparator__(other, operator.__le__)
+
+    def __ge__(self, other):
+        return self.__comparator__(other, operator.__ge__)
+
+    def __ne__(self, other):
+        return self.__comparator__(other, operator.__ne__)
+
+
+class Struct(BaseAddressComparisonMixIn, BaseObject):
     """ A Struct is an object which represents a c struct
 
     Structs have members at various fixed relative offsets from our own base
@@ -943,6 +970,13 @@ class Struct(BaseObject):
 
         To access a field which has been renamed in different OS versions.
         """
+        # Allow subfields to be gotten via this function.
+        if "." in attr:
+            result = self
+            for sub_attr in attr.split("."):
+                result = result.m(sub_attr)
+            return result
+
         if attr in self.members:
             # Allow the element to be a callable rather than a list - this is
             # useful for aliasing member names
@@ -1004,27 +1038,6 @@ class Struct(BaseObject):
         result = self.members.keys() + super(Struct, self).__dir__()
 
         return result
-
-    def __eq__(self, other):
-        try:
-            return type(self) == type(other) and int(self) == int(other)
-        except (TypeError, ValueError):
-            return False
-
-    def __lt__(self, other):
-        try:
-            return self.obj_offset < int(other)
-        except (TypeError, ValueError):
-            return False
-
-    def __le__(self, other):
-        return self < other and self == other
-
-    def __gt__(self, other):
-        return not self < other and not self == other
-
-    def __ge__(self, other):
-        return not self < other
 
     def walk_list(self, list_member, include_current=True):
         """Walk a single linked list in this struct.
@@ -1475,10 +1488,11 @@ class Profile(object):
         self.compile_type(constant)
 
         kwargs.update(target_args)
+        offset = self.get_constant(constant)
+        if not offset:
+            return offset
 
-        result = self.Object(target, profile=self, offset=self.get_constant(constant),
-                             **kwargs)
-
+        result = self.Object(target, profile=self, offset=offset, **kwargs)
         return result
 
     def __dir__(self):
