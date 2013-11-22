@@ -115,5 +115,9 @@ class CheckAFInfo(common.LinuxPlugin):
 
         checks = self.CreateChecks()
         for variable, member, func, location in self.check_functions(checks):
-            renderer.table_row(variable, member, func, location)
+            # Point out suspicious constants.
+            highlight="important" if location=="Unknown" else None
+
+            renderer.table_row(variable, member, func, location,
+                               highlight=highlight)
 
