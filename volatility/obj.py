@@ -330,6 +330,14 @@ class BaseObject(object):
                                        parent=self.obj_parent, name=self.obj_name,
                                        context=self.obj_context, **kwargs)
 
+    def reference(self):
+        """Produces a pointer to this object.
+
+        This is the same as the C & operator and is the opposite of deref().
+        """
+        return self.obj_profile.Pointer(value=self.obj_offset, vm=self.obj_vm,
+                                        target=self.obj_type)
+
     def cast(self, type=None, **kwargs):
         return self.obj_profile.Object(theType=type, offset=self.obj_offset,
                                        vm=self.obj_vm, parent=self.obj_parent,
@@ -505,7 +513,8 @@ class BitField(NativeType):
 
 class Pointer(NativeType):
     """A pointer reads an 'address' object from the address space."""
-    def __init__(self, target=None, target_args=None, **kwargs):
+
+    def __init__(self, target=None, target_args=None, value=None, **kwargs):
         """Constructor.
 
         Args:
@@ -515,10 +524,13 @@ class Pointer(NativeType):
         """
         super(Pointer, self).__init__(**kwargs)
 
+        if value is not None:
+            self.obj_offset = None
+
         # We parse the address using the profile since address is a different
         # size on different platforms.
         self._proxy = self.obj_profile.Object(
-            "address", offset=self.obj_offset,
+            "address", offset=self.obj_offset, value=value,
             vm=self.obj_vm, context=self.obj_context)
 
         # We just hold on to these so we can construct the objects later.
@@ -795,6 +807,9 @@ class Array(BaseObject):
             self[item].write(value)
         else:
             super(Array, self).__setitem__(item, value)
+
+    def __len__(self):
+        return self.count
 
 
 class ListArray(Array):

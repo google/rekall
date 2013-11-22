@@ -1,110 +1,51 @@
 # Volatility
+# Copyright (C) 2007-2013 Volatility Foundation
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or (at
-# your option) any later version.
+# This file is part of Volatility.
 #
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
+# Volatility is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License Version 2 as
+# published by the Free Software Foundation.  You may not use, modify or
+# distribute this program under any other version of the GNU General
+# Public License.
+#
+# Volatility is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+# along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 """
 @author:       Andrew Case
-@license:      GNU General Public License 2.0 or later
+@license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: Digital Forensics Solutions
+@organization:
 """
-
 from volatility.plugins.linux import common
-from volatility import utils
 
 
 class Lsof(common.LinProcessFilter):
-    '''Lists open files.'''
+    """Lists open files."""
 
     __name = "lsof"
 
     def lsof(self):
         for task in self.filter_processes():
-            fds     = task.files.get_fds()
-            max_fds = task.files.get_max_fds()
-
-            fds = self.profile.Object(
-                theType = 'Array',
-                offset = fds.obj_offset,
-                vm = self.kernel_address_space,
-                target = 'Pointer', count = max_fds)
-
-            for i in xrange(0, max_fds):
-                if fds[i]:
-                    filp = self.profile.Object(
-                        'file', offset = fds[i], vm = self.kernel_address_space)
-
-                    yield (task, filp, i)
-
-    def get_path(self, task, filep):
-        rdentry  = task.fs.get_root_dentry()
-        rmnt     = task.fs.get_root_mnt()
-        dentry = filep.get_dentry()
-        vfsmnt = filep.get_vfsmnt()
-
-        return self.do_get_path(rdentry, rmnt, dentry, vfsmnt)
-
-    # based on __d_path
-    # TODO: (deleted) support
-    def do_get_path(self, rdentry, rmnt, dentry, vfsmnt):
-        ret_path = []
-
-        inode = dentry.d_inode
-        while inode:
-            # Filenames can be unicode with a maximum length.
-            dname = utils.SmartUnicode(
-                dentry.d_name.name.dereference_as("UnicodeString", length=1024))
-
-            if dname != '/':
-                ret_path.append(dname)
-
-            if dentry == rdentry and vfsmnt == rmnt:
-                break
-
-            if dentry == vfsmnt.mnt_root or dentry == dentry.d_parent:
-                if vfsmnt.mnt_parent == vfsmnt:
-                    break
-                dentry = vfsmnt.mnt_mountpoint
-                vfsmnt = vfsmnt.mnt_parent
-                continue
-
-            parent = dentry.d_parent
-
-            dentry = parent
-
-        ret_path.reverse()
-
-        ret_val = "/".join(ret_path)
-
-        if ret_val.startswith(("socket:", "pipe:")):
-            if ret_val.find("]") == -1:
-                ret_val = ret_val[:-1] + "[{0}]".format(inode.i_ino)
-            else:
-                ret_val = ret_val.replace("/","")
-
-        elif ret_val != "inotify":
-            ret_val = '/' + ret_val
-
-        return ret_val
+            # The user space file descriptor is simply the offset into the fd
+            # array.
+            for i, file_ptr in enumerate(task.files.fds):
+                file_struct = file_ptr.deref()
+                if file_struct:
+                    yield (task, file_struct, i)
 
     def render(self, renderer):
-        renderer.table_header([("Pid", "pid", ">4"),
-                               ("Process Name", "name", "<16"),
-                               ("FD","fd", ">4"),
-                               ("Filename", "path", "")])
 
-        for (task, filp, fd) in self.lsof():
-            renderer.table_row(task.pid, task.comm, fd, self.get_path(
-                task, filp))
+        renderer.table_header([("Pid", "pid", "8"),
+                               ("FD", "fd", "8"),
+                               ("Path", "path", "")])
+
+        for (task, file_struct, fd) in self.lsof():
+            renderer.table_row(task.pid, fd, task.get_path(file_struct))

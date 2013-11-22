@@ -195,6 +195,25 @@ linux_overlay = {
                             )
                         )]],
             }],
+
+    "files_struct": [None, {
+            # Version independent pointer to the fd table.
+            '_fd': lambda x: x.m("fdt").fd or x.fd,
+
+            # The fds table is an array of pointers to file structs. The index
+            # into the array is known in user space as a file descriptor. If the
+            # pointer in the array is invalid, the file descriptor is closed.
+            'fds': lambda x: x._fd.dereference_as(
+                "Array",
+                target_args=dict(
+                    target="Pointer",
+                    target_args=dict(
+                        target="file"
+                        ),
+                    count=lambda x: x.m("fdt").max_fds or x.max_fds,
+                    )
+                )
+            }],
     }
 
 
@@ -411,8 +430,7 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
         super(Linux32, self).__init__(**kwargs)
         self.profile_file = profile_file
         self.add_classes(dict(
-                list_head=list_head, dentry=dentry,
-                files_struct=files_struct, task_struct=task_struct,
+                list_head=list_head, dentry=dentry, task_struct=task_struct,
                 timespec=timespec, PermissionFlags=PermissionFlags,
                 ))
         self.add_overlay(linux_overlay)

@@ -781,7 +781,7 @@ def container_of(ptr, type, member):
 
     http://lxr.free-electrons.com/source/include/linux/kernel.h?v=3.7#L677
     """
-    offset = ptr.obj_offset - ptr.obj_profile.get_obj_offset(type, member)
+    offset = ptr.v() - ptr.obj_profile.get_obj_offset(type, member)
     return ptr.obj_profile.Object(type, offset=offset, vm=ptr.obj_vm)
 
 
