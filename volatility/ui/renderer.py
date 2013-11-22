@@ -42,6 +42,12 @@ from volatility import registry
 from volatility import constants
 
 
+HIGHLIGHT_SCHEME = dict(
+    important=("WHITE", "RED"),
+    good=("GREEN", None),
+    neutral=(None, None),
+    )
+
 class Pager(object):
     """A wrapper around a pager.
 
@@ -371,7 +377,7 @@ class TextTable(object):
         self.elide = elide
         self.suppress_headers = suppress_headers
 
-    def write_row(self, renderer, cells):
+    def write_row(self, renderer, cells, highlight=False):
         """Writes a row of the table.
 
         Args:
@@ -379,6 +385,9 @@ class TextTable(object):
           cells: A list of cell contents. Each cell content is a list of lines
             in the cell.
         """
+        foreground, background = HIGHLIGHT_SCHEME.get(
+            highlight, (None, None))
+
         # Ensure that all the cells are the same width.
         justified_cells = []
         cell_widths = []
@@ -401,7 +410,10 @@ class TextTable(object):
                 except IndexError:
                     line_components.append(" " * cell_widths[i])
 
-            renderer.write(self.tablesep.join(line_components) + "\n")
+            renderer.write(
+                renderer.color(
+                    self.tablesep.join(line_components),
+                    foreground=foreground, background=background) + "\n")
 
     def render_header(self, renderer):
         # The headers must always be calculated so we can work out the column
@@ -411,10 +423,11 @@ class TextTable(object):
         if not self.suppress_headers:
             self.write_row(renderer, headers)
 
-    def render_row(self, renderer, *args):
+    def render_row(self, renderer, row=None, highlight=None):
         self.write_row(
             renderer,
-            [c.render_cell(obj) for c, obj in zip(self.columns, args)])
+            [c.render_cell(obj) for c, obj in zip(self.columns, row)],
+            highlight=highlight)
 
 
 
@@ -485,6 +498,14 @@ class RendererBaseClass(object):
               useful for formatting).
 
            name: The name of this table.
+        """
+
+    def table_row(self, *args, **kwargs):
+        """Outputs a single row of a table.
+
+        Supported kwargs:
+          highlight: Highlight this raw according to the color scheme
+            (e.g. important, good)
         """
 
     def record(self, record_data):
@@ -600,9 +621,9 @@ class TextRenderer(RendererBaseClass):
                                renderer=self)
         self.table.render_header(self)
 
-    def table_row(self, *args):
+    def table_row(self, *args, **kwargs):
         """Outputs a single row of a table"""
-        return self.table.render_row(self, *args)
+        return self.table.render_row(self, row=args, **kwargs)
 
     def ClearProgress(self):
         """Delete the last progress message."""
@@ -704,9 +725,9 @@ class JsonTable(TextTable):
     def get_header(self, renderer):
         return [c.render_header() for c in self.columns]
 
-    def render_row(self, renderer, *args):
+    def render_row(self, renderer, row=None, **_):
         data = {}
-        for c, obj in zip(self.columns, args):
+        for c, obj in zip(self.columns, row):
             data[c.cname] = c.render_cell(obj)
         renderer.table_data.append(data)
 
@@ -810,17 +831,17 @@ class Colorizer(object):
 
     def Render(self, string, foreground=None, background=None):
         """Decorate the string with the ansii escapes for the color."""
-        color = foreground or background
-
-        if not self.terminal_capable or color not in self.COLOR_MAP:
+        if (not self.terminal_capable or
+            foreground not in self.COLOR_MAP or
+            foreground not in self.COLOR_MAP):
             return utils.SmartUnicode(string)
 
         escape_seq = ""
-        if foreground:
-            escape_seq += self.tparm(["setf", "setaf"], self.COLOR_MAP[color])
-
         if background:
-            escape_seq += self.tparm(["setb", "setab"], self.COLOR_MAP[color])
+            escape_seq += self.tparm(["setb", "setab"], self.COLOR_MAP[background])
+
+        if foreground:
+            escape_seq += self.tparm(["setf", "setaf"], self.COLOR_MAP[foreground])
 
         return (escape_seq + utils.SmartUnicode(string) +
                 self.tparm(["sgr0"]))

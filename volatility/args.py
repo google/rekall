@@ -202,8 +202,16 @@ def LoadPlugins(paths=None):
 
 
 def UpdateSessionFromArgv(user_session, FLAGS):
+    # Enforce an order on this assignment since some parameters need to be set
+    # before others.
+    session_parameters = ["profile_file", "profile"]
+    for p in FLAGS.__dict__:
+        if p not in session_parameters:
+            session_parameters.append(p)
+
     result = {}
-    for k, v in FLAGS.__dict__.items():
+    for k in session_parameters:
+        v = getattr(FLAGS, k)
         if v is not None:
             setattr(user_session, k.replace("-", "_"), v)
             result[k] = v

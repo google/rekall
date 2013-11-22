@@ -1350,6 +1350,8 @@ class Profile(object):
 
     def _get_dummy_obj(self, name):
         """Make a dummy object on top of the dummy address space."""
+        self.compile_type(name)
+
         # Make the object on the dummy AS.
         tmp = self.Object(theType = name, offset = 0, vm = self._dummy)
         return tmp
