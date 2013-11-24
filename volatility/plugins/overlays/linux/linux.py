@@ -222,6 +222,13 @@ linux_overlay = {
                 # 3.x kernel.
                 x.name.cast("String")),
             }],
+
+    "kobject": [None, {
+            'name': [None, ["Pointer", dict(
+                        target="String",
+                        target_args=dict(length=32),
+                        )]],
+            }],
     }
 
 
