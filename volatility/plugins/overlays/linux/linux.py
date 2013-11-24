@@ -214,6 +214,14 @@ linux_overlay = {
                     )
                 )
             }],
+    "proc_dir_entry": [None, {
+            'Name': lambda x: (
+                # 2.6 kernel.
+                x.name.cast("Pointer", target="String").deref() or
+
+                # 3.x kernel.
+                x.name.cast("String")),
+            }],
     }
 
 

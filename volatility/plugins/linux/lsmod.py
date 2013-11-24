@@ -27,6 +27,29 @@ from volatility import obj
 from volatility.plugins.linux import common
 
 
+class KernelModule(object):
+    """A Fake object which makes the kernel look like a module.
+
+    This removes the need to treat kernel addresses any different from module
+    addresses, and allows them to be resolved by this module.
+    """
+
+    def __init__(self, session):
+        self.session = session
+
+        # Check if the address appears in the kernel binary.
+        self.kernel_start = self.session.profile.get_constant("_text")
+        self.kernel_end = self.session.profile.get_constant("_etext")
+
+        self.module_core = session.profile.Pointer(
+            value=self.kernel_start, vm=session.kernel_address_space)
+
+        self.obj_offset = obj.NoneObject("Kernel Module")
+        self.init_size = 0
+        self.core_size = self.kernel_end - self.kernel_start
+        self.name = "Kernel"
+
+
 class Lsmod(common.LinuxPlugin):
     '''Gathers loaded kernel modules.'''
     __name = "lsmod"
@@ -130,7 +153,11 @@ class Lsmod(common.LinuxPlugin):
             yield kernel_param.name.deref(), value
 
     def _make_cache(self):
-        self.mod_lookup = {}
+        # Add the kernel to the cache so we can dereference addresses in the
+        # kernel.
+        kernel = KernelModule(self.session)
+        self.mod_lookup = {kernel.module_core.deref(): kernel}
+
         for module in self.get_module_list():
             self.mod_lookup[int(module.module_core.deref())] = module
 

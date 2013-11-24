@@ -261,10 +261,10 @@ class Session(object):
     def __unicode__(self):
         return u"Session"
 
-    def report_progress(self, message="", force=False):
+    def report_progress(self, message="", *args, **kwargs):
         """Called by the library to report back on the progress."""
         if callable(self.progress):
-            self.progress(message, force=force)
+            self.progress(message, *args, **kwargs)
 
 
 class InteractiveSession(Session):

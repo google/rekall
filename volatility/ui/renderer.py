@@ -634,18 +634,23 @@ class TextRenderer(RendererBaseClass):
         sys.stdout.write("\r" + " " * self.last_message_len + "\r")
         sys.stdout.flush()
 
-    def RenderProgress(self, message="%(spinner)s", force=False, **_):
+    def RenderProgress(self, message="%(spinner)s", *args, **kwargs):
         if not sys.stdout.isatty():
             return
 
         # Only write once per second.
         now = time.time()
+        force = kwargs.get("force")
+
         if force or now > self.last_spin_time + 0.2:
             self.last_spin_time = now
             self.last_spin += 1
-            message = message % dict(
-                spinner=self.spinner[
-                    self.last_spin % len(self.spinner)])
+
+            # Only expand variables when we need to.
+            kwargs["spinner"] = self.spinner[
+                    self.last_spin % len(self.spinner)]
+
+            message = message % kwargs
 
             self.ClearProgress()
 

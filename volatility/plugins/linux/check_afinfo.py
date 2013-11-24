@@ -32,6 +32,10 @@ class CheckAFInfo(common.LinuxPlugin):
 
     __name = "check_afinfo"
 
+    def __init__(self, **kwargs):
+        super(CheckAFInfo, self).__init__(**kwargs)
+        self.module_plugin = self.session.plugins.lsmod(session=self.session)
+
     def CreateChecks(self):
         """Builds the sequence of function checks we need to look at.
 
@@ -73,39 +77,36 @@ class CheckAFInfo(common.LinuxPlugin):
                  ),
             ]
 
+    def check_members(self, struct, members):
+        """Yields struct members which are not known to exist in any module."""
+        for member in members:
+            ptr = struct.m(member)
+            if not ptr:
+                continue
+
+            # This is really a function pointer.
+            func = ptr.dereference_as(target="Function",
+                                      target_args=dict(name=member))
+
+            # Check if the symbol is pointing into a module.
+            module = self.module_plugin.find_module(func.obj_offset)
+            if module:
+                yield member, func, module.name
+                continue
+
+            yield member, func, "Unknown"
+
     def check_functions(self, checks):
         """Apply the checks to the kernel and yields the results."""
-        self.module_plugin = self.session.plugins.lsmod(session=self.session)
-        self.kernel_start = self.profile.get_constant("_text")
-        self.kernel_end = self.profile.get_constant("_etext")
-
         for check in checks:
             for variable in check["global_vars"]:
                 var_ptr = self.profile.get_constant_object(
                     variable, target=check["constant_type"],
                     vm=self.kernel_address_space)
 
-                for member in check["members"]:
-                    ptr = var_ptr.m(member)
-                    if not ptr:
-                        continue
-
-                    # This is really a function pointer.
-                    func = ptr.dereference_as(target="Function",
-                                              target_args=dict(name=member))
-
-                    # Check if the function is pointing inside the kernel:
-                    if func > self.kernel_start and func < self.kernel_end:
-                        yield variable, member, func, "Kernel"
-                        continue
-
-                    # Check if the symbol is pointing into a module.
-                    module = self.module_plugin.find_module(func.obj_offset)
-                    if module:
-                        yield variable, member, func, module.name
-                        continue
-
-                    yield variable, member, func, "Unknown"
+                for member, func, location1 in self.check_members(
+                    var_ptr, check["members"]):
+                    yield variable, member, func, location
 
     def render(self, renderer):
         renderer.table_header([("Constant Name", "symbol", "30"),

@@ -32,14 +32,19 @@ class Lsof(common.LinProcessFilter):
 
     __name = "lsof"
 
+    def get_open_files(self, task):
+        """List all the files open by a task."""
+        # The user space file descriptor is simply the offset into the fd
+        # array.
+        for i, file_ptr in enumerate(task.files.fds):
+            file_struct = file_ptr.deref()
+            if file_struct:
+                yield file_struct, i
+
     def lsof(self):
         for task in self.filter_processes():
-            # The user space file descriptor is simply the offset into the fd
-            # array.
-            for i, file_ptr in enumerate(task.files.fds):
-                file_struct = file_ptr.deref()
-                if file_struct:
-                    yield (task, file_struct, i)
+            for file_struct, fd in self.get_open_files(task):
+                yield task, file_struct, fd
 
     def render(self, renderer):
 
