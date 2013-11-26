@@ -32,11 +32,6 @@ class TestConnectionScanners(testlib.VolatilityBaseUnitTestCase):
         previous = self.baseline['output']
         current = self.current['output']
 
-        if self.baseline['options']['mode'] == 'trunk':
-            sep = " +"
-        else:
-            sep = r"\|\|"
-
         # Compare the entire table
         for i in range(4):
             self.assertListEqual(

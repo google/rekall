@@ -26,61 +26,25 @@ import StringIO
 from volatility import testlib
 
 
-class TestProcdump(testlib.VolatilityBaseUnitTestCase):
+class TestProcdump(testlib.HashChecker):
     """Test the Procdump module."""
 
     PARAMETERS = dict(
-        ng_commandline="procdump --pid 2536 --dump-dir %(tempdir)s",
-        trunk_commandline="procexedump --pid 2536 --dump-dir %(tempdir)s",
-        pid=2536)
-
-    def BuildBaseLineData(self, config_options):
-        """We need to calculate the hash of the image we produce."""
-        baseline = super(TestProcdump, self).BuildBaseLineData(config_options)
-
-        # Filename should be stored in the temp directory and have a name which
-        # ends with the pid:
-
-        filenames = [x for x in os.listdir(self.temp_directory)
-                     if x.endswith("%s.exe" % config_options['pid'])]
-
-        self.assertEqual(len(filenames), 1)
-
-        with open(os.path.join(self.temp_directory, filenames[0])) as fd:
-            md5 = hashlib.md5(fd.read())
-            baseline['hash'] = md5.hexdigest()
-
-        return baseline
-
-    def testProcDump(self):
-        self.assertEqual(self.baseline['hash'], self.current['hash'])
+        commandline="procdump --pid %(pid)s --dump-dir %(tempdir)s",
+        pid=2536
+        )
 
 
-class TestDLLDump(testlib.VolatilityBaseUnitTestCase):
+class TestModDump(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline="moddump --regex %(driver)s --dump-dir %(tempdir)s",
+        driver="ntoskrnl.exe"
+        )
+
+
+class TestDLLDump(testlib.HashChecker):
     """Test the dlldump module."""
 
-    PARAMETERS = dict(commandline="dlldump --pid 4012 --dump-dir %(tempdir)s",
-                      pid=4012)
-
-    def BuildBaseLineData(self, config_options):
-        """We need to calculate the hash of the image we produce."""
-        baseline = super(TestDLLDump, self).BuildBaseLineData(config_options)
-
-        # Filename should be stored in the temp directory and have a name which
-        # ends with the pid:
-
-        filenames = sorted(
-            [x for x in os.listdir(self.temp_directory)
-             if x.startswith("module.%s" % config_options['pid'])])
-
-        baseline['hashes'] = []
-        for filename in filenames:
-            with open(os.path.join(self.temp_directory, filename)) as fd:
-                md5 = hashlib.md5(fd.read())
-                baseline['hashes'].append(md5.hexdigest())
-
-        return baseline
-
-    def testProcDump(self):
-        self.assertEqual(self.baseline['hashes'],
-                         self.current['hashes'])
+    PARAMETERS = dict(
+        commandline="dlldump --pid %(pid)s --dump-dir %(tempdir)s",
+        )

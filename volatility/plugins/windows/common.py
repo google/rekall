@@ -436,8 +436,8 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         self.eprocess_head = eprocess_head
 
         # Sometimes its important to know if any filtering is specified at all.
-        self.filtering_applied = (self.pids or self.proc_regex or
-                                  self.phys_eprocess or self.eprocess)
+        self.filtering_requested = (self.pids or self.proc_regex or
+                                    self.phys_eprocess or self.eprocess)
 
     def filter_processes(self):
         """Filters eprocess list using phys_eprocess and pids lists."""

@@ -865,8 +865,11 @@ class BaseAddressComparisonMixIn(object):
     def __comparator__(self, other, method):
         # 64 bit addresses are always sign extended so we need to clear the top
         # bits.
-        return method(0xffffffffffff & self.__int__(),
-                      0xffffffffffff & other.__int__())
+        try:
+            return method(0xffffffffffff & self.__int__(),
+                          0xffffffffffff & other.__int__())
+        except AttributeError:
+            return False
 
     def __eq__(self, other):
         return self.__comparator__(other, operator.__eq__)
@@ -1235,19 +1238,22 @@ class Profile(object):
         type_descriptor = copy.deepcopy(
             self.vtypes.get(type_name, self.EMPTY_DESCRIPTOR))
 
-        # An overlay which specifies a string as a definition is simply an
-        # alias for another struct.
-        if isinstance(type_descriptor, str):
-            type_descriptor = self.vtypes[type_descriptor]
-
         for overlay in self.overlays:
             type_overlay = copy.deepcopy(overlay.get(type_name))
             type_descriptor = self._apply_type_overlay(
                 type_descriptor, type_overlay)
 
-        if type_descriptor == self.EMPTY_DESCRIPTOR:
+        # An overlay which specifies a string as a definition is simply an
+        # alias for another struct.
+        if isinstance(type_descriptor, str):
+            self.compile_type(type_descriptor)
+            self.types[type_name] = self.types[type_descriptor]
+            return
+
+        elif type_descriptor == self.EMPTY_DESCRIPTOR:
             # Mark that this is a pure object - not described by a vtype.
             self.types[type_name] = None
+
         else:
             # Now type_overlay will have all the overlays applied on it.
             members = {}
@@ -1412,6 +1418,10 @@ class Profile(object):
         # this allows the overlay to just specify a class directly to be
         # instantiated for a particular type.
         if callable(overlay):
+            return overlay
+
+        # A base string means its an alias of another type.
+        if isinstance(overlay, basestring):
             return overlay
 
         # Check the overlay and type descriptor for sanity.

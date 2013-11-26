@@ -36,11 +36,6 @@ class TestPrintkey(testlib.VolatilityBaseUnitTestCase):
         previous = self.baseline['output']
         current = self.current['output']
 
-        if self.baseline_mode == 'trunk':
-            for i, line in enumerate(current):
-                current[i] = re.sub(
-                    r"(Registry: [^@]+) @ .+", r"\1", line)
-
         previous_blocks = sorted(
             self.SplitLines(previous, "----------"))
 
@@ -51,29 +46,13 @@ class TestPrintkey(testlib.VolatilityBaseUnitTestCase):
             self.assertEqual(x, y)
 
 
-class TestRegDump(testlib.VolatilityBaseUnitTestCase):
+class TestRegDump(testlib.HashChecker):
     """Test dumping of registry hives."""
 
-    PARAMETERS = dict(ng_commandline="regdump --dump-dir %(tempdir)s")
+    PARAMETERS = dict(commandline="regdump --dump-dir %(tempdir)s")
 
-    def BuildBaseLineData(self, config_options):
-        """We need to calculate the hash of the image we produce."""
-        baseline = super(TestRegDump, self).BuildBaseLineData(config_options)
 
-        # Filename should be stored in the temp directory and have a name which
-        # ends with the pid:
-
-        filenames = sorted(
-            [x for x in os.listdir(self.temp_directory) if "@" in x])
-
-        baseline['hashes'] = []
-        for filename in filenames:
-            with open(os.path.join(self.temp_directory, filename)) as fd:
-                md5 = hashlib.md5(fd.read())
-                baseline['hashes'].append(md5.hexdigest())
-
-        return baseline
-
-    def testRegDump(self):
-       self.assertEqual(self.baseline['hashes'], self.current['hashes'])
-
+class TestHiveDump(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="hivedump --hive_regex system32.config.default",
+        )

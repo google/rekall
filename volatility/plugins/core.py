@@ -566,7 +566,8 @@ class Dump(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(Dump, cls).args(parser)
-        parser.add_argument("target", help="Name of a struct definition.")
+        parser.add_argument("offset", action=args.IntParser,
+                            help="An offset to hexdump.")
 
     def __init__(self, target=None, offset=0, width=16, rows=30,
                  suppress_headers=False, **kwargs):
@@ -599,6 +600,10 @@ class Dump(plugin.Command):
           suppress_headers: If set we do not write the headers.
         """
         super(Dump, self).__init__(**kwargs)
+        if target is None:
+            self.session.plugins.load_as(session=self.session).render(None)
+            target = self.session.kernel_address_space
+
         self.target = target
         self.offset = int(offset)
         self.width = int(width)

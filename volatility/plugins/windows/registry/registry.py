@@ -536,7 +536,12 @@ class RegistryPlugin(common.WindowsCommandPlugin):
                             "If not provided we call hivescan ourselves and list "
                             "the keys on all hives.")
 
-    def __init__(self, hive_offsets=None, **kwargs):
+        parser.add_argument("--hive_regex", default=None,
+                            help="A regex to filter hive names."
+                            "If not provided we use all hives.")
+
+
+    def __init__(self, hive_offsets=None, hive_regex=None, **kwargs):
         """Operate on in memory registry hives.
 
         Args:
@@ -548,6 +553,15 @@ class RegistryPlugin(common.WindowsCommandPlugin):
         self.hive_offsets = hive_offsets
         if not self.hive_offsets:
             self.hive_offsets = list(self.get_plugin("hivescan").list_hives())
+
+        if hive_regex is not None:
+            hive_offsets = []
+            for hive in self.hive_offsets:
+                m = re.search(hive_regex, utils.SmartUnicode(hive.Name))
+                if m:
+                    hive_offsets.append(hive)
+
+            self.hive_offsets = hive_offsets
 
         # Install our specific implementation of registry support.
         self.profile = VolatilityRegisteryImplementation(self.profile)

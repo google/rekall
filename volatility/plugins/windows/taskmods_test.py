@@ -83,18 +83,13 @@ class TestMemmap(testlib.VolatilityBaseUnitTestCase):
     def testMemmap(self):
         # Virtual address - Hex formatting might be different so convert it from
         # hex and compare the ints themselves.
-        skip = 7
-
-        if self.baseline['options']['mode'] == 'trunk':
-            skip = 3
-
         self.assertIntegerListEqual(
-            self.ExtractColumn(self.baseline['output'], 0, skip),
+            self.ExtractColumn(self.baseline['output'], 0, 4),
             self.ExtractColumn(self.current['output'], 0, 4))
 
         # Physical address.
         self.assertIntegerListEqual(
-            self.ExtractColumn(self.baseline['output'], 1, skip),
+            self.ExtractColumn(self.baseline['output'], 1, 4),
             self.ExtractColumn(self.current['output'], 1, 4))
 
 
@@ -102,4 +97,4 @@ class TestMemmap(testlib.VolatilityBaseUnitTestCase):
 class TestMemmapCoalesce(testlib.SimpleTestCase):
     """Make sure that memmaps are coalesced properly."""
 
-    PARAMETERS = dict(ng_commandline="memmap --pid=2624 --coalesce")
+    PARAMETERS = dict(commandline="memmap --pid=2624 --coalesce")

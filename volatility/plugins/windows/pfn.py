@@ -23,6 +23,7 @@
 
 import os
 
+from volatility import args
 from volatility import obj
 from volatility import plugin
 from volatility.plugins.windows import common
@@ -90,6 +91,13 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
     __name = "vtop"
 
     PAGE_SIZE = 0x1000
+
+    @classmethod
+    def args(cls, parser):
+        super(VtoP, cls).args(parser)
+        parser.add_argument("virtual_address", action=args.IntParser,
+                            help="Specify to see all the fops, even if they "
+                            "are known.")
 
     def __init__(self, virtual_address=None, address_space=None, **kwargs):
         """Prints information about the virtual to physical translation.

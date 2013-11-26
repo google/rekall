@@ -55,11 +55,13 @@ class MetaclassRegistry(abc.ABCMeta):
         for base in bases:
             try:
                 mcs.classes = base.classes
+                mcs.classes_by_name = base.classes_by_name
                 mcs.plugin_feature = base.plugin_feature
                 mcs.top_level_class = base.top_level_class
                 break
             except AttributeError:
                 mcs.classes = {}
+                mcs.classes_by_name = {}
                 mcs.plugin_feature = mcs.__name__
                 # Keep a reference to the top level class
                 mcs.top_level_class = mcs
@@ -73,9 +75,11 @@ class MetaclassRegistry(abc.ABCMeta):
 
         if not mcs.__name__.startswith("Abstract"):
             mcs.classes[mcs.__name__] = mcs
-
+            name = getattr(mcs, "_%s__name" % mcs.__name__, None)
+            mcs.classes_by_name[name] = mcs
             try:
                 if mcs.top_level_class.include_plugins_as_attributes:
                     setattr(mcs.top_level_class, mcs.__name__, mcs)
             except AttributeError:
                 pass
+

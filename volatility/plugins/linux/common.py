@@ -88,6 +88,7 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin):
 
 class LinuxPlugin(plugin.KernelASMixin, AbstractLinuxCommandPlugin):
     """Plugin which requires the kernel Address space to be loaded."""
+    __abstract = True
 
 
 class LinProcessFilter(LinuxPlugin):
@@ -257,9 +258,9 @@ class AbstractLinuxCommand(object):
 
     @classmethod
     def is_active(cls, config):
-        """We are only active if the profile is windows."""
+        """We are only active if the profile is Linux."""
         try:
-            return config.PROFILE and config.PROFILE._md_os == 'linux'
+            return config.profile and config.profile._md_os == 'linux'
         except profile.Error:
             return True
 

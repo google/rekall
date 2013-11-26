@@ -45,18 +45,11 @@ class TestPSScan(testlib.VolatilityBaseUnitTestCase):
         previous = self.baseline['output']
         current = self.current['output']
 
-        if self.baseline_mode == 'trunk':
-            for x, y in ((0, 0), (1, 2), (2, 3), (3, 4), (4, 5), (6, 8), (7, 9)):
-                self.assertListEqual(
-                    self.ExtractColumn(current, y, 2),
-                    self.ExtractColumn(previous, x, 2))
-
-        else:
-            # Compare the entire table
-            for i in range(10):
-                self.assertListEqual(
-                    self.ExtractColumn(current, i, 2),
-                    self.ExtractColumn(previous, i, 2))
+        # Compare the entire table
+        for i in range(10):
+            self.assertListEqual(
+                self.ExtractColumn(current, i, 2),
+                self.ExtractColumn(previous, i, 2))
 
 
 class TestSymlinkScan(testlib.VolatilityBaseUnitTestCase):
@@ -76,7 +69,7 @@ class TestSymlinkScan(testlib.VolatilityBaseUnitTestCase):
 
 class TestMutantScan(testlib.VolatilityBaseUnitTestCase):
 
-    PARAMETERS = dict(commandline="symlinkscan")
+    PARAMETERS = dict(commandline="mutantscan")
 
     def testMutant(self):
         previous = self.baseline['output']

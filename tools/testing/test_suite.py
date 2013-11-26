@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 # Volatility
 #
 # Authors:
@@ -26,6 +28,90 @@ their own file.
 
 Tests are driven from a test suite description file, typically named
 "tests.config" which is located in the same directory as the image.
+
+How to Use this program
+=======================
+
+The test suite is specifically designed to catch regression errors, it is not
+specifically designed to catch general analysis errors. Ideally analysis errors
+should be detected manually, by setting up specific images with known artifacts
+in them. This test suite is not designed for such purposes.
+
+The tests are driven by a configuration file. The configuration file is
+specifically tailored to a particular test image, and should be manually
+adapted. We assume the provided configuation file is used as a template.
+
+To trap regression errors, we first need to generate a baseline. The baseline
+runs every plugin and records the output of the plugin in a file within the test
+directory. If a baseline file is not found for a particular plugin, the program
+will automatically create a new baseline file. However, if a baseline file
+already exists, the program will compare the output of the current run to the
+baseline. Here is an example execution where TestLsmod has rebuilt its baseline,
+and TestCpuInfo has failed:
+
+$ test_suite.py baseline -c test_data/ubuntu_8.04/tests.config
+
+Test                             Status   Time Expected Time Error File
+------------------------------ ---------- ---- ------------- ----------
+TestLinuxFindDTB               PASS      2.49    2.49
+TestLsmod                      REBUILT   3.22
+TestVtoP                       PASS      3.28    1.00
+TestCpuInfo                    FAIL      3.12    2.22
+TestCheckAFInfo                PASS      3.21    1.25
+TestArp                        PASS      4.23    4.23
+
+It is possible to run specific tests by naming them at the command line:
+$ test_suite.py -c test_data/ubuntu_8.04/tests.config TestCpuInfo TestVtoP
+Test                             Status   Time Expected Time Error File
+------------------------------ ---------- ---- ------------- ----------
+TestCpuInfo                    PASS   1.39    0.98
+TestVtoP                       PASS   1.63    1.00
+
+Sometimes although the output of the plugin has changed, the plugin is still
+correct. In that case the test will fail and will need to be manually
+reviewed. If the plugin is deemed to be still correct, we can force the baseline
+to be updated by specifying the --baseline (or -b) flag:
+
+test_suite.py test -c test_data/xp-laptop-2005-06-25/tests.config TestCpuInfo -b
+
+Test                             Status   Time Expected Time Error File
+------------------------------ ---------- ---- ------------- ----------
+TestCpuInfo                    REBUILT   0.98
+
+How tests are chosen
+====================
+
+Since the goal of this test suite is only to detect regressions, there is no
+need to write specialized test for each plugin. If not specific test for a
+plugin is found, the test suite will simple create one based on the
+testlib.SimpleTestCase() class - i.e. it just literally compares the output of
+the plugin. In most cases this is what we want.
+
+Sometimes, however, we want fine grained control over the test execution. In
+that case we need to create a test class within the codebase which extends the
+testlib.VolatilityBaseUnitTestCase(). We can specify the command line for
+executing the test thus:
+
+class TestCheckTaskFops(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="check_task_fops --all"
+        )
+
+More complex example may use custom or more sophisticated methods for comparing
+the plugin output. For example the testlib.HashChecker() base class will ensure
+that all files produced by a plugin retain their hashes between executions:
+
+class TestDLLDump(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline="dlldump --pid %(pid)s --dump-dir %(tempdir)s",
+        )
+
+Since the pid is likely to change between images, the user is required to
+customized the precise pid to test for in the test configuation file:
+
+[TestDLLDump]
+pid = 2536
+
 """
 
 import argparse
@@ -35,13 +121,14 @@ import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 import tempfile
 import time
 import traceback
 import unittest
 
+from volatility import plugin
+from volatility import session
 from volatility import testlib
 from volatility import threadpool
 from volatility.ui import renderer
@@ -71,75 +158,23 @@ class VolatilityTester(object):
                             action="store_true",
                             help="Number of concurrent workers.")
 
-        subparsers = parser.add_subparsers(
-                            description="Action to execute",
-                            metavar="action")
+        parser.add_argument("-e", "--executable",
+                            default="python vol.py ",
+                            help="The path to the volatility binary.")
 
-        template_parser = subparsers.add_parser(
-            "template",
-            help="Build an initial template for a test suite")
+        parser.add_argument("-c", "--config", default="tests.config",
+                            help="Filename for the main test config file.")
 
-        template_parser.add_argument(
-            "-f", "--filename", help="The filename of the tested image.")
+        parser.add_argument("-d", "--debug", default=False,
+                            action="store_true",
+                            help="Turn on test debugging.")
 
-        template_parser.add_argument(
-            "-p", "--profile", default="WinXPSP2x86",
-            help="The profile to use.")
+        parser.add_argument("-b", "--baseline", default=False,
+                            action="store_true",
+                            help="If specified rebuild the baseline instead of "
+                            "testing against it.")
 
-        template_parser.add_argument(
-            "-c", "--config", default="tests.config",
-            help="Filename for the main test config file.")
-
-        template_parser.add_argument(
-            "--active", default=False, action="store_true",
-            help="If set, by default, template plugins will be active")
-
-        template_parser.add_argument("tests", nargs="*",
-                                     help="Create baseline for these tests.")
-
-        template_parser.set_defaults(action="template")
-
-
-        baseline_parser = subparsers.add_parser(
-            "baseline", help="Build a baseline using the config file.")
-
-        baseline_parser.set_defaults(action="baseline")
-
-        baseline_parser.add_argument("-c", "--config", default="tests.config",
-                                     help="Filename for the main test config "
-                                     "file.")
-
-        baseline_parser.add_argument("-e", "--executable",
-                                     default="python vol.py ",
-                                     help="The path to the volatility binary.")
-
-        baseline_parser.add_argument(
-            "--mode", default="ng", choices=["ng", "trunk"],
-            help="The type of executable this is.")
-
-        baseline_parser.add_argument("tests", nargs="*",
-                                     help="Create baseline for these tests.")
-
-        test_parser = subparsers.add_parser(
-            "test", help="Run the tests and compare with the baseline file.")
-
-        test_parser.add_argument("-c", "--config", default="tests.config",
-                                 help="Filename for the main test config file.")
-
-        test_parser.add_argument("-e", "--executable", default="python vol.py ",
-                                 help="The path to the volatility binary.")
-
-        test_parser.add_argument(
-            "--mode", default="ng", choices=["ng", "trunk"],
-            help="The type of executable this is.")
-
-        test_parser.add_argument("-d", "--debug", default=False,
-                                 action="store_true",
-                                 help="Turn on test debugging.")
-
-        test_parser.add_argument("tests", nargs="*", help="Tests to run")
-
-        test_parser.set_defaults(action="test")
+        parser.add_argument("tests", nargs="*", help="Tests to run")
 
         return parser.parse_args(args=argv)
 
@@ -159,109 +194,16 @@ class VolatilityTester(object):
 
         # Set some useful defaults - These do not get written to the file.
         config.set(None, "tempdir", self.temp_directory)
+        config.set(None, "testdir", self.test_directory)
         config.set(None, "executable", self.FLAGS.executable)
 
-        # Modify the filename parameter to include the test directory. Note
-        # that if the config file specifies the image's fully qualified path
-        # (i.e. starts with /) this will still point to the correct path.
-        config.set(None, "filename", os.path.join(
-                    self.test_directory, config.get("DEFAULT", "filename")))
-
         # Extra options to be used for testing the tech preview branch.
-        if self.FLAGS.mode == "ng":
-            config.set(None, "--renderer", "TestRenderer")
+        config.set(None, "--renderer", "TestRenderer")
 
         return config
 
-    def MakeTemplate(self):
-        """Builds a template for a test suite."""
-        if not os.access(self.FLAGS.filename, os.R_OK):
-            raise RuntimeError("Filename %s does not appear to be a file." %
-                               self.FLAGS.filename)
-
-        image_filename = os.path.basename(self.FLAGS.filename)
-
-        config = ConfigParser.SafeConfigParser()
-
-        config_filename = os.path.join(
-            os.path.dirname(self.FLAGS.filename), self.FLAGS.config)
-
-        config.read(config_filename)
-
-        # Add default parameters.
-        config.set(None, "filename", image_filename)
-        config.set(None, "profile", self.FLAGS.profile)
-
-        # Make all plugins active by default - this way they can easily be
-        # enabled by removing the active = False line in each test's section.
-        config.set(None, "active", "True")
-
-        for case, case_cls in testlib.VolatilityBaseUnitTestCase.classes.items():
-            # Allow the user to specify only some tests to run.
-            if self.FLAGS.tests and case not in self.FLAGS.tests:
-                continue
-
-            config.remove_section(case)
-            config.add_section(case)
-
-            # Set up some sensible defaults for each test - these will be
-            # interpolated from the default section.
-            test_parameters = {
-                # By default take filename and profile from the default section.
-                "--filename": "%(filename)s",
-                "--profile": "%(profile)s",
-
-                # By default all tests are inactive.
-                "active": str(self.FLAGS.active)}
-
-            # Allow the test class to set default values for parameters.
-            test_parameters.update(case_cls.PARAMETERS)
-
-            for k, v in test_parameters.items():
-                config.set(case, k, str(v))
-
-            with open(config_filename, 'wb') as configfile:
-                config.write(configfile)
-
-    def BuildBaseLine(self):
-        config = self.LoadConfigFile()
-
-        self.renderer.table_header([("Test", "test", "<30s"),
-                                    ("Time", "time", "0.2f")])
-
-        for plugin in config.sections():
-            # Allow the user to specify only some tests to run.
-            if self.FLAGS.tests and plugin not in self.FLAGS.tests:
-                continue
-
-            plugin_cls = testlib.VolatilityBaseUnitTestCase.classes.get(plugin)
-            if plugin_cls is None:
-                logging.error("Unknwon test name in config file: %s", plugin)
-                continue
-
-            config_options = dict(config.items(plugin))
-            config_options["mode"] = self.FLAGS.mode
-
-            if not config.getboolean(plugin, "active"):
-                logging.info("Skipping plugin %s since its disabled.", plugin)
-                continue
-
-            # process == 0 means we run tests in series.
-            if self.FLAGS.processes == 0:
-                self.BuildBaseLineTask(config_options, plugin_cls)
-            else:
-                self.threadpool.AddTask(self.BuildBaseLineTask, [
-                        config_options, plugin_cls])
-
-    def BuildBaseLineTask(self, config_options, plugin_cls):
-        """Run the volatility test program.
-
-        This runs in a separate thread on the thread pool. After
-        running, we capture the output into a json baseline file, and
-        print progress to the terminal.
-        """
-        plugin = plugin_cls(temp_directory=self.temp_directory,
-                            running_mode=self.FLAGS.mode)
+    def BuildBaseLineData(self, config_options, plugin_cls):
+        plugin = plugin_cls(temp_directory=self.temp_directory)
         start = time.time()
 
         baseline_data = plugin.BuildBaseLineData(config_options)
@@ -271,12 +213,25 @@ class VolatilityTester(object):
         baseline_data["options"] = config_options
         baseline_data["time_used"] = time.time() - start
 
+        return baseline_data
+
+    def BuildBaseLineTask(self, config_options, plugin_cls):
+        """Run the volatility test program.
+
+        This runs in a separate thread on the thread pool. After
+        running, we capture the output into a json baseline file, and
+        print progress to the terminal.
+        """
+        baseline_data = self.BuildBaseLineData(config_options, plugin_cls)
+
         output_filename = os.path.join(self.test_directory, plugin_cls.__name__)
 
         with open(output_filename, "wb") as baseline_fd:
             baseline_fd.write(json.dumps(baseline_data, indent=4))
-            self.renderer.table_row(plugin_cls.__name__,
-                                    baseline_data["time_used"])
+            self.renderer.table_row(
+                plugin_cls.__name__,
+                self.renderer.color("REBUILT", foreground="YELLOW"),
+                baseline_data["time_used"])
 
     def __enter__(self):
         self.temp_directory = tempfile.mkdtemp()
@@ -288,38 +243,101 @@ class VolatilityTester(object):
         self.threadpool.Stop()
         shutil.rmtree(self.temp_directory, True)
 
+    def GenerateTests(self, config):
+        """Generates test classes for all the plugins.
+
+        Each plugin must have at least one test. Plugin tests are subclasses of
+        the testlib.VolatilityBaseUnitTestCase class,
+        """
+        result = []
+
+        s = session.Session()
+        s.profile_file=config.get("--profile_file")
+
+        s.profile=config["--profile"]
+
+        # A map of all the specialized tests which are defined. Only include
+        # those classes which are active for the currently selected profile.
+        plugins_with_test = set()
+        for name, cls in testlib.VolatilityBaseUnitTestCase.classes.items():
+            if cls.is_active(s):
+                plugin_name = cls.PARAMETERS.get("commandline", "").split()
+                if plugin_name:
+                    plugins_with_test.add(plugin_name[0])
+                    result.append(cls)
+
+        # Now generate tests automatically for all other plugins.
+        for cls in plugin.Command.classes.values():
+            if cls.name in plugins_with_test:
+                continue
+
+            # We can not test interactive plugins in this way.
+            if cls._interactive:
+                continue
+
+            # Remove classes which are not active.
+            if not cls.is_active(s):
+                continue
+
+            # Automatically create a new test based on testlib.SimpleTestCase.
+            result.append(type(
+                    "Test%s" % cls.__name__, (testlib.SimpleTestCase,),
+                    dict(PARAMETERS=dict(commandline=cls.name))))
+
+        return result
+
     def RunTests(self):
         config = self.LoadConfigFile()
 
+        # Use the options in the DEFAULT section to select the plugins which
+        # apply to this profile.
+        config_options = dict(config.items("DEFAULT"))
         self.renderer.table_header([("Test", "test", "<30s"),
                                     ("Status", "status", "^10s"),
-                                    ("Time", "time", "^0.2f"),
-                                    ("Expected Time", "expected", "^0.2f")])
+                                    ("Time", "time", "^ 7.2f"),
+                                    ("Expected Time", "expected", "^ 7.2f"),
+                                    ("Error File", 'error', "")])
 
-        for plugin in config.sections():
+        for plugin_cls in self.GenerateTests(config_options):
             # Allow the user to specify only some tests to run.
-            if self.FLAGS.tests and plugin not in self.FLAGS.tests:
+            if self.FLAGS.tests and plugin_cls.__name__ not in self.FLAGS.tests:
                 continue
 
-            plugin_cls = testlib.VolatilityBaseUnitTestCase.classes.get(plugin)
-            if plugin_cls is None:
-                logging.error("Unknwon test name in config file: %s", plugin)
-                continue
+            # Retrieve the configured options if they exist.
+            config_options = dict(config.items("DEFAULT"))
+            config_options.update(plugin_cls.PARAMETERS)
+            config_options["test_class"] = plugin_cls.__name__
+            if config.has_section(plugin_cls.__name__):
+                config_options.update(dict(config.items(plugin_cls.__name__)))
 
-            config_options = dict(config.items(plugin))
+            # Try to get the previous baseline file.
+            baseline_filename = os.path.join(
+                self.test_directory, plugin_cls.__name__)
 
-            baseline_filename = os.path.join(self.test_directory, plugin)
             try:
                 baseline_data = json.load(open(baseline_filename, "rb"))
             except IOError:
-                continue
+                baseline_data = None
 
-            # process == 0 means we run tests in series.
-            if self.FLAGS.processes == 0:
-                self.RunTestCase(config_options, plugin_cls, baseline_data)
+            # Should we build the baseline or test against it?
+            if baseline_data is None or self.FLAGS.baseline:
+                logging.info("Rebuilding baseline file %s.",
+                             plugin_cls.__name__)
+
+                # process == 0 means we run tests in series.
+                if self.FLAGS.processes == 0:
+                    self.BuildBaseLineTask(config_options, plugin_cls)
+                else:
+                    self.threadpool.AddTask(self.BuildBaseLineTask, [
+                            config_options, plugin_cls])
+
             else:
-                self.threadpool.AddTask(self.RunTestCase, [
-                        config_options, plugin_cls, baseline_data])
+                # process == 0 means we run tests in series.
+                if self.FLAGS.processes == 0:
+                    self.RunTestCase(config_options, plugin_cls, baseline_data)
+                else:
+                    self.threadpool.AddTask(self.RunTestCase, [
+                            config_options, plugin_cls, baseline_data])
 
     def RunTestCase(self, config_options, plugin_cls, baseline_data):
         if baseline_data['options'].get('aborted'):
@@ -328,13 +346,7 @@ class VolatilityTester(object):
             return
 
         # Re-Run the current test again.
-        start = time.time()
-        plugin = plugin_cls(temp_directory=self.temp_directory,
-                            running_mode=self.FLAGS.mode,
-                            baseline=baseline_data)
-        current_run = plugin.BuildBaseLineData(config_options)
-
-        time_taken = time.time() - start
+        current_run = self.BuildBaseLineData(config_options, plugin_cls)
 
         test_cases = []
         for name in dir(plugin_cls):
@@ -351,12 +363,20 @@ class VolatilityTester(object):
                 self.renderer.table_row(
                     plugin_cls.__name__,
                     self.renderer.color("PASS", foreground="GREEN"),
-                    time_taken, baseline_data.get("time_used", 0))
+                    current_run.get("time_used", 0),
+                    baseline_data.get("time_used", 0))
             else:
-                self.renderer.table_row(
-                    plugin_cls.__name__,
-                    self.renderer.color("FAIL", foreground="RED"),
-                    time_taken, baseline_data.get("time_used", 0))
+                # Store the current run someplace for closer inspection.
+                with tempfile.NamedTemporaryFile(
+                    prefix=plugin_cls.__name__, delete=False) as fd:
+                    fd.write(json.dumps(current_run, indent=4))
+
+                    self.renderer.table_row(
+                        plugin_cls.__name__,
+                        self.renderer.color("FAIL", foreground="RED"),
+                        current_run.get("time_used", 0),
+                        baseline_data.get("time_used", 0),
+                        fd.name)
 
                 if self.FLAGS.verbose:
                     for test_case, error in result.errors + result.failures:
@@ -364,28 +384,13 @@ class VolatilityTester(object):
                                 plugin_cls.__name__, error))
 
     def ParseCommandLineArgs(self):
-        if self.FLAGS.action == "template":
-            if self.FLAGS.filename is None:
-                logging.error("No image filename specified.")
-                sys.exit(-1)
+        if not os.access(self.FLAGS.config, os.R_OK):
+            logging.error("Config file %s not found.", self.FLAGS.config)
+            sys.exit(-1)
 
-            logging.info("Creating template for image %s", self.FLAGS.filename)
-            self.MakeTemplate()
+        logging.info("Testing baselines for config file %s", self.FLAGS.config)
 
-        elif self.FLAGS.action == "baseline":
-            if not os.access(self.FLAGS.config, os.R_OK):
-                logging.error("Config file %s not found.", self.FLAGS.config)
-                sys.exit(-1)
-
-            logging.info("Building baselines for config file %s", self.FLAGS.config)
-            self.BuildBaseLine()
-        elif self.FLAGS.action == "test":
-            if not os.access(self.FLAGS.config, os.R_OK):
-                logging.error("Config file %s not found.", self.FLAGS.config)
-                sys.exit(-1)
-
-            logging.info("Testing baselines for config file %s", self.FLAGS.config)
-            self.RunTests()
+        self.RunTests()
 
 
 def main(argv):

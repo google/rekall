@@ -314,7 +314,7 @@ windows_overlay = {
             }],
 
     # This defines _PSP_CID_TABLE as an alias for _HANDLE_TABLE.
-    "_PSP_CID_TABLE": '_HANDLE_TABLE'
+    "_PSP_CID_TABLE": "_HANDLE_TABLE"
 }
 
 
@@ -330,7 +330,11 @@ class _UNICODE_STRING(obj.Struct):
     def v(self, vm=None):
         length = self.Length.v(vm=vm)
         if length > 0 and length <= 1024:
-            data = self.Buffer.dereference_as('UnicodeString', length=length, vm=vm)
+            data = self.Buffer.dereference_as(
+                'UnicodeString',
+                target_args=dict(
+                    length=length),
+                vm=vm)
             return data.v()
         else:
             return ''

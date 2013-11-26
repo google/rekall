@@ -45,8 +45,7 @@ class TestVadInfo(testlib.VolatilityBaseUnitTestCase):
 class TestVad(testlib.VolatilityBaseUnitTestCase):
     """Test the vad module."""
 
-    # This command only exists in technology preview.
-    PARAMETERS = dict(ng_commandline="vad --pid 2624")
+    PARAMETERS = dict(commandline="vad --pid 2624")
 
     def testVad(self):
         for x, y in zip(self.baseline['output'], self.current['output']):

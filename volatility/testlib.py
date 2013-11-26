@@ -50,6 +50,7 @@ When test is run, the baseline files are loaded and copared with present output
 in a specific way.
 
 """
+import hashlib
 import json
 import time
 import logging
@@ -63,6 +64,7 @@ import tempfile
 import unittest
 import StringIO
 
+from volatility import plugin
 from volatility import registry
 from volatility import session
 from volatility.ui import renderer
@@ -73,29 +75,42 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
-    PARAMETERS = {}
+    # The parameters to run this test with. These parameters are written to the
+    # config file when creating a new blank template. Users can edit the config
+    # file to influence how the test is run.
+
+    PARAMETERS = {
+        # This is the command line which is used to run the test.
+        "commandline": "",
+        }
+
+    PLUGIN = None
+
+    @classmethod
+    def is_active(cls, config):
+        delegate_plugin = (
+            plugin.Command.classes.get(cls.PLUGIN) or
+            plugin.Command.classes_by_name.get(cls.CommandName()))
+
+        if delegate_plugin:
+            return delegate_plugin.is_active(config)
+
+    @classmethod
+    def CommandName(cls):
+        if cls.PLUGIN:
+            return cls.PLUGIN
+
+        name = cls.PARAMETERS.get("commandline", "").split()
+        if name:
+            return name[0]
 
     def __init__(self, method_name="__init__", baseline=None, current=None,
-                 debug=False, temp_directory=None, running_mode="ng"):
+                 debug=False, temp_directory=None):
+
         self.baseline = baseline
         self.current = current
         self.debug = debug
         self.temp_directory = temp_directory
-
-        # The mode of this test indicates which version of Volatility is
-        # used. It can be either "ng" for the tech preview version, or "trunk"
-        # for the old version.  We need to know the mode in two contexts - the
-        # baseline_mode is the mode which was used to generate the baseline,
-        # while the running_mode is the mode for the current run.
-
-        # The mode is used in order to intelligently compare output from the two
-        # versions.
-        self.running_mode = running_mode
-        if baseline:
-            self.baseline_mode = self.baseline['options']['mode']
-        else:
-            self.baseline_mode = self.running_mode
-
         super(VolatilityBaseUnitTestCase, self).__init__(method_name)
 
     def TransformOutput(self, config_options, output):
@@ -105,7 +120,7 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
             output = output.decode("utf8", "ignore")
 
         # Apply this transformation to the data.
-        regexes = config_options.get("%s_replace_regex" % self.running_mode)
+        regexes = config_options.get("replace_regex")
         if regexes:
             for regex in regexes.splitlines():
                 if not regex: continue
@@ -140,12 +155,23 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
           A baseline data structure which contains meta data from running
           volatility over the test case.
         """
-        tmp_filename = os.path.join(self.temp_directory, self.__class__.__name__)
+        tmp_filename = os.path.join(self.temp_directory,
+                                    "." + self.__class__.__name__)
 
-        # A different command line can be specified for each mode.
-        baseline_commandline = (
-            config_options.get("%s_commandline" % self.running_mode) or
-            config_options.get("commandline"))
+        baseline_commandline = config_options.get("commandline")
+
+        # Nothing to do here.
+        if not baseline_commandline:
+            return {}
+
+        # The command line is specified in the test's PARAMETERS dict.
+        try:
+            baseline_commandline = baseline_commandline % config_options
+        except KeyError, e:
+            logging.critical(
+                "Test %s requires parameter %s to be set in config file.",
+                config_options["test_class"], e)
+            return {}
 
         if baseline_commandline:
             for k, v in config_options.items():
@@ -159,7 +185,8 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
             config_options["executed_command"] = baseline_commandline
 
             with open(tmp_filename, "wb") as output_fd:
-                pipe = subprocess.Popen(cmdline, shell=True, stdout=output_fd)
+                pipe = subprocess.Popen(cmdline, shell=True,
+                                        stdout=output_fd, stderr=output_fd)
 
                 pipe.wait()
 
@@ -350,3 +377,22 @@ class TempDirectory(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         shutil.rmtree(self.name, True)
+
+
+class HashChecker(VolatilityBaseUnitTestCase):
+    """A test which compares the hashes of all the files dumped in the tempdir."""
+
+    def BuildBaseLineData(self, config_options):
+        """We need to calculate the hash of the image we produce."""
+        baseline = super(HashChecker, self).BuildBaseLineData(config_options)
+        baseline['hashes'] = {}
+        for filename in os.listdir(self.temp_directory):
+            if not filename.startswith("."):
+                with open(os.path.join(self.temp_directory, filename)) as fd:
+                    md5 = hashlib.md5(fd.read())
+                    baseline['hashes'][filename] = md5.hexdigest()
+
+        return baseline
+
+    def testHashes(self):
+        self.assertEqual(self.baseline['hashes'], self.current['hashes'])
