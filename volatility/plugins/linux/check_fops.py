@@ -27,6 +27,7 @@ import itertools
 import posixpath
 
 from volatility import args
+from volatility import testlib
 from volatility.plugins.linux import common
 
 
@@ -148,6 +149,13 @@ class CheckProcFops(common.LinuxPlugin):
                                    location, highlight=highlight)
 
 
+class TestCheckProcFops(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="check_proc_fops --all"
+        )
+
+
+
 class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
     """Check open files in tasks for f_ops modifications."""
     __name = "check_task_fops"
@@ -184,3 +192,9 @@ class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
             else:
                 renderer.table_row(task.pid, task.comm, member, func,
                                    location, highlight=highlight)
+
+
+class TestCheckTaskFops(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="check_task_fops --all"
+        )

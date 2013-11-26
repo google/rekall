@@ -156,7 +156,7 @@ class Lsmod(common.LinuxPlugin):
         # Add the kernel to the cache so we can dereference addresses in the
         # kernel.
         kernel = KernelModule(self.session)
-        self.mod_lookup = {kernel.module_core.deref(): kernel}
+        self.mod_lookup = {kernel.module_core.v(): kernel}
 
         for module in self.get_module_list():
             self.mod_lookup[int(module.module_core.deref())] = module
@@ -172,7 +172,7 @@ class Lsmod(common.LinuxPlugin):
         if self.modlist is None:
             self._make_cache()
 
-        addr = int(addr)
+        addr = obj.Pointer.integer_to_address(addr)
         pos = bisect.bisect_right(self.modlist, addr) - 1
         if pos == -1:
             return obj.NoneObject("Unknown address")

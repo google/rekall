@@ -230,7 +230,7 @@ class BaseObject(object):
 
         # 64 bit addresses are always sign extended, so we need to clear the top
         # bits.
-        self.obj_offset = int(offset or 0) & 0xffffffffffff
+        self.obj_offset = Pointer.integer_to_address(int(offset or 0))
         self.obj_vm = vm
         self.obj_parent = parent
         self.obj_name = name
@@ -546,7 +546,7 @@ class Pointer(NativeType):
     def v(self, vm=None):
         # 64 bit addresses are always sign extended so we need to clear the top
         # bits.
-        return 0xffffffffffff & self._proxy.v(vm=vm)
+        return Pointer.integer_to_address(self._proxy.v(vm=vm))
 
     def m(self, attr):
         return self.deref().m(attr)
@@ -558,7 +558,7 @@ class Pointer(NativeType):
         try:
             # Must use __int__() because int(other) when other is a string will
             # convert it to an integer.
-            return (0xffffffffffff & other.__int__()) == self.v()
+            return Pointer.integer_to_address(other.__int__()) == self.v()
         except (ValueError, AttributeError):
             return False
 
@@ -658,6 +658,9 @@ class Pointer(NativeType):
             self.target, self.obj_name or '', self.v(),
             self.__class__.__name__)
 
+    def __str__(self):
+        return "Pointer to %s" % self.deref()
+
     def __getattr__(self, attr):
         ## We just dereference ourself
         result = self.dereference()
@@ -676,6 +679,11 @@ class Pointer(NativeType):
             theType=target or self.target, offset=self.v(), vm=vm,
             parent=self.obj_parent, context=self.obj_context,
             **target_args)
+
+    @staticmethod
+    def integer_to_address(value):
+        """Addresses only use 48 bits."""
+        return 0xffffffffffff & value
 
 
 class Void(Pointer):
@@ -866,8 +874,8 @@ class BaseAddressComparisonMixIn(object):
         # 64 bit addresses are always sign extended so we need to clear the top
         # bits.
         try:
-            return method(0xffffffffffff & self.__int__(),
-                          0xffffffffffff & other.__int__())
+            return method(Pointer.integer_to_address(self.__int__()),
+                          Pointer.integer_to_address(other.__int__()))
         except AttributeError:
             return False
 
@@ -1127,6 +1135,7 @@ class Profile(object):
         self.overlays = []
         self.vtypes = {}
         self.constants = {}
+        self.constant_addresses = {}
         self.applied_modifications = []
         self.applied_modifications.append(self.__class__.__name__)
 
@@ -1203,11 +1212,15 @@ class Profile(object):
 
         self.object_classes.update(kwargs)
 
-    def add_constants(self, **kwargs):
+    def add_constants(self, constants_are_addresses=False, **kwargs):
         """Add the kwargs as constants for this profile."""
         self.flush_cache()
 
-        self.constants.update(kwargs)
+        for k, v in kwargs.iteritems():
+            self.constants[k] = v
+            if constants_are_addresses:
+                # We need to interpret the value as a pointer.
+                self.constant_addresses[Pointer.integer_to_address(v)] = k
 
     def add_types(self, abstract_types):
         self.flush_cache()
@@ -1521,6 +1534,9 @@ class Profile(object):
 
         result = self.Object(target, profile=self, offset=offset, **kwargs)
         return result
+
+    def get_constant_by_address(self, address):
+        return self.constant_addresses.get(Pointer.integer_to_address(address))
 
     def __dir__(self):
         """Support tab completion."""

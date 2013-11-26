@@ -104,7 +104,7 @@ class CheckAFInfo(common.LinuxPlugin):
                     variable, target=check["constant_type"],
                     vm=self.kernel_address_space)
 
-                for member, func, location1 in self.check_members(
+                for member, func, location in self.check_members(
                     var_ptr, check["members"]):
                     yield variable, member, func, location
 

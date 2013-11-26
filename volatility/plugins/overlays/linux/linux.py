@@ -229,6 +229,16 @@ linux_overlay = {
                         target_args=dict(length=32),
                         )]],
             }],
+
+    'gate_struct64': [None, {
+            'Address': lambda x: (x.offset_low |
+                                  x.offset_middle << 16 |
+                                  x.offset_high << 32),
+            }],
+
+    'desc_struct': [None, {
+            'Address': lambda x: (x.b & 0xffff0000) | (x.a & 0x0000ffff),
+            }],
     }
 
 
@@ -290,6 +300,27 @@ class dentry(obj.Struct):
 
 
 class task_struct(obj.Struct):
+
+    @property
+    def commandline(self):
+        if self.mm:
+            # The argv string is initialized inside the process's address space.
+            proc_as = self.get_process_address_space()
+
+            # read argv from userland
+            argv = proc_as.read(self.mm.arg_start,
+                                self.mm.arg_end - self.mm.arg_start)
+
+            if argv:
+                # split the \x00 buffer into args
+                name = " ".join(argv.split("\x00"))
+            else:
+                name = ""
+        else:
+            # kernel thread
+            name = "[" + self.comm + "]"
+
+        return name
 
     def get_path(self, filp):
         """Resolve the dentry, vfsmount relative to this task's chroot.
@@ -507,7 +538,7 @@ class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
         for f in self._match_filename("system.map", profile_file):
             logging.info("Found system map file %s" % f)
             sys_map = self.parse_system_map(profile_file.read(f))
-            self.add_constants(**sys_map)
+            self.add_constants(constants_are_addresses=True, **sys_map)
 
         if sys_map is None or vtypes is None:
             raise obj.ProfileError("DWARF profile file does not contain all required"
