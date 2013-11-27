@@ -17,3 +17,4 @@ from volatility.plugins.linux import pas2kas
 from volatility.plugins.linux import proc_maps
 from volatility.plugins.linux import psaux
 from volatility.plugins.linux import pslist
+from volatility.plugins.linux import pstree
