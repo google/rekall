@@ -717,7 +717,8 @@ class Grep(plugin.Command):
                                                offset + idx - int(symbol[0]))
 
                     renderer.table_row(
-                        offset + idx - 20, hexdata, "".join(translated_data), comment)
+                        offset + idx - 20, hexdata, "".join(translated_data),
+                        comment)
 
             offset += len(data)
 

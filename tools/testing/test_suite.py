@@ -203,7 +203,17 @@ class VolatilityTester(object):
         return config
 
     def BuildBaseLineData(self, config_options, plugin_cls):
-        plugin = plugin_cls(temp_directory=self.temp_directory)
+        # Operate on a copy here as we need to provide this test a unique
+        # tempdir to write on.
+        config_options = config_options.copy()
+
+        config_options["tempdir"] = os.path.join(config_options["tempdir"],
+                                                 plugin_cls.__name__)
+
+        # This directory should not exist already!
+        os.mkdir(config_options["tempdir"])
+
+        plugin = plugin_cls(temp_directory=config_options["tempdir"])
         start = time.time()
 
         baseline_data = plugin.BuildBaseLineData(config_options)
@@ -287,6 +297,12 @@ class VolatilityTester(object):
         return result
 
     def RunTests(self):
+        if not os.access(self.FLAGS.config, os.R_OK):
+            logging.error("Config file %s not found.", self.FLAGS.config)
+            sys.exit(-1)
+
+        logging.info("Testing baselines for config file %s", self.FLAGS.config)
+
         config = self.LoadConfigFile()
 
         # Use the options in the DEFAULT section to select the plugins which
@@ -383,19 +399,9 @@ class VolatilityTester(object):
                         self.renderer.write("Error in %s: %s" % (
                                 plugin_cls.__name__, error))
 
-    def ParseCommandLineArgs(self):
-        if not os.access(self.FLAGS.config, os.R_OK):
-            logging.error("Config file %s not found.", self.FLAGS.config)
-            sys.exit(-1)
-
-        logging.info("Testing baselines for config file %s", self.FLAGS.config)
-
-        self.RunTests()
-
-
 def main(argv):
     with VolatilityTester() as tester:
-        tester.ParseCommandLineArgs()
+        tester.RunTests()
 
 
 if __name__ == "__main__":

@@ -618,8 +618,19 @@ try:
 
                     yield op.address, iat_loc, func_pointer
 
-        def Decompose(self, instructions=10):
-            """A generator for instructions of this object."""
+        def Decompose(self, instructions=10, size=None):
+            """A generator for instructions of this object.
+
+            How much to decompose is can be specified either by the total number
+            of instructions or the total size to decompose.
+
+            Args:
+              instructions: Stop after reaching this many instructions. The
+                parameter is ignored when size is specified.
+
+              size: Stop after decoding this much data. If specified we ignore
+                the instructions parameter.
+            """
             overlap = 0x1000
             data = ''
             offset = self.obj_offset
@@ -640,9 +651,13 @@ try:
                     if not op.valid:
                         continue
 
+                    # Exit if we read as much as was required.
+                    if size is not None and op.address - self.obj_offset > size:
+                        return
+
                     yield op
 
-                    if count > instructions:
+                    if size is None and count > instructions:
                         return
 
                     count += 1

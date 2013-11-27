@@ -1,5 +1,3 @@
-# Volatility
-#
 # Authors:
 # Michael Cohen <scudette@gmail.com>
 #
@@ -18,31 +16,29 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""Tests for the procexecdump plugins."""
-import os
-
 from volatility import testlib
 
 
-class TestProcdump(testlib.HashChecker):
-    """Test the Procdump module."""
+class TestInfo(testlib.SimpleTestCase):
+    """Test the Info plugin.
+
+    The Info module changes all the time as new plugins are added. We therefore
+    only check that some of the usual plugins are present.
+    """
 
     PARAMETERS = dict(
-        commandline="procdump --pid %(pid)s --dump-dir %(tempdir)s",
-        pid=2536
+        commandline="info"
         )
 
+    def testCase(self):
+        previous = set(
+            self.ExtractColumn(
+                list(self.SplitLines(self.baseline['output']))[1], 0))
 
-class TestModDump(testlib.HashChecker):
-    PARAMETERS = dict(
-        commandline="moddump --regex %(driver)s --dump-dir %(tempdir)s",
-        driver="ntoskrnl.exe"
-        )
+        current = set(
+            self.ExtractColumn(
+                list(self.SplitLines(self.current['output']))[1], 0))
 
+        # Its ok if the current result is a superset of the previous result.
+        self.assertEqual(previous - current, set())
 
-class TestDLLDump(testlib.HashChecker):
-    """Test the dlldump module."""
-
-    PARAMETERS = dict(
-        commandline="dlldump --pid %(pid)s --dump-dir %(tempdir)s",
-        )
