@@ -93,4 +93,8 @@ class CheckIdt(common.LinuxPlugin):
                                ("Symbol", "symbol", "<30")])
 
         for (i, idt_addr, symbol) in self.CheckIDTTables():
-            renderer.table_row(i, idt_addr, symbol)
+            highlight = None
+            if symbol == "Unknown":
+                highlight = "important"
+
+            renderer.table_row(i, idt_addr, symbol, highlight=highlight)

@@ -264,7 +264,9 @@ class BaseObject(object):
         proxied = self.proxied(attr)
         # Don't do a __nonzero__ check on proxied or things like '' will fail
         if proxied is None:
-            raise AttributeError("Unable to resolve attribute {0} on {1}".format(attr, self.obj_name))
+            raise AttributeError(
+                "Unable to resolve attribute {0} on {1}".format(
+                    attr, self.obj_name))
 
         return getattr(proxied, attr)
 
@@ -683,7 +685,7 @@ class Pointer(NativeType):
     @staticmethod
     def integer_to_address(value):
         """Addresses only use 48 bits."""
-        return 0xffffffffffff & value
+        return 0xffffffffffff & int(value)
 
 
 class Void(Pointer):

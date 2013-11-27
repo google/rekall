@@ -618,14 +618,14 @@ try:
 
                     yield op.address, iat_loc, func_pointer
 
-        def Decompose(self, size=0):
+        def Decompose(self, instructions=10):
             """A generator for instructions of this object."""
             overlap = 0x1000
             data = ''
             offset = self.obj_offset
             count = 0
 
-            while size > count:
+            while 1:
                 data = self.obj_vm.zread(offset, overlap)
 
                 # This could happen if we hit an unmapped page - we just
@@ -633,7 +633,6 @@ try:
                 if not data:
                     return
 
-                count += len(data)
                 for op in distorm3.Decompose(offset, data, self.distorm_mode):
                     if op.address - offset > len(data) - 40:
                         break
@@ -642,6 +641,11 @@ try:
                         continue
 
                     yield op
+
+                    if count > instructions:
+                        return
+
+                    count += 1
 
                 offset = op.address
 
@@ -679,6 +683,29 @@ try:
             for i, x in enumerate(self.Disassemble):
                 if i == item:
                     return x
+
+        def Rewind(self, length=0, align=True):
+            """Returns another function which starts before this function.
+
+            If align is specified, we increase the length repeatedly until the
+            new function disassebles exactly to the same offset of this
+            function.
+            """
+            while 1:
+                offset = self.obj_offset - length
+                result = self.obj_profile.Function(vm=self.obj_vm, offset=offset)
+                if not align:
+                    return result
+
+                for offset, _, _ in result.Disassemble(instructions=length):
+                    # An exact match.
+                    if offset == self.obj_offset:
+                        return result
+
+                    # We overshot ourselves, try again.
+                    if offset > self.obj_offset:
+                        length += 1
+                        break
 
         def Disassemble(self, instructions=10):
             """Generate some instructions."""
