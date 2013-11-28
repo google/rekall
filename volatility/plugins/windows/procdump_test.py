@@ -46,3 +46,13 @@ class TestDLLDump(testlib.HashChecker):
     PARAMETERS = dict(
         commandline="dlldump --pid %(pid)s --dump-dir %(tempdir)s",
         )
+
+
+class TestPEDump(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline=("pedump --out_file %(tempdir)s/out_file.exe "
+                     "--image_base %(image_base)s"),
+
+        # This can be fetched from the output of modules plugin.
+        image_base=0xf5fce000,
+        )

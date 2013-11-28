@@ -42,15 +42,15 @@ class PEDump(common.WinProcessFilter):
         """Declare the command line args we need."""
         super(PEDump, cls).args(parser)
         parser.add_argument(
-            "--image-base", default=0, action=args.IntParser,
+            "--image_base", default=0, action=args.IntParser,
             help="The address of the image base (dos header).")
 
-        parser.add_argument("--filename", default=None,
+        parser.add_argument("--out_file", default=None,
                             help="The file name to write.")
 
 
-    def __init__(self, address_space=None, image_base=None, out_fd=None, filename=None,
-                 **kwargs):
+    def __init__(self, address_space=None, image_base=None, out_fd=None,
+                 out_file=None, **kwargs):
         """Dump a PE binary from memory.
 
         Args:
@@ -59,7 +59,7 @@ class PEDump(common.WinProcessFilter):
           out_fd: The output file like object which will be used to write the
             file onto.
 
-          filename: Alternatively a filename can be provided to write the PE
+          out_file: Alternatively a filename can be provided to write the PE
             file to.
         """
         super(PEDump, self).__init__(**kwargs)
@@ -67,13 +67,13 @@ class PEDump(common.WinProcessFilter):
         self.image_base = image_base
         if out_fd:
             self.out_fd = out_fd
-            self.filename = "FD <%s>" % out_fd
-        elif filename:
-            self.out_fd = open(filename, "wb")
-            self.filename = filename
+            self.out_file = "FD <%s>" % out_fd
+        elif out_file:
+            self.out_fd = open(out_file, "wb")
+            self.out_file = out_file
         else:
             self.out_fd = None
-            self.filename = None
+            self.out_file = None
 
         # Get the pe profile.
         self.pe_profile = pe_vtypes.PEProfile()
@@ -119,28 +119,15 @@ class PEDump(common.WinProcessFilter):
             logging.error("No output filename or file handle specified.")
             return
 
-        # Find the address_space requested by the user.
+        # Default address space is the kernel if not specified.
         if self.address_space is None:
-            # The user wants to filter some process out - use its address space.
-            if self.filtering_applied:
-                for task in self.filter_processes():
-                    self.address_space = task.get_process_address_space()
+            self.address_space = self.kernel_address_space
 
-                    # Find only the first one.
-                    if self.address_space:
-                        logging.info("Selected process %s pid %s",
-                                     task.ImageFileName, task.UniqueProcessId)
-                        break
-            else:
-                # The user did not filter any process - use the kernel address
-                # space.
-                self.address_space = self.kernel_address_space
-
-        if self.filename is None:
+        if self.out_file is None:
             logging.error("output file must be specified.")
         else:
             renderer.format("Dumping PE File at image_base {0:#x} to {1}\n",
-                            self.image_base, self.filename)
+                            self.image_base, self.out_file)
 
             self.WritePEFile(self.out_fd, self.address_space, self.image_base)
 

@@ -41,10 +41,7 @@ class TestPS(testlib.VolatilityBaseUnitTestCase):
 class TestDLLList(testlib.VolatilityBaseUnitTestCase):
     """Test the dlllist module."""
 
-    PARAMETERS = dict(commandline="dlllist",
-                      # Trunk volatility does not print anything for invalid
-                      # addresses.
-                      trunk_replace_regex = "s/\|\|\n/||-\n/")
+    PARAMETERS = dict(commandline="dlllist")
 
     def ParseDllist(self, output):
         map = {}
@@ -78,7 +75,8 @@ class TestDLLList(testlib.VolatilityBaseUnitTestCase):
 class TestMemmap(testlib.VolatilityBaseUnitTestCase):
     """Test the pslist module."""
 
-    PARAMETERS = dict(commandline="memmap --pid=2624")
+    PARAMETERS = dict(commandline="memmap --pid=%(pid)s",
+                      pid=2624)
 
     def testMemmap(self):
         # Virtual address - Hex formatting might be different so convert it from
@@ -97,4 +95,5 @@ class TestMemmap(testlib.VolatilityBaseUnitTestCase):
 class TestMemmapCoalesce(testlib.SimpleTestCase):
     """Make sure that memmaps are coalesced properly."""
 
-    PARAMETERS = dict(commandline="memmap --pid=2624 --coalesce")
+    PARAMETERS = dict(commandline="memmap --pid=%(pid)s --coalesce",
+                      pid=2624)

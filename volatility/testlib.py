@@ -87,13 +87,13 @@ class VolatilityBaseUnitTestCase(unittest.TestCase):
     PLUGIN = None
 
     @classmethod
-    def is_active(cls, config):
+    def is_active(cls, session):
         delegate_plugin = (
             plugin.Command.classes.get(cls.PLUGIN) or
-            plugin.Command.classes_by_name.get(cls.CommandName()))
+            getattr(session.plugins, cls.CommandName() or "", None))
 
         if delegate_plugin:
-            return delegate_plugin.is_active(config)
+            return delegate_plugin.is_active(session)
 
     @classmethod
     def CommandName(cls):
