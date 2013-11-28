@@ -39,6 +39,8 @@ void help(TCHAR *ExeName)
           L"  -w    Turn on/off write mode.\n"
           L"  -1    Use MmMapIoSpace method.\n"
           L"  -2    Use \\\\Device\\PhysicalMemory method (Default).\n"
+          L"  -3    Use PTE remapping.\n"
+          L"  -4    Use PTE remapping with PCI instrospection.\n"
           L"  -d    Produce a crashdump file.\n"
           L"\n");
 
@@ -99,6 +101,14 @@ int _tmain(int argc, _TCHAR* argv[]) {
       };
       case '2': {
         mode = PMEM_MODE_PHYSICAL;
+        break;
+      }
+      case '3': {
+        mode = PMEM_MODE_PTE;
+        break;
+      }
+      case '4': {
+        mode = PMEM_MODE_PTE_PCI;
         break;
       }
       case 'w': {

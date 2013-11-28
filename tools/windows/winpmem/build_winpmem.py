@@ -4,7 +4,7 @@ import os
 import subprocess
 import shutil
 
-VERSION=1.4
+VERSION="1.5.2"
 PATH_TO_DDK = r"C:\WinDDK\7600.16385.1"
 PATH_TO_VS = r"C:\Program Files\Microsoft SDKs\Windows\v7.0"
 
@@ -120,4 +120,4 @@ def BuildTestSignedBinries():
 
 CleanUpOldFiles()
 BuildTestSignedBinries()
-#BuildSignedProductionBinaries()
+BuildSignedProductionBinaries()

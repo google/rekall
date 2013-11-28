@@ -15,9 +15,11 @@
 */
 
 #include "winpmem.h"
+#include "pte_mmap_windows.h"
 #include "api.h"
 #include "read.h"
 #include "kd.h"
+#include "pci.h"
 
 
 // The following globals are populated in the kernel context from DriverEntry
@@ -30,6 +32,7 @@ DRIVER_UNLOAD IoUnload;
 VOID IoUnload(IN PDRIVER_OBJECT DriverObject) {
   UNICODE_STRING DeviceLinkUnicodeString;
   PDEVICE_OBJECT pDeviceObject = DriverObject->DeviceObject;
+  PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)pDeviceObject->DeviceExtension;
 
   RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\DosDevices\\"
 			PMEM_DEVICE_NAME);
@@ -38,6 +41,10 @@ VOID IoUnload(IN PDRIVER_OBJECT DriverObject) {
   if (DriverObject != NULL) {
     IoDeleteDevice(pDeviceObject);
   }
+
+  if(ext->pte_mmapper) {
+    pte_mmap_windows_delete(ext->pte_mmapper);
+  };
 }
 
 
@@ -204,7 +211,13 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     IMAGE_DOS_HEADER *KernBase;
     KDDEBUGGER_DATA64 *kdbg = NULL;
 
-    status = AddMemoryRanges(info, OutputLen);
+    // Get the memory ranges according to the mode.
+    if (ext->mode == ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE) {
+      status = PCI_AddMemoryRanges(info, OutputLen);
+    } else {
+      status = AddMemoryRanges(info, OutputLen);
+    }
+
     if (status != STATUS_SUCCESS) {
       goto exit;
     };
@@ -274,6 +287,29 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
           status = STATUS_UNSUCCESSFUL;
         } else {
           WinDbgPrint("Using MmMapIoSpace for acquisition.\n");
+          status = STATUS_SUCCESS;
+        };
+        break;
+
+      case ACQUISITION_MODE_PTE_MMAP:
+        if (!Pmem_KernelExports.MmGetVirtualForPhysical ||
+            !Pmem_KernelExports.MmGetPhysicalMemoryRanges) {
+          WinDbgPrint("Kernel APIs required for this method are not "
+                      "available.");
+          status = STATUS_UNSUCCESSFUL;
+        } else {
+          WinDbgPrint("Using PTE Remapping for acquisition.\n");
+          status = STATUS_SUCCESS;
+        };
+        break;
+
+      case ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE:
+        if (!Pmem_KernelExports.MmGetVirtualForPhysical) {
+          WinDbgPrint("Kernel APIs required for this method are not "
+                      "available.");
+          status = STATUS_UNSUCCESSFUL;
+        } else {
+          WinDbgPrint("Using PTE Remapping with PCI probe for acquisition.\n");
           status = STATUS_SUCCESS;
         };
         break;
@@ -390,6 +426,9 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   extension = DeviceObject->DeviceExtension;
   extension->mode = ACQUISITION_MODE_PHYSICAL_MEMORY;
   extension->MemoryHandle = 0;
+
+  extension->pte_mmapper = pte_mmap_windows_new();
+  extension->pte_mmapper->loglevel = PTE_ERR;
 
   return NtStatus;
 

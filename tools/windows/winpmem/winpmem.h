@@ -22,7 +22,7 @@
  */
 #define SILENT_OPERATION 0
 #define PMEM_DEVICE_NAME L"pmem"
-#define PMEM_VERSION "v1.4"
+#define PMEM_VERSION "v1.5.2"
 #define PMEM_POOL_TAG 0x4d454d50
 
 // In order to enable writing this must be set to 1 and the
@@ -35,6 +35,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "pte_mmap.h"
 #include "api.h"
 
 // Some standard integer sizes.
@@ -108,6 +109,11 @@ enum PMEM_ACQUISITION_MODE {
   // Map the \\.\PhysicalMemory device.
   ACQUISITION_MODE_PHYSICAL_MEMORY = 1,
 
+  // Use direct page table manipulation.
+  ACQUISITION_MODE_PTE_MMAP = 2,
+
+  // Use direct page table manipulation with PCI memory map probing.
+  ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE = 3
 };
 
 struct PmemMemoryControl {
@@ -125,6 +131,9 @@ struct PmemMemoryControl {
 #define vWinDbgPrintEx vDbgPrintEx
 #endif
 
+// Add verbose debugging to PCI code.
+#define WINPMEM_PCI_DEBUG 0
+
 
 /*
   Our Device Extension Structure.
@@ -137,6 +146,9 @@ typedef struct _DEVICE_EXTENSION {
   HANDLE MemoryHandle;
 
   int WriteEnabled;
+
+  /* Hold a handle to the pte_mmap object. */
+  PTE_MMAP_OBJ *pte_mmapper;
 } DEVICE_EXTENSION, *PDEVICE_EXTENSION;
 
 // 5e1ce668-47cb-410e-a664-5c705ae4d71b

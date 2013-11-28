@@ -146,6 +146,25 @@ void WinPmem::print_memory_info() {
     max_physical_memory_ = info.Run[i].start + info.Run[i].length;
   };
 
+  // When using the pci introspection we dont know the maximum physical memory,
+  // we therefore make a guess based on the total ram in the system.
+  Log(TEXT("Acquitision mode %X\n"), mode_);
+  if (mode_ == PMEM_MODE_PTE_PCI) {
+    ULONGLONG installed_memory = 0;
+    MEMORYSTATUSEX statusx;
+
+    statusx.dwLength = sizeof(statusx);
+
+    if (GlobalMemoryStatusEx (&statusx)) {
+      max_physical_memory_ = statusx.ullTotalPhys * 3 / 2;
+      Log(TEXT("Max physical memory guessed at 0x%08llX\n"),
+               max_physical_memory_);
+
+    } else {
+      Log(TEXT("Unable to guess max physical memory. Just Ctrl-C when ")
+          TEXT("done.\n"));
+    };
+  };
   Log(TEXT("\n"));
 
  error:

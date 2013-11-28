@@ -105,6 +105,35 @@ static LONG MapIOPagePartialRead(IN PDEVICE_EXTENSION extension,
 };
 
 
+// Read a single page using direct PTE mapping.
+static LONG PTEMmapPartialRead(IN PDEVICE_EXTENSION extension,
+			       LARGE_INTEGER offset, PCHAR buf,
+			       ULONG count) {
+  ULONG page_offset = offset.QuadPart % PAGE_SIZE;
+  ULONG to_read = min(PAGE_SIZE - page_offset, count);
+  PUCHAR mapped_buffer = NULL;
+  SIZE_T ViewSize = PAGE_SIZE;
+  NTSTATUS NtStatus;
+  LARGE_INTEGER ViewBase;
+
+  // Round to page size
+  ViewBase.QuadPart = offset.QuadPart - page_offset;
+
+  // Map exactly one page.
+  if(extension->pte_mmapper->remap_page(extension->pte_mmapper,
+					offset.QuadPart - page_offset) ==
+     PTE_SUCCESS) {
+    RtlCopyMemory(buf, (char *)(extension->pte_mmapper->rogue_page.value +
+				page_offset), to_read);
+  } else {
+    // Failed to map page, null fill the buffer.
+    RtlZeroMemory(buf, to_read);
+  };
+
+  return to_read;
+};
+
+
 static NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset,
                            PCHAR buf, ULONG *count,
                            LONG (*handler)(IN PDEVICE_EXTENSION, LARGE_INTEGER,
@@ -175,6 +204,13 @@ NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
   case ACQUISITION_MODE_MAP_IO_SPACE:
     status = DeviceRead(extension, BufOffset, Buf, &BufLen,
                         MapIOPagePartialRead);
+    Irp->IoStatus.Information = pIoStackIrp->Parameters.Read.Length;
+    break;
+
+  case ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE:
+  case ACQUISITION_MODE_PTE_MMAP:
+    status = DeviceRead(extension, BufOffset, Buf, &BufLen,
+                        PTEMmapPartialRead);
     Irp->IoStatus.Information = pIoStackIrp->Parameters.Read.Length;
     break;
 

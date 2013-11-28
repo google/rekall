@@ -126,6 +126,10 @@ class Image(object):
             mode = 0
         elif FLAGS.mode == "physical":
             mode = 1
+        elif FLAGS.mode == "pte":
+            mode = 2
+        elif FLAGS.mode == "pte_pci":
+            mode = 3
         else:
             raise RuntimeError("Mode %s not supported" % FLAGS.mode)
 
