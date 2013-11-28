@@ -1,5 +1,5 @@
 /*
-  Copyright 2012 Michael Cohen <scudette@gmail.com>
+  Copyright 2012-2013 Michael Cohen <scudette@gmail.com>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -23,32 +23,35 @@
 *********************************************************************/
 #include "winpmem.h"
 
+#define Log(x, ...) wprintf(x, __VA_ARGS__)
+
+
 void help(TCHAR *ExeName)
 {
-  wprintf(L"Winpmem - A memory imager for windows.\n"
-          L"Copyright Michael Cohen (scudette@gmail.com) 2012.\n\n");
+  Log(L"Winpmem - A memory imager for windows.\n"
+          L"Copyright Michael Cohen (scudette@gmail.com) 2012-2013.\n\n");
 
-  wprintf(L"Version %s\n", version);
-  wprintf(L"Usage:\n");
-  wprintf(L"  %s [option] [output path]\n", ExeName);
+  Log(L"Version %s\n", version);
+  Log(L"Usage:\n");
+  Log(L"  %s [option] [output path]\n", ExeName);
 
-  wprintf(L"\nOption:\n");
-  wprintf(L"  -l    Load the driver and exit.\n"
-          L"  -u    Unload the driver and exit.\n"
-          L"  -h    Display this help.\n"
-          L"  -w    Turn on/off write mode.\n"
-          L"  -1    Use MmMapIoSpace method.\n"
-          L"  -2    Use \\\\Device\\PhysicalMemory method (Default).\n"
-          L"  -3    Use PTE remapping.\n"
-          L"  -4    Use PTE remapping with PCI instrospection.\n"
-          L"  -d    Produce a crashdump file.\n"
-          L"\n");
+  Log(L"\nOption:\n");
+  Log(L"  -l    Load the driver and exit.\n"
+      L"  -u    Unload the driver and exit.\n"
+      L"  -h    Display this help.\n"
+      L"  -w    Turn on write mode.\n"
+      L"  -0    Use MmMapIoSpace method.\n"
+      L"  -1    Use \\\\Device\\PhysicalMemory method (Default).\n"
+      L"  -2    Use PTE remapping.\n"
+      L"  -3    Use PTE remapping with PCI instrospection.\n"
+      L"  -d    Produce a crashdump file.\n"
+      L"\n");
 
-  wprintf(L"\nNOTE: an output filename of - will write the image to STDOUT.\n");
-  wprintf(L"\nExamples:\n");
-  wprintf(L"%s physmem.raw\nWrites an image to physmem.raw\n", ExeName);
-  wprintf(L"\n%s -d - | nc 192.168.1.1 80\n", ExeName);
-  wprintf(L"Writes a crashdump file to netcat for network transport.\n");
+  Log(L"NOTE: an output filename of - will write the image to STDOUT.\n");
+  Log(L"\nExamples:\n");
+  Log(L"%s physmem.raw\nWrites an image to physmem.raw\n", ExeName);
+  Log(L"\n%s -d - | nc 192.168.1.1 80\n", ExeName);
+  Log(L"Writes a crashdump file to netcat for network transport.\n");
 }
 
 /* Create the corrent WinPmem object. Currently this selects between
@@ -82,7 +85,8 @@ int _tmain(int argc, _TCHAR* argv[]) {
 
   if(argc < 2) {
     help(argv[0]);
-    return -1;
+    status = -1;
+    goto exit;
   };
 
   for(i=1; i<argc; i++) {
@@ -90,39 +94,49 @@ int _tmain(int argc, _TCHAR* argv[]) {
       switch(argv[i][1]) {
       case 'l': {
         only_load_driver=1;
-      }; break;
-
+        break;
+      };
       case 'u': {
         only_unload_driver=1;
+        break;
       };
-      case '1': {
+      case '0': {
+        Log(TEXT("Setting acquitision mode to MMMapIoSpace\n"));
         mode = PMEM_MODE_IOSPACE;
         break;
       };
-      case '2': {
+      case '1': {
+        Log(TEXT("Setting acquitision mode to \\.\PhysicalMemory\n"));
         mode = PMEM_MODE_PHYSICAL;
         break;
       }
-      case '3': {
+      case '2': {
+        Log(TEXT("Setting acquitision mode to PTE Remapping\n"));
         mode = PMEM_MODE_PTE;
         break;
       }
-      case '4': {
+      case '3': {
+        Log(TEXT("Setting acquitision mode to PTE Remapping with ")
+            TEXT("PCI introspection.\n"));
         mode = PMEM_MODE_PTE_PCI;
         break;
       }
       case 'w': {
+        Log(TEXT("Enabling write mode.\n"));
         write_mode = 1;
-      }; break;
+        break;
+      };
 
       case 'd': {
+        Log(TEXT("Will write crashdump output.\n"));
         crashdump_output = 1;
       }; break;
 
       default: {
         help(argv[0]);
-        return -1;
-      }; break;
+        status = -1;
+        goto exit;
+      };
 
       };  // Switch.
 
@@ -162,5 +176,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
   }
 
   delete pmem_handle;
+
+ exit:
   return status;
 }

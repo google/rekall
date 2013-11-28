@@ -1,4 +1,26 @@
 #!/usr/bin/python
+"""Build script for winpmem.
+
+This script builds the drivers and then the userspace application which embeds
+them. To have it run, you will need to install the following components on a 
+windows system:
+
+1) .Net framework:
+   http://www.microsoft.com/en-us/download/details.aspx?id=17851
+
+2) Microsoft Windows SDK for Windows 7 and .NET Framework 4
+   http://www.microsoft.com/en-us/download/details.aspx?id=8279
+
+   Make sure you select the c++ compilers here.
+
+3) Windows Driver Kit Version 7.1.0:
+   http://www.microsoft.com/en-us/download/details.aspx?id=11800
+
+4) Python 2.7 from python.org.
+
+If you install these in different locations be sure to adjust the constants
+below.
+"""
 import re
 import os
 import subprocess
@@ -6,7 +28,7 @@ import shutil
 
 VERSION="1.5.2"
 PATH_TO_DDK = r"C:\WinDDK\7600.16385.1"
-PATH_TO_VS = r"C:\Program Files\Microsoft SDKs\Windows\v7.0"
+PATH_TO_VS = r"C:\Program Files\Microsoft SDKs\Windows\v7.1"
 
 def BuildProgram(principle="test", store=None, signtool_params=""):
     args = dict(path=PATH_TO_VS,
@@ -19,12 +41,19 @@ def BuildProgram(principle="test", store=None, signtool_params=""):
     if store:
         args["store"] = " /s %s " % store
 
+    # We want to support the lowest common denominator for the winpmem usermode
+    # application, so we choose to target Windows XP x86.
     env_command = ["cmd", "/E:ON", "/V:ON", "/K",
-                   r"%(path)s\Bin\SetEnv.cmd" % args]
+                   r"%(path)s\Bin\SetEnv.cmd" % args,
+                   "/Release", "/x86", "/xp"]
 
     pipe = subprocess.Popen(env_command, stdin=subprocess.PIPE, shell=False)
-    pipe.communicate("cd \"%(executable_src)s\" && del /q release "
-                     "&& msbuild winpmem.vcproj /p:Configuration=Release \n" % args)
+    pipe.communicate(
+        "cd \"%(executable_src)s\" && del /q release "
+        "&& msbuild winpmem.vcxproj /p:Configuration=Release \n" % args)
+
+    if pipe.returncode:
+        raise IOError("Something went wrong")
 
     build_path = "%(executable_src)s/release/winpmem.exe" % args
 

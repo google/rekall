@@ -1,5 +1,5 @@
 /*
-  Copyright 2012 Michael Cohen <scudette@gmail.com>
+  Copyright 2012-2013 Michael Cohen <scudette@gmail.com>
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -181,7 +181,6 @@ int WinPmem::set_acquisition_mode(unsigned __int32 mode) {
     return -1;
   };
 
-  Log(TEXT("Setting acquitision mode to %X\n"), mode);
   mode_ = mode;
   return 1;
 };
@@ -408,7 +407,7 @@ int WinPmem::install_driver() {
 
   scm = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
   if (!scm) {
-    LogError(TEXT("Can not open SCM. Are you administrator?"));
+    LogError(TEXT("Can not open SCM. Are you administrator?\n"));
     goto error;
   }
 
