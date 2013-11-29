@@ -239,6 +239,34 @@ linux_overlay = {
     'desc_struct': [None, {
             'Address': lambda x: (x.b & 0xffff0000) | (x.a & 0x0000ffff),
             }],
+
+    'tty_driver': [None, {
+
+            "name": [None, ["Pointer", dict(
+                        target="String"
+                        )]],
+
+            "ttys": [None, ["Pointer", dict(
+                        target="Array",
+                        target_args=dict(
+                            count=lambda x: x.num,
+                            target="Pointer",
+                            target_args=dict(
+                                target="tty_struct"
+                                )
+                            )
+                        )]],
+            }],
+
+    'tty_struct': [None, {
+            'name': [None, ["String"]],
+            }],
+
+    "resource": [None, {
+            "name": [None, ["Pointer", dict(
+                        target="String"
+                        )]],
+            }],
     }
 
 

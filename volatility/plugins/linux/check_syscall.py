@@ -135,16 +135,7 @@ class CheckSyscall(common.LinuxPlugin):
                 )
 
             for i, entry in enumerate(table):
-                # Try to resolve the address from the profile.
-                name = (self.profile.get_constant_by_address(entry.deref()) or
-
-                        # Search for a module which contains this address.
-                        lsmod.find_module(entry.deref()).name or
-
-                        # We really dont know where this is going.
-                        "Unknown")
-
-                yield table_name, i, entry, name
+                yield table_name, i, entry, lsmod.ResolveSymbolName(entry.deref())
 
     def render(self, renderer):
         renderer.table_header([
@@ -154,9 +145,5 @@ class CheckSyscall(common.LinuxPlugin):
                 ("Symbol", "symbol", "<30")])
 
         for table_name, i, call_addr, sym_name in self.CheckSyscallTables():
-            highlight = None
-            if symbol == "Unknown":
-                highlight = "important"
-
-            renderer.table_row(table_name, i, call_addr, sym_name,
-                               highlight=highlight)
+            renderer.table_row(table_name, i, call_addr, sym_name or "Unknown",
+                               highlight=None if sym_name else "important")

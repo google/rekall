@@ -24,6 +24,8 @@
 @contact:      atcuno@gmail.com
 @organization:
 """
+
+from volatility import testlib
 from volatility.plugins.linux import common
 
 
@@ -54,3 +56,10 @@ class Lsof(common.LinProcessFilter):
 
         for (task, file_struct, fd) in self.lsof():
             renderer.table_row(task.pid, fd, task.get_path(file_struct))
+
+
+class TestLsof(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="lsof --proc_regex %(proc_name)s",
+        proc_name="bash"
+        )

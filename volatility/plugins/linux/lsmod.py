@@ -164,6 +164,19 @@ class Lsmod(common.LinuxPlugin):
         # The start addresses in sorted order.
         self.modlist = sorted(self.mod_lookup.keys())
 
+    def ResolveSymbolName(self, addr):
+        """Resolve a pointer into a name.
+
+        If the symbol name is known we return that, otherwise we try to find the
+        containing module, or else we return None of we dont know its name..
+        """
+
+        # Try to resolve the address from the profile.
+        return (self.profile.get_constant_by_address(addr) or
+
+                # Search for a module which contains this address.
+                self.find_module(addr).name)
+
     def find_module(self, addr):
         """Returns the module which contains this address.
 

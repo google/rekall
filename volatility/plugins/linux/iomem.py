@@ -8,11 +8,11 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """
 @author:       Andrew Case
@@ -21,35 +21,50 @@
 @organization: Digital Forensics Solutions
 """
 
-import volatility.obj as obj
+from volatility.plugins.linux import common
 
-import linux_common
 
-class linux_iomem(linux_common.AbstractLinuxCommand):
+class IOmem(common.LinuxPlugin):
+    '''mimics /proc/iomem.'''
 
-    ''' mimics /proc/iomem '''
-    
-    def print_resource(self, io_ptr, ischild=0):
+    __name = "iomem"
 
-        if not io_ptr:
-            #print "null"
+    def GetResources(self):
+        # Resources are organized in a tree structure.
+        resource_tree_root = self.profile.get_constant_object(
+            "iomem_resource", target="resource")
+
+        seen = set()
+
+        return self._GetResources(resource_tree_root, seen)
+
+    def _GetResources(self, node, seen, depth=0):
+        """Traverse the resource tree depth first."""
+        if not node or node in seen:
             return
 
-        io_res = obj.Object("resource", offset=io_ptr, vm=self.addr_space)
+        seen.add(node)
 
-        name = linux_common.get_string(io_res.name, self.addr_space)
+        yield node, depth
 
-        print "\t" * ischild + name
+        if node.child:
+            for x in self._GetResources(node.child.deref(), seen, depth+1):
+                yield x
 
-        self.print_resource(io_res.child, 1)
-        self.print_resource(io_res.sibling, 0)
+        for sibling in node.walk_list("sibling"):
+            for x in self._GetResources(sibling, seen, depth):
+                yield x
 
-    def calculate(self):
 
-        io_ptr = self.smap["iomem_resource"]
+    def render(self, renderer):
+        renderer.table_header([
+                ("Resource", "resource", "[addrpad]"),
+                ("", "depth", ""),
+                ("Start", "start", "[addrpad]"),
+                ("End", "end", "[addrpad]"),
+                ("Name", "name", "")])
 
-        self.print_resource(io_ptr)
+        for node, depth in self.GetResources():
+            renderer.table_row(
+                node, "." * depth, node.start, node.end, node.name.deref())
 
-    def render_text(self, outfd, data):
-
-        pass 

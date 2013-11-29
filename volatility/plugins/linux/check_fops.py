@@ -196,5 +196,6 @@ class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
 
 class TestCheckTaskFops(testlib.SimpleTestCase):
     PARAMETERS = dict(
-        commandline="check_task_fops --all"
+        commandline="check_task_fops --proc_regex %(proc_name)s --all",
+        proc_name="bash"
         )

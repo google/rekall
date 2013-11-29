@@ -22,11 +22,12 @@
 """
 import os
 
+from volatility import testlib
 from volatility.plugins import core
 from volatility.plugins.linux import common
 
 
-class ProcMaps_maps(common.LinProcessFilter):
+class ProcMaps(common.LinProcessFilter):
     """Gathers process maps for linux."""
 
     __name = "maps"
@@ -75,6 +76,13 @@ class ProcMaps_maps(common.LinProcessFilter):
                                    minor,
                                    ino,
                                    fname)
+
+
+class TestProcMaps(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="maps --proc_regex %(proc_name)s",
+        proc_name="bash"
+        )
 
 
 class LinVadDump(core.DirectoryDumperMixin, common.LinProcessFilter):

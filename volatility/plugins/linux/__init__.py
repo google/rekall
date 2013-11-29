@@ -6,11 +6,14 @@ from volatility.plugins.linux import check_idt
 from volatility.plugins.linux import check_fops
 from volatility.plugins.linux import check_modules
 from volatility.plugins.linux import check_syscall
+from volatility.plugins.linux import check_tty
 from volatility.plugins.linux import common
 from volatility.plugins.linux import cpuinfo
 from volatility.plugins.linux import dmesg
 from volatility.plugins.linux import ifconfig
+from volatility.plugins.linux import iomem
 from volatility.plugins.linux import lsmod
+from volatility.plugins.linux import mount
 #from volatility.plugins.linux import netstat
 from volatility.plugins.linux import lsof
 from volatility.plugins.linux import pas2kas
