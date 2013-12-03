@@ -2,6 +2,7 @@
 #
 # Authors:
 # Mike Auty
+# Michael Cohen
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,10 +26,8 @@ import struct
 from volatility.plugins.addrspaces import intel
 
 
-# WritablePagedMemory must be BEFORE base address, since it adds the concrete method get_available_addresses
-# If it's second, BaseAddressSpace's abstract version will take priority
 class AMD64PagedMemory(intel.IA32PagedMemoryPae):
-    """ Standard AMD 64-bit address space.
+    """Standard AMD 64-bit address space.
 
     Provides an address space for AMD64 paged memory, aka the x86_64
     architecture, which is laid out similarly to Physical Address
@@ -133,7 +132,6 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         Each entry in the list is the starting virtual address
         and the size of the memory page.
         '''
-
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
         # PDEs and PTEs we must test.
@@ -167,7 +165,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                     pte_table_addr = ((pde_value & 0xffffffffff000) |
                                       ((vaddr & 0x1ff000) >> 9))
 
-                    data = self.base.zread(pte_table_addr, 8 * 0x200)
+                    data = self.base.read(pte_table_addr, 8 * 0x200)
                     pte_table = struct.unpack("<" + "Q" * 0x200, data)
 
                     for i, pte_value in enumerate(pte_table):

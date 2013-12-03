@@ -499,42 +499,6 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
 
         return result
 
-    def zread(self, addr, length):
-        first_block = 0x1000 - addr % 0x1000
-        full_blocks = ((length + (addr % 0x1000)) / 0x1000) - 1
-        left_over = (length + addr) % 0x1000
-
-        self.check_address_range(addr)
-
-        ImageXpressHeader = self.get_addr(addr)
-        if ImageXpressHeader == None:
-            if length < first_block:
-                return ('\0' * length)
-            stuff_read = ('\0' * first_block)
-        else:
-            if length < first_block:
-                return self.read(addr, length)
-            stuff_read = self.read(addr, first_block)
-
-        new_addr = addr + first_block
-
-        for _i in range(0, full_blocks):
-            ImageXpressHeader = self.get_addr(new_addr)
-            if ImageXpressHeader == None:
-                stuff_read = stuff_read + ('\0' * 0x1000)
-            else:
-                stuff_read = stuff_read + self.read(new_addr, 0x1000)
-            new_addr = new_addr + 0x1000
-
-        if left_over > 0:
-            ImageXpressHeader = self.get_addr(new_addr)
-            if ImageXpressHeader == None:
-                stuff_read = stuff_read + ('\0' * left_over)
-            else:
-                stuff_read = stuff_read + self.read(new_addr, left_over)
-
-        return stuff_read
-
     def read_long(self, addr):
         _baseaddr = self.get_addr(addr)
         string = self.read(addr, 4)

@@ -201,7 +201,7 @@ class PoolTagCheck(scan.ScannerCheck):
     def check(self, offset):
         for tag in self.tags:
             # Check the tag field.
-            data = self.address_space.zread(offset + self.tag_offset, len(tag))
+            data = self.address_space.read(offset + self.tag_offset, len(tag))
             if data == tag:
                 return True
 
@@ -318,7 +318,6 @@ class KDBGMixin(plugin.KernelASMixin):
 
         # If the user specified the kdbg use it - even if it looks wrong!
         if self.kdbg and not isinstance(self.kdbg, obj.BaseObject):
-            # If the user specified the kdbg use it - even if it looks wrong!
             kdbg = self.profile.Object("_KDDEBUGGER_DATA64", offset=int(self.kdbg),
                                             vm = self.kernel_address_space)
 

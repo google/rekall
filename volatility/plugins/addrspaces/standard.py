@@ -53,9 +53,6 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
         self.fhandle.seek(addr)
         return self.fhandle.read(length)
 
-    def zread(self, addr, length):
-        return self.read(addr, length)
-
     def read_long(self, addr):
         string = self.read(addr, 4)
         (longval,) = struct.unpack('=I', string)

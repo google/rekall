@@ -29,9 +29,6 @@ from volatility import addrspace
 from volatility import obj
 
 
-# WritablePagedMemory must be BEFORE base address, since it adds the concrete
-# method get_available_addresses If it's second, BaseAddressSpace's abstract
-# version will take priority
 class IA32PagedMemory(addrspace.PagedReader):
     """ Standard x86 32 bit non PAE address space.
 
@@ -108,7 +105,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         in the given entry
         '''
         if entry:
-            return (entry & (1 << 7)) == (1 << 7)
+            return (entry & (1 << 7))
         return False
 
     def pde_index(self, vaddr):
@@ -166,7 +163,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         The function should return either None (no valid mapping)
         or the offset in physical memory where the address maps.
         '''
-        pde_value = self.get_pde(vaddr)
+        pde_value = self.get_pd(vaddr)
         if not self.entry_present(pde_value):
             # Add support for paged out PDE
             # (insert buffalo here!)
@@ -222,7 +219,7 @@ class IA32PagedMemory(addrspace.PagedReader):
             pte_table_addr = ((pde_value & 0xfffff000) |
                               ((vaddr & 0x3ff000) >> 10))
 
-            data = self.base.zread(pte_table_addr, 4 * 0x400)
+            data = self.base.read(pte_table_addr, 4 * 0x400)
             pte_table = struct.unpack("<" + "I" * 0x400, data)
 
             for i, pte_value in enumerate(pte_table):
@@ -387,7 +384,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                 pte_table_addr = ((pde_value & 0xffffffffff000) |
                                   ((vaddr & 0x1ff000) >> 9))
 
-                data = self.base.zread(pte_table_addr, 8 * 0x200)
+                data = self.base.read(pte_table_addr, 8 * 0x200)
                 pte_table = struct.unpack("<" + "Q" * 0x200, data)
 
                 for i, pte_value in enumerate(pte_table):

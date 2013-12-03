@@ -230,7 +230,7 @@ class AddressSpaceFuse(Fuse):
                 raise IOError("unable to open %s" % path)
 
         def read(self, length, offset):
-            return self.address_space.zread(offset, length)
+            return self.address_space.read(offset, length)
 
         def _fflush(self):
             pass

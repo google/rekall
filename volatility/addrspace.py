@@ -47,7 +47,7 @@ class BaseAddressSpace(object):
 
     # Some useful metadata for address spaces.
 
-    # The signifies that this address space normally operates on memory
+    # This signifies that this address space normally operates on memory
     # images. This flag controls if this address space will participate in
     # address space autoselection for image detection.
     _md_image = False
@@ -95,9 +95,6 @@ class BaseAddressSpace(object):
                                    "Instantiation failed for unspecified reason")
 
     def read(self, addr, length):
-        """ Read some date from a certain offset """
-
-    def zread(self, addr, length):
         data = self.read(int(addr), int(length))
         if not data:
             return "\x00" * length
@@ -207,6 +204,10 @@ class BaseAddressSpace(object):
     def __repr__(self):
         return "<%s @ %#x %s>" % (self.__class__.__name__, hash(self), self.name)
 
+    @classmethod
+    def GetPlugin(cls, name):
+        return cls.classes.get(name)
+
 
 ## This is a specialised AS for use internally - Its used to provide
 ## transparent support for a string buffer so types can be
@@ -260,9 +261,6 @@ class CachingAddressSpaceMixIn(object):
             addr += len(data)
 
         return result
-
-    def zread(self, addr, length):
-        return self.read(addr, length)
 
     def read_partial(self, addr, length):
         if addr == None:

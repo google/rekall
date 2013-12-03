@@ -42,7 +42,7 @@ class SentinalArray(obj.Array):
     def __iter__(self):
         """Break when the sentinal is reached."""
         for member in super(SentinalArray, self).__iter__():
-            data = member.obj_vm.zread(member.obj_offset, member.size())
+            data = member.obj_vm.read(member.obj_offset, member.size())
             if data == "\x00" * member.size():
                 break
 
@@ -889,7 +889,7 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.Struct):
 
     def is_list_end(self):
         """Returns True if we've reached the list end"""
-        data = self.obj_vm.zread(
+        data = self.obj_vm.read(
                         self.obj_offset,
                         self.obj_profile.get_obj_size('_IMAGE_IMPORT_DESCRIPTOR')
                         )

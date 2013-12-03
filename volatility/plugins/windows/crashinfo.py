@@ -179,7 +179,9 @@ class Raw2Dump(common.WindowsCommandPlugin):
             while data_length > 0:
                 to_read = min(data_length, self.buffer_size)
 
-                data = self.physical_address_space.zread(start_offset + offset, to_read)
+                data = self.physical_address_space.read(
+                    start_offset + offset, to_read)
+
                 out_as.write(output_offset, data)
                 output_offset += len(data)
                 offset += len(data)

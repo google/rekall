@@ -375,3 +375,12 @@ def inet_ntop(address_family, packed_ip):
     elif address_family == socket.AF_INET6:
         return inet_ntop6(packed_ip)
     raise socket.error("[Errno 97] Address family not supported by protocol")
+
+
+def ConditionalImport(name):
+    try:
+        return __import__(name)
+    except ImportError:
+        pass
+
+

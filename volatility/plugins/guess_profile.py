@@ -28,8 +28,6 @@ from volatility import plugin
 from volatility import obj
 from volatility import scan
 
-from volatility.plugins.addrspaces import amd64
-from volatility.plugins.addrspaces import intel
 from volatility.plugins.overlays import basic
 from volatility.plugins.overlays.windows import windows
 
@@ -101,8 +99,11 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
         # First try to get a valid kernel address space. At this point we dont
         # even know if its a 32 bit or 64 bit profile so we try both address
         # spaces.
-        for address_space_cls in [intel.IA32PagedMemoryPae,
-                                  amd64.AMD64PagedMemory]:
+        for address_space_name in ["IA32PagedMemoryPae",
+                                   "AMD64PagedMemory"]:
+            address_space_cls = addrspace.BaseAddressSpace.GetPlugin(
+                address_space_name)
+
             try:
                 kernel_as = address_space_cls(
                     base=self.session.physical_address_space,
@@ -216,17 +217,20 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
         # Make an address space to test the dtb
         try:
             if profile_cls.metadata("memory_model") == "64bit":
-                virtual_as = amd64.AMD64PagedMemory(
+                virtual_as = addrspace.BaseAddressSpace.GetPlugin(
+                    "AMD64PagedMemory")(
                     session=self.session,
                     base=self.session.physical_address_space,
                     dtb=dtb)
             elif profile_cls.metadata("pae"):
-                virtual_as = intel.IA32PagedMemoryPae(
+                virtual_as = addrspace.BaseAddressSpace.GetPlugin(
+                    "IA32PagedMemoryPae")(
                     session=self.session,
                     base=self.session.physical_address_space,
                     dtb=dtb)
             else:
-                virtual_as = intel.IA32PagedMemory(
+                virtual_as = addrspace.BaseAddressSpace.GetPlugin(
+                    "IA32PagedMemory")(
                     session=self.session,
                     base=self.session.physical_address_space,
                     dtb=dtb)

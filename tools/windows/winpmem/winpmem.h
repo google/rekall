@@ -112,7 +112,7 @@ enum PMEM_ACQUISITION_MODE {
   // Use direct page table manipulation.
   ACQUISITION_MODE_PTE_MMAP = 2,
 
-  // Use direct page table manipulation with PCI memory map probing.
+  // Use direct page table manipulation with PCI memory map probing
   ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE = 3
 };
 

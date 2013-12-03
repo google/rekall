@@ -93,7 +93,7 @@ class ImageCopy(plugin.PhysicalASMixin, plugin.Command):
 
                 for offset in range(range_offset, range_end, blocksize):
                     to_read = min(blocksize, range_end - offset)
-                    data = self.address_space.zread(offset, to_read)
+                    data = self.address_space.read(offset, to_read)
 
                     fd.seek(offset)
                     fd.write(data)

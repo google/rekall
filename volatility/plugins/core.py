@@ -398,8 +398,6 @@ class LoadAddressSpace(plugin.Command):
         return base_as
 
     def render(self, renderer):
-        self.session.kdbg = None
-
         if not self.session.physical_address_space:
             self.GetPhysicalAddressSpace()
 
@@ -460,7 +458,7 @@ class DirectoryDumperMixin(object):
             while i < offset + length:
                 to_read = min(BUFFSIZE, length)
 
-                data = addrspace.zread(i, to_read)
+                data = addrspace.read(i, to_read)
                 outfd.write(data)
 
                 i += to_read
@@ -613,12 +611,12 @@ class Dump(plugin.Command):
     def render(self, renderer):
         # Its an object
         if isinstance(self.target, obj.BaseObject):
-            data = self.target.obj_vm.zread(self.target.obj_offset,
-                                            self.target.size())
+            data = self.target.obj_vm.read(self.target.obj_offset,
+                                           self.target.size())
             base = self.target.obj_offset
         # Its an address space
         elif isinstance(self.target, addrspace.BaseAddressSpace):
-            data = self.target.zread(self.offset, self.width * self.rows)
+            data = self.target.read(self.offset, self.width * self.rows)
             base = self.offset
 
         # If the target is an integer we assume it means an offset to read from
@@ -627,7 +625,7 @@ class Dump(plugin.Command):
             if self.offset == 0:
                 self.offset = self.target
 
-            data = self.session.default_address_space.zread(
+            data = self.session.default_address_space.read(
                 self.offset, self.width * self.rows)
             base = self.offset
 
@@ -706,7 +704,7 @@ class Grep(plugin.Command):
 
         offset = self.offset
         while offset < self.offset + self.limit:
-            data = self.address_space.zread(offset, 4096)
+            data = self.address_space.read(offset, 4096)
             for idx in self._GenerateHits(data):
                 for _, hexdata, translated_data in utils.Hexdump(
                     data[idx-20:idx+20], width=self.context):

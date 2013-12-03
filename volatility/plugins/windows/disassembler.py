@@ -93,7 +93,7 @@ class Disassemble(plugin.Command):
         Returns:
           A tuple of (Address, Opcode, Instructions).
         """
-        data = self.address_space.zread(offset, self.length * 10)
+        data = self.address_space.read(offset, self.length * 10)
         iterable = distorm3.DecodeGenerator(int(offset), data, self.distorm_mode)
         for (offset, _size, instruction, hexdump) in iterable:
             yield offset, hexdump, instruction

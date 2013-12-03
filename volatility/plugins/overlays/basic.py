@@ -65,7 +65,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
 
     def v(self, vm=None):
         vm = vm or self.obj_vm
-        data = vm.zread(self.obj_offset, self.length)
+        data = vm.read(self.obj_offset, self.length)
         if self.term is not None:
             left, sep, _ = data.partition(self.term)
             data = left + sep
@@ -637,7 +637,7 @@ try:
             count = 0
 
             while 1:
-                data = self.obj_vm.zread(offset, overlap)
+                data = self.obj_vm.read(offset, overlap)
 
                 # This could happen if we hit an unmapped page - we just
                 # abort.
@@ -731,7 +731,7 @@ try:
 
             while True:
                 if offset - self.obj_offset > len(data) - 40:
-                    data = self.obj_vm.zread(offset, overlap)
+                    data = self.obj_vm.read(offset, overlap)
 
                 iterator = distorm3.DecodeGenerator(offset, data, self.distorm_mode)
                 for (offset, _size, instruction, hexdump) in iterator:

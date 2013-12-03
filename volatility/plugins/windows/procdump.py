@@ -96,7 +96,7 @@ class PEDump(common.WinProcessFilter):
         nt_header = dos_header.NTHeader
 
         # First copy the PE file header, then copy the sections.
-        data = dos_header.obj_vm.zread(
+        data = dos_header.obj_vm.read(
             image_base, min(1e6, nt_header.OptionalHeader.SizeOfHeaders))
         if not data: return
 
@@ -108,7 +108,7 @@ class PEDump(common.WinProcessFilter):
             size_of_section = min(10e6, section.SizeOfRawData)
             physical_offset = min(100e6, int(section.PointerToRawData))
 
-            data = section.obj_vm.zread(
+            data = section.obj_vm.read(
                 section.VirtualAddress + image_base, size_of_section)
 
             fd.seek(physical_offset, 0)

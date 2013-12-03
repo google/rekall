@@ -319,14 +319,10 @@ least:
 
 `read(address, length)`::
  This function should return a buffer read at the specified address. If the
- address is invalid it should return None. Note that in general memory forensics
- should expect a read to fail since any page can be invalid at any
- time. Therefore use of this function is discouraged in favour of the zread()
- function below. This function will probably be deprecated in future.
-
-`zread(address, length)`::
- This variant is almost always called.  If the address is invalid, returns a
- null padded buffer instead.
+ address is invalid it should return a null padded buffer instead. Note that in
+ general memory forensics should expect a read to fail since any page can be
+ invalid at any time. To determine if the page is really invalid callers can use
+ the vrop() method below.
 
 `vtop(address)`::
  This function returns the physical translation for the virtual address. I.e. it

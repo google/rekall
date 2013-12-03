@@ -82,4 +82,3 @@ class MetaclassRegistry(abc.ABCMeta):
                     setattr(mcs.top_level_class, mcs.__name__, mcs)
             except AttributeError:
                 pass
-

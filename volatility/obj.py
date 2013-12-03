@@ -454,7 +454,7 @@ class NativeType(BaseObject, NumericProxyMixIn):
         if self.value is not None:
             return self.value
 
-        data = self.obj_vm.zread(self.obj_offset, self.size())
+        data = self.obj_vm.read(self.obj_offset, self.size())
         if not data:
             return NoneObject("Unable to read {0} bytes from {1}".format(
                     self.size(), self.obj_offset))
@@ -1150,10 +1150,7 @@ class Profile(object):
             def is_valid_address(self, _offset):
                 return True
 
-            def read(self, _offset, _value):
-                return ""
-
-            def zread(self, offset, length):
+            def read(self, offset, length):
                 return "\x00" * length
 
         # A dummy address space used internally.
