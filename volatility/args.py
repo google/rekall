@@ -24,6 +24,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
 import logging
+import re
 import os
 import sys
 import zipfile
@@ -36,11 +37,22 @@ from volatility import plugin
 class IntParser(argparse.Action):
     """Class to parse ints either in hex or as ints."""
     def parse_int(self, value):
+        # Support suffixes
+        multiplier = 1
+        m = re.search("(.*)(mb|kb|m|k)", value)
+        if m:
+            value = m.group(1)
+            suffix = m.group(2).lower()
+            if suffix in ("mb", "m"):
+                multiplier = 1024 * 1024
+            elif suffix in ("kb", "k"):
+                multiplier = 1024
+
         try:
             if value.startswith("0x"):
-                value = int(value, 16)
+                value = int(value, 16) * multiplier
             else:
-                value = int(value)
+                value = int(value) * multiplier
         except ValueError:
             raise argparse.ArgumentError(self, "Invalid integer value")
 

@@ -33,18 +33,10 @@ class AcceleratedAMD64PagedMemory(amd64.AMD64PagedMemory):
         self._delegate = support.AMD64PagedMemory(self.base, int(self.dtb))
 
     def read(self, offset, length):
-        return self._delegate.read(offset, length)
+        return self._delegate.read(int(offset), int(length))
 
     def vtop(self, address):
-        return self._delegate.vtop(address)
-
-    def get_address_ranges(self, start=0, end=None):
-        if end is None:
-            end = 0xfffffffffffff
-
-        for virt, offset, _ in self._delegate.get_available_addresses(
-            start=start, length=end-start):
-            yield virt, offset
+        return self._delegate.vtop(int(address))
 
     def get_available_addresses(self):
         for virt, offset, _ in self._delegate.get_available_addresses():

@@ -290,41 +290,34 @@ class PagedReader(BaseAddressSpace):
     PAGE_SIZE = 0x1000
     __abstract = True
 
-    def _read_chunk(self, vaddr, length, pad=False):
+    def _read_chunk(self, vaddr, length):
         """
         Read bytes from a virtual address.
 
         Args:
           vaddr: A virtual address to read from.
           length: The number of bytes to read.
-          pad: If set, pad unavailable data with nulls.
 
         Returns:
-          As many bytes as can be read within this page, or a NoneObject() if we
-          are not padding and the address is invalid.
+          As many bytes as can be read within this page.
         """
         to_read = min(length, self.PAGE_SIZE - (vaddr % self.PAGE_SIZE))
         paddr = self.vtop(vaddr)
         if paddr is None:
-            if pad:
-                return "\x00" * to_read
-            else:
-                return None
+            return "\x00" * to_read
 
         return self.base.read(paddr, to_read)
 
-    def _read_bytes(self, vaddr, length, pad):
+    def read(self, vaddr, length):
         """
         Read 'length' bytes from the virtual address 'vaddr'.
-        The 'pad' parameter controls whether unavailable bytes
-        are padded with zeros.
         """
         vaddr, length = int(vaddr), int(length)
 
         result = ''
 
         while length > 0:
-            buf = self._read_chunk(vaddr, length, pad=pad)
+            buf = self._read_chunk(vaddr, length)
             if not buf: break
 
             result += buf
@@ -332,13 +325,6 @@ class PagedReader(BaseAddressSpace):
             length -= len(buf)
 
         return result
-
-    def read(self, vaddr, length):
-        '''
-        Read and return 'length' bytes from the virtual address 'vaddr'.
-        If any part of that block is unavailable, return None.
-        '''
-        return self._read_bytes(vaddr, length, pad = False)
 
     def is_valid_address(self, addr):
         vaddr = self.vtop(addr)

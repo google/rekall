@@ -72,10 +72,11 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
             raise addrspace.ASAssertionError("Unable to mmap: %s" % e)
 
     def read(self, addr, length):
-        if addr == None:
-            return None
+        result = ""
+        if addr != None:
+            result = self.map[addr:addr+length]
 
-        return self.map[addr:addr+length]
+        return result + "\x00" * (length - len(result))
 
     def get_available_addresses(self):
         # TODO: Explain why this is always fsize - 1?

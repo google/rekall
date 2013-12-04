@@ -270,12 +270,6 @@ class BaseObject(object):
 
         return getattr(proxied, attr)
 
-    def __setattr__(self, attr, value):
-        try:
-            object.__setattr__(self, attr, value)
-        except AttributeError:
-            pass
-
     def __nonzero__(self):
         """ This method is called when we test the truth value of an
         Object. In volatility we consider an object to have True truth
@@ -447,6 +441,9 @@ class NativeType(BaseObject, NumericProxyMixIn):
     def __radd__(self, other):
         return self.v() + long(other)
 
+    def __rsub__(self, other):
+        return self.v() - long(other)
+
     def size(self):
         return struct.calcsize(self.format_string)
 
@@ -571,7 +568,7 @@ class Pointer(NativeType):
     def __getitem__(self, item):
         return self.dereference()[item]
 
-    def __setattr__(self, attr, value):
+    def __XXXXsetattr__(self, attr, value):
         if (attr in self.__dict__ or hasattr(self.__class__, attr) or
             not self._initialized):
             return super(Pointer, self).__setattr__(attr, value)
@@ -1043,7 +1040,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
         return self.m(attr)
 
-    def __setattr__(self, attr, value):
+    def __XXXsetattr__(self, attr, value):
         """Change underlying members"""
         # Special magic to allow initialization this test allows attributes to
         # be set in the __init__ method.

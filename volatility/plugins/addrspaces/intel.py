@@ -163,7 +163,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         The function should return either None (no valid mapping)
         or the offset in physical memory where the address maps.
         '''
-        pde_value = self.get_pd(vaddr)
+        pde_value = self.get_pde(vaddr)
         if not self.entry_present(pde_value):
             # Add support for paged out PDE
             # (insert buffalo here!)

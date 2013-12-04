@@ -106,11 +106,9 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
         """Scan the image for the idle process."""
         needle = self.process_name + "\x00" * (15 - len(self.process_name))
         offset = 0
-        while 1:
+        while self.physical_address_space.is_valid_address(offset):
             data = self.physical_address_space.read(offset, self.SCAN_BLOCKSIZE)
             found = 0
-            if not data:
-                break
 
             while 1:
                 found = data.find(needle, found + 1)

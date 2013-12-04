@@ -26,7 +26,10 @@ from volatility import testlib
 class TestVadInfo(testlib.VolatilityBaseUnitTestCase):
     """Test the vadinfo module."""
 
-    PARAMETERS = dict(commandline="vadinfo --pid 2624")
+    PARAMETERS = dict(
+        commandline="vadinfo --pid %(pid)s",
+        pid=2624
+        )
 
     def testVadInfo(self):
         previous = self.baseline['output']

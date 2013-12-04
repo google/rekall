@@ -273,6 +273,34 @@ class LoadAddressSpace(plugin.Command):
         super(LoadAddressSpace, self).__init__(**kwargs)
         self.pas_spec = pas_spec
 
+    def ResolveAddressSpace(self, name):
+        """Resolve the name into an address space.
+
+        This function is intended to be called from plugins which allow an
+        address space to be specified on the command line. We implement a simple
+        way for the user to specify the address space using a string. The
+        following formats are supported:
+
+        Kernel, K : Represents the kernel address space.
+        Physical, P: Represents the physical address space.
+
+        as_type@dtb_address: Instantiates the address space at the specified
+            DTB. For example: amd64@0x18700
+        """
+        # We can already specify a proper address space here.
+        if isinstance(name, addrspace.BaseAddressSpace):
+            return name
+
+        if name == "K" or name == "Kernel":
+            return (self.session.kernel_address_space or
+                    self.GetVirtualAddressSpace())
+
+        if name == "P" or name == "Physical":
+            return (self.session.physical_address_space or
+                    self.GetPhysicalAddressSpace())
+
+        return self.session.default_address_space
+
     def GetPhysicalAddressSpace(self):
         try:
             # Try to get a physical address space.
@@ -288,6 +316,8 @@ class LoadAddressSpace(plugin.Command):
         except addrspace.ASAssertionError, e:
             logging.error("Could not create address space: %s" % e)
 
+        return self.session.physical_address_space
+
     def GetVirtualAddressSpace(self):
         if not self.session.physical_address_space:
             raise plugin.PluginError("Unable to find kernel address space.")
@@ -295,7 +325,6 @@ class LoadAddressSpace(plugin.Command):
         self.profile = self.session.profile
         if self.profile is None:
             raise plugin.PluginError("Must specify a profile to load virtual AS.")
-
 
         address_space_curry = obj.Curry(
             GetAddressSpaceImplementation(self.profile),
@@ -322,7 +351,7 @@ class LoadAddressSpace(plugin.Command):
 
             if not self.session.kernel_address_space:
                 raise plugin.PluginError(
-                    "A DTB value was found but failed to verifyo. "
+                    "A DTB value was found but failed to verify. "
                     "You can try setting it manualy using --dtb. "
                     "This could also happen when the profile is incorrect.")
 
@@ -332,6 +361,8 @@ class LoadAddressSpace(plugin.Command):
 
         if self.session.default_address_space is None:
             self.session.default_address_space = self.session.kernel_address_space
+
+        return self.session.kernel_address_space
 
     def GuessAddressSpace(self, base_as=None, **kwargs):
         """Loads an address space by stacking valid ASes on top of each other
@@ -658,13 +689,19 @@ class Grep(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(Grep, cls).args(parser)
-        parser.add_argument("address_space", help="Name of the address_space to search.")
-        parser.add_argument("offset", default=0,  help="Start searching from this offset.")
-        parser.add_argument("keyword", help="The binary string to find.")
-        parser.add_argument("limit", default=1024*1024, help="The length of data to search.")
+        parser.add_argument("address_space",
+                            help="Name of the address_space to search.")
 
-    def __init__(self, address_space=None, offset=0, keyword=None, context=20, limit=1024 * 1024,
-                 **kwargs):
+        parser.add_argument("offset", default=0,
+                            help="Start searching from this offset.")
+
+        parser.add_argument("keyword", help="The binary string to find.")
+
+        parser.add_argument("limit", default=1024*1024,
+                            help="The length of data to search.")
+
+    def __init__(self, address_space=None, offset=0, keyword=None, context=20,
+                 limit=1024 * 1024, **kwargs):
         """Search an address space for keywords.
 
         Args:

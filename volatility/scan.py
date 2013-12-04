@@ -139,13 +139,15 @@ class BaseScanner(object):
 
             # Allow us to skip uninteresting regions (default skip is 1).
             if data_offset + self.overlap >= len(data):
+                # Current region is not valid.
+                if not self.address_space.is_valid_address(i):
+                    break
+
                 to_read = min(constants.SCAN_BLOCKSIZE, maxlen - (i - offset))
 
                 # Refresh the data buffer.
                 data = self.address_space.read(i, to_read)
                 data_offset = 0
-                if not data:
-                    break
 
             # First check if we can skip this point.
             skip = self.skip(data, data_offset, base_offset=i)

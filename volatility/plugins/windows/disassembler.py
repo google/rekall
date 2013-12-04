@@ -37,8 +37,10 @@ except Exception:
 import distorm3
 import re
 
+from volatility import args
 from volatility import obj
 from volatility import plugin
+from volatility import testlib
 
 
 class Instruction(obj.BaseObject):
@@ -58,6 +60,15 @@ class Disassemble(plugin.Command):
 
     __name = "dis"
 
+    @classmethod
+    def args(cls, parser):
+        super(Disassemble, cls).args(parser)
+        parser.add_argument("offset", action=args.IntParser,
+                            help="An offset to disassemble.")
+
+        parser.add_argument("-a", "--address_space", default="K",
+                            help="The address space to use.")
+
     def __init__(self, offset=0, address_space=None, length=50, mode=None,
                  suppress_headers=False, target=None, **kwargs):
         """Dumps a disassembly of a location.
@@ -76,7 +87,8 @@ class Disassemble(plugin.Command):
             address_space = target.obj_vm
             offset = target.offset
 
-        self.address_space = address_space or self.session.default_address_space
+        load_as = self.session.plugins.load_as(session=self.session)
+        self.address_space = load_as.ResolveAddressSpace(address_space)
         self.offset = offset
         self.length = length
         self.suppress_headers = suppress_headers
@@ -137,3 +149,10 @@ class Disassemble(plugin.Command):
         # Continue from where we left off when the user calls us again with the
         # v() plugin.
         self.offset = offset
+
+
+class TestDisassemble(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="dis %(func)s",
+        func=0x805031be
+        )

@@ -24,6 +24,7 @@
 import os
 
 from volatility import args
+from volatility import testlib
 from volatility import obj
 from volatility import plugin
 from volatility.plugins.windows import common
@@ -578,6 +579,16 @@ class DTBScan(common.WinProcessFilter):
 
     __name = "dtbscan"
 
+    @classmethod
+    def args(cls, parser):
+        super(DTBScan, cls).args(parser)
+        parser.add_argument("--limit", action=args.IntParser, default=0,
+                            help="Stop scanning after this many mb.")
+
+    def __init__(self, limit=None, **kwargs):
+        super(DTBScan, self).__init__(**kwargs)
+        self.limit = limit
+
     def render(self, renderer):
         ptov = self.session.plugins.ptov(session=self.session)
         pslist = self.session.plugins.pslist(session=self.session)
@@ -601,6 +612,11 @@ class DTBScan(common.WinProcessFilter):
             for page in range(start, start + length, 0x1000):
                 self.session.report_progress("Scanning 0x%08X (%smb)" % (
                         page, page/1024/1024))
+
+                # Quit early if requested to.
+                if self.limit and page > self.limit:
+                    return
+
                 virtual_address, results = ptov.ptov(page)
                 if virtual_address:
                     dtb = results[0][1]
@@ -622,3 +638,8 @@ class DTBScan(common.WinProcessFilter):
                         va, _ = ptov.ptov(dtb)
                         renderer.table_row(dtb, va, task, filename,
                                            task.obj_offset in known_tasks)
+
+class TestDTBScan(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="dtbscan --limit 10mb",
+        )

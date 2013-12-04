@@ -82,8 +82,8 @@ How tests are chosen
 ====================
 
 Since the goal of this test suite is only to detect regressions, there is no
-need to write specialized test for each plugin. If not specific test for a
-plugin is found, the test suite will simple create one based on the
+need to write specialized test for each plugin. If no specific test for a
+plugin is found, the test suite will simply create one based on the
 testlib.SimpleTestCase() class - i.e. it just literally compares the output of
 the plugin. In most cases this is what we want.
 
@@ -97,7 +97,7 @@ class TestCheckTaskFops(testlib.SimpleTestCase):
         commandline="check_task_fops --all"
         )
 
-More complex example may use custom or more sophisticated methods for comparing
+More complex examples may use custom or more sophisticated methods for comparing
 the plugin output. For example the testlib.HashChecker() base class will ensure
 that all files produced by a plugin retain their hashes between executions:
 
@@ -147,6 +147,11 @@ class VolatilityTester(object):
         if self.FLAGS.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
         self.renderer = renderer.TextRenderer()
+
+        # Some stats.
+        self.successes = 0
+        self.failures = 0
+        self.rebuilt = 0
 
     def ProcessCommandLineArgs(self, argv=None):
         parser = argparse.ArgumentParser()
@@ -243,6 +248,8 @@ class VolatilityTester(object):
                 self.renderer.color("REBUILT", foreground="YELLOW"),
                 baseline_data["time_used"])
 
+            self.rebuilt += 1
+
     def __enter__(self):
         self.temp_directory = tempfile.mkdtemp()
         return self
@@ -320,11 +327,15 @@ class VolatilityTester(object):
                 continue
 
             # Retrieve the configured options if they exist.
-            config_options = dict(config.items("DEFAULT"))
-            config_options.update(plugin_cls.PARAMETERS)
+            config_options = plugin_cls.PARAMETERS.copy()
+
+            # Defaults section overrides the PARAMETERS attribute.
+            config_options.update(dict(config.items("DEFAULT")))
+
             config_options["test_class"] = plugin_cls.__name__
             if config.has_section(plugin_cls.__name__):
                 config_options.update(dict(config.items(plugin_cls.__name__)))
+
 
             # Try to get the previous baseline file.
             baseline_filename = os.path.join(
@@ -381,6 +392,8 @@ class VolatilityTester(object):
                     self.renderer.color("PASS", foreground="GREEN"),
                     current_run.get("time_used", 0),
                     baseline_data.get("time_used", 0))
+                self.successes += 1
+
             else:
                 # Store the current run someplace for closer inspection.
                 with tempfile.NamedTemporaryFile(
@@ -393,6 +406,7 @@ class VolatilityTester(object):
                         current_run.get("time_used", 0),
                         baseline_data.get("time_used", 0),
                         fd.name)
+                    self.failures += 1
 
                 if self.FLAGS.verbose:
                     for test_case, error in result.errors + result.failures:
@@ -400,9 +414,14 @@ class VolatilityTester(object):
                                 plugin_cls.__name__, error))
 
 def main(argv):
+    start = time.time()
     with VolatilityTester() as tester:
         tester.RunTests()
 
+    tester.renderer.write(
+        "Completed %s tests (%s passed, %s failed, %s rebuild) in %s Seconds.\n" %
+        (tester.successes + tester.failures, tester.successes, tester.failures,
+         tester.rebuilt, int(time.time() - start)))
 
 if __name__ == "__main__":
     main(sys.argv)
