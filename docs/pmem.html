@@ -822,7 +822,7 @@ Raw memory images.
 </li>
 <li>
 <p>
-Microsoft Crashdump files for use in windbg and volatility.
+Microsoft Crashdump files for use in windbg and rekall.
 </p>
 </li>
 <li>
@@ -852,32 +852,30 @@ MmMapIoSpace method.
 </li>
 <li>
 <p>
-Direct analysis of the running kernel using Volatility (Live memory analysis).
+Direct analysis of the running kernel using Rekall (Live memory analysis).
 </p>
 </li>
 <li>
 <p>
-Optional Write support for manipulating kernel data structures from Volatility.
+Optional Write support for manipulating kernel data structures from Rekall.
 </p>
 </li>
 </ol></div>
 <div class="sect2">
 <h3 id="_download">1.1. Download</h3>
-<div class="paragraph"><p>The latest version can be found
-<a href="http://volatility.googlecode.com/svn/branches/scudette/tools/windows/winpmem/executable/Release/">here</a>
-or on the Volatility download page. You will find the tool released in two
-versions:</p></div>
+<div class="paragraph"><p>The latest version can be found <a href="http://rekall.googlecode.com/">here</a>. You
+will find the tool released in two versions:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<a href="http://volatility.googlecode.com/svn/branches/scudette/tools/windows/winpmem/executable/Release/winpmem-1.3.1.exe">winpmem-1.3.1.exe</a>: is the recommended binary for general use. This binary
+winpmem-1.5.2.exe: is the recommended binary for general use. This binary
   contains signed drivers so it can load on any windows system (even 64 bit
   ones). This binary does not include write support for memory.
 </p>
 </li>
 <li>
 <p>
-winpmem-1.3.1-write.exe: is the binary with write support enabled. It is not
+winpmem_write-1.5.2.exe: is the binary with write support enabled. It is not
   signed so it will only work on 32 bit windows or 64 bit windows with special
   preparation (see below).
 </p>
@@ -894,13 +892,13 @@ support. The version with write support can not be used on a regular system.</td
 </div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>c:\..&gt; winpmem_1.3.exe -h
+<pre><tt>c:\..&gt; winpmem_1.5.2.exe -h
 Winpmem - A memory imager for windows.
 Copyright Michael Cohen (scudette@gmail.com) 2012.
 
-Version 1.3. Built Nov 12 2012
+Version 1.5. Built Nov 28 2013
 Usage:
-  winpmem_1.3.exe [option] [output path]
+  Z:\home\scudette\rekall\tools\windows\winpmem\executable\Release\winpmem_1.5.2.exe [option] [output path]
 
 Option:
   -l    Load the driver and exit.
@@ -909,10 +907,18 @@ Option:
   -w    Turn on/off write mode.
   -1    Use MmMapIoSpace method.
   -2    Use \\Device\PhysicalMemory method (Default).
+  -3    Use PTE remapping.
+  -4    Use PTE remapping with PCI instrospection.
   -d    Produce a crashdump file.
 
 
-NOTE: an output filename of - will write the image to STDOUT.</tt></pre>
+NOTE: an output filename of - will write the image to STDOUT.
+Examples:
+winpmem_1.5.2.exe physmem.raw
+Writes an image to physmem.raw
+
+winpmem_1.5.2.exe -d - | nc 192.168.1.1 80
+Writes a crashdump file to netcat for network transport.</tt></pre>
 </div></div>
 </div>
 <div class="sect2">
@@ -920,31 +926,30 @@ NOTE: an output filename of - will write the image to STDOUT.</tt></pre>
 <div class="paragraph"><p>Writes a raw image to physmem.raw</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>winpmem_1.3.exe physmem.raw</tt></pre>
+<pre><tt>winpmem_1.5.2.exe physmem.raw</tt></pre>
 </div></div>
 <div class="paragraph"><p>Writes a crashdump file to netcat for network transport. Output is supressed
 here because STDOUT is redirected.</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>winpmem_1.3.exe -d - | nc 192.168.1.1 80</tt></pre>
+<pre><tt>winpmem_1.5.2.exe -d - | nc 192.168.1.1 80</tt></pre>
 </div></div>
 <div class="paragraph"><p>Normally the driver will be automatically unloaded after the image is
-acquired. To allow volatility to attach to the raw device for live analysis, we
-need to load the driver and exit:</p></div>
+acquired. To allow Rekall to attach to the raw device for live analysis, we need
+to load the driver and exit:</p></div>
 <div class="literalblock">
 <div class="content">
 <pre><tt>c:\..&gt; winpmem.exe -l
 Loaded Driver.
-c:\..&gt; vol.py -f \\.\pmem</tt></pre>
+c:\..&gt; rekal -f \\.\pmem</tt></pre>
 </div></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
 <img src="images/icons/note.png" alt="Note" />
 </td>
-<td class="content">Only the tech preview volatility version is able to open the raw
-device. In the tech preview version there is no need to specify a profile, since
-it is autodetected.</td>
+<td class="content">Rekall does not usually need a profile when running on a windows image
+since it is autodetected.</td>
 </tr></table>
 </div>
 <div class="paragraph"><p>To unload the driver and exit:</p></div>
@@ -956,12 +961,12 @@ Driver Unloaded.</tt></pre>
 <div class="paragraph"><p>To acquire a raw image using the MmMapIoSpace method:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>c:\..&gt; winpmem_1.3.exe -1 myimage.raw</tt></pre>
+<pre><tt>c:\..&gt; winpmem_1.5.2.exe -1 myimage.raw</tt></pre>
 </div></div>
 <div class="paragraph"><p>To acquire an image in crashdump format:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>c:\..&gt;winpmem_1.3.exe -d c:\temp\test.dmp
+<pre><tt>c:\..&gt;winpmem_1.5.2.exe -d c:\temp\test.dmp
 Driver Unloaded.
 Loaded Driver C:\Users\mic\AppData\Local\Temp\win6C6.tmp.
 Will write a crash dump file
@@ -988,10 +993,10 @@ Driver Unloaded.</tt></pre>
 <div class="paragraph"><p>As from Version 1.1, the winpmem drivers support writing to memory as well as
 reading. This capability is a great learning tool since many rootkit hiding
 techniques can be emulated by writing to memory directly. For example the
-following Volatility session illustrates changing the name of the binary:</p></div>
+following Rekall session illustrates changing the name of the binary:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>c:..&gt; vol.py -f \\.\pmem
+<pre><tt>c:..&gt; rekal -f \\.\pmem
 
 WinXPSP2x86:pmem 03:10:40&gt; task = session.profile._EPROCESS(0x82079c18)
 WinXPSP2x86:pmem 03:10:57&gt; task.ImageFileName
@@ -1018,13 +1023,13 @@ restrictions.</p></div>
 time using the -w switch:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>winpmem_1.3-write.exe -w -l</tt></pre>
+<pre><tt>winpmem_write-1.5.2.exe -w -l</tt></pre>
 </div></div>
-<div class="paragraph"><p>This will load the drivers and turn on write support. Then we can run volatility
+<div class="paragraph"><p>This will load the drivers and turn on write support. Then we can run rekall
 interactively, as usual on the raw device:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>vol.exe --profile Win7SP1x64 --file \\.\pmem</tt></pre>
+<pre><tt>rekal --profile Win7SP1x64 --file \\.\pmem</tt></pre>
 </div></div>
 </div>
 </div>
@@ -1052,7 +1057,8 @@ A generic kernel extension <em>pmem.kext</em>, that provides read only access to
 </ol></div>
 <div class="sect2">
 <h3 id="_download_2">2.1. Download</h3>
-<div class="paragraph"><p>The binaries can be found here <a href="http://volatility.googlecode.com/svn/branches/scudette/tools/osx/OSXPMem/">http://volatility.googlecode.com/svn/branches/scudette/tools/osx/OSXPMem/</a> or from the volatility downloads page.</p></div>
+<div class="paragraph"><p>The binaries can be found <a href="http://rekal.googlecode.com/">here</a> or from the
+Rekall downloads page.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_usage">2.2. Usage</h3>
@@ -1131,7 +1137,7 @@ so it should work in virtualized environments.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-11-15 13:37:03 CET
+Last updated 2013-12-05 00:44:48 CET
 </div>
 </div>
 </body>

@@ -1,10 +1,20 @@
-Volatility Technology Preview Further Information
-=================================================
+Rekall Technology Preview References
+====================================
 
-This document outlines futher information specifically focused on the Volatility
-Technology Preview. As the new framework matures and eabled further development,
-more information is becoming available online.
+This document outlines futher information specifically focused on Rekall. As the
+new framework matures and eabled further development, more information is
+becoming available online.
 
+[NOTE]
+=====================================================================
+
+Rekall was born from an effort to update The Volatility Memory Analysis
+Framework. It was hosted for a while under the Volatility Project's SVN
+repository in the "Scudette Branch". Therefore many of the below references
+still refer to the "Volatility Technology Preview" as the precursor to the
+Rekall project. The information is still relevant though and will be updated in
+due course.
+=====================================================================
 
 Conferences and Workshops.
 --------------------------
@@ -14,3 +24,4 @@ developed specifically for the Tech Preview release.
 
 - http://bit.ly/DFRWS_2012_Memory_Workshop[DFRWS 2012: Memory Forensics With Volatility Workshop]
 - http://bit.ly/OSDFC_Memory_Workshop[Open Source Digital Forensics Conference 2012]
+- http://www.youtube.com/watch?v=9aC7yIYwvAY[DFIROnline- Memory Forensics with Michael Cohen]

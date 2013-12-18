@@ -1,5 +1,0 @@
-Changelog
-
-As of Volatility 2.0, all changes are now tracked on the Google Code site:
-
-https://code.google.com/p/volatility/updates/list

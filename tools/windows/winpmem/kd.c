@@ -174,7 +174,7 @@ IMAGE_SECTION_HEADER *GetSection(IMAGE_DOS_HEADER *image_base, char *name) {
   In older versions of windows, it was possible to find the KdDebugBlock from a
   reference in _KPCR.KdVersionBlock. As of windows 7 this field is nulled out so
   we need to resort to scanning for the KDBG signature. This is basically the
-  same thing Volatility does from the image.
+  same thing Rekall does from the image.
 
   We notice that the debugger block is actually a static struct which is
   therefore found in the ntoskrnl.exe executable's ".data" section. This section

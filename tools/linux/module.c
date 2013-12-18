@@ -11,6 +11,7 @@
 #include <net/tcp.h>
 #include <net/route.h>
 #include <net/udp.h>
+#include <net/sock.h>
 #include <asm/alternative.h>
 #include <linux/mount.h>
 #include <linux/inetdevice.h>
@@ -59,6 +60,7 @@ struct files_struct files_struct;
 struct uts_namespace uts_namespace;
 #endif
 
+struct socket_alloc socket_alloc;
 struct sock sock;
 struct inet_sock inet_sock;
 struct vfsmount vfsmount;
@@ -126,7 +128,7 @@ struct fn_hash {
   struct fn_zone    *fn_zone_list;
 } fn_hash;
 
-struct fib_alias 
+struct fib_alias
 {
     struct list_head        fa_list;
     struct fib_info         *fa_info;
@@ -139,7 +141,7 @@ struct fib_alias
 #endif
 };
 
-struct fib_node 
+struct fib_node
 {
     struct hlist_node       fn_hash;
     struct list_head        fn_alias;
@@ -363,15 +365,15 @@ struct kmem_list3 {
 
 struct kmem_list3 kmem_list3;
 
-struct slab {         
+struct slab {
      struct list_head list;
      unsigned long colouroff;
      void *s_mem;            /* including colour offset */
      unsigned int inuse;     /* num of objs active in slab */
      unsigned int free;
-     unsigned short nodeid;          
+     unsigned short nodeid;
  };
- 
+
 struct slab slab;
 #endif
 

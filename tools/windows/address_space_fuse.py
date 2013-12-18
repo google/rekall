@@ -1,4 +1,4 @@
-# Volatility
+# Rekall Memory Forensic Framework.
 #
 # Authors: Michael Cohen <scudette@gmail.com>
 #
@@ -25,8 +25,8 @@ import os
 import stat
 import sys
 
-from volatility import session
-from volatility import plugins
+from rekall import session
+from rekall import plugins
 from errno import *
 
 # pull in some spaghetti to make this stuff work without fuse-py being installed

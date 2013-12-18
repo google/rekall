@@ -1,9 +1,9 @@
-Linux support in Volatility
-===========================
+Linux support in Rekall
+=======================
 
-Linux support in Volatility requires a tailoured profile to the running kernel
-as well as the System map file. Volatility calls this system specific information
-a "profile".
+Linux support in Rekall requires a tailoured profile to the running kernel as
+well as the System map file. Rekall calls this system specific information a
+"profile".
 
 For linux a profile file is simply a zip file which contains:
 
@@ -13,10 +13,10 @@ For linux a profile file is simply a zip file which contains:
   - A json file of the generated vtypes. The type can be generated offline by
     running:
 
-    python volatility/plugins/overlays/linux/dwarfparser.py module.ko > module.json
+    python rekall/plugins/overlays/linux/dwarfparser.py module.ko > module.json
 
   - The compiled module.ko itself from this directory (This should contain
-    debugging symbols). Volatility will read the symbols directly using the
+    debugging symbols). Rekall will read the symbols directly using the
     pyelftools module. The pyelftools can easily be installed using:
 
     $sudo easy_install-2.7 pyelftools
@@ -24,18 +24,22 @@ For linux a profile file is simply a zip file which contains:
   - DWARF debugging symbols from the kernel generated using dwarfdump.
 
 Then you can always specify this profile like so:
-$ python vol.py
-Welcome to volatility!
-To get help, type 'help()'
-In [1]: session.filename = "myimage.dd"
-In [2]: session.profile = profiles.Linux32
-In [3]: session.profile_file = "myprofile.zip"
-In [4]: vol plugins.pslist
-------> vol(plugins.pslist)
-Offset   Name                 Pid             Uid
-0x880015880000 init                 1               0
-0x880015881720 kthreadd             2               0
-.....
+$ rekal --profile 'Linux64' --profile_file 'ubuntu_8.04.zip' --filename 'ubuntu_8.04.dd'
+The Rekall Memory Forensic framework 1.0RC1.
+
+"We can remember it for you wholesale!"
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
+Linux64:ubuntu_8.04.dd 01:20:57> pslist
+-------------------------------> pslist()
+  Offset (V)   Name                    PID   PPID    UID    GID      DTB                     Start Time
+-------------- -------------------- ------ ------ ------ ------ -------------- ------------------------
+0x81001d48c000 init                      1      0      0      0 0x00001c501000 1926-02-11 13:05:11+0000
+0x81001d48c7f0 kthreadd                  2      0      0      0 -------------- 1926-02-11 13:05:11+0000
+0x81001d48cfe0 migration/0               3      2      0      0 -------------- 1926-02-11 13:05:11+0000
+0x81001d48d7d0 ksoftirqd/0               4      2      0      0 -------------- 1926-02-11 13:05:11+0000
+...
 
 How to get debugging symbols easily
 -----------------------------------
@@ -59,12 +63,12 @@ Now pack all the files into the same zip file:
 
 tools/linux$ zip myprofile.zip module_dwarf.ko /boot/System.map-2.6.32-8-generic
 
-Note that by pre-generating the json file, volatility will load much faster
+Note that by pre-generating the json file, rekall will load much faster
 (because it does not need to parse the dwarf information). It is always
 recommended though to also keep the actual module in the zip file in case future
-versions of volatility need to regenerate the json file.
+versions of rekall need to regenerate the json file.
 
-Volatility will attempt to load symbols in the following order:
+Rekall will attempt to load symbols in the following order:
   - json files are loaded first (This is fastest to load).
 
   - The module symbols are parsed directly using pyelftools.
@@ -72,8 +76,3 @@ Volatility will attempt to load symbols in the following order:
   - The dwarfdump output is parsed textually (this is the slowest option). Note
     that the output of dwarfdump has changed in the last few years, and
     currently the parser only supports older versions of the dwarfdump output.
-
-  - Loading the vtype dicts directly from a python file is disabled for security
-    reasons (because it requires eval() on the vtypes file). If you really need
-    this you can enable it in volatility/plugins/overlays/linux/linux.py or
-    better still convert the vtypes to a json file.

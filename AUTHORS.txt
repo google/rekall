@@ -1,3 +1,7 @@
+Rekall 1.0 Authors:
+Michael Cohen
+Johannes Stuettgen
+
 Volatility 2.0 authors:
 
 Mike Auty
@@ -17,7 +21,7 @@ Brendan Dolan-Gavitt <bdolangavitt@wesleyan.edu>
 
 Volatools Basic authors:
 
-AAron Walters 
+AAron Walters
 Komoku, Inc.
 
 Nick L. Petroni, Jr.

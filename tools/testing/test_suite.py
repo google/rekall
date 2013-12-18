@@ -1,6 +1,7 @@
 #!/usr/bin/python2
 
-# Volatility
+# Rekall
+# Copyright 2013 Google Inc. All Rights Reserved.
 #
 # Authors:
 # Michael Cohen <scudette@gmail.com>
@@ -89,7 +90,7 @@ the plugin. In most cases this is what we want.
 
 Sometimes, however, we want fine grained control over the test execution. In
 that case we need to create a test class within the codebase which extends the
-testlib.VolatilityBaseUnitTestCase(). We can specify the command line for
+testlib.RekallBaseUnitTestCase(). We can specify the command line for
 executing the test thus:
 
 class TestCheckTaskFops(testlib.SimpleTestCase):
@@ -114,6 +115,8 @@ pid = 2536
 
 """
 
+__author__ = "Michael Cohen <scudette@gmail.com>"
+
 import argparse
 import ConfigParser
 import logging
@@ -127,17 +130,18 @@ import time
 import traceback
 import unittest
 
-from volatility import plugin
-from volatility import session
-from volatility import testlib
-from volatility import threadpool
-from volatility.ui import renderer
+from rekall import plugin
+from rekall import session
+from rekall import testlib
+from rekall import threadpool
+from rekall.ui import renderer
 
-# Bring in all the tests
-from volatility.plugins import tests
+# Bring in all the tests and all the plugins
+from rekall import plugins
+from rekall.plugins import tests
 
 
-class VolatilityTester(object):
+class RekallTester(object):
     """A class to manage running and controlling the test harness."""
 
     def __init__(self, argv=None):
@@ -164,8 +168,8 @@ class VolatilityTester(object):
                             help="Number of concurrent workers.")
 
         parser.add_argument("-e", "--executable",
-                            default="python vol.py ",
-                            help="The path to the volatility binary.")
+                            default="python rekall/rekal.py ",
+                            help="The path to the rekall binary.")
 
         parser.add_argument("-c", "--config", default="tests.config",
                             help="Filename for the main test config file.")
@@ -231,7 +235,7 @@ class VolatilityTester(object):
         return baseline_data
 
     def BuildBaseLineTask(self, config_options, plugin_cls):
-        """Run the volatility test program.
+        """Run the rekall test program.
 
         This runs in a separate thread on the thread pool. After
         running, we capture the output into a json baseline file, and
@@ -264,19 +268,17 @@ class VolatilityTester(object):
         """Generates test classes for all the plugins.
 
         Each plugin must have at least one test. Plugin tests are subclasses of
-        the testlib.VolatilityBaseUnitTestCase class,
+        the testlib.RekallBaseUnitTestCase class,
         """
         result = []
 
         s = session.Session()
-        s.profile_file=config.get("--profile_file")
-
         s.profile=config["--profile"]
 
         # A map of all the specialized tests which are defined. Only include
         # those classes which are active for the currently selected profile.
         plugins_with_test = set()
-        for name, cls in testlib.VolatilityBaseUnitTestCase.classes.items():
+        for name, cls in testlib.RekallBaseUnitTestCase.classes.items():
             if cls.is_active(s):
                 plugin_name = cls.PARAMETERS.get("commandline", "").split()
                 if plugin_name:
@@ -415,7 +417,7 @@ class VolatilityTester(object):
 
 def main(argv):
     start = time.time()
-    with VolatilityTester() as tester:
+    with RekallTester() as tester:
         tester.RunTests()
 
     tester.renderer.write(

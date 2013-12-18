@@ -1,8 +1,7 @@
-Volatility Technology Preview Documentation.
-============================================
+Rekall Memory Forensic Framework Documentation.
+===============================================
 
 . link:tutorial.html[Tutorial]
-. link:user_manual.html[User Manual]
-.. link:pmem.html[The Pmem Memory acquisition suite]
+. link:pmem.html[The Pmem Memory acquisition suite]
 . link:development.html[Developer Information]
 . link:references.html[References and Further Information]

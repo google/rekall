@@ -1,5 +1,5 @@
 /**********************************************
-  This module contains C support modules for the rest of Volatility.
+  This module contains C support modules for the rest of Rekall.
 
   In order to increase performance we include a bunch of classes implemented in
   C here. These are intended to be drop in replacesments to the python

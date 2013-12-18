@@ -9,7 +9,7 @@ This is a physical memory imager which implements the following features:
 - A read device interface is used instead of writing the image from the kernel
   like some other imagers. This allows us to have complex userspace imager
   (e.g. copy across network, hash etc), as well as run analysis on the live
-  system (e.g. volatility can be run directly on the device).
+  system (e.g. rekall can be run directly on the device).
 
 - The userspace component can write crash dumps of 32 and 64 bit systems.
 
@@ -56,7 +56,7 @@ Options:
   -n NAME, --name=NAME  The name of the device.
   -m MODE, --mode=MODE  The acquisition mode. Can be (physical or iospace)
   -l, --load            Only load the driver and immediately quit. (Useful
-                        just before attaching with volatility)
+                        just before attaching with rekall)
   -u, --unload          Unload the driver and immediately quit.
 
 To acquire memory into the file foobar.raw:
@@ -84,13 +84,13 @@ Padding from 0x9F000 to 0x100000
 Note that CR3 and the valid physical memory ranges are reported.
 
 Normally when acquiring memory we load the driver, acquire the memory, then
-unload the driver. To use volatility on the raw memory we need to leave the
+unload the driver. To use rekall on the raw memory we need to leave the
 driver loaded:
 
 c:\..> winpmem.py -d binaries\amd64\winpmem.sys -l
-Loaded the winpmem driver. You can now attach volatility to \\.\pmem
+Loaded the winpmem driver. You can now attach rekall to \\.\pmem
 
-and once we finished with it we can unload it (Make sure to exit volatility
+and once we finished with it we can unload it (Make sure to exit rekall
 before unloading the driver):
 
 c:\..> winpmem.py -d binaries\amd64\winpmem.sys -u
@@ -175,7 +175,7 @@ Experimental write support
 As from Version 1.1, the winpmem drivers support writing to memory as well as
 reading. This capability is a great learning tool since many rootkit hiding
 techniques can be emulated by writing to memory directly. For example the
-following Volatility session illustrates changing the name of the binary:
+following Rekall session illustrates changing the name of the binary:
 
 WinXPSP2x86:pmem 03:10:40> task = session.profile._EPROCESS(0x82079c18)
 WinXPSP2x86:pmem 03:10:57> task.ImageFileName
@@ -203,7 +203,7 @@ Additionally, Write support must also be enabled at load time:
 
 winpmem_1.3-write.exe -w -l
 
-This will load the drivers and turn on write support. Then we can run volatility
+This will load the drivers and turn on write support. Then we can run rekall
 interactively, as usual on the raw device:
 
 vol.exe --profile Win7SP1x64 --file \\.\pmem

@@ -5,6 +5,7 @@ Michael Cohen <scudette@gmail.com>.
 
 SandMan framework.
 Copyright 2008 (c) Matthieu Suiche. <msuiche[at]gmail.com>
+Copyright 2013 Google Inc. All Rights Reserved.
 
 This file is part of SandMan.
 

@@ -3,8 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.8" />
-<title>Volatility Technology Preview Further Information</title>
+<meta name="generator" content="AsciiDoc 8.6.6" />
+<title>Rekall Technology Preview References</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -87,14 +87,10 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-.monospaced, code, pre {
-  font-family: "Courier New", Courier, monospace;
-  font-size: inherit;
-  color: navy;
+pre {
   padding: 0;
   margin: 0;
 }
-
 
 #author {
   color: #527bbd;
@@ -353,7 +349,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -411,13 +407,17 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
-div.unbreakable { page-break-inside: avoid; }
-
 
 /*
  * xhtml11 specific
  *
  * */
+
+tt {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,6 +451,12 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
+
+.monospaced {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -531,8 +537,6 @@ body.manpage div.sectionbody {
 @media print {
   body.manpage div#toc { display: none; }
 }
-
-
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -577,7 +581,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -606,7 +610,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName.toLowerCase() == 'div'
+    if (entry.nodeName == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -652,7 +656,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -731,14 +735,29 @@ asciidoc.install();
 </head>
 <body class="article">
 <div id="header">
-<h1>Volatility Technology Preview Further Information</h1>
+<h1>Rekall Technology Preview References</h1>
 </div>
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
-<div class="paragraph"><p>This document outlines futher information specifically focused on the Volatility
-Technology Preview. As the new framework matures and eabled further development,
-more information is becoming available online.</p></div>
+<div class="paragraph"><p>This document outlines futher information specifically focused on Rekall. As the
+new framework matures and eabled further development, more information is
+becoming available online.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="images/icons/note.png" alt="Note" />
+</td>
+<td class="content">
+<div class="paragraph"><p>Rekall was born from an effort to update The Volatility Memory Analysis
+Framework. It was hosted for a while under the Volatility Project&#8217;s SVN
+repository in the "Scudette Branch". Therefore many of the below references
+still refer to the "Volatility Technology Preview" as the precursor to the
+Rekall project. The information is still relevant though and will be updated in
+due course.</p></div>
+</td>
+</tr></table>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -757,6 +776,11 @@ developed specifically for the Tech Preview release.</p></div>
 <a href="http://bit.ly/OSDFC_Memory_Workshop">Open Source Digital Forensics Conference 2012</a>
 </p>
 </li>
+<li>
+<p>
+<a href="http://www.youtube.com/watch?v=9aC7yIYwvAY">DFIROnline- Memory Forensics with Michael Cohen</a>
+</p>
+</li>
 </ul></div>
 </div>
 </div>
@@ -764,7 +788,7 @@ developed specifically for the Tech Preview release.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-10-03 15:12:34 CEST
+Last updated 2013-12-05 01:17:54 CET
 </div>
 </div>
 </body>

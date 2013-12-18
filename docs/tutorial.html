@@ -3,8 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.8" />
-<title>Volatility Technology preview tutorial</title>
+<meta name="generator" content="AsciiDoc 8.6.6" />
+<title>The Rekall Memory Forensic Framework</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -87,14 +87,10 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-.monospaced, code, pre {
-  font-family: "Courier New", Courier, monospace;
-  font-size: inherit;
-  color: navy;
+pre {
   padding: 0;
   margin: 0;
 }
-
 
 #author {
   color: #527bbd;
@@ -353,7 +349,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -411,13 +407,17 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
-div.unbreakable { page-break-inside: avoid; }
-
 
 /*
  * xhtml11 specific
  *
  * */
+
+tt {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,6 +451,12 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
+
+.monospaced {
+  font-family: monospace;
+  font-size: inherit;
+  color: navy;
+}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -531,8 +537,6 @@ body.manpage div.sectionbody {
 @media print {
   body.manpage div#toc { display: none; }
 }
-
-
 @media screen {
   body {
     max-width: 50em; /* approximately 80 characters wide */
@@ -611,7 +615,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -640,7 +644,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName.toLowerCase() == 'div'
+    if (entry.nodeName == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -686,7 +690,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -765,9 +769,9 @@ asciidoc.install(2);
 </head>
 <body class="article">
 <div id="header">
-<h1>Volatility Technology preview tutorial</h1>
+<h1>The Rekall Memory Forensic Framework</h1>
 <span id="author">Michael Cohen</span><br />
-<span id="email"><code>&lt;<a href="mailto:scudette@gmail.com">scudette@gmail.com</a>&gt;</code></span><br />
+<span id="email"><tt>&lt;<a href="mailto:scudette@gmail.com">scudette@gmail.com</a>&gt;</tt></span><br />
 <span id="revdate">August 2012</span>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
@@ -777,33 +781,27 @@ asciidoc.install(2);
 <div id="content">
 <div id="preamble">
 <div class="sectionbody">
-<div class="paragraph"><p>The technology preview (TP) is a preview version of the volatility memory
-forensic tool. The main goals of the new framework are to enhance user
-experience by making common tasks easier and more intuitive as well as provide a
-powerful and capable interface for automation and performing more complex
-operations.</p></div>
-<div class="paragraph"><p>This tutorial is written as a follow up document to the presentation "Memory
-Forensics with Volatility" as presented at DFRWS 2012. This document roughly
-follows the same slides and illustrates the commands one needs to type to
-replicate the same examples.</p></div>
+<div class="paragraph"><p>The main goals of the Rekall framework are to enhance user experience by making
+common tasks easier and more intuitive as well as provide a powerful and capable
+interface for automation and performing more complex operations.</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_installation">1. Installation</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Volatility TP is distributed both in source form and as a stand alone windows
+<div class="paragraph"><p>Rekall is distributed both in source form and as a stand alone windows
 executable. The executable is already packed with all the dependencies and
 libraries and so does not require any external software to run.</p></div>
 <div class="paragraph"><p>To install onto a new system you must first have the following dependencies:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-Python 2.7 or 2.6.5 from <a href="http://www.python.org/">http://www.python.org/</a>
+Python 2.7 from <a href="http://www.python.org/">http://www.python.org/</a>
 </p>
 </li>
 <li>
 <p>
-Install easy install from one of the file releases at
+Install easy install or pip from one of the file releases at
   <a href="http://pypi.python.org/pypi/setuptools/">setuptools</a>.  On windows this will
   make the easy_install.exe script available on
   <em>c:\python27\scripts\easy_install.exe</em>.
@@ -811,21 +809,11 @@ Install easy install from one of the file releases at
 </li>
 <li>
 <p>
-If you are using Python 2.6.5 you will also need to install argparse (linux
-  and osx systems might need sudo before running this):
-</p>
-<div class="literalblock">
-<div class="content">
-<pre><code>easy_install argparse</code></pre>
-</div></div>
-</li>
-<li>
-<p>
 Now install ipython:
 </p>
 <div class="literalblock">
 <div class="content">
-<pre><code>easy_install ipython</code></pre>
+<pre><tt>easy_install ipython</tt></pre>
 </div></div>
 </li>
 <li>
@@ -834,36 +822,30 @@ Install pydistorm3:
 </p>
 <div class="literalblock">
 <div class="content">
-<pre><code>wget https://distorm.googlecode.com/files/distorm3.3-package.zip
+<pre><tt>wget https://distorm.googlecode.com/files/distorm3.3-package.zip
 unzip distorm3.3-package.zip
 cd distorm3
 python setup.py build
-sudo python setup.py install</code></pre>
+sudo python setup.py install</tt></pre>
 </div></div>
 </li>
 </ul></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_a_short_volatility_demo">2. A short volatility demo</h2>
+<h2 id="_a_short_rekall_demo">2. A short Rekall demo</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This section is a quick tour of the new Volatility TP user interface. The
-program can still accept command line options - which we can learn more about by
-using the --help option:</p></div>
+<div class="paragraph"><p>This section is a quick tour of the Rekall user interface. The program can still
+accept command line options - which we can learn more about by using the --help
+option:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ python vol.py -h
-usage: vol.py [-h] [--pager PAGER]
+<pre><tt>$ rekal -h
+usage: rekal [-h] [--pager PAGER]
               [--logging {debug,info,warning,critical,error}] [--debug]
               [-p PROFILE] [-f FILENAME] [--renderer RENDERER]
               [--plugin PLUGIN [PLUGIN ...]] [--output OUTPUT] [--overwrite]
               Plugin ...
-
-The Volatility Memory Forensic Framework technology preview (3.0_tp1). NOTE:
-This is pre-release software and is provided for evauation only. Please check
-at http://volatility.googlecode.com/ for officially supported versions. This
-program is free software; you can redistribute it and/or modify it under the
-terms of the GNU General Public License.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -881,7 +863,7 @@ optional arguments:
   --plugin PLUGIN [PLUGIN ...]
                         Load user provided plugin bundle.
   --output OUTPUT       Write to this output file.
-  --overwrite           Allow overwriting of output files.</code></pre>
+  --overwrite           Allow overwriting of output files.</tt></pre>
 </div></div>
 <div class="paragraph"><p>Some of the most frequently used flags are described below:</p></div>
 <div class="dlist"><dl>
@@ -892,7 +874,7 @@ optional arguments:
 <p>
 The pager can be specified as the program that will be used to inspect the
 result of each plugin. Since many plugins produce a great deal of output text, a
-pager is often needed. The Volatility TP will write the output to a temporary
+pager is often needed. Rekall will write the output to a temporary
 file, and launch this program to view it. For example, on windows it is useful
 to use notepad to examine the output from each plugin (e.g. <em>--pager notepad</em>). On
 linux use <em>--pager less</em> for example, or even <em>--pager "gvim -f"</em>.
@@ -935,7 +917,7 @@ plugin. Currently supported formats are textual output, and json output.
 <dd>
 <p>
 The <em>--plugin</em> option allows the user to specify one or more python modules or zip
-files which contain third party volatility extension plugins. Each python file
+files which contain third party rekal extension plugins. Each python file
 in these plugins will be imported and any plugins defined there will become
 available to the tool.
 </p>
@@ -946,15 +928,14 @@ The interactive shell
 <dd>
 <p>
 If the command is followed by a plugin name, the tool will not use the
-interactive shell, but rather run the plugin and exit. This behaviour is similar
-to many other command line tools (and to previous volatility versions):
+interactive shell, but rather run the plugin and exit:
 </p>
 </dd>
 </dl></div>
 <div class="listingblock">
 <div class="title">Example: Running plugin from command line.</div>
 <div class="content">
-<pre><code>$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist
+<pre><tt>$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0x823c87c0 System                    4      0     61     1140 ------  False -                    -
@@ -962,15 +943,15 @@ Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Star
 0x81f5a3b8 csrss.exe               504    448     12      596      0  False 2005-06-25 16:47:30  -
 0x81f8eb10 winlogon.exe            528    448     21      508      0  False 2005-06-25 16:47:31  -
 0x820e0da0 services.exe            580    528     18      401      0  False 2005-06-25 16:47:31  -
-...</code></pre>
+...</tt></pre>
 </div></div>
 <div class="paragraph"><p>Some command plugins use additional options specific to their module. You can
 read plugin specific help by specifying the <em>--help</em> option after the name of the
 plugin:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist --help
-usage: vol.py pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
+<pre><tt>$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist --help
+usage: rekal pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
                      [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
                      [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
 
@@ -985,13 +966,13 @@ optional arguments:
                         Physical addresses of eprocess structs.
   --pid PID [PID ...]   One or more pids of processes to select.
   --proc_regex PROC_REGEX
-                        A regex to select a profile by name.</code></pre>
+                        A regex to select a profile by name.</tt></pre>
 </div></div>
 <div class="paragraph"><p>For example to list all the <strong>svchost</strong> processes, we can apply a regex to process
 names:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --proc_regex svc
+<pre><tt>$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --proc_regex svc
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0x81fa5aa0 svchost.exe             740    580     17      198      0  False 2005-06-25 16:47:32  -
@@ -999,27 +980,32 @@ Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Star
 0x81faba78 svchost.exe             840    580     83     1589      0  False 2005-06-25 16:47:33  -
 0x81f8dda0 svchost.exe             984    580      6       90      0  False 2005-06-25 16:47:35  -
 0x81f6e7e8 svchost.exe            1024    580     15      207      0  False 2005-06-25 16:47:35  -
-0x82081da0 svchost.exe            1484    580      6      119      0  False 2005-06-25 16:47:59  -</code></pre>
+0x82081da0 svchost.exe            1484    580      6      119      0  False 2005-06-25 16:47:59  -</tt></pre>
 </div></div>
 <div class="paragraph"><p>In order to use the interactive shell, do not specify any plugin to run:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --pager less
-The Volatility Memory Forensic Framework technology preview (3.0_tp1).
+<pre><tt>$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --pager less
+The Rekall Memory Forensic framework 1.0RC1.
 
-In [1]:</code></pre>
+"We can remember it for you wholesale!"
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
+
+In [1]:</tt></pre>
 </div></div>
 <div class="paragraph"><p>The interactive shell marks input lines with an "In [line number]:" format and
 output lines are marked as "Out [line number]:". In order to run a plugin simply
 type its name and press enter:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [1]: pslist   <img src="images/icons/callouts/1.png" alt="1" />
+<pre><tt>In [1]: pslist   <img src="images/icons/callouts/1.png" alt="1" />
 ------&gt; pslist() <img src="images/icons/callouts/2.png" alt="2" />
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0x823c87c0 System                    4      0     61     1140 ------  False -                    -
-0x81fdf020 smss.exe                448      4      3       21 ------  False 2005-06-25 16:47:28  -</code></pre>
+0x81fdf020 smss.exe                448      4      3       21 ------  False 2005-06-25 16:47:28  -</tt></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
@@ -1039,18 +1025,18 @@ command line completion to discover all the plugins we could use on the current
 image:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [3]: plugins.[tab][tab]
+<pre><tt>In [3]: plugins.[tab][tab]
 plugins.callbacks    plugins.handles      plugins.modules      plugins.raw2dmp
 plugins.cmdscan      plugins.hashdump     plugins.mutantscan   plugins.regdump
 plugins.connections  plugins.hivedump     plugins.null         plugins.sockets
 plugins.connscan     plugins.hivescan     plugins.pas2vas      plugins.svcscan
-plugins.consoles     plugins.impscan      plugins.pedump       plugins.symlinkscan</code></pre>
+plugins.consoles     plugins.impscan      plugins.pedump       plugins.symlinkscan</tt></pre>
 </div></div>
 <div class="paragraph"><p>To learn more about each of these plugins we can follow the name of the plugin
 with a single ?:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [3]: plugins.pslist?
+<pre><tt>In [3]: plugins.pslist?
 pslist: List processes for windows.
 Lists the processes by following the _EPROCESS.PsActiveList.
 
@@ -1088,14 +1074,14 @@ session                         The session we will use. Many options are taken 
 output                          Save output to this file.
 overwrite                       Must be set to overwrite an output file. You can also set this in the
                                 session as a global setting.
-renderer                        Use this renderer for the output.</code></pre>
+renderer                        Use this renderer for the output.</tt></pre>
 </div></div>
 <div class="paragraph"><p>We can now specify the parameters to be passed to the plugin (This is the same
 as the command line example above):</p></div>
 <div class="listingblock">
 <div class="title">Example: Specifying plugin options in the interactive shell.</div>
 <div class="content">
-<pre><code>In [5]: pslist proc_regex="svc"
+<pre><tt>In [5]: pslist proc_regex="svc"
 ------&gt; pslist(proc_regex="svc")
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
@@ -1103,7 +1089,7 @@ Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Star
 0x81fa8650 svchost.exe             800    580     10      302      0  False 2005-06-25 16:47:33  -
 0x81faba78 svchost.exe             840    580     83     1589      0  False 2005-06-25 16:47:33  -
 0x81f8dda0 svchost.exe             984    580      6       90      0  False 2005-06-25 16:47:35  -
-...</code></pre>
+...</tt></pre>
 </div></div>
 <div class="admonitionblock">
 <table><tr>
@@ -1134,9 +1120,9 @@ a pslist() is run. At any time we can view the current session (Note "p" is the
 shortcut command for "print"):</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [8]: p session
+<pre><tt>In [8]: p session
 ------&gt; p(session)
-Volatility session Started on Wed Aug  8 16:45:07 2012.
+Rekall session Started on Wed Aug  8 16:45:07 2012.
 
 Config:
  default_address_space:  &lt;IA32PagedMemory @ 0x24892d0 Kernel AS@0x39000&gt;
@@ -1144,13 +1130,13 @@ Config:
  filename:  'xp-laptop-2005-06-25.img'
  kdbg:  [_KDDEBUGGER_DATA64 _KDDEBUGGER_DATA64] @ 0x8054C060
  kernel_address_space:  &lt;IA32PagedMemory @ 0x24892d0 Kernel AS@0x39000&gt;
- last:  &lt;volatility.plugins.windows.filescan.PSScan object at 0x24853d0&gt;
+ last:  &lt;rekall.plugins.windows.filescan.PSScan object at 0x24853d0&gt;
  logging:  'INFO'
  overwrite:  False
  pager:  'less'
  physical_address_space:  &lt;MmapFileAddressSpace @ 0x262a650 xp-laptop-2005-06-25.img&gt;
- profile:  &lt;volatility.plugins.overlays.windows.xp.WinXPSP2x86 object at 0x1d11090&gt;
- renderer:  'TextRenderer'</code></pre>
+ profile:  &lt;rekall.plugins.overlays.windows.xp.WinXPSP2x86 object at 0x1d11090&gt;
+ renderer:  'TextRenderer'</tt></pre>
 </div></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
@@ -1160,7 +1146,7 @@ physical_address_space
 <p>
 We can see the physical_address_space is an MmapFileAddressSpace instance over
 the image file, while the kernel_address_space is an IA32PagedMemory address
-space instantiated over the dtb at 0x39000. We can see the last volatility
+space instantiated over the dtb at 0x39000. We can see the last Rekall
 plugin run (psscan) here too.
 </p>
 </dd>
@@ -1186,7 +1172,7 @@ examine all the fields of this struct by using command line completion (double
 tab):</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [10]: task = session.profile._EPROCESS(0x81fa5aa0)
+<pre><tt>In [10]: task = session.profile._EPROCESS(0x81fa5aa0)
 
 In [11]: task.[tab][tab]
 Display all 138 possibilities? (y or n)
@@ -1203,24 +1189,24 @@ In [11]: task.UniqueProcessId
 Out[11]:  [unsigned int:UniqueProcessId]: 0x000002E4
 
 In [12]: task.ImageFileName
-Out[12]:  [String:ImageFileName]: 'svchost.exe\x00'</code></pre>
+Out[12]:  [String:ImageFileName]: 'svchost.exe\x00'</tt></pre>
 </div></div>
 <div class="paragraph"><p>When examining a member in a struct (such as <em>_EPROCESS.ImageFileName</em>) we
-receive an instance of a volatility <em>BaseObject</em>. This has both a type
+receive an instance of a rekall <em>BaseObject</em>. This has both a type
 (e.g. <em>String</em>) and a name (e.g. <em>ImageFileName</em>) as well as a human readable
 representation (e.g. svchost.exe).</p></div>
 <div class="paragraph"><p>For example the task object we have has a type of <em>_EPROCESS</em> (which is a
 struct), and it exists at offset 0x81fa5aa0:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [13]: task
-Out[13]: [_EPROCESS _EPROCESS] @ 0x81FA5AA0</code></pre>
+<pre><tt>In [13]: task
+Out[13]: [_EPROCESS _EPROCESS] @ 0x81FA5AA0</tt></pre>
 </div></div>
 <div class="paragraph"><p>To view the entire object we can print it (you can use the shortcut <em>p</em> as a
 shortcut for <em>print</em> - either will work).</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [14]: p task
+<pre><tt>In [14]: p task
 -------&gt; p(task)
 [_EPROCESS _EPROCESS] @ 0x81FA5AA0
   0x00 Pcb                          [_KPROCESS Pcb] @ 0x81FA5AA0
@@ -1238,7 +1224,7 @@ shortcut for <em>print</em> - either will work).</p></div>
   0xB4 SessionProcessLinks          [_LIST_ENTRY SessionProcessLinks] @ 0x81FA5B54
   0xBC DebugPort                    &lt;NoneObject Pointer to [0x00000000] (DebugPort)&gt;
   0xC0 ExceptionPort                &lt;Void Pointer to [0xE175BCA8] (ExceptionPort)&gt;
-...</code></pre>
+...</tt></pre>
 </div></div>
 <div class="paragraph"><p>This view shows the layour of the _EPROCESS struct which is overlayed on the
 offset 0x81FA5B54. The first column is the relative offset of each member,
@@ -1255,7 +1241,7 @@ by nature interactive. For example the dump plugin performs a hex dump of a
 region of memory:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [18]: dump?
+<pre><tt>In [18]: dump?
 
 dump: Hexdump an object or memory location.
 Hexdump an object or memory location.
@@ -1280,48 +1266,48 @@ Offset                         Hex                              Data
 Parameter                       Documentation
 ------------------------------ ----------------------------------------------------------------------
 target                          The object to dump or an address space.
-offset                          The offset to start dumping from.</code></pre>
+offset                          The offset to start dumping from.</tt></pre>
 </div></div>
 <div class="paragraph"><p>Lets try to dump the hex content of the task object (Note that if no address
 space is specified, the default address space from the session is used - in this
 case the kernel_address_space):</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [19]: dump 0x81FA5AA0
+<pre><tt>In [19]: dump 0x81FA5AA0
 -------&gt; dump(0x81FA5AA0)
   Offset                         Hex                              Data
 ---------- ------------------------------------------------ ----------------
 0x81fa5aa0 03 00 1b 00 00 00 00 00 10 3c 21 82 10 3c 21 82  .........&lt;!..&lt;!.
 0x81fa5ab0 b0 5a fa 81 b0 5a fa 81 00 50 57 0e 00 e0 56 0e  .Z...Z...PW...V.
 0x81fa5ac0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-0x81fa5ad0 ac 20 00 00 00 00 00 00 1d 00 00 00 0b 00 00 00  ................</code></pre>
+0x81fa5ad0 ac 20 00 00 00 00 00 00 1d 00 00 00 0b 00 00 00  ................</tt></pre>
 </div></div>
 <div class="paragraph"><p>This will produce one pagefull of hex dump. To produce another page, simply
 rerun the last plugin using the <em>v</em> plugin:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>In [20]: v
+<pre><tt>In [20]: v
 -------&gt; v()
   Offset                         Hex                              Data
 ---------- ------------------------------------------------ ----------------
 0x81fa5c70 a6 92 08 00 00 00 00 00 2c 03 00 00 00 00 00 00  ........,.......
 0x81fa5c80 e0 7c 00 00 00 00 00 00 00 00 00 00 aa 16 00 00  .|..............
 0x81fa5c90 00 00 00 00 b0 1e 0f 82 30 fe 1f 95 a5 79 c5 01  ........0....y..
-0x81fa5ca0 00 00 01 00 31 05 00 00 c3 04 00 00 b6 04 00 00  ....1...........</code></pre>
+0x81fa5ca0 00 00 01 00 31 05 00 00 c3 04 00 00 b6 04 00 00  ....1...........</tt></pre>
 </div></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_automating_volatility">4. Automating Volatility</h2>
+<h2 id="_automating_rekall">4. Automating Rekall</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>One of the main thrusts in the technology preview version is the automation of
-volatility so it can be used from external programs easily, as well as making it
-easier to write custom volatility scripts.</p></div>
+Rekall so it can be used from external programs easily, as well as making it
+easier to write custom scripts.</p></div>
 <div class="paragraph"><p>This section demonstrates how to automate the new framework, both by embedding
 it a completely inside another application, as well as simply automating the
-analysis from volatility itself.</p></div>
+analysis from rekall itself.</p></div>
 <div class="sect2">
-<h3 id="_embedding_volatility_in_an_external_python_program">4.1. Embedding Volatility in an external python program</h3>
+<h3 id="_embedding_rekall_in_an_external_python_program">4.1. Embedding Rekall in an external python program</h3>
 <div class="paragraph"><p>In this example we will run the pslist plugin on a sample image, capture the
 text table into a string and then print this string (In a real example, this
 could be served over a HTTP or whatever).</p></div>
@@ -1332,7 +1318,7 @@ Create a session object
 </dt>
 <dd>
 <p>
- All interactions with the volatility library require a session object. The
+ All interactions with the rekall library require a session object. The
  session object keeps information related to the same image. There can be any
  number of session objects valid at the same time - no data is global.
 </p>
@@ -1367,32 +1353,32 @@ Render the plugin into the renderer
 </dd>
 </dl></div>
 <div class="listingblock">
-<div class="title">Example of embedding volatility in a python application</div>
-<div class="content"><!-- Generator: GNU source-highlight 3.1.3
+<div class="title">Example of embedding Rekall in a python application</div>
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #000000">    1:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> StringIO
-<span style="color: #000000">    2:</span>
-<span style="color: #000000">    3:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> volatility <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
-<span style="color: #000000">    4:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> volatility <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins        <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/1.png" alt="1" /></span></span>
-<span style="color: #000000">    5:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> volatility<span style="color: #990000">.</span>ui <span style="font-weight: bold"><span style="color: #000080">import</span></span> renderer
-<span style="color: #000000">    6:</span>
-<span style="color: #000000">    7:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                  <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/2.png" alt="2" /></span></span>
-<span style="color: #000000">    8:</span>     filename<span style="color: #990000">=</span><span style="color: #FF0000">"xp-laptop-2005-06-25.img"</span><span style="color: #990000">,</span>
-<span style="color: #000000">    9:</span>     profile<span style="color: #990000">=</span><span style="color: #FF0000">"WinXPSP2x86"</span><span style="color: #990000">)</span>
-<span style="color: #000000">   10:</span>
-<span style="color: #000000">   11:</span> fd <span style="color: #990000">=</span> StringIO<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">StringIO</span></span><span style="color: #990000">()</span>
-<span style="color: #000000">   12:</span>
-<span style="color: #000000">   13:</span> r <span style="color: #990000">=</span> renderer<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">TextRenderer</span></span><span style="color: #990000">(</span>fd<span style="color: #990000">=</span>fd<span style="color: #990000">)</span>
-<span style="color: #000000">   14:</span>
-<span style="color: #000000">   15:</span> plugin <span style="color: #990000">=</span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">()</span>           <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/3.png" alt="3" /></span></span>
-<span style="color: #000000">   16:</span> plugin<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">render</span></span><span style="color: #990000">(</span>r<span style="color: #990000">)</span>                      <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/4.png" alt="4" /></span></span>
-<span style="color: #000000">   17:</span>
-<span style="color: #000000">   18:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> fd<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getvalue</span></span><span style="color: #990000">()</span></tt></pre></div></div>
+<pre><tt><span style="color: #000000">00001:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> StringIO
+<span style="color: #000000">00002:</span>
+<span style="color: #000000">00003:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
+<span style="color: #000000">00004:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins            <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/1.png" alt="1" /></span></span>
+<span style="color: #000000">00005:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall<span style="color: #990000">.</span>ui <span style="font-weight: bold"><span style="color: #000080">import</span></span> renderer
+<span style="color: #000000">00006:</span>
+<span style="color: #000000">00007:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                  <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/2.png" alt="2" /></span></span>
+<span style="color: #000000">00008:</span>     filename<span style="color: #990000">=</span><span style="color: #FF0000">"xp-laptop-2005-06-25.img"</span><span style="color: #990000">,</span>
+<span style="color: #000000">00009:</span>     profile<span style="color: #990000">=</span><span style="color: #FF0000">"WinXPSP2x86"</span><span style="color: #990000">)</span>
+<span style="color: #000000">00010:</span>
+<span style="color: #000000">00011:</span> fd <span style="color: #990000">=</span> StringIO<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">StringIO</span></span><span style="color: #990000">()</span>
+<span style="color: #000000">00012:</span>
+<span style="color: #000000">00013:</span> r <span style="color: #990000">=</span> renderer<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">TextRenderer</span></span><span style="color: #990000">(</span>fd<span style="color: #990000">=</span>fd<span style="color: #990000">)</span>
+<span style="color: #000000">00014:</span>
+<span style="color: #000000">00015:</span> plugin <span style="color: #990000">=</span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">()</span>           <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/3.png" alt="3" /></span></span>
+<span style="color: #000000">00016:</span> plugin<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">render</span></span><span style="color: #990000">(</span>r<span style="color: #990000">)</span>                      <span style="font-style: italic"><span style="color: #9A1900"># <img src="images/icons/callouts/4.png" alt="4" /></span></span>
+<span style="color: #000000">00017:</span>
+<span style="color: #000000">00018:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> fd<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getvalue</span></span><span style="color: #990000">()</span></tt></pre></div></div>
 <div class="colist arabic"><table>
 <tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
-Importing the plugins is required to make volatility load all the default
+Importing the plugins is required to make rekall load all the default
 plugins. At this point any third party plugins will need to be imported too.
 </td></tr>
 <tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
@@ -1408,13 +1394,12 @@ StringIO.
 </table></div>
 </div>
 <div class="sect2">
-<h3 id="_automating_volatility_2">4.2. Automating Volatility</h3>
-<div class="paragraph"><p>Much of the time the volatility interactive interface is sufficient for most
+<h3 id="_automating_rekall_2">4.2. Automating Rekall</h3>
+<div class="paragraph"><p>Much of the time the Rekall interactive interface is sufficient for most
 analysis. Sometimes, however, we need to automate some of this
-analysis. Previously users had to write plugins to extend volatility, but in
-many cases this is probably an overkill.</p></div>
+analysis.</p></div>
 <div class="paragraph"><p>In this section, we see how interactive scripts can be written to automate
-volatility. This is similar to Embedding in an external program, except that the
+Rekall. This is similar to Embedding in an external program, except that the
 script runs within the interactive session. When the script completes, the
 interactive session resumes.</p></div>
 <div class="paragraph"><p>For this example, we search for all processes with a name of <em>python.exe</em> and
@@ -1423,25 +1408,25 @@ for example to dump periodic snapshots of a process from a live system.</p></div
 <div class="paragraph"><p>First we create the following python file named <em>dumper.py</em>:</p></div>
 <div class="listingblock">
 <div class="title">Example interactive python script.</div>
-<div class="content"><!-- Generator: GNU source-highlight 3.1.3
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #000000">    1:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> time
-<span style="color: #000000">    2:</span>
-<span style="color: #000000">    3:</span> pslist <span style="color: #990000">=</span> session<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>proc_regex<span style="color: #990000">=</span><span style="color: #FF0000">"python.exe"</span><span style="color: #990000">)</span>
-<span style="color: #000000">    4:</span> pedumper <span style="color: #990000">=</span> session<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pedump</span></span><span style="color: #990000">()</span>
-<span style="color: #000000">    5:</span>
-<span style="color: #000000">    6:</span> <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> task <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> pslist<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">filter_processes</span></span><span style="color: #990000">():</span>
-<span style="color: #000000">    7:</span>     outfd <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">open</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"/tmp/%s-%s.exe"</span> <span style="color: #990000">%</span> <span style="color: #990000">(</span>time<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">time</span></span><span style="color: #990000">(),</span> task<span style="color: #990000">.</span>UniqueProcessId<span style="color: #990000">),</span>
-<span style="color: #000000">    8:</span>                  <span style="color: #FF0000">"wb"</span><span style="color: #990000">)</span>
-<span style="color: #000000">    9:</span>     pedumper<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">WritePEFile</span></span><span style="color: #990000">(</span>fd<span style="color: #990000">=</span>outfd<span style="color: #990000">,</span>
-<span style="color: #000000">   10:</span>                          address_space<span style="color: #990000">=</span>task<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">get_process_address_space</span></span><span style="color: #990000">(),</span>
-<span style="color: #000000">   11:</span>                          image_base<span style="color: #990000">=</span>task<span style="color: #990000">.</span>Peb<span style="color: #990000">.</span>ImageBaseAddress<span style="color: #990000">)</span></tt></pre></div></div>
+<pre><tt><span style="color: #000000">00001:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> time
+<span style="color: #000000">00002:</span>
+<span style="color: #000000">00003:</span> pslist <span style="color: #990000">=</span> session<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>proc_regex<span style="color: #990000">=</span><span style="color: #FF0000">"python.exe"</span><span style="color: #990000">)</span>
+<span style="color: #000000">00004:</span> pedumper <span style="color: #990000">=</span> session<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pedump</span></span><span style="color: #990000">()</span>
+<span style="color: #000000">00005:</span>
+<span style="color: #000000">00006:</span> <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> task <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> pslist<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">filter_processes</span></span><span style="color: #990000">():</span>
+<span style="color: #000000">00007:</span>     outfd <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">open</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"/tmp/%s-%s.exe"</span> <span style="color: #990000">%</span> <span style="color: #990000">(</span>time<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">time</span></span><span style="color: #990000">(),</span> task<span style="color: #990000">.</span>UniqueProcessId<span style="color: #990000">),</span>
+<span style="color: #000000">00008:</span>                  <span style="color: #FF0000">"wb"</span><span style="color: #990000">)</span>
+<span style="color: #000000">00009:</span>     pedumper<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">WritePEFile</span></span><span style="color: #990000">(</span>fd<span style="color: #990000">=</span>outfd<span style="color: #990000">,</span>
+<span style="color: #000000">00010:</span>                          address_space<span style="color: #990000">=</span>task<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">get_process_address_space</span></span><span style="color: #990000">(),</span>
+<span style="color: #000000">00011:</span>                          image_base<span style="color: #990000">=</span>task<span style="color: #990000">.</span>Peb<span style="color: #990000">.</span>ImageBaseAddress<span style="color: #990000">)</span></tt></pre></div></div>
 <div class="paragraph"><p>Now we run this file directly from the interactive shell.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>$ vol.py -f \\.\pmem --profile Win7SP0x64
+<pre><tt>$ rekal -f \\.\pmem --profile Win7SP0x64
 ...
 
 In [1]: run -i dumper.py  <img src="images/icons/callouts/1.png" alt="1" />
@@ -1449,7 +1434,7 @@ In [2]: ls -l
 
 total 300
 -rw-r----- 1 user group  57344 2012-08-27 00:28 1346020082.17-4012.exe
-....</code></pre>
+....</tt></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
@@ -1475,8 +1460,8 @@ function as <em>pslist()</em>.</p></div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_extending_volatility">4.3. Extending Volatility</h3>
-<div class="paragraph"><p>Extending volatility is most useful when you want to add additional
+<h3 id="_extending_rekall">4.3. Extending Rekall</h3>
+<div class="paragraph"><p>Extending Rekall is most useful when you want to add additional
 functionality which should be reused by other people, or contributed to the
 core. If you are just interested in automating a very specific analysis, an
 interactive shell script is sufficient usually, and is simple to write.</p></div>
@@ -1488,7 +1473,7 @@ Address Spaces
 </dt>
 <dd>
 <p>
-  Address spaces are the way volatility implements image reading. Most of the
+  Address spaces are the way Rekall implements image reading. Most of the
   time you will want to implement some kind of support for new image files.
 </p>
 </dd>
@@ -1497,7 +1482,7 @@ Renderers
 </dt>
 <dd>
 <p>
-  All output in volatility is performed through an abstract renderer. For
+  All output in Rekall is performed through an abstract renderer. For
   specialist output (e.g. HTML or XML), a new renderer should be written. See
   <em>BaseRenderer</em> and <em>TextRenderer</em> as possible examples.
 </p>
@@ -1507,7 +1492,7 @@ Profiles and specialized parsers
 </dt>
 <dd>
 <p>
-  Profiles are used by volatility to parse data structures. Sometimes plugin
+  Profiles are used by Rekall to parse data structures. Sometimes plugin
   authors wish to extend the parsing system by providing definitions for new
   types, or additional behaviors via new object classes.
 </p>
@@ -1520,7 +1505,7 @@ Plugins
   A plugin is a reusable component which is available in the interactive
   session. A plugin should only be written if it can be widely useful and/or can
   be reused by other plugins. It is normally not necessary to write a plugin to
-  automate volatility (e.g. search for a specific malware).
+  automate Rekall (e.g. search for a specific malware).
 </p>
 </dd>
 </dl></div>
@@ -1531,7 +1516,7 @@ Plugins
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-10-02 16:26:21 CEST
+Last updated 2013-12-05 01:09:38 CET
 </div>
 </div>
 </body>

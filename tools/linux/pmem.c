@@ -208,51 +208,11 @@ static ssize_t pmem_read(struct file *file, char *buf, size_t count,
   return to_read;
 }
 
-static int pmem_vma_fault(struct vm_area_struct *vma,
-			  struct vm_fault *vmf)
-{
-  loff_t offset = vmf->pgoff << PAGE_SHIFT; /* Offset of faulting page */
-  unsigned long pfn = (unsigned long)(vmf->pgoff);  /* Faulting page */
-  struct page *page;
-
-  /* Refuse to read from invalid pages. Map the zero page instead. */
-  if(!is_page_valid(offset)) {
-    page = virt_to_page(zero_page);
-  } else {
-    /* Map the real page here. */
-    page = pfn_to_page(pfn);
-  };
-
-  get_page(page);
-  vmf->page = page;
-  return 0;
-}
-
-static struct vm_operations_struct pmem_vm_ops = {
-  .fault = pmem_vma_fault,
-};
-
-static int pmem_mmap(struct file *filp, struct vm_area_struct *vma) {
-  if(!zero_page) {
-    zero_page = get_zeroed_page(GFP_KERNEL);
-  };
-
-  /* don't do anything here: The fault handler will fill the holes */
-  vma->vm_ops = &pmem_vm_ops;
-  vma->vm_flags |= VM_RESERVED | VM_CAN_NONLINEAR;
-
-  return 0;
-};
-
 /* Set up the module methods. */
 static struct file_operations pmem_fops = {
 	.owner = THIS_MODULE,
 	.llseek = pmem_llseek,
 	.read = pmem_read,
-
-// TODO(scudette): This seems to generate a lot of warnings on kernels >
-// 3.0. Disabled temporarily until I figure out what is going on.
-//	.mmap = pmem_mmap,
 };
 
 static struct miscdevice pmem_dev = {

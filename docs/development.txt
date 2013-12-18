@@ -1,16 +1,16 @@
-Volatility Technology Preview Developer information
-===================================================
+The Rekall Memory Forensic Framework
+====================================
 Michael Cohen <scudette@gmail.com>
-September 2012
+December 2013
 :toc2:
 :icons:
 :numbered:
 
 
-Volatility is a powerful framework with many components. It is not necessary to
-be intimately familiar with all components to be able to contribute. This
-document attempts to cover as much internal API information as possible, but if
-you already have a good idea of what you wish to accomplish, the
+Rekall is a powerful framework with many components. It is not necessary to be
+intimately familiar with all components to be able to contribute. This document
+attempts to cover as much internal API information as possible, but if you
+already have a good idea of what you wish to accomplish, the
 <<overview,Overview>> section will direct new users to the most relevant
 section.
 
@@ -25,22 +25,22 @@ Adding support to a new image format::
  You will probably want to add a new address space by reading
  <<as,Address Spaces>>.
 
-Using volatility as a library::
- You will want to read the section <<library,Using Volatility as a Libarary>>.
+Using rekall as a library::
+ You will want to read the section <<library,Using Rekall as a Libarary>>.
 
 I want to add new functionality::
- If your code will be useful to all Volatility users and you would like to
+ If your code will be useful to all Rekall users and you would like to
  contribute it upstream you might want to read <<commands,Command Plugins>>, else
- you might want to write a standalone script and read <<library,Using Volatility
- as a Libarary>>.
+ you might want to write a standalone script and read <<library,Using Rekall
+ as a Library>>.
 
 [[commands]]
 Plugins and Commands.
 ---------------------
 
-Volatility is a modular framework. This means that most of the functionality of
+Rekall is a modular framework. This means that most of the functionality of
 the framework is implemented by plugins, enabling the framework to support
-multiple operating systems. Even when using volatility as a library it is easy
+multiple operating systems. Even when using rekall as a library it is easy
 to extend the library from within your own code (i.e. plugins do not need to be
 embedded in the library itself).
 
@@ -93,7 +93,7 @@ Here is the base minimum that should be defined for a new command plugin:
   linux, windows and mac version of plugins with the same "pslist" name.
 
 `render(renderer)`::
-  This is the main entry point for the command when called from the Volatility
+  This is the main entry point for the command when called from the Rekall
   UI. The plugin should render any output using the renderer (see
   <<renderer,Rendering Output>>).
 
@@ -105,19 +105,19 @@ be reusable by other components.
 Command line Invocation
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-So what happens when a user invokes volatility from the command line? Assume the
-following comamnd is issued:
+So what happens when a user invokes rekall from the command line? Assume the
+following command is issued:
 ------------------------------------------------------------------------
     <1>        <2>                                                 <3>       <4>
-$ vol.py --profile Win7SP0x64 --filename win7_trial_64bit.raw pslist --proc_reg DumpIt
+$ rekal --profile Win7SP0x64 --filename win7_trial_64bit.raw pslist --proc_reg DumpIt
   Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 -------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -
 ------------------------------------------------------------------------
 
-<1> The volatility program name (vol.py).
+<1> The rekall program name (rekal).
 
-<2> These are global options which are processed by the main volatility
+<2> These are global options which are processed by the main rekall
 executable (in this case --profile, --filename).
 
 <3> The name of the command plugin to run. This will actually run the first
@@ -129,7 +129,7 @@ invoked).
 the args() classmethod (in this case the process name regex selector).
 
 
-Volatility is strict with the order in which commands are supplied. For example
+Rekall is strict with the order in which commands are supplied. For example
 it is not valid to provide the --proc_reg parameter before the pslist keyword
 (since it is a module level parameter). Similarly it is not legal to provide the
 --filename parameter after the command name (pslist). This strictness allows
@@ -141,12 +141,12 @@ name, the help output simply lists those options processed by the main program
 (i.e. global options). It also provides a list of available modules:
 
 ------------------------------------------------------------------------
-$ vol.py --help
-usage: vol.py [-h] [--pager PAGER]
-              [--logging {debug,info,warning,critical,error}] [--debug]
-              [-p PROFILE] [-f FILENAME] [--renderer RENDERER]
-              [--plugin PLUGIN [PLUGIN ...]] [--output OUTPUT] [--overwrite]
-              Plugin ...
+$ rekal --help
+usage: rekal [-h] [--pager PAGER]
+             [--logging {debug,info,warning,critical,error}] [--debug]
+             [-p PROFILE] [-f FILENAME] [--renderer RENDERER]
+             [--plugin PLUGIN [PLUGIN ...]] [--output OUTPUT] [--overwrite]
+             Plugin ...
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -180,8 +180,8 @@ subcommands:
 
 Once the module is provided, we see a per-module help output:
 ------------------------------------------------------------------------
-$ vol.py pslist --help
-usage: vol.py pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
+$ rekal pslist --help
+usage: rekal pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
                      [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
                      [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
 
@@ -203,23 +203,25 @@ optional arguments:
 Interactive Session Invocation.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When invoked without a command name, Volatility drops into the interactive
+When invoked without a command name, Rekall drops into the interactive
 shell. This mode of operation is more efficient as many commands can be run
 without needing to reinitialize the framework each time.
 
 This is what happens during initialization:
 ------------------------------------------------------------------------
-$ vol.py --profile Win7SP0x64 --filename win7_trial_64bit.raw
+$ rekal --profile Win7SP0x64 --filename win7_trial_64bit.raw
 Python 2.6.5 (r265:79063, Apr 16 2010, 13:57:41)
 Type "copyright", "credits" or "license" for more information.
 
-The Volatility Memory Forensic Framework technology preview (3.0_tp2).
+The Rekall Memory Forensic Framework
+
+"We can remember it for you wholesale!"
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License.
 
 Win7SP0x64:win7_trial_64bit.raw 01:32:55> print session               <1>
-Volatility session Started on Sun Sep 23 01:32:57 2012.
+Rekall session Started on Sun Sep 23 01:32:57 2012.
 
 Config:
  base_filename:  'win7_trial_64bit.raw'
@@ -269,7 +271,7 @@ render method.
 Address Spaces.
 ---------------
 
-Volatility uses an address space to abstract the handling of different images
+Rekall uses an address space to abstract the handling of different images
 and formats and therefore allow plugins to support multiple kind of input images
 (or indeed live memory) easiy.
 
@@ -292,7 +294,7 @@ For example, the WindowsCrashDumpSpace32 address space usually stacks over a
 FileAddressSpace - which does the actual reading. All the
 WindowsCrashDumpSpace32 does it translate the read request from a the provided
 offset to another read request at a different offset. Commonly address space
-stacking occurs when volatility emulates the hardware page translation by
+stacking occurs when rekall emulates the hardware page translation by
 creating a 'Virtual Address Space' with the IA32PagedMemory and Amd64 paged
 address spaces stacked over the 'Physical Address Space'.
 
@@ -350,7 +352,7 @@ box), MACHOCoreDump (for osx).
 Automatic Address Space Selection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Most volatility plugins expect to have valid address spaces set in the session
+Most rekall plugins expect to have valid address spaces set in the session
 object before they run. There are two main session parameters which are commonly
 required, the 'session.physical_address_space' and
 'session.kernel_address_space'. Usually if these parameters are not provided in
@@ -386,7 +388,7 @@ debug symbols).
 The object parsing system.
 --------------------------
 
-Computers use volatility memory in order to organize data and for program
+Computers use rekall memory in order to organize data and for program
 control. Memory analysis is ultimately all about trying to make sense of a
 memory image, and deducing higher level constructs from these.
 
@@ -417,8 +419,8 @@ through debug symbol.
 
 [NOTE]
 ================================================================================
-Volatility is in many ways emulating a native debugger. Just like a debugger,
-volatility is making sense from the memory image, using debugging symbols.
+Rekall is in many ways emulating a native debugger. Just like a debugger,
+rekall is making sense from the memory image, using debugging symbols.
 ================================================================================
 
 There are basically two types of debugging systems - the Microsoft PDB system
@@ -533,7 +535,7 @@ Usually vtypes are automatically generated from debug information, such as PDB
 files or DWARF file. It is not enough to specify this information in practice
 however, since PDB files may be incomplete, or just incorrect.
 
-Volatility allows vtypes to be overlayed. This means that some fields in
+Rekall allows vtypes to be overlayed. This means that some fields in
 autogenerated definitions can be overridden by user defined 'overlays'. For
 example consider the vtype definition generated from debugging symbols:
 ------------------------------------------------------------------------
@@ -564,8 +566,8 @@ debugging symbols.
 The WinTimeStamp object is a class which extends the basic BaseObject to provide
 special methods to handle the value as a timestamp.
 
-The Volatility object parsing system is the workhorse under the entire
-volatility system. It is used to build semantic information from the underlying
+The Rekall object parsing system is the workhorse under the entire
+rekall system. It is used to build semantic information from the underlying
 memory data by combining debug symbols (for offsets) with user provided semantic
 meaning (using overlays and high level classes).
 
@@ -619,7 +621,7 @@ certain data structures. In these cases we wish to 'modify' the profile
 definition by adding an improved class definition system.
 
 It is normally discouraged to directly add new BaseObject class implementations
-to the volatility framework since the changes will appear in all users of the
+to the rekall framework since the changes will appear in all users of the
 profile - potentially clashing with others' modifications. In other words we
 want to modify the profile only for the users of this profile.
 
@@ -629,14 +631,14 @@ affecting other profiles. This localized change opens the door for multiple
 implementations of profile parsing systems.
 
 For example consider the standard registry parsing implementation in
-'volatility.plugins.windows.registry.registry'. This implementation is a fast,
+'rekall.plugins.windows.registry.registry'. This implementation is a fast,
 self contained and complete implementation of registry parsing in the windows
 kernel. For a plugin to use this implementation, they will need to add it to
 their current profile:
 
 ------------------------------------------------------------------------
-class VolatilityRegisteryImplementation(obj.ProfileModification):
-    """The standard volatility registry parsing subsystem."""
+class RekallRegisteryImplementation(obj.ProfileModification):
+    """The standard rekall registry parsing subsystem."""
 
     @classmethod
     def modify(cls, profile):                                           <1>
@@ -654,16 +656,16 @@ class RegistryPlugin(common.WindowsCommandPlugin):
         super(RegistryPlugin, self).__init__(**kwargs)
 
         # Install our specific implementation of registry support.
-        self.profile = VolatilityRegisteryImplementation(self.profile)  <2>
+        self.profile = RekallRegisteryImplementation(self.profile)  <2>
 ------------------------------------------------------------------------
 
-<1> The VolatilityRegisteryImplementation profile modification implements a
+<1> The RekallRegisteryImplementation profile modification implements a
 complete registry parsing system. It does this by modifying a profile and
 replacing certain classes within it with newer classes with additional
 functionality.
 
 <2> A plugin wishing to use this new functionality, can upgrade its profile
-using the VolatilityRegisteryImplementation modification. Note that the
+using the RekallRegisteryImplementation modification. Note that the
 modification simply produces a new, enhanced profile - the plugin could use the
 modified profile interchangeably with the old unmodified profile.  The
 modification does not affect other users of the profile.
@@ -672,14 +674,14 @@ modification does not affect other users of the profile.
 The Registry parsing implementation.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This section describes the Volatility registry parsing implementation found in
-'volatility.plugins.windows.registry.registry'.
+This section describes the Rekall registry parsing implementation found in
+'rekall.plugins.windows.registry.registry'.
 
 The PE parsing implementation.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The PE parsing implementation is found in
-'volatility.plugins.overlays.windows.pe_vtypes'.
+'rekall.plugins.overlays.windows.pe_vtypes'.
 
 
 Testing
@@ -690,16 +692,16 @@ plugins they were interested in on their own images, and report any obvious
 failures (e.g. an exception or no output at all). However, there was no way to
 easily determine if particular plugins stopped working as expected.
 
-The Technology Preview edition of Volatility introduces an automated testing
+The Technology Preview edition of Rekall introduces an automated testing
 framework to assist in detecting regressions and bugs when handling different
-images. The idea is to automatically compare the output of volatility (or
+images. The idea is to automatically compare the output of rekall (or
 another tool) between different runs for each plugin. If the output differs, a
 regression bug may have been uncovered.
 
 We do this by creating a 'baseline' file which describes the output of one
-version of volatility. Ideally the baseline file is the ground truth and can be
+version of rekall. Ideally the baseline file is the ground truth and can be
 independently verified to be correct. We then run the current version of
-volatility against the baseline and compare the output in some way.
+rekall against the baseline and compare the output in some way.
 
 The baseline itself is created using a template which is generated by the test
 case itself. This template can be tweaked for the specific image we have.
@@ -742,15 +744,11 @@ have changed between the old and new versions.).
 
 -------------------------------------------------------------------
 $ python tools/testing/build_suite.py baseline \                <1>
-  --config xp-laptop-2005-06-25_trunk/tests.config \            <2>
-  -e "python branches/2.3-devel/vol.py"                         <3>
+  --config xp-laptop-2005-06-25_trunk/tests.config             <2>
 -------------------------------------------------------------------
 
 <1> Run the tool in baseline mode.
 <2> Specify the testing template to use.
-<3> Specify the binary to run - in this case we use the 2.3-dev version as a
-baseline.
-
 
 The tool will create a json file for each test in the testing directory. This is
 called the baseline data. The baseline contains information about the output
@@ -771,8 +769,6 @@ generated:
         "--profile": "WinXPSP2x86",
         "commandline": "pslist",
         "--filename": "/tmp/xp-laptop-2005-06-25_trunk/xp-laptop-2005-06-25.img",
-        "executable": "python /home/scudette/projects/volatility/trunk/vol.py",
-        "mode": "trunk"
     }
 }
 -------------------------------------------------------------------

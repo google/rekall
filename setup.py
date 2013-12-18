@@ -1,10 +1,9 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 
-# Volatility
+# Rekall
+# Copyright 2013 Google Inc. All Rights Reserved.
 #
 # Authors:
-# AAron Walters <awalters@volatilesystems.com>
-# Mike Auty <mike.auty@gmail.com>
 # Michael Cohen <scudette@gmail.com>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -22,38 +21,33 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+__author__ = "Michael Cohen <scudette@gmail.com>"
+
 try:
-    from setuptools import setup
+    from setuptools import find_packages, setup
 except ImportError:
-    from distutils.core import setup
-import volatility.constants
-import sys
-import os
+    from distutils.core import find_packages, setup
 
-opts = {}
+from rekall import constants
 
-opts['name'] = "volatility"
-opts['version'] = volatility.constants.VERSION
-opts['description'] = "Volatility -- Volatile memory framwork"
-opts['author'] = "The volatility team"
-opts['author_email'] = "vol-dev@volatilesystems.com"
-opts['url'] = "http://www.volatilesystems.com"
-opts['license'] = "GPL"
-opts['scripts'] = ["vol.py"]
-opts['packages'] = ["volatility",
-                    "volatility.plugins",
-                    "volatility.plugins.addrspaces",
-                    "volatility.plugins.linux",
-                    "volatility.plugins.overlays",
-                    "volatility.plugins.overlays.linux",
-                    "volatility.plugins.overlays.mac",
-                    "volatility.plugins.overlays.windows",
-                    "volatility.plugins.windows",
-                    "volatility.plugins.windows.gui",
-                    "volatility.plugins.windows.gui.vtypes",
-                    "volatility.plugins.windows.malware",
-                    "volatility.plugins.windows.registry",
-                    "volatility.ui",
-                    ]
+setup(name="rekall",
+      version=constants.VERSION,
+      description="Rekall Memory Forensic Framework",
+      author="The Rekall team",
+      author_email="rekall-discuss@googlegroups.com",
+      url="https://code.google.com/p/rekall/",
+      license="GPL",
+      scripts=["rekall/rekal.py"],
+      packages=find_packages('.'),
+      package_dir={'rekall': 'rekall'},
+      package_data={
+        'rekall': ['profiles/*.zip']
+        },
 
-distrib = setup(**opts)
+      entry_points={
+        "console_scripts": [
+            "rekal = rekall.rekal:main"
+            ]
+        }
+      )
+

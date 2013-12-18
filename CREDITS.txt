@@ -1,9 +1,5 @@
-Volatility 2.0 Contributors (alphabetical):
-------------
-
-We would like to acknowledge individuals that have made significant
-contributions, code and ideas, to the 2.0 release of the 
-Volatility Framework 2.0:
+The Rekall project would like to thank the following people for significant
+contributions during the development of the project:
 
 Mike Auty
 Andrew Case
@@ -12,28 +8,21 @@ Brendan Dolan-Gavitt
 Michael Hale Ligh
 Jamie Levy
 AAron Walters
-
-Volatility 1.3 Contributors (alphabetical)
-------------
-
-We would like to acknowledge individuals that have made significant
-contributions, code and ideas, to the Volatility Framework:
-
 Harlan Carvey
 Michael Cohen
 David Collett
-Brendan Dolan-Gavitt 
+Brendan Dolan-Gavitt
 Andreas Schuster
 Matthieu Suiche
 
-We would also like to acknowledge those who have provided valuable
-feedback, bug reports, and testing:
+We would also like to acknowledge those who have provided valuable feedback, bug
+reports, and testing:
 
 Jide Abu
 Joseph Ayo Akinyele
 Tommaso Assandri
 Richard Austin
-Frank Boldewin 
+Frank Boldewin
 Cameron C Caffee
 Eoghan Casey
 Angelo Cavallini

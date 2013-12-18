@@ -1,44 +1,32 @@
-Volatility Technology preview tutorial
-======================================
+The Rekall Memory Forensic Framework
+====================================
 Michael Cohen <scudette@gmail.com>
 August 2012
 :toc2:
 :icons:
 :numbered:
-:website: http://code.google.com/p/volatility/
+:website: http://code.google.com/p/rekall/
 
-The technology preview (TP) is a preview version of the volatility memory
-forensic tool. The main goals of the new framework are to enhance user
-experience by making common tasks easier and more intuitive as well as provide a
-powerful and capable interface for automation and performing more complex
-operations.
-
-This tutorial is written as a follow up document to the presentation "Memory
-Forensics with Volatility" as presented at DFRWS 2012. This document roughly
-follows the same slides and illustrates the commands one needs to type to
-replicate the same examples.
+The main goals of the Rekall framework are to enhance user experience by making
+common tasks easier and more intuitive as well as provide a powerful and capable
+interface for automation and performing more complex operations.
 
 
 Installation
 ------------
 
-Volatility TP is distributed both in source form and as a stand alone windows
+Rekall is distributed both in source form and as a stand alone windows
 executable. The executable is already packed with all the dependencies and
 libraries and so does not require any external software to run.
 
 To install onto a new system you must first have the following dependencies:
 
-- Python 2.7 or 2.6.5 from http://www.python.org/
+- Python 2.7 from http://www.python.org/
 
-- Install easy install from one of the file releases at
+- Install easy install or pip from one of the file releases at
   http://pypi.python.org/pypi/setuptools/[setuptools].  On windows this will
   make the easy_install.exe script available on
   'c:\python27\scripts\easy_install.exe'.
-
-- If you are using Python 2.6.5 you will also need to install argparse (linux
-  and osx systems might need sudo before running this):
-
-  easy_install argparse
 
 - Now install ipython:
 
@@ -53,26 +41,20 @@ To install onto a new system you must first have the following dependencies:
  sudo python setup.py install
 
 
-A short volatility demo
------------------------
+A short Rekall demo
+-------------------
 
-This section is a quick tour of the new Volatility TP user interface. The
-program can still accept command line options - which we can learn more about by
-using the --help option:
+This section is a quick tour of the Rekall user interface. The program can still
+accept command line options - which we can learn more about by using the --help
+option:
 
 -----------------------------------------------------------------------------
-$ python vol.py -h
-usage: vol.py [-h] [--pager PAGER]
+$ rekal -h
+usage: rekal [-h] [--pager PAGER]
               [--logging {debug,info,warning,critical,error}] [--debug]
               [-p PROFILE] [-f FILENAME] [--renderer RENDERER]
               [--plugin PLUGIN [PLUGIN ...]] [--output OUTPUT] [--overwrite]
               Plugin ...
-
-The Volatility Memory Forensic Framework technology preview (3.0_tp1). NOTE:
-This is pre-release software and is provided for evauation only. Please check
-at http://volatility.googlecode.com/ for officially supported versions. This
-program is free software; you can redistribute it and/or modify it under the
-terms of the GNU General Public License.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -98,7 +80,7 @@ Some of the most frequently used flags are described below:
 --pager::
 The pager can be specified as the program that will be used to inspect the
 result of each plugin. Since many plugins produce a great deal of output text, a
-pager is often needed. The Volatility TP will write the output to a temporary
+pager is often needed. Rekall will write the output to a temporary
 file, and launch this program to view it. For example, on windows it is useful
 to use notepad to examine the output from each plugin (e.g. '--pager notepad'). On
 linux use '--pager less' for example, or even '--pager "gvim -f"'.
@@ -121,18 +103,17 @@ plugin. Currently supported formats are textual output, and json output.
 
 --plugin::
 The '--plugin' option allows the user to specify one or more python modules or zip
-files which contain third party volatility extension plugins. Each python file
+files which contain third party rekal extension plugins. Each python file
 in these plugins will be imported and any plugins defined there will become
 available to the tool.
 
 The interactive shell::
 If the command is followed by a plugin name, the tool will not use the
-interactive shell, but rather run the plugin and exit. This behaviour is similar
-to many other command line tools (and to previous volatility versions):
+interactive shell, but rather run the plugin and exit:
 
 .Example: Running plugin from command line.
 -----------------------------------------------------------------------------
-$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist
+$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0x823c87c0 System                    4      0     61     1140 ------  False -                    -
@@ -148,8 +129,8 @@ read plugin specific help by specifying the '--help' option after the name of th
 plugin:
 
 -----------------------------------------------------------------------------
-$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist --help
-usage: vol.py pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
+$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist --help
+usage: rekal pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
                      [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
                      [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
 
@@ -171,7 +152,7 @@ For example to list all the *svchost* processes, we can apply a regex to process
 names:
 
 -----------------------------------------------------------------------------
-$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --proc_regex svc
+$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --proc_regex svc
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0x81fa5aa0 svchost.exe             740    580     17      198      0  False 2005-06-25 16:47:32  -
@@ -185,8 +166,13 @@ Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Star
 In order to use the interactive shell, do not specify any plugin to run:
 
 -----------------------------------------------------------------------------
-$ python vol.py -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --pager less
-The Volatility Memory Forensic Framework technology preview (3.0_tp1).
+$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --pager less
+The Rekall Memory Forensic framework 1.0RC1.
+
+"We can remember it for you wholesale!"
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
 
 In [1]:
 -----------------------------------------------------------------------------
@@ -315,7 +301,7 @@ shortcut command for "print"):
 -----------------------------------------------------------------------------
 In [8]: p session
 ------> p(session)
-Volatility session Started on Wed Aug  8 16:45:07 2012.
+Rekall session Started on Wed Aug  8 16:45:07 2012.
 
 Config:
  default_address_space:  <IA32PagedMemory @ 0x24892d0 Kernel AS@0x39000>
@@ -323,19 +309,19 @@ Config:
  filename:  'xp-laptop-2005-06-25.img'
  kdbg:  [_KDDEBUGGER_DATA64 _KDDEBUGGER_DATA64] @ 0x8054C060
  kernel_address_space:  <IA32PagedMemory @ 0x24892d0 Kernel AS@0x39000>
- last:  <volatility.plugins.windows.filescan.PSScan object at 0x24853d0>
+ last:  <rekall.plugins.windows.filescan.PSScan object at 0x24853d0>
  logging:  'INFO'
  overwrite:  False
  pager:  'less'
  physical_address_space:  <MmapFileAddressSpace @ 0x262a650 xp-laptop-2005-06-25.img>
- profile:  <volatility.plugins.overlays.windows.xp.WinXPSP2x86 object at 0x1d11090>
+ profile:  <rekall.plugins.overlays.windows.xp.WinXPSP2x86 object at 0x1d11090>
  renderer:  'TextRenderer'
 -----------------------------------------------------------------------------
 
 physical_address_space::
 We can see the physical_address_space is an MmapFileAddressSpace instance over
 the image file, while the kernel_address_space is an IA32PagedMemory address
-space instantiated over the dtb at 0x39000. We can see the last volatility
+space instantiated over the dtb at 0x39000. We can see the last Rekall
 plugin run (psscan) here too.
 
 default_address_space::
@@ -375,7 +361,7 @@ Out[12]:  [String:ImageFileName]: 'svchost.exe\x00'
 -----------------------------------------------------------------------------
 
 When examining a member in a struct (such as '_EPROCESS.ImageFileName') we
-receive an instance of a volatility 'BaseObject'. This has both a type
+receive an instance of a rekall 'BaseObject'. This has both a type
 (e.g. 'String') and a name (e.g. 'ImageFileName') as well as a human readable
 representation (e.g. svchost.exe).
 
@@ -482,20 +468,20 @@ In [20]: v
 -----------------------------------------------------------------------------
 
 
-Automating Volatility
----------------------
+Automating Rekall
+-----------------
 
 One of the main thrusts in the technology preview version is the automation of
-volatility so it can be used from external programs easily, as well as making it
-easier to write custom volatility scripts.
+Rekall so it can be used from external programs easily, as well as making it
+easier to write custom scripts.
 
 This section demonstrates how to automate the new framework, both by embedding
 it a completely inside another application, as well as simply automating the
-analysis from volatility itself.
+analysis from rekall itself.
 
 
-Embedding Volatility in an external python program
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Embedding Rekall in an external python program
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In this example we will run the pslist plugin on a sample image, capture the
 text table into a string and then print this string (In a real example, this
 could be served over a HTTP or whatever).
@@ -503,7 +489,7 @@ could be served over a HTTP or whatever).
 The basic sequence of steps is:
 
 Create a session object::
- All interactions with the volatility library require a session object. The
+ All interactions with the rekall library require a session object. The
  session object keeps information related to the same image. There can be any
  number of session objects valid at the same time - no data is global.
 
@@ -522,13 +508,13 @@ Render the plugin into the renderer::
 
 
 [source,python,numbered]
-.Example of embedding volatility in a python application
+.Example of embedding Rekall in a python application
 -----------------------------------------------------------------------------
 import StringIO
 
-from volatility import session
-from volatility import plugins        # <1>
-from volatility.ui import renderer
+from rekall import session
+from rekall import plugins            # <1>
+from rekall.ui import renderer
 
 s = session.Session(                  # <2>
     filename="xp-laptop-2005-06-25.img",
@@ -544,23 +530,22 @@ plugin.render(r)                      # <4>
 print fd.getvalue()
 -----------------------------------------------------------------------------
 
-<1> Importing the plugins is required to make volatility load all the default
+<1> Importing the plugins is required to make rekall load all the default
 plugins. At this point any third party plugins will need to be imported too.
 <2> The session object is created with initial values for some parameters.
 <3> The plugin is instantiated from the session object.
 <4> The output is rendered into the renderer and becomes available in the
 StringIO.
 
-Automating Volatility
-~~~~~~~~~~~~~~~~~~~~~
+Automating Rekall
+~~~~~~~~~~~~~~~~~
 
-Much of the time the volatility interactive interface is sufficient for most
+Much of the time the Rekall interactive interface is sufficient for most
 analysis. Sometimes, however, we need to automate some of this
-analysis. Previously users had to write plugins to extend volatility, but in
-many cases this is probably an overkill.
+analysis.
 
 In this section, we see how interactive scripts can be written to automate
-volatility. This is similar to Embedding in an external program, except that the
+Rekall. This is similar to Embedding in an external program, except that the
 script runs within the interactive session. When the script completes, the
 interactive session resumes.
 
@@ -588,7 +573,7 @@ for task in pslist.filter_processes():
 
 Now we run this file directly from the interactive shell.
 -----------------------------------------------------------------------------
-$ vol.py -f \\.\pmem --profile Win7SP0x64
+$ rekal -f \\.\pmem --profile Win7SP0x64
 ...
 
 In [1]: run -i dumper.py  <1>
@@ -616,10 +601,10 @@ function as 'pslist()'.
 ================================================================================
 
 
-Extending Volatility
-~~~~~~~~~~~~~~~~~~~~
+Extending Rekall
+~~~~~~~~~~~~~~~~
 
-Extending volatility is most useful when you want to add additional
+Extending Rekall is most useful when you want to add additional
 functionality which should be reused by other people, or contributed to the
 core. If you are just interested in automating a very specific analysis, an
 interactive shell script is sufficient usually, and is simple to write.
@@ -628,16 +613,16 @@ There are a number of different components which can be extended these fall
 roughly into these categories:
 
 Address Spaces::
-  Address spaces are the way volatility implements image reading. Most of the
+  Address spaces are the way Rekall implements image reading. Most of the
   time you will want to implement some kind of support for new image files.
 
 Renderers::
-  All output in volatility is performed through an abstract renderer. For
+  All output in Rekall is performed through an abstract renderer. For
   specialist output (e.g. HTML or XML), a new renderer should be written. See
   'BaseRenderer' and 'TextRenderer' as possible examples.
 
 Profiles and specialized parsers::
-  Profiles are used by volatility to parse data structures. Sometimes plugin
+  Profiles are used by Rekall to parse data structures. Sometimes plugin
   authors wish to extend the parsing system by providing definitions for new
   types, or additional behaviors via new object classes.
 
@@ -645,4 +630,4 @@ Plugins::
   A plugin is a reusable component which is available in the interactive
   session. A plugin should only be written if it can be widely useful and/or can
   be reused by other plugins. It is normally not necessary to write a plugin to
-  automate volatility (e.g. search for a specific malware).
+  automate Rekall (e.g. search for a specific malware).
