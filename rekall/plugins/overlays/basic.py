@@ -210,8 +210,11 @@ class Enumeration(obj.NativeType):
 
         if callable(choices):
             choices = choices(self.obj_parent)
+        elif not choices:
+            choices = {}
 
-        self.choices = choices or {}
+        # Force the keys to be integers to trap misuse.
+        self.choices = dict((int(x), y) for x, y in choices.items())
         self.default = default
         if callable(value):
             value = value(self.obj_parent)
@@ -451,6 +454,13 @@ class UnixTimeStamp(obj.NativeType):
             return obj.NoneObject("Datetime conversion failure: " + str(e))
 
         return dt
+
+
+class timeval(UnixTimeStamp, obj.Struct):
+
+    def v(self):
+        return float(self.m("tv_sec")) + self.m("tv_usec")/1e6
+
 
 
 class WinTimeStamp(UnixTimeStamp):
@@ -813,7 +823,7 @@ class BasicWindowsClasses(obj.Profile):
             'LIST_ENTRY64': _LIST_ENTRY,
             'WinTimeStamp': WinTimeStamp, # WinFileTime.
             'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
-            'UnixTimeStamp': UnixTimeStamp,
+            'UnixTimeStamp': UnixTimeStamp, 'timeval': timeval,
             "IndexedArray": IndexedArray,
             'Function': Function,
             })

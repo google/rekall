@@ -21,7 +21,7 @@
 """An Address Space for processing MACH-O coredumps."""
 
 from rekall import addrspace
-from rekall.plugins.overlays.mac import macho
+from rekall.plugins.overlays.darwin import macho
 
 
 class MACHOCoreDump(addrspace.RunBasedAddressSpace):

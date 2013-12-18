@@ -357,6 +357,7 @@ class _UNICODE_STRING(obj.Struct):
 
 class _EPROCESS(obj.Struct):
     """ An extensive _EPROCESS with bells and whistles """
+
     @property
     def Peb(self):
         """ Returns a _PEB object which is using the process address space.
@@ -749,7 +750,7 @@ class _OBJECT_HEADER(obj.Struct):
                 else:
                     o = obj.NoneObject("Header not set")
 
-                self.newattr(name, o)
+                setattr(self, name, o)
 
                 # Optional headers stack before this _OBJECT_HEADER.
                 if o:

@@ -150,7 +150,7 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
             else:
                 o = obj.NoneObject("Header not set")
 
-            self.newattr(name, o)
+            setattr(self, name, o)
 
     def get_object_type(self, vm=None):
         """Return the object's type as a string"""

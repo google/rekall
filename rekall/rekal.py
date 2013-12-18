@@ -21,6 +21,7 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import os
 import pdb
 import logging
 import sys
@@ -28,6 +29,7 @@ import sys
 
 from rekall import args
 from rekall import constants
+from rekall import obj
 from rekall import session
 
 # Import and register the core plugins
@@ -149,6 +151,10 @@ def main(argv=None):
                 logging.error("%s. Try --debug for more information." % e)
 
         sys.exit()
+
+    # Interactive session, turn off object access logging since in interactive
+    # mode, the user may use arbitrary object members.
+    os.environ.pop(obj.ProfileLog.ENVIRONMENT_VAR, None)
 
     user_session.mode = "Interactive"
 

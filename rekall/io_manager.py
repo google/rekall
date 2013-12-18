@@ -34,9 +34,12 @@ The session object should contain an instance of the IOManager() class at the
 io_manager attribute, which will be used to create new files, or read from
 existing files.
 """
-import os
-import json
 import StringIO
+import json
+import logging
+import os
+import urllib2
+import urlparse
 import zipfile
 
 from rekall import registry
@@ -54,8 +57,9 @@ class IOManager(object):
 
     order = 100
 
-    def __init__(self, mode="r"):
+    def __init__(self, urn=None, mode="r"):
         self.mode = mode
+        self.urn = urn
 
     def ListFiles(self):
         """Returns a generator over all the files in this container."""
@@ -132,6 +136,7 @@ class DirectoryIOManager(IOManager):
 
         self.dump_dir = os.path.normpath(os.path.abspath(output_directory))
         self.check_dump_dir(self.dump_dir)
+        self.canonical_name = os.path.basename(self.dump_dir)
 
     def check_dump_dir(self, dump_dir=None):
         if not dump_dir:
@@ -182,7 +187,7 @@ class DirectoryIOManager(IOManager):
         return "Directory:%s" % self.dump_dir
 
 
-class ZipExtFile(StringIO.StringIO):
+class SelfClosingFile(StringIO.StringIO):
     def __init__(self, name, manager):
         self.name = name
         self.manager = manager
@@ -219,6 +224,7 @@ class ZipFileManager(IOManager):
 
         self.fd = fd
         self.file_name = os.path.normpath(os.path.abspath(file_name))
+        self.canonical_name = os.path.splitext(os.path.basename(file_name))[0]
         self._OpenZipFile()
 
         # The set of outstanding writers. When all outstanding writers have been
@@ -233,7 +239,7 @@ class ZipFileManager(IOManager):
                     compression=zipfile.ZIP_DEFLATED)
 
             elif self.mode == "r":
-                self.zip = zipfile.ZipFile(fd=self.fd, mode="r")
+                self.zip = zipfile.ZipFile(self.fd, mode="r")
 
             else:
                 raise IOManagerError("Need a zip filename to write.")
@@ -260,7 +266,7 @@ class ZipFileManager(IOManager):
         if self.mode != "w":
             raise IOManagerError("Container not opened for writing.")
 
-        result = ZipExtFile(name, self)
+        result = SelfClosingFile(name, self)
         self._outstanding_writers.add(name)
         return result
 
@@ -296,14 +302,120 @@ class ZipFileManager(IOManager):
         return "ZipFile:%s" % self.file_name
 
 
+class BuiltInManager(IOManager):
+    """An IO manager which uses a python dict."""
+
+    order = 10
+
+    __abstract = True
+
+    # This should contain the data.
+    data = {}
+
+    def __init__(self, urn=None, data=None, **kwargs):
+        super(BuiltInManager, self).__init__(**kwargs)
+        if urn is not None:
+            raise IOManagerError("urn specified.")
+
+        if self.mode != "r":
+            raise IOManagerError(
+                "BuiltInManager can only be opened for reading.")
+
+        if data:
+            self.data = data
+
+    def ListFiles(self):
+        return self.data.keys()
+
+    def _Cancel(self, name):
+        pass
+
+    def _Write(self, name, value):
+        self.data[name] = value
+
+    def Create(self, name):
+        return SelfClosingFile(name, self)
+
+    def GetData(self, name):
+        result = self.data.get(name)
+        if not result:
+            raise IOManagerError("%s not found." % name)
+
+        return result
+
+    def OpenSubContainer(self, name):
+        if name not in self.data:
+            raise IOManagerError("%s not found." % name)
+
+        return BuiltInManager(data=self.data[name])
+
+    def __str__(self):
+        return "BuildIn:%s" % self.__class__.__name__
+
+
+class URLManager(IOManager):
+    """Supports openning containers from the web.
+
+    Currenlty we only support openning a zip file fetched from a URL.
+    """
+
+    def __init__(self, urn=None, mode="r"):
+        if mode != "r":
+            raise IOManagerError("%s supports only reading." %
+                                 self.__class__.__name__)
+
+        self.url = urlparse.urlparse(urn)
+        if self.url.scheme not in ("http", "https"):
+            raise IOManagerError("%s supports only http protocol." %
+                                 self.__class__.__name__)
+
+    def Create(self):
+        raise IOManagerError("Write support to http is not supported.")
+
+    def _GetURL(self, name):
+        url = self.url._replace(path = "%s/%s" % (self.url.path, name))
+        return urlparse.urlunparse(url)
+
+    def Open(self, name):
+        return urllib2.urlopen(self._GetURL(name))
+
+    def _OpenSubContainer(self, name):
+        data = None
+
+        # This can either be a subdirectory
+        try:
+            # This checks for a 404 Error. Sometimes, a web server can return
+            # the zip file here, even though there might not be a zip extension.
+            url = self._GetURL(name)
+            data = urllib2.urlopen(self._GetURL(name)).read()
+
+            try:
+                return ZipFileManager(fd=StringIO.StringIO(data),
+                                      file_name=url)
+            except IOError:
+                return URLManager(url)
+
+        except IOError as e:
+            raise IOManagerError(e)
+
+    def OpenSubContainer(self, name):
+        # Or it can be a zip file.
+        try:
+            return self._OpenSubContainer(name)
+        except IOError:
+            return self._OpenSubContainer(name + ".zip")
+
+    def __str__(self):
+        return "URL:%s" % self.urn
+
+
 def Factory(urn, mode="r", **kwargs):
     """Try to instantiate the IOManager class."""
-
     for cls in sorted(IOManager.classes.values(), key=lambda x: x.order):
         try:
             return cls(urn, mode=mode, **kwargs)
-        except IOError:
-            pass
+        except IOError as e:
+            logging.debug("Error getting container %s: %s", urn, e)
 
-    raise IOManagerError("Unable to find any managers which can work on %s" %
-                         urn)
+    raise IOManagerError(
+        "Unable to find any managers which can work on %s" % urn)

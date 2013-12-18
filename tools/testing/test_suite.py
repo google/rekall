@@ -160,6 +160,12 @@ class RekallTester(object):
     def ProcessCommandLineArgs(self, argv=None):
         parser = argparse.ArgumentParser()
 
+        parser.add_argument(
+            "--profile_path", default=None,
+            help="Path to search for profiles. This can take "
+            "any form supported by the IO Manager (e.g. zip files, "
+            "URLs etc")
+
         parser.add_argument("--processes", default=5, type=int,
                             help="Number of concurrent workers.")
 
@@ -273,6 +279,9 @@ class RekallTester(object):
         result = []
 
         s = session.Session()
+        if self.FLAGS.profile_path:
+            s.profile_path=[self.FLAGS.profile_path]
+
         s.profile=config["--profile"]
 
         # A map of all the specialized tests which are defined. Only include
@@ -335,6 +344,9 @@ class RekallTester(object):
             config_options.update(dict(config.items("DEFAULT")))
 
             config_options["test_class"] = plugin_cls.__name__
+            if self.FLAGS.profile_path:
+                config_options["--profile_path"] = self.FLAGS.profile_path
+
             if config.has_section(plugin_cls.__name__):
                 config_options.update(dict(config.items(plugin_cls.__name__)))
 

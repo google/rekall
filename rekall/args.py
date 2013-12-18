@@ -252,8 +252,7 @@ def parse_args(argv=None, user_session=None):
                         "path order.")
 
     parser.add_argument(
-        "--profile_path", default=[os.path.dirname(profiles.__file__)],
-        action="append",
+        "--profile_path", default=[None], action="append",
         help="Path to search for profiles. This can take "
         "any form supported by the IO Manager (e.g. zip files, "
         "URLs etc")
@@ -335,13 +334,14 @@ def parse_args(argv=None, user_session=None):
                 classes.append(cls)
 
         for cls in sorted(classes, key=lambda x: x.name):
-                doc = cls.__doc__.splitlines()[0]
-                name = cls.name
-                try:
-                    module_parser = parsers[name]
-                except KeyError:
-                    parsers[name] = module_parser = subparsers.add_parser(
-                        cls.name, help=doc, description=cls.__doc__)
+            docstring = cls.__doc__ or "."
+            doc = docstring.splitlines()[0] or "."
+            name = cls.name
+            try:
+                module_parser = parsers[name]
+            except KeyError:
+                parsers[name] = module_parser = subparsers.add_parser(
+                    cls.name, help=doc, description=docstring)
 
                 cls.args(module_parser)
                 module_parser.set_defaults(module=cls.name)

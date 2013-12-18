@@ -37,23 +37,26 @@ means into a zip file:
 - On Windows the vtypes are python files which must be executed.
 
 Rekall profiles are more structured. All profiles contain a metadata file within
-the zip archive called metadata.conf which simply contains key value pairs. For example:
+the zip archive called "metadata" which simply contains key value pairs encoded
+using json. For example:
 
-[DEFAULT]
+{
+ # This must point at the implementation of this profile (i.e. the class which
+ # should be created). Valid values include Linux32, Linux64, WinXPSP1x86
+ # etc. You can use the 'info' plugin to see which classes already exist.
 
-# This must point at the implementation of this profile (i.e. the class which
-# should be created). Valid values include Linux32, Linux64, WinXPSP1x86
-# etc. You can use the 'info' plugin to see which classes already exist.
-ProfileClass = Linux64
+ "ProfileClass": "Linux64"
 
-# This is the name of a member inside this zip file which contains the constant
-# list.
-Constants = System.map.json
+ # This is the name of a member inside this zip file which contains the
+ # constant list.
 
-# This points at a json file within this zip file which contains the vtype
-# definitions for this profile.
-VTypes = vtypes.json
+ "Constants":  "System.map.json"
 
+ # This points at a json file within this zip file which contains the vtype
+ # definitions for this profile.
+
+ "VTypes": "vtypes.json"
+}
 
 We chose to use json to store the vtype data structures because loading json
 files in python is extremely quick and leads to much faster start up times than
@@ -64,11 +67,11 @@ vtype file needs to be evaluated.).
 Often users already have profiles created for Volatility which they way to use
 in Rekall. Rather than fall back to the slow and inefficient parsing of these
 profiles, Rekall allows users to convert the old profile into a new, efficient
-profile representation. This is what this module does.
+profile representation. This is what this module does with the convert command.
 
 For example, suppose you have an existing profile created for use in Volatility, you can just convert it to the rekall format:
 
-./tools/profile_converter.py Ubuntu-3.0.0-32-generic-pae.zip \
+./tools/profile_converter.py convert Ubuntu-3.0.0-32-generic-pae.zip \
    Ubuntu-3.0.0-32-generic-pae.rekall.zip
 
 $ ls -l Ubuntu-3.0.0-32-generic-pae.*
@@ -81,6 +84,7 @@ Now simply specify the rekall profile using the --profile command line arg.
 import argparse
 import logging
 import json
+import os
 import re
 import StringIO
 import sys
@@ -212,7 +216,7 @@ class OSXConverter(LinuxConverter):
                         "Unknown Darwin Architecture %s" % last_part)
 
             # We only care about few things like functions and global symbols.
-            if "N_FUN" in line or "N_GSYM" in line or "N_STSYM" in line:
+            if "N_FUN" in line or "EXT" in line or "N_STSYM" in line:
                 m = self.DLSYM_REGEX.search(line)
                 if m:
                     try:
@@ -281,30 +285,7 @@ def ConvertProfile(input, output, profile_class=None):
 
     raise RuntimeError("No suitable converter found - profile not recognized.")
 
-
-def main(argv=None):
-    parser = argparse.ArgumentParser(description="Rekall profile converter.")
-
-    parser.add_argument(
-        "--profile_class", default=None,
-        help="The name of the profile implementation to specify. "
-        "If not specified, we autodetect.")
-
-    parser.add_argument(
-        "--converter", default=None,
-        help="The name of the converter to use. If not specified autoguess.")
-
-    parser.add_argument("source",
-                        help="Filename of profile to read.")
-
-    parser.add_argument("destination",
-                        help="Filename of profile to write.")
-
-
-    flags = parser.parse_args(argv)
-
-    logging.getLogger().setLevel(logging.DEBUG)
-
+def ProcessConvert(flags):
     try:
         output = io_manager.Factory(flags.destination, mode="w")
     except IOError:
@@ -329,6 +310,178 @@ def main(argv=None):
 
     with input, output:
         ConvertProfile(input, output)
+
+
+class ProfileCompressor(object):
+    def __init__(self):
+        self.data = {}
+
+    def Compress(self, compression_db, profile):
+        dest = self.data[profile.canonical_name] = {}
+
+        metadata = profile.GetData("metadata")
+        dest["metadata"] = metadata
+
+        profile_constants = profile.GetData(metadata.get("Constants"))
+        constants = compression_db.get("Constants")
+        if constants and profile_constants:
+            self.CompressConstants(constants, profile_constants, dest)
+
+        profile_vtypes = profile.GetData(metadata.get("VTypes"))
+        self.CompressVTypes(profile_vtypes, compression_db, dest)
+
+    def CompressVTypes(self, profile_vtypes, compression_db, dest):
+        for struct, members in compression_db.items():
+            profile_struct = profile_vtypes.get(struct)
+            if profile_struct:
+                size, profile_desc = profile_struct
+                out = {}
+                dest.setdefault("vtypes.json", {})[struct] = [size, out]
+
+                for member in members:
+                    if member in profile_desc:
+                        out[member] = profile_desc[member]
+
+    def CompressConstants(self, constants, profile_constants, dest):
+        out = dest["Constants.json"] = {}
+        for constant in constants:
+            if constant in profile_constants:
+                out[constant] = profile_constants[constant]
+
+def PPrint(data, depth=0):
+    """A pretty printer for a profile.
+
+    This only supports dict, list and non-unicode strings.
+    """
+    result = []
+    if isinstance(data, dict):
+        result.append("{")
+        for key in sorted(data):
+            key = str(key)
+
+            result.append(
+                " %r: %s," % (
+                    key,
+                    PPrint(data[key], depth + 1).strip()))
+
+        result.append("}")
+
+        return "\n".join([(" " * depth + x) for x in result])
+
+    if isinstance(data, list):
+        for item in data:
+            result.append(PPrint(item, depth).strip())
+
+        return "[" + ", ".join(result) + "]"
+
+    if isinstance(data, basestring):
+        try:
+            data = data.encode("ascii")
+        except UnicodeError:
+            pass
+
+    return repr(data)
+
+
+def ProcessCompress(flags):
+    try:
+        # Get the profile access database.
+        db = json.load(open(flags.database, "rb"))
+    except IOError as e:
+        logging.error("Unable to open database file: %s", e)
+        return
+
+    try:
+        source = io_manager.Factory(flags.profiles, mode="r")
+    except IOError:
+        logging.critical("Profile container %s could not be opened.",
+                         flags.profiles)
+        return
+
+    compressor = ProfileCompressor()
+
+    for name, desc in db.items():
+        # Try to open the profile named in the database.
+        try:
+            source_profile = source.OpenSubContainer(name)
+        except IOError:
+            continue
+
+        if source_profile:
+            compressor.Compress(desc, source_profile)
+
+    python_code = """
+# AUTOGENERATED File do not edit!
+# File generated by the profile_tool.py 'compress' command.
+
+from rekall import io_manager
+
+
+class BuiltInProfiles(io_manager.BuiltInManager):
+   data = %s
+
+""" % PPrint(compressor.data)
+
+    with open(flags.output, "wb") as fd:
+        fd.write(python_code)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Rekall profile converter.")
+
+    # Support different commands.
+    subparsers = parser.add_subparsers(
+        description="The following commands can be issued.",
+        dest='command',
+        )
+
+    convert_parser = subparsers.add_parser(
+        "convert", help="Convert old profiles into standard Rekall profiles.")
+
+    compress_parser = subparsers.add_parser(
+        "compress",
+        help="Use the Profile Logging database to reduce all profiles to a "
+        "compressed profile set.")
+
+    # Converting profiles.
+    convert_parser.add_argument(
+        "--profile_class", default=None,
+        help="The name of the profile implementation to specify. "
+        "If not specified, we autodetect.")
+
+    convert_parser.add_argument(
+        "--converter", default=None,
+        help="The name of the converter to use. If not specified autoguess.")
+
+    convert_parser.add_argument("source",
+                                help="Filename of profile to read.")
+
+    convert_parser.add_argument("destination",
+                                help="Filename of profile to write.")
+
+    # Compressing profiles.
+    compress_parser.add_argument(
+        "profiles", default="rekall/profiles", nargs="?",
+        help="A container (directory or zip file) of profiles to process")
+
+    compress_parser.add_argument(
+        "--database", default=os.environ.get("DEBUG_PROFILE"),
+        help="The profile access database. This will be generated "
+        "automatically by Rekall if the environment variable DEBUG_PROFILE "
+        "is set to this filename, and plugins are run directly.")
+
+    compress_parser.add_argument(
+        "--output", default="rekall/builtin_profiles.py",
+        help="The path to the builtin profile file to be produced.")
+
+    flags = parser.parse_args(argv)
+
+    logging.getLogger().setLevel(logging.DEBUG)
+
+    if flags.command == "convert":
+        ProcessConvert(flags)
+    elif flags.command == "compress":
+        ProcessCompress(flags)
 
 
 if __name__ == "__main__":

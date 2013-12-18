@@ -183,7 +183,7 @@ class Info(plugin.Command):
 
     def render_item_info(self, item, renderer):
         """Render information about the specific item."""
-        cls_doc = item.__doc__ or ""
+        cls_doc = item.__doc__ or " "
 
         if isinstance(item, registry.MetaclassRegistry):
             renderer.format("{0}: {1}\n", item.name, cls_doc.splitlines()[0])

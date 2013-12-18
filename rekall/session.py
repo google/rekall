@@ -36,6 +36,8 @@ import textwrap
 import time
 
 from rekall import addrspace
+# Include the built in profiles as a last fallback.
+from rekall import builtin_profiles
 from rekall import io_manager
 from rekall import plugin
 from rekall import obj
@@ -56,6 +58,9 @@ class Session(object):
     """
     def __init__(self, **kwargs):
         self.profile = obj.NoneObject("Set this to a valid profile (e.g. type profiles. and tab).")
+
+        # This means to use the built in profiles first.
+        self.profile_path = [None]
         self.filename = obj.NoneObject("Set this to the image filename.")
         self.basename = obj.NoneObject("Unset")
 
@@ -250,21 +255,28 @@ class Session(object):
         """
         # We only want to deal with unix paths.
         filename = filename.replace("\\", "/")
+        canonical_name = os.path.splitext(os.path.basename(filename))[0]
 
         # The filename is a path we try to open it directly:
         if "/" in filename:
             return obj.Profile.LoadProfileFromContainer(
-                io_manager.Factory(filename), self)
+                io_manager.Factory(filename), self, name=canonical_name)
 
         # Traverse the profile path until one works.
         result = None
-        for path in self.profile_path:
+        for path in reversed(self.profile_path):
             manager = io_manager.Factory(path)
             try:
-                return obj.Profile.LoadProfileFromContainer(
-                    manager.OpenSubContainer(filename), self)
+                result = obj.Profile.LoadProfileFromContainer(
+                    manager.OpenSubContainer(filename), self,
+                    name=canonical_name)
+                logging.info("Loaded profile %s from %s",
+                             filename, manager)
+                return result
             except (IOError, KeyError) as e:
                 result = obj.NoneObject(e)
+                logging.debug("Could not find profile %s in %s",
+                              filename, manager)
 
         return result
 
@@ -281,8 +293,9 @@ class Session(object):
         self._update_runners()
 
     def _set_filename(self, filename):
-        self.__dict__['filename'] = filename
-        self.__dict__['base_filename'] = os.path.basename(filename)
+        if filename:
+            self.__dict__['filename'] = filename
+            self.__dict__['base_filename'] = os.path.basename(filename)
 
     def __unicode__(self):
         return u"Session"

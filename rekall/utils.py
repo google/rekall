@@ -387,3 +387,21 @@ def ConditionalImport(name):
         pass
 
 
+# This is only available on unix systems.
+fcntl = ConditionalImport("fcntl")
+
+
+class FileLock(object):
+    """A self cleaning temporary directory."""
+
+    def __init__(self, fd):
+        self.fd = fd
+
+    def __enter__(self):
+        if fcntl:
+            fcntl.flock(self.fd.fileno(), fcntl.LOCK_EX)
+        return self.fd
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if fcntl:
+            fcntl.flock(self.fd.fileno(), fcntl.LOCK_UN)

@@ -45,12 +45,6 @@ class BaseScanner(object):
            address_space: The address space we use for scanning.
            window_size: The size of the overlap window between each buffer read.
         """
-        # We operate on a cached version of the original address space because
-        # we need to read it randomly very frequently.
-
-        # This might only make sense for windows system where IO is very
-        # expensive - for linux systems it makes no difference.
-        #self.address_space = addrspace.CachingAddressSpace(base=address_space)
         self.address_space = address_space
         self.window_size = window_size
         self.constraints = None

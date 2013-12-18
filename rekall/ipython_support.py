@@ -80,7 +80,7 @@ def Shell(user_session):
 
     shell.Completer.merge_completions = False
     shell.banner = constants.BANNER
-    shell.exit_msg = "You are not you, you're me!"
+    shell.exit_msg = constants.GetQuote()
     shell.set_custom_completer(RekallCompleter, 0)
 
     # Do we need to pre-run something?

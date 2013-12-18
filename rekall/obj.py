@@ -29,12 +29,15 @@ __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
 The Rekall Memory Forensics object system.
 
 """
+import atexit
 import inspect
+import json
 import logging
-import sys
-import re
 import operator
+import os
+import re
 import struct
+import sys
 
 import copy
 from rekall import addrspace
@@ -43,6 +46,81 @@ from rekall import registry
 from rekall import utils
 
 import traceback
+
+
+class ProfileLog(object):
+    # Point this environment variable into a filename we will use to store
+    # profiling results.
+    ENVIRONMENT_VAR = "DEBUG_PROFILE"
+
+    class JSONEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, set):
+                return sorted(obj)
+
+            return json.JSONEncoder.default(self, obj)
+
+        @staticmethod
+        def as_set(obj):
+            for k in obj:
+                if isinstance(obj[k], list):
+                    obj[k] = set(obj[k])
+
+            return obj
+
+    def __init__(self):
+        self.data = {}
+        self.filename = os.environ.get(self.ENVIRONMENT_VAR)
+        if self.filename:
+            # Ensure we update the object access log when we exit.
+            atexit.register(self._DumpData)
+
+    def _MergeData(self, data):
+        for profile, structs in data.items():
+            if profile not in self.data:
+                self.data[profile] = data[profile]
+            else:
+                for c_struct, fields in structs.items():
+                    if c_struct not in self.data[profile]:
+                        self.data[profile][c_struct] = fields
+                    else:
+                        self.data[profile][c_struct].update(fields)
+
+    def _DumpData(self):
+        try:
+            with utils.FileLock(open(self.filename, "rb")) as fd:
+                self._MergeData(json.loads(
+                        fd.read(), object_hook=self.JSONEncoder.as_set))
+
+                with open(self.filename, "wb") as fd:
+                    fd.write(json.dumps(self.data, cls=self.JSONEncoder))
+
+        except (IOError, ValueError):
+            pass
+
+        logging.info("Updating object access database %s", self.filename)
+        with open(self.filename, "wb") as fd:
+            fd.write(json.dumps(self.data, cls=self.JSONEncoder))
+
+    def LogFieldAccess(self, profile, obj_type, field_name):
+        # Do nothing unless the environment is set.
+        if self.is_active():
+            profile = self.data.setdefault(profile, {})
+            fields = profile.setdefault(obj_type, set())
+            if field_name:
+                fields.add(field_name)
+
+    def LogConstant(self, profile, name):
+        self.LogFieldAccess(profile, "Constants", name)
+
+    @staticmethod
+    def is_active():
+        return bool(os.environ.get(ProfileLog.ENVIRONMENT_VAR))
+
+
+# This is used to store Struct member access when the DEBUG_PROFILE environment
+# variable is set.
+ACCESS_LOG = ProfileLog()
 
 
 class Curry(object):
@@ -249,26 +327,12 @@ class BaseObject(object):
         """Function for writing the object back to disk"""
         pass
 
-    def __XXXgetattr__(self, attr):
-        """ This is only useful for proper methods (not ones that
-        start with __ )
-        """
-        ## Search for the attribute of the proxied object
-        proxied = self.proxied(attr)
-        # Don't do a __nonzero__ check on proxied or things like '' will fail
-        if proxied is None:
-            raise AttributeError(
-                "Unable to resolve attribute {0} on {1}".format(
-                    attr, self.obj_name))
-
-        return getattr(proxied, attr)
-
     def __nonzero__(self):
-        """ This method is called when we test the truth value of an
-        Object. In rekall we consider an object to have True truth
-        value only when its a valid object. Its possible for example
-        to have a Pointer object which is not valid - this will have a
-        truth value of False.
+        """This method is called when we test the truth value of an Object.
+
+        In rekall we consider an object to have True truth value only when it is
+        a valid object. Its possible for example to have a Pointer object which
+        is not valid - this will have a truth value of False.
 
         You should be testing for validity like this:
         if X:
@@ -278,7 +342,10 @@ class BaseObject(object):
 
         if int(X) == 0:
 
-        or if X is None: .....
+        or
+
+        if X is None:
+          .....
 
         the later form is not going to work when X is a NoneObject.
         """
@@ -286,8 +353,10 @@ class BaseObject(object):
         return result
 
     def __eq__(self, other):
-        return self.v() == other or ((self.__class__ == other.__class__) and
-                                     (self.obj_offset == other.obj_offset) and (self.obj_vm == other.obj_vm))
+        return self.v() == other or (
+            (self.__class__ == other.__class__) and
+            (self.obj_offset == other.obj_offset) and
+            (self.obj_vm == other.obj_vm))
 
     def __ne__(self, other):
         return not self == other
@@ -899,6 +968,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
            struct_size: The size of this struct if known (Can be None).
         """
         super(Struct, self).__init__(**kwargs)
+        ACCESS_LOG.LogFieldAccess(self.obj_profile.name, self.obj_type, None)
 
         if not members:
             # Warn rather than raise an error, since some types (_HARDWARE_PTE,
@@ -977,6 +1047,8 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
         To access a field which has been renamed in different OS versions.
         """
+        ACCESS_LOG.LogFieldAccess(self.obj_profile.name, self.obj_type, attr)
+
         # Allow subfields to be gotten via this function.
         if "." in attr:
             result = self
@@ -1031,6 +1103,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         if include_current:
             yield self
 
+        import pdb; pdb.set_trace()
         seen = set()
         seen.add(self.obj_offset)
 
@@ -1079,11 +1152,12 @@ class Profile(object):
     EMPTY_DESCRIPTOR = [0, {}]
 
     @classmethod
-    def LoadProfileFromContainer(cls, container, session):
+    def LoadProfileFromContainer(cls, container, session, name=None):
         """Try to load a profile directly from a filename.
 
         Args:
-          filename: A string which will be used to get an io_manager container.
+          container: An instance of IOManager.
+
         Returns:
           a Profile() instance.
 
@@ -1100,21 +1174,30 @@ class Profile(object):
                     "No profile implementation class %s" %
                     metadata["ProfileClass"])
 
-            result = profile_cls(session=session)
-            constants = container.GetData(metadata["Constants"])
-            if constants:
+            result = profile_cls(name=name, session=session)
+            try:
+                constants = container.GetData(metadata["Constants"])
                 result.add_constants(constants_are_addresses=True,
                                      **constants)
+            except IOError:
+                pass
 
-            types = container.GetData(metadata["VTypes"])
-            if types:
+            try:
+                types = container.GetData(metadata["VTypes"])
                 result.add_types(types)
+            except IOError:
+                pass
 
             return result
 
-    def __init__(self, session=None, **kwargs):
+    def __init__(self, name=None, session=None, **kwargs):
         if kwargs:
             logging.error("Unknown keyword args {0}".format(kwargs))
+
+        if name is None:
+            name = self.__class__.__name__
+
+        self.name = name
         self.session = session
         self.overlayDict = {}
         self.overlays = []
@@ -1122,7 +1205,7 @@ class Profile(object):
         self.constants = {}
         self.constant_addresses = {}
         self.applied_modifications = []
-        self.applied_modifications.append(self.__class__.__name__)
+        self.applied_modifications.append(self.name)
 
         # This is the local cache of compiled expressions.
         self.flush_cache()
@@ -1307,8 +1390,17 @@ class Profile(object):
         (Each time the object is instantiated, or a field is accessed) and need
         to be as fast as possible.
         """
+        # Note that lambdas below must get external parameters through default
+        # args:
+        # http://stackoverflow.com/questions/938429/scope-of-python-lambda-functions-and-their-parameters/938493#938493
+
         properties = {}
         for name in set(members).union(callable_members):
+
+            # Do not mask hand written methods with autogenerated properties.
+            if hasattr(cls, name):
+                continue
+
             cb = callable_members.get(name)
             value = members.get(name)
 
@@ -1434,6 +1526,8 @@ class Profile(object):
 
         Note that this can be wrong if the offset is a callable.
         """
+        ACCESS_LOG.LogFieldAccess(self.name, name, member)
+
         tmp = self._get_dummy_obj(name)
         if tmp is None:
             raise AttributeError("Object %s not known" % name)
@@ -1449,6 +1543,8 @@ class Profile(object):
 
     def obj_has_member(self, name, member):
         """Returns whether an object has a certain member"""
+        ACCESS_LOG.LogFieldAccess(self.name, name, member)
+
         tmp = self._get_dummy_obj(name)
         return hasattr(tmp, member)
 
@@ -1566,6 +1662,8 @@ class Profile(object):
     def get_constant(self, constant):
         self.compile_type(constant)
 
+        ACCESS_LOG.LogConstant(self.name, constant)
+
         result = self.constants.get(constant)
         if result is None:
             result = NoneObject("Constant %s does not exist in profile." % constant)
@@ -1676,6 +1774,7 @@ class Profile(object):
                                                   **kwargs)
 
             if isinstance(result, Struct):
+                import pdb; pdb.set_trace()
                 # This should not normally happen.
                 logging.error("Instantiating a Struct class without an overlay. "
                               "Please ensure an overlay is defined.")
@@ -1686,6 +1785,12 @@ class Profile(object):
             # If we get here we have no idea what the type is supposed to be?
             logging.info("Cant find object {0} in profile {1}?".format(
                     theType, self))
+
+    def __str__(self):
+        return "<Profile %s (%s)>" % (self.name, self.__class__.__name__)
+
+    def __repr__(self):
+        return str(self)
 
 
 PROFILE_CACHE = utils.FastStore()
