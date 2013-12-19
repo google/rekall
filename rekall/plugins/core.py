@@ -323,7 +323,10 @@ class LoadAddressSpace(plugin.Command):
 
         return self.session.physical_address_space
 
-    def GetVirtualAddressSpace(self):
+    def GetVirtualAddressSpace(self, dtb=None):
+        if dtb is None:
+            dtb = self.session.GetParameter("dtb")
+
         if not self.session.physical_address_space:
             raise plugin.PluginError("Unable to find kernel address space.")
 
@@ -337,7 +340,7 @@ class LoadAddressSpace(plugin.Command):
             session=self.session, profile=self.profile)
 
         # If dtb is not known, find it though a (profile specific) plugin.
-        if not self.session.dtb:
+        if not dtb:
             logging.debug("DTB is not specified, about to search for it.")
 
             # Delegate to the find_dtb plugin.
@@ -351,7 +354,9 @@ class LoadAddressSpace(plugin.Command):
                 if find_dtb.verify_address_space(
                     eprocess=eprocess, address_space=test_as):
                     self.session.kernel_address_space = test_as
-                    self.session.dtb = dtb
+
+                    # Cache the dtb now since it is verified.
+                    self.session.StoreParameter("dtb", int(dtb))
                     break
 
             if not self.session.kernel_address_space:
@@ -362,7 +367,7 @@ class LoadAddressSpace(plugin.Command):
 
         else:
             self.session.kernel_address_space = address_space_curry(
-                dtb=self.session.dtb)
+                dtb=dtb)
 
         if self.session.default_address_space is None:
             self.session.default_address_space = self.session.kernel_address_space

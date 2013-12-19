@@ -134,7 +134,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
         # Set members of the crash header
         header.MajorVersion = dbgkd.MajorVersion.v()
         header.MinorVersion = dbgkd.MinorVersion.v()
-        header.DirectoryTableBase = self.session.dtb
+        header.DirectoryTableBase = self.session.GetParameter("dtb")
         header.PfnDataBase = self.kdbg.MmPfnDatabase.v()
         header.PsLoadedModuleList = self.kdbg.PsLoadedModuleList.v()
         header.PsActiveProcessHead = self.kdbg.PsActiveProcessHead.v()

@@ -57,7 +57,6 @@ def IPython011Support(user_session):
         # This must be run here because the IPython shell messes with our user
         # namespace above (by adding its own help function).
         user_session._prepare_local_namespace()
-        UpdateSessionFromArgv(user_session, FLAGS)
 
         shell(local_ns=user_session._locals)
         return True
@@ -77,7 +76,6 @@ def IPython012Support(user_session):
         # This must be run here because the IPython shell messes with our user
         # namespace above (by adding its own help function).
         user_session._prepare_local_namespace()
-        UpdateSessionFromArgv(user_session._locals['session'], FLAGS)
 
         return ipython_support.Shell(user_session)
     except ImportError:
@@ -118,16 +116,6 @@ def NativePythonSupport(user_session):
     # Prepare the session for running within the native python interpreter.
     user_session._prepare_local_namespace()
     code.interact(banner=constants.BANNER, local=user_session._locals)
-
-def UpdateSessionFromArgv(user_session, FLAGS):
-    result = {}
-    for k, v in FLAGS.__dict__.items():
-        if v is not None:
-            setattr(user_session, k.replace("-", "_"), v)
-            result[k] = v
-
-    return result
-
 
 def main(argv=None):
     # New user interactive session (with extra bells and whistles).

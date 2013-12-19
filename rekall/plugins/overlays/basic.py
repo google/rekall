@@ -413,8 +413,8 @@ class UnixTimeStamp(obj.NativeType):
             timezone_name = "UTC"
             if custom_tz:
                 timezone_name = custom_tz
-            elif session and session.timezone:
-                timezone_name = session.timezone
+            elif session and session.GetParameter("timezone"):
+                timezone_name = session.GetParameter("timezone")
 
             timezone = pytz.timezone(timezone_name)
         except pytz.UnknownTimeZoneError:

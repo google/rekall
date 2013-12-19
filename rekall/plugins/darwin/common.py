@@ -125,7 +125,7 @@ class DarwinFindDTB(AbstractDarwinCommandPlugin):
 
         """
         lowGlo = ID_MAP_VTOP(self.profile.get_constant("_lowGlo"))
-        vm_kernel_slide = self.session.vm_kernel_slide
+        vm_kernel_slide = self.session.GetParameter("vm_kernel_slide")
         if vm_kernel_slide is None:
             for hit in CatfishScanner(
                 address_space=self.physical_address_space,
@@ -134,7 +134,8 @@ class DarwinFindDTB(AbstractDarwinCommandPlugin):
                 # From this point on, the profile will automatically slide
                 # constants by this amount.
                 vm_kernel_slide = hit - lowGlo
-                self.profile.add_constants(vm_kernel_slide=vm_kernel_slide)
+                self.session.StoreParameter(
+                    "vm_kernel_slide", int(vm_kernel_slide))
 
                 bootpml4 = ID_MAP_VTOP(self.profile.get_constant("_BootPML4"))
                 boot_as = amd64.AMD64PagedMemory(
@@ -146,9 +147,8 @@ class DarwinFindDTB(AbstractDarwinCommandPlugin):
                 idlepml4 = self.profile.Object(
                     "unsigned int",  offset=idlepml4_addr, vm=boot_as)
 
-                self.session.vm_kernel_slide = vm_kernel_slide
-
-                yield idlepml4, None
+                if idlepml4:
+                    yield idlepml4, None
 
     def verify_address_space(self, address_space=None, **kwargs):
         # Check the os version symbol using this address space.

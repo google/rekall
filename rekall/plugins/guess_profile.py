@@ -111,7 +111,8 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
                     session=self.session)
 
                 kdbg = kdbg_profile._KDDEBUGGER_DATA64(
-                    offset=self.session.kdbg, vm=kernel_as)
+                    offset=self.session.GetParameter("kdbg"),
+                    vm=kernel_as)
 
                 if not kdbg: continue
 
@@ -251,9 +252,10 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
 
         # If we have a kdbg and a valid kernel address space we can try a faster
         # approach:
-        if self.session.kdbg and self.session.dtb:
+        if (self.session.GetParameter("kdbg") and
+            self.session.GetParameter("dtb")):
             for profile, virtual_as, eprocess in self.guess_profile_from_kdbg(
-                self.session.kdbg):
+                self.session.GetParameter("kdbg")):
                 self.session.profile = profile
                 self.session.kernel_address_space = virtual_as
                 self.session.default_address_space = virtual_as
@@ -265,7 +267,7 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
             self.session.profile = profile
             self.session.kernel_address_space = virtual_as
             self.session.default_address_space = virtual_as
-            self.session.dtb = virtual_as.dtb
+            self.session.StoreParameter("dtb", int(virtual_as.dtb))
 
             # Try to set the correct _EPROCESS here.
             self.session.system_eprocess = self.session.profile._EPROCESS(

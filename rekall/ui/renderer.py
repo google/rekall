@@ -443,7 +443,8 @@ class RendererBaseClass(object):
         self.fd = fd
         self.isatty = False
         self.formatter = Formatter()
-        self.colorizer = Colorizer(fd, nocolor=getattr(session, "nocolors", False))
+        self.colorizer = Colorizer(
+            fd, nocolor=session.GetParameter("nocolors") if session else False)
 
     def start(self, plugin_name=None, kwargs=None):
         """The method is called when new output is required.

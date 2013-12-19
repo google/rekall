@@ -79,7 +79,7 @@ class IA32PagedMemory(addrspace.PagedReader):
 
         # If the underlying address space already knows about the dtb we use it.
         # Allow the dtb to be specified in the session.
-        self.dtb = dtb or self.session.dtb
+        self.dtb = dtb or self.session.GetParameter("dtb")
 
         self.as_assert(self.dtb != None, "No valid DTB specified. Try the find_dtb"
                        " plugin to search for the dtb.")

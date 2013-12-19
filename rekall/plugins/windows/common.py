@@ -314,7 +314,7 @@ class KDBGMixin(plugin.KernelASMixin):
              AS).
         """
         super(KDBGMixin, self).__init__(**kwargs)
-        self.kdbg = kdbg or self.session.kdbg
+        self.kdbg = kdbg or self.session.GetParameter("kdbg")
 
         # If the user specified the kdbg use it - even if it looks wrong!
         if self.kdbg and not isinstance(self.kdbg, obj.BaseObject):
@@ -323,7 +323,7 @@ class KDBGMixin(plugin.KernelASMixin):
 
             # If the user specified the kdbg use it - even if it looks wrong!
             # This allows the user to force a corrupt kdbg.
-            self.kdbg = self.session.kdbg = kdbg
+            self.kdbg = kdbg
 
         if self.kdbg is None:
             logging.info("KDBG not provided - Rekall Memory Forensics will try to "
@@ -334,7 +334,8 @@ class KDBGMixin(plugin.KernelASMixin):
                              "setting it manually.", kdbg)
 
                 # Cache this for next time in the session.
-                self.session.kdbg = self.kdbg = kdbg
+                self.kdbg = kdbg
+                self.session.StoreParameter("kdbg", int(kdbg))
                 break
 
         # Allow kdbg to be an actual object.

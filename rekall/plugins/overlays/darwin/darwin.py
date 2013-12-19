@@ -326,7 +326,7 @@ class Darwin64(basic.ProfileLP64, Darwin32):
 
     def get_constant(self, name, is_address=True):
         if is_address:
-            shift = self.constants.get("vm_kernel_slide", 0)
+            shift = self.session.GetParameter("vm_kernel_slide", 0)
         else:
             shift = 0
 

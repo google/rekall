@@ -221,11 +221,12 @@ def LoadPlugins(paths=None):
 
 def parse_args(argv=None, user_session=None):
     """Parse the args from the command line argv."""
-    parser =  RekallArgParser(description=constants.BANNER,
-                              conflict_handler='resolve',
-                              add_help=False,
-                              epilog='When no module is provided, '
-                              'drops into interactive mode')
+    parser =  RekallArgParser(
+        description=constants.BANNER,
+        conflict_handler='resolve',
+        add_help=False,
+        epilog='When no module is provided, drops into interactive mode',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Top level args.
     parser.add_argument("--pager", default=os.environ.get("PAGER"),
@@ -300,7 +301,9 @@ def parse_args(argv=None, user_session=None):
         getattr(logging, known_args.logging.upper()))
 
     try:
-        user_session.UpdateFromArgs(known_args.__dict__)
+        with user_session.state as state:
+            for arg, value in known_args.__dict__.items():
+                state.Set(arg, value)
 
         if user_session.profile is None:
             guesser = user_session.plugins.guess_profile()

@@ -27,6 +27,7 @@ way for people to save their own results.
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import inspect
+import json
 import logging
 import pdb
 import os
@@ -51,6 +52,101 @@ class Container(object):
     """Just a container."""
 
 
+class Cache(dict):
+
+    def _CheckCorrectType(self, value):
+        """Ensure that the configuration remains json serializable."""
+        if value is None:
+            return True
+
+        if isinstance(value, (int, long, basestring, float)):
+            return True
+
+        if isinstance(value, (list, tuple)):
+            return all((self._CheckCorrectType(x) for x in value))
+
+        if isinstance(value, dict):
+            return (self._CheckCorrectType(value.keys()) and
+                    self._CheckCorrectType(value.values()))
+
+        return False
+
+    def __setattr__(self, attr, value):
+        try:
+            # Check that the object itself has this attribute.
+            object.__getattribute__(self, attr)
+
+            return object.__setattr__(self, attr, value)
+        except AttributeError:
+            self.Set(attr, value)
+
+    def __getattr__(self, attr):
+        return self.get(attr)
+
+    def __dir__(self):
+        return sorted(self)
+
+    def __str__(self):
+        return json.dumps(self, indent=2, sort_keys=True)
+
+    def __repr__(self):
+        return "<Configuration Object>"
+
+    def _set_filename(self, filename):
+        if filename:
+            self['filename'] = filename
+            self['base_filename'] = os.path.basename(filename)
+
+    def Get(self, item, default=None):
+        return self.get(item, default)
+
+    def Set(self, attr, value):
+        hook = getattr(self, "_set_%s" % attr, None)
+        if hook:
+            hook(value)
+
+        else:
+            if not self._CheckCorrectType(value):
+                raise ValueError(
+                    "Configuration parameters must be simple types, not %r." %
+                    value)
+
+            self[attr] = value
+
+
+class Configuration(Cache):
+    # The session which owns this configuration object.
+    session = None
+
+    # This holds a write lock on the configuration object.
+    _lock = False
+
+    def __init__(self, session=None, **kwargs):
+        self.session = session
+        self.update(**kwargs)
+
+        # Can not update the configuration object any more.
+        self._lock = True
+
+    def Set(self, attr, value):
+        if self._lock:
+            raise ValueError(
+                "Can only update configuration using the context manager.")
+
+        super(Configuration, self).Set(attr, value)
+
+    def __enter__(self):
+        # Allow us to update the context manager.
+        self._lock = False
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._lock = True
+        if self.session:
+            self.session.UpdateFromConfigObject()
+
+
+
 class Session(object):
     """Base session.
 
@@ -59,43 +155,18 @@ class Session(object):
     def __init__(self, **kwargs):
         self.profile = obj.NoneObject("Set this to a valid profile (e.g. type profiles. and tab).")
 
-        # This means to use the built in profiles first.
-        self.profile_path = [None]
-        self.filename = obj.NoneObject("Set this to the image filename.")
-        self.basename = obj.NoneObject("Unset")
+        # Store user configurable attributes here. These will be read/written to
+        # the configuration file.
+        self.state = Configuration(self, cache=Cache(), **kwargs)
 
-        # The default renderer.
-        self.renderer = "TextRenderer"
-        self.paging_limit = None
+    def UpdateFromConfigObject(self):
+        """This method is called whenever the config object was updated.
 
-        # Merge in defaults.
-        self.UpdateFromArgs(kwargs)
-
-    def UpdateFromArgs(self, args):
-        """Update the session from a dict.
-
-        If hooks are defines on some attributes which in turn access other
-        attributes, it is difficult to enforce a proper dependency ordering. To
-        avoid this issue we first set all the attributes on the session as they
-        are, and then we run the hooks in arbitrary order. Those hooks which
-        attempt to retrieve other session attributes will then be able to get it
-        from the previosly set attributes.
-
-
-        Args:
-          args: A dict with keys - attributes to set, and values the attribute
-             value.
+        We are expected to re-check the config and re-initialize this session.
         """
-        hooks = []
-        for attr, value in args.items():
-            object.__setattr__(self, attr, value)
-
-            hook = getattr(self, "_set_%s" % attr, None)
-            if hook:
-                hooks.append((hook, value))
-
-        for hook, value in hooks:
-            hook(value)
+        self.filename = self.state.filename
+        self.profile = self.LoadProfile(self.state.profile)
+        self._update_runners()
 
     def _update_runners(self):
         plugins = Container()
@@ -106,22 +177,39 @@ class Session(object):
                 # Create a runner for this plugin and set its documentation.
                 setattr(plugins, name, obj.Curry(cls, session=self))
 
-    def __setattr__(self, attr, value):
-        """Allow the user to set configuration information directly."""
-        # Allow for hooks to override special options.
-        hook = getattr(self, "_set_%s" % attr, None)
-        if hook:
-            hook(value)
-        else:
-            object.__setattr__(self, attr, value)
-
-            # This may affect which plugins are available for the user.
-            self._update_runners()
-
     def __getattr__(self, attr):
         """This will only get called if the attribute does not exist."""
+        print "Accessed attr %s" % attr
         return None
-        return obj.NoneObject("Session has not attribute %s" % attr)
+        return obj.NoneObject("Session has no attribute %s" % attr)
+
+    def GetParameter(self, item, default=None):
+        """Retrieves a stored parameter.
+
+        Parameters are managed by the Rekall session in two layers. The state
+        containers contains those parameters which are deliberately set by the
+        user.
+
+        Some parameters are calculated by plugins and are used in order to speed
+        up further calculations. These are cached in the state as well.
+
+        It is important to never override a user selection by the cached
+        results. Since the user must be allowed to override all parameters - for
+        example through the GUI or the command line. Therefore when resolving a
+        parameter, we first check in the state, and only if the parameter does
+        not exist, we check the cache.
+        """
+        result = self.state.Get(item)
+        if result is None:
+            result = self.state.cache.Get(item)
+
+        if result is None:
+            result = default
+
+        return result
+
+    def StoreParameter(self, item, value):
+        self.state.cache[item] = value
 
     def error(self, plugin_cls, e):
         """An error handler for plugin errors."""
@@ -184,7 +272,7 @@ class Session(object):
                     fd = open(output, "w")
 
             # Allow per call overriding of the output file descriptor.
-            paging_limit = self.paging_limit
+            paging_limit = self.state.paging_limit
             if not self.pager:
                 paging_limit = None
 
@@ -211,7 +299,7 @@ class Session(object):
 
             # If there was too much data and a pager is specified, simply pass
             # the data to the pager:
-            if self.pager and len(ui_renderer.data) >= self.paging_limit:
+            if self.pager and len(ui_renderer.data) >= self.state.paging_limit:
                 pager = renderer.Pager(self)
                 for data in ui_renderer.data:
                     pager.write(data)
@@ -264,7 +352,7 @@ class Session(object):
 
         # Traverse the profile path until one works.
         result = None
-        for path in reversed(self.profile_path):
+        for path in reversed(self.state.Get("profile_path", [None])):
             manager = io_manager.Factory(path)
             try:
                 result = obj.Profile.LoadProfileFromContainer(
@@ -278,7 +366,7 @@ class Session(object):
                 logging.debug("Could not find profile %s in %s",
                               filename, manager)
 
-        return result
+                return result
 
     def _set_profile(self, profile):
         """A Hook for setting profiles."""
@@ -291,11 +379,6 @@ class Session(object):
 
         self.__dict__['profile'] = profile
         self._update_runners()
-
-    def _set_filename(self, filename):
-        if filename:
-            self.__dict__['filename'] = filename
-            self.__dict__['base_filename'] = os.path.basename(filename)
 
     def __unicode__(self):
         return u"Session"
@@ -313,9 +396,6 @@ class InteractiveSession(Session):
     interactive use.
     """
 
-    # This is used for setattr in __init__.
-    _ready = False
-
     def __init__(self, env=None, **kwargs):
         self._locals = env or {}
 
@@ -327,14 +407,9 @@ class InteractiveSession(Session):
         self._last_plugin = None
 
         # Fill the session with helpful defaults.
-        self.__dict__['logging'] = self.logging or "INFO"
         self.pager = obj.NoneObject("Set this to your favourite pager.")
-        self.overwrite = False
 
         super(InteractiveSession, self).__init__(**kwargs)
-        self.paging_limit = 50
-
-        self._ready = True
 
     def _update_runners(self):
         plugins = Container()
