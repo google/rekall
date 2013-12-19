@@ -60,6 +60,14 @@ darwin_overlay = {
 
             }],
 
+    "kmod_info": [None, {
+            "name": [None, ["String"]],
+            "version": [None, ["String"]],
+
+            # Starting address of the kernel module.
+            "address": [None, ["Pointer"]],
+            }],
+
     "sockaddr": [None, {
             # bsd/sys/socket.h: 371
             'sa_family': [None, ["Enumeration", dict(
@@ -71,6 +79,34 @@ darwin_overlay = {
                             },
                         target="unsigned char",
                         )]],
+            }],
+
+    "sysctl_oid": [None, {
+            # xnu-2422.1.72/bsd/sys/sysctl.h: 148
+            # This field is reused for two purposes, the first is type of node,
+            # while the second is the permissions.
+            "oid_kind_type": lambda x: x.m("oid_kind").cast(
+                "Enumeration", choices={
+                    1: "CTLTYPE_NODE",
+                    2: "CTLTYPE_INT",
+                    3: "CTLTYPE_STRING",
+                    4: "CTLTYPE_QUAD",
+                    5: "CTLTYPE_OPAQUE",
+                    },
+                target="BitField",
+                target_args=dict(start_bit=0, end_bit=8),
+                ),
+
+            "oid_perms": lambda x: x.m("oid_kind").cast(
+                "Flags", maskmap={
+                    "CTLFLAG_RD": 0x80000000, # Allow reads of variable */
+                    "CTLFLAG_WR": 0x40000000, # Allow writes to the variable
+                    "CTLFLAG_LOCKED": 0x00800000, # node will handle locking itself
+                    },
+                ),
+
+            "oid_name": [None, ["Pointer", dict(target="String")]],
+
             }],
     }
 
@@ -287,3 +323,11 @@ class Darwin64(basic.ProfileLP64, Darwin32):
         super(Darwin64, self).__init__(**kwargs)
 
         self.add_types(darwin64_types)
+
+    def get_constant(self, name, is_address=True):
+        if is_address:
+            shift = self.constants.get("vm_kernel_slide", 0)
+        else:
+            shift = 0
+
+        return  super(Darwin64, self).get_constant(name) + shift

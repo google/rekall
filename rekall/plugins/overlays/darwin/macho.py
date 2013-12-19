@@ -41,7 +41,8 @@ from rekall.plugins.overlays import basic
 macho_vtypes = {
  'mach_header_64': [ 0x20, {
     'magic': [0x0, ['unsigned int']],
-    'cputype': [0x4, ['Enumeration', dict(choices={
+    'cputype': [0x4, ['Enumeration', dict(
+                        choices={
                             1:      'VAX',
                             6:      'MC680x0',
                             7:      'i386',
@@ -56,7 +57,9 @@ macho_vtypes = {
                             18:     'PowerPC',
                             (0x01000000 + 7): 'X86_64',
                             (0x01000000 + 18): 'PowerPC_64',
-                             })]],
+                            },
+                        target="unsigned int",
+                        )]],
     'cpusubtype': [0x8, ['int']],
     'filetype': [0xc, ['Enumeration', dict(
                         choices={
@@ -68,7 +71,9 @@ macho_vtypes = {
                             0x6: 'MH_DYLIB',   # dynamicly bound shared library file
                             0x7: 'MH_DYLINKER',# dynamic link editor
                             0x8: 'MH_BUNDLE',  # dynamicly bound bundle file
-                            })]],
+                            },
+                        target="unsigned int",
+                        )]],
     'ncmds': [0x10, ['unsigned int']],
     'sizeofcmds': [0x14, ['unsigned int']],
     'flags': [0x18, ['Flags', dict(maskmap={
@@ -122,7 +127,8 @@ macho_vtypes = {
                             0x21: 'LC_ENCRYPTION_INFO',
                             0x22: 'LC_DYLD_INFO',
                             0x80000000 + 0x22: 'LC_DYLD_INFO_ONLY',
-                            })]],
+                            },
+                        target="unsigned int")]],
     'cmdsize': [0x4, ['unsigned int']],
     'segname': [0x8, ['String', dict(length=16)]],
     'vmaddr': [0x18, ['unsigned long long']],

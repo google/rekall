@@ -360,6 +360,7 @@ class URLManager(IOManager):
     """
 
     def __init__(self, urn=None, mode="r"):
+        super(URLManager, self).__init__(urn=urn, mode=mode)
         if mode != "r":
             raise IOManagerError("%s supports only reading." %
                                  self.__class__.__name__)
@@ -415,7 +416,7 @@ def Factory(urn, mode="r", **kwargs):
         try:
             return cls(urn, mode=mode, **kwargs)
         except IOError as e:
-            logging.debug("Error getting container %s: %s", urn, e)
+            pass
 
     raise IOManagerError(
         "Unable to find any managers which can work on %s" % urn)

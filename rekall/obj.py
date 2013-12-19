@@ -1659,7 +1659,7 @@ class Profile(object):
 
         return field_overlay
 
-    def get_constant(self, constant):
+    def get_constant(self, constant, is_address=True):
         self.compile_type(constant)
 
         ACCESS_LOG.LogConstant(self.name, constant)
@@ -1683,7 +1683,9 @@ class Profile(object):
         return result
 
     def get_constant_by_address(self, address):
-        return self.constant_addresses.get(Pointer.integer_to_address(address))
+        if address:
+            return self.constant_addresses.get(
+                Pointer.integer_to_address(address))
 
     def __dir__(self):
         """Support tab completion."""

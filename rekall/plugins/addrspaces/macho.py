@@ -42,7 +42,7 @@ class MACHOCoreDump(addrspace.RunBasedAddressSpace):
             vm=self.base, offset=0)
 
         # Make sure the file is marked as MH_CORE here.
-        self.as_assert(self.header.filetype == "MH_CORE")
+        # self.as_assert(self.header.filetype == "MH_CORE")
 
         for segment in self.header.segments:
             # We only map segments into memory.

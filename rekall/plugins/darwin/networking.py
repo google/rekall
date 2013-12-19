@@ -61,3 +61,109 @@ class DarwinArp(common.DarwinPlugin):
                 )
 
             arp_cache = arp_cache.la_le.le_next
+
+
+class DarwinRoute(common.DarwinPlugin):
+    """Show routing table."""
+
+    __name = "route"
+
+    RNF_ROOT = 2
+
+    def rn_walk_tree(self, h):
+        """Walks the radix tree starting from the header h.
+
+        This function is taken from
+        xnu-2422.1.72/bsd/net/radix.c: rn_walk_tree()
+
+        Which is why it does not conform to the style guide.
+
+        Note too that the darwin source code abuses C macros:
+
+        #define rn_dupedkey     rn_u.rn_leaf.rn_Dupedkey
+        #define rn_key          rn_u.rn_leaf.rn_Key
+        #define rn_mask         rn_u.rn_leaf.rn_Mask
+        #define rn_offset       rn_u.rn_node.rn_Off
+        #define rn_left         rn_u.rn_node.rn_L
+        #define rn_right        rn_u.rn_node.rn_R
+
+        And then the original code does:
+        rn = rn.rn_left
+
+        So we replace these below.
+        """
+        rn = h.rnh_treetop
+        rnh_cnt = h.rnh_cnt
+
+        seen = set()
+
+        # First time through node, go left */
+        while rn.rn_bit >= 0:
+            rn = rn.rn_u.rn_node.rn_L
+
+        while rn and rn not in seen:
+            base = rn
+
+            seen.add(rn)
+
+            # If at right child go back up, otherwise, go right
+            while (rn.rn_parent.rn_u.rn_node.rn_R == rn and
+                   not rn.rn_flags & self.RNF_ROOT):
+                rn = rn.rn_parent
+
+            # Find the next *leaf* to start from
+            rn = rn.rn_parent.rn_u.rn_node.rn_R
+            while rn.rn_bit >= 0:
+                rn = rn.rn_u.rn_node.rn_L
+
+            next = rn
+
+            # Process leaves
+            while True:
+                rn = base
+                if not rn:
+                    break
+
+                base = rn.rn_u.rn_leaf.rn_Dupedkey
+                if not rn.rn_flags & self.RNF_ROOT:
+                    yield rn
+
+            rn = next
+            if rn.rn_flags & self.RNF_ROOT:
+                return
+
+    def render(self, renderer):
+        renderer.table_header(
+            [("Source IP", "source", "20"),
+             ("Dest IP", "dest", "20"),
+             ("Interface", "interface", "9"),
+             ("Sent", "sent", "8"),
+             ("Recv", "recv", "8"),
+             ("Time", "timestamp", "24"),
+             ("Expires", "expires", "8"),
+             ("Delta", "delta", "8"),
+             ])
+
+        route_tables = self.profile.get_constant_object(
+            "_rt_tables",
+            target="Array",
+            target_args=dict(
+                count=32,
+                target="Pointer",
+                target_args=dict(
+                    target="radix_node_head"
+                    )
+                )
+            )
+
+        for node in self.rn_walk_tree(route_tables[2]):
+            rentry = node.dereference_as("rtentry")
+
+            renderer.table_row(
+                rentry.source_ip,
+                rentry.dest_ip,
+                rentry.name,
+                rentry.sent, rentry.rx,
+                rentry.base_calendartime,
+                rentry.rt_expire,
+                rentry.delta)

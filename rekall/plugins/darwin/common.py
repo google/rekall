@@ -27,6 +27,13 @@ from rekall import scan
 from rekall import utils
 
 from rekall.plugins import core
+from rekall.plugins.addrspaces import amd64
+
+
+LOW_4GB_MASK = 0x00000000FFFFFFFF
+
+def ID_MAP_VTOP(x):
+    return x & LOW_4GB_MASK
 
 
 class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
@@ -107,8 +114,17 @@ class DarwinFindDTB(AbstractDarwinCommandPlugin):
 
         Note that we also allow the user to specify vm_kernel_slide in the
         session.
+
+        #define LOW_4GB_MASK((vm_offset_t)0x00000000FFFFFFFFUL)
+
+        At xnu-2422.1.72/osfmk/i386/pmap.h:
+        #define ID_MAP_VTOP(x) ((void *)(((uint64_t)(x)) & LOW_4GB_MASK))
+
+        xnu-2422.1.72/osfmk/x86_64/pmap.c:
+        kernel_pmap->pm_cr3 = (uintptr_t)ID_MAP_VTOP(IdlePML4);
+
         """
-        lowGlo = self.profile.get_constant("_lowGlo") & 0xFFFFFF80
+        lowGlo = ID_MAP_VTOP(self.profile.get_constant("_lowGlo"))
         vm_kernel_slide = self.session.vm_kernel_slide
         if vm_kernel_slide is None:
             for hit in CatfishScanner(
@@ -117,10 +133,22 @@ class DarwinFindDTB(AbstractDarwinCommandPlugin):
 
                 # From this point on, the profile will automatically slide
                 # constants by this amount.
-                self.profile.add_constants(vm_kernel_slide=hit-lowGlo)
+                vm_kernel_slide = hit - lowGlo
+                self.profile.add_constants(vm_kernel_slide=vm_kernel_slide)
 
-                import pdb; pdb.set_trace()
+                bootpml4 = ID_MAP_VTOP(self.profile.get_constant("_BootPML4"))
+                boot_as = amd64.AMD64PagedMemory(
+                    base=self.physical_address_space, dtb=bootpml4)
 
+                idlepml4_addr = ID_MAP_VTOP(
+                    self.profile.get_constant("_IdlePML4"))
+
+                idlepml4 = self.profile.Object(
+                    "unsigned int",  offset=idlepml4_addr, vm=boot_as)
+
+                self.session.vm_kernel_slide = vm_kernel_slide
+
+                yield idlepml4, None
 
     def verify_address_space(self, address_space=None, **kwargs):
         # Check the os version symbol using this address space.

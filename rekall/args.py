@@ -32,7 +32,6 @@ import zipfile
 
 from rekall import constants
 from rekall import plugin
-from rekall import profiles
 from rekall import session
 from rekall import utils
 
@@ -303,7 +302,7 @@ def parse_args(argv=None, user_session=None):
     try:
         user_session.UpdateFromArgs(known_args.__dict__)
 
-        if not user_session.profile:
+        if user_session.profile is None:
             guesser = user_session.plugins.guess_profile()
             guesser.update_session()
 
