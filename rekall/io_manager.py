@@ -85,6 +85,9 @@ class IOManager(object):
 
         This should return a file like object which provides read access to
         container members.
+
+        Raises:
+          IOManagerError: If the file is not found.
         """
 
     def OpenSubContainer(self, name):
@@ -108,8 +111,13 @@ class IOManager(object):
         container member. For example, normally a dict or list. This function
         wraps the Open() method above and add deserialization to retrieve the
         actual object.
+
+        Returns None if the file is not found.
         """
-        return json.load(self.Open(name))
+        try:
+            return json.load(self.Open(name))
+        except IOManagerError:
+            return None
 
     def StoreData(self, name, data, sort_keys=True, **options):
         """Stores the data in the named container member.
@@ -276,7 +284,10 @@ class ZipFileManager(IOManager):
         if self.zip is None:
             self._OpenZipFile()
 
-        return self.zip.open(name)
+        try:
+            return self.zip.open(name)
+        except KeyError as e:
+            raise IOManagerError(e)
 
     def OpenSubContainer(self, name):
         if self.mode != "r":
@@ -350,7 +361,7 @@ class BuiltInManager(IOManager):
         return BuiltInManager(data=self.data[name])
 
     def __str__(self):
-        return "BuildIn:%s" % self.__class__.__name__
+        return "BuiltIn:%s" % self.__class__.__name__
 
 
 class URLManager(IOManager):

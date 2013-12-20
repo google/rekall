@@ -339,31 +339,40 @@ class Session(object):
           a Profile() instance or a NoneObject()
         """
         # We only want to deal with unix paths.
-        filename = filename.replace("\\", "/")
-        canonical_name = os.path.splitext(os.path.basename(filename))[0]
+        if filename:
+            filename = filename.replace("\\", "/")
+            canonical_name = os.path.splitext(os.path.basename(filename))[0]
 
         # The filename is a path we try to open it directly:
         if "/" in filename:
-            return obj.Profile.LoadProfileFromContainer(
+            result = obj.Profile.LoadProfileFromContainer(
                 io_manager.Factory(filename), self, name=canonical_name)
 
         # Traverse the profile path until one works.
-        result = None
-        for path in reversed(self.state.Get("profile_path", [None])):
-            manager = io_manager.Factory(path)
-            try:
-                result = obj.Profile.LoadProfileFromContainer(
-                    manager.OpenSubContainer(filename), self,
-                    name=canonical_name)
-                logging.info("Loaded profile %s from %s",
-                             filename, manager)
-                return result
-            except (IOError, KeyError) as e:
-                result = obj.NoneObject(e)
-                logging.debug("Could not find profile %s in %s",
-                              filename, manager)
+        else:
+            result = None
+            for path in reversed(self.state.Get("profile_path", [None])):
+                manager = io_manager.Factory(path)
+                try:
+                    result = obj.Profile.LoadProfileFromContainer(
+                        manager.OpenSubContainer(filename), self,
+                        name=canonical_name)
+                    logging.info("Loaded profile %s from %s",
+                                 filename, manager)
+                    break
 
-                return result
+                except (IOError, KeyError) as e:
+                    result = obj.NoneObject(e)
+                    logging.debug("Could not find profile %s in %s",
+                                  filename, manager)
+
+                    continue
+
+        if not result:
+            raise ValueError("Container %s is not a valid rekall profile." %
+                             filename)
+
+        return result
 
     def _set_profile(self, profile):
         """A Hook for setting profiles."""

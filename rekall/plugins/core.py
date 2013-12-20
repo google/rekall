@@ -73,7 +73,8 @@ class Info(plugin.Command):
     def plugins(self):
         for name, cls in plugin.Command.classes.items():
             if name:
-                yield name, cls.name, cls.__doc__.splitlines()[0]
+                doc = cls.__doc__ or " "
+                yield name, cls.name, doc.splitlines()[0]
 
     def profiles(self):
         for name, cls in obj.Profile.classes.items():

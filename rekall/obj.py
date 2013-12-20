@@ -1103,7 +1103,6 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         if include_current:
             yield self
 
-        import pdb; pdb.set_trace()
         seen = set()
         seen.add(self.obj_offset)
 
@@ -1641,6 +1640,9 @@ class Profile(object):
         # A None in the overlay allows the vtype to bubble up.
         if field_overlay is None:
             return field_member
+
+        if callable(field_overlay):
+            return field_overlay
 
         # Check the overlay and type descriptor for sanity.
         if len(field_overlay) != 2 or not isinstance(field_overlay[1], list):
