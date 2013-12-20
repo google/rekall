@@ -172,3 +172,31 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                     for i, pte_value in enumerate(pte_table):
                         if self.entry_present(pte_value):
                             yield (vaddr | i << 12, 0x1000)
+
+
+class VTxPagedMemory(AMD64PagedMemory):
+    order = 20
+    paging_address_space = False
+    _md_image = True
+
+    def __init__(self, **kwargs):
+        # A dummy DTB is passed to the base class so the DTB checks on IA32PagedMemory don't bail out.
+        # We require the DTB to never be used outside of get_pml4e.
+        AMD64PagedMemory.__init__(self, dtb=0xFFFFFFFF, **kwargs)
+        # Reset the dtb, in case some plugin or AS relies on us having a valid dtb.
+        self.dtb = None
+        self.as_assert(self.session.GetParameter("ept") is not None, "No EPT specified")
+        # We don't allow overlaying over another VTx AS for now.
+        self.as_assert(not isinstance(self.base, VTxPagedMemory), "Attempting to layer over another VT")
+
+    def entry_present(self, entry):
+        # A page entry being present depends only on bits 2:0 for EPT translation.
+        return entry and (entry & 0x7)
+
+    def get_pml4e(self, vaddr):
+        # We need to rewrite get_pml4e to use the EPT instead of the DTB.
+        ept_pml4e_paddr = (self.session.GetParameter("ept") & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
+        return self._read_long_long_phys(ept_pml4e_paddr)
+
+    def __str__(self):
+        return "%s@0x%08X" % (self.__class__.__name__, self.session.GetParameter("ept"))

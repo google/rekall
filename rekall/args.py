@@ -286,6 +286,8 @@ def parse_args(argv=None, user_session=None):
     parser.add_argument("--timezone", default="UTC",
                         help="Timezone to output all times (e.g. Australia/Sydney).")
 
+    parser.add_argument("--ept", action=IntParser,
+                        help="The EPT physical address.")
     if IPython:
         parser.add_argument("--ipython_engine",
                             help="IPython engine, e.g. notebook.")
@@ -334,7 +336,6 @@ def parse_args(argv=None, user_session=None):
             if (cls.name and cls.is_active(user_session) and not
                 cls._interactive):
                 classes.append(cls)
-
         for cls in sorted(classes, key=lambda x: x.name):
             docstring = cls.__doc__ or "."
             doc = docstring.splitlines()[0] or "."
