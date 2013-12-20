@@ -166,6 +166,11 @@ class Session(object):
         """
         self.filename = self.state.filename
         self.profile = self.LoadProfile(self.state.profile)
+
+        # Set the renderer.
+        self.renderer = renderer.RendererBaseClass.classes.get(
+            self.GetParameter("renderer"), "TextRenderer")
+
         self._update_runners()
 
     def _update_runners(self):
@@ -179,9 +184,7 @@ class Session(object):
 
     def __getattr__(self, attr):
         """This will only get called if the attribute does not exist."""
-        print "Accessed attr %s" % attr
         return None
-        return obj.NoneObject("Session has no attribute %s" % attr)
 
     def GetParameter(self, item, default=None):
         """Retrieves a stored parameter.
@@ -252,13 +255,7 @@ class Session(object):
 
         # Select the renderer from the session or from the kwargs.
         if not isinstance(ui_renderer, renderer.RendererBaseClass):
-            ui_renderer_cls = renderer.RendererBaseClass.classes.get(
-                ui_renderer or self.renderer)
-
-            if not ui_renderer_cls:
-                logging.error("Unable to find a renderer %s. Using TextRenderer.",
-                              ui_renderer or self.renderer)
-                ui_renderer_cls = renderer.TextRenderer
+            ui_renderer_cls = self.renderer or renderer.TextRenderer
 
             # Allow the output to be written to file.
             if output is not None:

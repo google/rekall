@@ -300,11 +300,13 @@ class _CM_KEY_NODE(obj.Struct):
         """
         if self.Flags.KEY_COMP_NAME:
             return self.obj_profile.String(
-                vm=self.obj_vm, offset=self.get_obj_offset("Name"),
+                vm=self.obj_vm, offset=self.obj_profile.get_obj_offset(
+                    self.obj_type, "Name"),
                 length=self.NameLength)
         else:
             return self.obj_profile.UnicodeString(
-                vm=self.obj_vm, offset=self.get_obj_offset("Name"),
+                vm=self.obj_vm, offset=self.obj_profile.get_obj_offset(
+                    self.obj_type, "Name"),
                 length=self.NameLength, encoding="utf-16")
 
 
