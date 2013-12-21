@@ -55,7 +55,6 @@ class IA32PagedMemory(addrspace.PagedReader):
     """
     order = 70
     pae = False
-    paging_address_space = True
 
     _md_memory_model = "32bit"
 
@@ -69,13 +68,6 @@ class IA32PagedMemory(addrspace.PagedReader):
 
         ## We must be stacked on someone else:
         self.as_assert(self.base, "No base Address Space")
-
-        ## We can not stack on someone with a dtb
-        try:
-            self.as_assert(not self.base.paging_address_space,
-                           "Can not stack over another paging address space")
-        except AttributeError:
-            pass
 
         # If the underlying address space already knows about the dtb we use it.
         # Allow the dtb to be specified in the session.

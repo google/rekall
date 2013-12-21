@@ -47,7 +47,6 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     """
     order = 60
     pae = True
-    paging_address_space = True
 
     _md_memory_model = "64bit"
 
@@ -193,9 +192,6 @@ class VTxPagedMemory(AMD64PagedMemory):
     """
 
     order = 20
-    # False, otherwise the rest of paging address spaces will not accept VT-x
-    # as its base AS.
-    paging_address_space = False
     _md_image = True
 
     def __init__(self, **kwargs):
