@@ -175,27 +175,51 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
 
 class VTxPagedMemory(AMD64PagedMemory):
+    """Intel VT-x address space.
+
+    Provides an address space that does EPT page translation to provide access
+    to the guest physical address space, thus allowing volatility plugins to
+    operate on a virtual machine running on a host operating system.
+
+    This is described in the Intel(R) 64 and IA-32 Architectures Software
+    Developer's Manual Volume 3C: System Programming Guide, Part 3, pages 28-1
+    to 28-12. This book is available for free at
+    http://www.intel.com/products/processor/manuals/index.htm.
+
+    This address space depends on the "ept" parameter. You can use the vmscan
+    plugin to find valid ept values on a physical memory image.
+
+    Note that support for AMD's AMD-V address space is untested at the moment.
+    """
+
     order = 20
+    # False, otherwise the rest of paging address spaces will not accept VT-x
+    # as its base AS.
     paging_address_space = False
     _md_image = True
 
     def __init__(self, **kwargs):
-        # A dummy DTB is passed to the base class so the DTB checks on IA32PagedMemory don't bail out.
-        # We require the DTB to never be used outside of get_pml4e.
+        # A dummy DTB is passed to the base class so the DTB checks on
+        # IA32PagedMemory don't bail out. We require the DTB to never be used
+        # for page translation outside of get_pml4e.
         AMD64PagedMemory.__init__(self, dtb=0xFFFFFFFF, **kwargs)
-        # Reset the dtb, in case some plugin or AS relies on us having a valid dtb.
+
+        # Reset the DTB, in case a plugin or AS relies on us providing one.
         self.dtb = None
-        self.as_assert(self.session.GetParameter("ept") is not None, "No EPT specified")
+        self.ept = self.session.GetParameter("ept")
+        self.as_assert(self.ept is not None, "No EPT specified")
+
         # We don't allow overlaying over another VTx AS for now.
-        self.as_assert(not isinstance(self.base, VTxPagedMemory), "Attempting to layer over another VT")
+        self.as_assert(not isinstance(self.base, VTxPagedMemory),
+                       "Attempting to layer over another VT")
 
     def entry_present(self, entry):
         # A page entry being present depends only on bits 2:0 for EPT translation.
         return entry and (entry & 0x7)
 
     def get_pml4e(self, vaddr):
-        # We need to rewrite get_pml4e to use the EPT instead of the DTB.
-        ept_pml4e_paddr = (self.session.GetParameter("ept") & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
+        # PML4 for VT-x is in the EPT, not the DTB as AMD64PagedMemory does.
+        ept_pml4e_paddr = (self.ept & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
         return self._read_long_long_phys(ept_pml4e_paddr)
 
     def __str__(self):
