@@ -28,12 +28,18 @@ import sys
 
 
 from rekall import args
+from rekall import config
 from rekall import constants
 from rekall import obj
 from rekall import session
 
 # Import and register the core plugins
 from rekall import plugins
+
+config.DeclareOption(
+    "-r", "--run", default=None,
+    help="Run this script before dropping into the interactive shell.")
+
 
 
 def IPython011Support(user_session):
@@ -121,19 +127,15 @@ def main(argv=None):
     # New user interactive session (with extra bells and whistles).
     user_session = session.InteractiveSession()
 
-    global FLAGS
-
-    FLAGS = args.parse_args(argv=argv, user_session=user_session)
-
-    logging.basicConfig(level=logging.INFO)
+    flags = args.parse_args(argv=argv, user_session=user_session)
 
     # Run a module and do not drop into the shell.
-    if getattr(FLAGS, "module", None):
+    if getattr(flags, "module", None):
         # Run the module
         try:
-            user_session.vol(FLAGS.module, flags=FLAGS)
+            user_session.vol(flags.module, flags=flags)
         except Exception as e:
-            if FLAGS.debug:
+            if flags.debug:
                 pdb.post_mortem()
             else:
                 logging.error("%s. Try --debug for more information." % e)

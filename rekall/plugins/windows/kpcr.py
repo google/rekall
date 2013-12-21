@@ -62,8 +62,7 @@ class KPCR(common.AbstractWindowsCommandPlugin):
         """Given an _EPROCESS object, find KPCR."""
         # This is the offset of the WaitListHead from the start of the _KPCR
         # struct.
-        offset = self.profile._KPCR(
-            vm=addrspace.DummyAddressSpace()).Prcb.WaitListHead.obj_offset
+        offset = self.profile._KPCR(vm=None).Prcb.WaitListHead.obj_offset
 
         seen_threads = set()
         seen = {}

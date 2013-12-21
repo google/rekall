@@ -37,6 +37,7 @@ import textwrap
 import time
 
 from rekall import addrspace
+from rekall import config
 # Include the built in profiles as a last fallback.
 from rekall import builtin_profiles
 from rekall import io_manager
@@ -46,6 +47,23 @@ from rekall import registry
 from rekall import utils
 from rekall.ui import renderer
 
+
+# Top level args.
+config.DeclareOption("-p", "--profile",
+                     help="Name of the profile to load. This is the "
+                     "filename of the profile found in the profiles "
+                     "directory. Profiles are searched in the profile "
+                     "path order.")
+
+config.DeclareOption(
+    "--profile_path", default=[], action="append",
+    help="Path to search for profiles. This can take "
+    "any form supported by the IO Manager (e.g. zip files, "
+    "directories, URLs etc)")
+
+
+config.DeclareOption("-f", "--filename",
+                     help="The raw image to load.")
 
 
 class Container(object):
@@ -96,6 +114,17 @@ class Cache(dict):
         if filename:
             self['filename'] = filename
             self['base_filename'] = os.path.basename(filename)
+
+    def _set_logging(self, value):
+        level = value
+        if isinstance(value, basestring):
+            level = getattr(logging, value.upper(), logging.INFO)
+
+        if level is None:
+            return
+
+        logging.info("Logging level set to %s", value)
+        logging.getLogger().setLevel(int(level))
 
     def Get(self, item, default=None):
         return self.get(item, default)
@@ -179,7 +208,6 @@ class Session(object):
         for cls in plugin.Command.GetActiveClasses(self):
             name = cls.name
             if name:
-                # Create a runner for this plugin and set its documentation.
                 setattr(plugins, name, obj.Curry(cls, session=self))
 
     def __getattr__(self, attr):
@@ -338,10 +366,12 @@ class Session(object):
         Returns:
           a Profile() instance or a NoneObject()
         """
+        if not filename:
+            return
+
         # We only want to deal with unix paths.
-        if filename:
-            filename = filename.replace("\\", "/")
-            canonical_name = os.path.splitext(os.path.basename(filename))[0]
+        filename = filename.replace("\\", "/")
+        canonical_name = os.path.splitext(os.path.basename(filename))[0]
 
         # The filename is a path we try to open it directly:
         if "/" in filename:
@@ -351,7 +381,13 @@ class Session(object):
         # Traverse the profile path until one works.
         else:
             result = None
-            for path in reversed(self.state.Get("profile_path", [None])):
+            # The profile path is specified in search order.
+            profile_path = self.state.Get("profile_path")
+
+            # Make sure that we always fallback to the built in profiles last.
+            profile_path.append(None)
+
+            for path in profile_path:
                 manager = io_manager.Factory(path)
                 try:
                     result = obj.Profile.LoadProfileFromContainer(
@@ -373,18 +409,6 @@ class Session(object):
                              filename)
 
         return result
-
-    def _set_profile(self, profile):
-        """A Hook for setting profiles."""
-        # Profile is a string - we try to make a profile object.
-        if isinstance(profile, basestring):
-            profile = self.LoadProfile(profile)
-
-        if profile != None and not isinstance(profile, obj.Profile):
-            raise RuntimeError("A profile must be a string.")
-
-        self.__dict__['profile'] = profile
-        self._update_runners()
 
     def __unicode__(self):
         return u"Session"
@@ -488,16 +512,6 @@ Config:
         items = self.__dict__.keys() + dir(self.__class__)
 
         return [x for x in items if not x.startswith("_")]
-
-    def _set_logging(self, value):
-        if value is None: return
-
-        level = value
-        if isinstance(value, basestring):
-            level = getattr(logging, value.upper(), logging.INFO)
-
-        logging.info("Logging level set to %s", value)
-        logging.getLogger().setLevel(int(level))
 
     def error(self, plugin_cls, e):
         """Swallow the error but report it."""

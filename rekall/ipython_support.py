@@ -23,6 +23,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 """Support IPython 1.0."""
 
 from rekall import args
+from rekall import config
 from rekall import constants
 from rekall import utils
 
@@ -31,6 +32,10 @@ embed = (utils.ConditionalImport("IPython.terminal.embed") or
 
 from IPython.config.loader import Config
 from IPython.core.completer import IPCompleter
+
+
+config.DeclareOption("--ipython_engine",
+                     help="IPython engine, e.g. notebook.")
 
 
 def RekallCompleter(self, text):

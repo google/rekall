@@ -32,10 +32,18 @@ import re
 import socket
 import struct
 
+from rekall import config
 from rekall import obj
 from rekall import constants
 from rekall import utils
 from rekall.plugins.overlays import native_types
+
+
+config.DeclareOption(
+    "--timezone", default="UTC", group="Interface",
+    help="Timezone to output all times (e.g. Australia/Sydney).")
+
+
 
 
 class String(obj.StringProxyMixIn, obj.NativeType):

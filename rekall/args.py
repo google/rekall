@@ -30,13 +30,25 @@ import os
 import sys
 import zipfile
 
+from rekall import config
 from rekall import constants
 from rekall import plugin
 from rekall import session
 from rekall import utils
 
 
-IPython = utils.ConditionalImport("IPython")
+config.DeclareOption("--plugin", default=[], nargs="+",
+                     help="Load user provided plugin bundle.")
+
+config.DeclareOption("--output",
+                     help="Write to this output file.")
+
+config.DeclareOption(
+    "-h", "--help", default=False, action="store_true",
+    help="Show help about global paramters.")
+
+config.DeclareOption("--overwrite", action="store_true", default=False,
+                     help="Allow overwriting of output files.")
 
 
 class IntParser(argparse.Action):
@@ -218,6 +230,28 @@ def LoadPlugins(paths=None):
             logging.error("Plugin %s has incorrect extension.", path)
 
 
+def LoadProfileIntoSession(parser, argv, user_session):
+    # Figure out the profile
+    known_args, unknown_args = parser.parse_known_args(args=argv)
+
+    # Force debug level logging with the verbose flag.
+    if getattr(known_args, "verbose", None):
+        known_args.logging = "DEBUG"
+
+    with user_session.state as state:
+        config.MergeConfigOptions(state)
+
+        for arg, value in known_args.__dict__.items():
+            state.Set(arg, value)
+
+    if user_session.profile is None:
+        guesser = user_session.plugins.guess_profile()
+        guesser.update_session()
+
+    # Now load the third party user plugins. These may introduce additional
+    # plugins with args.
+    LoadPlugins(user_session.state.plugin)
+
 
 def parse_args(argv=None, user_session=None):
     """Parse the args from the command line argv."""
@@ -228,134 +262,45 @@ def parse_args(argv=None, user_session=None):
         epilog='When no module is provided, drops into interactive mode',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    # Top level args.
-    parser.add_argument("--pager", default=os.environ.get("PAGER"),
-                        help="The pager to use when output is larger than a "
-                        "screen full.")
+    config.RegisterArgParser(parser)
 
-    parser.add_argument("--logging", default="error", choices=[
-            "debug", "info", "warning",  "critical", "error"],
-                        help="Logging level to show messages.")
+    # First load the profile to enable the module selection (which depends on
+    # the profile).
+    LoadProfileIntoSession(parser, argv, user_session)
 
-    parser.add_argument("-v", "--verbose", default=False,
-                        action="store_true",
-                        help="Set logging to debug level.")
+    # Add module specific args.
+    subparsers = parser.add_subparsers(
+        description="The following plugins can be selected.",
+        metavar='Plugin',
+        )
 
-    parser.add_argument("--debug", default=None, action="store_true",
-                        help="If set we break into the debugger on error "
-                        "conditions.")
+    parsers = {}
 
-    parser.add_argument("-p", "--profile", default=None,
-                        help="Name of the profile to load. This is the "
-                        "filename of the profile found in the profiles "
-                        "directory. Profiles are searched in the profile "
-                        "path order.")
+    # Add module specific parser for each module.
+    classes = []
+    for cls in plugin.Command.classes.values():
+        if (cls.name and cls.is_active(user_session) and not
+            cls._interactive):
+            classes.append(cls)
 
-    parser.add_argument(
-        "--profile_path", default=[None], action="append",
-        help="Path to search for profiles. This can take "
-        "any form supported by the IO Manager (e.g. zip files, "
-        "URLs etc")
+    for cls in sorted(classes, key=lambda x: x.name):
+        docstring = cls.__doc__ or " "
+        doc = docstring.splitlines()[0] or " "
+        name = cls.name
+        try:
+            module_parser = parsers[name]
+        except KeyError:
+            parsers[name] = module_parser = subparsers.add_parser(
+                cls.name, help=doc, description=docstring)
 
-    parser.add_argument("-r", "--run", default=None,
-                        help="Run this script before dropping into the "
-                        "interactive shell.")
+            cls.args(module_parser)
+            module_parser.set_defaults(module=cls.name)
 
-    parser.add_argument("-f", "--filename", default=None,
-                        help="The raw image to load.")
-
-    parser.add_argument("--renderer", default="TextRenderer",
-                        help="The renderer to use. e.g. (TextRenderer, "
-                        "JsonRenderer).")
-
-    parser.add_argument("--nocolors", default=False, action="store_true",
-                        help="If set suppress outputting colors.")
-
-    parser.add_argument("--plugin", default=[], nargs="+",
-                        help="Load user provided plugin bundle.")
-
-    parser.add_argument("--output", default=None,
-                        help="Write to this output file.")
-
-    parser.add_argument("-h", "--help", default=False, action="store_true",
-                        help="Show help about global paramters.")
-
-    parser.add_argument("--overwrite", action="store_true", default=False,
-                        help="Allow overwriting of output files.")
-
-    parser.add_argument("--timezone", default="UTC",
-                        help="Timezone to output all times (e.g. Australia/Sydney).")
-
-    if IPython:
-        parser.add_argument("--ipython_engine",
-                            help="IPython engine, e.g. notebook.")
-
-    # Figure out the profile
-    known_args, unknown_args = parser.parse_known_args(args=argv)
-
-    # Force debug level logging with the verbose flag.
-    if known_args.verbose:
-        known_args.logging = "DEBUG"
-
-    logging.getLogger().setLevel(
-        getattr(logging, known_args.logging.upper()))
-
-    try:
-        with user_session.state as state:
-            for arg, value in known_args.__dict__.items():
-                state.Set(arg, value)
-
-        if user_session.profile is None:
-            guesser = user_session.plugins.guess_profile()
-            guesser.update_session()
-
-        # Module specific args.
-        subparsers = parser.add_subparsers(
-            description="The following plugins can be selected.",
-            metavar='Plugin',
-            )
-
-        parsers = {}
-
-        # Check for additional user modules first since they may introduce more
-        # options and plugins.
-        namespace = argparse.Namespace()
-
-        # The parser may complain here if we are using options etc that are
-        # introduced by user plugins - so we suppress it for this run.
-        parser.parse_known_args(argv, namespace, force=True)
-
-        # Now load the user plugins.
-        LoadPlugins(namespace.plugin)
-
-        # Add module specific parser for each module.
-        classes = []
-        for cls in plugin.Command.classes.values():
-            if (cls.name and cls.is_active(user_session) and not
-                cls._interactive):
-                classes.append(cls)
-
-        for cls in sorted(classes, key=lambda x: x.name):
-            docstring = cls.__doc__ or "."
-            doc = docstring.splitlines()[0] or "."
-            name = cls.name
-            try:
-                module_parser = parsers[name]
-            except KeyError:
-                parsers[name] = module_parser = subparsers.add_parser(
-                    cls.name, help=doc, description=docstring)
-
-                cls.args(module_parser)
-                module_parser.set_defaults(module=cls.name)
-    except KeyError:
-        pass
-
-    # Parse the command line.
+    # Parse the final command line.
     result = parser.parse_args(argv)
 
-    result.plugin = None
-
-    if result.help:
+    # We handle help especially since we want to enumerate all plugins.
+    if getattr(result, "help", None):
         parser.print_help()
         sys.exit(-1)
 

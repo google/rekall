@@ -256,7 +256,9 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
             self.session.GetParameter("dtb")):
             for profile, virtual_as, eprocess in self.guess_profile_from_kdbg(
                 self.session.GetParameter("kdbg")):
-                self.session.profile = profile
+                with self.session.state as state:
+                    state.profile = profile
+
                 self.session.kernel_address_space = virtual_as
                 self.session.default_address_space = virtual_as
                 logging.info("Autoselected profile %s", profile)
@@ -264,7 +266,9 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
                 return True
 
         for profile, virtual_as, eprocess in self.guess_profile():
-            self.session.profile = profile
+            with self.session.state as state:
+                state.profile = profile
+
             self.session.kernel_address_space = virtual_as
             self.session.default_address_space = virtual_as
             self.session.StoreParameter("dtb", int(virtual_as.dtb))

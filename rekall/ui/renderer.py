@@ -37,10 +37,39 @@ import tempfile
 import textwrap
 import time
 
+from rekall import config
 from rekall import obj
 from rekall import utils
 from rekall import registry
 from rekall import constants
+
+
+config.DeclareOption(
+    "--pager", default=os.environ.get("PAGER"), group="Interface",
+    help="The pager to use when output is larger than a screen full.")
+
+
+config.DeclareOption(
+    "--renderer", default="TextRenderer",  group="Interface",
+    help="The renderer to use. e.g. (TextRenderer, "
+    "JsonRenderer).")
+
+config.DeclareOption(
+    "--nocolors", default=False, action="store_true", group="Interface",
+    help="If set suppress outputting colors.")
+
+config.DeclareOption(
+    "--logging", default="error", choices=[
+        "debug", "info", "warning",  "critical", "error"],
+    help="Logging level to show messages.")
+
+config.DeclareOption(
+    "--verbose", default=False, action="store_true",
+    help="Set logging to debug level.")
+
+config.DeclareOption(
+    "--debug", default=None, action="store_true",
+    help="If set we break into the debugger on error conditions.")
 
 
 HIGHLIGHT_SCHEME = dict(
@@ -649,10 +678,13 @@ class TextRenderer(RendererBaseClass):
             self.last_spin += 1
 
             # Only expand variables when we need to.
-            kwargs["spinner"] = self.spinner[
+            if kwargs:
+                kwargs["spinner"] = self.spinner[
                     self.last_spin % len(self.spinner)]
 
-            message = message % kwargs
+                message = message % kwargs
+            elif args:
+                message = message % args
 
             self.ClearProgress()
 
