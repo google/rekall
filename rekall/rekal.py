@@ -135,7 +135,7 @@ def main(argv=None):
         try:
             user_session.vol(flags.module, flags=flags)
         except Exception as e:
-            if flags.debug:
+            if getattr(flags, "debug", None):
                 pdb.post_mortem()
             else:
                 logging.error("%s. Try --debug for more information." % e)

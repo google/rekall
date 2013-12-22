@@ -68,7 +68,7 @@ config.DeclareOption(
     help="Set logging to debug level.")
 
 config.DeclareOption(
-    "--debug", default=None, action="store_true",
+    "--debug", default=False, action="store_true",
     help="If set we break into the debugger on error conditions.")
 
 

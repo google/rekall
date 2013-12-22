@@ -162,10 +162,11 @@ class NoneObject(object):
 
     Instantiate with the reason for the error.
     """
-    def __init__(self, reason = '', strict = False):
+    def __init__(self, reason = '', strict = False, log=False):
         # Often None objects are instantiated on purpose so its not really that
         # important to see their reason.
-        logging.log(logging.DEBUG / 2, "None object instantiated: %s", reason)
+        if log:
+            logging.log(logging.WARN, reason)
         self.reason = reason
         self.strict = strict
         if strict:

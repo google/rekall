@@ -43,16 +43,18 @@ class DarwinCheckSysCalls(common.DarwinPlugin):
         # Resolve which kernel module or symbol the entry point is to.
         lsmod = self.session.plugins.lsmod(session=self.session)
         for entry in sysenter:
-            yield entry, lsmod.ResolveSymbolName(entry.sy_call.deref())
+            call = entry.sy_call.deref()
+            yield entry, call, lsmod.ResolveSymbolName(call)
 
     def render(self, renderer):
         renderer.table_header(
             [("Index", "index", "6"),
              ("Address", "address", "[addrpad]"),
+             ("Target", "target", "[addrpad]"),
              ("Symbol", "symbol", "<30")])
 
-        for i, (entry, symbol) in enumerate(self.CheckSyscallTables()):
-            renderer.table_row(i, entry, symbol)
+        for i, (entry, call, symbol) in enumerate(self.CheckSyscallTables()):
+            renderer.table_row(i, entry, call, symbol)
 
 
 class OIDInfo(object):
@@ -195,3 +197,70 @@ class DarwinSysctl(common.DarwinPlugin):
                                oid.oidp.oid_handler,
                                handler,
                                value)
+
+
+class CheckTrapTable(common.DarwinPlugin):
+    """Checks the traps table for hooks."""
+
+    __name = "check_trap_table"
+
+
+    def __init__(self, **kwargs):
+        super(CheckTrapTable, self).__init__(**kwargs)
+
+        # The mach_trap_t struct is not exported in debug symbols, but can be
+        # found here xnu-2422.1.72/bsd/dev/dtrace/systrace.c:
+        #    typedef struct {
+        #        int mach_trap_arg_count;
+        #        kern_return_t    (*mach_trap_function)(void *);
+        #    #if defined(__x86_64__)
+        #        mach_munge_t *mach_trap_arg_munge32;
+        #    #endif
+        #        int  mach_trap_u32_words;
+        #        #if  MACH_ASSERT
+        #        const char  *mach_trap_name;
+        #    #endif /* MACH_ASSERT */
+        #    } mach_trap_t;
+
+        # We only really care about the mach_trap_function here.
+        if self.profile.metadata("memory_model") == "32bit":
+            offset = 4
+        else:
+            offset = 8
+
+        self.profile.add_types({
+                "mach_trap": [16, {
+                        "mach_trap_function": [offset, ["Pointer", dict(
+                                    target="Function"
+                                    )]]
+                        }],
+                })
+
+    def CheckTrapTables(self):
+        lsmod = self.session.plugins.lsmod(session=self.session)
+
+        # The trap table is simply an array of pointers to functions.
+        table = self.profile.get_constant_object(
+            "_mach_trap_table",
+            target="Array",
+            target_args=dict(
+                count=self.profile.get_constant_object(
+                    "_mach_trap_count", "unsigned int"),
+                target="mach_trap",
+                )
+            )
+
+        for i, entry in enumerate(table):
+            call = entry.mach_trap_function.deref()
+            yield i, entry, call, lsmod.ResolveSymbolName(call)
+
+    def render(self, renderer):
+        renderer.table_header([
+                ("Index", "index", "[addr]"),
+                ("Address", "address", "[addrpad]"),
+                ("Target", "target", "[addrpad]"),
+                ("Symbol", "symbol", "<30")])
+
+        for i, entry, call, sym_name in self.CheckTrapTables():
+            renderer.table_row(i, entry, call, sym_name or "Unknown",
+                               highlight=None if sym_name else "important")

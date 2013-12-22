@@ -388,8 +388,8 @@ class Session(object):
             profile_path.append(None)
 
             for path in profile_path:
-                manager = io_manager.Factory(path)
                 try:
+                    manager = io_manager.Factory(path)
                     result = obj.Profile.LoadProfileFromContainer(
                         manager.OpenSubContainer(filename), self,
                         name=canonical_name)
@@ -400,7 +400,7 @@ class Session(object):
                 except (IOError, KeyError) as e:
                     result = obj.NoneObject(e)
                     logging.debug("Could not find profile %s in %s",
-                                  filename, manager)
+                                  filename, path)
 
                     continue
 

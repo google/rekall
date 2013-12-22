@@ -108,6 +108,12 @@ darwin_overlay = {
             "oid_name": [None, ["Pointer", dict(target="String")]],
 
             }],
+    "zone": [None, {
+            "zone_name": [None, ["Pointer", dict(target="String")]],
+            "free_elements": [None, ["Pointer", dict(
+                        target="zone_free_element"
+                        )]],
+            }],
     }
 
 
