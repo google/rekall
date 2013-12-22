@@ -17,7 +17,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 __author__ = "Michael Cohen <scudette@google.com>"
+import os
 
+from rekall.plugins import core
 from rekall.plugins.darwin import common
 
 
@@ -123,4 +125,70 @@ class DawrinPSTree(common.DarwinPlugin):
         for child in proc.p_children.lh_first.p_sibling:
             for subproc, sublevel in self.recurse_proc(child, level + 1):
                 yield subproc, sublevel
+
+
+class DarwinMaps(common.DarwinProcessFilter):
+    """Display the process maps."""
+
+    __name = "maps"
+
+    def render(self, renderer):
+        renderer.table_header([("Pid", "pid", "8"),
+                               ("Name", "name", "20"),
+                               ("Start", "start", "[addrpad]"),
+                               ("End",   "end", "[addrpad]"),
+                               ("Protection", "protection", "6"),
+                               ("Map Name", "map_name", "20"),
+                               ])
+
+        for proc in self.filter_processes():
+            for map in proc.task.map.hdr.walk_list(
+                "links.next", include_current=False):
+
+                # Format the map permissions nicesly.
+                protection = (
+                    ("r" if map.protection.VM_PROT_READ else "-") +
+                    ("w" if map.protection.VM_PROT_WRITE else "-") +
+                    ("x" if map.protection.VM_PROT_EXECUTE else "-"))
+
+                # Find the vnode this mapping is attached to.
+                vnode = map.find_vnode_object()
+
+                renderer.table_row(
+                    proc.p_pid,
+                    proc.p_comm,
+                    map.links.start,
+                    map.links.end,
+                    protection,
+                    "sub_map" if map.is_sub_map else vnode.path,
+                    )
+
+class DarwinVadDump(core.DirectoryDumperMixin, common.DarwinProcessFilter):
+    """Dump the VMA memory for a process."""
+
+    __name = "vaddump"
+
+    def render(self, renderer):
+        for proc in self.filter_processes():
+            if not proc.task.map.pmap:
+                continue
+
+            renderer.format("Pid: {0:6}\n", proc.p_pid)
+
+            # Get the task and all process specific information
+            task_space = proc.get_process_address_space()
+            name = proc.p_comm
+            offset = proc.obj_offset
+
+            for vma in proc.task.map.hdr.walk_list(
+                "links.next", include_current=False):
+                filename = "{0}.{1}.{2:08x}-{3:08x}.dmp".format(
+                    name, proc.p_pid, vma.links.start, vma.links.end)
+
+                renderer.format(u"Writing {0}, pid {1} to {2}\n",
+                                proc.p_comm, proc.p_pid, filename)
+
+                with open(os.path.join(self.dump_dir, filename), 'wb') as fd:
+                    self.CopyToFile(task_space, vma.links.start,
+                                    vma.links.end, fd)
 

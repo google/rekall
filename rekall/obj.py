@@ -566,11 +566,8 @@ class BitField(NativeType):
         # proxy again.
         return False
 
-    # The __nonzero__ attribute is reserved for validity checks.
     def __nonzero__(self):
-        # This is an error since this attribute is used for validity checking.
-        logging.warning("Bitfield %s called with __nonzero__.", self.obj_name)
-        return super(BitField, self).__nonzero__()
+        return self != 0
 
 
 class Pointer(NativeType):

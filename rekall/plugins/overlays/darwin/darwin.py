@@ -114,6 +114,31 @@ darwin_overlay = {
                         target="zone_free_element"
                         )]],
             }],
+
+    "vm_map_entry": [None, {
+            # xnu-2422.1.72/osfmk/mach/vm_prot.h:81
+            "protection": [None, ["Flags", dict(
+                        maskmap={
+                            "VM_PROT_READ":    1,
+                            "VM_PROT_WRITE":   2,
+                            "VM_PROT_EXECUTE": 4,
+                            },
+                        target="BitField",
+                        target_args=dict(
+                            start_bit=7,
+                            end_bit=10
+                            )
+                        )]],
+            }],
+
+    "vnode": [None, {
+            "v_name": [None, ["Pointer", dict(target="String")]],
+
+            "path": lambda self: "/".join(reversed(
+                    [unicode(y.v_name.deref())
+                     for y in self.walk_list("v_parent")]))
+
+            }],
     }
 
 
@@ -304,6 +329,57 @@ class sockaddr(obj.Struct):
         return str(result)
 
 
+class vm_map_entry(obj.Struct):
+    def find_vnode_object(self):
+        """Find the underlying vnode object for the given vm_map_entry.
+
+        xnu-2422.1.72/osfmk/vm/bsd_vm.c: 1339.
+        """
+        if not self.is_sub_map.v():
+            #/*
+            #* The last object in the shadow chain has the
+            #* relevant pager information.
+            #*/
+
+            top_object = self.object.vm_object
+
+            if top_object:
+                object = top_object
+                while object.shadow:
+                    object = object.shadow
+
+                if (object and not object.internal.v() and
+                    object.pager_ready.v() and
+                    not object.terminating.v() and
+                    object.alive.v()):
+                    memory_object = object.pager
+                    pager_ops = memory_object.mo_pager_ops
+
+                    # If this object points to the vnode_pager_ops, then we
+                    # found what we're looking for.  Otherwise, this
+                    # vm_map_entry doesn't have an underlying vnode and so we
+                    # fall through to the bottom and return NULL.
+
+                    if pager_ops == self.obj_profile.get_constant(
+                        "_vnode_pager_ops"):
+                        return object.pager.dereference_as(
+                            "vnode_pager").vnode_handle
+
+        return obj.NoneObject("VNode not found")
+
+
+class proc(obj.Struct):
+    def get_process_address_space(self):
+        cr3 = self.task.map.pmap.pm_cr3
+        as_class = self.obj_vm.__class__
+        if self.task.map.pmap.pm_task_map == "TASK_MAP_64BIT_SHARED":
+            as_class = amd64.AMD64PagedMemory
+
+        return as_class(base=self.obj_vm.base, session=self.obj_vm.session,
+                        dtb=cr3)
+
+
+
 class Darwin32(basic.Profile32Bits, basic.BasicWindowsClasses):
     """A Darwin profile."""
     _md_os = "darwin"
@@ -315,9 +391,11 @@ class Darwin32(basic.Profile32Bits, basic.BasicWindowsClasses):
         self.add_classes(dict(
                 LIST_ENTRY=LIST_ENTRY, queue_entry=queue_entry,
                 sockaddr=sockaddr, sockaddr_dl=sockaddr_dl,
+                vm_map_entry=vm_map_entry, proc=proc
                 ))
         self.add_overlay(darwin_overlay)
         self.add_constants(default_text_encoding="utf8")
+
 
 
 class Darwin64(basic.ProfileLP64, Darwin32):

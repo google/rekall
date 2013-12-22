@@ -155,7 +155,8 @@ class BaseAddressSpace(object):
             # This can take sometime as we enumerate all the address ranges.
             if self.session:
                 self.session.report_progress(
-                    "%s: Merging Address Ranges %%(spinner)s" % self.name)
+                    "%(name)s: Merging Address Ranges %(spinner)s",
+                    name=self.name)
 
             # Try to join up adjacent pages as much as possible.
             if (voffset == contiguous_voffset + total_length and

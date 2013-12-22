@@ -169,8 +169,8 @@ class Flags(obj.NativeType):
     ## This dictionary maps a string mask name to an integer mask.
     maskmap = None
 
-    def __init__(self, bitmap = None, maskmap = None, target = "unsigned long",
-                 **kwargs):
+    def __init__(self, bitmap=None, maskmap=None,
+                 target="unsigned long", target_args={}, **kwargs):
         super(Flags, self).__init__(**kwargs)
         self.maskmap = maskmap or {}
         if bitmap:
@@ -180,7 +180,7 @@ class Flags(obj.NativeType):
         self.target = target
         self.target_obj = self.obj_profile.Object(
             target, offset=self.obj_offset, vm=self.obj_vm,
-            context=self.obj_context)
+            context=self.obj_context, **target_args)
 
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
