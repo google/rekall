@@ -284,8 +284,8 @@ def parse_args(argv=None, user_session=None):
             classes.append(cls)
 
     for cls in sorted(classes, key=lambda x: x.name):
-        docstring = cls.__doc__ or " "
-        doc = docstring.splitlines()[0] or " "
+        docstring = cls.__doc__ or " No Docs "
+        doc = docstring.splitlines()[0] or " No Docs "
         name = cls.name
         try:
             module_parser = parsers[name]
