@@ -17,6 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 __author__ = "Michael Cohen <scudette@google.com>"
+
 import os
 
 from rekall.plugins import core
@@ -192,3 +193,37 @@ class DarwinVadDump(core.DirectoryDumperMixin, common.DarwinProcessFilter):
                     self.CopyToFile(task_space, vma.links.start,
                                     vma.links.end, fd)
 
+
+class DarwinListSessions(common.DarwinPlugin):
+    """Enumerate sessions."""
+
+    __name = "sessions"
+
+    def render(self, renderer):
+        renderer.table_header([("Leader Pid", "leader_pid", ">10"),
+                               ("Leader Name", "leader_name", "20"),
+                               ("Login", "login", "25")])
+
+        session_hash_table_size = self.profile.get_constant_object(
+            "_sesshash", "unsigned long")
+
+        # The hashtable is an array to session list heads.
+        session_hash_table = self.profile.get_constant_object(
+            "_sesshashtbl",
+            target="Pointer",
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    target="sesshashhead",
+                    count=session_hash_table_size.v()
+                    )
+                )
+            )
+
+        # We iterate over the table and then over each list.
+        for sesshashhead in session_hash_table:
+            for session in sesshashhead.lh_first.walk_list("s_hash.le_next"):
+                if session.s_leader:
+                    renderer.table_row(session.s_leader.p_pid,
+                                       session.s_leader.p_comm,
+                                       session.s_login)

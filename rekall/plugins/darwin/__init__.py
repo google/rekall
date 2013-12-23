@@ -2,6 +2,7 @@
 
 from rekall.plugins.darwin import checks
 from rekall.plugins.darwin import common
+from rekall.plugins.darwin import lsof
 from rekall.plugins.darwin import lsmod
 from rekall.plugins.darwin import misc
 from rekall.plugins.darwin import pslist

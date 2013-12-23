@@ -52,3 +52,39 @@ class DarwinDMSG(common.DarwinPlugin):
 
             for x in data.splitlines():
                 renderer.table_row(x)
+
+
+class DarwinMachineInfo(common.DarwinPlugin):
+    """Show information about this machine."""
+
+    __name = "machine_info"
+
+    def render(self, renderer):
+        renderer.table_header([("Attribute", "attribute", "20"),
+                               ("Value", "value", "10")])
+
+        info = self.profile.get_constant_object(
+            "_machine_info", "machine_info")
+
+        for member in info.members:
+            renderer.table_row(member, info.m(member))
+
+
+class DarwinMount(common.DarwinPlugin):
+    """Show mount points."""
+
+    __name = "mount"
+
+    def render(self, renderer):
+        renderer.table_header([
+                ("Device", "device", "30"),
+                ("Mount Point", "mount_point", "60"),
+                ("Type", "type", "")])
+
+        mount_list = self.profile.get_constant_object(
+            "_mountlist", "mount")
+
+        for mount in mount_list.walk_list("mnt_list.tqe_next", False):
+            renderer.table_row(mount.mnt_vfsstat.f_mntonname,
+                               mount.mnt_vfsstat.f_mntfromname,
+                               mount.mnt_vfsstat.f_fstypename)

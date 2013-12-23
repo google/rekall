@@ -136,8 +136,56 @@ darwin_overlay = {
 
             "path": lambda self: "/".join(reversed(
                     [unicode(y.v_name.deref())
-                     for y in self.walk_list("v_parent")]))
+                     for y in self.walk_list("v_parent")])),
 
+            # xnu-2422.1.72/bsd/sys/vnode_internal.h:230
+            "v_flag": [None, ["Flags", dict(
+                        maskmap={
+                            "VROOT":   0x000001,
+                            "VTEXT":   0x000002,
+                            "VSYSTEM": 0x000004,
+                            "VISTTY":  0x000008,
+                            "VRAGE":   0x000010,
+                            }
+                        )]],
+            }],
+
+    "ifnet": [None, {
+            "if_name": [None, ["Pointer", dict(target="String")]],
+            }],
+
+    "session": [None, {
+            "s_login": [None, ["String"]],
+            }],
+
+    "filedesc": [None, {
+            "fd_ofiles": [None, ["Pointer", dict(
+                        target="Array",
+                        target_args=dict(
+                            target="Pointer",
+                            count=lambda x: x.fd_lastfile,
+                            target_args=dict(
+                                target="fileproc"
+                                )
+                            )
+                        )]],
+            }],
+
+    "mount": [None, {
+            # xnu-2422.1.72/bsd/sys/mount.h
+            "mnt_flag": [None, ["Flags", dict(
+                        maskmap={
+                            "MNT_LOCAL": 0x00001000,
+                            "MNT_QUOTA": 0x00002000,
+                            "MNT_ROOTFS": 0x00004000,
+                            }
+                        )]],
+            }],
+
+    "vfsstatfs": [None, {
+            "f_mntonname": [None, ["String"]],
+            "f_mntfromname": [None, ["String"]],
+            "f_fstypename": [None, ["String"]],
             }],
     }
 
@@ -308,7 +356,7 @@ class sockaddr(obj.Struct):
             addr = self.cast("sockaddr_in").sin_addr.s_addr
 
         elif self.sa_family == "AF_INET6":
-            addr = self.cast("sockaddr_in6").sin6_addr.__u6_addr
+            addr = self.cast("sockaddr_in6").sin6_addr.m("__u6_addr")
 
         elif self.sa_family == "AF_LINK":
             addr = self.cast("sockaddr_dl")
@@ -320,7 +368,8 @@ class sockaddr(obj.Struct):
         addr = self._get_address_obj()
         if addr:
             if self.sa_family in ("AF_INET6", "AF_INET"):
-                result = socket.inet_ntoa(
+                result = socket.inet_ntop(
+                    getattr(socket, str(self.sa_family)),
                     addr.obj_vm.read(addr.obj_offset, addr.size()))
 
             elif self.sa_family == "AF_LINK":
@@ -379,6 +428,21 @@ class proc(obj.Struct):
                         dtb=cr3)
 
 
+class vnode(obj.Struct):
+    @property
+    def full_path(self):
+        result = []
+        vnode = self
+
+        # Iterate here until we hit the root of the filesystem.
+        while not vnode.v_flag.VROOT or not vnode.v_mount.mnt_flag.MNT_ROOTFS:
+            result.append(vnode.v_name.deref())
+
+            # If there is no parent skip to the mount point.
+            vnode = vnode.v_parent or vnode.v_mount.mnt_vnodecovered
+
+        return "/" + "/".join((unicode(x) for x in reversed(result) if x))
+
 
 class Darwin32(basic.Profile32Bits, basic.BasicWindowsClasses):
     """A Darwin profile."""
@@ -391,7 +455,7 @@ class Darwin32(basic.Profile32Bits, basic.BasicWindowsClasses):
         self.add_classes(dict(
                 LIST_ENTRY=LIST_ENTRY, queue_entry=queue_entry,
                 sockaddr=sockaddr, sockaddr_dl=sockaddr_dl,
-                vm_map_entry=vm_map_entry, proc=proc
+                vm_map_entry=vm_map_entry, proc=proc, vnode=vnode,
                 ))
         self.add_overlay(darwin_overlay)
         self.add_constants(default_text_encoding="utf8")
