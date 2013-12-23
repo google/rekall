@@ -20,9 +20,8 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 """Implement OSX support."""
 
-import socket
-
 from rekall import obj
+from rekall import utils
 from rekall.plugins.overlays import basic
 
 darwin_overlay = {
@@ -187,6 +186,64 @@ darwin_overlay = {
             "f_mntfromname": [None, ["String"]],
             "f_fstypename": [None, ["String"]],
             }],
+
+    "sockaddr_un": [None, {
+            "sun_path": [None, ["String", dict(
+                        length=lambda x: x.sun_len,
+                        )]],
+            }],
+
+    "domain": [None, {
+            # xnu-2422.1.72/bsd/sys/domain.h: 99
+            'dom_family': [None, ["Enumeration", dict(
+                        choices={
+                            1: "AF_UNIX",
+                            2: "AF_INET",
+                            18: "AF_LINK",
+                            30: "AF_INET6",
+                            },
+                        target="int",
+                        )]],
+            }],
+
+    "tcpcb": [None, {
+            "t_state": [None, ["Enumeration", dict(
+                        # xnu-2422.1.72/bsd/netinet/tcp_fsm.h: 75
+                        choices={
+                            0: "TCPS_CLOSED",
+                            1: "TCPS_LISTEN",
+                            2: "TCPS_SYN_SENT",
+                            3: "TCPS_SYN_RECEIVED",
+                            4: "TCPS_ESTABLISHED",
+                            5: "TCPS_CLOSE_WAIT",
+                            6: "TCPS_FIN_WAIT_1",
+                            7: "TCPS_CLOSING",
+                            8: "TCPS_LAST_ACK",
+                            9: "TCPS_FIN_WAIT_2",
+                            10: "TCPS_TIME_WAIT",
+                            },
+                        target="int",
+                        )]],
+            }],
+    "protosw": [None, {
+            "pr_protocol": [None, ["Enumeration", dict(
+                        # xnu-2422.1.72/bsd/netinet/in.h: 99
+                        choices={
+                            0: "IPPROTO_IP",
+                            1: "IPPROTO_ICMP",
+                            2: "IPPROTO_IGMP",
+                            4: "IPPROTO_IPV4",
+                            6: "IPPROTO_TCP",
+                            17: "IPPROTO_UDP",
+                            41: "IPPROTO_IPV6",
+                            50: "IPPROTO_ESP",
+                            51: "IPPROTO_AH",
+                            58: "IPPROTO_ICMPV6",
+                            255: "IPPROTO_RAW",
+                            },
+                        target="int",
+                        )]],
+            }],
     }
 
 
@@ -348,6 +405,47 @@ class sockaddr_dl(obj.Struct):
         return ":".join(result)
 
 
+class socket(obj.Struct):
+    # /xnu-2422.1.72/bsd/kern/socket_info.c: fill_socketinfo()
+    def fill_socketinfo(self):
+        """Returns a dict instead of a proper socket_info struct."""
+        result = utils.AttributeDict(
+            domain=self.so_proto.pr_domain.dom_family,
+            type=self.so_proto.pr_type,
+            protocol=self.so_proto.pr_protocol,
+            )
+
+        if result.domain == "AF_INET":
+            inp = self.so_pcb.dereference_as("inpcb")
+            result.state = inp.inp_ppcb.dereference_as("tcpcb").t_state
+
+            result.remote_port = utils.ntoh(inp.inp_fport)
+            result.remote_ip = utils.FormatIPAddress(
+                result.domain,
+                inp.inp_dependfaddr.inp46_foreign.ia46_addr4.s_addr)
+
+            result.local_port = utils.ntoh(inp.inp_lport)
+            result.local_ip = utils.FormatIPAddress(
+                result.domain,
+                inp.inp_dependladdr.inp46_local.ia46_addr4.s_addr)
+
+        elif result.domain == "AF_INET6":
+            inp = self.so_pcb.dereference_as("inpcb")
+            result.state = inp.inp_ppcb.dereference_as("tcpcb").t_state
+
+            result.remote_port = utils.ntoh(inp.inp_fport)
+            result.remote_ip = utils.FormatIPAddress(
+                result.domain,
+                inp.inp_dependfaddr.inp6_foreign.m("__u6_addr"))
+
+            result.local_port = utils.ntoh(inp.inp_lport)
+            result.local_ip = utils.FormatIPAddress(
+                result.domain,
+                inp.inp_dependladdr.inp6_local.m("__u6_addr"))
+
+        return result
+
+
 class sockaddr(obj.Struct):
     def _get_address_obj(self):
         addr = obj.NoneObject("Unknown socket family")
@@ -368,9 +466,7 @@ class sockaddr(obj.Struct):
         addr = self._get_address_obj()
         if addr:
             if self.sa_family in ("AF_INET6", "AF_INET"):
-                result = socket.inet_ntop(
-                    getattr(socket, str(self.sa_family)),
-                    addr.obj_vm.read(addr.obj_offset, addr.size()))
+                result = utils.FormatIPAddress(self.sa_family, addr)
 
             elif self.sa_family == "AF_LINK":
                 result = addr
@@ -456,6 +552,7 @@ class Darwin32(basic.Profile32Bits, basic.BasicWindowsClasses):
                 LIST_ENTRY=LIST_ENTRY, queue_entry=queue_entry,
                 sockaddr=sockaddr, sockaddr_dl=sockaddr_dl,
                 vm_map_entry=vm_map_entry, proc=proc, vnode=vnode,
+                socket=socket,
                 ))
         self.add_overlay(darwin_overlay)
         self.add_constants(default_text_encoding="utf8")

@@ -70,7 +70,7 @@ class Container(object):
     """Just a container."""
 
 
-class Cache(dict):
+class Cache(utils.AttributeDict):
 
     def _CheckCorrectType(self, value):
         """Ensure that the configuration remains json serializable."""
@@ -88,21 +88,6 @@ class Cache(dict):
                     self._CheckCorrectType(value.values()))
 
         return False
-
-    def __setattr__(self, attr, value):
-        try:
-            # Check that the object itself has this attribute.
-            object.__getattribute__(self, attr)
-
-            return object.__setattr__(self, attr, value)
-        except AttributeError:
-            self.Set(attr, value)
-
-    def __getattr__(self, attr):
-        return self.get(attr)
-
-    def __dir__(self):
-        return sorted(self)
 
     def __str__(self):
         return json.dumps(self, indent=2, sort_keys=True)
@@ -126,9 +111,6 @@ class Cache(dict):
         logging.info("Logging level set to %s", value)
         logging.getLogger().setLevel(int(level))
 
-    def Get(self, item, default=None):
-        return self.get(item, default)
-
     def Set(self, attr, value):
         hook = getattr(self, "_set_%s" % attr, None)
         if hook:
@@ -140,7 +122,7 @@ class Cache(dict):
                     "Configuration parameters must be simple types, not %r." %
                     value)
 
-            self[attr] = value
+            super(Cache, self).Set(attr, value)
 
 
 class Configuration(Cache):

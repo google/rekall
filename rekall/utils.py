@@ -405,3 +405,44 @@ class FileLock(object):
     def __exit__(self, exc_type, exc_value, traceback):
         if fcntl:
             fcntl.flock(self.fd.fileno(), fcntl.LOCK_UN)
+
+
+class AttributeDict(dict):
+    """A dict that can be accessed via attributes."""
+
+    def __setattr__(self, attr, value):
+        try:
+            # Check that the object itself has this attribute.
+            object.__getattribute__(self, attr)
+
+            return object.__setattr__(self, attr, value)
+        except AttributeError:
+            self.Set(attr, value)
+
+    def Get(self, item, default=None):
+        return self.get(item, default)
+
+    def Set(self, attr, value):
+        self[attr] = value
+
+    def __getattr__(self, attr):
+        return self.get(attr)
+
+    def __dir__(self):
+        return sorted(self)
+
+
+def FormatIPAddress(family, value):
+    """Formats a value as an ascii IP address determined by family."""
+    return socket.inet_ntop(
+        getattr(socket, str(family)),
+        value.obj_vm.read(value.obj_offset, value.size()))
+
+def ntoh(value):
+    size = value.size()
+    if size == 2:
+        return socket.ntohs(value.v())
+    elif size == 4:
+        return socket.ntohl(value.v())
+
+    return obj.NoneObject("Not a valid integer")
