@@ -101,6 +101,18 @@ Here is the base minimum that should be defined for a new command plugin:
 In addition to these methods the plugin should define any other methods that can
 be reusable by other components.
 
+Many of the existing command plugins implement some of these methods via
+inheritance. For example, plugins which can only operate on a Linux image may
+extend the `rekall.plugins.linux.common.LinuxPlugin` class which already
+implements the correct `is_active()` method.
+
+Similarly plugins which operate on processes may extend the
+`rekall.plugins.linux.common.LinuxProcessFilter` plugin. This will give the new
+plugin the `args()` method defining all the commandline options which allow the
+user to select processes (i.e. by pid, by task address etc). In this way the
+commands which operate on processes can present a consistent user interface
+easily with the same filtering options.
+
 
 Command line Invocation
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -128,9 +140,8 @@ invoked).
 <4> These options are specific to the plugin - i.e. they have been defined in
 the args() classmethod (in this case the process name regex selector).
 
-
-Rekall is strict with the order in which commands are supplied. For example
-it is not valid to provide the --proc_reg parameter before the pslist keyword
+Rekall is strict with the order in which commands are supplied. For example it
+is not valid to provide the --proc_reg parameter before the pslist keyword
 (since it is a module level parameter). Similarly it is not legal to provide the
 --filename parameter after the command name (pslist). This strictness allows
 different modules to define the same command line option for their own needs and
@@ -344,7 +355,7 @@ consists of sections which are stored back to back but which refer to sparse
 memory regions.). To make it easier to support these there is a generic
 RunBasedAddressSpace. Extending this class and populating the self.runs array
 with the mappings from virtual space to physical space is all that is required
-to support these image file formats. Currents the address spaces which are
+to support these image file formats. Currently the address spaces which are
 supported in this way are WindowsCrashDumpSpace, Elf64CoreDump (for virtual
 box), MACHOCoreDump (for osx).
 
@@ -362,10 +373,15 @@ the session, the plugins will automatically invoke the 'load_as()' plugin.
 The load_as plugin is just a regular command plugin, which means that it can be
 implemented by different plugin.Command() classes (autoselected via the
 is_active() class method - see <<commands,Command Plugin>>). This means we can
-have one implementation for windows, one for linux etc. The following discusses
-the windows implementation since that is much more complex.
+have one implementation for windows, one for linux etc.
 
-The physical address space is derived by an automatic voting algorithm:
+The load_as plugin is responsible for loading two different address spaces. The
+physical address space refers to loading the image in whatever format it might
+be into a direct linear address space. The kernel virtual address space is the
+view of the virtual memory as seen by the kernel.
+
+The physical address space is derived by an automatic voting algorithm to
+auto-detect the memory image format:
 
 1. Start with the None address space and pass it to all address spaces in their
 requested order (classes are sorted by their 'order' attribute). Address spaces
@@ -375,24 +391,54 @@ and will be skipped.
 2. The first address space which instantiates successfully, will be accepted as
 the next base address space.
 
-3. The process is repeated until all address spaces failed to instantiate. We then return the last successfully instantiated address space.
+3. The process is repeated until all address spaces failed to instantiate. We
+then return the last successfully instantiated address space.
 
-In the windows load_as() plugin, the virtual address space is created from the
-kernel's Directory Table Base (DTB). This is usually obtained by scanning the
-image for the Idle process - implemented by the find_dtb() command
-plugin. Therefore load_as automatically calls the find_dtb() plugin. In other
-implementations, the kernel DTB is calculated using some other way (e.g. from
-debug symbols).
+For example, suppose we have a Windows Crash dump image which we compressed
+using the EWF format. In the first voting round, the EWF address space will
+detect that this is a valid EWF format, and will be selected. Then all the other
+image address spaces will be tried on the decompressed EWF image, and the crash
+dump address space will detect it as a valid crash dump.
+
+[NOTE]
+================================================================================
+For an address space to be eligible to participate in physical address space
+voting, it must have the `_md_image` attribute set. This indicate that this
+address space applies to a memory image.
+================================================================================
+
+In the windows `load_as()` plugin, the virtual address space is created from the
+kernel's Directory Table Base (DTB). If the DTB is not directly provided, the
+`load_as()` plugin employs the `find_dtb()` plugin to detect the dtb. On
+Windows, the `find_dtb()` plugin scans the image for the Idle process. In other
+implementations, the kernel DTB is calculated using some other way
+(e.g. directly from debug symbols). The correct `find_dtb()` plugin for the
+selected profile will be used, allowing a different algorithm to be used for
+windows or linux.
+
+[NOTE]
+================================================================================
+Finding the kernel's DTB is required before we can construct the kernel's
+address space. Without a valid DTB there is very little analysis Rekall can do. Furthermore, in many operating system's finding the kernel DTB is a slow and error prone process. For this reason its always better for the acquisition tool to provide us with the correct DTB value in advance. Some imaging tools print the value to the console, while some store it in the image (e.g. in Crash dumps).
+
+Rekall's Pmem imaging tools store the value of the DTB (found from the CR3
+register during imaging) when writing to the following image formats: Crash
+Dump, ELF, MACHO. When writing to a raw image, image metadata can optionally be
+appended to the end of the raw file.
+================================================================================
 
 
 The object parsing system.
 --------------------------
 
-Computers use rekall memory in order to organize data and for program
+Computers use volatile memory in order to organize data and for program
 control. Memory analysis is ultimately all about trying to make sense of a
-memory image, and deducing higher level constructs from these.
+memory image, and deducing higher level constructs from the low level "ones and
+zeros" in memory.
 
 For example, if a C program defines the following struct:
+
+[source,c]
 ------------------------------------------------------------------------
 typedef unsigned char uchar;
 enum {
@@ -410,11 +456,12 @@ struct foobar {
 What should the memory layout be? The answer is not so simple - it depends on
 many things such as the compiler used, architecture etc. For example, the
 compiler might enforce an alignment on the struct members by inserting padding
-between elements.
+between elements. The compiler may use 32 bits to store integers, or maybe 64
+bits.
 
 In practice it is impossible to predict from source code alone what the memory
 layout should be. We therefore need the compiler itself to inform us about how
-its planning to layout the memory in practice. This information is available
+it is planning to lay out the memory in practice. This information is available
 through debug symbol.
 
 [NOTE]
@@ -427,11 +474,11 @@ There are basically two types of debugging systems - the Microsoft PDB system
 and the DWARF standard.
 
 DWARF::
-  This standard is used mostly on unix like operating systems (and OSX). It
-  consists of a DWARF section attached to the binary object (e.g. ELF file) with
-  a specially encoded stream providing information about symbols, structures and
-  offsets. In order to obtain debugging information, the binary must be rebuilt
-  with the appropriate flags.
+  This standard is used mostly on Unix like operating systems (e.g. Linux or
+  OSX). It consists of a DWARF section attached to the binary object (e.g. ELF
+  file) with a specially encoded stream providing information about symbols,
+  structures and offsets. In order to obtain debugging information, the binary
+  must be rebuilt with the appropriate flags.
 
 Microsoft PDB::
  This standard keeps debugging information outside the final binary. The pdb
@@ -447,36 +494,161 @@ memory layout for structs. For example a DLL or an object file is a compilation
 unit. It is important to note that the same struct may be defined with the same
 name but different layout in different compilation units without any problem.
 
+In Rekall we want to derive high level semantic information from the low level
+memory layout. We use the object system to instantiate high level classes (with
+behaviours at specified memory addresses). The Rekall `object system` is built
+on top of the base class found in `rekall.obj.BaseObject()`:
+
+[source,python]
+------------------------------------------------------------------------
+class BaseObject(object):
+    def __init__(self, theType=None, offset=0, vm=None, profile=None,
+                 parent=None, name='', context=None, **kwargs):
+        """Constructor for Base object.
+
+        Args:
+
+          theType: The name of the type of this object. This different
+             from the class name, since the same class may implement many types
+             (e.g. Struct implements every instance in the vtype definition).
+
+          offset: The offset within the address space to this object exists.
+
+          vm: The address space this object uses to read itself from.
+
+          profile: The profile this object may use to dereference other
+           types.
+
+          parent: The object which created this object.
+
+          name: The name of this object.
+
+          context: An opaque dict which is passed to all objects created from
+            this object. This dict may contain context specific information
+            which each derived instance can use.
+
+          kwargs: Arbitrary args this object may accept - these can be passed in
+             the vtype language definition.
+        """
+....
+------------------------------------------------------------------------
+
+So in order to instantiate a Rekall object, we need to provide at a minimum an
+address space to read and an offset of where in the address space to read. More
+complex objects may require more parameters. For example, to define a `Struct`
+class we also need to provide the list of members and the total size of the
+struct:
+
+[source,python]
+------------------------------------------------------------------------
+class Struct(BaseAddressComparisonMixIn, BaseObject):
+    """ A Struct is an object which represents a c struct
+
+    Structs have members at various fixed relative offsets from our own base
+    offset.
+    """
+    def __init__(self, members = None, struct_size = 0, **kwargs):
+       ....
+
+class String(obj.StringProxyMixIn, obj.NativeType):
+    """Class for dealing with Null terminated C Strings.
+    """
+    def __init__(self, length = 1024, term="\x00", **kwargs):
+        ....
+
+class Pointer(NativeType):
+    """A pointer reads an 'address' object from the address space."""
+
+    def __init__(self, target=None, target_args=None, value=None, **kwargs):
+        """Constructor.
+
+        Args:
+           target: The name of the target object (A string). We use the profile
+             to instantiate it.
+           target_args: The target will receive these as kwargs.
+        """
+        ....
+------------------------------------------------------------------------
+
+In the above examples of Rekall objects, new keyword args are introduced which
+are specific for each new type. Note in particular the use the keyword arg
+`target` and `target_args` which by convention are used for any class which will
+instantiate some other class. For example, the pointer is told which class will
+be instantiated upon de-referencing the pointer (i.e. which object it is
+pointing to). Similarly the Array() object is told which object will be
+constructed at each slot of the array. We try to be consistent with the keyword
+naming to make remembering of these keywords easier.
+
+The object system allows us to instantiate high level objects at specified
+offsets in the address space. However, this is not very convenient to do by hand
+since we would need to know where in the address space we should instantiate
+each object ourselves. What we need is a way to control the creation of Rekall
+object automatically by using debug symbol information. This is done through the
+`profile` object, and its `vtype language` definitions.
+
 
 The VTypes language.
 ~~~~~~~~~~~~~~~~~~~~
 
-Some symbols may not have debugging information, and so we need to write their
-definition by hand (say from reverse engineering the symbol). The VTypes
-language was developed as an intuitive way to write human readable structure
-definitions.
+In order to control object creation automatically, we need to describe how they
+are to be created. This description is termed the `vtypes language`. It is
+really a data driven description of how to create instances of the `Struct()`
+class.
+
+The precise format of a `vtype language` struct definition is as follows:
+
+[source,python]
+------------------------------------------------------------------------
+#     <1>            <2>
+"Struct Name": [Struct Size: {
+#        <3>             <4>            <5>             <6>
+    "Member name": [Member Offset, ["Class Name", Keyword Args]],
+   }]
+------------------------------------------------------------------------
+
+<1> This is the name of the struct we are describing.
+
+<2> This is the total size of the struct. This is used for example, when
+    constructing an array of objects.
+
+<3> The name of the field in the struct.
+
+<4> The field's offset relative to the beginning of the Struct.
+
+<5> When this field is accessed, this class will be instantiated at the
+    specified offset (The struct's start address plus the relative offset into
+    the struct specified in <4>).
+
+<6> When instantiating this class, we also pass these keyword args to the class
+    constructor.
+
 
 The VTypes language was designed to allow:
 
 - Partial definition of struct members - not all members in the struct must be
-  defined. The offset of the member in the struct is explicitly given.
+  defined. The offset of the member in the struct is explicitly given. This
+  allows us to create aliases (i.e. many fields which access the same memory
+  location) as well as sparse structs (i.e. structs with only a few fields
+  known).
 
-- Struct members are simply names of special classes (inherited from
+- Struct members are simply names of object classes (inherited from
   obj.BaseObject). These classes take care of actually parsing the data. This
   allows us to interpret the memory offset in arbitrary ways.  These classes are
   instantiated at the required offset.
 
-The following is an example of a vtype definition:
+The following is an example of a vtype definition generated from debugging symbols:
+
+[source,python]
 ------------------------------------------------------------------------
-  '_EPROCESS' : [ 0x270, {                                          <1>
-    'Pcb' : [ 0x0, ['_KPROCESS']],                                  <2>
+  '_EPROCESS' : [ 0x270, {                                          #<1>
+    'Pcb' : [ 0x0, ['_KPROCESS']],                                  #<2>
     'ProcessLock' : [ 0x80, ['_EX_PUSH_LOCK']],
     'CreateTime' : [ 0x88, ['_LARGE_INTEGER']],
     'ExitTime' : [ 0x90, ['_LARGE_INTEGER']],
     'RundownProtect' : [ 0x98, ['_EX_RUNDOWN_REF']],
-    'UniqueProcessId' : [ 0x9c, ['Pointer', dict(target="Void")]],  <3>
+    'UniqueProcessId' : [ 0x9c, ['Pointer', dict(target="Void")]],  #<3>
     'ActiveProcessLinks' : [ 0xa0, ['_LIST_ENTRY']],
-    'QuotaUsage' : [ 0xa8, ['Array', dict(                          <4>
+    'QuotaUsage' : [ 0xa8, ['Array', dict(                          #<4>
                    target='unsigned long',
                    count=3
                    )]],
@@ -501,18 +673,114 @@ The following is an example of a vtype definition:
 0xa8 from the start of the _EPROCESS struct. The array will have 3 members each
 of type 'unsigned long'.
 
+Overlaying
+~~~~~~~~~~
+
+Rekall aims to specify semantic information about each field type. That means that we are really looking for the meaning behind each field, not just the mechanics of how to parse it. For example, the following struct may be defined in C:
+
+[source,c]
+------------------------------------------------------------------------
+struct module
+{
+...
+         /* Unique handle for this module */
+         char name[MODULE_NAME_LEN];
+...
+}
+------------------------------------------------------------------------
+
+The debugging symbols will generate for this field an array of char objects:
+
+[source,python]
+------------------------------------------------------------------------
+"module": [0x2FF, {
+  'name': [0x4F, ['Array', dict(
+          target='char',
+          count=60
+         )]]
+}]
+------------------------------------------------------------------------
+
+However, while technically correct, this is not semantically correct. We know
+that the array of char objects should really be interpreted as a null terminated
+unicode string in UTF8. We know that the offset of this field is correct though,
+just that its meaning according to the debug symbols is inaccurate.
+
+The `vtype language` allows specification of `Overlays` to "correct" or adjust the values of lower layers. In this case we load the debug generated vtype first, then we load an overlay like:
+
+[source,python]
+------------------------------------------------------------------------
+    'module' : [None, {
+            'name': [None , ['UnicodeString', dict(length = 60)]],
+            }],
+------------------------------------------------------------------------
+
+Over the top. The overlay may specify a value of None for the offset, or the
+struct size positions. This will allow these values to "bubble up" from the
+lower level description. However, specifying a new class name will override the
+values in the lower vtype description.
+
+In practice this is used to provide higher level semantic information to
+existing fields in a version independent manner. The exact offsets of fields is
+obtained from the debugging symbols, but semantic meaning is obtained from the
+overlay.
+
+
+The `vtype language` allows recursive definition of field types. This is
+encouraged since it leads to semantically readable code which exactly describes
+the nature of the memory objects. For example:
+
+[source,python]
+------------------------------------------------------------------------
+    'module' : [None, {
+            'name': [None , ['UnicodeString', dict(length = 60)]],
+            'kp': [None, ['Pointer', dict(
+                        target='Array',
+                        target_args=dict(
+                            target='kernel_param',
+                            count=lambda x: x.num_kp))]],
+            }],
+------------------------------------------------------------------------
+
+Specifies the `name` member to be a unicode string of length 60, while the `kp`
+field is a pointer to an array of `kernel_param` objects. The array size is
+specified in the module's `num_kp` member.
+
+Note that `None` is specified for some fields in this vtype description. This
+means that the value in this position will be `overlayed` (or taken from a
+previous layer).
+
+
+In order to simplify the description within the vtypes languages, we can replace
+many of the fields with python callables (usually `lambda` ). In the above
+example, we specified the `count` parameter of the Array constructor as a
+callable fetching the value from the `module` object's `num_kp` field:
+
+- Specifying a callable in place of the struct's size can determine the size
+  from the actual struct itself (e.g. if the size is stored in a member).
+
+- Callables in the field offset position specify the offset of the field. Note
+  that this is evaluated to the absolute offset.
+
+- Callables in the keyword args field are evaluated when the field is accessed.
+
+By convention, Rekall specifies pure data in the lowest vtype description layer
+(usually extracted from debugging symbols), while callables are only specified
+in overlays (possibly leaving gaps for the debugging information to bubble
+through them). This means that the lowest layer vtype descriptions are purely
+data, and can therefore be encoded in a safe format, such as JSON.
+
+
 [TIP]
 ================================================================================
-To generate a vtypes file for an executable, simple use the pdbparse project to
-fetch the pdb for the binary and convert it to vtypes:
+To generate a vtypes file for a windows executable, simple use the pdbparse
+project to fetch the pdb for the binary and convert it to vtypes:
 ------------------------------------------------------------------------
-pdbparse/trunk$ python examples/symchk.py ntoskrnl.exe
-Trying http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/7A6629B2016A41D3A5D3E7129430544D2/ntkrnlmp.pd_
-Connected. Downloading data...
-0% 5% 10% 15% 20% 25% 30% 35% 40% 45% 50% 55% 60% 65% 70% 75% 80% 85% 90% 95% 100%
-Saved symbols to ntkrnlmp.pd_
-Extracting cabinet: ntkrnlmp.pd_
-  extracting ntkrnlmp.pdb
+pdbparse/trunk$ python examples/symchk.py ntoskrnl.exe Trying
+http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/7A6629B2016A41D3A5D3E7129430544D2/ntkrnlmp.pd_
+Connected. Downloading data...  0% 5% 10% 15% 20% 25% 30% 35% 40% 45% 50% 55%
+60% 65% 70% 75% 80% 85% 90% 95% 100% Saved symbols to ntkrnlmp.pd_ Extracting
+cabinet: ntkrnlmp.pd_ extracting ntkrnlmp.pdb
 
 All done, no errors.
 pdbparse/trunk$ python examples/tpi_vtypes.py ntkrnlmp.pdb > ntkrnlmp.py
@@ -531,53 +799,23 @@ ntkrnlmp_types = {
 
 ================================================================================
 
-Usually vtypes are automatically generated from debug information, such as PDB
-files or DWARF file. It is not enough to specify this information in practice
-however, since PDB files may be incomplete, or just incorrect.
-
-Rekall allows vtypes to be overlayed. This means that some fields in
-autogenerated definitions can be overridden by user defined 'overlays'. For
-example consider the vtype definition generated from debugging symbols:
-------------------------------------------------------------------------
-'_EPROCESS' : [ 0x4d0, {
-    'Pcb' : [ 0x0, ['_KPROCESS']],
-    'ProcessLock' : [ 0x160, ['_EX_PUSH_LOCK']],
-    'CreateTime' : [ 0x168, '_LARGE_INTEGER']],
-    'ExitTime' : [ 0x170, ['_LARGE_INTEGER']],
-    .....
-}],
-------------------------------------------------------------------------
-
-Although technically CreateTime is stored as a _LARGE_INTEGER, semantically it
-is interpreted as a timestamp. We therefore apply the following overlay:
-------------------------------------------------------------------------
-'_EPROCESS' : [ None, {
-    'CreateTime' : [ None, ['WinTimeStamp', {}]]],
-    'ExitTime' : [ None, ['WinTimeStamp', {}]],
-    .....
-}],
-------------------------------------------------------------------------
-
-Note how the overlay does not actually specify the struct offset of the fields -
-these are still obtained from the debugging symbols. We only specify the
-semantic meaning of these fields - information which is not captured in the
-debugging symbols.
-
-The WinTimeStamp object is a class which extends the basic BaseObject to provide
-special methods to handle the value as a timestamp.
-
-The Rekall object parsing system is the workhorse under the entire
-rekall system. It is used to build semantic information from the underlying
-memory data by combining debug symbols (for offsets) with user provided semantic
-meaning (using overlays and high level classes).
-
 The Profile.
 ~~~~~~~~~~~~
 
-A profile is an object which unifies semantic information about a particular
-compilation unit. The profile is built by applying all relevant overlays and
-classes to parse the compilation unit it cares about. For example the following
-is a base profile for parsing the Windows kernel:
+The profile is essentially the factory class for all Rekall objects. A profile
+is where a number of sources of information are combined in order to produce
+information consistant with a single uniform `compilation unit`:
+
+- The vtype descriptions are added to the profile.
+
+- The overlays specific for an operating system are added (these bring semantic
+  information).
+
+- Constants from debugging symbols are introduced.
+
+The profile is built by applying all relevant overlays and classes to parse the
+compilation unit it cares about. For example the following is a base profile for
+parsing the Windows kernel:
 
 ------------------------------------------------------------------------
 class BaseWindowsProfile(basic.BasicWindowsClasses):
@@ -608,6 +846,79 @@ profile. Viewed as a whole, the profile can be said to implement a parsing
 system for the windows kernel.  When a user select the profile with the
 --profile command line arg, they are really selecting which profile should be
 created for parsing the kernel.
+
+Profile Repositories.
+~~~~~~~~~~~~~~~~~~~~~
+
+Most of the information in a profile is extracted from debugging symbols
+specific for the executable of interest. In the case of operating systems,
+debugging information is extracted from the operating system kernels (via DWARF
+or PDB symbols). The result is a `vtype language` data structure, and a set of
+constants.
+
+In practice this information can be quite large and can be difficult to
+manage. Rekall defines an organization for this information within the Zip File container to make it eaiser to associate related vtype information together.
+
+------------------------------------------------------------------------
+rekall.profiles$ unzip -l OSX_10.8.3_AMD.zip          <1>
+Archive:  OSX_10.8.3_AMD.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+  1143559  2013-12-18 02:50   Constants.json
+  1040704  2013-12-18 02:50   vtypes.json
+       84  2013-12-18 02:50   metadata                <2>
+---------                     -------
+  2184347                     3 files
+
+rekall.profiles$ unzip -p OSX_10.8.3_AMD.zip metadata <3>
+{"Constants": "Constants.json", "ProfileClass": "Darwin64", "VTypes": "vtypes.json"}
+------------------------------------------------------------------------
+
+<1> A profile file (or for short a "profile" is a regular zip file.
+
+<2> The file must contain a single file called "metadata" which contains json
+    data describing the rest of the file.
+
+<3> The data indicates which member of the archive contains the vtypes in json
+    format, which contains the known constants and the name of the class which
+    implements this profile.
+
+
+[NOTE]
+================================================================================
+The Rekall profile file contains pure data in json format. Rekall does not
+support python code in profile files and will not evaluate any code. The profile
+file is purely data. This allows users to open potentially untrusted profile
+files without fear of giving arbitrary code execution to the repository owners.
+================================================================================
+
+[TIP]
+================================================================================
+In Rekall terminology we refer to a "profile" as the actual Zip file which
+contains the vtype information, as well as the instance of the `Profile()` class
+which is created from this file. These are mostly distinct concepts and it may
+be slightly confusing to refer to both using the same name.
+================================================================================
+
+In practice Rekall supports so many different operating systems and versions
+that it is impractical to ship Rekall with all the profiles it natively
+supports. For example, each OSX version has a unique set of vtypes extracted for
+each kernel version (currently over 40 OSX Darwin releases are supported with an
+average profile size of around 400kb). Additionally each Linux kernel version
+must use a different profile file for each linux build and kernel version (even
+the standard distributions like Ubuntu ship many kernels each year). Similarly
+if Rekall is used as a library in another application, adding these profiles
+directly into the Rekall source code will needlessly bloat the application.
+
+In order to solve this problem, the Rekall project provides for `Profile
+Repositories`. When a profile is specified (using the `--profile` command line,
+or when passed to the `session.LoadProfile()` function), Rekall will search for
+this profile using the profile path configuration parameter. By adding the
+public profile repository to the search path, it is possible to automatically
+use the public repository for profiles that are widely known. It is also
+possible to add a secondary profile repository for local or less commonly seen
+profiles.
+
 
 
 Profile Modifications
@@ -687,16 +998,13 @@ The PE parsing implementation is found in
 Testing
 -------
 
-Previously testing was ad-hoc in the sense that users would run the
-plugins they were interested in on their own images, and report any obvious
-failures (e.g. an exception or no output at all). However, there was no way to
-easily determine if particular plugins stopped working as expected.
-
-The Technology Preview edition of Rekall introduces an automated testing
-framework to assist in detecting regressions and bugs when handling different
-images. The idea is to automatically compare the output of rekall (or
-another tool) between different runs for each plugin. If the output differs, a
-regression bug may have been uncovered.
+Rekall introduces an automated testing framework to assist in detecting
+regressions and bugs when handling different images. The idea is to
+automatically compare the output of rekall (or another tool) between different
+runs for each plugin. If the output differs, a regression bug may have been
+uncovered. Note that the test framework does not check that the output is
+actually correct, only that the output of each plugin is the same as it was some
+time in the past.
 
 We do this by creating a 'baseline' file which describes the output of one
 version of rekall. Ideally the baseline file is the ground truth and can be
@@ -711,21 +1019,29 @@ The process is therefore:
 - Create a test directory and place the image inside it (or a symlink).
 
 - Create a test template for this image. The template specifies information
-about executing volatiltiy for each test. For example, command line
+about executing Rekall for each test. For example, command line
 parameters. Note that common data is interpolated from the DEFAULT section:
 
 .Sample test configuration file.
 ------------------------------------------------------------------------
 [DEFAULT]
-profile = WinXPSP2x86
-active = True
-filename = xp-laptop-2005-06-25.img
+--profile = Win7SP1x64
+--filename = %(testdir)s/win7.elf
 
-[TestMemmap]
---profile = %(profile)s
-commandline = memmap --pid=2624
---filename = %(filename)s
-active = True
+# When any test is looking for a pid, use this one.
+pid = 2912
+
+[TestDT]
+commandline = dt _EPROCESS
+
+[TestDump]
+commandline = dump 0xfa8002193060
+
+[TestVtoP]
+commandline = vtop 0xfa8002193060
+
+[TestDisassemble]
+func = 0xfa8002193060
 ------------------------------------------------------------------------
 
 -------------------------------------------------------------------

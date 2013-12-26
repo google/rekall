@@ -902,6 +902,16 @@ the profile.</p></div>
 </dl></div>
 <div class="paragraph"><p>In addition to these methods the plugin should define any other methods that can
 be reusable by other components.</p></div>
+<div class="paragraph"><p>Many of the existing command plugins implement some of these methods via
+inheritance. For example, plugins which can only operate on a Linux image may
+extend the <tt>rekall.plugins.linux.common.LinuxPlugin</tt> class which already
+implements the correct <tt>is_active()</tt> method.</p></div>
+<div class="paragraph"><p>Similarly plugins which operate on processes may extend the
+<tt>rekall.plugins.linux.common.LinuxProcessFilter</tt> plugin. This will give the new
+plugin the <tt>args()</tt> method defining all the commandline options which allow the
+user to select processes (i.e. by pid, by task address etc). In this way the
+commands which operate on processes can present a consistent user interface
+easily with the same filtering options.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_command_line_invocation">2.2. Command line Invocation</h3>
@@ -934,8 +944,8 @@ These options are specific to the plugin - i.e. they have been defined in
 the args() classmethod (in this case the process name regex selector).
 </td></tr>
 </table></div>
-<div class="paragraph"><p>Rekall is strict with the order in which commands are supplied. For example
-it is not valid to provide the --proc_reg parameter before the pslist keyword
+<div class="paragraph"><p>Rekall is strict with the order in which commands are supplied. For example it
+is not valid to provide the --proc_reg parameter before the pslist keyword
 (since it is a module level parameter). Similarly it is not legal to provide the
 --filename parameter after the command name (pslist). This strictness allows
 different modules to define the same command line option for their own needs and
@@ -1176,7 +1186,7 @@ consists of sections which are stored back to back but which refer to sparse
 memory regions.). To make it easier to support these there is a generic
 RunBasedAddressSpace. Extending this class and populating the self.runs array
 with the mappings from virtual space to physical space is all that is required
-to support these image file formats. Currents the address spaces which are
+to support these image file formats. Currently the address spaces which are
 supported in this way are WindowsCrashDumpSpace, Elf64CoreDump (for virtual
 box), MACHOCoreDump (for osx).</p></div>
 <div class="sect2">
@@ -1189,9 +1199,13 @@ the session, the plugins will automatically invoke the <em>load_as()</em> plugin
 <div class="paragraph"><p>The load_as plugin is just a regular command plugin, which means that it can be
 implemented by different plugin.Command() classes (autoselected via the
 is_active() class method - see <a href="#commands">Command Plugin</a>). This means we can
-have one implementation for windows, one for linux etc. The following discusses
-the windows implementation since that is much more complex.</p></div>
-<div class="paragraph"><p>The physical address space is derived by an automatic voting algorithm:</p></div>
+have one implementation for windows, one for linux etc.</p></div>
+<div class="paragraph"><p>The load_as plugin is responsible for loading two different address spaces. The
+physical address space refers to loading the image in whatever format it might
+be into a direct linear address space. The kernel virtual address space is the
+view of the virtual memory as seen by the kernel.</p></div>
+<div class="paragraph"><p>The physical address space is derived by an automatic voting algorithm to
+auto-detect the memory image format:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
@@ -1209,47 +1223,86 @@ the next base address space.
 </li>
 <li>
 <p>
-The process is repeated until all address spaces failed to instantiate. We then return the last successfully instantiated address space.
+The process is repeated until all address spaces failed to instantiate. We
+then return the last successfully instantiated address space.
 </p>
 </li>
 </ol></div>
-<div class="paragraph"><p>In the windows load_as() plugin, the virtual address space is created from the
-kernel&#8217;s Directory Table Base (DTB). This is usually obtained by scanning the
-image for the Idle process - implemented by the find_dtb() command
-plugin. Therefore load_as automatically calls the find_dtb() plugin. In other
-implementations, the kernel DTB is calculated using some other way (e.g. from
-debug symbols).</p></div>
+<div class="paragraph"><p>For example, suppose we have a Windows Crash dump image which we compressed
+using the EWF format. In the first voting round, the EWF address space will
+detect that this is a valid EWF format, and will be selected. Then all the other
+image address spaces will be tried on the decompressed EWF image, and the crash
+dump address space will detect it as a valid crash dump.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="images/icons/note.png" alt="Note" />
+</td>
+<td class="content">
+<div class="paragraph"><p>For an address space to be eligible to participate in physical address space
+voting, it must have the <tt>_md_image</tt> attribute set. This indicate that this
+address space applies to a memory image.</p></div>
+</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>In the windows <tt>load_as()</tt> plugin, the virtual address space is created from the
+kernel&#8217;s Directory Table Base (DTB). If the DTB is not directly provided, the
+<tt>load_as()</tt> plugin employs the <tt>find_dtb()</tt> plugin to detect the dtb. On
+Windows, the <tt>find_dtb()</tt> plugin scans the image for the Idle process. In other
+implementations, the kernel DTB is calculated using some other way
+(e.g. directly from debug symbols). The correct <tt>find_dtb()</tt> plugin for the
+selected profile will be used, allowing a different algorithm to be used for
+windows or linux.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="images/icons/note.png" alt="Note" />
+</td>
+<td class="content">
+<div class="paragraph"><p>Finding the kernel&#8217;s DTB is required before we can construct the kernel&#8217;s
+address space. Without a valid DTB there is very little analysis Rekall can do. Furthermore, in many operating system&#8217;s finding the kernel DTB is a slow and error prone process. For this reason its always better for the acquisition tool to provide us with the correct DTB value in advance. Some imaging tools print the value to the console, while some store it in the image (e.g. in Crash dumps).</p></div>
+<div class="paragraph"><p>Rekall&#8217;s Pmem imaging tools store the value of the DTB (found from the CR3
+register during imaging) when writing to the following image formats: Crash
+Dump, ELF, MACHO. When writing to a raw image, image metadata can optionally be
+appended to the end of the raw file.</p></div>
+</td>
+</tr></table>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_the_object_parsing_system">4. The object parsing system.</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Computers use rekall memory in order to organize data and for program
+<div class="paragraph"><p>Computers use volatile memory in order to organize data and for program
 control. Memory analysis is ultimately all about trying to make sense of a
-memory image, and deducing higher level constructs from these.</p></div>
+memory image, and deducing higher level constructs from the low level "ones and
+zeros" in memory.</p></div>
 <div class="paragraph"><p>For example, if a C program defines the following struct:</p></div>
 <div class="listingblock">
-<div class="content">
-<pre><tt>typedef unsigned char uchar;
-enum {
-  OPT1,
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">typedef</span></span> <span style="color: #009900">unsigned</span> <span style="color: #009900">char</span> uchar<span style="color: #990000">;</span>
+<span style="font-weight: bold"><span style="color: #0000FF">enum</span></span> <span style="color: #FF0000">{</span>
+  OPT1<span style="color: #990000">,</span>
   OPT2
-} options;
+<span style="color: #FF0000">}</span> options<span style="color: #990000">;</span>
 
-struct foobar {
-    enum options flags;
-    short int bar;
-    uchar *foo;
-}</tt></pre>
-</div></div>
+<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">foobar</span> <span style="color: #FF0000">{</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">enum</span></span> <span style="color: #008080">options</span> flags<span style="color: #990000">;</span>
+    <span style="color: #009900">short</span> <span style="color: #009900">int</span> bar<span style="color: #990000">;</span>
+    <span style="color: #008080">uchar</span> <span style="color: #990000">*</span>foo<span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
 <div class="paragraph"><p>What should the memory layout be? The answer is not so simple - it depends on
 many things such as the compiler used, architecture etc. For example, the
 compiler might enforce an alignment on the struct members by inserting padding
-between elements.</p></div>
+between elements. The compiler may use 32 bits to store integers, or maybe 64
+bits.</p></div>
 <div class="paragraph"><p>In practice it is impossible to predict from source code alone what the memory
 layout should be. We therefore need the compiler itself to inform us about how
-its planning to layout the memory in practice. This information is available
+it is planning to lay out the memory in practice. This information is available
 through debug symbol.</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -1270,11 +1323,11 @@ DWARF
 </dt>
 <dd>
 <p>
-  This standard is used mostly on unix like operating systems (and OSX). It
-  consists of a DWARF section attached to the binary object (e.g. ELF file) with
-  a specially encoded stream providing information about symbols, structures and
-  offsets. In order to obtain debugging information, the binary must be rebuilt
-  with the appropriate flags.
+  This standard is used mostly on Unix like operating systems (e.g. Linux or
+  OSX). It consists of a DWARF section attached to the binary object (e.g. ELF
+  file) with a specially encoded stream providing information about symbols,
+  structures and offsets. In order to obtain debugging information, the binary
+  must be rebuilt with the appropriate flags.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -1295,53 +1348,183 @@ compilation unit is a self consistent unit of compiled code which uses the same
 memory layout for structs. For example a DLL or an object file is a compilation
 unit. It is important to note that the same struct may be defined with the same
 name but different layout in different compilation units without any problem.</p></div>
+<div class="paragraph"><p>In Rekall we want to derive high level semantic information from the low level
+memory layout. We use the object system to instantiate high level classes (with
+behaviours at specified memory addresses). The Rekall <tt>object system</tt> is built
+on top of the base class found in <tt>rekall.obj.BaseObject()</tt>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">BaseObject</span></span><span style="color: #990000">(</span>object<span style="color: #990000">):</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> theType<span style="color: #990000">=</span>None<span style="color: #990000">,</span> offset<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">,</span> vm<span style="color: #990000">=</span>None<span style="color: #990000">,</span> profile<span style="color: #990000">=</span>None<span style="color: #990000">,</span>
+                 parent<span style="color: #990000">=</span>None<span style="color: #990000">,</span> name<span style="color: #990000">=</span><span style="color: #FF0000">''</span><span style="color: #990000">,</span> context<span style="color: #990000">=</span>None<span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">        """Constructor for Base object.</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">        Args:</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">          theType: The name of the type of this object. This different</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">             from the class name, since the same class may implement many types</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">             (e.g. Struct implements every instance in the vtype definition).</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">          offset: The offset within the address space to this object exists.</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">          vm: The address space this object uses to read itself from.</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">          profile: The profile this object may use to dereference other</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">           types.</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">          parent: The object which created this object.</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">          name: The name of this object.</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">          context: An opaque dict which is passed to all objects created from</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">            this object. This dict may contain context specific information</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">            which each derived instance can use.</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">          kwargs: Arbitrary args this object may accept - these can be passed in</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">             the vtype language definition.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">        """</span></span>
+<span style="color: #990000">....</span></tt></pre></div></div>
+<div class="paragraph"><p>So in order to instantiate a Rekall object, we need to provide at a minimum an
+address space to read and an offset of where in the address space to read. More
+complex objects may require more parameters. For example, to define a <tt>Struct</tt>
+class we also need to provide the list of members and the total size of the
+struct:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">Struct</span></span><span style="color: #990000">(</span>BaseAddressComparisonMixIn<span style="color: #990000">,</span> BaseObject<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">    """ A Struct is an object which represents a c struct</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">    Structs have members at various fixed relative offsets from our own base</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">    offset.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">    """</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> members <span style="color: #990000">=</span> None<span style="color: #990000">,</span> struct_size <span style="color: #990000">=</span> <span style="color: #993399">0</span><span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
+       <span style="color: #990000">....</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">String</span></span><span style="color: #990000">(</span>obj<span style="color: #990000">.</span>StringProxyMixIn<span style="color: #990000">,</span> obj<span style="color: #990000">.</span>NativeType<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">    """Class for dealing with Null terminated C Strings.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">    """</span></span>
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> length <span style="color: #990000">=</span> <span style="color: #993399">1024</span><span style="color: #990000">,</span> term<span style="color: #990000">=</span><span style="color: #FF0000">"\x00"</span><span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
+        <span style="color: #990000">....</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">Pointer</span></span><span style="color: #990000">(</span>NativeType<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">    """A pointer reads an 'address' object from the address space."""</span></span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> target<span style="color: #990000">=</span>None<span style="color: #990000">,</span> target_args<span style="color: #990000">=</span>None<span style="color: #990000">,</span> value<span style="color: #990000">=</span>None<span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">        """Constructor.</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">        Args:</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">           target: The name of the target object (A string). We use the profile</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">             to instantiate it.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">           target_args: The target will receive these as kwargs.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">        """</span></span>
+        <span style="color: #990000">....</span></tt></pre></div></div>
+<div class="paragraph"><p>In the above examples of Rekall objects, new keyword args are introduced which
+are specific for each new type. Note in particular the use the keyword arg
+<tt>target</tt> and <tt>target_args</tt> which by convention are used for any class which will
+instantiate some other class. For example, the pointer is told which class will
+be instantiated upon de-referencing the pointer (i.e. which object it is
+pointing to). Similarly the Array() object is told which object will be
+constructed at each slot of the array. We try to be consistent with the keyword
+naming to make remembering of these keywords easier.</p></div>
+<div class="paragraph"><p>The object system allows us to instantiate high level objects at specified
+offsets in the address space. However, this is not very convenient to do by hand
+since we would need to know where in the address space we should instantiate
+each object ourselves. What we need is a way to control the creation of Rekall
+object automatically by using debug symbol information. This is done through the
+<tt>profile</tt> object, and its <tt>vtype language</tt> definitions.</p></div>
 <div class="sect2">
 <h3 id="_the_vtypes_language">4.1. The VTypes language.</h3>
-<div class="paragraph"><p>Some symbols may not have debugging information, and so we need to write their
-definition by hand (say from reverse engineering the symbol). The VTypes
-language was developed as an intuitive way to write human readable structure
-definitions.</p></div>
+<div class="paragraph"><p>In order to control object creation automatically, we need to describe how they
+are to be created. This description is termed the <tt>vtypes language</tt>. It is
+really a data driven description of how to create instances of the <tt>Struct()</tt>
+class.</p></div>
+<div class="paragraph"><p>The precise format of a <tt>vtype language</tt> struct definition is as follows:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900">#     <img src="images/icons/callouts/1.png" alt="1" />            <img src="images/icons/callouts/2.png" alt="2" /></span></span>
+<span style="color: #FF0000">"Struct Name"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>Struct Size<span style="color: #990000">:</span> <span style="color: #990000">{</span>
+<span style="font-style: italic"><span style="color: #9A1900">#        <img src="images/icons/callouts/3.png" alt="3" />             <img src="images/icons/callouts/4.png" alt="4" />            <img src="images/icons/callouts/5.png" alt="5" />             <img src="images/icons/callouts/6.png" alt="6" /></span></span>
+    <span style="color: #FF0000">"Member name"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>Member Offset<span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">"Class Name"</span><span style="color: #990000">,</span> Keyword Args<span style="color: #990000">]],</span>
+   <span style="color: #990000">}]</span></tt></pre></div></div>
+<div class="colist arabic"><table>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
+This is the name of the struct we are describing.
+</td></tr>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
+This is the total size of the struct. This is used for example, when
+    constructing an array of objects.
+</td></tr>
+<tr><td><img src="images/icons/callouts/3.png" alt="3" /></td><td>
+The name of the field in the struct.
+</td></tr>
+<tr><td><img src="images/icons/callouts/4.png" alt="4" /></td><td>
+The field&#8217;s offset relative to the beginning of the Struct.
+</td></tr>
+<tr><td><img src="images/icons/callouts/5.png" alt="5" /></td><td>
+When this field is accessed, this class will be instantiated at the
+    specified offset (The struct&#8217;s start address plus the relative offset into
+    the struct specified in &lt;4&gt;).
+</td></tr>
+<tr><td><img src="images/icons/callouts/6.png" alt="6" /></td><td>
+When instantiating this class, we also pass these keyword args to the class
+    constructor.
+</td></tr>
+</table></div>
 <div class="paragraph"><p>The VTypes language was designed to allow:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
 Partial definition of struct members - not all members in the struct must be
-  defined. The offset of the member in the struct is explicitly given.
+  defined. The offset of the member in the struct is explicitly given. This
+  allows us to create aliases (i.e. many fields which access the same memory
+  location) as well as sparse structs (i.e. structs with only a few fields
+  known).
 </p>
 </li>
 <li>
 <p>
-Struct members are simply names of special classes (inherited from
+Struct members are simply names of object classes (inherited from
   obj.BaseObject). These classes take care of actually parsing the data. This
   allows us to interpret the memory offset in arbitrary ways.  These classes are
   instantiated at the required offset.
 </p>
 </li>
 </ul></div>
-<div class="paragraph"><p>The following is an example of a vtype definition:</p></div>
+<div class="paragraph"><p>The following is an example of a vtype definition generated from debugging symbols:</p></div>
 <div class="listingblock">
-<div class="content">
-<pre><tt>  '_EPROCESS' : [ 0x270, {                                          <img src="images/icons/callouts/1.png" alt="1" />
-    'Pcb' : [ 0x0, ['_KPROCESS']],                                  <img src="images/icons/callouts/2.png" alt="2" />
-    'ProcessLock' : [ 0x80, ['_EX_PUSH_LOCK']],
-    'CreateTime' : [ 0x88, ['_LARGE_INTEGER']],
-    'ExitTime' : [ 0x90, ['_LARGE_INTEGER']],
-    'RundownProtect' : [ 0x98, ['_EX_RUNDOWN_REF']],
-    'UniqueProcessId' : [ 0x9c, ['Pointer', dict(target="Void")]],  <img src="images/icons/callouts/3.png" alt="3" />
-    'ActiveProcessLinks' : [ 0xa0, ['_LIST_ENTRY']],
-    'QuotaUsage' : [ 0xa8, ['Array', dict(                          <img src="images/icons/callouts/4.png" alt="4" />
-                   target='unsigned long',
-                   count=3
-                   )]],
-    'QuotaPeak' : [ 0xb4, ['Array',  dict(
-                   target='unsigned long',
-                   count=3
-                   )]],
-    'CommitCharge' : [ 0xc0, ['unsigned long']],
-    'PeakVirtualSize' : [ 0xc4, ['unsigned long']],
-    'VirtualSize' : [ 0xc8, ['unsigned long']],
-    'SessionProcessLinks' : [ 0xcc, ['_LIST_ENTRY']],</tt></pre>
-</div></div>
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>  <span style="color: #FF0000">'_EPROCESS'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x270</span><span style="color: #990000">,</span> <span style="color: #990000">{</span>                                          <span style="font-style: italic"><span style="color: #9A1900">#<img src="images/icons/callouts/1.png" alt="1" /></span></span>
+    <span style="color: #FF0000">'Pcb'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x0</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_KPROCESS'</span><span style="color: #990000">]],</span>                                  <span style="font-style: italic"><span style="color: #9A1900">#<img src="images/icons/callouts/2.png" alt="2" /></span></span>
+    <span style="color: #FF0000">'ProcessLock'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x80</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_EX_PUSH_LOCK'</span><span style="color: #990000">]],</span>
+    <span style="color: #FF0000">'CreateTime'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x88</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_LARGE_INTEGER'</span><span style="color: #990000">]],</span>
+    <span style="color: #FF0000">'ExitTime'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x90</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_LARGE_INTEGER'</span><span style="color: #990000">]],</span>
+    <span style="color: #FF0000">'RundownProtect'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x98</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_EX_RUNDOWN_REF'</span><span style="color: #990000">]],</span>
+    <span style="color: #FF0000">'UniqueProcessId'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x9c</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'Pointer'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>target<span style="color: #990000">=</span><span style="color: #FF0000">"Void"</span><span style="color: #990000">)]],</span>  <span style="font-style: italic"><span style="color: #9A1900">#<img src="images/icons/callouts/3.png" alt="3" /></span></span>
+    <span style="color: #FF0000">'ActiveProcessLinks'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xa0</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_LIST_ENTRY'</span><span style="color: #990000">]],</span>
+    <span style="color: #FF0000">'QuotaUsage'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xa8</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'Array'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>                          <span style="font-style: italic"><span style="color: #9A1900">#<img src="images/icons/callouts/4.png" alt="4" /></span></span>
+                   target<span style="color: #990000">=</span><span style="color: #FF0000">'unsigned long'</span><span style="color: #990000">,</span>
+                   count<span style="color: #990000">=</span><span style="color: #993399">3</span>
+                   <span style="color: #990000">)]],</span>
+    <span style="color: #FF0000">'QuotaPeak'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xb4</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'Array'</span><span style="color: #990000">,</span>  <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
+                   target<span style="color: #990000">=</span><span style="color: #FF0000">'unsigned long'</span><span style="color: #990000">,</span>
+                   count<span style="color: #990000">=</span><span style="color: #993399">3</span>
+                   <span style="color: #990000">)]],</span>
+    <span style="color: #FF0000">'CommitCharge'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xc0</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'unsigned long'</span><span style="color: #990000">]],</span>
+    <span style="color: #FF0000">'PeakVirtualSize'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xc4</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'unsigned long'</span><span style="color: #990000">]],</span>
+    <span style="color: #FF0000">'VirtualSize'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xc8</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'unsigned long'</span><span style="color: #990000">]],</span>
+    <span style="color: #FF0000">'SessionProcessLinks'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xcc</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_LIST_ENTRY'</span><span style="color: #990000">]],</span></tt></pre></div></div>
 <div class="colist arabic"><table>
 <tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
 This defines the <em>_EPROCESS</em> struct as having a size of 0x270 bytes.
@@ -1359,23 +1542,120 @@ The <em>QuotaUsage</em> member is an array which will be instantiated at offset
 of type <em>unsigned long</em>.
 </td></tr>
 </table></div>
+</div>
+<div class="sect2">
+<h3 id="_overlaying">4.2. Overlaying</h3>
+<div class="paragraph"><p>Rekall aims to specify semantic information about each field type. That means that we are really looking for the meaning behind each field, not just the mechanics of how to parse it. For example, the following struct may be defined in C:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">module</span>
+<span style="color: #FF0000">{</span>
+<span style="color: #990000">...</span>
+         <span style="font-style: italic"><span style="color: #9A1900">/* Unique handle for this module */</span></span>
+         <span style="color: #009900">char</span> name<span style="color: #990000">[</span>MODULE_NAME_LEN<span style="color: #990000">];</span>
+<span style="color: #990000">...</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>The debugging symbols will generate for this field an array of char objects:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">"module"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">0x2FF</span><span style="color: #990000">,</span> <span style="color: #990000">{</span>
+  <span style="color: #FF0000">'name'</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">0x4F</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'Array'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
+          target<span style="color: #990000">=</span><span style="color: #FF0000">'char'</span><span style="color: #990000">,</span>
+          count<span style="color: #990000">=</span><span style="color: #993399">60</span>
+         <span style="color: #990000">)]]</span>
+<span style="color: #990000">}]</span></tt></pre></div></div>
+<div class="paragraph"><p>However, while technically correct, this is not semantically correct. We know
+that the array of char objects should really be interpreted as a null terminated
+unicode string in UTF8. We know that the offset of this field is correct though,
+just that its meaning according to the debug symbols is inaccurate.</p></div>
+<div class="paragraph"><p>The <tt>vtype language</tt> allows specification of <tt>Overlays</tt> to "correct" or adjust the values of lower layers. In this case we load the debug generated vtype first, then we load an overlay like:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>    <span style="color: #FF0000">'module'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span>None<span style="color: #990000">,</span> <span style="color: #990000">{</span>
+            <span style="color: #FF0000">'name'</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>None <span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'UnicodeString'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>length <span style="color: #990000">=</span> <span style="color: #993399">60</span><span style="color: #990000">)]],</span>
+            <span style="color: #990000">}],</span></tt></pre></div></div>
+<div class="paragraph"><p>Over the top. The overlay may specify a value of None for the offset, or the
+struct size positions. This will allow these values to "bubble up" from the
+lower level description. However, specifying a new class name will override the
+values in the lower vtype description.</p></div>
+<div class="paragraph"><p>In practice this is used to provide higher level semantic information to
+existing fields in a version independent manner. The exact offsets of fields is
+obtained from the debugging symbols, but semantic meaning is obtained from the
+overlay.</p></div>
+<div class="paragraph"><p>The <tt>vtype language</tt> allows recursive definition of field types. This is
+encouraged since it leads to semantically readable code which exactly describes
+the nature of the memory objects. For example:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt>    <span style="color: #FF0000">'module'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span>None<span style="color: #990000">,</span> <span style="color: #990000">{</span>
+            <span style="color: #FF0000">'name'</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>None <span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'UnicodeString'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>length <span style="color: #990000">=</span> <span style="color: #993399">60</span><span style="color: #990000">)]],</span>
+            <span style="color: #FF0000">'kp'</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>None<span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'Pointer'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
+                        target<span style="color: #990000">=</span><span style="color: #FF0000">'Array'</span><span style="color: #990000">,</span>
+                        target_args<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
+                            target<span style="color: #990000">=</span><span style="color: #FF0000">'kernel_param'</span><span style="color: #990000">,</span>
+                            count<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #0000FF">lambda</span></span> x<span style="color: #990000">:</span> x<span style="color: #990000">.</span>num_kp<span style="color: #990000">))]],</span>
+            <span style="color: #990000">}],</span></tt></pre></div></div>
+<div class="paragraph"><p>Specifies the <tt>name</tt> member to be a unicode string of length 60, while the <tt>kp</tt>
+field is a pointer to an array of <tt>kernel_param</tt> objects. The array size is
+specified in the module&#8217;s <tt>num_kp</tt> member.</p></div>
+<div class="paragraph"><p>Note that <tt>None</tt> is specified for some fields in this vtype description. This
+means that the value in this position will be <tt>overlayed</tt> (or taken from a
+previous layer).</p></div>
+<div class="paragraph"><p>In order to simplify the description within the vtypes languages, we can replace
+many of the fields with python callables (usually <tt>lambda</tt> ). In the above
+example, we specified the <tt>count</tt> parameter of the Array constructor as a
+callable fetching the value from the <tt>module</tt> object&#8217;s <tt>num_kp</tt> field:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Specifying a callable in place of the struct&#8217;s size can determine the size
+  from the actual struct itself (e.g. if the size is stored in a member).
+</p>
+</li>
+<li>
+<p>
+Callables in the field offset position specify the offset of the field. Note
+  that this is evaluated to the absolute offset.
+</p>
+</li>
+<li>
+<p>
+Callables in the keyword args field are evaluated when the field is accessed.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>By convention, Rekall specifies pure data in the lowest vtype description layer
+(usually extracted from debugging symbols), while callables are only specified
+in overlays (possibly leaving gaps for the debugging information to bubble
+through them). This means that the lowest layer vtype descriptions are purely
+data, and can therefore be encoded in a safe format, such as JSON.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
 <img src="images/icons/tip.png" alt="Tip" />
 </td>
 <td class="content">
-<div class="paragraph"><p>To generate a vtypes file for an executable, simple use the pdbparse project to
-fetch the pdb for the binary and convert it to vtypes:</p></div>
+<div class="paragraph"><p>To generate a vtypes file for a windows executable, simple use the pdbparse
+project to fetch the pdb for the binary and convert it to vtypes:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>pdbparse/trunk$ python examples/symchk.py ntoskrnl.exe
-Trying http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/7A6629B2016A41D3A5D3E7129430544D2/ntkrnlmp.pd_
-Connected. Downloading data...
-0% 5% 10% 15% 20% 25% 30% 35% 40% 45% 50% 55% 60% 65% 70% 75% 80% 85% 90% 95% 100%
-Saved symbols to ntkrnlmp.pd_
-Extracting cabinet: ntkrnlmp.pd_
-  extracting ntkrnlmp.pdb
+<pre><tt>pdbparse/trunk$ python examples/symchk.py ntoskrnl.exe Trying
+http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/7A6629B2016A41D3A5D3E7129430544D2/ntkrnlmp.pd_
+Connected. Downloading data...  0% 5% 10% 15% 20% 25% 30% 35% 40% 45% 50% 55%
+60% 65% 70% 75% 80% 85% 90% 95% 100% Saved symbols to ntkrnlmp.pd_ Extracting
+cabinet: ntkrnlmp.pd_ extracting ntkrnlmp.pdb
 
 All done, no errors.
 pdbparse/trunk$ python examples/tpi_vtypes.py ntkrnlmp.pdb &gt; ntkrnlmp.py
@@ -1394,49 +1674,33 @@ ntkrnlmp_types = {
 </td>
 </tr></table>
 </div>
-<div class="paragraph"><p>Usually vtypes are automatically generated from debug information, such as PDB
-files or DWARF file. It is not enough to specify this information in practice
-however, since PDB files may be incomplete, or just incorrect.</p></div>
-<div class="paragraph"><p>Rekall allows vtypes to be overlayed. This means that some fields in
-autogenerated definitions can be overridden by user defined <em>overlays</em>. For
-example consider the vtype definition generated from debugging symbols:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>'_EPROCESS' : [ 0x4d0, {
-    'Pcb' : [ 0x0, ['_KPROCESS']],
-    'ProcessLock' : [ 0x160, ['_EX_PUSH_LOCK']],
-    'CreateTime' : [ 0x168, '_LARGE_INTEGER']],
-    'ExitTime' : [ 0x170, ['_LARGE_INTEGER']],
-    .....
-}],</tt></pre>
-</div></div>
-<div class="paragraph"><p>Although technically CreateTime is stored as a _LARGE_INTEGER, semantically it
-is interpreted as a timestamp. We therefore apply the following overlay:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>'_EPROCESS' : [ None, {
-    'CreateTime' : [ None, ['WinTimeStamp', {}]]],
-    'ExitTime' : [ None, ['WinTimeStamp', {}]],
-    .....
-}],</tt></pre>
-</div></div>
-<div class="paragraph"><p>Note how the overlay does not actually specify the struct offset of the fields -
-these are still obtained from the debugging symbols. We only specify the
-semantic meaning of these fields - information which is not captured in the
-debugging symbols.</p></div>
-<div class="paragraph"><p>The WinTimeStamp object is a class which extends the basic BaseObject to provide
-special methods to handle the value as a timestamp.</p></div>
-<div class="paragraph"><p>The Rekall object parsing system is the workhorse under the entire
-rekall system. It is used to build semantic information from the underlying
-memory data by combining debug symbols (for offsets) with user provided semantic
-meaning (using overlays and high level classes).</p></div>
 </div>
 <div class="sect2">
-<h3 id="_the_profile">4.2. The Profile.</h3>
-<div class="paragraph"><p>A profile is an object which unifies semantic information about a particular
-compilation unit. The profile is built by applying all relevant overlays and
-classes to parse the compilation unit it cares about. For example the following
-is a base profile for parsing the Windows kernel:</p></div>
+<h3 id="_the_profile">4.3. The Profile.</h3>
+<div class="paragraph"><p>The profile is essentially the factory class for all Rekall objects. A profile
+is where a number of sources of information are combined in order to produce
+information consistant with a single uniform <tt>compilation unit</tt>:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+The vtype descriptions are added to the profile.
+</p>
+</li>
+<li>
+<p>
+The overlays specific for an operating system are added (these bring semantic
+  information).
+</p>
+</li>
+<li>
+<p>
+Constants from debugging symbols are introduced.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The profile is built by applying all relevant overlays and classes to parse the
+compilation unit it cares about. For example the following is a base profile for
+parsing the Windows kernel:</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><tt>class BaseWindowsProfile(basic.BasicWindowsClasses):
@@ -1468,7 +1732,89 @@ system for the windows kernel.  When a user select the profile with the
 created for parsing the kernel.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_profile_modifications">4.3. Profile Modifications</h3>
+<h3 id="_profile_repositories">4.4. Profile Repositories.</h3>
+<div class="paragraph"><p>Most of the information in a profile is extracted from debugging symbols
+specific for the executable of interest. In the case of operating systems,
+debugging information is extracted from the operating system kernels (via DWARF
+or PDB symbols). The result is a <tt>vtype language</tt> data structure, and a set of
+constants.</p></div>
+<div class="paragraph"><p>In practice this information can be quite large and can be difficult to
+manage. Rekall defines an organization for this information within the Zip File container to make it eaiser to associate related vtype information together.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>rekall.profiles$ unzip -l OSX_10.8.3_AMD.zip          <img src="images/icons/callouts/1.png" alt="1" />
+Archive:  OSX_10.8.3_AMD.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+  1143559  2013-12-18 02:50   Constants.json
+  1040704  2013-12-18 02:50   vtypes.json
+       84  2013-12-18 02:50   metadata                <img src="images/icons/callouts/2.png" alt="2" />
+---------                     -------
+  2184347                     3 files
+
+rekall.profiles$ unzip -p OSX_10.8.3_AMD.zip metadata <img src="images/icons/callouts/3.png" alt="3" />
+{"Constants": "Constants.json", "ProfileClass": "Darwin64", "VTypes": "vtypes.json"}</tt></pre>
+</div></div>
+<div class="colist arabic"><table>
+<tr><td><img src="images/icons/callouts/1.png" alt="1" /></td><td>
+A profile file (or for short a "profile" is a regular zip file.
+</td></tr>
+<tr><td><img src="images/icons/callouts/2.png" alt="2" /></td><td>
+The file must contain a single file called "metadata" which contains json
+    data describing the rest of the file.
+</td></tr>
+<tr><td><img src="images/icons/callouts/3.png" alt="3" /></td><td>
+The data indicates which member of the archive contains the vtypes in json
+    format, which contains the known constants and the name of the class which
+    implements this profile.
+</td></tr>
+</table></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="images/icons/note.png" alt="Note" />
+</td>
+<td class="content">
+<div class="paragraph"><p>The Rekall profile file contains pure data in json format. Rekall does not
+support python code in profile files and will not evaluate any code. The profile
+file is purely data. This allows users to open potentially untrusted profile
+files without fear of giving arbitrary code execution to the repository owners.</p></div>
+</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img src="images/icons/tip.png" alt="Tip" />
+</td>
+<td class="content">
+<div class="paragraph"><p>In Rekall terminology we refer to a "profile" as the actual Zip file which
+contains the vtype information, as well as the instance of the <tt>Profile()</tt> class
+which is created from this file. These are mostly distinct concepts and it may
+be slightly confusing to refer to both using the same name.</p></div>
+</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>In practice Rekall supports so many different operating systems and versions
+that it is impractical to ship Rekall with all the profiles it natively
+supports. For example, each OSX version has a unique set of vtypes extracted for
+each kernel version (currently over 40 OSX Darwin releases are supported with an
+average profile size of around 400kb). Additionally each Linux kernel version
+must use a different profile file for each linux build and kernel version (even
+the standard distributions like Ubuntu ship many kernels each year). Similarly
+if Rekall is used as a library in another application, adding these profiles
+directly into the Rekall source code will needlessly bloat the application.</p></div>
+<div class="paragraph"><p>In order to solve this problem, the Rekall project provides for <tt>Profile
+Repositories</tt>. When a profile is specified (using the <tt>--profile</tt> command line,
+or when passed to the <tt>session.LoadProfile()</tt> function), Rekall will search for
+this profile using the profile path configuration parameter. By adding the
+public profile repository to the search path, it is possible to automatically
+use the public repository for profiles that are widely known. It is also
+possible to add a secondary profile repository for local or less commonly seen
+profiles.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_profile_modifications">4.5. Profile Modifications</h3>
 <div class="paragraph"><p>The profile is a self contained system for parsing the kernel data
 structures. However, some modules would like to alter the profile slightly - for
 example to add new classes replacing the default classes (with additional
@@ -1527,12 +1873,12 @@ modification does not affect other users of the profile.
 </td></tr>
 </table></div>
 <div class="sect3">
-<h4 id="_the_registry_parsing_implementation">4.3.1. The Registry parsing implementation.</h4>
+<h4 id="_the_registry_parsing_implementation">4.5.1. The Registry parsing implementation.</h4>
 <div class="paragraph"><p>This section describes the Rekall registry parsing implementation found in
 <em>rekall.plugins.windows.registry.registry</em>.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_the_pe_parsing_implementation">4.3.2. The PE parsing implementation.</h4>
+<h4 id="_the_pe_parsing_implementation">4.5.2. The PE parsing implementation.</h4>
 <div class="paragraph"><p>The PE parsing implementation is found in
 <em>rekall.plugins.overlays.windows.pe_vtypes</em>.</p></div>
 </div>
@@ -1686,7 +2032,7 @@ building the baseline, but not when running the test.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-12-05 00:36:33 CET
+Last updated 2013-12-26 18:49:42 CET
 </div>
 </div>
 </body>
