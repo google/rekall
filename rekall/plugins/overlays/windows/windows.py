@@ -366,16 +366,8 @@ class _EPROCESS(obj.Struct):
         space so we need to switch address spaces when we look at
         it. This method ensure this happens automatically.
         """
-        process_ad = self.get_process_address_space()
-        if process_ad:
-            offset = self.m("Peb").v()
-            peb = self.obj_profile.Object(theType="_PEB", offset=offset, vm = process_ad,
-                                          name = "Peb", parent = self)
-
-            if peb.is_valid():
-                return peb
-
-        return obj.NoneObject("Peb not found")
+        return self.m("Peb").dereference_as(
+            vm=self.get_process_address_space())
 
     @property
     def IsWow64(self):
@@ -842,7 +834,7 @@ class _EX_FAST_REF(obj.Struct):
             parent = parent or self, **kwargs)
 
     def __getattr__(self, attr):
-        return self.dereference().__getattr__(attr)
+        return getattr(self.dereference(), attr)
 
 
 class _CM_KEY_BODY(obj.Struct):

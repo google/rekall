@@ -268,24 +268,27 @@ class BaseObject(object):
     obj_parent = NoneObject("No parent")
     obj_name = NoneObject("No name")
 
-    # We have **kwargs here, but it's unclear if it's a good idea
-    # Benefit is objects will never fail with duff parameters
-    # Downside is typos won't show up and be difficult to diagnose
+    # BaseObject implementations may take arbitrary **kwargs. The usual
+    # programming pattern is to define the keywords each class takes explicitely
+    # as as a generic **kwargs parameter. Then call the baseclass and pass the
+    # kwargs down. Any **kwargs which arrive here are not handled, and represent
+    # an error in the vtype specifications.
     def __init__(self, theType=None, offset=0, vm=None, profile=None,
                  parent=None, name='', context=None, **kwargs):
         """Constructor for Base object.
 
         Args:
 
-          theType: The name of the type of this object (how is this different
-             from the class name?
+          theType: The name of the type of this object. This different
+             from the class name, since the same class may implement many types
+             (e.g. Struct implements every instance in the vtype definition).
 
           offset: The offset within the address space to this object exists.
 
           vm: The address space this object uses to read itself from.
 
           profile: The profile this object may use to dereference other
-          elements.
+           types.
 
           parent: The object which created this object.
 
@@ -1350,9 +1353,13 @@ class Profile(object):
 
                     # If the callable is masking an existing field, revert back
                     # to it.
-                    v = original_type_desctiptor[1].get(k)
-                    if v:
-                        members[k] = (v[0], self.list_to_type(k, v[1]))
+                    original_v = original_type_desctiptor[1].get(k)
+                    if original_v:
+                        members[k] = (original_v[0],
+                                      self.list_to_type(k, original_v[1]))
+                    else:
+                        members[k] = v
+
                 elif v[0] == None:
                     logging.warning(
                         "{0} has no offset in object {1}. Check that vtypes "

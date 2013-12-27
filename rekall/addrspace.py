@@ -220,6 +220,7 @@ class BufferAddressSpace(BaseAddressSpace):
     def __init__(self, base_offset = 0, data = '', **kwargs):
         self.fname = "Buffer"
         self.data = data
+        self.base = None
         self.base_offset = base_offset
 
     def assign_buffer(self, data, base_offset = 0):

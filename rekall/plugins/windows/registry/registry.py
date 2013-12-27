@@ -301,12 +301,12 @@ class _CM_KEY_NODE(obj.Struct):
         if self.Flags.KEY_COMP_NAME:
             return self.obj_profile.String(
                 vm=self.obj_vm, offset=self.obj_profile.get_obj_offset(
-                    self.obj_type, "Name"),
+                    self.obj_type, "Name") + self.obj_offset,
                 length=self.NameLength)
         else:
             return self.obj_profile.UnicodeString(
                 vm=self.obj_vm, offset=self.obj_profile.get_obj_offset(
-                    self.obj_type, "Name"),
+                    self.obj_type, "Name") + self.obj_offset,
                 length=self.NameLength, encoding="utf-16")
 
 
@@ -400,20 +400,6 @@ class _CM_KEY_VALUE(obj.Struct):
             data = struct.unpack(self.value_formats[valtype], data)[0]
 
         return data
-
-    @property
-    def Name(self):
-        """The name of the key is actually a unicode object.
-        This is encoded either in ascii or utf16 according to the Flags.
-        """
-        if self.Flags.KEY_COMP_NAME:
-            return self.obj_profile.String(
-                vm=self.obj_vm, offset=self.get_obj_offset("Name"),
-                length=self.NameLength)
-        else:
-            return self.obj_profile.UnicodeString(
-                vm=self.obj_vm, offset=self.get_obj_offset("Name"),
-                length=self.NameLength, encoding="utf-16-le")
 
 
 class RekallRegisteryImplementation(obj.ProfileModification):

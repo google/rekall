@@ -42,3 +42,9 @@ class TestInfo(testlib.SimpleTestCase):
         # Its ok if the current result is a superset of the previous result.
         self.assertEqual(previous - current, set())
 
+
+
+class TestGrep(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="grep %(keyword)s --offset %(offset)s"
+        )

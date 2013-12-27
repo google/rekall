@@ -25,26 +25,13 @@
 from rekall import testlib
 
 
-class TestVadInfo(testlib.RekallBaseUnitTestCase):
+class TestVadInfo(testlib.SimpleTestCase):
     """Test the vadinfo module."""
 
     PARAMETERS = dict(
         commandline="vadinfo --pid %(pid)s",
         pid=2624
         )
-
-    def testVadInfo(self):
-        previous = self.baseline['output']
-        current = self.current['output']
-
-        self.assertListEqual(
-            self.FilterOutput(previous, "VAD node"),
-            self.FilterOutput(current, "VAD node"))
-
-        file_objects = list(self.MatchOutput(previous, "FileObject @[0-9a-z]+"))
-        self.assertEqual(len(file_objects), 27)
-        self.assertListEqual(file_objects,
-                             self.MatchOutput(current, "FileObject @[0-9a-z]+"))
 
 
 class TestVad(testlib.RekallBaseUnitTestCase):

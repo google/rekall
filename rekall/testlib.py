@@ -180,7 +180,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
             cmdline = config_options["executable"] + " " + baseline_commandline
             logging.debug("%s: Launching %s", self.__class__.__name__, cmdline)
 
-            config_options["executed_command"] = baseline_commandline
+            config_options["executed_command"] = cmdline
 
             with open(tmp_filename, "wb") as output_fd:
                 pipe = subprocess.Popen(cmdline, shell=True,

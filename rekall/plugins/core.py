@@ -348,7 +348,10 @@ class LoadAddressSpace(plugin.Command):
             dtb = self.session.GetParameter("dtb")
 
         if not self.session.physical_address_space:
-            raise plugin.PluginError("Unable to find kernel address space.")
+            self.GetPhysicalAddressSpace()
+
+        if not self.session.physical_address_space:
+            raise plugin.PluginError("Unable to find physical address space.")
 
         self.profile = self.session.profile
         if self.profile is None:
@@ -609,11 +612,7 @@ class DT(plugin.ProfileCommand):
             raise plugin.PluginError("You must specify something to print.")
 
     def render(self, renderer):
-        # Make a big buffer of zeros to instantiate the object over.
-        address_space = addrspace.BufferAddressSpace(
-            data="\x00" * 102400)
-
-        obj = self.profile.Object(self.target, vm=address_space)
+        obj = self.profile.Object(self.target)
         self.session.plugins.p(obj).render(renderer)
 
 
@@ -659,9 +658,14 @@ class Dump(plugin.Command):
           suppress_headers: If set we do not write the headers.
         """
         super(Dump, self).__init__(**kwargs)
+        if isinstance(target, (int, long)):
+            offset = target
+            target = None
+
         if target is None:
             self.session.plugins.load_as(session=self.session).render(None)
             target = self.session.kernel_address_space
+
 
         self.target = target
         self.offset = int(offset)
@@ -719,15 +723,16 @@ class Grep(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(Grep, cls).args(parser)
-        parser.add_argument("address_space",
+        parser.add_argument("--address_space", default="Kernel",
                             help="Name of the address_space to search.")
 
-        parser.add_argument("offset", default=0,
+        parser.add_argument("--offset", default=0, action=args.IntParser,
                             help="Start searching from this offset.")
 
-        parser.add_argument("keyword", help="The binary string to find.")
+        parser.add_argument("keyword",
+                            help="The binary string to find.")
 
-        parser.add_argument("limit", default=1024*1024,
+        parser.add_argument("--limit", default=1024*1024,
                             help="The length of data to search.")
 
     def __init__(self, address_space=None, offset=0, keyword=None, context=20,
@@ -745,12 +750,8 @@ class Grep(plugin.Command):
         self.context = context
         self.offset = offset
         self.limit = limit
-        if address_space:
-            self.address_space = address_space
-        elif self.session:
-            self.address_space = self.session.default_address_space
-        else:
-            raise RuntimeError("Address space not specified.")
+        load_as = self.session.plugins.load_as(session=self.session)
+        self.address_space = load_as.ResolveAddressSpace(address_space)
 
     def _GenerateHits(self, data):
         start = 0

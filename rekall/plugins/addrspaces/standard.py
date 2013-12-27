@@ -171,8 +171,7 @@ class DummyAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
     """An AS which always returns nulls."""
     __name = 'dummy'
 
-    def __init__(self, size=None, **kwargs):
-        self.as_assert(size is not None)
+    def __init__(self, size=10*1024, **kwargs):
         self.mode = "w+b"
         self.writeable = True
 

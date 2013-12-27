@@ -169,6 +169,7 @@ class Session(object):
         # Store user configurable attributes here. These will be read/written to
         # the configuration file.
         self.state = Configuration(self, cache=Cache(), **kwargs)
+        self.UpdateFromConfigObject()
 
     def UpdateFromConfigObject(self):
         """This method is called whenever the config object was updated.
@@ -176,7 +177,8 @@ class Session(object):
         We are expected to re-check the config and re-initialize this session.
         """
         self.filename = self.state.filename
-        self.profile = self.LoadProfile(self.state.profile)
+        if self.state.profile:
+            self.profile = self.LoadProfile(self.state.profile)
 
         # Set the renderer.
         self.renderer = renderer.RendererBaseClass.classes.get(

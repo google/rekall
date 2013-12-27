@@ -26,6 +26,8 @@ import bisect
 import time
 import sys
 
+from rekall import args
+from rekall import testlib
 from rekall.plugins.windows import common
 
 
@@ -39,7 +41,13 @@ class WinPas2Vas(common.WinProcessFilter):
 
     __name = "pas2vas"
 
-    def __init__(self, physical_address=None, **kwargs):
+    @classmethod
+    def args(cls, parser):
+        super(WinPas2Vas, cls).args(parser)
+        parser.add_argument("offsets", action=args.ArrayIntParser, nargs="+",
+                            help="A list of physical offsets to resolve.")
+
+    def __init__(self, offsets=None, **kwargs):
         """Resolves a physical address to a vertial address.
 
         Often a user might want to see which process maps a particular physical
@@ -59,13 +67,13 @@ class WinPas2Vas(common.WinProcessFilter):
         # Now we build the tables for each process. We do this simply by listing
         # all the tasks using pslist, and then for each task we get its address
         # space, and enumerate available pages.
-        if physical_address is None:
-            physical_address = []
+        if offsets is None:
+            raise RuntimeError("Some offsets must be provided.")
 
         try:
-            self.physical_address = list(physical_address)
+            self.physical_address = list(offsets)
         except TypeError:
-            self.physical_address = [physical_address]
+            self.physical_address = [offsets]
 
         # Cache the process maps in the session.
         if self.session.process_maps is None:
@@ -153,3 +161,9 @@ class WinPas2Vas(common.WinProcessFilter):
                 else:
                     renderer.table_row(physical_address, virtual_address,
                                        task.UniqueProcessId, task.ImageFileName)
+
+
+class TestWinPas2Vas(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="pas2vas %(offset)s --pid 0 "
+        )

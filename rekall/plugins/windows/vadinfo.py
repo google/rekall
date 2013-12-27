@@ -276,12 +276,9 @@ class VAD(common.WinProcessFilter):
 
         for vad in vad_root.traverse():
             filename = ""
-            try:
-                file_obj = vad.ControlArea.FilePointer
-                if file_obj:
-                    filename = file_obj.FileName or "Pagefile-backed section"
-            except AttributeError:
-                pass
+            file_obj = vad.m("ControlArea").FilePointer
+            if file_obj:
+                filename = file_obj.FileName or "Pagefile-backed section"
 
             renderer.table_row(
                 vad.obj_offset, vad.obj_context.get('depth', 0),
