@@ -20,34 +20,51 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+"""Installation and deployment script."""
 
-__author__ = "Michael Cohen <scudette@gmail.com>"
+import os
+import sys
 
 try:
     from setuptools import find_packages, setup
 except ImportError:
     from distutils.core import find_packages, setup
 
+# Change PYTHONPATH to include rekall so that we can get the version.
+sys.path.insert(0, os.path.join('rekall'))
+
 from rekall import constants
 
-setup(name="rekall",
-      version=constants.VERSION,
-      description="Rekall Memory Forensic Framework",
-      author="The Rekall team",
-      author_email="rekall-discuss@googlegroups.com",
-      url="https://code.google.com/p/rekall/",
-      license="GPL",
-      scripts=["rekall/rekal.py"],
-      packages=find_packages('.'),
-      package_dir={'rekall': 'rekall'},
-      package_data={
-        'rekall': ['profiles/*.zip']
-        },
 
-      entry_points={
+__author__ = "Michael Cohen <scudette@gmail.com>"
+
+
+rekall_description = "Rekall Memory Forensic Framework"
+
+setup(
+    name="rekall",
+    version=constants.VERSION,
+    description=rekall_description,
+    long_description=rekall_description,
+    license="GPL",
+    url="https://code.google.com/p/rekall/",
+    author="The Rekall team",
+    author_email="rekall-discuss@googlegroups.com",
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+    ],
+    scripts=["rekall/rekal.py"],
+    package_dir={'rekall': 'rekall'},
+    packages=find_packages('.'),
+    package_data={
+        'rekall': ['profiles/*.zip']
+    },
+    entry_points={
         "console_scripts": [
             "rekal = rekall.rekal:main"
-            ]
-        }
-      )
-
+        ]
+    }
+)
