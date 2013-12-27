@@ -1,12 +1,25 @@
+# Files to ignore by git
+
+# Generic auto-generated build files
 *.pyc
+*.pyo
+
+# Specific auto-generated build files
+/build
+/dist
+/rekall.egg-info
+
+# Project specific files
+._code_review_number
+
+# Other
+*.sln
 buildchk_wnet_*
 objchk_wnet_*
 .scons*
 release
-*.sln
 test_data/*/*.img*
 test_data/*.raw*
 test_data/*.dmp*
 test_data/*.hiber*
 test_data/*/Test*
-build
