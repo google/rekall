@@ -369,7 +369,8 @@ class Session(object):
             profile_path = self.state.Get("profile_path")
 
             # Make sure that we always fallback to the built in profiles last.
-            profile_path.append(None)
+            if None not in profile_path:
+                profile_path.append(None)
 
             for path in profile_path:
                 try:

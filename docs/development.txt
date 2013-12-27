@@ -1000,11 +1000,12 @@ Testing
 
 Rekall introduces an automated testing framework to assist in detecting
 regressions and bugs when handling different images. The idea is to
-automatically compare the output of rekall (or another tool) between different
-runs for each plugin. If the output differs, a regression bug may have been
-uncovered. Note that the test framework does not check that the output is
-actually correct, only that the output of each plugin is the same as it was some
-time in the past.
+automatically compare the output of rekall between different runs for each
+plugin. If the output differs, a regression bug may have been uncovered. Note
+that the test framework does not check that the output is actually correct, only
+that the output of each plugin is the same as it was some time in the past. Once
+the output of each plugin (for the same image) is inspected manually as being
+correct, any changes will be flagged and can be reinspected.
 
 We do this by creating a 'baseline' file which describes the output of one
 version of rekall. Ideally the baseline file is the ground truth and can be
