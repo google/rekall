@@ -22,7 +22,7 @@ class SortedAddresses(object):
         self._map.setdefault(offset, []).append(data)
 
     def GetSpan(self, offset):
-        """Gets the next lowest and next highest data below the offset or None."""
+        """Gets the next lowest and next highest data below the offset."""
         idx = bisect.bisect_left(self._data, offset)
 
         if idx == 0:
@@ -60,7 +60,7 @@ class SymbolAddresses(SortedAddresses):
 
             setattr(module, func_name, offset)
 
-        except (ValueError, AttributeError) as e:
+        except (ValueError, AttributeError):
             pass
 
 

@@ -59,8 +59,7 @@ class PSTree(common.WinProcessFilter):
 
         return result
 
-    def render(self, renderer):
-        max_pad = 10
+    def render(self, renderer=None):
         renderer.table_header([("Name", "file_name", "<40"),
                                ("Pid", "pid", ">6"),
                                ("PPid", "ppid", ">6"),
@@ -76,13 +75,15 @@ class PSTree(common.WinProcessFilter):
                 if task.InheritedFromUniqueProcessId != pid:
                     continue
 
-                renderer.table_row(u"{0} 0x{1:08X}:{2:20}".format(
-                        "." * pad, task.obj_offset, task.ImageFileName or "UNKNOWN"),
-                                   task.UniqueProcessId,
-                                   task.InheritedFromUniqueProcessId,
-                                   task.ActiveThreads,
-                                   task.ObjectTable.HandleCount,
-                                   task.CreateTime)
+                renderer.table_row(
+                    u"{0} 0x{1:08X}:{2:20}".format(
+                        "." * pad, task.obj_offset,
+                        task.ImageFileName or "UNKNOWN"),
+                    task.UniqueProcessId,
+                    task.InheritedFromUniqueProcessId,
+                    task.ActiveThreads,
+                    task.ObjectTable.HandleCount,
+                    task.CreateTime)
 
                 if self.verbose:
                     try:

@@ -23,6 +23,7 @@
 
 import importlib
 import itertools
+import re
 import socket
 import threading
 import time
@@ -45,15 +46,12 @@ def SmartUnicode(string, encoding="utf8"):
         return str(string).decode(encoding, "ignore")
 
 
-class RekallException(Exception):
-    """Generic Rekall Specific exception, to help differentiate from other exceptions"""
-
-
-def Hexdump(data, width = 16):
+def Hexdump(data, width=16):
     """ Hexdump function shared by various plugins """
     for offset in xrange(0, len(data), width):
         row_data = data[offset:offset + width]
-        translated_data = [x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data]
+        translated_data = [
+            x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data]
         hexdata = " ".join(["{0:02x}".format(ord(x)) for x in row_data])
 
         yield offset, hexdata, translated_data
@@ -71,231 +69,231 @@ def WriteHexdump(renderer, data, base=0, width=16):
 
 # This is a synchronize decorator.
 def Synchronized(f):
-  """Synchronization decorator."""
+    """Synchronization decorator."""
 
-  def NewFunction(self, *args, **kw):
-      if self.lock:
-          with self.lock:
-              return f(self, *args, **kw)
-      else:
-          return f(self, *args, **kw)
+    def NewFunction(self, *args, **kw):
+        if self.lock:
+            with self.lock:
+                return f(self, *args, **kw)
+        else:
+            return f(self, *args, **kw)
 
-  return NewFunction
+    return NewFunction
 
 
 class Node(object):
-  """An entry to a linked list."""
-  next = None
-  prev = None
-  data = None
+    """An entry to a linked list."""
+    next = None
+    prev = None
+    data = None
 
-  def __init__(self, data):
-    self.data = data
+    def __init__(self, data):
+        self.data = data
 
-  def __str__(self):
-    return "Node:" + SmartStr(self.data)
+    def __str__(self):
+        return "Node:" + SmartStr(self.data)
 
-  def __repr__(self):
-    return SmartStr(self)
+    def __repr__(self):
+        return SmartStr(self)
 
 
 class LinkedList(object):
-  """A simple doubly linked list used for fast caches."""
+    """A simple doubly linked list used for fast caches."""
 
-  def __init__(self):
-      # We are the head node.
-      self.next = self.prev = self
-      self.size = 0
-      self.lock = threading.RLock()
+    def __init__(self):
+        # We are the head node.
+        self.next = self.prev = self
+        self.size = 0
+        self.lock = threading.RLock()
 
-  def Append(self, data):
-      return self.AppendNode(Node(data))
+    def Append(self, data):
+        return self.AppendNode(Node(data))
 
-  def AppendNode(self, node):
-      self.size += 1
-      last_node = self.prev
+    def AppendNode(self, node):
+        self.size += 1
+        last_node = self.prev
 
-      last_node.next = node
-      node.prev = last_node
-      node.next = self
+        last_node.next = node
+        node.prev = last_node
+        node.next = self
 
-      return node
+        return node
 
-  def PopLeft(self):
-      """Returns the head node and removes it from the list."""
-      if self.next is self:
-          raise IndexError("Pop from empty list.")
+    def PopLeft(self):
+        """Returns the head node and removes it from the list."""
+        if self.next is self:
+            raise IndexError("Pop from empty list.")
 
-      first_node = self.next
-      self.Unlink(first_node)
-      return first_node.data
+        first_node = self.next
+        self.Unlink(first_node)
+        return first_node.data
 
-  def Pop(self):
-      """Returns the tail node and removes it from the list."""
-      if self.prev is self:
-          raise IndexError("Pop from empty list.")
+    def Pop(self):
+        """Returns the tail node and removes it from the list."""
+        if self.prev is self:
+            raise IndexError("Pop from empty list.")
 
-      last_node = self.tail
-      self.Unlink(last_node)
-      return last_node.data
+        last_node = self.tail
+        self.Unlink(last_node)
+        return last_node.data
 
-  def Unlink(self, node):
-      """Removes a given node from the list."""
-      self.size -= 1
+    def Unlink(self, node):
+        """Removes a given node from the list."""
+        self.size -= 1
 
-      node.prev.next = node.next
-      node.next.prev = node.prev
-      node.next = node.prev = None
+        node.prev.next = node.next
+        node.next.prev = node.prev
+        node.next = node.prev = None
 
-  def __iter__(self):
-      p = self.next
-      while p is not self:
-          yield p.data
-          p = p.next
+    def __iter__(self):
+        p = self.next
+        while p is not self:
+            yield p.data
+            p = p.next
 
-  def __len__(self):
-      return self.size
+    def __len__(self):
+        return self.size
 
-  def __str__(self):
-      p = self.next
-      s = []
-      while p is not self:
-          s.append(str(p.data))
-          p = p.next
+    def __str__(self):
+        p = self.next
+        s = []
+        while p is not self:
+            s.append(str(p.data))
+            p = p.next
 
-      return "[" + ", ".join(s) + "]"
+        return "[" + ", ".join(s) + "]"
 
 
 class FastStore(object):
-  """This is a cache which expires objects in oldest first manner.
+    """This is a cache which expires objects in oldest first manner.
 
-  This implementation first appeared in PyFlag and refined in GRR.
+    This implementation first appeared in PyFlag and refined in GRR.
 
-  This class implements an LRU cache which needs fast updates of the LRU order
-  for random elements. This is implemented by using a dict for fast lookups and
-  a linked list for quick deletions / insertions.
-  """
-
-  def __init__(self, max_size=10, kill_cb=None, lock=False):
-    """Constructor.
-
-    Args:
-       max_size: The maximum number of objects held in cache.
-       kill_cb: An optional function which will be called on each
-                object terminated from cache.
-       lock: If True this cache will be thread safe.
+    This class implements an LRU cache which needs fast updates of the LRU order
+    for random elements. This is implemented by using a dict for fast lookups
+    and a linked list for quick deletions / insertions.
     """
-    self._age = LinkedList()
-    self._hash = {}
-    self._limit = max_size
-    self._kill_cb = kill_cb
-    self.lock = None
-    if lock:
-        self.lock = threading.RLock()
+
+    def __init__(self, max_size=10, kill_cb=None, lock=False):
+        """Constructor.
+
+        Args:
+             max_size: The maximum number of objects held in cache.
+             kill_cb: An optional function which will be called on each
+                                object terminated from cache.
+             lock: If True this cache will be thread safe.
+        """
+        self._age = LinkedList()
+        self._hash = {}
+        self._limit = max_size
+        self._kill_cb = kill_cb
+        self.lock = None
+        if lock:
+            self.lock = threading.RLock()
 
 
-  @Synchronized
-  def Expire(self):
-    """Expires old cache entries."""
-    while len(self._age) > self._limit:
-      x = self._age.PopLeft()
-      self.ExpireObject(x)
+    @Synchronized
+    def Expire(self):
+        """Expires old cache entries."""
+        while len(self._age) > self._limit:
+            x = self._age.PopLeft()
+            self.ExpireObject(x)
 
-  @Synchronized
-  def Put(self, key, obj):
-    """Add the object to the cache."""
-    try:
-      node, _ = self._hash[key]
-      self._age.Unlink(node)
-    except KeyError:
-      pass
+    @Synchronized
+    def Put(self, key, item):
+        """Add the object to the cache."""
+        try:
+            node, _ = self._hash[key]
+            self._age.Unlink(node)
+        except KeyError:
+            pass
 
-    node = self._age.Append(key)
-    self._hash[key] = (node, obj)
+        node = self._age.Append(key)
+        self._hash[key] = (node, item)
 
-    self.Expire()
+        self.Expire()
 
-    return key
+        return key
 
-  @Synchronized
-  def ExpireObject(self, key):
-    """Expire a specific object from cache."""
-    _, obj = self._hash.pop(key, (None, None))
+    @Synchronized
+    def ExpireObject(self, key):
+        """Expire a specific object from cache."""
+        _, item = self._hash.pop(key, (None, None))
 
-    if self._kill_cb and obj is not None:
-      self._kill_cb(obj)
+        if self._kill_cb and item is not None:
+            self._kill_cb(item)
 
-    return obj
+        return item
 
-  @Synchronized
-  def ExpireRegEx(self, regex):
-    """Expire all the objects with the key matching the regex."""
-    reg = re.compile(regex)
-    for key in self._hash.keys():
-      if reg.match(key):
-        self.ExpireObject(key)
+    @Synchronized
+    def ExpireRegEx(self, regex):
+        """Expire all the objects with the key matching the regex."""
+        reg = re.compile(regex)
+        for key in self._hash.keys():
+            if reg.match(key):
+                self.ExpireObject(key)
 
-  @Synchronized
-  def ExpirePrefix(self, prefix):
-    """Expire all the objects with the key having a given prefix."""
-    for key in self._hash.keys():
-      if key.startswith(prefix):
-        self.ExpireObject(key)
+    @Synchronized
+    def ExpirePrefix(self, prefix):
+        """Expire all the objects with the key having a given prefix."""
+        for key in self._hash.keys():
+            if key.startswith(prefix):
+                self.ExpireObject(key)
 
-  @Synchronized
-  def Get(self, key):
-    """Fetch the object from cache.
+    @Synchronized
+    def Get(self, key):
+        """Fetch the object from cache.
 
-    Objects may be flushed from cache at any time. Callers must always
-    handle the possibility of KeyError raised here.
+        Objects may be flushed from cache at any time. Callers must always
+        handle the possibility of KeyError raised here.
 
-    Args:
-      key: The key used to access the object.
+        Args:
+            key: The key used to access the object.
 
-    Returns:
-      Cached object.
+        Returns:
+            Cached object.
 
-    Raises:
-      KeyError: If the object is not present in the cache.
-    """
-    # Remove the item and put to the end of the age list
-    try:
-      node, obj = self._hash[key]
-      self._age.Unlink(node)
-      self._age.AppendNode(node)
-    except ValueError:
-      raise KeyError(key)
+        Raises:
+            KeyError: If the object is not present in the cache.
+        """
+        # Remove the item and put to the end of the age list
+        try:
+            node, item = self._hash[key]
+            self._age.Unlink(node)
+            self._age.AppendNode(node)
+        except ValueError:
+            raise KeyError(key)
 
-    return obj
+        return item
 
-  @Synchronized
-  def __contains__(self, obj):
-    return obj in self._hash
+    @Synchronized
+    def __contains__(self, item):
+        return item in self._hash
 
-  @Synchronized
-  def __getitem__(self, key):
-    return self.Get(key)
+    @Synchronized
+    def __getitem__(self, key):
+        return self.Get(key)
 
-  @Synchronized
-  def Flush(self):
-    """Flush all items from cache."""
-    while self._age:
-      x = self._age.PopLeft()
-      self.ExpireObject(x)
+    @Synchronized
+    def Flush(self):
+        """Flush all items from cache."""
+        while self._age:
+            x = self._age.PopLeft()
+            self.ExpireObject(x)
 
-    self._hash = {}
+        self._hash = {}
 
-  @Synchronized
-  def __getstate__(self):
-    """When pickled the cache is fushed."""
-    if self._kill_cb:
-      raise RuntimeError("Unable to pickle a store with a kill callback.")
+    @Synchronized
+    def __getstate__(self):
+        """When pickled the cache is fushed."""
+        if self._kill_cb:
+            raise RuntimeError("Unable to pickle a store with a kill callback.")
 
-    self.Flush()
-    return dict(max_size=self._limit)
+        self.Flush()
+        return dict(max_size=self._limit)
 
-  def __setstate__(self, state):
-    self.__init__(max_size=state["max_size"])
+    def __setstate__(self, state):
+        self.__init__(max_size=state["max_size"])
 
 
 class AgeBasedCache(FastStore):
@@ -347,11 +345,11 @@ def inet_ntop(address_family, packed_ip):
         # Replace a run of 0x00s with None
         numlen = [(k, len(list(g))) for k, g in itertools.groupby(words)]
         max_zero_run = sorted(sorted(
-                numlen, key = lambda x: x[1], reverse = True),
-                              key = lambda x: x[0])[0]
+                numlen, key=lambda x: x[1], reverse=True),
+                              key=lambda x: x[0])[0]
         words = []
         for k, l in numlen:
-            if (k == 0) and (l == max_zero_run[1]) and not (None in words):
+            if (k == 0) and (l == max_zero_run[1]) and not None in words:
                 words.append(None)
             else:
                 for i in range(l):
@@ -445,4 +443,5 @@ def ntoh(value):
     elif size == 4:
         return socket.ntohl(value.v())
 
+    from rekall import obj
     return obj.NoneObject("Not a valid integer")

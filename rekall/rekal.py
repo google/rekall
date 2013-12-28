@@ -21,6 +21,8 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+# pylint: disable=protected-access
+
 import os
 import pdb
 import logging
@@ -34,7 +36,7 @@ from rekall import obj
 from rekall import session
 
 # Import and register the core plugins
-from rekall import plugins
+from rekall import plugins  # pylint: disable=unused-import
 
 config.DeclareOption(
     "-r", "--run", default=None,
@@ -94,7 +96,9 @@ def NotebookSupport(user_session):
         return False
 
     if engine == "notebook":
-        argv = ["notebook", "-c", """from rekall import interactive; interactive.ImportEnvironment();""", "--autocall", "2"]
+        argv = ["notebook", "-c",
+                "from rekall import interactive; "
+                "interactive.ImportEnvironment();", "--autocall", "2"]
         import IPython
 
         IPython.start_ipython(argv=argv)
@@ -110,11 +114,11 @@ def NativePythonSupport(user_session):
       False if we failed to use IPython. True if the session was run and exited.
     """
     # If the ipython shell is not available, we can use the native python shell.
-    import code, inspect
+    import code
 
     # Try to enable tab completion
     try:
-        import rlcompleter, readline #pylint: disable-msg=W0612
+        import rlcompleter, readline  # pylint: disable=W0612
         readline.parse_and_bind("tab: complete")
     except ImportError:
         pass
@@ -149,10 +153,10 @@ def main(argv=None):
     user_session.mode = "Interactive"
 
     # Try to launch the session using something.
-    (NotebookSupport(user_session) or
-     IPython011Support(user_session) or
-     IPython012Support(user_session) or
-     NativePythonSupport(user_session))
+    _ = (NotebookSupport(user_session) or
+         IPython011Support(user_session) or
+         IPython012Support(user_session) or
+         NativePythonSupport(user_session))
 
 if __name__ == '__main__':
     main()

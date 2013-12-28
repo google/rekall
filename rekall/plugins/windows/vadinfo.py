@@ -30,9 +30,7 @@
 # "The VAD Tree: A Process-Eye View of Physical Memory," Brendan Dolan-Gavitt
 
 import os.path
-import sys
 
-from rekall import plugin
 from rekall import scan
 from rekall.plugins import core
 from rekall.plugins.windows import common
@@ -43,7 +41,7 @@ class VADInfo(common.WinProcessFilter):
 
     __name = "vadinfo"
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         for task in self.filter_processes():
             renderer.section()
             renderer.write("Pid: {0:6}\n".format(task.UniqueProcessId))
@@ -52,13 +50,18 @@ class VADInfo(common.WinProcessFilter):
             for count, vad in enumerate(task.RealVadRoot.traverse()):
                 try:
                     self.write_vad_short(renderer, vad)
-                except AttributeError: pass
+                except AttributeError:
+                    pass
+
                 try:
                     self.write_vad_control(renderer, vad)
-                except AttributeError: pass
+                except AttributeError:
+                    pass
+
                 try:
                     self.write_vad_ext(renderer, vad)
-                except AttributeError: pass
+                except AttributeError:
+                    pass
 
                 renderer.write("\n")
 
@@ -68,13 +71,13 @@ class VADInfo(common.WinProcessFilter):
     def write_vad_short(self, renderer, vad):
         """Renders a text version of a Short Vad"""
         renderer.table_header([("VAD node @", "offset", ""),
-                               ("address","address", "[addrpad]"),
-                               ("Start","Start", "5"),
-                               ("startaddr","startaddr", "[addrpad]"),
-                               ("End","End", "3"),
-                               ("endaddr","endaddr", "[addrpad]"),
-                               ("Tag","Tag", "3"),
-                               ("tagval","tagval", ""),
+                               ("address", "address", "[addrpad]"),
+                               ("Start", "Start", "5"),
+                               ("startaddr", "startaddr", "[addrpad]"),
+                               ("End", "End", "3"),
+                               ("endaddr", "endaddr", "[addrpad]"),
+                               ("Tag", "Tag", "3"),
+                               ("tagval", "tagval", ""),
                                ], suppress_headers=True)
         renderer.table_row("VAD node @",
                            vad.obj_offset,
@@ -87,9 +90,10 @@ class VADInfo(common.WinProcessFilter):
 
         renderer.write("Flags: {0}\n".format(str(vad.u.VadFlags)))
 
-        # although the numeric value of Protection is printed above with VadFlags,
-        # let's show the user a human-readable translation of the protection
-        renderer.write("Protection: {0}\n".format(vad.u.VadFlags.ProtectionEnum))
+        # although the numeric value of Protection is printed above with
+        # VadFlags, let's show the user a human-readable translation of the
+        # protection
+        renderer.format("Protection: {0}\n", vad.u.VadFlags.ProtectionEnum)
 
         # translate the vad type if its available (> XP)
         if vad.u.VadFlags.m("VadType"):
@@ -107,36 +111,43 @@ class VADInfo(common.WinProcessFilter):
             return
 
         renderer.format("ControlArea @{0:08x} Segment {1:08x}\n",
-                        control_area.dereference().obj_offset, control_area.Segment)
+                        control_area.dereference().obj_offset,
+                        control_area.Segment)
 
         renderer.format("Dereference list: Flink {0:08x}, Blink {1:08x}\n",
                         control_area.DereferenceList.Flink,
                         control_area.DereferenceList.Blink)
 
-        renderer.format("NumberOfSectionReferences: {0:10} NumberOfPfnReferences:  "
-                        "{1:10}\n", control_area.NumberOfSectionReferences,
-                        control_area.NumberOfPfnReferences)
+        renderer.format(
+            "NumberOfSectionReferences: {0:10} NumberOfPfnReferences:  "
+            "{1:10}\n", control_area.NumberOfSectionReferences,
+            control_area.NumberOfPfnReferences)
 
-        renderer.format("NumberOfMappedViews:       {0:10} NumberOfUserReferences: "
-                        "{1:10}\n", control_area.NumberOfMappedViews,
-                        control_area.NumberOfUserReferences)
+        renderer.format(
+            "NumberOfMappedViews:       {0:10} NumberOfUserReferences: "
+            "{1:10}\n", control_area.NumberOfMappedViews,
+            control_area.NumberOfUserReferences)
 
-        renderer.format("WaitingForDeletion Event:  {0:08x}\n",
-                        control_area.WaitingForDeletion)
+        renderer.format(
+            "WaitingForDeletion Event:  {0:08x}\n",
+            control_area.WaitingForDeletion)
 
-        renderer.format("Control Flags: {0}\n", control_area.u.Flags)
+        renderer.format(
+            "Control Flags: {0}\n", control_area.u.Flags)
 
         file_object = vad.ControlArea.FilePointer.dereference()
         if file_object and file_object != 0:
-            renderer.format("FileObject @{0:08x} FileBuffer @ {1:08x}          , "
-                            "Name: {2}\n", file_object.obj_offset,
-                            file_object.FileName.Buffer, file_object.FileName)
+            renderer.format(
+                "FileObject @{0:08x} FileBuffer @ {1:08x}          , "
+                "Name: {2}\n", file_object.obj_offset,
+                file_object.FileName.Buffer, file_object.FileName)
 
     def write_vad_ext(self, renderer, vad):
         """Renders a text version of a Long Vad"""
         if vad.obj_type != "_MMVAD_SHORT":
-            renderer.format("First prototype PTE: {0:08x} Last contiguous PTE: "
-                            "{1:08x}\n", vad.FirstPrototypePte, vad.LastContiguousPte)
+            renderer.format(
+                "First prototype PTE: {0:08x} Last contiguous PTE: "
+                "{1:08x}\n", vad.FirstPrototypePte, vad.LastContiguousPte)
 
             renderer.format("Flags2: {0}\n", vad.u2.VadFlags2)
 
@@ -147,15 +158,15 @@ class VADTree(VADInfo):
 
     __name = "vadtree"
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         for task in self.filter_processes():
             renderer.section()
             renderer.format(u"Pid: {0:6}\n", task.UniqueProcessId)
 
             renderer.table_header([("indent", "indent", ""),
                                    ("Start", "Start", "[addrpad]"),
-                                   ("-","-", ""),
-                                   ("End","End", "[addrpad]")
+                                   ("-", "-", ""),
+                                   ("End", "End", "[addrpad]")
                                    ], suppress_headers=True)
 
             for vad in task.RealVadRoot.traverse():
@@ -186,7 +197,7 @@ class VADWalk(VADInfo):
 
     __name = "vadwalk"
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         for task in self.filter_processes():
             renderer.section()
             renderer.format(u"Pid: {0:6}\n", task.UniqueProcessId)
@@ -199,15 +210,17 @@ class VADWalk(VADInfo):
                                    ("Tag", "tag", "4"),
                                    ])
             for vad in task.RealVadRoot.traverse():
-                # Ignore Vads with bad tags (which we explicitly include as None)
+                # Ignore Vads with bad tags (which we explicitly include as
+                # None)
                 if vad:
-                    renderer.table_row(vad.obj_offset,
-                                       vad.obj_parent.obj_offset or 0,
-                                       vad.LeftChild.dereference().obj_offset or 0,
-                                       vad.RightChild.dereference().obj_offset or 0,
-                                       vad.Start,
-                                       vad.End,
-                                       vad.Tag)
+                    renderer.table_row(
+                        vad.obj_offset,
+                        vad.obj_parent.obj_offset,
+                        vad.LeftChild.dereference().obj_offset,
+                        vad.RightChild.dereference().obj_offset,
+                        vad.Start,
+                        vad.End,
+                        vad.Tag)
 
 class VADDump(core.DirectoryDumperMixin, VADInfo):
     """Dumps out the vad sections to a file"""
@@ -219,7 +232,7 @@ class VADDump(core.DirectoryDumperMixin, VADInfo):
         """
         super(VADDump, self).__init__(**kwargs)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         for task in self.filter_processes():
             renderer.section()
             renderer.format("Pid: {0:6}\n", task.UniqueProcessId)
@@ -230,7 +243,8 @@ class VADDump(core.DirectoryDumperMixin, VADInfo):
             name = task.ImageFileName
             offset = task_space.vtop(task.obj_offset)
             if offset is None:
-                renderer.format("Process does not have a valid address space.\n")
+                renderer.format(
+                    "Process does not have a valid address space.\n")
                 continue
 
             for vad in task.RealVadRoot.traverse():
@@ -290,7 +304,7 @@ class VAD(common.WinProcessFilter):
                 vad.u.VadFlags.ProtectionEnum,
                 filename)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         for task in self.filter_processes():
             renderer.section()
             renderer.format("Pid: {0} {1}\n", task.UniqueProcessId,

@@ -21,11 +21,12 @@
 #
 
 """ This plugin contains CORE classes used by lots of other plugins """
+
+# pylint: disable=protected-access
+
 import logging
 import re
-import sys
 
-from rekall import addrspace
 from rekall import args
 from rekall import scan
 from rekall import obj
@@ -117,8 +118,9 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
                 if found >= 0:
                     # We found something that looks like the process we want.
                     self.eprocess = self.profile.Object(
-                        "_EPROCESS", offset = offset + found - self.image_name_offset,
-                        vm = self.physical_address_space)
+                        "_EPROCESS",
+                        offset=offset + found - self.image_name_offset,
+                        vm=self.physical_address_space)
 
                     yield self.eprocess
                 else:
@@ -146,8 +148,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
         # The test below does not work on windows 8 with the idle process.
         if version < (6, 2):
             # Reflect through the address space at ourselves. Note that the Idle
-            # process is not usually in the PsActiveProcessHead list, so we use the
-            # ThreadListHead instead.
+            # process is not usually in the PsActiveProcessHead list, so we use
+            # the ThreadListHead instead.
             list_head = eprocess.ThreadListHead.Flink
 
             if list_head == 0:
@@ -159,24 +161,26 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
         return True
 
-    def render(self, renderer):
-        renderer.table_header([("_EPROCESS (P)", "physical_eprocess", "[addrpad]"),
-                               ("DTB", "dtv", "[addrpad]"),
-                               ("Valid", "valid", "")])
+    def render(self, renderer=None):
+        renderer.table_header(
+            [("_EPROCESS (P)", "physical_eprocess", "[addrpad]"),
+             ("DTB", "dtv", "[addrpad]"),
+             ("Valid", "valid", "")])
 
         for dtb, eprocess in self.dtb_hits():
             address_space = core.GetAddressSpaceImplementation(self.profile)(
                 session=self.session, base=self.physical_address_space, dtb=dtb)
 
-            renderer.table_row(eprocess.obj_offset, dtb,
-                               self.verify_address_space(eprocess, address_space))
+            renderer.table_row(
+                eprocess.obj_offset, dtb,
+                self.verify_address_space(eprocess, address_space))
 
 
 ## The following are checks for pool scanners.
 
 class PoolTagCheck(scan.ScannerCheck):
     """ This scanner checks for the occurance of a pool tag """
-    def __init__(self, tag = None, tags = None, **kwargs):
+    def __init__(self, tag=None, tags=None, **kwargs):
         super(PoolTagCheck, self).__init__(**kwargs)
         self.tags = tags or [tag]
 
@@ -217,8 +221,9 @@ class CheckPoolSize(scan.ScannerCheck):
         self.pool_align = self.profile.constants['PoolAlignment']
 
     def check(self, offset):
-        pool_hdr = self.profile.Object('_POOL_HEADER', vm = self.address_space,
-                                       offset = offset)
+        pool_hdr = self.profile._POOL_HEADER(
+            vm=self.address_space, offset=offset)
+
         block_size = pool_hdr.BlockSize.v()
 
         return self.condition(block_size * self.pool_align)
@@ -233,8 +238,8 @@ class CheckPoolType(scan.ScannerCheck):
         self.free = free
 
     def check(self, offset):
-        pool_hdr = self.profile.Object('_POOL_HEADER', vm = self.address_space,
-                                       offset = offset)
+        pool_hdr = self.profile._POOL_HEADER(
+            vm=self.address_space, offset=offset)
 
         return ((self.non_paged and pool_hdr.NonPagedPool) or
                 (self.free and pool_hdr.FreePool) or
@@ -243,13 +248,13 @@ class CheckPoolType(scan.ScannerCheck):
 
 class CheckPoolIndex(scan.ScannerCheck):
     """ Checks the pool index """
-    def __init__(self, value = 0, **kwargs):
+    def __init__(self, value=0, **kwargs):
         super(CheckPoolIndex, self).__init__(**kwargs)
         self.value = value
 
     def check(self, offset):
-        pool_hdr = self.profile.Object('_POOL_HEADER', vm = self.address_space,
-                                       offset = offset)
+        pool_hdr = self.profile._POOL_HEADER(
+            vm=self.address_space, offset=offset)
 
         return pool_hdr.PoolIndex == self.value
 
@@ -258,12 +263,12 @@ class PoolScanner(scan.DiscontigScanner, scan.BaseScanner):
     """A scanner for pool allocations."""
 
     # These objects are allocated in the pool allocation.
-    allocation = [ '_POOL_HEADER' ]
+    allocation = ['_POOL_HEADER']
 
     def scan(self, offset=0, maxlen=None):
-        maxlen = maxlen or self.profile.get_constant("MaxPointer")
-
         """Yields instances of _POOL_HEADER which potentially match."""
+
+        maxlen = maxlen or self.profile.get_constant("MaxPointer")
         for hit in super(PoolScanner, self).scan(offset=offset, maxlen=maxlen):
             yield self.profile._POOL_HEADER(vm=self.address_space, offset=hit)
 
@@ -318,17 +323,20 @@ class KDBGMixin(plugin.KernelASMixin):
 
         # If the user specified the kdbg use it - even if it looks wrong!
         if self.kdbg and not isinstance(self.kdbg, obj.BaseObject):
-            kdbg = self.profile.Object("_KDDEBUGGER_DATA64", offset=int(self.kdbg),
-                                            vm = self.kernel_address_space)
+            kdbg = self.profile._KDDEBUGGER_DATA64(
+                offset=int(self.kdbg), vm=self.kernel_address_space)
 
             # If the user specified the kdbg use it - even if it looks wrong!
             # This allows the user to force a corrupt kdbg.
             self.kdbg = kdbg
 
         if self.kdbg is None:
-            logging.info("KDBG not provided - Rekall Memory Forensics will try to "
-                         "automatically scan for it now using plugin.kdbgscan.")
-            for kdbg in self.session.plugins.kdbgscan(session=self.session).hits():
+            logging.info(
+                "KDBG not provided - Rekall Memory Forensics will try to "
+                "automatically scan for it now using plugin.kdbgscan.")
+
+            for kdbg in self.session.plugins.kdbgscan(
+                session=self.session).hits():
                 # Just return the first one
                 logging.info("Found a KDBG hit %r. Hope it works. If not try "
                              "setting it manually.", kdbg)

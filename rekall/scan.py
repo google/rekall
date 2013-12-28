@@ -17,16 +17,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 #
-"""
-@author:       Michael Cohen (scudette@gmail.com)
-@license:      GNU General Public License 2.0 or later
-"""
-import logging
+
+__author__ = "Michael Cohen <scudette@gmail.com>"
+
 import re
-import sys
 
 from rekall import registry
-from rekall import addrspace
 from rekall import constants
 
 
@@ -60,7 +56,7 @@ class BaseScanner(object):
                 profile=self.profile, address_space=self.address_space, **args)
             self.constraints.append(check)
 
-        self.skippers = [ c for c in self.constraints if hasattr(c, "skip") ]
+        self.skippers = [c for c in self.constraints if hasattr(c, "skip")]
         self.hits = None
 
     def check_addr(self, offset):
@@ -90,7 +86,8 @@ class BaseScanner(object):
         """
         skip = 1
         for s in self.skippers:
-            skip_value = s.skip(data, data_offset + skip, base_offset=base_offset)
+            skip_value = s.skip(data, data_offset + skip,
+                                base_offset=base_offset)
             skip = max(skip, skip_value)
 
         return skip
@@ -126,7 +123,8 @@ class BaseScanner(object):
         while i < offset + maxlen:
             # Update the progress bar.
             if self.session:
-                self.session.report_progress("Scanning 0x%08X with %s" % (i, self.__class__.__name__))
+                self.session.report_progress(
+                    "Scanning 0x%08X with %s" % (i, self.__class__.__name__))
 
             # Check the current offset for a match.
             if self.check_addr(i):
@@ -247,16 +245,18 @@ class ScannerCheck(object):
     def object_offset(self, offset):
         return offset
 
-    def check(self, offset, buffer_data=None):
+    def check(self, offset):
+        _ = offset
         return False
 
-    ## If you want to speed up the scanning define this method - it
-    ## will be used to skip the data which is obviously not going to
-    ## match. You will need to return the number of bytes from offset
-    ## to skip to. We take the maximum number of bytes to guarantee
-    ## that all checks have a chance of passing.
     def skip(self, data, offset, base_offset=None):
         """Determine how many bytes we can skip.
+
+        If you want to speed up the scanning define this method - it
+        will be used to skip the data which is obviously not going to
+        match. You will need to return the number of bytes from offset
+        to skip to. We take the maximum number of bytes to guarantee
+        that all checks have a chance of passing.
 
         Args:
           data: A data buffer we can examine to check for skipping.
@@ -267,13 +267,16 @@ class ScannerCheck(object):
         Returns:
           number of bytes to be skipped.
         """
+        _ = data
+        _ = offset
+        _ = base_offset
         return 0
 
 
 class MultiStringFinderCheck(ScannerCheck):
     """A scanner checker for multiple strings."""
 
-    def __init__(self, needles = None, **kwargs):
+    def __init__(self, needles=None, **kwargs):
         """
         Args:
           needles: A list of strings we search for.
@@ -330,7 +333,7 @@ class RegexCheck(ScannerCheck):
     """This check can be quite slow."""
     maxlen = 100
 
-    def __init__(self, regex = None, **kwargs):
+    def __init__(self, regex=None, **kwargs):
         super(RegexCheck, self).__init__(**kwargs)
         self.regex = re.compile(regex)
 
@@ -401,6 +404,7 @@ class DebugChecker(ScannerCheck):
     Insert this check inside the check stack and we will break into the debugger
     when all the conditions below us are met.
     """
-    def check(self, offset, buffer_data=None):
-        import pdb; pdb.set_trace()
+    def check(self, offset):
+        _ = offset
+        import pdb; pdb.set_trace() # pylint: disable=multiple-statements
         return True

@@ -6,7 +6,7 @@ from rekall import io_manager
 
 
 class BuiltInProfiles(io_manager.BuiltInManager):
-   data = {
+    data = {
  'Win7SP1x64': {
   'Constants.json': {
    'DRIVER_POOLTAG': 'Dri\xf6',

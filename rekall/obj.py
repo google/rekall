@@ -21,27 +21,24 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-__author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
-              "by AAron Walters and Brendan Dolan-Gavitt with contributions "
-              "by Mike Auty")
-
 """
 The Rekall Memory Forensics object system.
 
 """
+__author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
+              "by AAron Walters and Brendan Dolan-Gavitt with contributions "
+              "by Mike Auty")
+
 import atexit
 import inspect
 import json
 import logging
 import operator
 import os
-import re
 import struct
-import sys
 
 import copy
 from rekall import addrspace
-from rekall import io_manager
 from rekall import registry
 from rekall import utils
 
@@ -128,7 +125,7 @@ class Curry(object):
         self._target = curry_target
         self._kwargs = kwargs
         self._args = args
-        self._default_arguments = []
+        self._default_arguments = kwargs.pop("default_arguments", [])
         self.__doc__ = self._target.__doc__
 
     def __call__(self, *args, **kwargs):
@@ -152,17 +149,13 @@ class Curry(object):
         return getattr(self._target, attr)
 
 
-def get_bt_string(_e = None):
-    return ''.join(traceback.format_stack()[:-2])
-
-
 class NoneObject(object):
     """ A magical object which is like None but swallows bad
     dereferences, __getattr__, iterators etc to return itself.
 
     Instantiate with the reason for the error.
     """
-    def __init__(self, reason = '', strict = False, log=False):
+    def __init__(self, reason='', strict=False, log=False):
         # Often None objects are instantiated on purpose so its not really that
         # important to see their reason.
         if log:
@@ -170,7 +163,7 @@ class NoneObject(object):
         self.reason = reason
         self.strict = strict
         if strict:
-            self.bt = get_bt_string()
+            self.bt = ''.join(traceback.format_stack()[:-2])
 
     def __str__(self):
         ## If we are strict we blow up here
@@ -182,7 +175,7 @@ class NoneObject(object):
     def __repr__(self):
         return "<%s>" % self.reason
 
-    def write(self, data):
+    def write(self, _):
         """Write procedure only ever returns False"""
         return False
 
@@ -194,9 +187,9 @@ class NoneObject(object):
         return 0
 
     def __getattr__(self, attr):
-        # By returning self for any unknown attribute
-        # and ensuring the self is callable, we cover both properties and methods
-        # Override NotImplemented functions in object with self
+        # By returning self for any unknown attribute and ensuring the self is
+        # callable, we cover both properties and methods Override NotImplemented
+        # functions in object with self
         return self
 
     def __bool__(self):
@@ -206,7 +199,7 @@ class NoneObject(object):
         return False
 
     def __eq__(self, other):
-        return (other is None)
+        return other is None
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -221,9 +214,6 @@ class NoneObject(object):
     def __int__(self):
         return -1
 
-    # These must be defined explicitly,
-    # due to the way new style objects bypass __getattr__ for speed
-    # See http://docs.python.org/reference/datamodel.html#new-style-special-lookup
     __add__ = __call__
     __sub__ = __call__
     __mul__ = __call__
@@ -324,7 +314,7 @@ class BaseObject(object):
             obj = obj.obj_parent
             yield obj
 
-    def proxied(self, attr):
+    def proxied(self, _):
         return None
 
     def write(self, value):
@@ -383,14 +373,17 @@ class BaseObject(object):
         return self.dereference(vm=vm)
 
     def dereference(self, vm=None):
-        return NoneObject("Can't dereference {0}".format(self.obj_name), self.obj_profile)
+        _ = vm
+        return NoneObject("Can't dereference {0}".format(
+                self.obj_name), self.obj_profile)
 
-    def dereference_as(self, target=None, vm=None, **kwargs):
+    def dereference_as(self, target=None, vm=None, target_args=None):
         vm = vm or self.obj_vm
 
-        return self.obj_profile.Object(theType=target, offset=self.v(), vm=vm,
-                                       parent=self.obj_parent, name=self.obj_name,
-                                       context=self.obj_context, **kwargs)
+        return self.obj_profile.Object(
+            theType=target, offset=self.v(), vm=vm,
+            parent=self.obj_parent, name=self.obj_name,
+            context=self.obj_context, **(target_args or {}))
 
     def reference(self):
         """Produces a pointer to this object.
@@ -407,8 +400,14 @@ class BaseObject(object):
 
     def v(self, vm=None):
         """ Do the actual reading and decoding of this member
+
+        When vm is specified, we are asked to evaluate this object is another
+        address space than the one it was created on. Derived classes should
+        allow for this.
         """
-        return NoneObject("No value for {0}".format(self.obj_name), self.obj_profile)
+        _ = vm
+        return NoneObject("No value for {0}".format(
+                self.obj_name), self.obj_profile)
 
     def __str__(self):
         return str(self.v())
@@ -417,8 +416,9 @@ class BaseObject(object):
         return self.__str__().decode("utf8", "ignore")
 
     def __repr__(self):
-        return "[{0} {1}] @ 0x{2:08X}".format(self.__class__.__name__, self.obj_name,
-                                              self.obj_offset)
+        return "[{0} {1}] @ 0x{2:08X}".format(
+            self.__class__.__name__, self.obj_name,
+            self.obj_offset)
 
     def __dir__(self):
         """Hide any members with _."""
@@ -458,20 +458,25 @@ def CreateMixIn(mixin):
 
         return method
 
-    for name in mixin._specials:
+    for name in mixin._specials:  # pylint: disable=protected-access
         setattr(mixin, name, make_method(name))
 
 class NumericProxyMixIn(object):
     """ This MixIn implements the numeric protocol """
     _specials = [
         ## Number protocols
-        '__add__', '__sub__', '__mul__', '__floordiv__', '__mod__', '__divmod__',
-        '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__', '__div__',
-        '__truediv__', '__radd__', '__rsub__', '__rmul__', '__rdiv__', '__rtruediv__',
-        '__rfloordiv__', '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__',
-        '__rrshift__', '__rand__', '__rxor__', '__ror__', '__neg__', '__pos__',
-        '__abs__', '__invert__', '__int__', '__long__', '__float__', '__oct__',
-        '__hex__',
+        '__add__', '__sub__', '__mul__',
+        '__floordiv__', '__mod__', '__divmod__',
+        '__pow__', '__lshift__', '__rshift__',
+        '__and__', '__xor__', '__or__', '__div__',
+        '__truediv__', '__radd__', '__rsub__',
+        '__rmul__', '__rdiv__', '__rtruediv__',
+        '__rfloordiv__', '__rmod__', '__rdivmod__',
+        '__rpow__', '__rlshift__',
+        '__rrshift__', '__rand__', '__rxor__', '__ror__',
+        '__neg__', '__pos__',
+        '__abs__', '__invert__', '__int__', '__long__',
+        '__float__', '__oct__', '__hex__',
 
         ## Comparisons
         '__lt__', '__le__', '__eq__', '__ne__', '__ge__', '__gt__', '__index__',
@@ -491,7 +496,7 @@ CreateMixIn(StringProxyMixIn)
 
 
 class NativeType(BaseObject, NumericProxyMixIn):
-    def __init__(self, value=None, format_string = None, **kwargs):
+    def __init__(self, value=None, format_string=None, **kwargs):
         super(NativeType, self).__init__(**kwargs)
         self.format_string = format_string
         self.value = value
@@ -501,7 +506,7 @@ class NativeType(BaseObject, NumericProxyMixIn):
         output = struct.pack(self.format_string, data)
         return self.obj_vm.write(self.obj_offset, output)
 
-    def proxied(self, attr):
+    def proxied(self, _):
         return self.v()
 
     def __radd__(self, other):
@@ -546,7 +551,7 @@ class Bool(NativeType):
 
 class BitField(NativeType):
     """ A class splitting an integer into a bunch of bit. """
-    def __init__(self, start_bit = 0, end_bit = 32, native_type = None,
+    def __init__(self, start_bit=0, end_bit=32, native_type=None,
                  **kwargs):
         super(BitField, self).__init__(**kwargs)
 
@@ -561,7 +566,7 @@ class BitField(NativeType):
         return self._proxy.size()
 
     def v(self, vm=None):
-        i = self._proxy.v(vm=vm)
+        i = self._proxy.v()
         return (i & ((1 << self.end_bit) - 1)) >> self.start_bit
 
     def write(self, data):
@@ -607,7 +612,7 @@ class Pointer(NativeType):
     def v(self, vm=None):
         # 64 bit addresses are always sign extended so we need to clear the top
         # bits.
-        return Pointer.integer_to_address(self._proxy.v(vm=vm))
+        return Pointer.integer_to_address(self._proxy.v())
 
     def m(self, attr):
         return self.deref().m(attr)
@@ -638,10 +643,9 @@ class Pointer(NativeType):
 
         if vm.is_valid_address(offset):
             kwargs = copy.deepcopy(self.target_args)
-            kwargs.update(dict(offset = offset,
-                               vm = vm, profile = self.obj_profile,
-                               parent = self.obj_parent,
-                               name=self.obj_name))
+            kwargs.update(dict(offset=offset,
+                               vm=vm, profile=self.obj_profile,
+                               parent=self.obj_parent, name=self.obj_name))
 
             if isinstance(self.target, basestring):
                 result = self.obj_profile.Object(
@@ -667,7 +671,8 @@ class Pointer(NativeType):
     def __nonzero__(self):
         """This method is used in comparison operations.
 
-        This ideas here is to make it possible to easily write a condition such as:
+        This ideas here is to make it possible to easily write a condition such
+        as:
 
         while ptr:
            ...
@@ -694,10 +699,11 @@ class Pointer(NativeType):
         if not self.obj_vm.is_valid_address(offset):
             return NoneObject("Invalid offset")
 
-        return self.__class__(target=self.target, target_args=self.target_args,
-                              offset=offset, vm=self.obj_vm,
-                              parent=self.obj_parent,
-                              context=self.obj_context, profile=self.obj_profile)
+        return self.__class__(
+            target=self.target, target_args=self.target_args,
+            offset=offset, vm=self.obj_vm,
+            parent=self.obj_parent,
+            context=self.obj_context, profile=self.obj_profile)
 
     def __sub__(self, other):
         return self.__add__(-other)
@@ -725,14 +731,14 @@ class Pointer(NativeType):
         """Delegate the iterator to the target."""
         return iter(self.dereference())
 
-    def dereference_as(self, target=None, vm=None, target_args={}):
+    def dereference_as(self, target=None, vm=None, target_args=None):
         """Dereference ourselves into another type, or address space."""
         vm = vm or self.obj_vm
 
         return self.obj_profile.Object(
             theType=target or self.target, offset=self.v(), vm=vm,
             parent=self.obj_parent, context=self.obj_context,
-            **target_args)
+            **(target_args or {}))
 
     @staticmethod
     def integer_to_address(value):
@@ -745,7 +751,7 @@ class Void(Pointer):
         kwargs['theType'] = 'unsigned long'
         super(Void, self).__init__(**kwargs)
 
-    def v(self):
+    def v(self, vm=None):
         return self.obj_offset
 
     def dereference(self, vm=None):
@@ -772,8 +778,8 @@ class Array(BaseObject):
 
     target_size = 0
 
-    def __init__(self, count = 100000, target = None, target_args=None,
-                 target_size = None, **kwargs):
+    def __init__(self, count=100000, target=None, target_args=None,
+                 target_size=None, **kwargs):
         """Instantiate an array of like items.
 
         Args:
@@ -781,9 +787,9 @@ class Array(BaseObject):
             i.e. it is possible to read past the end). By default the array is
             unbound.
 
-          target: The name of the element to be instantiated on each point. The size
-            of the object returned by this should be the same for all members of
-            the array (i.e. all elements should be the same size).
+          target: The name of the element to be instantiated on each point. The
+            size of the object returned by this should be the same for all
+            members of the array (i.e. all elements should be the same size).
         """
         super(Array, self).__init__(**kwargs)
 
@@ -921,7 +927,7 @@ class ListArray(Array):
 
 
 class BaseAddressComparisonMixIn(object):
-    """A mixin which provides the normal comparison operators for its base offset."""
+    """A mixin providing comparison operators for its base offset."""
     def __comparator__(self, other, method):
         # 64 bit addresses are always sign extended so we need to clear the top
         # bits.
@@ -956,7 +962,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
     Structs have members at various fixed relative offsets from our own base
     offset.
     """
-    def __init__(self, members = None, struct_size = 0, **kwargs):
+    def __init__(self, members=None, struct_size=0, **kwargs):
         """ This must be instantiated with a dict of members. The keys
         are the offsets, the values are Curried Object classes that
         will be instantiated when accessed.
@@ -1009,8 +1015,9 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         return self.struct_size
 
     def __repr__(self):
-        return "[{0} {1}] @ 0x{2:08X}".format(self.obj_type, self.obj_name or '',
-                                              self.obj_offset)
+        return "[{0} {1}] @ 0x{2:08X}".format(
+            self.obj_type, self.obj_name or '', self.obj_offset)
+
     def __str__(self):
         result = self.__repr__() + "\n"
         width_name = 0
@@ -1020,17 +1027,17 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         for k in self.members:
             width_name = max(width_name, len(k))
             obj = self.m(k)
-            fields.append((getattr(obj, "obj_offset", self.obj_offset) - self.obj_offset,
-                           k, repr(obj)))
+            fields.append(
+                (getattr(obj, "obj_offset", self.obj_offset) -
+                 self.obj_offset, k, repr(obj)))
 
         fields.sort()
 
-        format_string = "0x%04X %" + str(width_name) + "s %s"
         return result + "\n".join(
             ["  0x%02X %s%s %s" % (offset, k, " " * (width_name - len(k)), v)
-             for offset,k,v in fields]) + "\n"
+             for offset, k, v in fields]) + "\n"
 
-    def __unicode__(self, encoding=None):
+    def __unicode__(self):
         return self.__str__()
 
     def v(self, vm=None):
@@ -1216,7 +1223,7 @@ class Profile(object):
             def is_valid_address(self, _offset):
                 return True
 
-            def read(self, offset, length):
+            def read(self, _, length):
                 return "\x00" * length
 
         # A dummy address space used internally.
@@ -1363,14 +1370,15 @@ class Profile(object):
                 elif v[0] == None:
                     logging.warning(
                         "{0} has no offset in object {1}. Check that vtypes "
-                        "has a concrete definition for it.".format(k, type_name))
+                        "has a concrete definition for it.".format(
+                            k, type_name))
                 else:
                     members[k] = (v[0], self.list_to_type(k, v[1]))
 
             ## Allow the class plugins to override the class constructor here
             cls = self.object_classes.get(type_name, Struct)
 
-            self.types[type_name] =  self._make_struct_callable(
+            self.types[type_name] = self._make_struct_callable(
                 cls, type_name, members, size, callable_members)
 
     def _make_struct_callable(self, cls, type_name, members, size,
@@ -1515,14 +1523,14 @@ class Profile(object):
             logging.warning("Unable to find a type for %s, assuming int",
                             typeList)
 
-        return Curry(self.Object, theType='int', name = name)
+        return Curry(self.Object, theType='int', name=name)
 
     def _get_dummy_obj(self, name):
         """Make a dummy object on top of the dummy address space."""
         self.compile_type(name)
 
         # Make the object on the dummy AS.
-        tmp = self.Object(theType = name, offset = 0, vm = self._dummy)
+        tmp = self.Object(theType=name, offset=0, vm=self._dummy)
         return tmp
 
     def get_obj_offset(self, name, member):
@@ -1612,7 +1620,8 @@ class Profile(object):
             if k not in field_overlay:
                 field_overlay[k] = v
             else:
-                field_overlay[k] = self._apply_field_overlay(v, field_overlay[k])
+                field_overlay[k] = self._apply_field_overlay(
+                    v, field_overlay[k])
 
         return overlay
 
@@ -1651,7 +1660,8 @@ class Profile(object):
 
         # Check the overlay and type descriptor for sanity.
         if len(field_overlay) != 2 or not isinstance(field_overlay[1], list):
-            raise RuntimeError("Overlay error: Invalid overlay %s" % field_overlay)
+            raise RuntimeError(
+                "Overlay error: Invalid overlay %s" % field_overlay)
 
         if len(field_member) != 2 or not isinstance(field_member[1], list):
             raise RuntimeError("VType error: Invalid field type descriptor %s" %
@@ -1666,22 +1676,26 @@ class Profile(object):
 
         return field_overlay
 
-    def get_constant(self, constant, is_address=True):
+    def get_constant(self, constant, is_address=False):
         self.compile_type(constant)
 
         ACCESS_LOG.LogConstant(self.name, constant)
 
         result = self.constants.get(constant)
         if result is None:
-            result = NoneObject("Constant %s does not exist in profile." % constant)
+            result = NoneObject(
+                "Constant %s does not exist in profile." % constant)
+        elif is_address:
+            result = Pointer.integer_to_address(result)
 
         return result
 
-    def get_constant_object(self, constant, target=None, target_args={}, **kwargs):
+    def get_constant_object(self, constant, target=None, target_args=None,
+                            **kwargs):
         """A help function for retrieving pointers from the symbol table."""
         self.compile_type(constant)
 
-        kwargs.update(target_args)
+        kwargs.update(target_args or {})
         offset = self.get_constant(constant)
         if not offset:
             return offset
@@ -1769,8 +1783,9 @@ class Profile(object):
         # If the cache contains a None, this member is not represented by a
         # vtype (it might be a pure object class or a constant).
         if self.types[theType] is not None:
-            result = self.types[theType](offset=offset, vm=vm, name=name,
-                                         parent=parent, context=context, **kwargs)
+            result = self.types[theType](
+                offset=offset, vm=vm, name=name,
+                parent=parent, context=context, **kwargs)
             return result
 
         elif theType in self.object_classes:
@@ -1783,10 +1798,10 @@ class Profile(object):
                                                   **kwargs)
 
             if isinstance(result, Struct):
-                import pdb; pdb.set_trace()
                 # This should not normally happen.
-                logging.error("Instantiating a Struct class without an overlay. "
-                              "Please ensure an overlay is defined.")
+                logging.error(
+                    "Instantiating a Struct class without an overlay. "
+                    "Please ensure an overlay is defined.")
 
             return result
 
@@ -1817,7 +1832,8 @@ class ProfileModification(object):
          super(myPlugin, self).__init__(**kwargs)
 
          # Update the profile with the "VolRegistrySupport" implementation.
-         self.profile = obj.ProfileModification.classes['VolRegistrySupport'](self.profile)
+         self.profile = obj.ProfileModification.classes[
+             'VolRegistrySupport'](self.profile)
 
     Note that this plugin must explicitely apply the correct modification. This
     allows the plugin to choose from a number of different implementations. For
@@ -1850,7 +1866,8 @@ class ProfileModification(object):
 
         # If any of these change we can not use the same profile instance:
         # session object, current modification, previous modifications.
-        key = "%r:%s:%s" % (profile.session, cls.__name__, profile.applied_modifications)
+        key = "%r:%s:%s" % (profile.session, cls.__name__,
+                            profile.applied_modifications)
         try:
             result = PROFILE_CACHE.Get(key)
         except KeyError:

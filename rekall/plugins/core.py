@@ -86,10 +86,10 @@ class Info(plugin.Command):
                 yield name, cls.__doc__.splitlines()[0].strip()
 
     def address_spaces(self):
-        for name, cls in addrspaces.BaseAddressSpace.classes.items():
+        for name, cls in addrspace.BaseAddressSpace.classes.items():
             yield dict(name=name, function=cls.name, definition=cls.__module__)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         if self.item is None:
             return self.render_general_info(renderer)
         else:
@@ -111,7 +111,7 @@ class Info(plugin.Command):
         for line in string.splitlines():
             line = line[dedent:]
 
-            m = re.match("\s*", line)
+            m = re.match(r"\s*", line)
             leading_space = len(m.group(0))
 
             text = line[leading_space:]
@@ -161,7 +161,7 @@ class Info(plugin.Command):
         doc = ""
 
         for line in arg_string.splitlines():
-            m = re.match("\s+([^\s]+):(.+)", line)
+            m = re.match(r"\s+([^\s]+):(.+)", line)
             if m:
                 if parameter:
                     yield parameter, doc
@@ -197,7 +197,6 @@ class Info(plugin.Command):
 
             renderer.write("%s\n\n" % doc_string.strip())
 
-            doc_strings = []
             renderer.table_header([('Parameter', 'parameter', '30'),
                                    (' Documentation', 'doc', '70')])
             for parameter, doc in self.get_default_args(item):
@@ -279,7 +278,7 @@ class LoadAddressSpace(plugin.Command):
 
     __name = "load_as"
 
-    def __init__(self, pas_spec = "auto", **kwargs):
+    def __init__(self, pas_spec="auto", **kwargs):
         """Tries to create the address spaces and assigns them to the session.
 
         An address space specification is a column delimited list of AS
@@ -355,7 +354,8 @@ class LoadAddressSpace(plugin.Command):
 
         self.profile = self.session.profile
         if self.profile is None:
-            raise plugin.PluginError("Must specify a profile to load virtual AS.")
+            raise plugin.PluginError(
+                "Must specify a profile to load virtual AS.")
 
         address_space_curry = obj.Curry(
             GetAddressSpaceImplementation(self.profile),
@@ -393,7 +393,8 @@ class LoadAddressSpace(plugin.Command):
                 dtb=dtb)
 
         if self.session.default_address_space is None:
-            self.session.default_address_space = self.session.kernel_address_space
+            self.session.default_address_space = \
+                self.session.kernel_address_space
 
         return self.session.kernel_address_space
 
@@ -412,7 +413,8 @@ class LoadAddressSpace(plugin.Command):
             found = False
             for cls in address_spaces:
                 # Only try address spaces which claim to support images.
-                if not cls.metadata("image"): continue
+                if not cls.metadata("image"):
+                    continue
 
                 logging.debug("Trying %s ", cls)
                 try:
@@ -422,7 +424,8 @@ class LoadAddressSpace(plugin.Command):
                     found = True
                     break
                 except (AssertionError, addrspace.ASAssertionError), e:
-                    logging.debug("Failed instantiating %s: %s", cls.__name__, e)
+                    logging.debug("Failed instantiating %s: %s",
+                                  cls.__name__, e)
                     error.append_reason(cls.__name__, e)
                     continue
                 except Exception, e:
@@ -445,11 +448,12 @@ class LoadAddressSpace(plugin.Command):
 
         return base_as
 
-    def AddressSpaceFactory(self, specification = ''):
+    def AddressSpaceFactory(self, specification='', **kwargs):
         """Build the address space from the specification.
 
         Args:
-           specification: A column separated list of AS class names to be stacked.
+           specification: A column separated list of AS class names to be
+           stacked.
         """
         base_as = None
         for as_name in specification.split(":"):
@@ -461,7 +465,7 @@ class LoadAddressSpace(plugin.Command):
 
         return base_as
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         if not self.session.physical_address_space:
             self.GetPhysicalAddressSpace()
 
@@ -479,7 +483,8 @@ class DirectoryDumperMixin(object):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(DirectoryDumperMixin, cls).args(parser)
-        parser.add_argument("-D", "--dump-dir", required=not cls.dump_dir_optional,
+        parser.add_argument("-D", "--dump-dir",
+                            required=not cls.dump_dir_optional,
                             help="Path suitable for dumping files (required).")
 
     def __init__(self, dump_dir=None, **kwargs):
@@ -496,12 +501,13 @@ class DirectoryDumperMixin(object):
     def check_dump_dir(self, dump_dir=None):
         # If the dump_dir parameter is not optional insist its there.
         if not self.dump_dir_optional and not dump_dir:
-                raise plugin.PluginError("Please specify a dump directory.")
+            raise plugin.PluginError(
+                "Please specify a dump directory.")
 
         if dump_dir and not os.path.isdir(dump_dir):
             raise plugin.PluginError("%s is not a directory" % self.dump_dir)
 
-    def CopyToFile(self, addrspace, start, end, outfd):
+    def CopyToFile(self, address_space, start, end, outfd):
         """Copy a part of the address space to the output file.
 
         This utility function allows the writing of sparse files correctly. We
@@ -514,7 +520,7 @@ class DirectoryDumperMixin(object):
         """
         BUFFSIZE = 1024 * 1024
 
-        for offset, length in addrspace.get_address_ranges(start, end):
+        for offset, length in address_space.get_address_ranges(start, end):
             outfd.seek(offset - start)
             i = offset
 
@@ -522,7 +528,7 @@ class DirectoryDumperMixin(object):
             while i < offset + length:
                 to_read = min(BUFFSIZE, length)
 
-                data = addrspace.read(i, to_read)
+                data = address_space.read(i, to_read)
                 outfd.write(data)
 
                 i += to_read
@@ -535,8 +541,8 @@ class Null(plugin.Command):
     """
     __name = "null"
 
-    def render(self, outfd):
-        pass
+    def render(self, renderer=None):
+        _ = renderer
 
 
 class LoadPlugins(plugin.Command):
@@ -547,7 +553,7 @@ class LoadPlugins(plugin.Command):
     """
 
     __name = "load_plugin"
-    _interactive = True
+    interactive = True
 
     def __init__(self, path, **kwargs):
         super(LoadPlugins, self).__init__(**kwargs)
@@ -561,14 +567,14 @@ class Printer(plugin.Command):
     """A plugin to print an object."""
 
     __name = "p"
-    _interactive = True
+    interactive = True
 
     def __init__(self, target=None, **kwargs):
         """Prints an object to the screen."""
         super(Printer, self).__init__(**kwargs)
         self.target = target
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         for line in utils.SmartStr(self.target).splitlines():
             renderer.write(line + "\n")
 
@@ -577,9 +583,9 @@ class Lister(Printer):
     """A plugin to list objects."""
 
     __name = "l"
-    _interactive = True
+    interactive = True
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         if self.target is None:
             logging.error("You must list something.")
             return
@@ -611,9 +617,9 @@ class DT(plugin.ProfileCommand):
         if target is None:
             raise plugin.PluginError("You must specify something to print.")
 
-    def render(self, renderer):
-        obj = self.profile.Object(self.target)
-        self.session.plugins.p(obj).render(renderer)
+    def render(self, renderer=None):
+        item = self.profile.Object(self.target)
+        self.session.plugins.p(item).render(renderer)
 
 
 class Dump(plugin.Command):
@@ -673,16 +679,14 @@ class Dump(plugin.Command):
         self.rows = int(rows)
         self.suppress_headers = suppress_headers
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         # Its an object
         if isinstance(self.target, obj.BaseObject):
             data = self.target.obj_vm.read(self.target.obj_offset,
                                            self.target.size())
-            base = self.target.obj_offset
         # Its an address space
         elif isinstance(self.target, addrspace.BaseAddressSpace):
             data = self.target.read(self.offset, self.width * self.rows)
-            base = self.offset
 
         # If the target is an integer we assume it means an offset to read from
         # the default_address_space.
@@ -692,12 +696,10 @@ class Dump(plugin.Command):
 
             data = self.session.default_address_space.read(
                 self.offset, self.width * self.rows)
-            base = self.offset
 
         # Its a string or something else:
         else:
             data = utils.SmartStr(self.target)
-            base = 0
 
         renderer.table_header([("Offset", "offset", "[addr]"),
                                ("Hex", "hex", "^" + str(3 * self.width)),
@@ -763,11 +765,11 @@ class Grep(plugin.Command):
             yield idx
             start = idx + 1
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([("Offset", "offset", "[addr]"),
                                ("Hex", "hex", "^" + str(3 * self.context)),
                                ("Data", "data", "^" + str(self.context)),
-                               ("Comment", "comment","")]
+                               ("Comment", "comment", "")]
                               )
 
         offset = self.offset

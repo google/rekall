@@ -21,7 +21,6 @@
 #
 
 from rekall import args
-from rekall import obj
 from rekall import utils
 from rekall.plugins.windows import common
 
@@ -93,7 +92,7 @@ class Handles(common.WinProcessFilter):
 
                 yield handle, object_type, name
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
                                ("Pid", "pid", ">6"),
                                ("Handle", "handle", "[addr]"),
@@ -117,6 +116,10 @@ class Handles(common.WinProcessFilter):
                         continue
 
                 offset = handle.Body.obj_offset
-                renderer.table_row(offset, task.UniqueProcessId, handle.HandleValue,
-                                   handle.GrantedAccess, object_type, name)
+                renderer.table_row(
+                    offset,
+                    task.UniqueProcessId,
+                    handle.HandleValue,
+                    handle.GrantedAccess,
+                    object_type, name)
 

@@ -504,7 +504,7 @@ class WinTimeStamp(UnixTimeStamp):
         return unix_time
 
     def as_windows_timestamp(self):
-        return super(WinTimeStamp, self).v(self)
+        return super(WinTimeStamp, self).v()
 
     def v(self, vm=None):
         value = self.as_windows_timestamp()

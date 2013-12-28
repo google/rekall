@@ -31,19 +31,15 @@ import json
 import logging
 import pdb
 import os
-import subprocess
 import sys
-import textwrap
 import time
 
 from rekall import addrspace
 from rekall import config
 # Include the built in profiles as a last fallback.
-from rekall import builtin_profiles
 from rekall import io_manager
 from rekall import plugin
 from rekall import obj
-from rekall import registry
 from rekall import utils
 from rekall.ui import renderer
 
@@ -133,6 +129,7 @@ class Configuration(Cache):
     _lock = False
 
     def __init__(self, session=None, **kwargs):
+        super(Configuration, self).__init__(**kwargs)
         self.session = session
         self.update(**kwargs)
 
@@ -164,7 +161,8 @@ class Session(object):
     This session contains the bare minimum to use rekall.
     """
     def __init__(self, **kwargs):
-        self.profile = obj.NoneObject("Set this to a valid profile (e.g. type profiles. and tab).")
+        self.profile = obj.NoneObject("Set this to a valid profile "
+                                      "(e.g. type profiles. and tab).")
 
         # Store user configurable attributes here. These will be read/written to
         # the configuration file.
@@ -226,7 +224,7 @@ class Session(object):
     def StoreParameter(self, item, value):
         self.state.cache[item] = value
 
-    def error(self, plugin_cls, e):
+    def error(self, _plugin_cls, e):
         """An error handler for plugin errors."""
         raise e
 
@@ -436,14 +434,14 @@ class InteractiveSession(Session):
             if name:
                 setattr(plugins, name, obj.Curry(cls, session=self))
 
-                # Create a runner for this plugin and set its documentation.
-                runner = obj.Curry(self.vol, name)
-
                 # Use the info class to build docstrings for all plugins.
                 info_plugin = plugin.Command.classes['Info'](cls)
+
+                # Create a runner for this plugin and set its documentation.
+                runner = obj.Curry(self.vol, name, default_arguments=[
+                        x for x, _ in info_plugin.get_default_args()])
+
                 runner.__doc__ = utils.SmartUnicode(info_plugin)
-                runner._default_arguments = [
-                    x for x,y in info_plugin.get_default_args()]
 
                 setattr(self._locals['plugins'], name, runner)
                 self._locals[name] = runner

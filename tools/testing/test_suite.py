@@ -122,12 +122,10 @@ import ConfigParser
 import logging
 import json
 import os
-import re
 import shutil
 import sys
 import tempfile
 import time
-import traceback
 import unittest
 
 from rekall import config as rekall_config
@@ -138,9 +136,10 @@ from rekall import threadpool
 from rekall.ui import renderer
 
 # Bring in all the tests and all the plugins
+# pylint: disable=unused-import
 from rekall import plugins
 from rekall.plugins import tests
-
+# pylint: enable=unused-import
 
 class RekallTester(object):
     """A class to manage running and controlling the test harness."""
@@ -223,10 +222,10 @@ class RekallTester(object):
         # This directory should not exist already!
         os.mkdir(config_options["tempdir"])
 
-        plugin = plugin_cls(temp_directory=config_options["tempdir"])
+        plugin_obj = plugin_cls(temp_directory=config_options["tempdir"])
         start = time.time()
 
-        baseline_data = plugin.BuildBaseLineData(config_options)
+        baseline_data = plugin_obj.BuildBaseLineData(config_options)
         if baseline_data is None:
             baseline_data = {}
 
@@ -280,7 +279,7 @@ class RekallTester(object):
         # A map of all the specialized tests which are defined. Only include
         # those classes which are active for the currently selected profile.
         plugins_with_test = set()
-        for name, cls in testlib.RekallBaseUnitTestCase.classes.items():
+        for _, cls in testlib.RekallBaseUnitTestCase.classes.items():
             if cls.is_active(s):
                 plugin_name = cls.PARAMETERS.get("commandline", "").split()
                 if plugin_name:
@@ -293,7 +292,7 @@ class RekallTester(object):
                 continue
 
             # We can not test interactive plugins in this way.
-            if cls._interactive:
+            if cls.interactive:
                 continue
 
             # Remove classes which are not active.
@@ -417,15 +416,16 @@ class RekallTester(object):
                         self.renderer.write("Error in %s: %s" % (
                                 plugin_cls.__name__, error))
 
-def main(argv):
+def main(_):
     start = time.time()
     with RekallTester() as tester:
         tester.RunTests()
 
     tester.renderer.write(
-        "Completed %s tests (%s passed, %s failed, %s rebuild) in %s Seconds.\n" %
-        (tester.successes + tester.failures, tester.successes, tester.failures,
-         tester.rebuilt, int(time.time() - start)))
+        "Completed %s tests (%s passed, %s failed, %s rebuild) in "
+        "%s Seconds.\n" % (tester.successes + tester.failures,
+                           tester.successes, tester.failures,
+                           tester.rebuilt, int(time.time() - start)))
 
 if __name__ == "__main__":
     main(sys.argv)

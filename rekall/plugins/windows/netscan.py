@@ -20,9 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import socket
+# pylint: disable=protected-access
 
-from rekall import utils
 from rekall.plugins.windows import common
 from rekall.plugins.overlays.windows import tcpip_vtypes
 
@@ -31,10 +30,6 @@ from rekall.plugins.overlays.windows import tcpip_vtypes
 # need Microsoft's since that's what is found in memory.
 AF_INET = 2
 AF_INET6 = 0x17
-
-#--------------------------------------------------------------------------------
-# pool scanners
-#--------------------------------------------------------------------------------
 
 class PoolScanUdpEndpoint(common.PoolScanner):
     """PoolScanner for Udp Endpoints"""
@@ -49,7 +44,8 @@ class PoolScanUdpEndpoint(common.PoolScanner):
                     min_size=self.profile.get_obj_size("_UDP_ENDPOINT"))),
 
             ('CheckPoolType', dict(non_paged=True, free=True, paged=True)),
-            ('CheckPoolIndex', dict(value = 0)),
+
+            ('CheckPoolIndex', dict(value=0)),
             ]
 
 
@@ -66,7 +62,8 @@ class PoolScanTcpListener(common.PoolScanner):
                     min_size=self.profile.get_obj_size("_TCP_LISTENER"))),
 
             ('CheckPoolType', dict(non_paged=True, free=True, paged=True)),
-            ('CheckPoolIndex', dict(value = 0)),
+
+            ('CheckPoolIndex', dict(value=0)),
             ]
 
 
@@ -83,13 +80,10 @@ class PoolScanTcpEndpoint(common.PoolScanner):
                     min_size=self.profile.get_obj_size("_TCP_ENDPOINT"))),
 
             ('CheckPoolType', dict(non_paged=True, free=True, paged=True)),
-            ('CheckPoolIndex', dict(value = 0)),
+
+            ('CheckPoolIndex', dict(value=0)),
             ]
 
-
-#--------------------------------------------------------------------------------
-# netscan plugin
-#--------------------------------------------------------------------------------
 
 class Netscan(common.PoolScannerPlugin):
     """Scan a Vista, 2008 or Windows 7 image for connections and sockets"""
@@ -106,32 +100,36 @@ class Netscan(common.PoolScannerPlugin):
         self.profile = tcpip_vtypes.TCPIPModifications(self.profile)
 
     def generate_hits(self):
-        scanner = PoolScanTcpListener(profile=self.profile, session=self.session,
-                                      address_space=self.address_space)
+        scanner = PoolScanTcpListener(
+            profile=self.profile, session=self.session,
+            address_space=self.address_space)
 
         for pool_obj in scanner.scan():
             pool_header_end = pool_obj.obj_offset + pool_obj.size()
-            tcpentry = self.profile._TCP_LISTENER(vm=self.address_space,
-                                                  offset=pool_header_end)
+            tcpentry = self.profile._TCP_LISTENER(
+                vm=self.address_space, offset=pool_header_end)
 
             # Only accept IPv4 or IPv6
             af_inet = tcpentry.InetAF.dereference(vm=self.kernel_address_space)
             if af_inet.AddressFamily not in (AF_INET, AF_INET6):
                 continue
 
-            # For TcpL, the state is always listening and the remote port is zero
+            # For TcpL, the state is always listening and the remote port is
+            # zero
             for ver, laddr, raddr in tcpentry.dual_stack_sockets(
                 vm=self.kernel_address_space):
-                yield tcpentry, "TCP" + ver, laddr, tcpentry.Port, raddr, 0, "LISTENING"
+                yield (tcpentry, "TCP" + ver, laddr,
+                       tcpentry.Port, raddr, 0, "LISTENING")
 
         # Scan for TCP endpoints also known as connections
-        scanner = PoolScanTcpEndpoint(profile=self.profile, session=self.session,
-                                      address_space=self.address_space)
+        scanner = PoolScanTcpEndpoint(
+            profile=self.profile, session=self.session,
+            address_space=self.address_space)
 
         for pool_obj in scanner.scan():
             pool_header_end = pool_obj.obj_offset + pool_obj.size()
-            tcpentry = self.profile._TCP_ENDPOINT(vm=self.address_space,
-                                                  offset=pool_header_end)
+            tcpentry = self.profile._TCP_ENDPOINT(
+                vm=self.address_space, offset=pool_header_end)
 
             af_inet = tcpentry.InetAF.dereference(vm=self.kernel_address_space)
             if af_inet.AddressFamily == AF_INET:
@@ -157,13 +155,14 @@ class Netscan(common.PoolScannerPlugin):
                    remote_addr, tcpentry.RemotePort, tcpentry.State)
 
         # Scan for UDP endpoints
-        scanner = PoolScanUdpEndpoint(profile=self.profile, session=self.session,
-                                      address_space=self.address_space)
+        scanner = PoolScanUdpEndpoint(
+            profile=self.profile, session=self.session,
+            address_space=self.address_space)
 
         for pool_obj in scanner.scan():
             pool_header_end = pool_obj.obj_offset + pool_obj.size()
-            udpentry = self.profile._UDP_ENDPOINT(vm=self.address_space,
-                                                  offset=pool_header_end)
+            udpentry = self.profile._UDP_ENDPOINT(
+                vm=self.address_space, offset=pool_header_end)
 
             af_inet = udpentry.InetAF.dereference(vm=self.kernel_address_space)
 
@@ -171,13 +170,15 @@ class Netscan(common.PoolScannerPlugin):
             if af_inet.AddressFamily not in (AF_INET, AF_INET6):
                 continue
 
-            # For UdpA, the state is always blank and the remote end is asterisks
+            # For UdpA, the state is always blank and the remote end is
+            # asterisks
             for ver, laddr, _ in udpentry.dual_stack_sockets(
                 vm=self.kernel_address_space):
-                yield udpentry, "UDP" + ver, laddr, udpentry.Port, "*", "*", ""
+                yield (udpentry, "UDP" + ver, laddr, udpentry.Port,
+                       "*", "*", "")
 
-    def render(self, renderer):
-        renderer.table_header([("Offset(P)","offset", "[addrpad]"),
+    def render(self, renderer=None):
+        renderer.table_header([("Offset(P)", "offset", "[addrpad]"),
                                ("Proto", "protocol", "<8"),
                                ("Local Address", "local_addr", "<20"),
                                ("Remote Address", "remote_addr", "<20"),

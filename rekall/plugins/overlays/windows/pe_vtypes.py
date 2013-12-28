@@ -1074,7 +1074,10 @@ class _IMAGE_DATA_DIRECTORY(obj.Struct):
 
         if self.obj_name == "IMAGE_DIRECTORY_ENTRY_IMPORT":
             return result.dereference_as(
-                "SentinalArray", target="_IMAGE_IMPORT_DESCRIPTOR")
+                target="SentinalArray", target_args=dict(
+                    target="_IMAGE_IMPORT_DESCRIPTOR"
+                    )
+                )
 
         elif self.obj_name == "IMAGE_DIRECTORY_ENTRY_EXPORT":
             return result.dereference_as("_IMAGE_EXPORT_DIRECTORY")

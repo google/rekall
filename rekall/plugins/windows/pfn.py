@@ -23,7 +23,7 @@
 # References:
 # http://www.codemachine.com/article_kernelstruct.html#MMPFN
 
-import os
+# pylint: disable=protected-access
 
 from rekall import args
 from rekall import testlib
@@ -118,7 +118,9 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
 
     def _vtop_32bit(self, vaddr, address_space):
         """An implementation specific to the 32 bit intel address space."""
-        pde_addr = (address_space.dtb & 0xfffff000) | ((vaddr & 0xffc00000) >> 20)
+        pde_addr = ((address_space.dtb & 0xfffff000) |
+                    ((vaddr & 0xffc00000) >> 20))
+
         pde_value = address_space.read_long_phys(pde_addr)
         yield "pde", pde_value, pde_addr
 
@@ -139,11 +141,15 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
             yield "Invalid PTE", None, None
             return
 
-        yield "PTE mapped", address_space.get_phys_addr(vaddr, pte_value), pte_addr
+        yield ("PTE mapped",
+               address_space.get_phys_addr(vaddr, pte_value),
+               pte_addr)
 
     def _vtop_32bit_pae(self, vaddr, address_space):
-        """An implementation specific to the 32 bit PAE intel address space."""
-        pdpte_addr = (address_space.dtb & 0xfffffff0) | ((vaddr & 0x7FC0000000) >> 27)
+        """An implementation specific to the 32 bit PAE intel AS."""
+        pdpte_addr = ((address_space.dtb & 0xfffffff0) |
+                      ((vaddr & 0x7FC0000000) >> 27))
+
         pdpte_value = address_space._read_long_long_phys(pdpte_addr)
         yield "pdpte", pdpte_value, pdpte_addr
 
@@ -172,11 +178,15 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
             yield "Invalid PTE", None, None
             return
 
-        yield "PTE mapped", address_space.get_phys_addr(vaddr, pte_value), pte_addr
+        yield ("PTE mapped",
+               address_space.get_phys_addr(vaddr, pte_value),
+               pte_addr)
 
     def _vtop_64bit(self, vaddr, address_space):
         """An implementation specific to the 64 bit intel address space."""
-        pml4e_addr = (address_space.dtb & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
+        pml4e_addr = ((address_space.dtb & 0xffffffffff000) |
+                      ((vaddr & 0xff8000000000) >> 36))
+
         pml4e_value = address_space._read_long_long_phys(pml4e_addr)
         yield "pml4e", pml4e_value, pml4e_addr
 
@@ -184,7 +194,9 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
             yield "Invalid PDE", None, None
             return
 
-        pdpte_addr = (pml4e_value & 0xffffffffff000) | ((vaddr & 0x7FC0000000) >> 27)
+        pdpte_addr = ((pml4e_value & 0xffffffffff000) |
+                      ((vaddr & 0x7FC0000000) >> 27))
+
         pdpte_value = address_space._read_long_long_phys(pdpte_addr)
         yield "pdpte", pdpte_value, pdpte_addr
 
@@ -193,7 +205,8 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
                 vaddr, pdpte_value), None
             return
 
-        pde_addr = (pdpte_value & 0xffffffffff000) | ((vaddr & 0x3fe00000) >> 18)
+        pde_addr = ((pdpte_value & 0xffffffffff000) |
+                    ((vaddr & 0x3fe00000) >> 18))
         pde_value = address_space.read_long_phys(pde_addr)
         yield "pde", pde_value, pde_addr
 
@@ -214,7 +227,9 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
             yield "Invalid PTE", None, None
             return
 
-        yield "PTE mapped", address_space.get_phys_addr(vaddr, pte_value), pte_addr
+        yield ("PTE mapped",
+               address_space.get_phys_addr(vaddr, pte_value),
+               pte_addr)
 
     def vtop(self, virtual_address, address_space=None):
         """Translate the virtual_address using the address_space."""
@@ -231,7 +246,7 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
 
         return function(virtual_address, address_space)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         if self.address is None:
             return
 
@@ -294,7 +309,7 @@ class PFNInfo(common.WindowsCommandPlugin):
         # Return the pfn record.
         return self.pfn_database[pfn]
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         pfn = self.pfn
         if self.physical_address is not None:
             pfn = int(self.physical_address) / self.PAGE_SIZE
@@ -357,18 +372,12 @@ class PTE(common.WindowsCommandPlugin):
         self.virtual_address = virtual_address
 
 
-    def render(self, renderer):
-        pte_address = None
-
+    def render(self, renderer=None):
         if self.virtual_address is not None:
-            for name, address, value in self.vtop.vtop(
+            for name, _, _ in self.vtop.vtop(
                 self.virtual_address, self.kernel_address_space):
                 if name == "pte":
-                    pte_address = address
                     break
-
-        elif self.pte_address:
-            pte_address = self.pte_address
 
 
 class PtoV(common.WinProcessFilter):
@@ -456,7 +465,8 @@ class PtoV(common.WinProcessFilter):
         pfn_obj = self.pfn_plugin.pfn_record(containing_page)
 
         if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject("PDPTE invalid (Is this a one gig page?)."), []
+            return obj.NoneObject(
+                "PDPTE invalid (Is this a one gig page?)."), []
 
         containing_page = int(pfn_obj.u4.PteFrame)
         pdpte_address = ((containing_page << self.PAGE_BITS) |
@@ -507,7 +517,8 @@ class PtoV(common.WinProcessFilter):
         pfn_obj = self.pfn_plugin.pfn_record(containing_page)
 
         if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject("PDPTE invalid (Is this a one gig page?)."), []
+            return obj.NoneObject(
+                "PDPTE invalid (Is this a one gig page?)."), []
 
         containing_page = int(pfn_obj.u4.PteFrame)
         pdpte_address = ((containing_page << self.PAGE_BITS) |
@@ -555,7 +566,7 @@ class PtoV(common.WinProcessFilter):
 
         return obj.NoneObject("Memory model not supported."), []
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         if self.physical_address is None:
             return
 
@@ -591,7 +602,7 @@ class DTBScan(common.WinProcessFilter):
         super(DTBScan, self).__init__(**kwargs)
         self.limit = limit
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         ptov = self.session.plugins.ptov(session=self.session)
         pslist = self.session.plugins.pslist(session=self.session)
         pfn_plugin = self.session.plugins.pfn(session=self.session)
@@ -605,12 +616,13 @@ class DTBScan(common.WinProcessFilter):
                                ("VAddr", "vaddr", "[addrpad]"),
                                ("_EPROCESS", "task", "[addrpad]"),
                                ("Image Name", "filename", "<20"),
-                               ("Known", "known", "") ])
+                               ("Known", "known", "")])
 
         seen_dtbs = set()
 
         # Now scan all the physical address space for DTBs.
-        for start, length in self.physical_address_space.get_available_addresses():
+        for _ in self.physical_address_space.get_available_addresses():
+            start, length = _
             for page in range(start, start + length, 0x1000):
                 self.session.report_progress("Scanning 0x%08X (%smb)" % (
                         page, page/1024/1024))

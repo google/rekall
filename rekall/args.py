@@ -18,10 +18,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+"""This module manages the command line parsing logic."""
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
-
-"""This module manages the command line parsing logic."""
 
 import argparse
 import logging
@@ -33,8 +32,6 @@ import zipfile
 from rekall import config
 from rekall import constants
 from rekall import plugin
-from rekall import session
-from rekall import utils
 
 
 config.DeclareOption("--plugin", default=[], nargs="+",
@@ -115,7 +112,7 @@ class ArrayStringParser(argparse.Action):
 
 
 class MockArgParser(object):
-    def add_argument(self, short_flag="", long_flag="", dest="", **kwargs):
+    def add_argument(self, short_flag="", long_flag="", dest="", **_):
         if short_flag.startswith("--"):
             flag = short_flag
         elif long_flag.startswith("--"):
@@ -157,7 +154,7 @@ class RekallArgParser(argparse.ArgumentParser):
 
         super(RekallArgParser, self).error(message)
 
-    def parse_known_args(self, args=None, namespace=None, force=False):
+    def parse_known_args(self, args=None, namespace=None, force=False, **_):
         self.ignore_errors = force
 
         result = super(RekallArgParser, self).parse_known_args(
@@ -232,7 +229,7 @@ def LoadPlugins(paths=None):
 
 def LoadProfileIntoSession(parser, argv, user_session):
     # Figure out the profile
-    known_args, unknown_args = parser.parse_known_args(args=argv)
+    known_args, _ = parser.parse_known_args(args=argv)
 
     # Force debug level logging with the verbose flag.
     if getattr(known_args, "verbose", None):
@@ -255,7 +252,7 @@ def LoadProfileIntoSession(parser, argv, user_session):
 
 def parse_args(argv=None, user_session=None):
     """Parse the args from the command line argv."""
-    parser =  RekallArgParser(
+    parser = RekallArgParser(
         description=constants.BANNER,
         conflict_handler='resolve',
         add_help=False,
@@ -280,7 +277,7 @@ def parse_args(argv=None, user_session=None):
     classes = []
     for cls in plugin.Command.classes.values():
         if (cls.name and cls.is_active(user_session) and not
-            cls._interactive):
+            cls.interactive):
             classes.append(cls)
 
     for cls in sorted(classes, key=lambda x: x.name):

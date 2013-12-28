@@ -20,11 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-#pylint: disable-msg=C0111
-
 from rekall.plugins.overlays.windows import tcpip_vtypes
 from rekall.plugins.windows import common
-from rekall import obj
 
 protos = {
           0:"HOPOPT",
@@ -112,7 +109,7 @@ protos = {
           82:"SECURE-VMTP",
           83:"VINES",
           84:"TTP",
-          84:"IPTM",
+          # 84:"IPTM",
           85:"NSFNET-IGP",
           86:"DGP",
           87:"TCF",
@@ -308,35 +305,38 @@ class Connections(common.AbstractWindowsCommandPlugin):
                     TCBTableOff = module_versions[attempt]['TCBTableOff']
                     BaseAddress = int(m.DllBase)
 
-                    table_size = self.profile.Object(
-                        theType="long", offset=BaseAddress + SizeOff, vm=m.obj_vm)
+                    table_size = self.profile.long(
+                        offset=BaseAddress + SizeOff, vm=m.obj_vm)
 
                     table_addr = self.profile.Object(
-                        theType="unsigned long", offset=BaseAddress + TCBTableOff,
-                        vm = m.obj_vm)
+                        "unsigned long", offset=BaseAddress + TCBTableOff,
+                        vm=m.obj_vm)
 
                     if table_size > 0:
                         table = self.profile.Object(
                             theType="Array", offset=table_addr, vm=m.obj_vm,
-                            count = table_size,
-                            target = "Pointer", target_args = dict(target='_TCPT_OBJECT'))
+                            count=table_size,
+                            target="Pointer", target_args=dict(
+                                target='_TCPT_OBJECT'))
 
                         if table:
                             for entry in table:
                                 conn = entry.dereference()
                                 seen = set()
-                                while conn.is_valid() and conn.obj_offset not in seen:
+                                while (conn.is_valid() and
+                                       conn.obj_offset not in seen):
                                     yield conn
                                     seen.add(conn.obj_offset)
                                     conn = conn.Next.dereference()
 
 
-    def render(self, renderer):
-        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
-                               ("Local Address", "local_net_address", "25"),
-                               ("Remote Address", "remote_net_address", "25"),
-                               ("Pid", "pid", ">6")
-                               ])
+    def render(self, renderer=None):
+        renderer.table_header(
+            [("Offset (V)", "offset_v", "[addrpad]"),
+             ("Local Address", "local_net_address", "25"),
+             ("Remote Address", "remote_net_address", "25"),
+             ("Pid", "pid", ">6")
+             ])
 
         for conn in self.determine_connections():
             offset = conn.obj_offset
@@ -389,34 +389,38 @@ class Sockets(common.AbstractWindowsCommandPlugin):
 
                 # Try every possibility in the lookup table.
                 for attempt in module_versions:
-                    AddrObjTableSizeOffset = module_versions[attempt]['AddrObjTableSizeOffset']
-                    AddrObjTableOffset = module_versions[attempt]['AddrObjTableOffset']
+                    AddrObjTableSizeOffset = module_versions[attempt][
+                        'AddrObjTableSizeOffset']
+                    AddrObjTableOffset = module_versions[attempt][
+                        'AddrObjTableOffset']
                     BaseAddress = int(m.DllBase)
 
                     table_size = self.profile.Object(
-                        theType="long", offset=BaseAddress + AddrObjTableSizeOffset,
+                        "long", offset=BaseAddress + AddrObjTableSizeOffset,
                         vm=m.obj_vm)
 
                     table_addr = self.profile.Object(
-                        theType="unsigned long", offset=BaseAddress + AddrObjTableOffset,
-                        vm = m.obj_vm)
+                        "unsigned long", offset=BaseAddress+AddrObjTableOffset,
+                        vm=m.obj_vm)
 
                     if table_size > 0:
                         table = self.profile.Object(
                             theType="Array", offset=table_addr, vm=m.obj_vm,
-                            count = table_size,
-                            target = "Pointer", target_args=dict(target='_ADDRESS_OBJECT'))
+                            count=table_size,
+                            target="Pointer", target_args=dict(
+                                target='_ADDRESS_OBJECT'))
 
                         if table:
                             for entry in table:
                                 sock = entry.dereference()
                                 seen = set()
-                                while sock.is_valid() and sock.obj_offset not in seen:
+                                while (sock.is_valid() and
+                                       sock.obj_offset not in seen):
                                     yield sock
                                     seen.add(sock.obj_offset)
                                     sock = sock.Next.dereference()
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
                                ("PID", "pid", ">6"),
                                ("Port", "port", ">6"),
@@ -434,5 +438,6 @@ class Sockets(common.AbstractWindowsCommandPlugin):
             else:
                 protocol = protos.get(protocol, "Unassigned")
 
-            renderer.table_row(offset, sock.Pid, sock.LocalPort, sock.Protocol, protocol,
-                               sock.LocalIpAddress, sock.CreateTime)
+            renderer.table_row(
+                offset, sock.Pid, sock.LocalPort, sock.Protocol, protocol,
+                sock.LocalIpAddress, sock.CreateTime)

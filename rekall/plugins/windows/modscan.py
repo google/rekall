@@ -27,8 +27,8 @@ This module implements the fast module scanning
 @contact:      awalters@volatilesystems.com,bdolangavitt@wesleyan.edu
 @organization: Volatile Systems
 """
+# pylint: disable=protected-access
 
-#pylint: disable-msg=C0111
 from rekall.plugins.windows import common
 from rekall.plugins.windows import filescan
 
@@ -38,14 +38,17 @@ class PoolScanModuleFast(common.PoolScanner):
         super(PoolScanModuleFast, self).__init__(**kwargs)
         self.checks = [
             # Must have the right pool tag.
-            ('PoolTagCheck', dict(tag=self.profile.get_constant("MODULE_POOLTAG"))),
+            ('PoolTagCheck', dict(
+                    tag=self.profile.get_constant("MODULE_POOLTAG"))),
 
             # Must be large enough for an _LDR_DATA_TABLE_ENTRY.
             ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
                         "_LDR_DATA_TABLE_ENTRY"))),
 
-            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-            ('CheckPoolIndex', dict(value = 0)),
+            ('CheckPoolType', dict(
+                    paged=True, non_paged=True, free=True)),
+
+            ('CheckPoolIndex', dict(value=0)),
             ]
 
 
@@ -53,15 +56,6 @@ class ModScan(filescan.FileScan):
     """Scan Physical memory for _LDR_DATA_TABLE_ENTRY objects."""
 
     __name = "modscan"
-
-    # Declare meta information associated with this plugin
-    meta_info = dict(
-        author = 'Brendan Dolan-Gavitt',
-        copyright = 'Copyright (c) 2007,2008 Brendan Dolan-Gavitt',
-        contact = 'bdolangavitt@wesleyan.edu',
-        license = 'GNU General Public License 2.0 or later',
-        url = 'http://moyix.blogspot.com/',
-        )
 
     def generate_hits(self):
         scanner = PoolScanModuleFast(profile=self.profile, session=self.session,
@@ -73,7 +67,7 @@ class ModScan(filescan.FileScan):
 
             yield ldr_entry
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([("Offset(P)", "offset", "[addrpad]"),
                                ('Name', "name", "20"),
                                ('Base', "base", "[addrpad]"),
@@ -100,8 +94,10 @@ class PoolScanThreadFast(common.PoolScanner):
             ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
                         "_ETHREAD"))),
 
-            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-            ('CheckPoolIndex', dict(value = 0)),
+            ('CheckPoolType', dict(
+                    paged=True, non_paged=True, free=True)),
+
+            ('CheckPoolIndex', dict(value=0)),
             ]
 
 
@@ -110,7 +106,7 @@ class ThrdScan(ModScan):
 
     __name = "thrdscan"
 
-    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', "_ETHREAD" ]
+    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', "_ETHREAD"]
 
     def generate_hits(self):
         scanner = PoolScanThreadFast(profile=self.profile, session=self.session,
@@ -133,7 +129,7 @@ class ThrdScan(ModScan):
             yield thread
 
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([("Offset(P)", "offset", "[addrpad]"),
                                ("PID", "pid", ">6"),
                                ("TID", "tid", ">6"),

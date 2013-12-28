@@ -21,10 +21,7 @@
 #
 
 
-import logging
 import bisect
-import time
-import sys
 
 from rekall import args
 from rekall import testlib
@@ -77,7 +74,7 @@ class WinPas2Vas(common.WinProcessFilter):
 
         # Cache the process maps in the session.
         if self.session.process_maps is None:
-          self.session.process_maps = ProcessMap()
+            self.session.process_maps = ProcessMap()
 
         self.maps = self.session.process_maps
 
@@ -144,7 +141,7 @@ class WinPas2Vas(common.WinProcessFilter):
                 return lookup_va + physical_address - lookup_pa, task
         return None, None
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([('Physical', 'virtual_offset', '[addrpad]'),
                                ('Virtual', 'physical_offset', '[addrpad]'),
                                ('Pid', 'pid', '>6'),

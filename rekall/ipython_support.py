@@ -18,11 +18,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-__author__ = "Michael Cohen <scudette@gmail.com>"
-
 """Support IPython 1.0."""
 
-from rekall import args
+# pylint: disable=protected-access
+
+__author__ = "Michael Cohen <scudette@gmail.com>"
+
 from rekall import config
 from rekall import constants
 from rekall import utils
@@ -31,7 +32,6 @@ embed = (utils.ConditionalImport("IPython.terminal.embed") or
          utils.ConditionalImport("IPython.frontend.terminal.embed"))
 
 from IPython.config.loader import Config
-from IPython.core.completer import IPCompleter
 
 
 config.DeclareOption("--ipython_engine",
@@ -54,7 +54,7 @@ def RekallCompleter(self, text):
         obj = self.namespace.get(global_matches.pop())
         try:
             matches = ["%s=" % x for x in obj.get_default_arguments()]
-            return filter(lambda x: x.startswith(text), matches)
+            return [x for x in matches if x.startswith(text)]
         except Exception:
             pass
 
@@ -69,8 +69,8 @@ def Shell(user_session):
 
     cfg.PromptManager.in_template = (
         r'{color.LightCyan}'
-        '{session.state.profile}:{session.state.base_filename}'
-        '{color.LightBlue}{color.Green} \T> ')
+        r'{session.state.profile}:{session.state.base_filename}'
+        r'{color.LightBlue}{color.Green} \T> ')
 
     cfg.PromptManager.in2_template = (
         r'{color.Green}|{color.LightGreen}\D{color.Green}> ')

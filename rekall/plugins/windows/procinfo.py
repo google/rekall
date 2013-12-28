@@ -26,6 +26,8 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 from rekall import args
 from rekall import plugin
+from rekall import testlib
+
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.windows import common
@@ -66,7 +68,7 @@ class PEInfo(plugin.Command):
             self.address_space = standard.FileAddressSpace(filename=filename)
         self.image_base = image_base
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         """Print information about a PE file from memory."""
         try:
             disassembler = self.session.plugins.dis(
@@ -90,7 +92,7 @@ class PEInfo(plugin.Command):
                         pe_helper.image_base)
         renderer.table_header([('Perm', 'perm', '4'),
                                ('Name', 'name', '<8'),
-                               ('VMA',  'vma', '[addrpad]'),
+                               ('VMA', 'vma', '[addrpad]'),
                                ('Size', 'size', '[addrpad]')])
 
         for permission, name, virtual_address, size in pe_helper.Sections():
@@ -121,8 +123,11 @@ class PEInfo(plugin.Command):
             disassembly = []
 
             if disassembler:
-                for i, (_, _, x) in enumerate(disassembler.disassemble(function)):
-                    if i >= 5: break
+                for i, (_, _, x) in enumerate(
+                    disassembler.disassemble(function)):
+                    if i >= 5:
+                        break
+
                     disassembly.append(x.strip())
 
             renderer.table_row(name, function, "\n".join(disassembly))
@@ -131,11 +136,15 @@ class PEInfo(plugin.Command):
         renderer.table_header([('Entry', 'entry', '[addrpad]'),
                                ('Stat', 'status', '4'),
                                ('Ord', 'ord', '5'),
-                               ('Name',  'name', '<50')])
+                               ('Name', 'name', '<50')])
 
         for dll, function, name, ordinal in pe_helper.ExportDirectory():
             status = 'M' if function.dereference() else "-"
-            renderer.table_row(function, status, ordinal, u"%s!%s" % (dll, name))
+            renderer.table_row(
+                function,
+                status,
+                ordinal,
+                u"%s!%s" % (dll, name))
 
             self.address_space.kb.AddMemoryLocation(int(function), function)
 
@@ -152,28 +161,33 @@ class ProcInfo(common.WinProcessFilter):
 
     __name = "procinfo"
 
-    def render(self, outfd):
+    def render(self, renderer=None):
         for task in self.filter_processes():
-            outfd.write("*" * 72 + "\n")
-            outfd.write("Pid: %s %s\n" % (task.UniqueProcessId, task.ImageFileName))
+            renderer.section()
+            renderer.format("Pid: %s %s\n",
+                            task.UniqueProcessId, task.ImageFileName)
 
             task_address_space = task.get_process_address_space()
             if not task_address_space:
-                outfd.write("Peb Not mapped.\n")
+                renderer.format("Peb Not mapped.\n")
                 continue
 
-            outfd.write("\nProcess Environment\n")
+            renderer.format("\nProcess Environment\n")
             # The environment is just a sentinal terminated array of strings.
             for line in task.Peb.ProcessParameters.Environment:
-                outfd.write("   %s\n" % line)
+                renderer.format("   %s\n" % line)
 
-            outfd.write("\nPE Infomation\n")
+            renderer.format("\nPE Infomation\n")
 
             # Parse the PE file of the main process's executable.
             pe = PEInfo(address_space=task_address_space,
                         session=self.session,
                         image_base=task.Peb.ImageBaseAddress)
 
-            pe.render(outfd)
+            pe.render(renderer)
 
-            # Now parse all the modules in this executable.
+
+class TestProcInfo(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="procinfo --pid=%(pid)s"
+        )

@@ -30,6 +30,8 @@
    Alias for all address spaces
 
 """
+import logging
+
 from rekall import kb
 from rekall import registry
 from rekall import utils
@@ -69,11 +71,15 @@ class BaseAddressSpace(object):
           profile: An optional profile to use for parsing the address space
             (e.g. needed for hibernation, crash etc.)
         """
+        if kwargs:
+            logging.error("Unknown keyword args {0} for {1}".format(
+                    kwargs, self.__class__.__name__))
+
         self.base = base
         self.profile = profile
         self.session = session
-        self.writeable = (self.session and self.session.writable_address_space or
-                          write)
+        self.writeable = (
+            self.session and self.session.writable_address_space or write)
 
         # This is a short lived cache. If we use a static image, this cache need
         # not expire, however, when analysing a live system we need to flush the
@@ -85,15 +91,15 @@ class BaseAddressSpace(object):
         """Return the knowledge base entry for this address space."""
         return kb.SYMBOLS.setdefault(self.name, kb.SymbolAddresses())
 
-    def as_assert(self, assertion, error = None):
+    def as_assert(self, assertion, error=None):
         """Duplicate for the assert command (so that optimizations don't disable
         them)
 
         It had to be called as_assert, since assert is a keyword
         """
         if not assertion:
-            raise ASAssertionError(error or
-                                   "Instantiation failed for unspecified reason")
+            raise ASAssertionError(
+                error or "Instantiation failed for unspecified reason")
 
     def read(self, addr, length):
         data = self.read(int(addr), int(length))
@@ -186,8 +192,9 @@ class BaseAddressSpace(object):
         try:
             return self.base.write(self.vtop(addr), buf)
         except AttributeError:
-            raise NotImplementedError("Write support for this type of Address Space"
-                                      " has not been implemented")
+            raise NotImplementedError(
+                "Write support for this type of Address Space"
+                " has not been implemented")
 
     def vtop(self, addr):
         """Return the physical address of this virtual address."""
@@ -204,7 +211,8 @@ class BaseAddressSpace(object):
         return self.__class__.__name__
 
     def __repr__(self):
-        return "<%s @ %#x %s>" % (self.__class__.__name__, hash(self), self.name)
+        return "<%s @ %#x %s>" % (
+            self.__class__.__name__, hash(self), self.name)
 
     @classmethod
     def GetPlugin(cls, name):
@@ -217,13 +225,14 @@ class BaseAddressSpace(object):
 class BufferAddressSpace(BaseAddressSpace):
     __abstract = True
 
-    def __init__(self, base_offset = 0, data = '', **kwargs):
+    def __init__(self, base_offset=0, data='', **kwargs):
+        super(BufferAddressSpace, self).__init__(**kwargs)
         self.fname = "Buffer"
         self.data = data
         self.base = None
         self.base_offset = base_offset
 
-    def assign_buffer(self, data, base_offset = 0):
+    def assign_buffer(self, data, base_offset=0):
         self.base_offset = base_offset
         self.data = data
 
@@ -257,7 +266,8 @@ class CachingAddressSpaceMixIn(object):
         result = ""
         while length > 0:
             data = self.read_partial(addr, length)
-            if not data: break
+            if not data:
+                break
 
             result += data
             length -= len(data)
@@ -321,7 +331,8 @@ class PagedReader(BaseAddressSpace):
 
         while length > 0:
             buf = self._read_chunk(vaddr, length)
-            if not buf: break
+            if not buf:
+                break
 
             result += buf
             vaddr += len(buf)

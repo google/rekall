@@ -20,8 +20,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-__author__ = "Michael Cohen <scudette@google.com>"
-
 """
 Converts Volatility profile files into the Rekall format.
 
@@ -69,7 +67,8 @@ in Rekall. Rather than fall back to the slow and inefficient parsing of these
 profiles, Rekall allows users to convert the old profile into a new, efficient
 profile representation. This is what this module does with the convert command.
 
-For example, suppose you have an existing profile created for use in Volatility, you can just convert it to the rekall format:
+For example, suppose you have an existing profile created for use in Volatility,
+you can just convert it to the rekall format:
 
 ./tools/profile_converter.py convert Ubuntu-3.0.0-32-generic-pae.zip \
    Ubuntu-3.0.0-32-generic-pae.rekall.zip
@@ -81,14 +80,13 @@ $ ls -l Ubuntu-3.0.0-32-generic-pae.*
 Now simply specify the rekall profile using the --profile command line arg.
 """
 
-import argparse
+__author__ = "Michael Cohen <scudette@google.com>"
+
 import logging
 import json
 import os
 import re
 import StringIO
-import sys
-import zipfile
 
 from rekall import builtin_profiles
 from rekall import io_manager
@@ -337,7 +335,7 @@ class ConvertProfile(plugin.Command):
         self.source = source
         self.destination = destination
 
-    def ConvertProfile(self, input, output, profile_class=None):
+    def ConvertProfile(self, input, output):
         """Converts the input profile to a new standard profile in output."""
         # First detect what kind of profile the input profile is.
         for converter in (LinuxConverter, OSXConverter):
@@ -348,9 +346,10 @@ class ConvertProfile(plugin.Command):
             except RuntimeError:
                 pass
 
-        raise RuntimeError("No suitable converter found - profile not recognized.")
+        raise RuntimeError(
+            "No suitable converter found - profile not recognized.")
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         try:
             output = io_manager.Factory(self.destination, mode="w")
         except IOError:
@@ -491,7 +490,7 @@ class BuiltInProfiles(io_manager.BuiltInManager):
 
 """
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         try:
             # Get the profile access database.
             db = json.load(open(self.database, "rb"))

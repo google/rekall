@@ -19,6 +19,8 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
+# pylint: disable=protected-access
+
 """
 @author:       Andreas Schuster
 @license:      GNU General Public License 2.0 or later
@@ -28,7 +30,6 @@
 
 from rekall import obj
 from rekall import scan
-from rekall import utils
 from rekall.plugins.windows import common
 
 
@@ -37,27 +38,24 @@ class PoolScanFile(common.PoolScanner):
     def __init__(self, **kwargs):
         super(PoolScanFile, self).__init__(**kwargs)
         self.checks = [
-            ('PoolTagCheck', dict(tag=self.profile.get_constant("FILE_POOLTAG"))),
-            ('CheckPoolSize', dict(min_size=self.profile.get_obj_size("_FILE_OBJECT"))),
-            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-            ('CheckPoolIndex', dict(value = 0)),
+            ('PoolTagCheck', dict(
+                    tag=self.profile.get_constant("FILE_POOLTAG"))),
+
+            ('CheckPoolSize', dict(
+                    min_size=self.profile.get_obj_size("_FILE_OBJECT"))),
+
+            ('CheckPoolType', dict(
+                    paged=True, non_paged=True, free=True)),
+
+            ('CheckPoolIndex', dict(value=0)),
             ]
 
 
 class FileScan(common.PoolScannerPlugin):
     """ Scan Physical memory for _FILE_OBJECT pool allocations
     """
-    # Declare meta information associated with this plugin
-    meta_info = {}
-    meta_info['author'] = 'Andreas Schuster'
-    meta_info['copyright'] = 'Copyright (c) 2009 Andreas Schuster'
-    meta_info['contact'] = 'a.schuster@forensikblog.de'
-    meta_info['license'] = 'GNU General Public License 2.0 or later'
-    meta_info['url'] = 'http://computer.forensikblog.de/en/'
-    meta_info['os'] = 'WIN_32_XP_SP2'
-    meta_info['version'] = '0.1'
-
     __name = "filescan"
+
     allocation = ['_POOL_HEADER', '_OBJECT_HEADER', '_FILE_OBJECT']
 
     def generate_hits(self):
@@ -78,7 +76,7 @@ class FileScan(common.PoolScannerPlugin):
 
             yield (object_obj, file_obj)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         """Print the output in a table."""
 
         renderer.table_header([('Offset', "offset_p", '[addrpad]'),
@@ -101,12 +99,15 @@ class FileScan(common.PoolScannerPlugin):
             except AttributeError:
                 owner_process = obj.NoneObject("HandleInfo not found")
 
-            renderer.table_row(file_obj.obj_offset, object_obj.PointerCount,
-                               object_obj.HandleCount, file_obj.AccessString,
-                               owner_process.obj_offset,
-                               owner_process.UniqueProcessId,
-                               owner_process.ImageFileName,
-                               file_obj.FileName.v(vm=self.kernel_address_space))
+            renderer.table_row(
+                file_obj.obj_offset,
+                object_obj.PointerCount,
+                object_obj.HandleCount,
+                file_obj.AccessString,
+                owner_process.obj_offset,
+                owner_process.UniqueProcessId,
+                owner_process.ImageFileName,
+                file_obj.FileName.v(vm=self.kernel_address_space))
 
 
 class PoolScanDriver(PoolScanFile):
@@ -115,14 +116,18 @@ class PoolScanDriver(PoolScanFile):
     def __init__(self, **kwargs):
         super(PoolScanDriver, self).__init__(**kwargs)
         self.checks = [
-            ('PoolTagCheck', dict(tag=self.profile.get_constant("DRIVER_POOLTAG"))),
+            ('PoolTagCheck', dict(
+                    tag=self.profile.get_constant("DRIVER_POOLTAG"))),
 
             # Must be large enough to hold the driver object.
-            ('CheckPoolSize', dict(condition=lambda x: x > self.profile.get_obj_size(
+            ('CheckPoolSize', dict(
+                    condition=lambda x: x > self.profile.get_obj_size(
                         "_DRIVER_OBJECT"))),
 
-            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-            ('CheckPoolIndex', dict(value = 0)),
+            ('CheckPoolType', dict(
+                    paged=True, non_paged=True, free=True)),
+
+            ('CheckPoolIndex', dict(value=0)),
             ]
 
 class DriverScan(FileScan):
@@ -142,18 +147,21 @@ class DriverScan(FileScan):
 
         for pool_obj in scanner.scan():
             object_obj = pool_obj.get_object("_OBJECT_HEADER", self.allocation)
-            if object_obj.get_object_type(self.kernel_address_space) != "Driver":
+            if object_obj.get_object_type(
+                self.kernel_address_space) != "Driver":
                 continue
 
             object_name = object_obj.NameInfo.Name.v(
                 vm=self.kernel_address_space)
 
             driver_obj = pool_obj.get_object("_DRIVER_OBJECT", self.allocation)
-            extension_obj = pool_obj.get_object("_DRIVER_EXTENSION", self.allocation)
+            extension_obj = pool_obj.get_object(
+                "_DRIVER_EXTENSION", self.allocation)
+
             yield (object_obj, driver_obj, extension_obj, object_name)
 
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         """Renders the text-based output"""
         renderer.table_header([('Offset(P)', "offset_p", '[addrpad]'),
                                ('#Ptr', "ptr_count", '>4'),
@@ -165,13 +173,17 @@ class DriverScan(FileScan):
                                ('Driver Name', "path", '')
                                ])
 
-        for object_obj, driver_obj, extension_obj, object_name in self.generate_hits():
-            renderer.table_row(driver_obj.obj_offset, object_obj.PointerCount,
-                               object_obj.HandleCount,
-                               driver_obj.DriverStart, driver_obj.DriverSize,
-                               extension_obj.ServiceKeyName.v(vm=self.kernel_address_space),
-                               object_name,
-                               driver_obj.DriverName.v(vm=self.kernel_address_space))
+        for _ in self.generate_hits():
+            object_obj, driver_obj, extension_obj, object_name = _
+            renderer.table_row(
+                driver_obj.obj_offset,
+                object_obj.PointerCount,
+                object_obj.HandleCount,
+                driver_obj.DriverStart,
+                driver_obj.DriverSize,
+                extension_obj.ServiceKeyName.v(vm=self.kernel_address_space),
+                object_name,
+                driver_obj.DriverName.v(vm=self.kernel_address_space))
 
 
 class PoolScanSymlink(PoolScanFile):
@@ -179,10 +191,14 @@ class PoolScanSymlink(PoolScanFile):
     def __init__(self, **kwargs):
         super(PoolScanSymlink, self).__init__(**kwargs)
         self.checks = [
-            ('PoolTagCheck', dict(tag=self.profile.get_constant("SYMLINK_POOLTAG"))),
-            ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
+            ('PoolTagCheck', dict(
+                    tag=self.profile.get_constant("SYMLINK_POOLTAG"))),
+
+            ('CheckPoolSize', dict(
+                    min_size=self.profile.get_obj_size(
                         "_OBJECT_SYMBOLIC_LINK"))),
-            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
+
+            ('CheckPoolType', dict(paged=True, non_paged=True, free=True)),
             ]
 
 
@@ -199,14 +215,19 @@ class SymLinkScan(FileScan):
                                   address_space=self.address_space)
         for pool_obj in scanner.scan():
             object_obj = pool_obj.get_object("_OBJECT_HEADER", self.allocation)
-            if object_obj.get_object_type(self.kernel_address_space) != "SymbolicLink":
+            if object_obj.get_object_type(
+                self.kernel_address_space) != "SymbolicLink":
                 continue
 
-            object_name = object_obj.NameInfo.Name.v(vm=self.kernel_address_space)
-            link_obj = pool_obj.get_object("_OBJECT_SYMBOLIC_LINK", self.allocation)
+            object_name = object_obj.NameInfo.Name.v(
+                vm=self.kernel_address_space)
+
+            link_obj = pool_obj.get_object(
+                "_OBJECT_SYMBOLIC_LINK", self.allocation)
+
             yield object_obj, link_obj, object_name
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         """ Renders text-based output """
         renderer.table_header([('Offset(P)', "offset_p", '[addrpad]'),
                                ('#Ptr', "ptr_count", '>6'),
@@ -218,9 +239,13 @@ class SymLinkScan(FileScan):
 
 
         for o, link, name in self.generate_hits():
-            renderer.table_row(link.obj_offset, o.PointerCount,
-                               o.HandleCount, link.CreationTime or '',
-                               name, link.LinkTarget.v(vm=self.kernel_address_space))
+            renderer.table_row(
+                link.obj_offset,
+                o.PointerCount,
+                o.HandleCount,
+                link.CreationTime or '',
+                name,
+                link.LinkTarget.v(vm=self.kernel_address_space))
 
 
 class PoolScanMutant(PoolScanDriver):
@@ -231,9 +256,13 @@ class PoolScanMutant(PoolScanDriver):
             ('PoolTagCheck', dict(tag=self.profile.get_constant(
                         "MUTANT_POOLTAG"))),
 
-            ('CheckPoolSize', dict(min_size=self.profile.get_obj_size("_KMUTANT"))),
-            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-            ('CheckPoolIndex', dict(value = 0)),
+            ('CheckPoolSize', dict(
+                    min_size=self.profile.get_obj_size("_KMUTANT"))),
+
+            ('CheckPoolType', dict(
+                    paged=True, non_paged=True, free=True)),
+
+            ('CheckPoolIndex', dict(value=0)),
             ]
 
 
@@ -259,10 +288,12 @@ class MutantScan(FileScan):
 
         for pool_obj in scanner.scan():
             object_obj = pool_obj.get_object("_OBJECT_HEADER", self.allocation)
-            if object_obj.get_object_type(self.kernel_address_space) != "Mutant":
+            if object_obj.get_object_type(
+                self.kernel_address_space) != "Mutant":
                 continue
 
-            object_name = object_obj.NameInfo.Name.v(vm=self.kernel_address_space)
+            object_name = object_obj.NameInfo.Name.v(
+                vm=self.kernel_address_space)
 
             if self.silent and not object_name:
                 continue
@@ -270,7 +301,7 @@ class MutantScan(FileScan):
             mutant = pool_obj.get_object("_KMUTANT", self.allocation)
             yield (object_obj, mutant, object_name)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         """Renders the output"""
 
         renderer.table_header([('Offset(P)', "offset_p", '[addrpad]'),
@@ -282,18 +313,24 @@ class MutantScan(FileScan):
                                ('Name', "mutant_name", '')
                                ])
 
-        for object_obj, mutant, object_name in self.generate_hits():
+        for object_obj, mutant, _ in self.generate_hits():
             if mutant.OwnerThread > 0x80000000:
-                thread = self.profile.Object("_ETHREAD", vm=self.kernel_address_space,
-                                             offset=mutant.OwnerThread)
-                CID = "{0}:{1}".format(thread.Cid.UniqueProcess, thread.Cid.UniqueThread)
+                thread = self.profile._ETHREAD(
+                    offset=mutant.OwnerThread, vm=self.kernel_address_space)
+
+                CID = "{0}:{1}".format(thread.Cid.UniqueProcess,
+                                       thread.Cid.UniqueThread)
             else:
                 CID = ""
 
-            renderer.table_row(mutant.obj_offset, object_obj.PointerCount,
-                               object_obj.HandleCount, mutant.Header.SignalState,
-                               mutant.OwnerThread, CID,
-                               object_obj.NameInfo.Name.v(vm=self.kernel_address_space))
+            renderer.table_row(
+                mutant.obj_offset,
+                object_obj.PointerCount,
+                object_obj.HandleCount,
+                mutant.Header.SignalState,
+                mutant.OwnerThread,
+                CID,
+                object_obj.NameInfo.Name.v(vm=self.kernel_address_space))
 
 
 class CheckProcess(scan.ScannerCheck):
@@ -308,20 +345,21 @@ class CheckProcess(scan.ScannerCheck):
         pool_base = found - self.profile.get_obj_offset(
             '_POOL_HEADER', 'PoolTag')
 
-        pool_obj = self.profile.Object("_POOL_HEADER", vm = self.address_space,
-                                       offset = pool_base)
+        pool_obj = self.profile._POOL_HEADER(offset=pool_base,
+                                             vm=self.address_space)
+
         pool_align = self.profile.constants['PoolAlignment']
 
-        eprocess = self.profile.Object(
-            "_EPROCESS", vm = self.address_space,
-            offset = pool_base + pool_obj.BlockSize * pool_align - \
-                self.profile.get_obj_size("_EPROCESS")
+        eprocess = self.profile._EPROCESS(
+            vm=self.address_space,
+            offset=(pool_base + pool_obj.BlockSize * pool_align -
+                    self.profile.get_obj_size("_EPROCESS"))
             )
 
-        if (eprocess.Pcb.DirectoryTableBase == 0):
+        if eprocess.Pcb.DirectoryTableBase == 0:
             return False
 
-        if (eprocess.Pcb.DirectoryTableBase % 0x20 != 0):
+        if eprocess.Pcb.DirectoryTableBase % 0x20 != 0:
             return False
 
         list_head = eprocess.ThreadListHead
@@ -340,42 +378,34 @@ class PoolScanProcess(common.PoolScanner):
         super(PoolScanProcess, self).__init__(**kwargs)
         self.checks = [
             # Must have the right pool tag.
-            ('PoolTagCheck', dict(tag=self.profile.get_constant("EPROCESS_POOLTAG"))),
+            ('PoolTagCheck', dict(
+                    tag=self.profile.get_constant("EPROCESS_POOLTAG"))),
 
             # Must be large enough for an _EPROCESS.
             ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
                         "_EPROCESS"))),
 
-            ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-            ('CheckPoolIndex', dict(value = 0)),
+            ('CheckPoolType', dict(
+                    paged=True, non_paged=True, free=True)),
+
+            ('CheckPoolIndex', dict(value=0)),
             ]
 
-    def scan(self, **kwargs):
+    def scan(self, **_):
         for pool_obj in super(PoolScanProcess, self).scan():
             eprocess = pool_obj.get_object("_EPROCESS", self.allocation)
 
-            if (eprocess.Pcb.DirectoryTableBase == 0):
+            if eprocess.Pcb.DirectoryTableBase == 0:
                 continue
 
-            if (eprocess.Pcb.DirectoryTableBase % 0x20 != 0):
+            if eprocess.Pcb.DirectoryTableBase % 0x20 != 0:
                 continue
-
-            list_head = eprocess.ThreadListHead
 
             yield eprocess
 
 
 class PSScan(common.PoolScannerPlugin):
     """Scan Physical memory for _EPROCESS pool allocations."""
-    # Declare meta information associated with this plugin
-    meta_info = {}
-    meta_info['author'] = 'AAron Walters'
-    meta_info['copyright'] = 'Copyright (c) 2011 Volatile Systems'
-    meta_info['contact'] = 'awalters@volatilesystems.com'
-    meta_info['license'] = 'GNU General Public License 2.0 or later'
-    meta_info['url'] = 'https://www.volatilesystems.com/'
-    meta_info['os'] = ['Win7SP0x86', 'WinXPSP3x86']
-    meta_info['version'] = '0.1'
 
     __name = "psscan"
 
@@ -387,15 +417,6 @@ class PSScan(common.PoolScannerPlugin):
           P: A known pid from pslist.
         """
         super(PSScan, self).__init__(**kwargs)
-
-    def calculate(self):
-        """Generate possible hits."""
-        ## Just grab the AS and scan it using our scanner
-        scanner =  PoolScanProcess(session=self.session,
-                                   profile=self.profile,
-                                   address_space=self.address_space)
-
-        return scanner.scan()
 
     def guess_eprocess_virtual_address(self, eprocess):
         """Try to guess the virtual address of the eprocess."""
@@ -413,7 +434,16 @@ class PSScan(common.PoolScannerPlugin):
 
         return kernel_eprocess_offset
 
-    def render(self, renderer):
+    def scan_processes(self):
+        """Generate possible hits."""
+        # Just grab the AS and scan it using our scanner
+        scanner =  PoolScanProcess(session=self.session,
+                                   profile=self.profile,
+                                   address_space=self.address_space)
+
+        return scanner.scan()
+
+    def render(self, renderer=None):
         """Render results in a table."""
         # Try to do a regular process listing so we can compare if the process
         # is known.
@@ -437,9 +467,11 @@ class PSScan(common.PoolScannerPlugin):
                                ('Time exited', "process_exit_time", '24')]
                                )
 
-        for eprocess in self.calculate():
+        for eprocess in self.scan_processes():
+
             # Try to guess the virtual address of the eprocess
-            eprocess_virtual_address = self.guess_eprocess_virtual_address(eprocess)
+            eprocess_virtual_address = self.guess_eprocess_virtual_address(
+                eprocess)
 
             known = ""
             if eprocess_virtual_address in known_eprocess:

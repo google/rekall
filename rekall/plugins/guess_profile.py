@@ -21,6 +21,8 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+# pylint: disable=protected-access
+
 import logging
 
 from rekall import addrspace
@@ -114,14 +116,16 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
                     offset=self.session.GetParameter("kdbg"),
                     vm=kernel_as)
 
-                if not kdbg: continue
+                if not kdbg:
+                    continue
 
                 # Now try to see which profile fits the _EPROCESS best.
                 for name, (test_profile, cls) in lookup_map.items():
                     active_process_list_offset = test_profile.get_obj_offset(
                         name, "ActiveProcessLinks")
 
-                    # This is the first _EPROCESS linked from PsActiveProcessList.
+                    # This is the first _EPROCESS linked from
+                    # PsActiveProcessList.
                     eprocess = test_profile.Object(
                         name, vm=kernel_as,
                         offset=(kdbg.PsActiveProcessHead.Flink.v() -
@@ -184,7 +188,8 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
                     name, vm=self.session.physical_address_space,
                     offset=hit - eprocess_offset)
 
-                if eprocess.UniqueProcessId == 0 or eprocess.UniqueProcessId > 10:
+                if (eprocess.UniqueProcessId == 0 or
+                    eprocess.UniqueProcessId > 10):
                     continue
 
                 dtb = eprocess.DirectoryTableBase.v()
@@ -285,7 +290,7 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
         logging.error("Can not autodetect profile - please set it "
                       "explicitely.")
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         if self.quick:
             renderer.format("Updating session profile and address spaces.\n")
             self.update_session()

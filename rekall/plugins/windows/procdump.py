@@ -20,16 +20,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+
+# pylint: disable=protected-access
+
 import logging
 import os
 import re
-import struct
 
 from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.windows import common
 from rekall.plugins import core
 from rekall import args
-from rekall import plugin
 from rekall import utils
 
 
@@ -91,15 +92,18 @@ class PEDump(common.WinProcessFilter):
           address_space: The address_space to read from.
           image_base: The offset of the dos file header.
         """
-        dos_header = self.pe_profile.Object("_IMAGE_DOS_HEADER", offset=image_base,
-                                            vm=address_space)
+        dos_header = self.pe_profile._IMAGE_DOS_HEADER(
+            offset=image_base, vm=address_space)
+
         image_base = dos_header.obj_offset
         nt_header = dos_header.NTHeader
 
         # First copy the PE file header, then copy the sections.
         data = dos_header.obj_vm.read(
             image_base, min(1e6, nt_header.OptionalHeader.SizeOfHeaders))
-        if not data: return
+
+        if not data:
+            return
 
         fd.seek(0)
         fd.write(data)
@@ -115,7 +119,7 @@ class PEDump(common.WinProcessFilter):
             fd.seek(physical_offset, 0)
             fd.write(data)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         if self.out_fd is None:
             logging.error("No output filename or file handle specified.")
             return
@@ -142,7 +146,7 @@ class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
 
     dump_dir_optional = True
 
-    def __init__(self, remap=False, out_fd=None, **kwargs):
+    def __init__(self, out_fd=None, **kwargs):
         """Dump a process from memory into an executable.
 
         In windows PE files are mapped into memory in sections. Each section is
@@ -189,7 +193,7 @@ class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
         self.fd = out_fd
         self.pedump = PEDump(session=self.session)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         """Renders the tasks to disk images, outputting progress as they go"""
         for task in self.filter_processes():
             pid = task.UniqueProcessId
@@ -209,10 +213,11 @@ class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
 
             # Create a new file.
             else:
-                sanitized_image_name = re.sub("[^a-zA-Z0-9-_]", "_",
-                                              utils.SmartStr(task.ImageFileName))
+                sanitized_image_name = re.sub(
+                    "[^a-zA-Z0-9-_]", "_", utils.SmartStr(task.ImageFileName))
 
-                filename = os.path.join(self.dump_dir, u"executable.%s_%s.exe" % (
+                filename = os.path.join(
+                    self.dump_dir, u"executable.%s_%s.exe" % (
                         sanitized_image_name, pid))
 
                 renderer.section()
@@ -248,7 +253,7 @@ class DLLDump(ProcExeDump):
         super(DLLDump, self).__init__(**kwargs)
         self.regex = re.compile(regex)
 
-    def render(self, out_fd):
+    def render(self, renderer=None):
         for task in self.filter_processes():
             task_as = task.get_process_address_space()
 
@@ -258,24 +263,27 @@ class DLLDump(ProcExeDump):
                 if process_offset:
 
                     # Skip the modules which do not match the regex.
-                    if not self.regex.search(utils.SmartUnicode(module.BaseDllName)):
+                    if not self.regex.search(
+                        utils.SmartUnicode(module.BaseDllName)):
                         continue
 
                     dump_file = "module.{0}.{1:x}.{2:x}.dll".format(
                         task.UniqueProcessId, process_offset, module.DllBase)
 
-                    out_fd.write(
-                        "Dumping {0}, Process: {1}, Base: {2:8x} output: {3}\n".format(
-                            module.BaseDllName, task.ImageFileName, module.DllBase,
-                            dump_file))
+                    renderer.format(
+                        "Dumping {0}, Process: {1}, Base: {2:8x} "
+                        "output: {3}\n", module.BaseDllName,
+                        task.ImageFileName, module.DllBase, dump_file)
 
                     # Use the procdump module to dump out the binary:
-                    with open(os.path.join(self.dump_dir, dump_file), "wb") as fd:
+                    path = os.path.join(self.dump_dir, dump_file)
+                    with open(path, "wb") as fd:
                         self.pedump.WritePEFile(fd, task_as, module.DllBase)
 
                 else:
-                    out_fd.write("Cannot dump {0}@{1} at {2:8x}\n".format(
-                            proc.ImageFileName, module.BaseDllName, module.DllBase))
+                    renderer.format(
+                        "Cannot dump {0}@{1} at {2:8x}\n",
+                        task.ImageFileName, module.BaseDllName, module.DllBase)
 
 
 class ModDump(DLLDump):
@@ -296,7 +304,7 @@ class ModDump(DLLDump):
             if address_space.is_valid_address(image_base):
                 return address_space
 
-    def render(self, out_fd):
+    def render(self, renderer=None):
         modules_plugin = self.session.plugins.modules(session=self.session)
 
         for module in modules_plugin.lsmod():
@@ -304,8 +312,11 @@ class ModDump(DLLDump):
                 address_space = self.find_space(module.DllBase)
                 if address_space:
                     dump_file = "driver.{0:x}.sys".format(module.DllBase)
-                    out_fd.write("Dumping {0}, Base: {1:8x} output: {2}\n".format(
-                            module.BaseDllName, module.DllBase, dump_file))
+                    renderer.format("Dumping {0}, Base: {1:8x} output: {2}\n",
+                                    module.BaseDllName, module.DllBase,
+                                    dump_file)
 
-                    with open(os.path.join(self.dump_dir, dump_file), "wb") as fd:
-                        self.pedump.WritePEFile(fd, address_space, module.DllBase)
+                    path = os.path.join(self.dump_dir, dump_file)
+                    with open(path, "wb") as fd:
+                        self.pedump.WritePEFile(
+                            fd, address_space, module.DllBase)

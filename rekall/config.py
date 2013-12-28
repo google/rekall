@@ -19,8 +19,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-__author__ = "Michael Cohen <scudette@gmail.com>"
-
 """This is the Rekall configuration system.
 
 Rekall maintains a persistent file with global settings in the user's home
@@ -30,6 +28,8 @@ parameters.
 Note that the configuration file is only used in interactive mode. When used as
 a library the configuration file has no effect.
 """
+
+__author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
 import logging
@@ -106,14 +106,14 @@ def RegisterArgParser(parser):
     """Register the options into the parser."""
     groups = {}
 
-    for group, short_name, name, default, kwargs in sorted(OPTIONS):
+    for group, short_name, name, _, kwargs in sorted(OPTIONS):
         if not name.startswith("--"):
             name = "--" + name
 
         if short_name and not short_name.startswith("-"):
             short_name = "-" + short_name
 
-        kwargs["default"] = default=argparse.SUPPRESS
+        kwargs["default"] = argparse.SUPPRESS
         if group:
             try:
                 arg_group = groups[group]

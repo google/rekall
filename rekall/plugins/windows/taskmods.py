@@ -21,10 +21,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+# pylint: disable=protected-access
+
 import logging
 import os
 
-from rekall import args
 from rekall.plugins import core
 from rekall.plugins.windows import common
 from rekall import plugin
@@ -83,19 +84,19 @@ class WinPsList(common.WinProcessFilter):
         logging.debug("Unable to list processes using any method.")
         return []
 
-    def render(self, renderer):
+    def render(self, renderer=None):
 
-    	renderer.table_header( [("Offset (V)", "offset_v", "[addrpad]"),
-                                ("Name", "file_name", "20s"),
-                                ("PID", "pid", ">6"),
-                                ("PPID", "ppid", ">6"),
-                                ("Thds", "thread_count", ">6"),
-                                ("Hnds", "handle_count", ">8"),
-                                ("Sess", "session_id", ">6"),
-                                ("Wow64", "wow64", ">6"),
-                                ("Start", "process_create_time", "24"),
-                                ("Exit", "process_exit_time", "24")]
-                               )
+        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
+                               ("Name", "file_name", "20s"),
+                               ("PID", "pid", ">6"),
+                               ("PPID", "ppid", ">6"),
+                               ("Thds", "thread_count", ">6"),
+                               ("Hnds", "handle_count", ">8"),
+                               ("Sess", "session_id", ">6"),
+                               ("Wow64", "wow64", ">6"),
+                               ("Start", "process_create_time", "24"),
+                               ("Exit", "process_exit_time", "24")]
+                              )
 
         for task in self.filter_processes():
             renderer.table_row(task.obj_offset,
@@ -118,7 +119,7 @@ class WinDllList(common.WinProcessFilter):
     __name = "dlllist"
 
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         for task in self.filter_processes():
             pid = task.UniqueProcessId
 
@@ -130,8 +131,8 @@ class WinDllList(common.WinProcessFilter):
                                 task.Peb.ProcessParameters.CommandLine)
 
                 if task.IsWow64:
-                    renderer.write(
-                        u"Note: use ldrmodules for listing DLLs in Wow64 processes\n")
+                    renderer.write(u"Note: use ldrmodules for listing DLLs "
+                                   "in Wow64 processes\n")
 
                 renderer.format(u"{0}\n", task.Peb.CSDVersion)
                 renderer.write(u"\n")
@@ -168,7 +169,7 @@ class WinMemMap(common.WinProcessFilter):
         self.coalesce = coalesce
         super(WinMemMap, self).__init__(**kwargs)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         for task in self.filter_processes():
             renderer.section()
             renderer.RenderProgress("Dumping pid {0}".format(
@@ -208,16 +209,17 @@ class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
             phys_address = task_as.vtop(virtual_address)
             fd.write(self.physical_address_space.read(phys_address, length))
 
-    def render(self, outfd):
+    def render(self, renderer=None):
         if self.dump_dir is None:
             raise plugin.PluginError("Dump directory not specified.")
 
         for task in self.filter_processes():
-            outfd.write("*" * 72 + "\n")
-            filename = u"{0}_{1:d}.dmp".format(task.ImageFileName, task.UniqueProcessId)
+            renderer.section()
+            filename = u"{0}_{1:d}.dmp".format(
+                task.ImageFileName, task.UniqueProcessId)
 
-            outfd.write(u"Writing {0} {1:6} to {2}\n".format(
-                    task.ImageFileName, task, filename))
+            renderer.format(u"Writing {0} {1:6} to {2}\n",
+                            task.ImageFileName, task, filename)
 
             with open(os.path.join(self.dump_dir, filename), 'wb') as fd:
                 self.dump_process(task, fd)

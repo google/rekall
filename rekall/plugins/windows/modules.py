@@ -90,11 +90,11 @@ class Modules(common.WindowsCommandPlugin):
 
         return obj.NoneObject("Unknown")
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
                                ("Name", "file_name", "20"),
                                ('Base', "module_base", "[addrpad]"),
-                               ('Size', "module_size","[addr]"),
+                               ('Size', "module_size", "[addr]"),
                                ('File', "path", "")
                                ])
 

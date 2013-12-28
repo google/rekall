@@ -38,21 +38,26 @@ class CrashInfo(common.AbstractWindowsCommandPlugin):
     @classmethod
     def is_active(cls, config):
         """We are only active if the profile is windows."""
-        return isinstance(config.physical_address_space, crash.WindowsCrashDumpSpace32)
+        return isinstance(
+            config.physical_address_space, crash.WindowsCrashDumpSpace32)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         """Renders the crashdump header as text"""
-        if not isinstance(self.physical_address_space, crash.WindowsCrashDumpSpace32):
+        if not isinstance(
+            self.physical_address_space, crash.WindowsCrashDumpSpace32):
             raise plugin.PluginError("Image is not a windows crash dump.")
 
         renderer.write(self.physical_address_space.header)
 
-        renderer.table_header([("FileOffset", "file_offset", "[addrpad]"),
-                               ("Start Address", "file_start_address", "[addrpad]"),
-                               ("Length", "file_length", "[addr]")])
+        renderer.table_header(
+            [("FileOffset", "file_offset", "[addrpad]"),
+             ("Start Address", "file_start_address", "[addrpad]"),
+             ("Length", "file_length", "[addr]")])
         page_size = self.physical_address_space.PAGE_SIZE
         for start, file_offset, count in self.physical_address_space.runs:
-            renderer.table_row(file_offset, start * page_size, count * page_size)
+            renderer.table_row(file_offset,
+                               start * page_size,
+                               count * page_size)
 
 
 class Raw2Dump(common.WindowsCommandPlugin):
@@ -60,8 +65,8 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
     __name = "raw2dmp"
 
-    def __init__(self, destination=None, overwrite=False, buffer_size=10*1024*1024,
-                 **kwargs):
+    def __init__(self, destination=None, overwrite=False,
+                 buffer_size=10*1024*1024, **kwargs):
         """Convert the physical address space to a crash dump.
 
         Args:
@@ -80,7 +85,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
             raise plugin.PluginError(
                 "Unable to overwrite the destination file '%s'" % destination)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         PAGE_SIZE = 0x1000
 
         # We write the image to the destination using the WriteableAddressSpace.
@@ -126,7 +131,8 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
         # Must be at least one run.
         if i is None:
-            raise plugin.PluginError("Physical address space has no available data.")
+            raise plugin.PluginError(
+                "Physical address space has no available data.")
 
         header.PhysicalMemoryBlockBuffer.NumberOfRuns = i + 1
         header.PhysicalMemoryBlockBuffer.NumberOfPages = number_of_pages
@@ -168,7 +174,9 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
         # Now copy the physical address space to the output file.
         output_offset = header.size()
-        for start, length in self.physical_address_space.get_available_addresses():
+        for _ in self.physical_address_space.get_available_addresses():
+            start, length = _
+
             # Convert to pages
             start = start / PAGE_SIZE
             length = length / PAGE_SIZE
@@ -188,6 +196,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
                 output_offset += len(data)
                 offset += len(data)
                 data_length -= len(data)
-                renderer.RenderProgress("Wrote %sMB." % ((start_offset + offset)/1024/1024))
+                renderer.RenderProgress(
+                    "Wrote %sMB.", (start_offset + offset)/1024/1024)
 
 

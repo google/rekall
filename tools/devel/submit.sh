@@ -92,9 +92,7 @@ fi
 
 if ! linter;
 then
-  echo "Sumbit aborted - fix the issues reported by the linter.";
-
-  exit ${EXIT_FAILURE};
+    echo "Not all files linted correctly."
 fi
 
 if test -e run_tests.py;

@@ -49,8 +49,6 @@ in a specific way.
 
 """
 import hashlib
-import json
-import time
 import logging
 import re
 import subprocess
@@ -60,12 +58,10 @@ import shutil
 import sys
 import tempfile
 import unittest
-import StringIO
 
 from rekall import plugin
 from rekall import registry
-from rekall import session
-from rekall.ui import renderer
+from rekall import session as rekall_session
 
 
 class RekallBaseUnitTestCase(unittest.TestCase):
@@ -121,7 +117,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         regexes = config_options.get("replace_regex")
         if regexes:
             for regex in regexes.splitlines():
-                if not regex: continue
+                if not regex:
+                    continue
 
                 separator = regex[1]
                 parts = regex.split(separator)
@@ -175,7 +172,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
             for k, v in config_options.items():
                 # prepend all global options to the command line.
                 if k.startswith("-"):
-                    baseline_commandline = "%s '%s' %s" % (k, v, baseline_commandline)
+                    baseline_commandline = "%s '%s' %s" % (
+                        k, v, baseline_commandline)
 
             cmdline = config_options["executable"] + " " + baseline_commandline
             logging.debug("%s: Launching %s", self.__class__.__name__, cmdline)
@@ -213,7 +211,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
             if k.startswith("--"):
                 args[k[2:]] = v
 
-        return session.Session(**args)
+        return rekall_session.Session(**args)
 
     def ExtractColumn(self, lines, column, skip_headers=0, seperator=r"\|\|"):
         """Iterates over the lines and extracts the column number specified.
@@ -224,11 +222,13 @@ class RekallBaseUnitTestCase(unittest.TestCase):
            skip_headers: Any header lines to skip.
         """
         for i, line in enumerate(lines):
-            if i < skip_headers: continue
+            if i < skip_headers:
+                continue
 
             try:
                 yield re.split(seperator, line)[column].strip()
-            except IndexError: pass
+            except IndexError:
+                pass
 
     def CompareColumns(self, previous, previous_column, current, current_column,
                        skip_headers=0):
@@ -250,12 +250,12 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         for x, y in zip(a, b):
             self.assertEqual(x, y)
 
-    def assertTableRowsEqual(self, a, b, msg=None):
+    def assertTableRowsEqual(self, a, b):
         a = [x.strip() for x in a.split("||")]
         b = [x.strip() for x in b.split("||")]
         self.assertEqual(a, b)
 
-    def assertIntegerListEqual(self, a, b, base=16, msg=None):
+    def assertIntegerListEqual(self, a, b, base=16):
         """Compares two list of printed integers."""
         a = [int(x, base) for x in a]
         b = [int(x, base) for x in b]
@@ -305,7 +305,9 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
 
     def run(self, result=None):
-        if result is None: result = self.defaultTestResult()
+        if result is None:
+            result = self.defaultTestResult()
+
         result.startTest(self)
         testMethod = getattr(self, self._testMethodName)
         try:
@@ -347,7 +349,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
                 result.addError(self, sys.exc_info())
                 ok = False
-            if ok: result.addSuccess(self)
+            if ok:
+                result.addSuccess(self)
         finally:
             result.stopTest(self)
 
@@ -378,7 +381,7 @@ class TempDirectory(object):
 
 
 class HashChecker(RekallBaseUnitTestCase):
-    """A test which compares the hashes of all the files dumped in the tempdir."""
+    """A test comparing the hashes of all the files dumped in the tempdir."""
 
     def BuildBaseLineData(self, config_options):
         """We need to calculate the hash of the image we produce."""

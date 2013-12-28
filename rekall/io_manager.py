@@ -18,8 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-__author__ = "Michael Cohen <scudette@google.com>"
-
 """IO Abstraction for Rekall.
 
 Since Rekall is a library it should never directly access files: it may be
@@ -34,9 +32,11 @@ The session object should contain an instance of the IOManager() class at the
 io_manager attribute, which will be used to create new files, or read from
 existing files.
 """
+
+__author__ = "Michael Cohen <scudette@google.com>"
+
 import StringIO
 import json
-import logging
 import os
 import urllib2
 import urlparse
@@ -119,7 +119,7 @@ class IOManager(object):
         except IOManagerError:
             return None
 
-    def StoreData(self, name, data, sort_keys=True, **options):
+    def StoreData(self, name, data, **options):
         """Stores the data in the named container member.
 
         This serializes the data and stores it in the named member. Not all
@@ -170,7 +170,7 @@ class DirectoryIOManager(IOManager):
             pass
 
     def ListFiles(self):
-        for root, dirs, files in os.walk(self.dump_dir):
+        for root, _, files in os.walk(self.dump_dir):
             for f in files:
                 path = os.path.normpath(os.path.join(root, f))
 
@@ -194,6 +194,8 @@ class DirectoryIOManager(IOManager):
     def __str__(self):
         return "Directory:%s" % self.dump_dir
 
+
+# pylint: disable=protected-access
 
 class SelfClosingFile(StringIO.StringIO):
     def __init__(self, name, manager):
@@ -381,11 +383,11 @@ class URLManager(IOManager):
             raise IOManagerError("%s supports only http protocol." %
                                  self.__class__.__name__)
 
-    def Create(self):
+    def Create(self, _):
         raise IOManagerError("Write support to http is not supported.")
 
     def _GetURL(self, name):
-        url = self.url._replace(path = "%s/%s" % (self.url.path, name))
+        url = self.url._replace(path="%s/%s" % (self.url.path, name))
         return urlparse.urlunparse(url)
 
     def Open(self, name):
@@ -426,7 +428,7 @@ def Factory(urn, mode="r", **kwargs):
     for cls in sorted(IOManager.classes.values(), key=lambda x: x.order):
         try:
             return cls(urn, mode=mode, **kwargs)
-        except IOError as e:
+        except IOError:
             pass
 
     raise IOManagerError(

@@ -18,9 +18,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+
+# pylint: disable=protected-access
+
 import copy
 
-from rekall import addrspace
 from rekall import obj
 from rekall import utils
 
@@ -39,27 +41,27 @@ windows_overlay = {
                         )]],
             }],
 
-    '_EPROCESS' : [ None, {
-    'CreateTime' : [ None, ['WinTimeStamp', {}]],
-    'ExitTime' : [ None, ['WinTimeStamp', {}]],
-    'InheritedFromUniqueProcessId' : [ None, ['unsigned int']],
-    'ImageFileName' : [ None, ['String', dict(length = 16)]],
-    'UniqueProcessId' : [ None, ['unsigned int']],
-    }],
+    '_EPROCESS' : [None, {
+            'CreateTime' : [None, ['WinTimeStamp', {}]],
+            'ExitTime' : [None, ['WinTimeStamp', {}]],
+            'InheritedFromUniqueProcessId' : [None, ['unsigned int']],
+            'ImageFileName' : [None, ['String', dict(length=16)]],
+            'UniqueProcessId' : [None, ['unsigned int']],
+            }],
 
-    '_ETHREAD' : [ None, {
-    'CreateTime' : [ None, ['ThreadCreateTimeStamp', {}]],
-    'ExitTime' : [ None, ['WinTimeStamp', {}]],
-    }],
+    '_ETHREAD' : [None, {
+            'CreateTime' : [None, ['ThreadCreateTimeStamp', {}]],
+            'ExitTime' : [None, ['WinTimeStamp', {}]],
+            }],
 
-    '_OBJECT_SYMBOLIC_LINK' : [ None, {
-    'CreationTime' : [ None, ['WinTimeStamp', {}]],
-    }],
+    '_OBJECT_SYMBOLIC_LINK' : [None, {
+            'CreationTime' : [None, ['WinTimeStamp', {}]],
+            }],
 
-    '_KUSER_SHARED_DATA' : [ None, {
-    'SystemTime' : [ None, ['WinTimeStamp', dict(is_utc = True)]],
-    'TimeZoneBias' : [ None, ['WinTimeStamp', {}]],
-    }],
+    '_KUSER_SHARED_DATA' : [None, {
+            'SystemTime' : [None, ['WinTimeStamp', dict(is_utc=True)]],
+            'TimeZoneBias' : [None, ['WinTimeStamp', {}]],
+            }],
 
     '_KPCR': [None, {
             # The processor block has varying names between windows versions so
@@ -67,7 +69,8 @@ windows_overlay = {
             'ProcessorBlock': lambda x: x.m("Prcb") or x.m("PrcbData"),
             '_IDT': lambda x: x.m("IDT") or x.m("IdtBase"),
             '_GDT': lambda x: x.m("GDT") or x.m("GdtBase"),
-            'KdVersionBlock': [None, ['Pointer', dict(target='_KDDEBUGGER_DATA64')]],
+            'KdVersionBlock': [None, ['Pointer', dict(
+                        target='_KDDEBUGGER_DATA64')]],
             }],
 
     '_KPRCB': [None, {
@@ -84,65 +87,78 @@ windows_overlay = {
     # The DTB is really an array of 2 ULONG_PTR but we only need the first one
     # which is the value loaded into CR3. The second one, according to procobj.c
     # of the wrk-v1.2, contains the PTE that maps something called hyper space.
-    '_KPROCESS' : [ None, {
-    'DirectoryTableBase' : [ None, ['unsigned long']],
+    '_KPROCESS' : [None, {
+            'DirectoryTableBase' : [None, ['unsigned long']],
     }],
 
-    '_HANDLE_TABLE_ENTRY' : [ None, {
-    'Object' : [ None, ['_EX_FAST_REF']],
-    }],
+    '_HANDLE_TABLE_ENTRY' : [None, {
+            'Object' : [None, ['_EX_FAST_REF']],
+            }],
 
-    '_IMAGE_SECTION_HEADER' : [ None, {
-    'Name' : [ 0x0, ['String', dict(length = 8)]],
-    }],
+    '_IMAGE_SECTION_HEADER' : [None, {
+            'Name' : [0x0, ['String', dict(length=8)]],
+            }],
 
-    'PO_MEMORY_IMAGE' : [ None, {
-    'Signature':   [ None, ['String', dict(length = 4)]],
-    'SystemTime' : [ None, ['WinTimeStamp', {}]],
-    }],
+    'PO_MEMORY_IMAGE' : [None, {
+            'Signature':   [None, ['String', dict(length=4)]],
+            'SystemTime' : [None, ['WinTimeStamp', {}]],
+            }],
 
-    '_DBGKD_GET_VERSION64' : [  None, {
-    'DebuggerDataList' : [ None, ['pointer', ['unsigned long']]],
-    }],
+    '_DBGKD_GET_VERSION64' : [None, {
+            'DebuggerDataList' : [None, ['pointer', ['unsigned long']]],
+            }],
 
-    '_CM_KEY_NODE' : [ None, {
-    'Signature' : [ None, ['String', dict(length = 2)]],
-    'LastWriteTime' : [ None, ['WinTimeStamp', {}]],
-    'Name' : [ None, ['String', dict(length = lambda x: x.NameLength)]],
-    }],
+    '_CM_KEY_NODE' : [None, {
+            'Signature' : [None, ['String', dict(length=2)]],
+            'LastWriteTime' : [None, ['WinTimeStamp', {}]],
+            'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
+            }],
 
-    '_CM_NAME_CONTROL_BLOCK' : [ None, {
-    'Name' : [ None, ['String', dict(length = lambda x: x.NameLength)]],
-    }],
+    '_CM_NAME_CONTROL_BLOCK' : [None, {
+            'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
+            }],
 
-    '_CHILD_LIST' : [ None, {
-    'List' : [ None, ['pointer', ['array', lambda x: x.Count,
-                                 ['pointer', ['_CM_KEY_VALUE']]]]],
-    }],
+    '_CHILD_LIST' : [None, {
+            'List' : [None, ['pointer', ['array', lambda x: x.Count,
+                                          ['pointer', ['_CM_KEY_VALUE']]]]],
+            }],
 
-    '_CM_KEY_VALUE' : [ None, {
-    'Signature' : [ None, ['String', dict(length = 2)]],
-    'Name' : [ None, ['String', dict(length = lambda x: x.NameLength)]],
-    }],
+    '_CM_KEY_VALUE' : [None, {
+            'Signature' : [None, ['String', dict(length=2)]],
+            'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
+            }],
 
-    '_CM_KEY_INDEX' : [ None, {
-    'Signature' : [ None, ['String', dict(length = 2)]],
-    'List' : [ None, ['array', lambda x: x.Count.v() * 2, ['pointer', ['_CM_KEY_NODE']]]],
-    }],
+    '_CM_KEY_INDEX' : [None, {
+            'Signature' : [None, ['String', dict(length=2)]],
+            'List' : [None, ["Array", dict(
+                        count=lambda x: x.Count.v() * 2,
+                        target="Pointer",
+                        target_args=dict(
+                            target='_CM_KEY_NODE'
+                            )
+                        )]],
+            }],
 
-    '_TOKEN' : [ None, {
-    'UserAndGroups' : [ None, ['pointer', ['array', lambda x: x.UserAndGroupCount,
-                                 ['_SID_AND_ATTRIBUTES']]]],
-    }],
+    '_TOKEN' : [None, {
+            'UserAndGroups' : [None, ['Pointer', dict(
+                        target='Array',
+                        target_args=dict(
+                            count=lambda x: x.UserAndGroupCount,
+                            target='_SID_AND_ATTRIBUTES'
+                            )
+                        )]],
+            }],
 
-    '_SID' : [ None, {
-    'SubAuthority' : [ None, ['array', lambda x: x.SubAuthorityCount, ['unsigned long']]],
-    }],
+    '_SID' : [None, {
+            'SubAuthority' : [None, ['Array', dict(
+                        count=lambda x: x.SubAuthorityCount,
+                        target='unsigned long')]],
+            }],
 
-    '_CLIENT_ID': [ None, {
-    'UniqueProcess' : [ None, ['unsigned int']],
-    'UniqueThread' : [ None, ['unsigned int']],
-    }],
+    '_CLIENT_ID': [None, {
+            'UniqueProcess' : [None, ['unsigned int']],
+            'UniqueThread' : [None, ['unsigned int']],
+            }],
 
     '_MMVAD_FLAGS': [None, {
             # Vad Protections. Also known as page protections. The
@@ -381,9 +397,8 @@ class _EPROCESS(obj.Struct):
         if self.Session.is_valid():
             process_space = self.get_process_address_space()
             if process_space:
-                return self.obj_profile.Object("_MM_SESSION_SPACE",
-                                               offset = self.Session,
-                                               vm = process_space).SessionId
+                return self.obj_profile._MM_SESSION_SPACE(
+                    offset=self.Session, vm=process_space).SessionId
 
         return obj.NoneObject("Cannot find process session")
 
@@ -393,9 +408,8 @@ class _EPROCESS(obj.Struct):
 
         try:
             process_as = self.obj_vm.__class__(
-                base=self.obj_vm.base,
-                session=self.obj_vm.session,
-                dtb = directory_table_base, astype='virtual')
+                base=self.obj_vm.base, session=self.obj_vm.session,
+                dtb=directory_table_base)
         except AssertionError, e:
             return obj.NoneObject("Unable to get process AS: %s" % e)
 
@@ -418,7 +432,8 @@ class _EPROCESS(obj.Struct):
                                  "InMemoryOrderLinks")
 
     def get_load_modules(self):
-        return self._get_modules(self.Peb.Ldr.InLoadOrderModuleList, "InLoadOrderLinks")
+        return self._get_modules(
+            self.Peb.Ldr.InLoadOrderModuleList, "InLoadOrderLinks")
 
     def get_token(self):
         """Return the process's TOKEN object if its valid"""
@@ -478,9 +493,10 @@ class _POOL_HEADER(obj.Struct):
 
         The following is provided by MHL:
 
-        For example, let's assume the following object has no preamble, then we'd
-        take the base of pool header and add the size of pool header to reach the
-        base of the object. Layout in memory looks like this:
+        For example, let's assume the following object has no preamble, then
+        we'd take the base of pool header and add the size of pool header to
+        reach the base of the object. Layout in memory looks like this:
+
 
         _POOL_HEADER
         <TheObject>
@@ -492,10 +508,10 @@ class _POOL_HEADER(obj.Struct):
         _OBJECT_HEADER
         <TheObject>
 
-        Its easy to calculate the offset of the object, because you always know the
-        size of _POOL_HEADER and _OBJECT_HEADER. However, one situation complicates
-        this calculation. There may be optional headers between the pool header and
-        object header like this:
+        Its easy to calculate the offset of the object, because you always know
+        the size of _POOL_HEADER and _OBJECT_HEADER. However, one situation
+        complicates this calculation. There may be optional headers between the
+        pool header and object header like this:
 
         _POOL_HEADER
         <SomeHeaderA>
@@ -504,15 +520,16 @@ class _POOL_HEADER(obj.Struct):
         <TheObject>
 
         The _OBJECT_HEADER itself is the "map" which tell us how many optional
-        headers there are. The question becomes - how do we find the _OBJECT_HEADER
-        when the very information we need (distance between pool header and object
-        header) is stored in the _OBJECT_HEADER? Furthermore, we can't statically
-        set preambles, because not only do they differ between objects (i.e. mutants
-        may have different optional headers than file objects), but they sometimes
-        differ between objects of the same type (for example one process may have 2
-        optional headers and another process may only have 1). That flexibility is
-        not really possible with the preambles - at least how they were implemented
-        at the time of these changes.
+        headers there are. The question becomes - how do we find the
+        _OBJECT_HEADER when the very information we need (distance between pool
+        header and object header) is stored in the _OBJECT_HEADER? Furthermore,
+        we can't statically set preambles, because not only do they differ
+        between objects (i.e. mutants may have different optional headers than
+        file objects), but they sometimes differ between objects of the same
+        type (for example one process may have 2 optional headers and another
+        process may only have 1). That flexibility is not really possible with
+        the preambles - at least how they were implemented at the time of these
+        changes.
 
         So the "bottom up" approach takes into account two values which *are*
         reliable:
@@ -521,12 +538,13 @@ class _POOL_HEADER(obj.Struct):
         2. The size of the object you expect to find in the pool
            (i.e. get_obj_size("_EPROCESS"))
 
-        So with that information, you can find the end of the pool (i.e. starting
-        from the bottom), subtract the size of the object (working our way up), and
-        then you've got the offset of the object. Always, the _OBJECT_HEADER (if
-        there is one) directly precedes the object, so once you've got the object's
-        offset, you can find the _OBJECT_HEADER. And from there, since
-        _OBJECT_HEADER is the "map" you can find any optional headers.
+        So with that information, you can find the end of the pool
+        (i.e. starting from the bottom), subtract the size of the object
+        (working our way up), and then you've got the offset of the
+        object. Always, the _OBJECT_HEADER (if there is one) directly precedes
+        the object, so once you've got the object's offset, you can find the
+        _OBJECT_HEADER. And from there, since _OBJECT_HEADER is the "map" you
+        can find any optional headers.
 
         Args:
           name: The name of the object type to retrieve. Note: name must be

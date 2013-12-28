@@ -3,7 +3,7 @@ import inspect
 from rekall import ipython_support
 
 # Load all the plugins to register them.
-from rekall import plugins
+from rekall import plugins  # pylint: disable=unused-import
 from rekall import utils
 from rekall import session
 
@@ -32,13 +32,12 @@ def ImportEnvironment(**kwargs):
     s = session.InteractiveSession(**kwargs)
 
     stack = inspect.stack()
+    # pylint: disable=protected-access
     s._locals = stack[1][0].f_locals
     s._locals["session"] = s
 
     # For IPython fix up the completion.
     try:
-        import IPython
-
         shell = IPython.get_ipython()
         shell.Completer.matchers.insert(
             0, lambda x: ipython_support.RekallCompleter(shell.Completer, x))

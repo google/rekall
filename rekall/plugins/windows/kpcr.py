@@ -23,10 +23,10 @@
 """This plugin is used for displaying information about the Kernel Processor
 Control Blocks.
 """
-import logging
 
-from rekall import addrspace
-from rekall import obj
+# pylint: disable=protected-access
+
+import logging
 
 from rekall.plugins.windows import common
 
@@ -104,7 +104,7 @@ class KPCR(common.AbstractWindowsCommandPlugin):
         # Return all the _KPCR structs we know about.
         return seen.values()
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         eprocess = self.eprocess
 
         if self.session.system_eprocess:

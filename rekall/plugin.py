@@ -17,16 +17,15 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-__author__ = "Michael Cohen <scudette@gmail.com>"
-
 """Plugins allow the core rekall system to be extended."""
 
-import logging
+__author__ = "Michael Cohen <scudette@gmail.com>"
+
+
 import StringIO
 
 from rekall import registry
-from rekall import obj
-from rekall.ui import renderer
+from rekall.ui import renderer as rekall_renderer
 
 
 class Error(Exception):
@@ -62,14 +61,14 @@ class Command(object):
     __metaclass__ = registry.MetaclassRegistry
 
     # This declares that this plugin only exists in the interactive session.
-    _interactive = False
+    interactive = False
 
     @classmethod
     def args(cls, parser):
         """Declare the command line args we need."""
 
     @registry.classproperty
-    def name(cls):
+    def name(cls):  # pylint: disable=no-self-argument
         return getattr(cls, "_%s__name" % cls.__name__, None)
 
     def __init__(self, session=None, **kwargs):
@@ -104,7 +103,8 @@ class Command(object):
     def __str__(self):
         """Render into a string using the text renderer."""
         fd = StringIO.StringIO()
-        ui_renderer = renderer.TextRenderer(session=self.session, fd=fd)
+        ui_renderer = rekall_renderer.TextRenderer(
+            session=self.session, fd=fd)
         ui_renderer.start(plugin_name=self.name)
         self.render(ui_renderer)
 
@@ -123,6 +123,7 @@ class Command(object):
         example, we can have a linux, windows and mac version of plugins with
         the "pslist" name.
         """
+        _ = session
         return True
 
     @classmethod

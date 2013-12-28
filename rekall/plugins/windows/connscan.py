@@ -27,30 +27,23 @@ This module implements the fast connection scanning
 @organization: Volatile Systems
 """
 
+# pylint: disable=protected-access
+
 from rekall.plugins.overlays.windows import tcpip_vtypes
 from rekall.plugins.windows import common
 
 
 class PoolScanConnFast(common.PoolScanner):
-    checks = [ ('PoolTagCheck', dict(tag = "TCPT")),
-               ('CheckPoolSize', dict(condition = lambda x: x >= 0x198)),
-               ('CheckPoolType', dict(non_paged = True, free = True)),
-               ('CheckPoolIndex', dict(value = 0)),
-               ]
+    checks = [('PoolTagCheck', dict(tag="TCPT")),
+              ('CheckPoolSize', dict(condition=lambda x: x >= 0x198)),
+              ('CheckPoolType', dict(non_paged=True, free=True)),
+              ('CheckPoolIndex', dict(value=0)),
+              ]
 
 
 class ConnScan(common.PoolScannerPlugin):
     """ Scan Physical memory for _TCPT_OBJECT objects (tcp connections)
     """
-    meta_info = dict(
-        author = 'Brendan Dolan-Gavitt',
-        copyright = 'Copyright (c) 2007,2008 Brendan Dolan-Gavitt',
-        contact = 'bdolangavitt@wesleyan.edu',
-        license = 'GNU General Public License 2.0 or later',
-        url = 'http://moyix.blogspot.com/',
-        os = 'WIN_32_XP_SP2',
-        version = '1.0',
-        )
 
     __name = "connscan"
 
@@ -76,12 +69,12 @@ class ConnScan(common.PoolScannerPlugin):
             address_space=self.address_space)
 
         for pool_obj in scanner.scan():
-            ## The struct is allocated out of the pool (i.e. its not an object).
+            # The struct is allocated out of the pool (i.e. its not an object).
             yield self.profile._TCPT_OBJECT(
                 vm=self.address_space,
                 offset=pool_obj.obj_offset + pool_obj.size())
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([("Offset(P)", "offset_p", "[addrpad]"),
                                ("Local Address", "local_net_address", "<25"),
                                ("Remote Address", "remote_net_address", "<25"),
@@ -89,6 +82,10 @@ class ConnScan(common.PoolScannerPlugin):
 
         ## We make a new scanner
         for tcp_obj in self.generate_hits():
-            local = "{0}:{1}".format(tcp_obj.LocalIpAddress, tcp_obj.LocalPort)
-            remote = "{0}:{1}".format(tcp_obj.RemoteIpAddress, tcp_obj.RemotePort)
+            local = "{0}:{1}".format(tcp_obj.LocalIpAddress,
+                                     tcp_obj.LocalPort)
+
+            remote = "{0}:{1}".format(tcp_obj.RemoteIpAddress,
+                                      tcp_obj.RemotePort)
+
             renderer.table_row(tcp_obj.obj_offset, local, remote, tcp_obj.Pid)

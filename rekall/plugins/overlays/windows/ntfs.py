@@ -45,10 +45,10 @@ ntfs_vtypes = {
             "_cluster_size": [13, ["unsigned char"]],
 
             # The cluster_size in bytes.
-            "cluster_size": lambda x: x._cluster_size * x.sector_size,
+            "cluster_size": lambda x: x.m("_cluster_size") * x.sector_size,
 
             # The total number of clusters in the volume
-            "block_count": lambda x: x._volume_size / x.cluster_size,
+            "block_count": lambda x: x.m("_volume_size") / x.cluster_size,
 
             "_volume_size":   [40, ["unsigned long"]],
             "_mft_cluster":   [48, ["unsigned long"]],
@@ -62,7 +62,7 @@ ntfs_vtypes = {
 
             # The MFT can actually be fragmented so this does not have to be the
             # complete MFT.
-            "MFT": [lambda x: x._mft_cluster * x.cluster_size,
+            "MFT": [lambda x: x.m("_mft_cluster") * x.cluster_size,
                     ["Array", dict(
                         target="MFT_ENTRY",
                         target_size=lambda x: x.mft_record_size)
@@ -93,9 +93,10 @@ ntfs_vtypes = {
                             ["String", dict(length=2, term=None)]],
 
             "fixup_table": [lambda x: x.obj_offset + x.fixup_offset + 2,
-                            ["Array", dict(target="String",
-                                           target_args=dict(length=2, term=None),
-                                           count=lambda x: x.fixup_count-1)]],
+                            ["Array", dict(
+                        target="String",
+                        target_args=dict(length=2, term=None),
+                        count=lambda x: x.fixup_count-1)]],
 
             # Attributes are a list of NTFS_ATTRIBUTE objects, starting from the
             # attribute_offset member.
@@ -137,7 +138,8 @@ ntfs_vtypes = {
             "attribute_id": [14, ["unsigned short"]],
 
             "name": [lambda x: x.obj_offset + x.name_offset,
-                     ["UnicodeString", dict(length=lambda x: x.name_length * 2)]],
+                     ["UnicodeString", dict(
+                        length=lambda x: x.name_length * 2)]],
 
             # The following are only valid if the attribute is resident.
             "content_size": [16, ["unsigned int"]],
@@ -193,7 +195,7 @@ ntfs_vtypes = {
                             3: "DOS+Win32"
                             })]],
             "name": [66, ["UnicodeString", dict(
-                        length=lambda x: x._length_of_name * 2)]],
+                        length=lambda x: x.m("_length_of_name") * 2)]],
             }],
     }
 
@@ -210,7 +212,8 @@ class FixupAddressSpace(addrspace.BaseAddressSpace):
         self.buffer = array.array("c", self.base.read(base_offset, length))
         for i, fixup_value in enumerate(fixup_table):
             fixup_offset = (i+1) * 512 - 2
-            if self.buffer[fixup_offset:fixup_offset+2].tostring() != fixup_magic.v():
+            if (self.buffer[fixup_offset:fixup_offset+2].tostring() !=
+                fixup_magic.v()):
                 raise NTFSParseError("Fixup error")
 
             self.buffer[fixup_offset:fixup_offset+2] = array.array(
@@ -343,6 +346,8 @@ class NTFS_ATTRIBUTE(obj.Struct):
                 run_list=list(self.RunList()),
                 base=self.session.physical_address_space,
                 session=self.session)
+
+            return address_space
 
     def DecodeAttribute(self):
         if self.type == "$STANDARD_INFORMATION":
@@ -477,7 +482,7 @@ class FLS(plugin.Command):
     def is_active(cls, session):
         return isinstance(session.profile, NTFSProfile)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         ntfs = NTFS(self.session.physical_address_space,
                     session=self.session)
 

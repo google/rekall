@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""This module provides the primitives needed to disassemble code using distorm3."""
+"""Provides the primitives needed to disassemble code using distorm3."""
 
 # This stuff is just here to make pyinstaller pick up on it. Due to the way
 # distorm3 uses ctypes, pyinstaller misses the imports. Note that the following
@@ -39,21 +39,8 @@ import distorm3
 import re
 
 from rekall import args
-from rekall import obj
 from rekall import plugin
 from rekall import testlib
-
-
-class Instruction(obj.BaseObject):
-    """An object which represents a single assembly instruction."""
-
-    def __init__(self, instruction_set=None, **kwargs):
-        """Decode a single instruction from the current point.
-
-        Args:
-          instruction_set: "32bit" or "64bit" or taken from the
-             profile.metadata("memroy_model")
-        """
 
 
 class Disassemble(plugin.Command):
@@ -97,7 +84,8 @@ class Disassemble(plugin.Command):
         self.offset = offset
         self.length = length
         self.suppress_headers = suppress_headers
-        self.mode = mode or self.session.profile.metadata("memory_model", "32bit")
+        self.mode = mode or self.session.profile.metadata(
+            "memory_model", "32bit")
 
         if self.mode == "32bit":
             self.distorm_mode = distorm3.Decode32Bits
@@ -111,11 +99,13 @@ class Disassemble(plugin.Command):
           A tuple of (Address, Opcode, Instructions).
         """
         data = self.address_space.read(offset, self.length * 10)
-        iterable = distorm3.DecodeGenerator(int(offset), data, self.distorm_mode)
+        iterable = distorm3.DecodeGenerator(
+            int(offset), data, self.distorm_mode)
+
         for (offset, _size, instruction, hexdump) in iterable:
             yield offset, hexdump, instruction
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         """Disassemble code at a given address.
 
         Disassembles code starting at address for a number of bytes
@@ -133,8 +123,10 @@ class Disassemble(plugin.Command):
                                ('Comment', "comment", "")],
                               suppress_headers=self.suppress_headers)
 
+        offset = 0
         regex = re.compile("0x[0-9a-fA-F]+$")
-        for i, (offset, hexdump, instruction) in enumerate(self.disassemble(self.offset)):
+        for i, (offset, hexdump, instruction) in enumerate(
+            self.disassemble(self.offset)):
             if i >= self.length:
                 break
 

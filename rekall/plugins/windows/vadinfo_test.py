@@ -30,7 +30,14 @@ class TestVadInfo(testlib.SimpleTestCase):
 
     PARAMETERS = dict(
         commandline="vadinfo --pid %(pid)s",
-        pid=2624
+        )
+
+
+class TestVADWalk(testlib.SimpleTestCase):
+    """Test the vadwalk module."""
+
+    PARAMETERS = dict(
+        commandline="vadwalk --pid %(pid)s",
         )
 
 
