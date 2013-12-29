@@ -31,7 +31,7 @@ except ImportError:
     from distutils.core import find_packages, setup
 
 # Change PYTHONPATH to include rekall so that we can get the version.
-sys.path.insert(0, os.path.join('rekall'))
+sys.path.insert(0, '.')
 
 from rekall import constants
 
