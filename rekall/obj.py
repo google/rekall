@@ -1245,9 +1245,10 @@ class Profile(object):
 
     def copy(self):
         """Makes a copy of this profile."""
-        result = self.__class__(session=self.session)
-        result.vtypes = copy.deepcopy(self.vtypes)
-        result.overlays = copy.deepcopy(self.overlays)
+        result = self.__class__(name=self.name, session=self.session)
+        result.vtypes = self.vtypes.copy()
+        result.overlays = self.overlays[:]
+        result.constants = self.constants.copy()
         result.applied_modifications = self.applied_modifications[:]
 
         # Object classes are shallow dicts.
@@ -1291,8 +1292,11 @@ class Profile(object):
         for k, v in kwargs.iteritems():
             self.constants[k] = v
             if constants_are_addresses:
-                # We need to interpret the value as a pointer.
-                self.constant_addresses[Pointer.integer_to_address(v)] = k
+                try:
+                    # We need to interpret the value as a pointer.
+                    self.constant_addresses[Pointer.integer_to_address(v)] = k
+                except ValueError:
+                    pass
 
     def add_types(self, abstract_types):
         self.flush_cache()
@@ -1441,7 +1445,7 @@ class Profile(object):
         # override the methods in cls depending on the members dict, without
         # altering the cls class permanently (This is a kind of metaclass
         # programming).
-        derived_cls = type(cls.__name__, (cls,), properties)
+        derived_cls = type(str(type_name), (cls,), properties)
 
         return Curry(derived_cls,
                      theType=type_name, members=members, struct_size=size)

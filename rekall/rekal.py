@@ -38,6 +38,12 @@ from rekall import session
 # Import and register the core plugins
 from rekall import plugins  # pylint: disable=unused-import
 
+try:
+    from rekall import ipython_support
+except ImportError:
+    ipython_support = None
+
+
 config.DeclareOption(
     "-r", "--run", default=None,
     help="Run this script before dropping into the interactive shell.")
@@ -78,16 +84,12 @@ def IPython012Support(user_session):
     Returns:
       False if we failed to use IPython. True if the session was run and exited.
     """
-    try:
-        from rekall import ipython_support
-
+    if ipython_support:
         # This must be run here because the IPython shell messes with our user
         # namespace above (by adding its own help function).
         user_session._prepare_local_namespace()
 
         return ipython_support.Shell(user_session)
-    except ImportError:
-        return False
 
 
 def NotebookSupport(user_session):
@@ -128,6 +130,15 @@ def NativePythonSupport(user_session):
     code.interact(banner=constants.BANNER, local=user_session._locals)
 
 def main(argv=None):
+    # IPython notebook launches the IPython kernel by re-spawning the main
+    # binary with its own command line args. This hack traps this and diverts
+    # execution to IPython itself.
+    if len(sys.argv) > 2 and sys.argv[1] == "-c":
+        to_run = sys.argv[2]
+        if ".kernelapp" in to_run:
+            exec(to_run)
+            return
+
     # New user interactive session (with extra bells and whistles).
     user_session = session.InteractiveSession()
 
@@ -137,7 +148,7 @@ def main(argv=None):
     if getattr(flags, "module", None):
         # Run the module
         try:
-            user_session.vol(flags.module, flags=flags)
+            user_session.RunPlugin(flags.module, flags=flags)
         except Exception as e:
             if getattr(flags, "debug", None):
                 pdb.post_mortem()
@@ -153,10 +164,13 @@ def main(argv=None):
     user_session.mode = "Interactive"
 
     # Try to launch the session using something.
-    _ = (NotebookSupport(user_session) or
-         IPython011Support(user_session) or
-         IPython012Support(user_session) or
-         NativePythonSupport(user_session))
+    if user_session.state.ipython_support == "notebook":
+        ipython_support.NotebookSupport(user_session)
+    else:
+        _ = (IPython011Support(user_session) or
+             IPython012Support(user_session) or
+             NativePythonSupport(user_session))
+
 
 if __name__ == '__main__':
     main()

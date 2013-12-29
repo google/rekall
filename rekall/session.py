@@ -228,10 +228,10 @@ class Session(object):
         """An error handler for plugin errors."""
         raise e
 
-    def vol(self, plugin_cls, *pos_args, **kwargs):
+    def RunPlugin(self, plugin_cls, *pos_args, **kwargs):
         """Launch a plugin and its render() method automatically.
 
-        We use the pager specified in session.pager.
+        We use the pager specified in session.state.pager.
 
         Args:
           plugin_cls: A string naming the plugin, or the plugin class itself.
@@ -267,6 +267,9 @@ class Session(object):
         if not isinstance(ui_renderer, renderer.RendererBaseClass):
             ui_renderer_cls = self.renderer or renderer.TextRenderer
 
+            if isinstance(ui_renderer_cls, basestring):
+                ui_renderer_cls = renderer.TextRenderer.classes[ui_renderer_cls]
+
             # Allow the output to be written to file.
             if output is not None:
                 if os.access(output, os.F_OK) and not (
@@ -280,7 +283,7 @@ class Session(object):
 
             # Allow per call overriding of the output file descriptor.
             paging_limit = self.state.paging_limit
-            if not self.pager:
+            if not self.state.pager:
                 paging_limit = None
 
             ui_renderer = ui_renderer_cls(session=self, fd=fd,
@@ -306,7 +309,8 @@ class Session(object):
 
             # If there was too much data and a pager is specified, simply pass
             # the data to the pager:
-            if self.pager and len(ui_renderer.data) >= self.state.paging_limit:
+            if (self.state.pager and
+                len(ui_renderer.data) >= self.state.paging_limit):
                 pager = renderer.Pager(self)
                 for data in ui_renderer.data:
                     pager.write(data)
@@ -438,7 +442,8 @@ class InteractiveSession(Session):
                 info_plugin = plugin.Command.classes['Info'](cls)
 
                 # Create a runner for this plugin and set its documentation.
-                runner = obj.Curry(self.vol, name, default_arguments=[
+                runner = obj.Curry(
+                    self.RunPlugin, name, default_arguments=[
                         x for x, _ in info_plugin.get_default_args()])
 
                 runner.__doc__ = utils.SmartUnicode(info_plugin)
@@ -450,8 +455,8 @@ class InteractiveSession(Session):
         """Reset the current session by making a new session."""
         self._prepare_local_namespace()
 
-    def vol(self, *args, **kwargs):
-        self.last = super(InteractiveSession, self).vol(*args, **kwargs)
+    def RunPlugin(self, *args, **kwargs):
+        self.last = super(InteractiveSession, self).RunPlugin(*args, **kwargs)
 
     def _prepare_local_namespace(self):
         session = self._locals['session'] = self
@@ -459,9 +464,6 @@ class InteractiveSession(Session):
         self._locals['addrspace'] = addrspace
         self._locals['obj'] = obj
         self._locals['profile'] = self.profile
-
-        # The handler for the vol command.
-        self._locals['vhelp'] = session.vhelp
         self._locals['v'] = session.v
 
         # Add all plugins to the local namespace and to their own container.
@@ -474,7 +476,7 @@ class InteractiveSession(Session):
     def v(self):
         """Re-execute the previous command."""
         if self.last:
-            self.vol(self.last)
+            self.RunPlugin(self.last)
 
     def lister(self, arg):
         for x in arg:
@@ -484,11 +486,8 @@ class InteractiveSession(Session):
         result = """Rekall Memory Forensics session Started on %s.
 
 Config:
-""" % (time.ctime(self.start_time))
-        for name in dir(self):
-            value = getattr(self, name)
-            result += " %s:  %r\n" % (name, value)
-
+%s
+""" % (time.ctime(self.start_time), self.state)
         return result
 
     def __dir__(self):
@@ -500,20 +499,3 @@ Config:
         """Swallow the error but report it."""
         logging.error("Failed running plugin %s: %s",
                       plugin_cls.name, e)
-
-    def vhelp(self, item=None):
-        """Prints some helpful information."""
-        if item is None:
-            print """Welocome to Rekall Memory Forensics.
-
-You can get help on any module or object by typing:
-
-vhelp object
-
-Some interesting topics to get you started, explaining some rekall specific
-concepts:
-
-vhelp addrspace - The address space.
-vhelp obj       - The rekall objects.
-vhelp profile   - What are Profiles?
-"""

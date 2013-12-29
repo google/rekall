@@ -64,16 +64,17 @@ class Arp(common.LinuxPlugin):
         self.profile = ArpModification(self.profile)
 
     def get_handle_tables(self):
-        ntable = self.profile.Pointer(
-            target="neigh_table",
-            offset=self.profile.get_constant("neigh_tables"),
-            vm=self.kernel_address_space)
+        tables = self.profile.get_constant_object(
+            "neigh_tables",
+            target="Pointer",
+            target_args=dict(
+                target="neigh_table"
+                )
+            )
 
-        while ntable:
-            for x in self.handle_table(ntable):
+        for table in tables.walk_list("next"):
+            for x in self.handle_table(table):
                 yield x
-
-            ntable = ntable.next.deref()
 
     def handle_table(self, ntable):
         # Support a few ways of finding these parameters depending on kernel
@@ -96,7 +97,8 @@ class Arp(common.LinuxPlugin):
 
     def walk_neighbor(self, neighbor):
         while 1:
-            # get the family from each neighbour in order to work with ipv4 and 6
+            # get the family from each neighbour in order to work with IPv4 and
+            # IPv6.
             family = neighbor.tbl.family
 
             if family == "AF_INET":
@@ -117,7 +119,7 @@ class Arp(common.LinuxPlugin):
             if not neighbour:
                 break
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([("IP Address", "ip", ">10"),
                                ("MAC", "mac", ">20"),
                                ("Device", "dev", ">24")

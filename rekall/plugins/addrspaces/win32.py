@@ -20,8 +20,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 """This is a windows specific address space."""
-import exceptions
-import os
 import struct
 import win32file
 
@@ -77,7 +75,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         self.runs = []
         try:
             self.ParseMemoryRuns()
-        except Exception, e:
+        except Exception:
             if self.session.debug:
                 import pdb
                 pdb.post_mortem()
@@ -103,7 +101,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
                     fmt_string, result)))
 
         self.dtb = self.memory_parameters["CR3"]
-        self.session.StoreParameter("dtb", int(dtb))
+        self.session.StoreParameter("dtb", int(self.dtb))
 
         self.kdbg = self.memory_parameters["KDBG"]
         self.session.StoreParameter("kdbg", int(self.kdbg))
@@ -120,12 +118,13 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
             return "\x00" * min(length, available_length)
 
         win32file.SetFilePointer(self.fhandle, offset, 0)
-        _, data = win32file.ReadFile(self.fhandle, min(length, available_length))
+        _, data = win32file.ReadFile(
+            self.fhandle, min(length, available_length))
 
         return data
 
     def write(self, addr, data):
-        length=len(data)
+        length = len(data)
         offset, available_length = self._get_available_buffer(addr, length)
         if offset is None:
             return

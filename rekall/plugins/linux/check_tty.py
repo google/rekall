@@ -2,11 +2,11 @@
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
 #
-# Rekall Memory Forensics is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License Version 2 as
+# Rekall Memory Forensics is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License Version 2 as
 # published by the Free Software Foundation.  You may not use, modify or
-# distribute this program under any other version of the GNU General
-# Public License.
+# distribute this program under any other version of the GNU General Public
+# License.
 #
 # Rekall Memory Forensics is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -36,6 +36,13 @@ class CheckTTY(common.LinuxPlugin):
     """
     __name = "check_ttys"
 
+
+    @classmethod
+    def is_active(cls, session):
+        # Older versions of linux do not have the ldisc.ops member.
+        return (super(CheckTTY, cls).is_active(session) and
+                session.profile.tty_ldisc().m("ops"))
+
     def CheckTTYs(self):
         drivers_list = self.profile.get_constant_object(
             "tty_drivers", target="list_head", vm=self.kernel_address_space)
@@ -44,7 +51,8 @@ class CheckTTY(common.LinuxPlugin):
 
         for driver in drivers_list.list_of_type("tty_driver", "tty_drivers"):
             for tty in driver.ttys:
-                if not tty: continue
+                if not tty:
+                    continue
 
                 # This is the method which receives input. It should be present
                 # inside the tty driver.
@@ -52,7 +60,7 @@ class CheckTTY(common.LinuxPlugin):
 
                 yield tty.name, recv_buf, lsmod.ResolveSymbolName(recv_buf)
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([
                 ("Name", "name", "<16"),
                 ("Address", "address", "[addrpad]"),

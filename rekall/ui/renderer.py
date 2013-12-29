@@ -81,8 +81,8 @@ HIGHLIGHT_SCHEME = dict(
 class Pager(object):
     """A wrapper around a pager.
 
-    The pager can be specified by the session. (eg. session.pager = 'less') or
-    in an PAGER environment var.
+    The pager can be specified by the session. (eg. session.state.pager =
+    'less') or in an PAGER environment var.
     """
     # Default encoding is utf8
     encoding = "utf8"
@@ -90,11 +90,11 @@ class Pager(object):
     def __init__(self, session=None, encoding=None):
         # More is the least common denominator of pagers :-(. Less is better,
         # but most is best!
-        self.pager_command = session.pager or os.environ.get("PAGER")
+        self.pager_command = session.state.pager or os.environ.get("PAGER")
         self.encoding = encoding or session.encoding or sys.stdout.encoding
 
         # Make a temporary filename to store output in.
-        self.fd, self.filename = tempfile.mkstemp(prefix="vol")
+        self.fd, self.filename = tempfile.mkstemp(prefix="rekall")
 
     def __enter__(self):
         return self

@@ -26,6 +26,7 @@ OS's
 """
 import copy
 import datetime
+import distorm3
 import logging
 import pytz
 import re
@@ -551,222 +552,207 @@ class IndexedArray(obj.Array):
 class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
     """A rekall object representing code snippets."""
 
-    def __int__(self):
-        return self.obj_offset
+    def __init__(self, mode=None, **kwargs):
+        super(Function, self).__init__(**kwargs)
 
-    def __hash__(self):
-        return self.obj_offset + hash(self.obj_vm)
+        if mode is None:
+            self.mode = self.obj_profile.metadata("memory_model")
 
+        if self.mode == "32bit":
+            self.distorm_mode = distorm3.Decode32Bits
+        elif self.mode == "64bit":
+            self.distorm_mode = distorm3.Decode64Bits
+        else:
+            raise RuntimeError("Invalid mode %s" % self.mode)
 
-# If distorm3 is available we can do a few more things.
-try:
-    import distorm3
+    def __str__(self):
+        result = []
+        for data in self.Disassemble():
+            result.append("0x%08X %20s %s" % data)
 
-    class Function(Function):
+        return "\n".join(result)
 
-        def __init__(self, mode=None, **kwargs):
-            super(Function, self).__init__(**kwargs)
+    def _call_or_unc_jmp(self, op):
+        """Determine if an instruction is a call or an
+        unconditional jump
 
-            if mode is None:
-                self.mode = self.obj_profile.metadata("memory_model")
+        @param op: a distorm3 Op object
+        """
+        return (
+            (op.flowControl == 'FC_CALL' and op.mnemonic == "CALL") or
+            (op.flowControl == 'FC_UNC_BRANCH' and op.mnemonic == "JMP"))
 
-            if self.mode == "32bit":
-                self.distorm_mode = distorm3.Decode32Bits
+    def DetectJumps(self, size=1000):
+        """A generator for operations that look like jumps.
+
+        Disassemble a block of data and yield possible
+        calls to imported functions. We're looking for
+        instructions such as these:
+
+        x86:
+        CALL DWORD [0x1000400]
+        JMP  DWORD [0x1000400]
+
+        x64:
+        CALL QWORD [RIP+0x989d]
+
+        On x86, the 0x1000400 address is an entry in the
+        IAT or call table. It stores a DWORD which is the
+        location of the API function being called.
+
+        On x64, the 0x989d is a relative offset from the
+        current instruction (RIP).
+
+        Yields:
+          A tuple of source, destination Function objects which are the
+          targets for jumps.
+        """
+        for op in self.Decompose(size=size):
+            iat_loc = None
+
+            if self.mode == '32bit':
+                if (self._call_or_unc_jmp(op) and
+                    op.operands[0].type == 'AbsoluteMemoryAddress'):
+                    iat_loc = (op.operands[0].disp & 0xffffffff)
             else:
-                self.distorm_mode = distorm3.Decode64Bits
+                if (self._call_or_unc_jmp(op) and
+                    'FLAG_RIP_RELATIVE' in op.flags and
+                    op.operands[0].type == 'AbsoluteMemory'):
+                    iat_loc = op.address + op.size + op.operands[0].disp
 
-        def __str__(self):
-            result = []
-            for data in self.Disassemble():
-                result.append("0x%08X %20s %s" % data)
+            if iat_loc:
+                # This is the address being called
+                func_pointer = self.obj_profile.Pointer(
+                    target="Function", offset=iat_loc, vm=self.obj_vm,
+                    name="Function")
 
-            return "\n".join(result)
+                yield op.address, iat_loc, func_pointer
 
-        def _call_or_unc_jmp(self, op):
-            """Determine if an instruction is a call or an
-            unconditional jump
+    def Decompose(self, instructions=10, size=None):
+        """A generator for instructions of this object.
 
-            @param op: a distorm3 Op object
-            """
-            return ((op.flowControl == 'FC_CALL' and
-                     op.mnemonic == "CALL") or
-                    (op.flowControl == 'FC_UNC_BRANCH' and
-                     op.mnemonic == "JMP"))
+        How much to decompose is can be specified either by the total number
+        of instructions or the total size to decompose.
 
-        def DetectJumps(self, size=1000):
-            """A generator for operations that look like jumps.
+        Args:
+          instructions: Stop after reaching this many instructions. The
+            parameter is ignored when size is specified.
 
-            Disassemble a block of data and yield possible
-            calls to imported functions. We're looking for
-            instructions such as these:
+          size: Stop after decoding this much data. If specified we ignore
+            the instructions parameter.
+        """
+        overlap = 0x1000
+        data = ''
+        offset = self.obj_offset
+        count = 0
 
-            x86:
-            CALL DWORD [0x1000400]
-            JMP  DWORD [0x1000400]
+        while 1:
+            data = self.obj_vm.read(offset, overlap)
 
-            x64:
-            CALL QWORD [RIP+0x989d]
+            # This could happen if we hit an unmapped page - we just
+            # abort.
+            if not data:
+                return
 
-            On x86, the 0x1000400 address is an entry in the
-            IAT or call table. It stores a DWORD which is the
-            location of the API function being called.
+            for op in distorm3.Decompose(offset, data, self.distorm_mode):
+                if op.address - offset > len(data) - 40:
+                    break
 
-            On x64, the 0x989d is a relative offset from the
-            current instruction (RIP).
+                if not op.valid:
+                    continue
 
-            Yields:
-              A tuple of source, destination Function objects which are the
-              targets for jumps.
-            """
-            for op in self.Decompose(size=size):
-                iat_loc = None
-
-                if self.mode == '32bit':
-                    if (self._call_or_unc_jmp(op) and
-                        op.operands[0].type == 'AbsoluteMemoryAddress'):
-                        iat_loc = (op.operands[0].disp & 0xffffffff)
-                else:
-                    if (self._call_or_unc_jmp(op) and
-                        'FLAG_RIP_RELATIVE' in op.flags and
-                        op.operands[0].type == 'AbsoluteMemory'):
-                        iat_loc = op.address + op.size + op.operands[0].disp
-
-                if iat_loc:
-                    # This is the address being called
-                    func_pointer = self.obj_profile.Pointer(
-                        target="Function", offset=iat_loc, vm=self.obj_vm,
-                        name="Function")
-
-                    yield op.address, iat_loc, func_pointer
-
-        def Decompose(self, instructions=10, size=None):
-            """A generator for instructions of this object.
-
-            How much to decompose is can be specified either by the total number
-            of instructions or the total size to decompose.
-
-            Args:
-              instructions: Stop after reaching this many instructions. The
-                parameter is ignored when size is specified.
-
-              size: Stop after decoding this much data. If specified we ignore
-                the instructions parameter.
-            """
-            overlap = 0x1000
-            data = ''
-            offset = self.obj_offset
-            count = 0
-
-            while 1:
-                data = self.obj_vm.read(offset, overlap)
-
-                # This could happen if we hit an unmapped page - we just
-                # abort.
-                if not data:
+                # Exit if we read as much as was required.
+                if size is not None and op.address - self.obj_offset > size:
                     return
 
-                for op in distorm3.Decompose(offset, data, self.distorm_mode):
-                    if op.address - offset > len(data) - 40:
-                        break
+                yield op
 
-                    if not op.valid:
-                        continue
+                if size is None and count > instructions:
+                    return
 
-                    # Exit if we read as much as was required.
-                    if size is not None and op.address - self.obj_offset > size:
-                        return
+                count += 1
 
-                    yield op
+            offset = op.address
 
-                    if size is None and count > instructions:
-                        return
+    def Search(self, expressions, instruction_limit=100):
+        """Search forward for a sequence matching the expressions.
 
-                    count += 1
+        Args:
+          expressions: A list of regular expressions which must all match
+            the instruction.
+          instruction_limit: The number of instructions to search ahead.
 
-                offset = op.address
+        Returns:
+          Another Function object at the matched position or None.
+        """
+        terms = []
+        for e in expressions:
+            if isinstance(e, basestring):
+                e = re.compile(e)
+            terms.append(e)
 
-        def Search(self, expressions, instruction_limit=100):
-            """Search forward for a sequence matching the expressions.
+        instructions = []
+        for offset, _, instruction in self.Disassemble(instruction_limit):
+            instructions.append((offset, instruction))
 
-            Args:
-              expressions: A list of regular expressions which must all match
-                the instruction.
-              instruction_limit: The number of instructions to search ahead.
+        for i in range(len(instructions)):
+            for j in range(len(terms)):
+                print expressions[j], instructions[i][1]
+                if not terms[j].match(instructions[i + j][1]):
+                    break
+            else:
+                return self.obj_profile.Object(
+                    "Function", vm=self.obj_vm, offset=instructions[i][0])
 
-            Returns:
-              Another Function object at the matched position or None.
-            """
-            terms = []
-            for e in expressions:
-                if isinstance(e, basestring):
-                    e = re.compile(e)
-                terms.append(e)
+    def __getitem__(self, item):
+        for i, x in enumerate(self.Disassemble):
+            if i == item:
+                return x
 
-            instructions = []
-            for offset, _, instruction in self.Disassemble(instruction_limit):
-                instructions.append((offset, instruction))
+    def Rewind(self, length=0, align=True):
+        """Returns another function which starts before this function.
 
-            for i in range(len(instructions)):
-                for j in range(len(terms)):
-                    print expressions[j], instructions[i][1]
-                    if not terms[j].match(instructions[i + j][1]):
-                        break
-                else:
-                    return self.obj_profile.Object(
-                        "Function", vm=self.obj_vm, offset=instructions[i][0])
+        If align is specified, we increase the length repeatedly until the
+        new function disassebles exactly to the same offset of this
+        function.
+        """
+        while 1:
+            offset = self.obj_offset - length
+            result = self.obj_profile.Function(vm=self.obj_vm, offset=offset)
+            if not align:
+                return result
 
-        def __getitem__(self, item):
-            for i, x in enumerate(self.Disassemble):
-                if i == item:
-                    return x
-
-        def Rewind(self, length=0, align=True):
-            """Returns another function which starts before this function.
-
-            If align is specified, we increase the length repeatedly until the
-            new function disassebles exactly to the same offset of this
-            function.
-            """
-            while 1:
-                offset = self.obj_offset - length
-                result = self.obj_profile.Function(vm=self.obj_vm, offset=offset)
-                if not align:
+            for offset, _, _ in result.Disassemble(instructions=length):
+                # An exact match.
+                if offset == self.obj_offset:
                     return result
 
-                for offset, _, _ in result.Disassemble(instructions=length):
-                    # An exact match.
-                    if offset == self.obj_offset:
-                        return result
+                # We overshot ourselves, try again.
+                if offset > self.obj_offset:
+                    length += 1
+                    break
 
-                    # We overshot ourselves, try again.
-                    if offset > self.obj_offset:
-                        length += 1
-                        break
+    def Disassemble(self, instructions=10):
+        """Generate some instructions."""
+        overlap = 0x100
+        data = ''
+        offset = self.obj_offset
+        count = 0
 
-        def Disassemble(self, instructions=10):
-            """Generate some instructions."""
-            overlap = 0x100
-            data = ''
-            offset = self.obj_offset
-            count = 0
+        while True:
+            if offset - self.obj_offset > len(data) - 40:
+                data = self.obj_vm.read(offset, overlap)
 
-            while True:
-                if offset - self.obj_offset > len(data) - 40:
-                    data = self.obj_vm.read(offset, overlap)
-
-                iterator = distorm3.DecodeGenerator(
-                    offset, data, self.distorm_mode)
-                for (offset, _size, instruction, hexdump) in iterator:
-                    yield offset, hexdump, instruction
-                    count += 1
-                    if count >= instructions:
-                        return
-
-except ImportError:
-    pass
+            iterator = distorm3.DecodeGenerator(
+                offset, data, self.distorm_mode)
+            for (offset, _size, instruction, hexdump) in iterator:
+                yield offset, hexdump, instruction
+                count += 1
+                if count >= instructions:
+                    return
 
 
-# We define two kinds of basic profiles, a 32 bit one and two 64 bit ones.
+# We define three kinds of basic profiles, a 32 bit one and two 64 bit ones.
 class Profile32Bits(obj.Profile):
     """Basic profile for 32 bit systems."""
     _md_memory_model = '32bit'

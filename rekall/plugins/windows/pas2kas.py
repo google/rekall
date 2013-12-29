@@ -101,8 +101,8 @@ class WinPas2Vas(common.WinProcessFilter):
 
     def build_address_map(self, virtual_address_space, pid, task):
         """Given the virtual_address_space, build the address map."""
-          # This lookup map is sorted by the physical address. We then use
-          # bisect to efficiently look up the physical page.
+        # This lookup map is sorted by the physical address. We then use
+        # bisect to efficiently look up the physical page.
         tmp_lookup_map = []
         for va, length in virtual_address_space.get_available_addresses():
             pa = virtual_address_space.vtop(va)
@@ -160,7 +160,7 @@ class WinPas2Vas(common.WinProcessFilter):
                                        task.UniqueProcessId, task.ImageFileName)
 
 
-class TestWinPas2Vas(testlib.SimpleTestCase):
+class TestPas2Vas(testlib.SimpleTestCase):
     PARAMETERS = dict(
         commandline="pas2vas %(offset)s --pid 0 "
         )

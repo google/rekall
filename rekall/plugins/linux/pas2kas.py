@@ -1,17 +1,43 @@
-import logging
-import bisect
-import time
-import sys
+# Rekall Memory Forensics
+#
+# Copyright 2013 Google Inc. All Rights Reserved.
+#
+# Authors:
+# Michael Cohen <scudette@users.sourceforge.net>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
 
+import bisect
+
+from rekall import args
 from rekall.plugins.linux import common
 
 
-class Pas2Vas(common.LinProcessFilter):
+class LinPas2Vas(common.LinProcessFilter):
     """Resolves a physical address to a virtual addrress in a process."""
 
     __name = "pas2vas"
 
-    def __init__(self, physical_address=None, **kwargs):
+    @classmethod
+    def args(cls, parser):
+        super(LinPas2Vas, cls).args(parser)
+        parser.add_argument("offsets", action=args.ArrayIntParser, nargs="+",
+                            help="A list of physical offsets to resolve.")
+
+    def __init__(self, offsets=None, **kwargs):
         """Resolves a physical address to a vertial address.
 
         Often a user might want to see which process maps a particular physical
@@ -26,22 +52,22 @@ class Pas2Vas(common.LinProcessFilter):
         offset. This takes a fair bit of memory and effort to build so by
         default we store the maps in the session for quick reuse.
         """
-        super(Pas2Vas, self).__init__(**kwargs)
+        super(LinPas2Vas, self).__init__(**kwargs)
 
         # Now we build the tables for each process. We do this simply by listing
         # all the tasks using pslist, and then for each task we get its address
         # space, and enumerate available pages.
-        if physical_address is None:
-            physical_address = []
+        if offsets is None:
+            raise RuntimeError("Some offsets must be provided.")
 
         try:
-            self.physical_address = list(physical_address)
+            self.physical_address = list(offsets)
         except TypeError:
-            self.physical_address = [physical_address]
+            self.physical_address = [offsets]
 
         # Cache the process maps in the session.
         if self.session.process_maps is None:
-          self.session.process_maps = {}
+            self.session.process_maps = {}
 
         self.maps = self.session.process_maps
 
@@ -68,10 +94,10 @@ class Pas2Vas(common.LinProcessFilter):
 
     def build_address_map(self, virtual_address_space, pid, task):
         """Given the virtual_address_space, build the address map."""
-          # This lookup map is sorted by the physical address. We then use
-          # bisect to efficiently look up the physical page.
+        # This lookup map is sorted by the physical address. We then use
+        # bisect to efficiently look up the physical page.
         tmp_lookup_map = []
-        for va, length in self.memmap.address_ranges(virtual_address_space):
+        for va, length in virtual_address_space.get_available_addresses():
             pa = virtual_address_space.vtop(va)
             tmp_lookup_map.append((pa, length, va, task))
 
@@ -108,7 +134,7 @@ class Pas2Vas(common.LinProcessFilter):
                 return lookup_va + physical_address - lookup_pa, task
         return None, None
 
-    def render(self, renderer):
+    def render(self, renderer=None):
         renderer.table_header([('Physical', 'virtual_offset', '[addrpad]'),
                                ('Virtual', 'physical_offset', '[addrpad]'),
                                ('Pid', 'pid', '>6'),

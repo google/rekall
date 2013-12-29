@@ -334,7 +334,10 @@ class LIST_ENTRY(obj.Struct):
         return seen
 
     def list_of_type(self, type, member=None, include_current=True):
-        result = self.find_all_lists(type, member)
+        # We sort here to ensure we have stable ordering as the output of this
+        # call.
+        result = sorted(self.find_all_lists(type, member),
+                        key=lambda x: x.obj_offset)
 
         if member is None:
             member = self.obj_name

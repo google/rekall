@@ -4,19 +4,19 @@
 #
 # This file is part of Rekall Memory Forensics.
 #
-# Rekall Memory Forensics is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License Version 2 as
+# Rekall Memory Forensics is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License Version 2 as
 # published by the Free Software Foundation.  You may not use, modify or
-# distribute this program under any other version of the GNU General
-# Public License.
+# distribute this program under any other version of the GNU General Public
+# License.
 #
 # Rekall Memory Forensics is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 """
@@ -70,8 +70,6 @@ class CheckIdt(common.LinuxPlugin):
         and verifies that each is a symbol in the kernel
         """
         # hw handlers + system call
-        check_idxs = list(range(0, 20)) + [128]
-
         if self.profile.metadata('memory_model', '32bit') == "32bit":
             idt_type = "desc_struct"
         else:
@@ -87,8 +85,7 @@ class CheckIdt(common.LinuxPlugin):
 
         return self.CheckTable(idt_table)
 
-    def render(self, renderer):
-
+    def render(self, renderer=None):
         renderer.table_header([("Index", "index", "[addr]"),
                                ("Address", "address", "[addrpad]"),
                                ("Symbol", "symbol", "<30")])

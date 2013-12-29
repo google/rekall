@@ -1,5 +1,5 @@
 # Load the core modules
-import sys
+# pylint: disable=unused-import
 
 from rekall import utils
 
@@ -16,4 +16,7 @@ utils.ConditionalImport("rekall.plugins.addrspaces.accelerated")
 utils.ConditionalImport("rekall.plugins.addrspaces.ewf")
 
 # If we are running on windows, load the windows specific AS.
-utils.ConditionalImport("rekall.plugins.addrspaces.win32")
+try:
+    import rekall.plugins.addrspaces.win32
+except ImportError:
+    pass

@@ -263,10 +263,10 @@ class AbstractLinuxCommand(object):
         self.smap = self.profile.sys_map
 
     @classmethod
-    def is_active(cls, config):
+    def is_active(cls, session):
         """We are only active if the profile is Linux."""
         try:
-            return config.profile and config.profile._md_os == 'linux'
+            return session.profile and session.profile._md_os == 'linux'
         except profile.Error:
             return True
 

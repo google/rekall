@@ -28,8 +28,13 @@ from rekall import config
 from rekall import constants
 from rekall import utils
 
-embed = (utils.ConditionalImport("IPython.terminal.embed") or
-         utils.ConditionalImport("IPython.frontend.terminal.embed"))
+try:
+    from IPython.terminal import embed
+except ImportError:
+    try:
+        from IPython.frontend.terminal import embed
+    except ImportError:
+        embed = None
 
 from IPython.config.loader import Config
 
@@ -92,6 +97,46 @@ def Shell(user_session):
     if user_session.run is not None:
         execfile(user_session.run, user_session._locals)
 
+    # Workaround for completer bug.
+    import IPython.core.completerlib
+    IPython.core.completerlib.get_ipython = lambda: shell
+
     shell(local_ns=user_session._locals)
 
+    return True
+
+
+
+def NotebookSupport(_):
+
+    # The following only reveals hidden imports to pyinstaller.
+    if False:
+        import IPython.html.notebookapp
+        import IPython.html.base.handlers
+        import IPython.html.tree.handlers
+        import IPython.html.auth.login
+        import IPython.html.auth.logout
+        import IPython.html.notebook.handlers
+        import IPython.html.services.kernels.handlers
+        import IPython.html.services.notebooks.handlers
+        import IPython.html.services.clusters.handlers
+        import IPython.kernel.ioloop
+        import IPython.kernel.zmq.kernelapp
+
+        import rekall.interactive
+
+        import zmq.backend.cython
+        import zmq.eventloop.ioloop
+
+    argv = ["notebook", "-c",
+            "from rekall import interactive; "
+            "interactive.ImportEnvironment();", "--autocall", "2",
+            "--notebook-dir",
+            config.GetConfigFile().get("notebook_dir",
+                                       config.GetHomeDir())
+            ]
+
+    import IPython
+
+    IPython.start_ipython(argv=argv)
     return True

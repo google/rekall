@@ -87,8 +87,9 @@ class CheckProcFops(common.LinuxPlugin):
 
         # Now also yield the subdirs:
         if current.subdir:
-            for x in self._walk_proc(current.subdir, seen,
-                                     posixpath.join(path, current.Name)):
+            for x in self._walk_proc(
+                current.subdir, seen,
+                posixpath.join(path, unicode(current.Name))):
                 yield x
 
     def check_proc_fop(self):

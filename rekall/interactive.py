@@ -1,5 +1,6 @@
 import inspect
 
+from rekall import config
 from rekall import ipython_support
 
 # Load all the plugins to register them.
@@ -30,11 +31,14 @@ def ImportEnvironment(**kwargs):
     print pslist()
     """
     s = session.InteractiveSession(**kwargs)
+    with s.state as state:
+        config.MergeConfigOptions(state)
 
     stack = inspect.stack()
     # pylint: disable=protected-access
     s._locals = stack[1][0].f_locals
-    s._locals["session"] = s
+    s._prepare_local_namespace()
+
 
     # For IPython fix up the completion.
     try:

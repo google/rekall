@@ -275,7 +275,8 @@ class DarwinProcessFilter(DarwinPlugin):
             if proc and proc not in seen:
                 seen.append(proc)
 
-        return seen
+        # Sort by pid so that the output ordering remains stable.
+        return sorted(seen, key=lambda x: x.p_pid)
 
     def filter_processes(self):
         """Filters proc list using phys_proc and pids lists."""

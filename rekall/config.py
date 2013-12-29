@@ -36,12 +36,19 @@ import logging
 import json
 import os
 
+def GetHomeDir():
+    return (os.environ.get("HOME") or      # Unix
+            os.environ.get("USERPROFILE")) # Windows
+
 
 # This is the configuration file template which will be created if the user does
 # not have an existing file. The aim is not to exhaustively list all possible
 # options, rather to ensure that reasonable defaults are specified initially.
 DEFAULT_CONFIGURATION = dict(
-    profile_path=["http://profiles.rekall.googlecode.com/git/"]
+    profile_path=["http://profiles.rekall.googlecode.com/git/"],
+
+    # By default we just drop the notebooks at the home directory.
+    notebook_dir=GetHomeDir(),
     )
 
 
@@ -49,9 +56,16 @@ OPTIONS = []
 
 
 def GetConfigFile():
+    """Gets the configuration stored in the config file.
 
+    Searches for the config file in reasonable locations.
+
+    Return:
+      configuration stored in the config file. If the file is not found, returns
+      an empty configuration.
+    """
     search_path = [".rekallrc"]  # Current directory.
-    homedir = os.environ.get("HOME")
+    homedir = GetHomeDir()
     if homedir:
         search_path.append("%s/.rekallrc" % homedir)
 
@@ -64,6 +78,8 @@ def GetConfigFile():
         except IOError:
             pass
 
+    return {}
+
 
 def MergeConfigOptions(state):
     """Read the config file and apply the config options to the session."""
@@ -73,7 +89,7 @@ def MergeConfigOptions(state):
 
     config_data = GetConfigFile()
     if config_data is None:
-        homedir = os.environ.get("HOME")
+        homedir = GetHomeDir()
         if homedir:
             try:
                 filename = "%s/.rekallrc" % homedir
@@ -85,8 +101,13 @@ def MergeConfigOptions(state):
             except IOError:
                 pass
 
+    # Can not write it anywhere but at least we start with something sensible.
+    if not config_data:
+        config_data = DEFAULT_CONFIGURATION
+
     for k, v in config_data.items():
         state.Set(k, v)
+
 
 def DeclareOption(short_name=None, name=None, default=None, group=None,
                   **kwargs):
