@@ -4,6 +4,13 @@ obj-m += pmem.o
 KVER ?= $(shell uname -r)
 KHEADER ?= /usr/src/linux-headers-$(KVER)
 
+# Fedora Core
+# KHEADER ?= /lib/modules/$(KVER)/source
+
+# This needs to be specified because when running make under sudo we have no
+# access to the PWD environment var.
+PWD = `pwd`
+
 -include version.mk
 
 all: dwarf pmem profile
@@ -15,7 +22,7 @@ dwarf: module.c
 	$(MAKE) -C $(KHEADER) CONFIG_DEBUG_INFO=y M=$(PWD) modules
 	cp module.ko module_dwarf.ko
 
-profile: module_dwarf.ko
+profile: dwarf
 	zip "`uname -r`.zip" module_dwarf.ko /boot/System.map-`uname -r`
 
 clean:

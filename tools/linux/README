@@ -3,76 +3,75 @@ Linux support in Rekall
 
 Linux support in Rekall requires a tailoured profile to the running kernel as
 well as the System map file. Rekall calls this system specific information a
-"profile".
+"profile". The profile file contains all the debugging symbols extracted into
+a Rekall standard profile format (Using JSON).
 
-For linux a profile file is simply a zip file which contains:
+To generate this file, it is necessary to build a kernel module with debugging
+symbols enabled, and then parse the DWARF debugging symbols. Since it is not
+guaranteed that the tools necessary to parse dwarf information are present on
+the system which is used to build the kernel module, on linux, this process is
+divided into two steps (Sometimes, if responding to incidents on a system for
+which we have no standard kernel - for example one with a hand built kernel -
+the only option is to build the debug module on the target system itself. In
+this case, to minimize interference with the target system, we do not wish to
+install further tools on the target system).
 
-- A copy of the System.map file.
-- Some source of vtype information. Currently this can be one of:
+Step 1: Build the debug kernel module
+-------------------------------------
 
-  - A json file of the generated vtypes. The type can be generated offline by
-    running:
+Copy this directory (http://rekall.googlecode.com/git/tools/linux/) to the
+target system, ensuring the kernel headers are installed. Type:
 
-    python rekall/plugins/overlays/linux/dwarfparser.py module.ko > module.json
-
-  - The compiled module.ko itself from this directory (This should contain
-    debugging symbols). Rekall will read the symbols directly using the
-    pyelftools module. The pyelftools can easily be installed using:
-
-    $sudo easy_install-2.7 pyelftools
-
-  - DWARF debugging symbols from the kernel generated using dwarfdump.
-
-Then you can always specify this profile like so:
-$ rekal --profile 'Linux64' --profile_file 'ubuntu_8.04.zip' --filename 'ubuntu_8.04.dd'
-The Rekall Memory Forensic framework 1.0RC1.
-
-"We can remember it for you wholesale!"
-
-This program is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License.
-Linux64:ubuntu_8.04.dd 01:20:57> pslist
--------------------------------> pslist()
-  Offset (V)   Name                    PID   PPID    UID    GID      DTB                     Start Time
--------------- -------------------- ------ ------ ------ ------ -------------- ------------------------
-0x81001d48c000 init                      1      0      0      0 0x00001c501000 1926-02-11 13:05:11+0000
-0x81001d48c7f0 kthreadd                  2      0      0      0 -------------- 1926-02-11 13:05:11+0000
-0x81001d48cfe0 migration/0               3      2      0      0 -------------- 1926-02-11 13:05:11+0000
-0x81001d48d7d0 ksoftirqd/0               4      2      0      0 -------------- 1926-02-11 13:05:11+0000
-...
-
-How to get debugging symbols easily
------------------------------------
-
-It is always possible to download the debug kernel, or more simply just build a
-debug module.
-
-For example, in this directory type:
-
-tools/linux$ make
-make -C //lib/modules/2.6.32-8-generic/build CONFIG_DEBUG_INFO=y M=.../tools/linux modules
-make[1]: Entering directory `/usr/src/linux-headers-2.6.32-8-generic'
-  CC [M]  ..../tools/linux/module.o
+bash$ sudo make profile
+make -C /usr/src/linux-headers-3.8.0-34-generic CONFIG_DEBUG_INFO=y M=`pwd` modules
+make[1]: Entering directory `/usr/src/linux-headers-3.8.0-34-generic'
+  CC [M]  /home/scudette/rekall/tools/linux/module.o
+  CC [M]  /home/scudette/rekall/tools/linux/pmem.o
   Building modules, stage 2.
-  MODPOST 1 modules
-  CC      ..../tools/linux/module.mod.o
-  LD [M]  ..../tools/linux/module.ko
-make[1]: Leaving directory `/usr/src/linux-headers-2.6.32-8-generic'
+  MODPOST 2 modules
+  CC      /home/scudette/rekall/tools/linux/module.mod.o
+  LD [M]  /home/scudette/rekall/tools/linux/module.ko
+  CC      /home/scudette/rekall/tools/linux/pmem.mod.o
+  LD [M]  /home/scudette/rekall/tools/linux/pmem.ko
+make[1]: Leaving directory `/usr/src/linux-headers-3.8.0-34-generic'
+cp module.ko module_dwarf.ko
+zip "`uname -r`.zip" module_dwarf.ko /boot/System.map-`uname -r`
+updating: module_dwarf.ko (deflated 66%)
+updating: boot/System.map-3.8.0-34-generic (deflated 79%)
 
-Now pack all the files into the same zip file:
 
-tools/linux$ zip myprofile.zip module_dwarf.ko /boot/System.map-2.6.32-8-generic
+The sudo command is often needed so that the /boot/System.map* file can be read
+(since modern distributions restrict permissions on this file). This will build
+the debug module, and then include it into a zip file together with the
+/boot/System.map.
 
-Note that by pre-generating the json file, rekall will load much faster
-(because it does not need to parse the dwarf information). It is always
-recommended though to also keep the actual module in the zip file in case future
-versions of rekall need to regenerate the json file.
+NOTE: This assumed you have the 'zip' command installed. If you do not, just
+copy the two files off the system and zip them together elsewhere.
 
-Rekall will attempt to load symbols in the following order:
-  - json files are loaded first (This is fastest to load).
+Step 2: Convert the zip file into a Rekall standard profile.
+------------------------------------------------------------
 
-  - The module symbols are parsed directly using pyelftools.
+This step should be done on a system with rekall (and its dependencies) already
+installed:
 
-  - The dwarfdump output is parsed textually (this is the slowest option). Note
-    that the output of dwarfdump has changed in the last few years, and
-    currently the parser only supports older versions of the dwarfdump output.
+bash$ rekal.py convert_profile tools/linux/3.8.0-34-generic.zip Ubuntu-3.8.0-34-generic.zip
+
+This will generate the correct rekall_profile.zip. You may use it directly:
+
+bash$ rekal.py --profile Ubuntu-3.8.0-34-generic.zip -f my_image.dd
+
+Or you may upload it to a Rekall profile repository (which can also be a local
+directory):
+
+bash$ cp Ubuntu-3.8.0-34-generic.zip ~/profiles/
+bash$ rekal.py --profile Ubuntu-3.8.0-34-generic --profile_path ~/profiles/ -f my_image.dd
+
+The profile_path can also be permanently specified in your ~/.rekallrc file, in
+which case it needs not be also specified on the command line.
+
+[NOTE]
+=======================================================================
+It is also possible to use the profile converter plugin to convert from legacy
+profile files (e.g. those built for Volatility use). Simply specify these as the
+source zip file to convert from in Step 2 above.
+=======================================================================
