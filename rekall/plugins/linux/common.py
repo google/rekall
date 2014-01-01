@@ -308,7 +308,7 @@ def walk_per_cpu_var(obj_ref, per_var, var_type):
     # get the highest numbered cpu
     max_cpu = cpus[-1]
 
-    per_offsets = obj.Object(theType='Array', targetType='unsigned long', count=max_cpu, offset=obj_ref.smap["__per_cpu_offset"], vm=obj_ref.addr_space)
+    per_offsets = obj.Object(type_name='Array', targetType='unsigned long', count=max_cpu, offset=obj_ref.smap["__per_cpu_offset"], vm=obj_ref.addr_space)
     i = 0
 
     for i in cpus:

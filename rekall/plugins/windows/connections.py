@@ -313,8 +313,8 @@ class Connections(common.AbstractWindowsCommandPlugin):
                         vm=m.obj_vm)
 
                     if table_size > 0:
-                        table = self.profile.Object(
-                            theType="Array", offset=table_addr, vm=m.obj_vm,
+                        table = self.profile.Array(
+                            offset=table_addr, vm=m.obj_vm,
                             count=table_size,
                             target="Pointer", target_args=dict(
                                 target='_TCPT_OBJECT'))
@@ -404,8 +404,8 @@ class Sockets(common.AbstractWindowsCommandPlugin):
                         vm=m.obj_vm)
 
                     if table_size > 0:
-                        table = self.profile.Object(
-                            theType="Array", offset=table_addr, vm=m.obj_vm,
+                        table = self.profile.Array(
+                            offset=table_addr, vm=m.obj_vm,
                             count=table_size,
                             target="Pointer", target_args=dict(
                                 target='_ADDRESS_OBJECT'))

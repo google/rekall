@@ -192,10 +192,15 @@ class Info(plugin.Command):
 
             # show the args it takes. Relies on the docstring to be formatted
             # properly.
-            doc_string = item.__init__.__doc__ or ""
+            doc_string = item.__init__.__doc__ or " "
             doc_string = inspect.cleandoc(doc_string).split("Args:")[0]
 
-            renderer.write("%s\n\n" % doc_string.strip())
+            doc_string += (
+                "\nLink:\n"
+                "http://epydocs.rekall.googlecode.com/git/%s.%s-class.html"
+                "\n\n" % (item.__module__, item.__name__))
+
+            renderer.write(doc_string)
 
             renderer.table_header([('Parameter', 'parameter', '30'),
                                    (' Documentation', 'doc', '70')])
@@ -208,7 +213,9 @@ class Info(plugin.Command):
 
         else:
             # For normal objects just write their docstrings.
-            renderer.write(item.__doc__ or "")
+            renderer.write(item.__doc__ or " ")
+
+        renderer.write("\n")
 
     def _clean_up_doc(self, doc, dedent=0):
         clean_doc = []

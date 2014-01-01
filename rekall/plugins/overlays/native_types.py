@@ -12,116 +12,125 @@ from rekall import obj
 
 # Model on 64 bit unix like operating systems.
 LP64 = {
-    'bool' : obj.Curry(obj.Bool, theType='bool', format_string='<c'),
+    'bool' : obj.Curry(obj.Bool, type_name='bool', format_string='<c'),
 
     # Char is 8 bits.
-    'char' : obj.Curry(obj.NativeType, theType='char', format_string='<c'),
+    'char' : obj.Curry(obj.NativeType, type_name='char', format_string='<c'),
     'unsigned char' : obj.Curry(
-        obj.NativeType, theType='unsigned char', format_string='<B'),
+        obj.NativeType, type_name='unsigned char', format_string='<B'),
 
     # Shorts are 16 bits.
-    'short' : obj.Curry(obj.NativeType, theType='short', format_string='<h'),
+    'short' : obj.Curry(obj.NativeType, type_name='short', format_string='<h'),
     'unsigned short' : obj.Curry(
-        obj.NativeType, theType='unsigned short', format_string='<H'),
+        obj.NativeType, type_name='unsigned short', format_string='<H'),
 
     # ints are 32 bits.
-    'int' : obj.Curry(obj.NativeType, theType='int', format_string='<i'),
+    'int' : obj.Curry(obj.NativeType, type_name='int', format_string='<i'),
     'unsigned int' : obj.Curry(
-        obj.NativeType, theType='unsigned int', format_string='<I'),
+        obj.NativeType, type_name='unsigned int', format_string='<I'),
 
     # Both long and long long are 64 bits.
-    'long': obj.Curry(obj.NativeType, theType='long', format_string='<q'),
+    'long': obj.Curry(obj.NativeType, type_name='long', format_string='<q'),
     'unsigned long' : obj.Curry(
-        obj.NativeType, theType='unsigned long', format_string='<Q'),
+        obj.NativeType, type_name='unsigned long', format_string='<Q'),
 
-    'long long': obj.Curry(obj.NativeType, theType='long long', format_string='<q'),
+    'long long': obj.Curry(
+        obj.NativeType, type_name='long long', format_string='<q'),
+
     'unsigned long long' : obj.Curry(
-        obj.NativeType, theType='unsigned long long', format_string='<Q'),
+        obj.NativeType, type_name='unsigned long long', format_string='<Q'),
 
     # Pointers are 64 bits.
-    'address' : obj.Curry(obj.NativeType, theType='address', format_string='<Q'),
+    'address' : obj.Curry(
+        obj.NativeType, type_name='address', format_string='<Q'),
 
     'unsigned be short' : obj.Curry(
-        obj.NativeType, theType='unsigned be short', format_string='>H'),
+        obj.NativeType, type_name='unsigned be short', format_string='>H'),
     'unsigned be int' : obj.Curry(
-        obj.NativeType, theType='unsigned be int', format_string='>I'),
+        obj.NativeType, type_name='unsigned be int', format_string='>I'),
 }
 
 
 # Model on 64 bit Windows.
 LLP64 = {
-    'bool' : obj.Curry(obj.Bool, theType='bool', format_string='<c'),
+    'bool' : obj.Curry(obj.Bool, type_name='bool', format_string='<c'),
 
     # Char is 8 bits.
-    'char' : obj.Curry(obj.NativeType, theType='char', format_string='<c'),
+    'char' : obj.Curry(obj.NativeType, type_name='char', format_string='<c'),
     'unsigned char' : obj.Curry(
-        obj.NativeType, theType='unsigned char', format_string='<B'),
+        obj.NativeType, type_name='unsigned char', format_string='<B'),
 
     # Shorts are 16 bits.
-    'short' : obj.Curry(obj.NativeType, theType='short', format_string='<h'),
+    'short' : obj.Curry(obj.NativeType, type_name='short', format_string='<h'),
     'unsigned short' : obj.Curry(
-        obj.NativeType, theType='unsigned short', format_string='<H'),
+        obj.NativeType, type_name='unsigned short', format_string='<H'),
 
     # ints are 32 bits.
-    'int' : obj.Curry(obj.NativeType, theType='int', format_string='<i'),
+    'int' : obj.Curry(obj.NativeType, type_name='int', format_string='<i'),
     'unsigned int' : obj.Curry(
-        obj.NativeType, theType='unsigned int', format_string='<I'),
+        obj.NativeType, type_name='unsigned int', format_string='<I'),
 
     # long is also 32 bits.
-    'long': obj.Curry(obj.NativeType, theType='long', format_string='<i'),
+    'long': obj.Curry(obj.NativeType, type_name='long', format_string='<i'),
     'unsigned long' : obj.Curry(
-        obj.NativeType, theType='unsigned long', format_string='<I'),
+        obj.NativeType, type_name='unsigned long', format_string='<I'),
 
     # But long long is 64 bits.
-    'long long': obj.Curry(obj.NativeType, theType='long long', format_string='<q'),
+    'long long': obj.Curry(
+        obj.NativeType, type_name='long long', format_string='<q'),
+
     'unsigned long long' : obj.Curry(
-        obj.NativeType, theType='unsigned long long', format_string='<Q'),
+        obj.NativeType, type_name='unsigned long long', format_string='<Q'),
 
     # Pointers are 64 bits.
-    'address' : obj.Curry(obj.NativeType, theType='address', format_string='<Q'),
+    'address' : obj.Curry(
+        obj.NativeType, type_name='address', format_string='<Q'),
 
     'unsigned be short' : obj.Curry(
-        obj.NativeType, theType='unsigned be short', format_string='>H'),
+        obj.NativeType, type_name='unsigned be short', format_string='>H'),
     'unsigned be int' : obj.Curry(
-        obj.NativeType, theType='unsigned be int', format_string='>I'),
+        obj.NativeType, type_name='unsigned be int', format_string='>I'),
 }
 
 # Model on 32 bit systems.
 ILP32 = {
-    'bool' : obj.Curry(obj.Bool, theType='bool', format_string='<c'),
+    'bool' : obj.Curry(obj.Bool, type_name='bool', format_string='<c'),
 
     # Char is 8 bits.
-    'char' : obj.Curry(obj.NativeType, theType='char', format_string='<c'),
+    'char' : obj.Curry(obj.NativeType, type_name='char', format_string='<c'),
     'unsigned char' : obj.Curry(
-        obj.NativeType, theType='unsigned char', format_string='<B'),
+        obj.NativeType, type_name='unsigned char', format_string='<B'),
 
     # Shorts are 16 bits.
-    'short' : obj.Curry(obj.NativeType, theType='short', format_string='<h'),
+    'short' : obj.Curry(obj.NativeType, type_name='short', format_string='<h'),
     'unsigned short' : obj.Curry(
-        obj.NativeType, theType='unsigned short', format_string='<H'),
+        obj.NativeType, type_name='unsigned short', format_string='<H'),
 
     # ints are 32 bits.
-    'int' : obj.Curry(obj.NativeType, theType='int', format_string='<i'),
+    'int' : obj.Curry(obj.NativeType, type_name='int', format_string='<i'),
     'unsigned int' : obj.Curry(
-        obj.NativeType, theType='unsigned int', format_string='<I'),
+        obj.NativeType, type_name='unsigned int', format_string='<I'),
 
     # long is also 32 bits.
-    'long': obj.Curry(obj.NativeType, theType='long', format_string='<i'),
+    'long': obj.Curry(obj.NativeType, type_name='long', format_string='<i'),
     'unsigned long' : obj.Curry(
-        obj.NativeType, theType='unsigned long', format_string='<I'),
+        obj.NativeType, type_name='unsigned long', format_string='<I'),
 
     # But long long is 64 bits.
-    'long long': obj.Curry(obj.NativeType, theType='long long', format_string='<q'),
+    'long long': obj.Curry(
+        obj.NativeType, type_name='long long', format_string='<q'),
+
     'unsigned long long' : obj.Curry(
-        obj.NativeType, theType='unsigned long long', format_string='<Q'),
+        obj.NativeType, type_name='unsigned long long', format_string='<Q'),
 
     # Pointers are 32 bits.
-    'address' : obj.Curry(obj.NativeType, theType='address', format_string='<I'),
+    'address' : obj.Curry(
+        obj.NativeType, type_name='address', format_string='<I'),
 
     'unsigned be short' : obj.Curry(
-        obj.NativeType, theType='unsigned be short', format_string='>H'),
+        obj.NativeType, type_name='unsigned be short', format_string='>H'),
     'unsigned be int' : obj.Curry(
-        obj.NativeType, theType='unsigned be int', format_string='>I'),
+        obj.NativeType, type_name='unsigned be int', format_string='>I'),
 }
 
 # These are aliases for the same things

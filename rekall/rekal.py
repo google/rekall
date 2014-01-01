@@ -164,7 +164,7 @@ def main(argv=None):
     user_session.mode = "Interactive"
 
     # Try to launch the session using something.
-    if user_session.state.ipython_support == "notebook":
+    if user_session.state.ipython_engine == "notebook":
         ipython_support.NotebookSupport(user_session)
     else:
         _ = (IPython011Support(user_session) or

@@ -199,7 +199,7 @@ windows_overlay = {
                     30:'WRITECOMBINE | EXECUTE_READWRITE',
                     31:'WRITECOMBINE | EXECUTE_WRITECOPY',
                     },
-                value=x.m("Protection"), name=x.obj_name, theType=x.obj_type),
+                value=x.m("Protection"), name=x.obj_name, type_name=x.obj_type),
 
             # Vad Types. The _MMVAD_SHORT.u.VadFlags (_MMVAD_FLAGS) struct on XP
             # has individual flags, 1-bit each, for these types. The
@@ -217,7 +217,7 @@ windows_overlay = {
                     6: 'VadRotatePhysical',
                     7: 'VadLargePageSection',
                     },
-                value=x.m("VadType"), name=x.obj_name, theType=x.obj_type),
+                value=x.m("VadType"), name=x.obj_name, type_name=x.obj_type),
             }],
 
     # The environment is a null termionated _UNICODE_STRING array. Print with
@@ -648,9 +648,9 @@ class _HANDLE_TABLE(obj.Struct):
             count = 0x1000 / self.obj_profile.get_obj_size("_HANDLE_TABLE_ENTRY")
             target = "_HANDLE_TABLE_ENTRY"
 
-        table = self.obj_profile.Object(theType="Array", offset = offset, vm = self.obj_vm,
-                                        count = count, target = target,
-                                        parent = self)
+        table = self.obj_profile.Array(
+            offset = offset, vm = self.obj_vm,
+            count = count, target = target, parent = self)
 
         if table:
             for entry in table:
@@ -754,7 +754,7 @@ class _OBJECT_HEADER(obj.Struct):
             if self.obj_profile.has_type(objtype):
                 header_offset = self.m(name_offset).v()
                 if header_offset:
-                    o = self.obj_profile.Object(theType=objtype,
+                    o = self.obj_profile.Object(type_name=objtype,
                                                 offset=offset - header_offset,
                                                 vm = self.obj_vm)
                 else:
@@ -780,9 +780,9 @@ class _OBJECT_HEADER(obj.Struct):
             return self.obj_parent.GrantedAccess
         return obj.NoneObject("No parent known")
 
-    def dereference_as(self, theType, vm=None):
+    def dereference_as(self, type_name, vm=None):
         """Instantiate an object from the _OBJECT_HEADER.Body"""
-        return self.obj_profile.Object(theType=theType, offset=self.Body.obj_offset,
+        return self.obj_profile.Object(type_name=type_name, offset=self.Body.obj_offset,
                                        vm=vm or self.obj_vm, parent=self)
 
     def get_object_type(self, vm=None):
@@ -812,9 +812,8 @@ class _FILE_OBJECT(obj.Struct):
         of the device object to which the file belongs"""
         name = ""
         if self.DeviceObject:
-            object_hdr = self.obj_profile.Object(
-                theType="_OBJECT_HEADER", offset=(
-                    self.DeviceObject.v() - self.obj_profile.get_obj_offset(
+            object_hdr = self.obj_profile._OBJECT_HEADER(
+                offset=(self.DeviceObject.v() - self.obj_profile.get_obj_offset(
                         "_OBJECT_HEADER", "Body")),
                 vm=self.obj_vm)
 
@@ -840,16 +839,14 @@ class _EX_FAST_REF(obj.Struct):
 
         return self.dereference_as(self.target)
 
-    def dereference_as(self, theType, parent = None, vm=None, **kwargs):
+    def dereference_as(self, type_name, parent=None, vm=None, **kwargs):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the
         specified type.
         """
         MAX_FAST_REF = self.obj_profile.constants['MAX_FAST_REF']
         return self.obj_profile.Object(
-            theType=theType,
-            offset=self.m("Object").v() & ~MAX_FAST_REF,
-            vm=vm or self.obj_vm,
-            parent = parent or self, **kwargs)
+            type_name=type_name, offset=self.m("Object").v() & ~MAX_FAST_REF,
+            vm=vm or self.obj_vm, parent=parent or self, **kwargs)
 
     def __getattr__(self, attr):
         return getattr(self.dereference(), attr)
@@ -881,7 +878,8 @@ class _MMVAD_FLAGS(obj.Struct):
                 attribute = getattr(self, name)
                 if attribute.v():
                     result.append("%s: %s" % (name, attribute))
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         return ", ".join(result)
 
@@ -907,7 +905,7 @@ class VadTraverser(obj.Struct):
                'Vadm': '_MMVAD_LONG',
               }
 
-    def traverse(self, visited = None, depth=0):
+    def traverse(self, visited=None, depth=0):
         """ Traverse the VAD tree by generating all the left items,
         then the right items.
 

@@ -145,7 +145,7 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
         for name, struct, mask in self.optional_header_mask:
             if info_mask & mask:
                 offset -= self.obj_profile.get_obj_size(struct)
-                o = self.obj_profile.Object(theType=struct, offset=offset, vm=self.obj_vm)
+                o = self.obj_profile.Object(type_name=struct, offset=offset, vm=self.obj_vm)
                 self._preamble_size += o.size()
             else:
                 o = obj.NoneObject("Header not set")

@@ -20,6 +20,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+# pylint: disable=protected-access
+
 """References:
 http://msdn.microsoft.com/en-us/magazine/ms809762.aspx
 http://msdn.microsoft.com/en-us/magazine/cc301805.aspx
@@ -56,9 +58,9 @@ class RVAPointer(obj.Pointer):
 
     def __init__(self, image_base=None, **kwargs):
         super(RVAPointer, self).__init__(**kwargs)
-        self.image_base = self.obj_context.get("image_base", 0)
+        self.image_base = image_base or self.obj_context.get("image_base", 0)
 
-    def v(self):
+    def v(self, vm=None):
         rva_pointer = super(RVAPointer, self).v()
         if rva_pointer:
             rva_pointer += self.image_base
@@ -72,7 +74,8 @@ class ResourcePointer(obj.Pointer):
     def __init__(self, resource_base=None, **kwargs):
         super(ResourcePointer, self).__init__(**kwargs)
         # By default find the resource_base from the context.
-        self.resource_base = self.obj_context.get("resource_base")
+        self.resource_base = (resource_base or
+                              self.obj_context.get("resource_base"))
 
         if self.resource_base is None:
             for parent in self.parents:
@@ -1022,9 +1025,9 @@ class _IMAGE_DOS_HEADER(obj.Struct):
             return obj.NoneObject('e_magic {0:04X} is not a valid DOS signature.'.format(
                     self.e_magic))
 
-        nt_header = self.obj_profile.Object(theType="_IMAGE_NT_HEADERS",
-                                            offset = self.e_lfanew + self.obj_offset,
-                                            vm = self.obj_vm, context=self.obj_context)
+        nt_header = self.obj_profile._IMAGE_NT_HEADERS(
+            offset=self.e_lfanew + self.obj_offset,
+            vm=self.obj_vm, context=self.obj_context)
 
         if nt_header.Signature != 0x4550:
             return obj.NoneObject('NT header signature {0:04X} is not a valid'.format(

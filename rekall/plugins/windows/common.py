@@ -352,9 +352,8 @@ class KDBGMixin(plugin.KernelASMixin):
 
         # Or maybe its an integer representing the offset.
         elif self.kdbg:
-            self.kdbg = self.profile.Object(
-                theType="_KDDEBUGGER_DATA64", offset=int(self.kdbg),
-                vm=self.kernel_address_space)
+            self.kdbg = self.profile._KDDEBUGGER_DATA64(
+                offset=int(self.kdbg), vm=self.kernel_address_space)
         else:
             self.kdbg = obj.NoneObject("Could not guess kdbg offset")
 

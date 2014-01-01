@@ -155,6 +155,16 @@ class UnicodeString(String):
         """This function returns an encoded string in utf8."""
         return super(UnicodeString, self).__str__().encode("utf8")
 
+    def __repr__(self):
+        value = str(self)
+        elide = ""
+        if len(value) > 50:
+            elide = "..."
+            value = value[:50]
+
+        return "%s (%s%s)" % (super(UnicodeString, self).__repr__(),
+                              value, elide)
+
     def size(self):
         return len(self.v()) * 2
         # This will only work if the encoding and decoding are equivalent.
@@ -317,7 +327,7 @@ class ListMixIn(object):
         offset = self.obj_profile.get_obj_offset(type, member)
 
         item = self.obj_profile.Object(
-            theType=type, offset=self.obj_offset - offset,
+            type_name=type, offset=self.obj_offset - offset,
             vm=vm or self.obj_vm, parent=self.obj_parent,
             name=type, context=self.obj_context)
 
@@ -564,6 +574,12 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
             self.distorm_mode = distorm3.Decode64Bits
         else:
             raise RuntimeError("Invalid mode %s" % self.mode)
+
+    def __int__(self):
+        return self.obj_offset
+
+    def __hash__(self):
+        return self.obj_offset + hash(self.obj_vm)
 
     def __str__(self):
         result = []

@@ -263,13 +263,12 @@ class BaseObject(object):
     # as as a generic **kwargs parameter. Then call the baseclass and pass the
     # kwargs down. Any **kwargs which arrive here are not handled, and represent
     # an error in the vtype specifications.
-    def __init__(self, theType=None, offset=0, vm=None, profile=None,
+    def __init__(self, type_name=None, offset=0, vm=None, profile=None,
                  parent=None, name='', context=None, **kwargs):
         """Constructor for Base object.
 
         Args:
-
-          theType: The name of the type of this object. This different
+          type_name: The name of the type of this object. This different
              from the class name, since the same class may implement many types
              (e.g. Struct implements every instance in the vtype definition).
 
@@ -295,7 +294,7 @@ class BaseObject(object):
             logging.error("Unknown keyword args {0} for {1}".format(
                     kwargs, self.__class__.__name__))
 
-        self.obj_type = theType
+        self.obj_type = type_name
 
         # 64 bit addresses are always sign extended, so we need to clear the top
         # bits.
@@ -381,7 +380,7 @@ class BaseObject(object):
         vm = vm or self.obj_vm
 
         return self.obj_profile.Object(
-            theType=target, offset=self.v(), vm=vm,
+            type_name=target, offset=self.v(), vm=vm,
             parent=self.obj_parent, name=self.obj_name,
             context=self.obj_context, **(target_args or {}))
 
@@ -394,7 +393,7 @@ class BaseObject(object):
                                         target=self.obj_type)
 
     def cast(self, type=None, **kwargs):
-        return self.obj_profile.Object(theType=type, offset=self.obj_offset,
+        return self.obj_profile.Object(type_name=type, offset=self.obj_offset,
                                        vm=self.obj_vm, parent=self.obj_parent,
                                        context=self.obj_context, **kwargs)
 
@@ -649,7 +648,7 @@ class Pointer(NativeType):
 
             if isinstance(self.target, basestring):
                 result = self.obj_profile.Object(
-                    theType=self.target,
+                    type_name=self.target,
                     context=self.obj_context, **kwargs)
 
             elif callable(self.target):
@@ -736,7 +735,7 @@ class Pointer(NativeType):
         vm = vm or self.obj_vm
 
         return self.obj_profile.Object(
-            theType=target or self.target, offset=self.v(), vm=vm,
+            type_name=target or self.target, offset=self.v(), vm=vm,
             parent=self.obj_parent, context=self.obj_context,
             **(target_args or {}))
 
@@ -748,7 +747,7 @@ class Pointer(NativeType):
 
 class Void(Pointer):
     def __init__(self, **kwargs):
-        kwargs['theType'] = 'unsigned long'
+        kwargs['type_name'] = 'unsigned long'
         super(Void, self).__init__(**kwargs)
 
     def v(self, vm=None):
@@ -1270,11 +1269,11 @@ class Profile(object):
 
         return tuple([getattr(cls, prefix + x, None) for x in args])
 
-    def has_type(self, theType):
+    def has_type(self, type_name):
         # Compile on demand
-        self.compile_type(theType)
+        self.compile_type(type_name)
 
-        return theType in self.object_classes or theType in self.vtypes
+        return type_name in self.object_classes or type_name in self.vtypes
 
     def add_classes(self, classes_dict=None, **kwargs):
         """Add the classes in the dict to our object classes mapping."""
@@ -1448,7 +1447,7 @@ class Profile(object):
         derived_cls = type(str(type_name), (cls,), properties)
 
         return Curry(derived_cls,
-                     theType=type_name, members=members, struct_size=size)
+                     type_name=type_name, members=members, struct_size=size)
 
     def legacy_field_descriptor(self, typeList):
         """Converts the list expression into a target, target_args notation.
@@ -1511,7 +1510,7 @@ class Profile(object):
         ## This is currently the recommended way to specify a type:
         ## e.g. [ 'Pointer', {target="int"}]
         if isinstance(target_args, dict):
-            return Curry(self.Object, theType=target, name=name,
+            return Curry(self.Object, type_name=target, name=name,
                          **target_args)
 
         # This is of the deprecated form ['class_name', ['arg1', 'arg2']].
@@ -1527,14 +1526,14 @@ class Profile(object):
             logging.warning("Unable to find a type for %s, assuming int",
                             typeList)
 
-        return Curry(self.Object, theType='int', name=name)
+        return Curry(self.Object, type_name='int', name=name)
 
     def _get_dummy_obj(self, name):
         """Make a dummy object on top of the dummy address space."""
         self.compile_type(name)
 
         # Make the object on the dummy AS.
-        tmp = self.Object(theType=name, offset=0, vm=self._dummy)
+        tmp = self.Object(type_name=name, offset=0, vm=self._dummy)
         return tmp
 
     def get_obj_offset(self, name, member):
@@ -1735,14 +1734,14 @@ class Profile(object):
 
         return Curry(self.Object, attr)
 
-    def Object(self, theType=None, offset=None, vm=None, name=None, parent=None,
-               context=None, **kwargs):
-        """ A function which instantiates the object named in theType (as
+    def Object(self, type_name=None, offset=None, vm=None, name=None,
+               parent=None, context=None, **kwargs):
+        """ A function which instantiates the object named in type_name (as
         a string) from the type in profile passing optional args of
         kwargs.
 
         Args:
-          theType: The name of the Struct to instantiate (e.g. _EPROCESS).
+          type_name: The name of the Struct to instantiate (e.g. _EPROCESS).
 
           vm: The address space to instantiate the object onto. If not provided
             we use a dummy null padded address space.
@@ -1757,7 +1756,7 @@ class Profile(object):
 
           parent: The object can maintain a reference to its parent object.
         """
-        name = name or theType
+        name = name or type_name
 
         if offset is None:
             offset = 0
@@ -1782,18 +1781,18 @@ class Profile(object):
         kwargs['profile'] = self
 
         # Compile the type on demand.
-        self.compile_type(theType)
+        self.compile_type(type_name)
 
         # If the cache contains a None, this member is not represented by a
         # vtype (it might be a pure object class or a constant).
-        if self.types[theType] is not None:
-            result = self.types[theType](
+        if self.types[type_name] is not None:
+            result = self.types[type_name](
                 offset=offset, vm=vm, name=name,
                 parent=parent, context=context, **kwargs)
             return result
 
-        elif theType in self.object_classes:
-            result = self.object_classes[theType](theType=theType,
+        elif type_name in self.object_classes:
+            result = self.object_classes[type_name](type_name=type_name,
                                                   offset=offset,
                                                   vm=vm,
                                                   name=name,
@@ -1812,7 +1811,7 @@ class Profile(object):
         else:
             # If we get here we have no idea what the type is supposed to be?
             logging.info("Cant find object {0} in profile {1}?".format(
-                    theType, self))
+                    type_name, self))
 
     def __str__(self):
         return "<Profile %s (%s)>" % (self.name, self.__class__.__name__)

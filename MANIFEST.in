@@ -7,5 +7,6 @@ recursive-include rekall/profiles *.zip
 recursive-include src *.c *.h *.py
 recursive-include test_data *
 recursive-include tools *
+recursive-include resources *
 recursive-exclude rekall *.pyc
 recursive-exclude tools *.a *.la *.lo *.o

@@ -301,7 +301,7 @@ class LIST_ENTRY(obj.Struct):
         offset = self.obj_profile.get_obj_offset(type, member)
 
         item = self.obj_profile.Object(
-            theType=type, offset=self.obj_offset - offset,
+            type_name=type, offset=self.obj_offset - offset,
             vm=vm or self.obj_vm, parent=self.obj_parent,
             name=type, context=self.obj_context)
 
