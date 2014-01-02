@@ -244,6 +244,59 @@ darwin_overlay = {
                         target="int",
                         )]],
             }],
+
+    "OSDictionary": [None, {
+            "dictionary": [None, ["Pointer", dict(
+                        target="Array",
+                        target_args=dict(
+                            target="dictEntry",
+                            count=lambda x: x.count,
+                            )
+                        )]],
+            }],
+
+    "OSString": [None, {
+            "value": lambda x: x.obj_profile.UnicodeString(
+                offset=x.string, length=x.length),
+            }],
+
+    "OSOrderedSet": [None, {
+            "array": [None, ["Pointer", dict(
+                        target="Array",
+                        target_args=dict(
+                            target="_Element",
+                            count=lambda x: x.count
+                            )
+                        )]],
+            }],
+
+    "PE_state": [None, {
+            "bootArgs": [None, ["Pointer", dict(target="boot_args")]],
+            }],
+
+    "EfiMemoryRange": [None, {
+            # xnu-1699.26.8/pexpert/pexpert/i386/boot.h: 46
+            "Type": [None, ["Enumeration", dict(
+                        choices={
+                            0: "kEfiReservedMemoryType",
+                            1: "kEfiLoaderCode",
+                            2: "kEfiLoaderData",
+                            3: "kEfiBootServicesCode",
+                            4: "kEfiBootServicesData",
+                            5: "kEfiRuntimeServicesCode",
+                            6: "kEfiRuntimeServicesData",
+                            7: "kEfiConventionalMemory",
+                            8: "kEfiUnusableMemory",
+                            9: "kEfiACPIReclaimMemory",
+                            10: "kEfiACPIMemoryNVS",
+                            11: "kEfiMemoryMappedIO",
+                            12: "kEfiMemoryMappedIOPortSpace",
+                            13: "kEfiPalCode",
+                            14: "kEfiMaxMemoryType",
+                            },
+                        target="unsigned int"
+                        )]],
+            }]
     }
 
 
@@ -524,7 +577,39 @@ class proc(obj.Struct):
             as_class = amd64.AMD64PagedMemory
 
         return as_class(base=self.obj_vm.base, session=self.obj_vm.session,
-                        dtb=cr3)
+                        dtb=cr3, name="Pid %s" % self.p_pid)
+
+    @property
+    def argv(self):
+        result = []
+        array = self.obj_profile.ListArray(
+            target="String",
+            offset=self.user_stack-self.p_argslen,
+            vm=self.get_process_address_space(),
+            maximum_size=self.p_argslen,
+            )
+
+        for item in array:
+            item = unicode(item)
+
+            # The argv array may have null padding for alignment. Discard these
+            # empty strings.
+            if not len(item):
+                continue
+
+            # Total size of the argv array is specified in argc (not counting
+            # padding).
+            if len(result) > self.p_argc:
+                break
+
+            result.append(item)
+
+        # argv[0] is often repeated as the executable name, to avoid confusion,
+        # we just discard it.
+        if len(result) > 1 and result[0] == result[1]:
+            result.pop(0)
+
+        return result
 
 
 class vnode(obj.Struct):
@@ -543,6 +628,31 @@ class vnode(obj.Struct):
         return "/" + "/".join((unicode(x) for x in reversed(result) if x))
 
 
+class OSDictionary(obj.Struct):
+    """The OSDictionary is a general purpose associative array described:
+
+    xnu-1699.26.8/libkern/libkern/c++/OSDictionary.h
+    """
+    def items(self, value_class=None):
+        """Iterate over the associative array and yield key, value pairs."""
+        for entry in self.dictionary:
+            key = entry.key.dereference_as("OSString").value
+            if value_class:
+                yield key, entry.value.dereference_as(value_class)
+            else:
+                yield key, entry.value
+
+
+class OSOrderedSet(obj.Struct):
+    """An OSOrderedSet is a list of OSObject instances.
+
+    xnu-1699.26.8/libkern/libkern/c++/OSOrderedSet.h
+    """
+    def list_of_type(self, type_name):
+        for item in self.array:
+            yield item.obj.dereference_as(type_name)
+
+
 class Darwin32(basic.Profile32Bits, basic.BasicWindowsClasses):
     """A Darwin profile."""
     _md_os = "darwin"
@@ -555,11 +665,17 @@ class Darwin32(basic.Profile32Bits, basic.BasicWindowsClasses):
                 LIST_ENTRY=LIST_ENTRY, queue_entry=queue_entry,
                 sockaddr=sockaddr, sockaddr_dl=sockaddr_dl,
                 vm_map_entry=vm_map_entry, proc=proc, vnode=vnode,
-                socket=socket,
+                socket=socket, OSDictionary=OSDictionary,
+                OSOrderedSet=OSOrderedSet,
                 ))
         self.add_overlay(darwin_overlay)
         self.add_constants(default_text_encoding="utf8")
 
+    def get_constant_cpp_object(self, constant, **kwargs):
+        """A variant of get_constant_object which accounts for name mangling."""
+        for key in self.constants:
+            if constant in key:
+                return self.get_constant_object(key, **kwargs)
 
 
 class Darwin64(basic.ProfileLP64, Darwin32):
@@ -573,9 +689,10 @@ class Darwin64(basic.ProfileLP64, Darwin32):
         self.add_types(darwin64_types)
 
     def get_constant(self, name, is_address=True):
-        if is_address:
-            shift = self.session.GetParameter("vm_kernel_slide", 0)
-        else:
-            shift = 0
+        """Gets the constant from the profile, correcting for KASLR."""
+        base_constant = super(Darwin64, self).get_constant(name)
+        if is_address and isinstance(base_constant, (int, long)):
+            return base_constant + self.session.GetParameter(
+                "vm_kernel_slide", 0)
 
-        return  super(Darwin64, self).get_constant(name) + shift
+        return base_constant

@@ -88,3 +88,49 @@ class DarwinMount(common.DarwinPlugin):
             renderer.table_row(mount.mnt_vfsstat.f_mntonname,
                                mount.mnt_vfsstat.f_mntfromname,
                                mount.mnt_vfsstat.f_fstypename)
+
+class DarwinPhysicalMap(common.DarwinPlugin):
+    """Prints the EFI boot physical memory map."""
+
+    __name = "efi_map"
+
+    def render(self, renderer):
+        renderer.table_header([
+                ("Physical Start", "phys", "[addrpad]"),
+                ("Physical End", "phys", "[addrpad]"),
+                ("Virtual", "virt", "[addrpad]"),
+                ("Pages", "pages", ">10"),
+                ("Type", "type", "")])
+
+        boot_params = self.profile.get_constant_object(
+            "_PE_state", "PE_state").bootArgs
+
+        # Code from:
+        # xnu-1699.26.8/osfmk/i386/AT386/model_dep.c:560
+        memory_map = self.profile.Array(
+            boot_params.MemoryMap,
+            vm=self.physical_address_space,
+            target="EfiMemoryRange",
+            target_size=int(boot_params.MemoryMapDescriptorSize),
+            count=boot_params.MemoryMapSize/boot_params.MemoryMapDescriptorSize
+            )
+
+        for memory_range in memory_map:
+            renderer.table_row(
+                memory_range.PhysicalStart,
+                memory_range.PhysicalStart+0x1000*memory_range.NumberOfPages,
+                memory_range.VirtualStart.cast("Pointer"),
+                memory_range.NumberOfPages,
+                memory_range.Type)
+
+
+class DarwinBootParameters(common.DarwinPlugin):
+    """Prints the kernel command line."""
+
+    __name = "boot_cmdline"
+
+    def render(self, renderer):
+        boot_params = self.profile.get_constant_object(
+            "_PE_state", "PE_state").bootArgs
+
+        renderer.format(boot_params.bootArgs.CommandLine.cast("String"))

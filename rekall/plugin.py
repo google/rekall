@@ -111,7 +111,17 @@ class Command(object):
         return fd.getvalue()
 
     def render(self, renderer=None):
-        """Produce results on the fd given."""
+        """Produce results on the renderer given.
+
+        Each plugin should implement this method to produce output on the
+        renderer. The framework will initialize the plugin and provide it with
+        some kind of renderer to write output on. The plugin should not assume
+        that the renderer is actually TextRenderer, only that the methods
+        defined in the RendererBaseClass exist.
+
+        Args:
+          renderer: A renderer based at rekall.ui.renderer.RendererBaseClass.
+        """
 
     @classmethod
     def is_active(cls, session):

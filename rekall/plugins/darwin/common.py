@@ -16,8 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+# The code in this directory is based on original code and algorithms by Andrew
+# Case (atcuno@gmail.com).
 __author__ = "Michael Cohen <scudette@google.com>"
 
+import logging
 import re
 
 from rekall import args
@@ -201,9 +204,13 @@ class DarwinProcessFilter(DarwinPlugin):
                             help="Kernel addresses of first proc to start "
                             "following.")
 
+        parser.add_argument(
+            "--method", choices=cls.METHODS, nargs="+",
+            help="Method to list processes (Default uses all methods).")
+
 
     def __init__(self, pid=None, proc_regex=None, phys_proc=None, proc=None,
-                 first=None, **kwargs):
+                 first=None, method=None, **kwargs):
         """Filters processes by parameters.
 
         Args:
@@ -214,6 +221,7 @@ class DarwinProcessFilter(DarwinPlugin):
            pid: A single pid.
         """
         super(DarwinProcessFilter, self).__init__(**kwargs)
+        self.methods = method or self.METHODS
 
         if isinstance(phys_proc, (int, long)):
             phys_proc = [phys_proc]
@@ -259,12 +267,20 @@ class DarwinProcessFilter(DarwinPlugin):
         self.filtering_requested = (self.pids or self.proc_regex or
                                     self.phys_proc or self.proc)
 
-    def list_procs(self):
-        """Uses a few methods to list the procs."""
-        seen = list(self.first.p_list)
+    def list_using_allproc(self):
+        """List all processes by following the _allproc list head."""
+        result = set(self.first.p_list)
+        return result
 
-        # Tasks can also be found by inspecting the processor task queues. See
-        # /osfmk/kern/processor.c (processor_set_things)
+    def list_using_tasks(self):
+        """List processes using the processor tasks queue.
+
+
+        See
+        /osfmk/kern/processor.c (processor_set_things)
+        """
+        seen = set()
+
         tasks = self.profile.get_constant_object(
             "_tasks",
             target="queue_entry",
@@ -272,8 +288,100 @@ class DarwinProcessFilter(DarwinPlugin):
 
         for task in tasks.list_of_type("task", "tasks"):
             proc = task.bsd_info.deref()
-            if proc and proc not in seen:
-                seen.append(proc)
+            if proc:
+                seen.add(proc)
+
+        return seen
+
+    def list_using_pgrp_hash(self):
+        """Process groups are organized in a hash chain.
+
+        xnu-1699.26.8/bsd/sys/proc_internal.h
+        """
+        seen = set()
+
+        # Note that _pgrphash is initialized through:
+
+        # xnu-1699.26.8/bsd/kern/kern_proc.c:195
+        # hashinit(int elements, int type, u_long *hashmask)
+
+        # /xnu-1699.26.8/bsd/kern/kern_subr.c: 327
+        # hashinit(int elements, int type, u_long *hashmask) {
+        #    ...
+        # *hashmask = hashsize - 1;
+
+        # Hence the value in _pgrphash is one less than the size of the hash
+        # table.
+        pgr_hash_table = self.profile.get_constant_object(
+            "_pgrphashtbl",
+            target="Pointer",
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    target="pgrphashhead",
+                    count=self.profile.get_constant_object(
+                        "_pgrphash", "unsigned long") + 1
+                    )
+                )
+            )
+
+        for slot in pgr_hash_table.deref():
+            for pgrp in slot.lh_first.walk_list("pg_hash.le_next"):
+                for proc in pgrp.pg_members.lh_first.walk_list(
+                    "p_pglist.le_next"):
+                    seen.add(proc)
+
+        return seen
+
+    def list_using_pid_hash(self):
+        """Lists processes using pid hash tables.
+
+        xnu-1699.26.8/bsd/kern/kern_proc.c:834:
+        pfind_locked(pid_t pid)
+        """
+        seen = set()
+
+        # Note that _pidhash is initialized through:
+
+        # xnu-1699.26.8/bsd/kern/kern_proc.c:194
+        # pidhashtbl = hashinit(maxproc / 4, M_PROC, &pidhash);
+
+        # /xnu-1699.26.8/bsd/kern/kern_subr.c: 327
+        # hashinit(int elements, int type, u_long *hashmask) {
+        #    ...
+        # *hashmask = hashsize - 1;
+
+        # Hence the value in pidhash is one less than the size of the hash
+        # table.
+        pid_hash_table = self.profile.get_constant_object(
+            "_pidhashtbl",
+            target="Pointer",
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    target="pidhashhead",
+                    count=self.profile.get_constant_object(
+                        "_pidhash", "unsigned long") + 1
+                    )
+                )
+            )
+
+        for plist in pid_hash_table.deref():
+            for proc in plist.lh_first.walk_list("p_hash.le_next"):
+                if proc:
+                    seen.add(proc)
+
+        return seen
+
+    def list_procs(self):
+        """Uses a few methods to list the procs."""
+        seen = set()
+
+        for k, handler in self.METHODS.items():
+            if k in self.methods:
+                result = handler(self)
+                logging.debug("Listed %s processes using %s", len(result), k)
+                seen.update(result)
 
         # Sort by pid so that the output ordering remains stable.
         return sorted(seen, key=lambda x: x.p_pid)
@@ -325,6 +433,15 @@ class DarwinProcessFilter(DarwinPlugin):
 
         # Now we get the proc_struct object from the list entry.
         return our_list_entry.dereference_as("proc_struct", "procs")
+
+
+    METHODS = {
+        "allproc": list_using_allproc,
+        "tasks": list_using_tasks,
+        "pgrphash": list_using_pgrp_hash,
+        "pidhash": list_using_pid_hash,
+        }
+
 
 
 class HeapScannerMixIn(object):

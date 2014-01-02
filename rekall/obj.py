@@ -1680,6 +1680,13 @@ class Profile(object):
         return field_overlay
 
     def get_constant(self, constant, is_address=False):
+        """Retrieve a constant from the profile.
+
+        Args:
+           constant: The name of the constant to retrieve.
+
+           is_address: If true the constant is converted to an address.
+        """
         self.compile_type(constant)
 
         ACCESS_LOG.LogConstant(self.name, constant)
@@ -1688,6 +1695,7 @@ class Profile(object):
         if result is None:
             result = NoneObject(
                 "Constant %s does not exist in profile." % constant)
+
         elif is_address:
             result = Pointer.integer_to_address(result)
 

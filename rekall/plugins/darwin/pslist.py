@@ -52,46 +52,6 @@ class DarwinPsList(common.DarwinProcessFilter):
                                )
 
 
-class DarwinTasks(common.DarwinPlugin):
-    __name = "tasks"
-
-    def render(self, renderer):
-    	renderer.table_header( [("Offset (V)", "offset_v", "[addrpad]"),
-                                ("Name", "file_name", "20s"),
-                                ("PID", "pid", ">6"),
-                                ("PPID", "ppid", ">6"),
-                                ("UID", "uid", ">6"),
-                                ("GID", "gid", ">6"),
-                                ("Bits", "bits", "12"),
-                                ("DTB", "dtb", "[addrpad]"),
-                                ("Start Time", "start_time", ">24"),
-                                ])
-
-        # Tasks can also be found by inspecting the processor task queues. See
-        # /osfmk/kern/processor.c (processor_set_things)
-        seen = set()
-
-        tasks = self.profile.get_constant_object(
-            "_tasks",
-            target="queue_entry",
-            vm=self.kernel_address_space)
-
-        for task in tasks.list_of_type("task", "tasks"):
-            proc = task.bsd_info.deref()
-            if proc and proc not in seen:
-                seen.add(proc)
-                renderer.table_row(task.tasks,
-                                   proc.p_comm,
-                                   proc.p_pid,
-                                   proc.p_pgrpid,
-                                   proc.p_uid,
-                                   proc.p_gid,
-                                   proc.task.map.pmap.pm_task_map,
-                                   proc.task.map.pmap.pm_cr3,
-                                   proc.p_start
-                                   )
-
-
 class DawrinPSTree(common.DarwinPlugin):
     """Shows the parent/child relationship between processes.
 
@@ -227,3 +187,27 @@ class DarwinListSessions(common.DarwinPlugin):
                     renderer.table_row(session.s_leader.p_pid,
                                        session.s_leader.p_comm,
                                        session.s_login)
+
+
+class DarwinPSAUX(common.DarwinProcessFilter):
+    """List processes with their commandline."""
+
+    __name = "psaux"
+
+    def render(self, renderer):
+        renderer.table_header([
+                ("Pid", "pid", "8"),
+                ("Name", "name", "20"),
+                ("Stack", "stack", "[addrpad]"),
+                ("Length", "length", "8"),
+                ("Argc", "argc", "8"),
+                ("Arguments", "argv", "[wrap:80]")])
+
+        for proc in self.filter_processes():
+            renderer.table_row(
+                proc.p_pid,
+                proc.p_comm,
+                proc.user_stack,
+                proc.p_argslen,
+                proc.p_argc,
+                " ".join(proc.argv))
