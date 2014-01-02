@@ -246,7 +246,7 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
 
         return function(virtual_address, address_space)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         if self.address is None:
             return
 
@@ -309,7 +309,7 @@ class PFNInfo(common.WindowsCommandPlugin):
         # Return the pfn record.
         return self.pfn_database[pfn]
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         pfn = self.pfn
         if self.physical_address is not None:
             pfn = int(self.physical_address) / self.PAGE_SIZE
@@ -372,7 +372,7 @@ class PTE(common.WindowsCommandPlugin):
         self.virtual_address = virtual_address
 
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         if self.virtual_address is not None:
             for name, _, _ in self.vtop.vtop(
                 self.virtual_address, self.kernel_address_space):
@@ -566,7 +566,7 @@ class PtoV(common.WinProcessFilter):
 
         return obj.NoneObject("Memory model not supported."), []
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         if self.physical_address is None:
             return
 
@@ -602,7 +602,7 @@ class DTBScan(common.WinProcessFilter):
         super(DTBScan, self).__init__(**kwargs)
         self.limit = limit
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         ptov = self.session.plugins.ptov(session=self.session)
         pslist = self.session.plugins.pslist(session=self.session)
         pfn_plugin = self.session.plugins.pfn(session=self.session)

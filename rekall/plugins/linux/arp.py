@@ -119,7 +119,7 @@ class Arp(common.LinuxPlugin):
             if not neighbour:
                 break
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([("IP Address", "ip", ">10"),
                                ("MAC", "mac", ">20"),
                                ("Device", "dev", ">24")

@@ -74,7 +74,7 @@ class ConnScan(common.PoolScannerPlugin):
                 vm=self.address_space,
                 offset=pool_obj.obj_offset + pool_obj.size())
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([("Offset(P)", "offset_p", "[addrpad]"),
                                ("Local Address", "local_net_address", "<25"),
                                ("Remote Address", "remote_net_address", "<25"),

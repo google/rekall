@@ -482,7 +482,7 @@ class FLS(plugin.Command):
     def is_active(cls, session):
         return isinstance(session.profile, NTFSProfile)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         ntfs = NTFS(self.session.physical_address_space,
                     session=self.session)
 

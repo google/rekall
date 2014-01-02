@@ -111,7 +111,7 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
         for kdbg in scanner.scan():
             yield kdbg
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Renders the KPCR values as text"""
 
         for kdbg in self.hits():

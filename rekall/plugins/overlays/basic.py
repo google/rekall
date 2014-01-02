@@ -489,10 +489,6 @@ class WinTimeStamp(UnixTimeStamp):
         self.is_utc = is_utc
         obj.NativeType.__init__(self, format_string = "q", **kwargs)
 
-    def __repr__(self):
-        return "%s (%s)" % (super(WinTimeStamp, self).__repr__(),
-                            str(self))
-
     def windows_to_unix_time(self, windows_time):
         """
         Converts Windows 64-bit time to UNIX time

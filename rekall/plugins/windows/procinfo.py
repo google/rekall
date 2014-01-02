@@ -68,7 +68,7 @@ class PEInfo(plugin.Command):
             self.address_space = standard.FileAddressSpace(filename=filename)
         self.image_base = image_base
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Print information about a PE file from memory."""
         try:
             disassembler = self.session.plugins.dis(
@@ -161,7 +161,7 @@ class ProcInfo(common.WinProcessFilter):
 
     __name = "procinfo"
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
             renderer.format("Pid: %s %s\n",

@@ -67,7 +67,7 @@ class ModScan(filescan.FileScan):
 
             yield ldr_entry
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([("Offset(P)", "offset", "[addrpad]"),
                                ('Name', "name", "20"),
                                ('Base', "base", "[addrpad]"),
@@ -129,7 +129,7 @@ class ThrdScan(ModScan):
             yield thread
 
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([("Offset(P)", "offset", "[addrpad]"),
                                ("PID", "pid", ">6"),
                                ("TID", "tid", ">6"),

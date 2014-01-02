@@ -330,7 +330,7 @@ class Connections(common.AbstractWindowsCommandPlugin):
                                     conn = conn.Next.dereference()
 
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header(
             [("Offset (V)", "offset_v", "[addrpad]"),
              ("Local Address", "local_net_address", "25"),
@@ -420,7 +420,7 @@ class Sockets(common.AbstractWindowsCommandPlugin):
                                     seen.add(sock.obj_offset)
                                     sock = sock.Next.dereference()
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
                                ("PID", "pid", ">6"),
                                ("Port", "port", ">6"),

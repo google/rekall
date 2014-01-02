@@ -290,7 +290,7 @@ class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
         logging.error("Can not autodetect profile - please set it "
                       "explicitely.")
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         if self.quick:
             renderer.format("Updating session profile and address spaces.\n")
             self.update_session()

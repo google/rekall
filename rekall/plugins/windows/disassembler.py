@@ -105,7 +105,7 @@ class Disassemble(plugin.Command):
         for (offset, _size, instruction, hexdump) in iterable:
             yield offset, hexdump, instruction
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Disassemble code at a given address.
 
         Disassembles code starting at address for a number of bytes

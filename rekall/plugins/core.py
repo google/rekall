@@ -89,7 +89,7 @@ class Info(plugin.Command):
         for name, cls in addrspace.BaseAddressSpace.classes.items():
             yield dict(name=name, function=cls.name, definition=cls.__module__)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         if self.item is None:
             return self.render_general_info(renderer)
         else:
@@ -472,7 +472,7 @@ class LoadAddressSpace(plugin.Command):
 
         return base_as
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         if not self.session.physical_address_space:
             self.GetPhysicalAddressSpace()
 
@@ -548,7 +548,7 @@ class Null(plugin.Command):
     """
     __name = "null"
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         _ = renderer
 
 
@@ -581,7 +581,7 @@ class Printer(plugin.Command):
         super(Printer, self).__init__(**kwargs)
         self.target = target
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         for line in utils.SmartStr(self.target).splitlines():
             renderer.write(line + "\n")
 
@@ -592,7 +592,7 @@ class Lister(Printer):
     __name = "l"
     interactive = True
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         if self.target is None:
             logging.error("You must list something.")
             return
@@ -624,7 +624,7 @@ class DT(plugin.ProfileCommand):
         if target is None:
             raise plugin.PluginError("You must specify something to print.")
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         item = self.profile.Object(self.target)
         self.session.plugins.p(item).render(renderer)
 
@@ -686,7 +686,7 @@ class Dump(plugin.Command):
         self.rows = int(rows)
         self.suppress_headers = suppress_headers
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         # Its an object
         if isinstance(self.target, obj.BaseObject):
             data = self.target.obj_vm.read(self.target.obj_offset,
@@ -772,7 +772,7 @@ class Grep(plugin.Command):
             yield idx
             start = idx + 1
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([("Offset", "offset", "[addr]"),
                                ("Hex", "hex", "^" + str(3 * self.context)),
                                ("Data", "data", "^" + str(self.context)),

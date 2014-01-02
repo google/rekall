@@ -59,7 +59,7 @@ class PSTree(common.WinProcessFilter):
 
         return result
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([("Name", "file_name", "<40"),
                                ("Pid", "pid", ">6"),
                                ("PPid", "ppid", ">6"),

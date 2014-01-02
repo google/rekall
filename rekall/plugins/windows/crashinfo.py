@@ -41,7 +41,7 @@ class CrashInfo(common.AbstractWindowsCommandPlugin):
         return isinstance(
             config.physical_address_space, crash.WindowsCrashDumpSpace32)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Renders the crashdump header as text"""
         if not isinstance(
             self.physical_address_space, crash.WindowsCrashDumpSpace32):
@@ -85,7 +85,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
             raise plugin.PluginError(
                 "Unable to overwrite the destination file '%s'" % destination)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         PAGE_SIZE = 0x1000
 
         # We write the image to the destination using the WriteableAddressSpace.

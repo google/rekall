@@ -110,7 +110,7 @@ class Command(object):
 
         return fd.getvalue()
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Produce results on the renderer given.
 
         Each plugin should implement this method to produce output on the

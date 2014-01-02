@@ -177,7 +177,7 @@ class Netscan(common.PoolScannerPlugin):
                 yield (udpentry, "UDP" + ver, laddr, udpentry.Port,
                        "*", "*", "")
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([("Offset(P)", "offset", "[addrpad]"),
                                ("Proto", "protocol", "<8"),
                                ("Local Address", "local_addr", "<20"),

@@ -48,7 +48,7 @@ class Notebook(plugin.Command):
             return False
 
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.format("Starting IPython notebook.")
         renderer.format("Press Ctrl-c to return to the interactive shell.")
         ipython_support.NotebookSupport(self.session)
@@ -87,7 +87,7 @@ class Rekall(plugin.Command):
         self.verbose = verbose
         self.pager = pager
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.format("Initializing Rekall session.\n")
 
         with self.session.state as state:

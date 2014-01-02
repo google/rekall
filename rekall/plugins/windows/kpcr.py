@@ -104,7 +104,7 @@ class KPCR(common.AbstractWindowsCommandPlugin):
         # Return all the _KPCR structs we know about.
         return seen.values()
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         eprocess = self.eprocess
 
         if self.session.system_eprocess:

@@ -161,7 +161,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
         return True
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header(
             [("_EPROCESS (P)", "physical_eprocess", "[addrpad]"),
              ("DTB", "dtv", "[addrpad]"),

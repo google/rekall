@@ -41,7 +41,7 @@ class VADInfo(common.WinProcessFilter):
 
     __name = "vadinfo"
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
             renderer.write("Pid: {0:6}\n".format(task.UniqueProcessId))
@@ -158,7 +158,7 @@ class VADTree(VADInfo):
 
     __name = "vadtree"
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
             renderer.format(u"Pid: {0:6}\n", task.UniqueProcessId)
@@ -197,7 +197,7 @@ class VADWalk(VADInfo):
 
     __name = "vadwalk"
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
             renderer.format(u"Pid: {0:6}\n", task.UniqueProcessId)
@@ -232,7 +232,7 @@ class VADDump(core.DirectoryDumperMixin, VADInfo):
         """
         super(VADDump, self).__init__(**kwargs)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
             renderer.format("Pid: {0:6}\n", task.UniqueProcessId)
@@ -304,7 +304,7 @@ class VAD(common.WinProcessFilter):
                 vad.u.VadFlags.ProtectionEnum,
                 filename)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
             renderer.format("Pid: {0} {1}\n", task.UniqueProcessId,

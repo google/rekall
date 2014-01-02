@@ -69,7 +69,7 @@ class ImageCopy(plugin.PhysicalASMixin, plugin.Command):
 
         return "{0:0.2f} TB".format(value)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Renders the file to disk"""
         if self.output_image is None:
             raise plugin.PluginError("Please provide an output-image filename")

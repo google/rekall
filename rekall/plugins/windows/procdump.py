@@ -119,7 +119,7 @@ class PEDump(common.WinProcessFilter):
             fd.seek(physical_offset, 0)
             fd.write(data)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         if self.out_fd is None:
             logging.error("No output filename or file handle specified.")
             return
@@ -193,7 +193,7 @@ class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
         self.fd = out_fd
         self.pedump = PEDump(session=self.session)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Renders the tasks to disk images, outputting progress as they go"""
         for task in self.filter_processes():
             pid = task.UniqueProcessId
@@ -253,7 +253,7 @@ class DLLDump(ProcExeDump):
         super(DLLDump, self).__init__(**kwargs)
         self.regex = re.compile(regex)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         for task in self.filter_processes():
             task_as = task.get_process_address_space()
 
@@ -304,7 +304,7 @@ class ModDump(DLLDump):
             if address_space.is_valid_address(image_base):
                 return address_space
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         modules_plugin = self.session.plugins.modules(session=self.session)
 
         for module in modules_plugin.lsmod():

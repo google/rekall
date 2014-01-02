@@ -141,7 +141,7 @@ class WinPas2Vas(common.WinProcessFilter):
                 return lookup_va + physical_address - lookup_pa, task
         return None, None
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([('Physical', 'virtual_offset', '[addrpad]'),
                                ('Virtual', 'physical_offset', '[addrpad]'),
                                ('Pid', 'pid', '>6'),

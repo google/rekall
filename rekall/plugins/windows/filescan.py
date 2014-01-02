@@ -76,7 +76,7 @@ class FileScan(common.PoolScannerPlugin):
 
             yield (object_obj, file_obj)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Print the output in a table."""
 
         renderer.table_header([('Offset', "offset_p", '[addrpad]'),
@@ -161,7 +161,7 @@ class DriverScan(FileScan):
             yield (object_obj, driver_obj, extension_obj, object_name)
 
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Renders the text-based output"""
         renderer.table_header([('Offset(P)', "offset_p", '[addrpad]'),
                                ('#Ptr', "ptr_count", '>4'),
@@ -227,7 +227,7 @@ class SymLinkScan(FileScan):
 
             yield object_obj, link_obj, object_name
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """ Renders text-based output """
         renderer.table_header([('Offset(P)', "offset_p", '[addrpad]'),
                                ('#Ptr', "ptr_count", '>6'),
@@ -301,7 +301,7 @@ class MutantScan(FileScan):
             mutant = pool_obj.get_object("_KMUTANT", self.allocation)
             yield (object_obj, mutant, object_name)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Renders the output"""
 
         renderer.table_header([('Offset(P)', "offset_p", '[addrpad]'),
@@ -437,13 +437,13 @@ class PSScan(common.PoolScannerPlugin):
     def scan_processes(self):
         """Generate possible hits."""
         # Just grab the AS and scan it using our scanner
-        scanner =  PoolScanProcess(session=self.session,
-                                   profile=self.profile,
-                                   address_space=self.address_space)
+        scanner = PoolScanProcess(session=self.session,
+                                  profile=self.profile,
+                                  address_space=self.address_space)
 
         return scanner.scan()
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         """Render results in a table."""
         # Try to do a regular process listing so we can compare if the process
         # is known.

@@ -148,12 +148,12 @@ class DarwinFindDTB(AbstractDarwinCommandPlugin):
                     self.profile.get_constant("_IdlePML4"))
 
                 idlepml4 = self.profile.Object(
-                    "unsigned int",  offset=idlepml4_addr, vm=boot_as)
+                    "unsigned int", offset=idlepml4_addr, vm=boot_as)
 
                 if idlepml4:
                     yield idlepml4, None
 
-    def verify_address_space(self, address_space=None, **kwargs):
+    def verify_address_space(self, address_space=None, **_):
         # Check the os version symbol using this address space.
         return "Darwin" == self.profile.get_constant_object(
             "_version",
@@ -446,7 +446,7 @@ class DarwinProcessFilter(DarwinPlugin):
 
 class HeapScannerMixIn(object):
     """A mixin for converting a scanner into a heap only scanner."""
-    def scan(self, **kwargs):
+    def scan(self, **_):
         for vma in self.task.mm.mmap.walk_list("vm_next"):
             # Only use the vmas inside the heap area.
             if (vma.vm_start >= self.task.mm.start_brk or

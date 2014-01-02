@@ -60,7 +60,7 @@ class CheckTTY(common.LinuxPlugin):
 
                 yield tty.name, recv_buf, lsmod.ResolveSymbolName(recv_buf)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([
                 ("Name", "name", "<16"),
                 ("Address", "address", "[addrpad]"),

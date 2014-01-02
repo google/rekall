@@ -92,7 +92,7 @@ class Handles(common.WinProcessFilter):
 
                 yield handle, object_type, name
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
                                ("Pid", "pid", ">6"),
                                ("Handle", "handle", "[addr]"),

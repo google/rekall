@@ -84,7 +84,7 @@ class WinPsList(common.WinProcessFilter):
         logging.debug("Unable to list processes using any method.")
         return []
 
-    def render(self, renderer=None):
+    def render(self, renderer):
 
         renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
                                ("Name", "file_name", "20s"),
@@ -119,7 +119,7 @@ class WinDllList(common.WinProcessFilter):
     __name = "dlllist"
 
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         for task in self.filter_processes():
             pid = task.UniqueProcessId
 
@@ -169,7 +169,7 @@ class WinMemMap(common.WinProcessFilter):
         self.coalesce = coalesce
         super(WinMemMap, self).__init__(**kwargs)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
             renderer.RenderProgress("Dumping pid {0}".format(
@@ -209,7 +209,7 @@ class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
             phys_address = task_as.vtop(virtual_address)
             fd.write(self.physical_address_space.read(phys_address, length))
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         if self.dump_dir is None:
             raise plugin.PluginError("Dump directory not specified.")
 

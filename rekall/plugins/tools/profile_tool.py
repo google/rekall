@@ -349,7 +349,7 @@ class ConvertProfile(plugin.Command):
         raise RuntimeError(
             "No suitable converter found - profile not recognized.")
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         try:
             output = io_manager.Factory(self.destination, mode="w")
         except IOError:
@@ -490,7 +490,7 @@ class BuiltInProfiles(io_manager.BuiltInManager):
 
 """
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         try:
             # Get the profile access database.
             db = json.load(open(self.database, "rb"))

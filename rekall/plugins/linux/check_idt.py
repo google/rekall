@@ -85,7 +85,7 @@ class CheckIdt(common.LinuxPlugin):
 
         return self.CheckTable(idt_table)
 
-    def render(self, renderer=None):
+    def render(self, renderer):
         renderer.table_header([("Index", "index", "[addr]"),
                                ("Address", "address", "[addrpad]"),
                                ("Symbol", "symbol", "<30")])
