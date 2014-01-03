@@ -1,0 +1,16 @@
+Source: python-rekall
+Section: unknown
+Priority: extra
+Maintainer: Rekall <rekall-dev@googlegroups.com>
+Build-Depends: debhelper (>= 7.0.0), python, python-setuptools
+Standards-Version: 3.9.2
+Homepage: http://code.google.com/p/rekall/
+
+Package: python-rekall
+Architecture: any
+Depends: python, ${python:Depends}
+Description: Rekall Memory Forensic Framework.
+ The Rekall framework provides techniques that can gain visibilty into
+ the runtime state of the system from volatile memory (RAM) independent
+ of the system being analyzed.
+ 
