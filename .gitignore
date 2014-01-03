@@ -9,9 +9,6 @@
 /dist
 /rekall.egg-info
 
-# Project specific files
-._code_review_number
-
 # Other
 *.sln
 buildchk_wnet_*

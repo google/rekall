@@ -19,6 +19,14 @@ The following is adapted from:
 
     > export PATH="`pwd`/depot_tools/:$PATH"
 
+## Step 2c: Configure git cl, you'll only need to do this once.
+    > git cl config
+    > Rietveld server (host[:port]) [https://codereview.appspot.com]:
+    > CC list:rekall-dev@googlegroups.com
+    > Private flag (rietveld only):
+    > Tree status URL:
+    > ViewVC URL:
+
 ## Step 3: Create a branch for your new changes
 
 Pick a branch name not existing locally nor in the remote repo, we recommend
@@ -26,18 +34,26 @@ that you use your user name as a prefix to make things simpler.
 
     > git checkout -b uname_example                        # new branch
 
-## Step 4: Do your changes and commit them locally in git
+## Step 4a: Do your changes and commit them locally in git
 
     > echo "file contents" > awesome_example.txt
     > git add awesome_example.txt
     > git commit -a -m "An awesome commit, for an awesome example."
+
+## Step 4b: Rebasing your tracking branch
+
+If in step 4a you get a notification that "you may need to rebase your tracking
+branch", try running:
+
+    > git pull origin master
 
 ## Step 5: Upload CL using 'git cl'
 
     > git cl upload origin/master
 
 Then click on the `publish & mail` link to send email to the reviewers from the
-rietveld website.
+rietveld website. Note that double "git status -s" codes, e.g.
+AM (Added Modified) can cause rietveld to show "error: old chunk mismatch".
 
 ## Step 6: Make code review changes and publish new versions of your code
 
@@ -50,8 +66,8 @@ rietveld website.
 If new changes have been made to the repo, you need sync up to the new changes
 before submitting your code:
 
-        > git pull origin master
-        > git cl upload origin/master
+    > git pull origin master
+    > git cl upload origin/master
 
 ## Step 8: Submit your changes
 
