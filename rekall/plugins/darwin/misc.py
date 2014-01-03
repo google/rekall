@@ -133,4 +133,4 @@ class DarwinBootParameters(common.DarwinPlugin):
         boot_params = self.profile.get_constant_object(
             "_PE_state", "PE_state").bootArgs
 
-        renderer.format(boot_params.bootArgs.CommandLine.cast("String"))
+        renderer.format("%s", boot_params.CommandLine.cast("String"))

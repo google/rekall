@@ -3,7 +3,7 @@ exclude .gitignore
 exclude *.pyc
 #recursive-include contrib *
 recursive-include docs *
-recursive-include rekall/profiles *.zip
+recursive-include resources *
 recursive-include src *.c *.h *.py
 recursive-include test_data *
 recursive-include tools *

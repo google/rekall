@@ -18,7 +18,7 @@
 #
 import time
 
-VERSION = "1.0RC1"
+VERSION = "1.0rc3"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
 BANNER = """

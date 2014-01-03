@@ -22,7 +22,6 @@
 #
 """Installation and deployment script."""
 
-import os
 import sys
 
 try:
@@ -45,7 +44,7 @@ setup(
     name="rekall",
     version=constants.VERSION,
     description=rekall_description,
-    long_description=rekall_description,
+    long_description=open("README.txt").read(),
     license="GPL",
     url="https://code.google.com/p/rekall/",
     author="The Rekall team",
@@ -59,12 +58,21 @@ setup(
     scripts=["rekall/rekal.py"],
     package_dir={'rekall': 'rekall'},
     packages=find_packages('.'),
-    package_data={
-        'rekall': ['profiles/*.zip']
-    },
+    package_data={},
+
     entry_points={
         "console_scripts": [
             "rekal = rekall.rekal:main"
         ]
-    }
+    },
+
+    install_requires=[
+        "argparse >= 0.9",
+        "pytz >= 2012",
+        "yara >= 1.7.6",
+        "ipython >= 1.1.0",
+        "pycrypto >= 2.3.1",
+        "pyelftools >= 0.21",
+        "distorm3 >= 0",
+        ],
 )

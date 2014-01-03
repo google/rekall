@@ -71,9 +71,6 @@ class Rekall(plugin.Command):
         parser.add_argument("--profile", default=None,
                             help="The name of the profile to load.")
 
-        parser.add_argument("--verbose", default=False, action="store_true",
-                            help="If set, enabled verbose mode.")
-
         parser.add_argument("--pager", default=None,
                             help="The name of a program to page output "
                             "(e.g. notepad or less).")

@@ -22,9 +22,34 @@ Rekall supports investigations of the following x86 bit memory images:
 * Microsoft Windows XP Service Pack 2 and 3
 * Microsoft Windows 7 Service Pack 0 and 1
 * Linux Kernels 2.6.24 to 3.10.
+* OSX 10.6-10.8.
 
 Rekall also provides a complete memory sample acquisition capability for all
 major operating systems (see the tools directory).
+
+Quick start
+===========
+
+Rekall is available as a python package installable via the pip package
+manager. Simply type (for example on Linux):
+
+sudo pip install rekall
+
+You might need to specifically allow pre-release software to be included (until
+Rekall makes a major stable release):
+
+sudo pip install --pre rekall
+
+To have all the dependencies installed. You still need to have python and pip
+installed first.
+
+To be able to run the ipython notebook, the following are also required:
+
+pip install Jinja2 MarkupSafe Pygments astroid pyzmq tornado wsgiref
+
+For windows, Rekall is also available as a self contained installer
+package. Please check the download page for the most appropriate installer to
+use (http://downloads.rekall.googlecode.com/git/index.html)
 
 Mailing Lists
 =============

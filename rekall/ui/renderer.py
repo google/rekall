@@ -50,7 +50,7 @@ config.DeclareOption(
 
 
 config.DeclareOption(
-    "--renderer", default="TextRenderer",  group="Interface",
+    "--renderer", default="TextRenderer", group="Interface",
     help="The renderer to use. e.g. (TextRenderer, "
     "JsonRenderer).")
 
@@ -60,11 +60,11 @@ config.DeclareOption(
 
 config.DeclareOption(
     "--logging", default="error", choices=[
-        "debug", "info", "warning",  "critical", "error"],
+        "debug", "info", "warning", "critical", "error"],
     help="Logging level to show messages.")
 
 config.DeclareOption(
-    "--verbose", default=False, action="store_true",
+    "-v", "--verbose", default=False, action="store_true",
     help="Set logging to debug level.")
 
 config.DeclareOption(
@@ -124,8 +124,8 @@ class Pager(object):
 
         try:
             args = dict(filename=self.filename)
-            # Allow the user to interpolate the filename in a special way, otherwise
-            # just append to the end of the command.
+            # Allow the user to interpolate the filename in a special way,
+            # otherwise just append to the end of the command.
             if "%" in self.pager_command:
                 pager_command = self.pager_command % args
             else:
