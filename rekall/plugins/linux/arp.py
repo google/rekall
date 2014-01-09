@@ -102,7 +102,7 @@ class Arp(common.LinuxPlugin):
             family = neighbor.tbl.family
 
             if family == "AF_INET":
-                ip = neighbor.primary_key.cast("IpAddress")
+                ip = neighbor.primary_key.cast("Ipv4Address")
 
             elif family == "AF_INET6":
                 ip = neighbor.primary_key.cast("Ipv6Address")

@@ -165,7 +165,7 @@ class Formatter(string.Formatter):
     """A formatter which supports extended formating specs."""
     # This comes from http://docs.python.org/library/string.html
     # 7.1.3.1. Format Specification Mini-Language
-    standard_format_specifier_re = re.compile("""
+    standard_format_specifier_re = re.compile(r"""
 (?P<fill>[^{}<>=^bcdeEfFgGnLosxX])?   # The fill parameter. This can not be a
                                      # format string or it is ambiguous.
 (?P<align>[<>=^])?     # The alignment.
@@ -289,7 +289,7 @@ class TextColumn(object):
             self.table.elide = False
             return
 
-        m = re.search("\[addrpad\]", formatstring)
+        m = re.search(r"\[addrpad\]", formatstring)
         if m:
             self.formatstring = "#0%sx" % self.address_size
             self.header_format = "^%ss" % self.address_size
@@ -297,7 +297,7 @@ class TextColumn(object):
             self.table.elide = False
             return
 
-        m = re.search("\[addr\]", formatstring)
+        m = re.search(r"\[addr\]", formatstring)
         if m:
             self.formatstring = ">#%sx" % self.address_size
             self.header_format = "^%ss" % self.address_size
@@ -305,7 +305,7 @@ class TextColumn(object):
             return
 
         # Look for the wrap specifier.
-        m = re.search("\[wrap:([^\]]+)\]", formatstring)
+        m = re.search(r"\[wrap:([^\]]+)\]", formatstring)
         if m:
             self.formatstring = "s"
             self.wrap = int(m.group(1))
@@ -330,7 +330,7 @@ class TextColumn(object):
         return header_cell
 
     def elide_string(self, string, length):
-        """Adds three dots in the middle of a string if it is longer than length"""
+        """Elides the middle of a string if it is longer than length."""
         if length == -1:
             return string
 
@@ -385,7 +385,8 @@ class TextColumn(object):
 
         if isinstance(target, bool):
             color = "GREEN" if target else "RED"
-            result = [self.table.renderer.color(x, foreground=color) for x in result]
+            result = [
+                self.table.renderer.color(x, foreground=color) for x in result]
 
         return result or [""]
 
@@ -456,7 +457,7 @@ class TextTable(object):
     def render_row(self, renderer, row=None, highlight=None):
         self.write_row(
             renderer,
-            [c.render_cell(obj) for c, obj in zip(self.columns, row)],
+            [c.render_cell(x) for c, x in zip(self.columns, row)],
             highlight=highlight)
 
 
@@ -495,8 +496,10 @@ class RendererBaseClass(object):
     def section(self, name=None):
         """Start a new section.
 
-        Sections are used to separate distinct entries (e.g. reports of different files).
+        Sections are used to separate distinct entries (e.g. reports of
+        different files).
         """
+        _ = name
         self.write("*" * 50 + "\n")
 
     def format(self, formatstring, *data):
@@ -513,7 +516,7 @@ class RendererBaseClass(object):
     def flush(self):
         """Renderer should flush data."""
 
-    def table_header(self, title_format_list = None, suppress_headers=False,
+    def table_header(self, title_format_list=None, suppress_headers=False,
                      name=None):
         """Table header renders the title row of a table.
 
@@ -547,7 +550,7 @@ class RendererBaseClass(object):
         Args:
           data: A list of tuples (name, short_name, formatstring, data)
         """
-        for name, short_name, formatstring, data in record_data:
+        for name, _, formatstring, data in record_data:
             self.format("%s: %s\n" % (name, formatstring), data)
 
         self.format("\n")
@@ -561,7 +564,7 @@ class TextRenderer(RendererBaseClass):
 
     tablesep = " "
     elide = False
-    spinner = "/-\|"
+    spinner = r"/-\|"
     last_spin_time = 0
     last_spin = 0
     last_message_len = 0
@@ -589,8 +592,8 @@ class TextRenderer(RendererBaseClass):
            kwargs: The args for this plugin.
         """
         # This handles the progress messages from rekall for the duration of
-        # the rendering but only if we output to a tty.
-        if self.session and self.fd.isatty():
+        # the rendering.
+        if self.session:
             self.session.progress = self.RenderProgress
 
     def end(self):
@@ -625,7 +628,7 @@ class TextRenderer(RendererBaseClass):
         self.ClearProgress()
         self.fd.flush()
 
-    def table_header(self, columns = None, suppress_headers=False,
+    def table_header(self, columns=None, suppress_headers=False,
                      **kwargs):
         """Table header renders the title row of a table.
 
@@ -665,7 +668,7 @@ class TextRenderer(RendererBaseClass):
         sys.stdout.write("\r" + " " * self.last_message_len + "\r")
         sys.stdout.flush()
 
-    def RenderProgress(self, message="%(spinner)s", *args, **kwargs):
+    def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
         if not sys.stdout.isatty():
             return
 
@@ -678,7 +681,7 @@ class TextRenderer(RendererBaseClass):
             self.last_spin += 1
 
             # Only expand variables when we need to.
-            if kwargs:
+            if "%(" in message:
                 kwargs["spinner"] = self.spinner[
                     self.last_spin % len(self.spinner)]
 
@@ -859,7 +862,7 @@ class Colorizer(object):
         for capability in capabilities:
             term_string = curses.tigetstr(capability)
             if term_string is not None:
-                term_string = re.sub("\$\<[^>]+>", "",  term_string)
+                term_string = re.sub("\$\<[^>]+>", "", term_string)
                 break
 
         try:
@@ -877,10 +880,12 @@ class Colorizer(object):
 
         escape_seq = ""
         if background:
-            escape_seq += self.tparm(["setb", "setab"], self.COLOR_MAP[background])
+            escape_seq += self.tparm(
+                ["setb", "setab"], self.COLOR_MAP[background])
 
         if foreground:
-            escape_seq += self.tparm(["setf", "setaf"], self.COLOR_MAP[foreground])
+            escape_seq += self.tparm(
+                ["setf", "setaf"], self.COLOR_MAP[foreground])
 
         return (escape_seq + utils.SmartUnicode(string) +
                 self.tparm(["sgr0"]))

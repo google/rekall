@@ -23,6 +23,7 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 import site
 
+from rekall import testlib
 from rekall import plugin
 from rekall.plugins import core
 
@@ -37,21 +38,15 @@ class Notebook(plugin.Command):
 
     __name = "notebook"
 
-    @classmethod
-    def is_active(cls, session):
-        """Only active when the IPython notebook is actually installed."""
-        try:
-            import IPython.html.notebookapp  # pylint: disable=unused-variable
-
-            return bool(ipython_support)
-        except ImportError:
-            return False
-
-
     def render(self, renderer):
         renderer.format("Starting IPython notebook.")
         renderer.format("Press Ctrl-c to return to the interactive shell.")
         ipython_support.NotebookSupport(self.session)
+
+
+class TestNoteBook(testlib.DisabledTest):
+    """Disable the test for this command to avoid bringing up the notebook."""
+    PARAMETERS = dict(commandline="notebook")
 
 
 class Rekall(plugin.Command):

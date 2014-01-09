@@ -60,12 +60,18 @@ class RVAPointer(obj.Pointer):
         super(RVAPointer, self).__init__(**kwargs)
         self.image_base = image_base or self.obj_context.get("image_base", 0)
 
+        # RVA pointers are always 32 bits - even on 64 bit systems.
+        self._proxy = self.obj_profile.Object(
+            "unsigned int", offset=self.obj_offset, vm=self.obj_vm,
+            context=self.obj_context)
+
     def v(self, vm=None):
         rva_pointer = super(RVAPointer, self).v()
         if rva_pointer:
             rva_pointer += self.image_base
 
         return rva_pointer
+
 
 class ResourcePointer(obj.Pointer):
     """A pointer relative to our resource section."""
@@ -82,14 +88,17 @@ class ResourcePointer(obj.Pointer):
                 if isinstance(parent, _IMAGE_NT_HEADERS):
                     for section in parent.Sections:
                         if section.Name.startswith(".rsrc"):
-                            self.resource_base = (section.VirtualAddress +
-                                                  parent.OptionalHeader.ImageBase)
-                            self.obj_context['resource_base'] = self.resource_base
+                            self.resource_base = (
+                                section.VirtualAddress +
+                                parent.OptionalHeader.ImageBase)
+                            self.obj_context[
+                                'resource_base'] = self.resource_base
                             break
 
-    def v(self):
+    def v(self, vm=None):
         # Only the first 31 bits are meaningful.
-        resource_pointer = int(super(ResourcePointer, self).v()) & ((1 << 31) - 1)
+        resource_pointer = int(
+            super(ResourcePointer, self).v()) & ((1 << 31) - 1)
         if resource_pointer:
             resource_pointer += self.resource_base
 
@@ -97,8 +106,8 @@ class ResourcePointer(obj.Pointer):
 
 
 pe_overlays = {
-    "_IMAGE_OPTIONAL_HEADER": [ None, {
-            'Subsystem' : [ None, ['Enumeration', {
+    "_IMAGE_OPTIONAL_HEADER": [None, {
+            'Subsystem' : [None, ['Enumeration', {
                         'choices': {
                             0: 'IMAGE_SUBSYSTEM_UNKNOWN',
                             1: 'IMAGE_SUBSYSTEM_NATIVE',
@@ -137,7 +146,7 @@ pe_overlays = {
                         'target': '_IMAGE_DATA_DIRECTORY'}]],
             }],
     "_IMAGE_FILE_HEADER": [None, {
-            'Machine' : [ 0x0, ['Enumeration', {
+            'Machine' : [0x0, ['Enumeration', {
                         'choices': {
                             0x0000: 'IMAGE_FILE_MACHINE_UNKNOWN',
                             0x01d3: 'IMAGE_FILE_MACHINE_AM33',
@@ -162,7 +171,7 @@ pe_overlays = {
                         'target': 'unsigned short'
                         }]],
 
-            'Characteristics' : [ 0x12, ['Flags', {
+            'Characteristics' : [0x12, ['Flags', {
                         'maskmap': {
                             'IMAGE_FILE_RELOCS_STRIPPED': 0x0001,
                             'IMAGE_FILE_EXECUTABLE_IMAGE': 0x0002,
@@ -182,12 +191,12 @@ pe_overlays = {
                             'IMAGE_FILE_BYTES_REVERSED_HI': 0x8000,
                             },
                         'target': 'unsigned short'}]],
-            'TimeDateStamp' : [ 0x4, ['UnixTimeStamp', {}]],
+            'TimeDateStamp' : [0x4, ['UnixTimeStamp', {}]],
             }],
 
     "_IMAGE_SECTION_HEADER": [None, {
-            'Name' : [ 0x0, ['String', {'length': 8, 'term': None}]],
-            'Characteristics' : [ 0x24, ['Flags', {
+            'Name' : [0x0, ['String', {'length': 8, 'term': None}]],
+            'Characteristics' : [0x24, ['Flags', {
                         'maskmap': {
                             'IMAGE_SCN_CNT_CODE':                  0x00000020,
                             'IMAGE_SCN_CNT_INITIALIZED_DATA':      0x00000040,
@@ -228,28 +237,34 @@ pe_overlays = {
             }],
 
     "_IMAGE_IMPORT_DESCRIPTOR": [None, {
-            'Name': [ 0xC, ['RVAPointer', dict(target="String",
-                                               target_args=dict(length=128))]],
+            'Name': [0xC, ['RVAPointer', dict(target="String",
+                                              target_args=dict(length=128))]],
 
             # This is an RVA pointer to an array of _IMAGE_THUNK_DATA structs.
-            'FirstThunk': [ 0x10, ['RVAPointer', dict(target="ThunkArray")]],
+            'FirstThunk': [0x10, ['RVAPointer', dict(target="ThunkArray")]],
 
             # This is a copy of the original IAT in memory.
-            'OriginalFirstThunk': [ 0x0, ['RVAPointer', dict(target="ThunkArray")]],
+            'OriginalFirstThunk': [0x0, ['RVAPointer', dict(
+                        target="ThunkArray"
+                        )]],
             }],
 
     "_IMAGE_EXPORT_DIRECTORY": [None, {
-            'Name': [ 0xC, ['RVAPointer', dict(target="String",
-                                               target_args=dict(length=128))]],
-
-            'AddressOfFunctions': [ None, ['RVAPointer', dict(
-                        target="Array",
-                        target_args=dict(target="RVAPointer",
-                                         target_args=dict(target="Function"),
-                                         count=lambda x: x.NumberOfFunctions)
+            'Name': [0xC, ['RVAPointer', dict(
+                        target="String",
+                        target_args=dict(length=128)
                         )]],
 
-            'AddressOfNames': [ None, ["RVAPointer", dict(
+            'AddressOfFunctions': [None, ['RVAPointer', dict(
+                        target="Array",
+                        target_args=dict(
+                            target="RVAPointer",
+                            target_args=dict(target="Function"),
+                            count=lambda x: x.NumberOfFunctions,
+                            )
+                        )]],
+
+            'AddressOfNames': [None, ["RVAPointer", dict(
                         target="Array",
                         target_args=dict(
                             target="RVAPointer",
@@ -258,7 +273,7 @@ pe_overlays = {
                             )
                         )]],
 
-            'AddressOfNameOrdinals': [ None, ['RVAPointer', dict(
+            'AddressOfNameOrdinals': [None, ['RVAPointer', dict(
                         target="Array",
                         target_args=dict(
                             target="unsigned short int",
@@ -267,23 +282,30 @@ pe_overlays = {
             }],
 
     "_IMAGE_THUNK_DATA": [None, {
-            'AddressOfData' : [ 0x0, ['RVAPointer', dict(target="_IMAGE_IMPORT_BY_NAME")]],
+            'AddressOfData' : [0x0, ['RVAPointer', dict(
+                        target="_IMAGE_IMPORT_BY_NAME"
+                        )]],
             }],
 
     "_IMAGE_THUNK_DATA64": [None, {
-            'AddressOfData' : [ 0x0, ['RVAPointer', dict(target="_IMAGE_IMPORT_BY_NAME")]],
+            'AddressOfData' : [0x0, ['RVAPointer', dict(
+                        target="_IMAGE_IMPORT_BY_NAME"
+                        )]],
             }],
 
     "_IMAGE_NT_HEADERS": [None, {
             # This is a psuedo member to give access to the sections.
             "Sections": [
                 # The sections start immediately after the OptionalHeader:
-                lambda x: x.FileHeader.SizeOfOptionalHeader + x.OptionalHeader.obj_offset,
+                lambda x: (x.FileHeader.SizeOfOptionalHeader +
+                           x.OptionalHeader.obj_offset),
 
                 # The sections are an array of _IMAGE_SECTION_HEADER structs.
                 # The number of sections is found in the FileHeader
-                ['Array', dict(target="_IMAGE_SECTION_HEADER",
-                               count=lambda x: x.FileHeader.NumberOfSections)]],
+                ['Array', dict(
+                        target="_IMAGE_SECTION_HEADER",
+                        count=lambda x: x.FileHeader.NumberOfSections,
+                        )]],
             }],
 
     "_IMAGE_RESOURCE_DIRECTORY": [0x10, {
@@ -291,7 +313,9 @@ pe_overlays = {
             "NumberOfIdEntries": [0x0e, ['unsigned short int']],
             "Entries": [0x10, ["Array", dict(
                         target="_IMAGE_RESOURCE_DIRECTORY_ENTRY",
-                        count=lambda x: x.NumberOfIdEntries + x.NumberOfNamedEntries)]],
+                        count=lambda x: (x.NumberOfIdEntries +
+                                         x.NumberOfNamedEntries)
+                        )]],
             }],
 
     "_IMAGE_RESOURCE_DIRECTORY_ENTRY": [0x08, {
@@ -320,19 +344,31 @@ pe_overlays = {
                             24:   'RT_MANIFEST'})]],
 
             # This is true when we need to use the Name field.
-            "NameIsString": [0x00, ['BitField', dict(start_bit=31, end_bit=32)]],
+            "NameIsString": [0x00, ['BitField', dict(
+                        start_bit=31,
+                        end_bit=32,
+                        )]],
             "OffsetToDataInt": [0x04, ['unsigned int']],
-            "OffsetToData": [0x04, ['ResourcePointer', dict(target="_IMAGE_RESOURCE_DATA_ENTRY")]],
-            "Entry": [0x04, ['ResourcePointer', dict(target="_IMAGE_RESOURCE_DIRECTORY")]],
+            "OffsetToData": [0x04, ['ResourcePointer', dict(
+                        target="_IMAGE_RESOURCE_DATA_ENTRY",
+                        )]],
+            "Entry": [0x04, ['ResourcePointer', dict(
+                        target="_IMAGE_RESOURCE_DIRECTORY")]],
 
-            # If this is set the child is another _IMAGE_RESOURCE_DIRECTORY_ENTRY
-            "ChildIsEntry": [0x04, ['BitField', dict(start_bit=31, end_bit=32)]],
+            # If this is set the child is another
+            # _IMAGE_RESOURCE_DIRECTORY_ENTRY
+            "ChildIsEntry": [0x04, ['BitField', dict(
+                        start_bit=31,
+                        end_bit=32,
+                        )]],
             }],
 
-    'PrefixedString' : [ 0x02, {
-            'Length' : [ 0x0, ['unsigned short']],
-            'Buffer' : [ 0x2, ['UnicodeString', dict(length=lambda x: x.Length * 2 + 1)]],
-            } ],
+    'PrefixedString' : [0x02, {
+            'Length' : [0x0, ['unsigned short']],
+            'Buffer' : [0x2, ['UnicodeString', dict(
+                        length=lambda x: x.Length * 2 + 1,
+                        )]],
+            }],
 
     '_IMAGE_RESOURCE_DATA_ENTRY': [0x10, {
             'OffsetToData': [0x00, ['RVAPointer', dict(
@@ -368,178 +404,231 @@ def AlignAfter(name):
 
 
 pe_vtypes = {
-    '_IMAGE_EXPORT_DIRECTORY': [ 0x28, {
-            'Base': [ 0x10, ['unsigned int']],
-            'NumberOfFunctions': [ 0x14, ['unsigned int']],
-            'NumberOfNames': [ 0x18, ['unsigned int']],
-            'AddressOfFunctions': [ 0x1C, ['unsigned int']],
-            'AddressOfNames': [ 0x20, ['unsigned int']],
-            'AddressOfNameOrdinals': [ 0x24, ['unsigned int']],
+    '_IMAGE_EXPORT_DIRECTORY': [0x28, {
+            'Base': [0x10, ['unsigned int']],
+            'NumberOfFunctions': [0x14, ['unsigned int']],
+            'NumberOfNames': [0x18, ['unsigned int']],
+            'AddressOfFunctions': [0x1C, ['unsigned int']],
+            'AddressOfNames': [0x20, ['unsigned int']],
+            'AddressOfNameOrdinals': [0x24, ['unsigned int']],
             }],
 
-    '_IMAGE_IMPORT_DESCRIPTOR': [ 0x14, {
-            'TimeDateStamp': [ 0x4, ['UnixTimeStamp', {}]],
-            'ForwarderChain': [ 0x8, ['unsigned int']],
+    '_IMAGE_IMPORT_DESCRIPTOR': [0x14, {
+            'TimeDateStamp': [0x4, ['UnixTimeStamp', {}]],
+            'ForwarderChain': [0x8, ['unsigned int']],
             }],
 
     # This is really a union of members.
-    '_IMAGE_THUNK_DATA' : [ 0x4, {
+    '_IMAGE_THUNK_DATA' : [0x4, {
             # Fake member for testing if the highest bit is set
-            'OrdinalBit' : [ 0x0, ['BitField', dict(start_bit = 31, end_bit = 32)]],
-            'Function' : [ 0x0, ['pointer', ['void']]],
-            'Ordinal' : [ 0x0, ['unsigned long']],
-            'AddressOfData' : [ 0x0, ['unsigned long']],
-            'ForwarderString' : [ 0x0, ['unsigned int']],
+            'OrdinalBit' : [0x0, ['BitField', dict(
+                        start_bit=31,
+                        end_bit=32
+                        )]],
+            'Function' : [0x0, ['pointer', ['void']]],
+            'Ordinal' : [0x0, ['unsigned long']],
+            'AddressOfData' : [0x0, ['unsigned long']],
+            'ForwarderString' : [0x0, ['unsigned int']],
             }],
 
-    '_IMAGE_IMPORT_BY_NAME' : [ 4, {
-            'Hint' : [ 0x0, ['unsigned short']],
-            'Name' : [ 0x2, ['String', dict(length = 128)]],
+    '_IMAGE_IMPORT_BY_NAME' : [4, {
+            'Hint' : [0x0, ['unsigned short']],
+            'Name' : [0x2, ['String', dict(length=128)]],
             }],
 
-    '__unnamed_156e' : [ 0x4, {
-            'PhysicalAddress' : [ 0x0, ['unsigned long']],
-            'VirtualSize' : [ 0x0, ['unsigned long']],
-            } ],
+    '__unnamed_156e' : [0x4, {
+            'PhysicalAddress' : [0x0, ['unsigned long']],
+            'VirtualSize' : [0x0, ['unsigned long']],
+            }],
 
-    '_IMAGE_SECTION_HEADER' : [ 0x28, {
-            'Name' : [ 0x0, ['String', {'length': 8, 'term': None}]],
-            'Misc' : [ 0x8, ['__unnamed_156e']],
-            'VirtualAddress' : [ 0xc, ['unsigned long']],
-            'SizeOfRawData' : [ 0x10, ['unsigned long']],
-            'PointerToRawData' : [ 0x14, ['unsigned long']],
-            'PointerToRelocations' : [ 0x18, ['unsigned long']],
-            'PointerToLinenumbers' : [ 0x1c, ['unsigned long']],
-            'NumberOfRelocations' : [ 0x20, ['unsigned short']],
-            'NumberOfLinenumbers' : [ 0x22, ['unsigned short']],
-            } ],
+    '_IMAGE_SECTION_HEADER' : [0x28, {
+            'Name' : [0x0, ['String', {'length': 8, 'term': None}]],
+            'Misc' : [0x8, ['__unnamed_156e']],
+            'VirtualAddress' : [0xc, ['unsigned long']],
+            'SizeOfRawData' : [0x10, ['unsigned long']],
+            'PointerToRawData' : [0x14, ['unsigned long']],
+            'PointerToRelocations' : [0x18, ['unsigned long']],
+            'PointerToLinenumbers' : [0x1c, ['unsigned long']],
+            'NumberOfRelocations' : [0x20, ['unsigned short']],
+            'NumberOfLinenumbers' : [0x22, ['unsigned short']],
+            }],
 
-    '_IMAGE_DOS_HEADER' : [ 0x40, {
-            'e_magic' : [ 0x0, ['unsigned short']],
-            'e_cblp' : [ 0x2, ['unsigned short']],
-            'e_cp' : [ 0x4, ['unsigned short']],
-            'e_crlc' : [ 0x6, ['unsigned short']],
-            'e_cparhdr' : [ 0x8, ['unsigned short']],
-            'e_minalloc' : [ 0xa, ['unsigned short']],
-            'e_maxalloc' : [ 0xc, ['unsigned short']],
-            'e_ss' : [ 0xe, ['unsigned short']],
-            'e_sp' : [ 0x10, ['unsigned short']],
-            'e_csum' : [ 0x12, ['unsigned short']],
-            'e_ip' : [ 0x14, ['unsigned short']],
-            'e_cs' : [ 0x16, ['unsigned short']],
-            'e_lfarlc' : [ 0x18, ['unsigned short']],
-            'e_ovno' : [ 0x1a, ['unsigned short']],
-            'e_res' : [ 0x1c, ['array', 4, ['unsigned short']]],
-            'e_oemid' : [ 0x24, ['unsigned short']],
-            'e_oeminfo' : [ 0x26, ['unsigned short']],
-            'e_res2' : [ 0x28, ['array', 10, ['unsigned short']]],
-            'e_lfanew' : [ 0x3c, ['long']],
-            } ],
+    '_IMAGE_DOS_HEADER' : [0x40, {
+            'e_magic' : [0x0, ['unsigned short']],
+            'e_cblp' : [0x2, ['unsigned short']],
+            'e_cp' : [0x4, ['unsigned short']],
+            'e_crlc' : [0x6, ['unsigned short']],
+            'e_cparhdr' : [0x8, ['unsigned short']],
+            'e_minalloc' : [0xa, ['unsigned short']],
+            'e_maxalloc' : [0xc, ['unsigned short']],
+            'e_ss' : [0xe, ['unsigned short']],
+            'e_sp' : [0x10, ['unsigned short']],
+            'e_csum' : [0x12, ['unsigned short']],
+            'e_ip' : [0x14, ['unsigned short']],
+            'e_cs' : [0x16, ['unsigned short']],
+            'e_lfarlc' : [0x18, ['unsigned short']],
+            'e_ovno' : [0x1a, ['unsigned short']],
+            'e_res' : [0x1c, ['array', 4, ['unsigned short']]],
+            'e_oemid' : [0x24, ['unsigned short']],
+            'e_oeminfo' : [0x26, ['unsigned short']],
+            'e_res2' : [0x28, ['array', 10, ['unsigned short']]],
+            'e_lfanew' : [0x3c, ['long']],
+            }],
 
-    '_IMAGE_NT_HEADERS' : [ 0xf8, {
-            'Signature' : [ 0x0, ['unsigned long']],
-            'FileHeader' : [ 0x4, ['_IMAGE_FILE_HEADER']],
-            'OptionalHeader' : [ 0x18, ['_IMAGE_OPTIONAL_HEADER']],
-            } ],
+    '_IMAGE_NT_HEADERS' : [0xf8, {
+            'Signature' : [0x0, ['unsigned long']],
+            'FileHeader' : [0x4, ['_IMAGE_FILE_HEADER']],
+            'OptionalHeader' : [0x18, ['_IMAGE_OPTIONAL_HEADER']],
+            }],
 
-    '_IMAGE_NT_HEADERS64' : [ 0x108, {
-            'Signature' : [ 0x0, ['unsigned long']],
-            'FileHeader' : [ 0x4, ['_IMAGE_FILE_HEADER']],
-            'OptionalHeader' : [ 0x18, ['_IMAGE_OPTIONAL_HEADER64']],
-            } ],
+    '_IMAGE_NT_HEADERS64' : [0x108, {
+            'Signature' : [0x0, ['unsigned long']],
+            'FileHeader' : [0x4, ['_IMAGE_FILE_HEADER']],
+            'OptionalHeader' : [0x18, ['_IMAGE_OPTIONAL_HEADER64']],
+            }],
 
-    '_IMAGE_OPTIONAL_HEADER64' : [ 0xf0, {
-            'Magic' : [ 0x0, ['unsigned short']],
-            'MajorLinkerVersion' : [ 0x2, ['unsigned char']],
-            'MinorLinkerVersion' : [ 0x3, ['unsigned char']],
-            'SizeOfCode' : [ 0x4, ['unsigned long']],
-            'SizeOfInitializedData' : [ 0x8, ['unsigned long']],
-            'SizeOfUninitializedData' : [ 0xc, ['unsigned long']],
-            'AddressOfEntryPoint' : [ 0x10, ['unsigned long']],
-            'BaseOfCode' : [ 0x14, ['unsigned long']],
-            'ImageBase' : [ 0x18, ['unsigned long long']],
-            'SectionAlignment' : [ 0x20, ['unsigned long']],
-            'FileAlignment' : [ 0x24, ['unsigned long']],
-            'MajorOperatingSystemVersion' : [ 0x28, ['unsigned short']],
-            'MinorOperatingSystemVersion' : [ 0x2a, ['unsigned short']],
-            'MajorImageVersion' : [ 0x2c, ['unsigned short']],
-            'MinorImageVersion' : [ 0x2e, ['unsigned short']],
-            'MajorSubsystemVersion' : [ 0x30, ['unsigned short']],
-            'MinorSubsystemVersion' : [ 0x32, ['unsigned short']],
-            'Win32VersionValue' : [ 0x34, ['unsigned long']],
-            'SizeOfImage' : [ 0x38, ['unsigned long']],
-            'SizeOfHeaders' : [ 0x3c, ['unsigned long']],
-            'CheckSum' : [ 0x40, ['unsigned long']],
-            'Subsystem' : [ 0x44, ['unsigned short']],
-            'DllCharacteristics' : [ 0x46, ['unsigned short']],
-            'SizeOfStackReserve' : [ 0x48, ['unsigned long long']],
-            'SizeOfStackCommit' : [ 0x50, ['unsigned long long']],
-            'SizeOfHeapReserve' : [ 0x58, ['unsigned long long']],
-            'SizeOfHeapCommit' : [ 0x60, ['unsigned long long']],
-            'LoaderFlags' : [ 0x68, ['unsigned long']],
-            'NumberOfRvaAndSizes' : [ 0x6c, ['unsigned long']],
-            'DataDirectory' : [ 0x70, ['array', 16, ['_IMAGE_DATA_DIRECTORY']]],
-            } ],
+    '_IMAGE_OPTIONAL_HEADER64' : [0xf0, {
+            'Magic' : [0x0, ['unsigned short']],
+            'MajorLinkerVersion' : [0x2, ['unsigned char']],
+            'MinorLinkerVersion' : [0x3, ['unsigned char']],
+            'SizeOfCode' : [0x4, ['unsigned long']],
+            'SizeOfInitializedData' : [0x8, ['unsigned long']],
+            'SizeOfUninitializedData' : [0xc, ['unsigned long']],
+            'AddressOfEntryPoint' : [0x10, ['unsigned long']],
+            'BaseOfCode' : [0x14, ['unsigned long']],
+            'ImageBase' : [0x18, ['unsigned long long']],
+            'SectionAlignment' : [0x20, ['unsigned long']],
+            'FileAlignment' : [0x24, ['unsigned long']],
+            'MajorOperatingSystemVersion' : [0x28, ['unsigned short']],
+            'MinorOperatingSystemVersion' : [0x2a, ['unsigned short']],
+            'MajorImageVersion' : [0x2c, ['unsigned short']],
+            'MinorImageVersion' : [0x2e, ['unsigned short']],
+            'MajorSubsystemVersion' : [0x30, ['unsigned short']],
+            'MinorSubsystemVersion' : [0x32, ['unsigned short']],
+            'Win32VersionValue' : [0x34, ['unsigned long']],
+            'SizeOfImage' : [0x38, ['unsigned long']],
+            'SizeOfHeaders' : [0x3c, ['unsigned long']],
+            'CheckSum' : [0x40, ['unsigned long']],
+            'Subsystem' : [0x44, ['unsigned short']],
+            'DllCharacteristics' : [0x46, ['unsigned short']],
+            'SizeOfStackReserve' : [0x48, ['unsigned long long']],
+            'SizeOfStackCommit' : [0x50, ['unsigned long long']],
+            'SizeOfHeapReserve' : [0x58, ['unsigned long long']],
+            'SizeOfHeapCommit' : [0x60, ['unsigned long long']],
+            'LoaderFlags' : [0x68, ['unsigned long']],
+            'NumberOfRvaAndSizes' : [0x6c, ['unsigned long']],
+            'DataDirectory' : [0x70, ['array', 16, ['_IMAGE_DATA_DIRECTORY']]],
+            }],
 
-    '_IMAGE_OPTIONAL_HEADER' : [ 0xe0, {
-            'Magic' : [ 0x0, ['unsigned short']],
-            'MajorLinkerVersion' : [ 0x2, ['unsigned char']],
-            'MinorLinkerVersion' : [ 0x3, ['unsigned char']],
-            'SizeOfCode' : [ 0x4, ['unsigned long']],
-            'SizeOfInitializedData' : [ 0x8, ['unsigned long']],
-            'SizeOfUninitializedData' : [ 0xc, ['unsigned long']],
-            'AddressOfEntryPoint' : [ 0x10, ['unsigned long']],
-            'BaseOfCode' : [ 0x14, ['unsigned long']],
-            'BaseOfData' : [ 0x18, ['unsigned long']],
-            'ImageBase' : [ 0x1c, ['unsigned long']],
-            'SectionAlignment' : [ 0x20, ['unsigned long']],
-            'FileAlignment' : [ 0x24, ['unsigned long']],
-            'MajorOperatingSystemVersion' : [ 0x28, ['unsigned short']],
-            'MinorOperatingSystemVersion' : [ 0x2a, ['unsigned short']],
-            'MajorImageVersion' : [ 0x2c, ['unsigned short']],
-            'MinorImageVersion' : [ 0x2e, ['unsigned short']],
-            'MajorSubsystemVersion' : [ 0x30, ['unsigned short']],
-            'MinorSubsystemVersion' : [ 0x32, ['unsigned short']],
-            'Win32VersionValue' : [ 0x34, ['unsigned long']],
-            'SizeOfImage' : [ 0x38, ['unsigned long']],
-            'SizeOfHeaders' : [ 0x3c, ['unsigned long']],
-            'CheckSum' : [ 0x40, ['unsigned long']],
-            'Subsystem' : [ 0x44, ['unsigned long']],
-            'DllCharacteristics' : [ 0x46, ['unsigned short']],
-            'SizeOfStackReserve' : [ 0x48, ['unsigned long']],
-            'SizeOfStackCommit' : [ 0x4c, ['unsigned long']],
-            'SizeOfHeapReserve' : [ 0x50, ['unsigned long']],
-            'SizeOfHeapCommit' : [ 0x54, ['unsigned long']],
-            'LoaderFlags' : [ 0x58, ['unsigned long']],
-            'NumberOfRvaAndSizes' : [ 0x5c, ['unsigned long']],
-            'DataDirectory' : [ 0x60, ['unsigned long']],
-            } ],
+    '_IMAGE_OPTIONAL_HEADER' : [0xe0, {
+            'Magic' : [0x0, ['unsigned short']],
+            'MajorLinkerVersion' : [0x2, ['unsigned char']],
+            'MinorLinkerVersion' : [0x3, ['unsigned char']],
+            'SizeOfCode' : [0x4, ['unsigned long']],
+            'SizeOfInitializedData' : [0x8, ['unsigned long']],
+            'SizeOfUninitializedData' : [0xc, ['unsigned long']],
+            'AddressOfEntryPoint' : [0x10, ['unsigned long']],
+            'BaseOfCode' : [0x14, ['unsigned long']],
+            'BaseOfData' : [0x18, ['unsigned long']],
+            'ImageBase' : [0x1c, ['unsigned long']],
+            'SectionAlignment' : [0x20, ['unsigned long']],
+            'FileAlignment' : [0x24, ['unsigned long']],
+            'MajorOperatingSystemVersion' : [0x28, ['unsigned short']],
+            'MinorOperatingSystemVersion' : [0x2a, ['unsigned short']],
+            'MajorImageVersion' : [0x2c, ['unsigned short']],
+            'MinorImageVersion' : [0x2e, ['unsigned short']],
+            'MajorSubsystemVersion' : [0x30, ['unsigned short']],
+            'MinorSubsystemVersion' : [0x32, ['unsigned short']],
+            'Win32VersionValue' : [0x34, ['unsigned long']],
+            'SizeOfImage' : [0x38, ['unsigned long']],
+            'SizeOfHeaders' : [0x3c, ['unsigned long']],
+            'CheckSum' : [0x40, ['unsigned long']],
+            'Subsystem' : [0x44, ['unsigned long']],
+            'DllCharacteristics' : [0x46, ['unsigned short']],
+            'SizeOfStackReserve' : [0x48, ['unsigned long']],
+            'SizeOfStackCommit' : [0x4c, ['unsigned long']],
+            'SizeOfHeapReserve' : [0x50, ['unsigned long']],
+            'SizeOfHeapCommit' : [0x54, ['unsigned long']],
+            'LoaderFlags' : [0x58, ['unsigned long']],
+            'NumberOfRvaAndSizes' : [0x5c, ['unsigned long']],
+            'DataDirectory' : [0x60, ['unsigned long']],
+            }],
 
-    '_IMAGE_FILE_HEADER' : [ 0x14, {
-            'NumberOfSections' : [ 0x2, ['unsigned short']],
-            'TimeDateStamp' : [ 0x4, ['UnixTimeStamp', {}]],
-            'PointerToSymbolTable' : [ 0x8, ['unsigned long']],
-            'NumberOfSymbols' : [ 0xc, ['unsigned long']],
-            'SizeOfOptionalHeader' : [ 0x10, ['unsigned short']],
-            } ],
+    '_IMAGE_FILE_HEADER' : [0x14, {
+            'NumberOfSections' : [0x2, ['unsigned short']],
+            'TimeDateStamp' : [0x4, ['UnixTimeStamp', {}]],
+            'PointerToSymbolTable' : [0x8, ['unsigned long']],
+            'NumberOfSymbols' : [0xc, ['unsigned long']],
+            'SizeOfOptionalHeader' : [0x10, ['unsigned short']],
+            }],
 
-    '_IMAGE_DATA_DIRECTORY' : [ 0x8, {
-            'VirtualAddress' : [ 0x0, ['RVAPointer', dict(target='unsigned int')]],
-            'Size' : [ 0x4, ['unsigned long']],
-            } ],
+    '_IMAGE_DATA_DIRECTORY' : [0x8, {
+            'VirtualAddress' : [0x0, ['RVAPointer', dict(
+                        target='unsigned int'
+                        )]],
+            'Size' : [0x4, ['unsigned long']],
+            }],
 
-    '_IMAGE_THUNK_DATA64' : [ 0x8, {
+    '_IMAGE_DEBUG_DIRECTORY': [28, {
+            "Characteristics": [0, ["unsigned long"]],
+            "MajorVersion": [8, ["unsigned short"]],
+            "MinorVersion": [10, ["unsigned short"]],
+            "AddressOfRawData": [20, ["RVAPointer", dict(
+                        # We only support CV_RSDS_HEADER for XP+
+                        target="CV_RSDS_HEADER",
+                        )]],
+            "PointerToRawData": [24, ["unsigned long"]],
+            "SizeOfData": [16, ["unsigned long"]],
+            "TimeDateStamp": [0x4, ["UnixTimeStamp"]],
+            "Type": [12, ["Enumeration", dict(
+                        choices={
+                            0: "IMAGE_DEBUG_TYPE_UNKNOWN",
+                            1: "IMAGE_DEBUG_TYPE_COFF",
+                            2: "IMAGE_DEBUG_TYPE_CODEVIEW",
+                            3: "IMAGE_DEBUG_TYPE_FPO",
+                            4: "IMAGE_DEBUG_TYPE_MISC",
+                            5: "IMAGE_DEBUG_TYPE_EXCEPTION",
+                            6: "IMAGE_DEBUG_TYPE_FIXUP",
+                            7: "IMAGE_DEBUG_TYPE_OMAP_TO_SRC",
+                            8: "IMAGE_DEBUG_TYPE_OMAP_FROM_SRC",
+                            9: "IMAGE_DEBUG_TYPE_BORLAND",
+                            10: "IMAGE_DEBUG_TYPE_RESERVED",
+                            },
+                        target="unsigned int",
+                        )]],
+            }],
+
+    "_GUID": [16, {
+            "Data1": [0, ["unsigned long"]],
+            "Data2": [4, ["unsigned short"]],
+            "Data3": [6, ["unsigned short"]],
+            "Data4": [8, ["String", dict(length=8)]],
+            "AsString": lambda x: "%08x%04x%04x%s" % (
+                x.Data1, x.Data2, x.Data3, str(x.Data4).encode('hex')),
+            }],
+
+    'CV_RSDS_HEADER': [None, {
+            "Signature": [0, ["String", dict(length=4)]],
+            "GUID": [4, ["_GUID"]],
+            "Age": [20, ["unsigned int"]],
+            "Filename": [24, ["String"]],
+            }],
+
+    '_IMAGE_THUNK_DATA64' : [0x8, {
             # Fake member for testing if the highest bit is set
-            'OrdinalBit' : [ 0x0, ['BitField', dict(start_bit = 63, end_bit = 64)]],
-            'Function' : [ 0x0, ['pointer64', ['void']]],
-            'Ordinal' : [ 0x0, ['unsigned long long']],
-            'AddressOfData' : [ 0x0, ['unsigned long long']],
-            'ForwarderString' : [ 0x0, ['unsigned long long']],
+            'OrdinalBit' : [0x0, ['BitField', dict(
+                        start_bit=63,
+                        end_bit=64
+                        )]],
+            'Function' : [0x0, ['pointer64', ['void']]],
+            'Ordinal' : [0x0, ['unsigned long long']],
+            'AddressOfData' : [0x0, ['unsigned long long']],
+            'ForwarderString' : [0x0, ['unsigned long long']],
             }],
 
     # Note this is a problematic structure due to the alignment
-    # requirements. Its not too much of a problem for the Rekall Memory Forensics object
-    # system though :-)
+    # requirements. Its not too much of a problem for the Rekall Memory
+    # Forensics object system though :-)
 
     # http://msdn.microsoft.com/en-us/library/windows/desktop/ms647001(v=vs.85).aspx
     'VS_VERSIONINFO': [0x06, {
@@ -594,7 +683,7 @@ pe_vtypes = {
             "FileSubtype": [0x28, ['unsigned int']],
             "FileDateMS": [0x2c, ['unsigned int']],
             "FileDateLS": [0x30, ['unsigned int']],
-            "FileDate": [0x2c, ['WinTimeStamp', {}]],
+            "FileDate": [0x2c, ['WinFileTime', {}]],
             }],
 
     # The size of this is given by the Length member.
@@ -666,240 +755,6 @@ pe_vtypes = {
     }
 
 
-class _IMAGE_EXPORT_DIRECTORY(obj.Struct):
-    """Class for PE export directory"""
-
-    def valid(self, nt_header):
-        """
-        Check the sanity of export table fields.
-
-        The RVAs cannot be larger than the module size. The function
-        and name counts cannot be larger than 32K.
-        """
-        try:
-            return (self.AddressOfFunctions < nt_header.OptionalHeader.SizeOfImage and
-                    self.AddressOfNameOrdinals < nt_header.OptionalHeader.SizeOfImage and
-                    self.AddressOfNames < nt_header.OptionalHeader.SizeOfImage and
-                    self.NumberOfFunctions < 0x7FFF and
-                    self.NumberOfNames < 0x7FFF)
-        except obj.InvalidOffsetError:
-            return False
-
-    def _name(self, name_rva):
-        """
-        Return a String object for the function name.
-
-        Names are truncated at 128 characters although its possible
-        they may be longer. Thus, infrequently a function name will
-        be missing some data. However, that's better than hard-coding
-        a larger value which frequently causes us to cross page
-        boundaries and return a NoneObject anyway.
-        """
-        return self.obj_profile.Object("String",
-                                       offset = self.obj_parent.DllBase.v() + name_rva,
-                                       vm = self.obj_vm, length = 128)
-
-    def _exported_functions(self):
-        """
-        Generator for exported functions.
-
-        @return: tuple (Ordinal, FunctionRVA, Name)
-
-        Ordinal is an integer and should never be None. If the function
-        is forwarded, FunctionRVA is None. Otherwise, FunctionRVA is an
-        RVA to the function's code (relative to module base). Name is a
-        String containing the exported function's name. If the Name is
-        paged, it will be None. If the function is forwarded, Name is the
-        forwarded function name including the DLL (ntdll.EtwLogTraceEvent).
-        """
-
-        mod_base = self.obj_parent.DllBase.v()
-        exp_dir = self.obj_parent.export_dir()
-
-        # PE files with a large number of functions will have arrays
-        # that spans multiple pages. Thus the first entries may be valid,
-        # last entries may be valid, but middle entries may be invalid
-        # (paged). In the various checks below, we test for None (paged)
-        # and zero (non-paged but invalid RVA).
-
-        # Array of RVAs to function code
-        address_of_functions = self.obj_profile.Object(
-            'Array', offset = mod_base + self.AddressOfFunctions,
-            target = 'unsigned int', count = self.NumberOfFunctions,
-            vm = self.obj_vm)
-
-        # Array of RVAs to function names
-        address_of_names = self.obj_profile.Object(
-            'Array', offset = mod_base + self.AddressOfNames,
-            target = 'unsigned int', count = self.NumberOfNames,
-            vm = self.obj_vm)
-
-        # Array of RVAs to function ordinals
-        address_of_name_ordinals = self.obj_profile.Object(
-            'Array', offset = mod_base + self.AddressOfNameOrdinals,
-            target = 'unsigned short', count = self.NumberOfNames,
-            vm = self.obj_vm)
-
-        # When functions are exported by Name, it will increase
-        # NumberOfNames by 1 and NumberOfFunctions by 1. When
-        # functions are exported by Ordinal, only the NumberOfFunctions
-        # will increase. First we enum functions exported by Name
-        # and track their corresponding Ordinals, so that when we enum
-        # functions exported by Ordinal only, we don't duplicate.
-
-        seen_ordinals = []
-
-        # Handle functions exported by name *and* ordinal
-        for i in range(self.NumberOfNames):
-
-            name_rva = address_of_names[i]
-            ordinal = address_of_name_ordinals[i]
-
-            if name_rva in (0, None):
-                continue
-
-            # Check the sanity of ordinal values before using it as an index
-            if ordinal == None or ordinal >= self.NumberOfFunctions:
-                continue
-
-            func_rva = address_of_functions[ordinal]
-
-            if func_rva in (0, None):
-                continue
-
-            # Handle forwarded exports. If the function's RVA is inside the exports
-            # section (as given by the VirtualAddress and Size fields in the
-            # DataDirectory), the symbol is forwarded. Return the name of the
-            # forwarded function and None as the function address.
-
-            if (func_rva >= exp_dir.VirtualAddress and
-                    func_rva < exp_dir.VirtualAddress + exp_dir.Size):
-                n = self._name(func_rva)
-                f = obj.NoneObject("This function is forwarded")
-            else:
-                n = self._name(name_rva)
-                f = func_rva
-
-            # Add the ordinal base and save it
-            ordinal += self.Base
-            seen_ordinals.append(ordinal)
-
-            yield ordinal, f, n
-
-        # Handle functions exported by ordinal only
-        for i in range(self.NumberOfFunctions):
-
-            ordinal = self.Base + i
-
-            # Skip functions already enumberated above
-            if ordinal not in seen_ordinals:
-
-                func_rva = address_of_functions[i]
-
-                if func_rva in (0, None):
-                    continue
-
-                seen_ordinals.append(ordinal)
-
-                # There is no name RVA
-                yield ordinal, func_rva, obj.NoneObject("Name RVA not accessible")
-
-
-class _IMAGE_IMPORT_DESCRIPTOR(obj.Struct):
-    """Handles IID entries for imported functions"""
-
-    def valid(self, nt_header):
-        """Check the validity of some fields"""
-        try:
-            return (self.OriginalFirstThunk != 0 and
-                    self.OriginalFirstThunk < nt_header.OptionalHeader.SizeOfImage and
-                    self.FirstThunk != 0 and
-                    self.FirstThunk < nt_header.OptionalHeader.SizeOfImage and
-                    self.Name < nt_header.OptionalHeader.SizeOfImage)
-        except obj.InvalidOffsetError:
-            return False
-
-    def _name(self, name_rva):
-        """Return a String object for the name at the given RVA"""
-
-        return self.obj_profile.Object(
-            "String", offset = self.obj_parent.DllBase.v() + name_rva,
-            vm = self.obj_vm, length = 128)
-
-    def dll_name(self):
-        """Returns the name of the DLL for this IID"""
-        return self._name(self.Name)
-
-    def _imported_functions(self):
-        """
-        Generator for imported functions.
-
-        @return: tuple (Ordinal, FunctionVA, Name)
-
-        If the function is imported by ordinal, then Ordinal is the
-        ordinal value and Name is None.
-
-        If the function is imported by name, then Ordinal is the
-        hint and Name is the imported function name (or None if its
-        paged).
-
-        FunctionVA is the virtual address of the imported function,
-        as applied to the IAT by the Windows loader. If the FirstThunk
-        is paged, then FunctionVA will be None.
-        """
-
-        i = 0
-        while 1:
-            thunk = self.obj_profile.Object(
-                '_IMAGE_THUNK_DATA',
-                offset = self.obj_parent.DllBase.v() + self.OriginalFirstThunk +
-                i * self.obj_profile.get_obj_size('_IMAGE_THUNK_DATA'),
-                vm = self.obj_vm)
-
-            # We've reached the end when the element is zero
-            if thunk == None or thunk.AddressOfData == 0:
-                break
-
-            o = obj.NoneObject("Ordinal not accessible?")
-            n = obj.NoneObject("Imported by ordinal?")
-            f = obj.NoneObject("FirstThunk not accessible")
-
-            # If the highest bit (32 for x86 and 64 for x64) is set, the function is
-            # imported by ordinal and the lowest 16-bits contain the ordinal value.
-            # Otherwise, the lowest bits (0-31 for x86 and 0-63 for x64) contain an
-            # RVA to an _IMAGE_IMPORT_BY_NAME struct.
-            if thunk.OrdinalBit == 1:
-                o = thunk.Ordinal & 0xFFFF
-            else:
-                iibn = self.obj_profile.Object("_IMAGE_IMPORT_BY_NAME",
-                                               offset = self.obj_parent.DllBase.v() +
-                                               thunk.AddressOfData,
-                                               vm = self.obj_vm)
-                o = iibn.Hint
-                n = iibn.Name
-
-            # See if the import is bound (i.e. resolved)
-            first_thunk = self.obj_profile.Object(
-                '_IMAGE_THUNK_DATA',
-                offset = self.obj_parent.DllBase.v() + self.FirstThunk +
-                i * self.obj_profile.get_obj_size('_IMAGE_THUNK_DATA'),
-                vm = self.obj_vm)
-
-            if first_thunk:
-                f = first_thunk.Function.v()
-
-            yield o, f, n
-            i += 1
-
-    def is_list_end(self):
-        """Returns True if we've reached the list end"""
-        data = self.obj_vm.read(
-                        self.obj_offset,
-                        self.obj_profile.get_obj_size('_IMAGE_IMPORT_DESCRIPTOR')
-                        )
-        return data.count(chr(0)) == len(data)
-
-
 class _LDR_DATA_TABLE_ENTRY(obj.Struct):
     """
     Class for PE file / modules
@@ -920,96 +775,10 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
     def NTHeader(self):
         """Return the _IMAGE_NT_HEADERS object"""
 
-        dos_header = self.obj_profile.Object("_IMAGE_DOS_HEADER", offset = self.DllBase.v(),
-                                             vm = self.obj_vm)
+        dos_header = self.obj_profile._IMAGE_DOS_HEADER(
+            self.DllBase.v(), vm=self.obj_vm)
 
         return dos_header.NTHeader
-
-    def _directory(self, dir_index):
-        """Return the requested IMAGE_DATA_DIRECTORY"""
-        data_dir = self.NTHeader.OptionalHeader.DataDirectory[dir_index]
-
-        # Make sure the directory exists
-        if data_dir.VirtualAddress == 0 or data_dir.Size == 0:
-            raise ValueError('No export directory')
-
-        # Make sure the directory VA and Size are sane
-        if (data_dir.VirtualAddress + data_dir.Size >
-            self.NTHeader.OptionalHeader.SizeOfImage):
-            raise ValueError('Invalid Export directory')
-
-        return data_dir
-
-    def export_dir(self):
-        """Return the IMAGE_DATA_DIRECTORY for exports"""
-        return self._directory(0) # DIRECTORY_ENTRY_EXPORT
-
-    def import_dir(self):
-        """Return the IMAGE_DATA_DIRECTORY for imports"""
-        return self._directory(1) # DIRECTORY_ENTRY_IMPORT
-
-    def getprocaddress(self, func):
-        """Return the RVA of func"""
-        for _, f, n in self.exports():
-            if str(n) == func:
-                return f
-        return None
-
-    def imports(self):
-        """
-        Generator for the PE's imported functions.
-
-        The _DIRECTORY_ENTRY_IMPORT.VirtualAddress points to an array
-        of _IMAGE_IMPORT_DESCRIPTOR structures. The end is reached when
-        the IID structure is all zeros.
-        """
-
-        try:
-            data_dir = self.import_dir()
-        except ValueError:
-            return
-
-        i = 0
-
-        desc_size = self.obj_profile.get_obj_size('_IMAGE_IMPORT_DESCRIPTOR')
-
-        while 1:
-            desc = self.obj_profile.Object(
-                '_IMAGE_IMPORT_DESCRIPTOR', vm = self.obj_vm,
-                offset = self.DllBase.v() + data_dir.VirtualAddress + (i * desc_size),
-                parent = self)
-
-            # Stop if the IID is paged or all zeros
-            if desc == None or desc.is_list_end():
-                break
-
-            # Stop if the IID contains invalid fields
-            if not desc.valid(self.NTHeader):
-                break
-
-            dll_name = desc.dll_name()
-
-            for o, f, n in desc._imported_functions():
-                yield dll_name, o, f, n
-
-            i += 1
-
-    def exports(self):
-        """Generator for the PE's exported functions"""
-
-        try:
-            data_dir = self.export_dir()
-        except ValueError, why:
-            raise StopIteration(why)
-
-        expdir = self.obj_profile.Object(
-            '_IMAGE_EXPORT_DIRECTORY', offset = self.DllBase.v() + data_dir.VirtualAddress,
-            vm = self.obj_vm, parent = self)
-
-        if expdir.valid(self.NTHeader):
-            # Ordinal, Function RVA, and Name Object
-            for o, f, n in expdir._exported_functions():
-                yield o, f, n
 
 
 class _IMAGE_DOS_HEADER(obj.Struct):
@@ -1022,7 +791,8 @@ class _IMAGE_DOS_HEADER(obj.Struct):
         """Get the NT header"""
 
         if self.e_magic != 0x5a4d:
-            return obj.NoneObject('e_magic {0:04X} is not a valid DOS signature.'.format(
+            return obj.NoneObject(
+                'e_magic {0:04X} is not a valid DOS signature.'.format(
                     self.e_magic))
 
         nt_header = self.obj_profile._IMAGE_NT_HEADERS(
@@ -1030,7 +800,8 @@ class _IMAGE_DOS_HEADER(obj.Struct):
             vm=self.obj_vm, context=self.obj_context)
 
         if nt_header.Signature != 0x4550:
-            return obj.NoneObject('NT header signature {0:04X} is not a valid'.format(
+            return obj.NoneObject(
+                'NT header signature {0:04X} is not a valid'.format(
                     nt_header.Signature))
 
         return nt_header
@@ -1071,7 +842,7 @@ class _IMAGE_SECTION_HEADER(obj.Struct):
 class _IMAGE_DATA_DIRECTORY(obj.Struct):
     """A data directory."""
 
-    def dereference(self):
+    def dereference(self, vm=None):
         """Automatically resolve the data directory according to our name."""
         result = self.m("VirtualAddress")
 
@@ -1079,16 +850,17 @@ class _IMAGE_DATA_DIRECTORY(obj.Struct):
             return result.dereference_as(
                 target="SentinalArray", target_args=dict(
                     target="_IMAGE_IMPORT_DESCRIPTOR"
-                    )
+                    ),
+                vm=vm,
                 )
 
         elif self.obj_name == "IMAGE_DIRECTORY_ENTRY_EXPORT":
-            return result.dereference_as("_IMAGE_EXPORT_DIRECTORY")
+            return result.dereference_as("_IMAGE_EXPORT_DIRECTORY", vm=vm)
 
         elif self.obj_name == "IMAGE_DIRECTORY_ENTRY_RESOURCE":
-            return result.dereference_as("_IMAGE_RESOURCE_DIRECTORY")
+            return result.dereference_as("_IMAGE_RESOURCE_DIRECTORY", vm=vm)
 
-        return result.dereference()
+        return result.dereference(vm=vm)
 
 
 class _IMAGE_RESOURCE_DIRECTORY(obj.Struct):
@@ -1137,7 +909,7 @@ class ThunkArray(SentinalArray):
     """A sential terminated array of thunks."""
 
     def __init__(self, parent=None, **kwargs):
-        target="_IMAGE_THUNK_DATA"
+        target = "_IMAGE_THUNK_DATA"
 
         # Are we in a 64 bit file?
         for x in parent.parents:
@@ -1152,7 +924,10 @@ class VS_VERSIONINFO(obj.Struct):
 
     @property
     def Children(self):
-        """The child is either a StringFileInfo or VarFileInfo depending on the key."""
+        """Get all the children of this node.
+
+        The child is either a StringFileInfo or VarFileInfo depending on the
+        key."""
         for child in self.m("Children"):
             if child.Key.startswith("VarFileInfo"):
                 yield child.cast("VarFileInfo")
@@ -1161,14 +936,14 @@ class VS_VERSIONINFO(obj.Struct):
             else:
                 break
 
-    def Strings(self, obj=None):
+    def Strings(self, item=None):
         """Generates all the ResourceString structs by recursively traversing
         the Children tree.
         """
-        if obj is None:
-            obj = self
+        if item is None:
+            item = self
 
-        for child in obj.Children:
+        for child in item.Children:
             try:
                 for subchild in self.Strings(child):
                     yield subchild
@@ -1180,7 +955,8 @@ class VS_VERSIONINFO(obj.Struct):
 class PE(object):
     """A convenience object to access various things in a PE file."""
 
-    def __init__(self, address_space=None, image_base=0, filename=None):
+    def __init__(self, address_space=None, image_base=0, filename=None,
+                 profile=None):
         """Constructor.
 
         Args:
@@ -1190,12 +966,22 @@ class PE(object):
 
           filename: If a filename is provided we open the file as a PE File. In
             this case, image_base and address_space are ignored.
-        """
-        self.profile = PEProfile()
 
-        if filename is None:
+          profile: If a profile is provided we add pe symbols to it. Otherwise
+            we just use a fresh PEProfile.
+        """
+        if profile:
+            self.profile = PEFileImplementation(profile)
+        else:
+            self.profile = PEProfile()
+
+        if filename is None and address_space is None:
+            raise IOError("Filename or address_space not specified.")
+
+        elif address_space:
             self.vm = address_space
             self.image_base = image_base
+
         else:
             file_address_space = PEFileAddressSpace.classes[
                 'FileAddressSpace'](filename=filename)
@@ -1207,6 +993,12 @@ class PE(object):
             context=dict(image_base=self.image_base))
 
         self.nt_header = self.dos_header.NTHeader
+
+    @property
+    def GUID(self):
+        return self.nt_header.OptionalHeader.DataDirectory[
+            "IMAGE_DIRECTORY_ENTRY_DEBUG"].VirtualAddress.dereference_as(
+            "_IMAGE_DEBUG_DIRECTORY").AddressOfRawData.GUID
 
     def ImportDirectory(self):
         """A generator over the import directory.
@@ -1283,7 +1075,7 @@ class PE(object):
 
         Similar to the GetProcAddress function.
         """
-        for dll, function_pointer, func_name, ordinal in self.ExportDirectory():
+        for _, function_pointer, func_name, _ in self.ExportDirectory():
             if func_name == name:
                 return function_pointer.dereference()
 
@@ -1318,13 +1110,11 @@ class PEFileImplementation(obj.ProfileModification):
 
     @classmethod
     def Modify(cls, profile):
-        profile.add_types(pe_vtypes)
+        profile.add_overlay(pe_vtypes)
         profile.add_classes({
                 '_IMAGE_DOS_HEADER': _IMAGE_DOS_HEADER,
                 '_IMAGE_NT_HEADERS': _IMAGE_NT_HEADERS,
                 '_IMAGE_SECTION_HEADER': _IMAGE_SECTION_HEADER,
-                '_IMAGE_EXPORT_DIRECTORY': _IMAGE_EXPORT_DIRECTORY,
-                '_IMAGE_IMPORT_DESCRIPTOR': _IMAGE_IMPORT_DESCRIPTOR,
                 '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
                 '_IMAGE_DATA_DIRECTORY': _IMAGE_DATA_DIRECTORY,
                 "SentinalArray": SentinalArray,
@@ -1379,13 +1169,15 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
         super(PEFileAddressSpace, self).__init__(**kwargs)
 
         self.as_assert(self.base is not None, "Must layer on another AS.")
-        self.as_assert(self.base.read(0, 2) == "MZ", "File does not have a PE signature.")
+        self.as_assert(self.base.read(0, 2) == "MZ",
+                       "File does not have a valid signature for a PE file.")
         self.profile = PEProfile()
 
         nt_header = self.profile.Object(
             "_IMAGE_DOS_HEADER", vm=self.base, offset=0).NTHeader
 
-        self.image_base = int(nt_header.OptionalHeader.ImageBase)
+        self.image_base = obj.Pointer.integer_to_address(
+            nt_header.OptionalHeader.ImageBase)
         # Now map all the sections into a virtual address space.
         self.runs = []
 
@@ -1396,7 +1188,8 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
         for section in nt_header.Sections:
             virtual_address = section.VirtualAddress.v() + self.image_base
             self.runs.append(
-                (virtual_address, section.SizeOfRawData.v(), section.PointerToRawData.v()))
+                (virtual_address, section.SizeOfRawData.v(),
+                 section.PointerToRawData.v()))
 
         # TODO: The sections may overlap: What to do then?
         # Make sure that the sections are sorted.
@@ -1404,7 +1197,7 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
 
         self.nt_header = self.profile.Object(
             "_IMAGE_DOS_HEADER", vm=self, offset=self.image_base,
-            context=dict(image_base=0)).NTHeader
+            context=dict(image_base=self.image_base)).NTHeader
 
     def read(self, addr, length):
         # Not a particularly efficient algorithm, but probably fast enough since

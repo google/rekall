@@ -1,3 +1,4 @@
+# pylint: disable=unused-import
 
 from rekall.plugins.windows import connections_test
 from rekall.plugins.windows import connscan_test

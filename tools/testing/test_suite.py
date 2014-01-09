@@ -329,6 +329,9 @@ class RekallTester(object):
             if self.FLAGS.tests and plugin_cls.__name__ not in self.FLAGS.tests:
                 continue
 
+            if plugin_cls.disabled:
+                continue
+
             # Retrieve the configured options if they exist.
             config_options = plugin_cls.PARAMETERS.copy()
 

@@ -18,12 +18,12 @@
 #
 
 """A parser for dwarf modules which generates vtypes."""
-import json
-import optparse
-import sys
 
 from elftools.dwarf import descriptions
 from elftools.elf import elffile
+
+from rekall import plugin
+from rekall import utils
 
 
 class DIETag(object):
@@ -56,8 +56,10 @@ class DIETag(object):
         """Returns a vtype representation of this DIE."""
         return self.name
 
-    def Definition(self):
+    def Definition(self, vtype):
+        """This DW element is given an opportunity to generate a vtype."""
         pass
+
 
 class DW_TAG_typedef(DIETag):
 
@@ -88,12 +90,11 @@ class DW_TAG_structure_type(DIETag):
         except KeyError:
             pass
 
-    def Definition(self):
+    def Definition(self, vtype):
         count = 1
         result = [self.size, {}]
         for member in self.members:
             if isinstance(member, DW_TAG_member):
-                child = member.delegate()
                 name = member.name
 
                 # Make nicer names for annonymous things (usually unions).
@@ -105,7 +106,7 @@ class DW_TAG_structure_type(DIETag):
 
         # Only emit structs with actual members in them.
         if result[1]:
-            return [self.name, result]
+            vtype[self.name] = result
 
 
 class DW_TAG_union_type(DW_TAG_structure_type):
@@ -191,7 +192,7 @@ class DW_TAG_member(DIETag):
             else:
                 op_code, value = describe_DWARF_expr(value, die.cu.structs)
 
-                if op_code=="DW_OP_plus_uconst":
+                if op_code == "DW_OP_plus_uconst":
                     self.offset = int(value)
 
     def delegate(self):
@@ -213,8 +214,8 @@ class DW_TAG_member(DIETag):
 
             # For a DW_AT_data_bit_offset attribute, the value is an integer
             # constant (see Section 2.19) that specifies the number of bits from
-            # the beginning of the containing entity to the beginning of the data
-            # member.
+            # the beginning of the containing entity to the beginning of the
+            # data member.
 
             # This means that for little endian we need to swap them with the
             # size of the integer.
@@ -236,7 +237,7 @@ class DW_TAG_member(DIETag):
                 return [self.offset, member_type]
 
             return [self.offset, ['BitField', {'start_bit': converted_start_bit,
-                                               'native_type': member_type,
+                                               'target': member_type,
                                                'end_bit': converted_end_bit}]]
 
         if not isinstance(member_type, list):
@@ -248,9 +249,9 @@ class DW_TAG_member(DIETag):
 class DW_TAG_enumeration_type(DIETag):
     """Holds enumerations."""
 
-    byte_size_lookup = { 4: "long",
-                         2: "short int",
-                         1: "char" }
+    byte_size_lookup = {4: "long",
+                        2: "short int",
+                        1: "char"}
 
     def __init__(self, die, types, parents):
         super(DW_TAG_enumeration_type, self).__init__(die, types, parents)
@@ -258,8 +259,13 @@ class DW_TAG_enumeration_type(DIETag):
 
     def VType(self):
         byte_size = self.attributes['DW_AT_byte_size'].value
-        return ['Enumeration', {'choices': self.enumerations,
+        return ['Enumeration', {'enum_name': self.name,
                                 'target': self.byte_size_lookup[byte_size]}]
+
+    def Definition(self, vtype):
+        """Enumerations go into the $ENUM vtype area."""
+        vtype.setdefault("$ENUM", {})[self.name] = self.enumerations
+
 
 class DW_TAG_enumerator(DIETag):
     """An enumeration."""
@@ -305,7 +311,8 @@ def DIEFactory(die, types, parents):
 class DWARFParser(object):
     """A parser for DWARF files."""
 
-    def __init__(self, fd):
+    def __init__(self, fd, session):
+        self.session = session
         self.elffile = elffile.ELFFile(fd)
         self.types = {}
 
@@ -332,7 +339,8 @@ class DWARFParser(object):
                     continue
 
                 # Record the type in this DIE.
-                t = self.types[die.offset] = DIEFactory(die, self.types, parents)
+                t = self.types[die.offset] = DIEFactory(
+                    die, self.types, parents)
 
                 if die.has_children:
                     parents.append(t)
@@ -340,21 +348,30 @@ class DWARFParser(object):
     def VType(self):
         """Build a vtype for this module's dwarf information."""
         result = {}
-        for type_id, type in self.types.items():
+        for type in self.types.values():
+            self.session.report_progress("Extracting type %s", type.name)
             # Only structs emit definitions basically.
-            definition = type.Definition()
-            if definition:
-                result[definition[0]] = definition[1]
+            type.Definition(result)
 
         return result
 
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Usage: dwarfparser.py  module.ko > module.json"
-    else:
-        with open(sys.argv[1], "rb") as fd:
-            parser = DWARFParser(fd)
-            vtypes = parser.VType()
+class DwarfParser(plugin.Command):
+    """Parse the dwarf file and dump a vtype structure from it."""
+    __name = "dwarfparser"
 
-            print json.dumps(vtypes, indent=1)
+    @classmethod
+    def args(cls, parser):
+        super(DwarfParser, cls).args(parser)
+
+        parser.add_argument(
+            "filename", default=None,
+            help="The filename of the PDB file.")
+
+    def __init__(self, filename=None, **kwargs):
+        super(DwarfParser, self).__init__(**kwargs)
+        self.parser = DWARFParser(open(filename, "rb"), self.session)
+
+    def render(self, renderer):
+        vtypes = self.parser.VType()
+        renderer.write(utils.PPrint(vtypes))

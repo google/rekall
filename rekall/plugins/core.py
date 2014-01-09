@@ -624,6 +624,9 @@ class DT(plugin.ProfileCommand):
         if target is None:
             raise plugin.PluginError("You must specify something to print.")
 
+        if not isinstance(target, str):
+            raise plugin.PluginError("Target must be a string.")
+
     def render(self, renderer):
         item = self.profile.Object(self.target)
         self.session.plugins.p(item).render(renderer)

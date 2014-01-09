@@ -37,15 +37,9 @@ from rekall import plugin
 config.DeclareOption("--plugin", default=[], nargs="+",
                      help="Load user provided plugin bundle.")
 
-config.DeclareOption("--output",
-                     help="Write to this output file.")
-
 config.DeclareOption(
     "-h", "--help", default=False, action="store_true",
     help="Show help about global paramters.")
-
-config.DeclareOption("--overwrite", action="store_true", default=False,
-                     help="Allow overwriting of output files.")
 
 
 class IntParser(argparse.Action):

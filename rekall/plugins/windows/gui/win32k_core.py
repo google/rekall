@@ -692,7 +692,7 @@ class Win32GUIProfile(obj.ProfileModification):
             profile = xp.XP2003x86BaseVTypes.modify(profile)
 
         # The type we want to use is not the same as the one already defined
-        # see http://code.google.com/p/rekall/issues/detail?id=131
+        # see http://code.google.com/p/volatility/issues/detail?id=131
         profile.add_overlay({
                 'gahti': [None, {
                         'types': [0, ['Array', dict(

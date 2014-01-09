@@ -24,11 +24,9 @@
 @organization: Volatile Systems
 """
 
-import re
 from rekall import obj
 from rekall import utils
 
-from rekall.plugins.windows import common
 from rekall.plugins.windows.registry import registry
 
 
@@ -38,20 +36,20 @@ import datetime
 # from Into the Boxes issue 0x0:
 #  http://intotheboxes.wordpress.com/2010/01/01/into-the-boxes-issue-0x0/
 ua_win7_vtypes = {
-  '_VOLUSER_ASSIST_TYPES' : [ 0x48, {
+  '_VOLUSER_ASSIST_TYPES' : [0x48, {
     'Count': [0x04, ['unsigned int']],
     'FocusCount': [0x08, ['unsigned int']],
     'FocusTime': [0x0C, ['unsigned int']],
-    'LastUpdated' : [0x3C, ['WinTimeStamp']]
-} ],
+    'LastUpdated' : [0x3C, ['WinFileTime']]
+    }],
 }
 
 ua_vtypes = {
-  '_VOLUSER_ASSIST_TYPES' : [ 0x10, {
+  '_VOLUSER_ASSIST_TYPES' : [0x10, {
     'ID': [0x0, ['unsigned int']],
     'CountStartingAtFive': [0x04, ['unsigned int']],
-    'LastUpdated' : [0x08, ['WinTimeStamp']]
-} ],
+    'LastUpdated' : [0x08, ['WinFileTime']]
+    }],
 }
 
 # taken from http://msdn.microsoft.com/en-us/library/dd378457%28v=vs.85%29.aspx

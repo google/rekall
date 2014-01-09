@@ -1,4 +1,3 @@
-"""These are various utilities for rekall."""
 # Rekall Memory Forensics
 #
 # Copyright 2013 Google Inc. All Rights Reserved.
@@ -21,8 +20,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+"""These are various utilities for rekall."""
+
 import importlib
 import itertools
+import json
 import re
 import socket
 import threading
@@ -445,3 +447,57 @@ def ntoh(value):
 
     from rekall import obj
     return obj.NoneObject("Not a valid integer")
+
+
+def Invert(dictionary):
+    """Inverts keys and values in dictionary.
+
+    Assume the keys and values are unique.
+    """
+    return {v:k for k, v in dictionary.items()}
+
+
+
+def PPrint(data, depth=0):
+    """A pretty printer for a profile.
+
+    This only supports dict, list and non-unicode strings.
+
+    This produces both a valid json and a valid python file.
+    """
+    result = []
+    if isinstance(data, dict):
+        # Empty dicts emitted on one line.
+        if not data:
+            return "{}"
+
+        result.append("{")
+        tmp = []
+        for key, value in sorted(data.items()):
+            # Only emit non-empty dicts.
+            if value:
+                tmp.append(
+                    " %s%s: %s" % (
+                        " " * depth,
+                        json.dumps(str(key)),
+                        PPrint(data[key], depth + 1).strip()))
+
+        result.append(", \n".join(tmp)[depth:])
+
+        result.append(" }")
+        return "\n".join([(" " * depth + x) for x in result])
+
+    if isinstance(data, (list, tuple)):
+        for item in data:
+            result.append(PPrint(item, depth).strip())
+
+        return "[" + ", ".join(result) + "]"
+
+    if isinstance(data, basestring):
+        try:
+            data = json.dumps(data.encode("ascii"))
+        except UnicodeError:
+            pass
+
+    return str(data)
+

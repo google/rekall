@@ -35,16 +35,16 @@ inaddr6_any = utils.inet_ntop(socket.AF_INET6, '\0' * 16)
 tcpip_vtypes = {
     '_ADDRESS_OBJECT' : [ 0x68, {
     'Next' : [ 0x0, ['pointer', ['_ADDRESS_OBJECT']]],
-    'LocalIpAddress' : [ 0x2c, ['IpAddress']],
+    'LocalIpAddress' : [ 0x2c, ['Ipv4Address']],
     'LocalPort' : [ 0x30, ['unsigned be short']],
     'Protocol'  : [ 0x32, ['unsigned short']],
     'Pid' : [ 0x148, ['unsigned long']],
-    'CreateTime' : [ 0x158, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0x158, ['WinFileTime', {}]],
   }],
     '_TCPT_OBJECT' : [ 0x20, {
     'Next' : [ 0x0, ['pointer', ['_TCPT_OBJECT']]],
-    'RemoteIpAddress' : [ 0xc, ['IpAddress']],
-    'LocalIpAddress' : [ 0x10, ['IpAddress']],
+    'RemoteIpAddress' : [ 0xc, ['Ipv4Address']],
+    'LocalIpAddress' : [ 0x10, ['Ipv4Address']],
     'RemotePort' : [ 0x14, ['unsigned be short']],
     'LocalPort' : [ 0x16, ['unsigned be short']],
     'Pid' : [ 0x18, ['unsigned long']],
@@ -56,16 +56,16 @@ tcpip_vtypes = {
 tcpip_vtypes_2003_x64 = {
     '_ADDRESS_OBJECT' : [ 0x250, {
     'Next' : [ 0x0, ['pointer', ['_ADDRESS_OBJECT']]],
-    'LocalIpAddress' : [ 0x58, ['IpAddress']],
+    'LocalIpAddress' : [ 0x58, ['Ipv4Address']],
     'LocalPort' : [ 0x5c, ['unsigned be short']],
     'Protocol'  : [ 0x5e, ['unsigned short']],
     'Pid' : [ 0x238, ['unsigned long']],
-    'CreateTime' : [ 0x248, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0x248, ['WinFileTime', {}]],
   }],
     '_TCPT_OBJECT' : [ 0x28, {
     'Next' : [ 0x0, ['pointer', ['_TCPT_OBJECT']]],
-    'RemoteIpAddress' : [ 0x14, ['IpAddress']],
-    'LocalIpAddress' : [ 0x18, ['IpAddress']],
+    'RemoteIpAddress' : [ 0x14, ['Ipv4Address']],
+    'LocalIpAddress' : [ 0x18, ['Ipv4Address']],
     'RemotePort' : [ 0x1c, ['unsigned be short']],
     'LocalPort' : [ 0x1e, ['unsigned be short']],
     'Pid' : [ 0x20, ['unsigned long']],
@@ -77,11 +77,11 @@ tcpip_vtypes_2003_x64 = {
 tcpip_vtypes_2003_sp1_sp2 = {
     '_ADDRESS_OBJECT' : [ 0x68, {
     'Next' : [ 0x0, ['pointer', ['_ADDRESS_OBJECT']]],
-    'LocalIpAddress' : [ 0x30, ['IpAddress']],
+    'LocalIpAddress' : [ 0x30, ['Ipv4Address']],
     'LocalPort' : [ 0x34, ['unsigned be short']],
     'Protocol'  : [ 0x36, ['unsigned short']],
     'Pid' : [ 0x14C, ['unsigned long']],
-    'CreateTime' : [ 0x158, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0x158, ['WinFileTime', {}]],
     }],
 }
 
@@ -95,7 +95,7 @@ TCP_STATE_ENUM = {
 # Structures used by netscan for x86 Vista and 2008 (all service packs).
 tcpip_vtypes_vista = {
     '_IN_ADDR' : [ None, {
-    'addr4' : [ 0x0, ['IpAddress']],
+    'addr4' : [ 0x0, ['Ipv4Address']],
     'addr6' : [ 0x0, ['Ipv6Address']],
     }],
     '_LOCAL_ADDRESS' : [ None, {
@@ -103,7 +103,7 @@ tcpip_vtypes_vista = {
     }],
     '_TCP_LISTENER': [ 0xa8, { # TcpL
     'Owner' : [ 0x18, ['pointer', ['_EPROCESS']]],
-    'CreateTime' : [ 0x20, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0x20, ['WinFileTime', {}]],
     'LocalAddr' : [ 0x34, ['pointer', ['_LOCAL_ADDRESS']]],
     'InetAF' : [ 0x38, ['pointer', ['_INETAF']]],
     'Port' : [ 0x3E, ['unsigned be short']],
@@ -116,7 +116,7 @@ tcpip_vtypes_vista = {
     'LocalPort' : [ 0x2C, ['unsigned be short']],
     'RemotePort' : [ 0x2E, ['unsigned be short']],
     'Owner' : [ 0x160, ['pointer', ['_EPROCESS']]],
-    'CreateTime' : [ 0, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0, ['WinFileTime', {}]],
     }],
     '_TCP_SYN_ENDPOINT': [ None, {
     'ListEntry': [ 8, ['_LIST_ENTRY']],
@@ -126,7 +126,7 @@ tcpip_vtypes_vista = {
     'LocalAddr' : [ 0x1c, ['pointer', ['_LOCAL_ADDRESS']]],
     'RemoteAddress' : [ 0x28, ['pointer', ['_IN_ADDR']]],
     'Owner' : [ 0x20, ['pointer', ['_SYN_OWNER']]],
-    'CreateTime' : [ 0, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0, ['WinFileTime', {}]],
     }],
     '_SYN_OWNER': [ None, {
     'Process': [ 0x18, ['pointer', ['_EPROCESS']]],
@@ -138,7 +138,7 @@ tcpip_vtypes_vista = {
     'RemotePort' : [ 0x1e, ['unsigned be short']],
     'LocalAddr' : [ 0x20, ['pointer', ['_LOCAL_ADDRESS']]],
     'RemoteAddress' : [ 0x24, ['pointer', ['_IN_ADDR']]],
-    'CreateTime' : [ 0, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0, ['WinFileTime', {}]],
     }],
     '_INETAF' : [ None, {
     'AddressFamily' : [ 0xC, ['unsigned short']],
@@ -149,7 +149,7 @@ tcpip_vtypes_vista = {
     }],
     '_UDP_ENDPOINT': [ 0xa8, { # UdpA
     'Owner' : [ 0x18, ['pointer', ['_EPROCESS']]],
-    'CreateTime' : [ 0x30, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0x30, ['WinFileTime', {}]],
     'LocalAddr' : [ 0x38, ['pointer', ['_LOCAL_ADDRESS']]],
     'InetAF' : [ 0x14, ['pointer', ['_INETAF']]],
     'Port' : [ 0x48, ['unsigned be short']],
@@ -166,7 +166,7 @@ tcpip_vtypes_7 = {
     'LocalPort' : [ 0x38, ['unsigned be short']],
     'RemotePort' : [ 0x3A, ['unsigned be short']],
     'Owner' : [ 0x174, ['pointer', ['_EPROCESS']]],
-    'CreateTime' : [ 0, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0, ['WinFileTime', {}]],
     }],
     '_TCP_SYN_ENDPOINT': [ None, {
     'ListEntry': [ 8, ['_LIST_ENTRY']],
@@ -176,7 +176,7 @@ tcpip_vtypes_7 = {
     'LocalAddr' : [ 0x28, ['pointer', ['_LOCAL_ADDRESS']]],
     'RemoteAddress' : [ 0x34, ['pointer', ['_IN_ADDR']]],
     'Owner' : [ 0x2c, ['pointer', ['_SYN_OWNER']]],
-    'CreateTime' : [ 0, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0, ['WinFileTime', {}]],
     }],
     '_TCP_TIMEWAIT_ENDPOINT': [ None, {
     'ListEntry': [ 0, ['_LIST_ENTRY']],
@@ -185,19 +185,19 @@ tcpip_vtypes_7 = {
     'RemotePort' : [ 0x2a, ['unsigned be short']],
     'LocalAddr' : [ 0x2c, ['pointer', ['_LOCAL_ADDRESS']]],
     'RemoteAddress' : [ 0x30, ['pointer', ['_IN_ADDR']]],
-    'CreateTime' : [ 0, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0, ['WinFileTime', {}]],
     }],
 }
 
 # Structures for netscan on x64 Vista SP0 and 2008 SP0
 tcpip_vtypes_vista_64 = {
     '_IN_ADDR' : [ None, {
-    'addr4' : [ 0x0, ['IpAddress']],
+    'addr4' : [ 0x0, ['Ipv4Address']],
     'addr6' : [ 0x0, ['Ipv6Address']],
     }],
     '_TCP_LISTENER': [ 0x120, { # TcpL
     'Owner' : [ 0x28, ['pointer', ['_EPROCESS']]],
-    'CreateTime' : [ 0x20, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0x20, ['WinFileTime', {}]],
     'LocalAddr' : [ 0x58, ['pointer', ['_LOCAL_ADDRESS']]],
     'InetAF' : [ 0x60, ['pointer', ['_INETAF']]],
     'Port' : [ 0x6a, ['unsigned be short']],
@@ -220,7 +220,7 @@ tcpip_vtypes_vista_64 = {
     'LocalPort' : [ 0x54, ['unsigned be short']],
     'RemotePort' : [ 0x56, ['unsigned be short']],
     'Owner' : [ 0x208, ['pointer', ['_EPROCESS']]],
-    'CreateTime' : [ 0, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0, ['WinFileTime', {}]],
     }],
     '_TCP_SYN_ENDPOINT': [ None, {
     'ListEntry': [ 0x10, ['_LIST_ENTRY']],
@@ -230,7 +230,7 @@ tcpip_vtypes_vista_64 = {
     'LocalAddr' : [ 0x38, ['pointer', ['_LOCAL_ADDRESS']]],
     'RemoteAddress' : [ 0x50, ['pointer', ['_IN_ADDR']]],
     'Owner' : [ 0x40, ['pointer', ['_SYN_OWNER']]],
-    'CreateTime' : [ 0, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0, ['WinFileTime', {}]],
     }],
     '_SYN_OWNER': [ None, {
     'Process': [ 0x28, ['pointer', ['_EPROCESS']]],
@@ -242,11 +242,11 @@ tcpip_vtypes_vista_64 = {
     'RemotePort' : [ 0x32, ['unsigned be short']],
     'LocalAddr' : [ 0x38, ['pointer', ['_LOCAL_ADDRESS']]],
     'RemoteAddress' : [ 0x40, ['pointer', ['_IN_ADDR']]],
-    'CreateTime' : [ 0, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0, ['WinFileTime', {}]],
     }],
     '_UDP_ENDPOINT': [ 0x82, { # UdpA
     'Owner' : [ 0x28, ['pointer', ['_EPROCESS']]],
-    'CreateTime' : [ 0x58, ['WinTimeStamp', {}]],
+    'CreateTime' : [ 0x58, ['WinFileTime', {}]],
     'LocalAddr' : [ 0x60, ['pointer', ['_LOCAL_ADDRESS']]],
     'InetAF' : [ 0x20, ['pointer', ['_INETAF']]],
     'Port' : [ 0x80, ['unsigned be short']],

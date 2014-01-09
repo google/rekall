@@ -235,18 +235,19 @@ class Session(object):
 
         Args:
           plugin_cls: A string naming the plugin, or the plugin class itself.
+
           renderer: An optional renderer to use.
+
           debug: If set we break into the debugger if anything goes wrong.
 
-          output: If set we open and write the output to this filename. If
-            session.overwrite is set to True, we will overwrite this
-            file. Otherwise the output is redirected to stdout.
+          output: If set we open and write the output to this
+            filename. Otherwise the output is redirected to stdout.
         """
         ui_renderer = kwargs.pop("renderer", None)
         fd = kwargs.pop("fd", None)
         debug = kwargs.pop("debug", False)
-        output = kwargs.pop("output", None)
-        overwrite = kwargs.get("overwrite")
+
+        # If the args came from the command line parse them now:
         flags = kwargs.get("flags")
 
         if isinstance(plugin_cls, basestring):
@@ -257,13 +258,14 @@ class Session(object):
                               "this profile?", plugin_name)
                 return
 
-        # If the args came from the command line parse them now:
         if flags:
             from rekall import args
 
             kwargs = args.MockArgParser().build_args_dict(plugin_cls, flags)
 
-        # Select the renderer from the session or from the kwargs.
+        output = kwargs.pop("output", None)
+
+       # Select the renderer from the session or from the kwargs.
         if not isinstance(ui_renderer, renderer.RendererBaseClass):
             ui_renderer_cls = self.renderer or renderer.TextRenderer
 
@@ -272,14 +274,7 @@ class Session(object):
 
             # Allow the output to be written to file.
             if output is not None:
-                if os.access(output, os.F_OK) and not (
-                    overwrite or self.overwrite):
-                    logging.error(
-                        "Output file '%s' exists but session.overwrite is "
-                        "not set." % output)
-                    return
-                else:
-                    fd = open(output, "w")
+                fd = open(output, "w")
 
             # Allow per call overriding of the output file descriptor.
             paging_limit = self.state.paging_limit
@@ -400,7 +395,7 @@ class Session(object):
     def __unicode__(self):
         return u"Session"
 
-    def report_progress(self, message="", *args, **kwargs):
+    def report_progress(self, message=" %(spinner)s", *args, **kwargs):
         """Called by the library to report back on the progress."""
         if callable(self.progress):
             self.progress(message, *args, **kwargs)

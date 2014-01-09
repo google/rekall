@@ -67,7 +67,7 @@ class Ifconfig(common.LinuxPlugin):
 
     def render(self, renderer):
         renderer.table_header([("Interface", "interface", "<16"),
-                               ("IpAddress", "ipv4", "<20"),
+                               ("Ipv4Address", "ipv4", "<20"),
                                ("MAC", "mac", "18"),
                                ("Flags", "flags", "<20")])
 

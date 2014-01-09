@@ -66,6 +66,9 @@ class Command(object):
     @classmethod
     def args(cls, parser):
         """Declare the command line args we need."""
+        parser.add_argument(
+            "--output", default=None,
+            help="If specified we write output to this file.")
 
     @registry.classproperty
     def name(cls):  # pylint: disable=no-self-argument

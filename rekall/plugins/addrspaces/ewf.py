@@ -22,8 +22,6 @@
 
 """ This Address Space allows us to open ewf files """
 
-#pylint: disable-msg=C0111
-
 import ctypes
 
 from ctypes import util
@@ -40,7 +38,7 @@ for name in possible_names:
 if resolved:
     libewf = ctypes.CDLL(resolved)
 
-if not resolved or not libewf._name:
+if not resolved or not libewf._name:  # pylint: disable=protected-access
     raise ImportError("EWFlib not available.")
 
 class ewffile(object):
@@ -61,7 +59,7 @@ class ewffile(object):
         libewf.libewf_get_media_size(self.handle, size_p)
         self.size = size_p.contents.value
 
-    def seek(self, offset, whence = 0):
+    def seek(self, offset, whence=0):
         if whence == 0:
             self.readptr = offset
         elif whence == 1:
@@ -113,24 +111,25 @@ def ewf_open(volumes):
     return ewffile(volumes)
 
 
-class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn, standard.FDAddressSpace):
+class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
+                      standard.FDAddressSpace):
     """ An EWF capable address space.
 
     In order for us to work we need:
     1) There must be a base AS.
     2) The first 6 bytes must be 45 56 46 09 0D 0A (EVF header)
 
-    Rekall Memory Forensics usually makes very small reads, and since there is no caching in
-    the ewf library itself we also include the CachingAddressSpaceMixIn to
-    ensure we get reasonable performance here.
+    Rekall Memory Forensics usually makes very small reads, and since there is
+    no caching in the ewf library itself we also include the
+    CachingAddressSpaceMixIn to ensure we get reasonable performance here.
     """
     order = 20
     _md_image = True
 
     def __init__(self, base=None, filename=None, session=None, **kwargs):
-        self.as_assert(base!=None, "No base address space provided")
+        self.as_assert(base != None, "No base address space provided")
 
-        self.as_assert(base.read(0, 6)=="\x45\x56\x46\x09\x0D\x0A",
+        self.as_assert(base.read(0, 6) == "\x45\x56\x46\x09\x0D\x0A",
                        "EWF signature not present")
 
         path = session.filename or filename

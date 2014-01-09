@@ -24,10 +24,8 @@
 """ This file defines some basic types which might be useful for many
 OS's
 """
-import copy
 import datetime
 import distorm3
-import logging
 import pytz
 import re
 import socket
@@ -35,7 +33,6 @@ import struct
 
 from rekall import config
 from rekall import obj
-from rekall import constants
 from rekall import utils
 from rekall.plugins.overlays import native_types
 
@@ -53,7 +50,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     Note that these strings are _not_ text strings - they are effectively bytes
     arrays and therefore are not encoded in any particular unicode encoding.
     """
-    def __init__(self, length = 1024, term="\x00", **kwargs):
+    def __init__(self, length=1024, term="\x00", **kwargs):
         """Constructor.
 
         Args:
@@ -86,7 +83,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def write(self, data):
         return self.obj_vm.write(self.obj_offset, data)
 
-    def proxied(self, name):
+    def proxied(self):
         """ Return an object to be proxied """
         return self.v()
 
@@ -115,6 +112,17 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         """This is equivalent to strlen()."""
         # The length is really determined by the terminator here.
         return len(self.v())
+
+
+class Signature(String):
+    """A string forming a signature."""
+    def __init__(self, value=None, **kwargs):
+        super(Signature, self).__init__(length=len(value), term=None,
+                                        **kwargs)
+        self.signature = value
+
+    def is_valid(self):
+        return self.v() == self.signature
 
 
 class UnicodeString(String):
@@ -168,7 +176,7 @@ class UnicodeString(String):
     def size(self):
         return len(self.v()) * 2
         # This will only work if the encoding and decoding are equivalent.
-        return len(self.v().encode(self.encoding, 'ignore'))
+        # return len(self.v().encode(self.encoding, 'ignore'))
 
     def write(self, data):
         return self.obj_vm.write(
@@ -181,7 +189,7 @@ class Flags(obj.NativeType):
     maskmap = None
 
     def __init__(self, bitmap=None, maskmap=None,
-                 target="unsigned long", target_args={}, **kwargs):
+                 target="unsigned long", target_args=None, **kwargs):
         super(Flags, self).__init__(**kwargs)
         self.maskmap = maskmap or {}
         if bitmap:
@@ -191,7 +199,7 @@ class Flags(obj.NativeType):
         self.target = target
         self.target_obj = self.obj_profile.Object(
             target, offset=self.obj_offset, vm=self.obj_vm,
-            context=self.obj_context, **target_args)
+            context=self.obj_context, **(target_args or {}))
 
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
@@ -221,11 +229,38 @@ class Flags(obj.NativeType):
 
 
 class Enumeration(obj.NativeType):
-    """Enumeration class for handling multiple possible meanings for a single value"""
+    """Enumeration class for handling multiple meanings for a single value"""
 
-    def __init__(self, choices = None, target="unsigned long", value=None,
-                 default=None, target_args={}, **kwargs):
+    def __init__(self, choices=None, enum_name=None,
+                 target="unsigned long", target_args=None, value=None,
+                 default=None, **kwargs):
+        """Construct an enumeration instance.
+
+        The enumeration is constructed over the top of a target (which is
+        assumed to produce an integer value). The value of the target is then
+        looked up in the choices. Note that the enumeration is treated as an
+        integer.
+
+        Args:
+          choices: A dict of int values (keys) and names (values).
+
+          enum_name: If provided, the choices dict is retrieved from the
+            profile's constant area. This avoids the profile generator from
+            having to make copies of the enum choices for each field which uses
+            the same enum.
+
+          target: The target type which we overlay on.
+
+          value: Usually the value is parsed from the address space, but if the
+            value parameter is provided, we initialize from this value.
+
+          default: If the underlying integer does not appear in the choices
+            dict, we use this default value.
+        """
         super(Enumeration, self).__init__(**kwargs)
+
+        if enum_name:
+            choices = self.obj_profile.get_constant(enum_name) or {}
 
         if callable(choices):
             choices = choices(self.obj_parent)
@@ -242,8 +277,12 @@ class Enumeration(obj.NativeType):
         if value is None:
             self.target = target
             self.target_obj = self.obj_profile.Object(
-                target, offset=self.obj_offset, vm=self.obj_vm, context=self.obj_context,
-                **target_args)
+                target, offset=self.obj_offset,
+                vm=self.obj_vm, context=self.obj_context,
+                **(target_args or {}))
+
+    def size(self):
+        return self.target_obj.size()
 
     def v(self, vm=None):
         if self.value is None:
@@ -273,17 +312,17 @@ class Enumeration(obj.NativeType):
                             self.__str__())
 
 
-class IpAddress(obj.NativeType):
-    """Provides proper output for IpAddress objects"""
+class Ipv4Address(obj.NativeType):
+    """Provides proper output for Ipv4Address objects"""
 
     def __init__(self, **kwargs):
-        super(IpAddress, self).__init__(**kwargs)
+        super(Ipv4Address, self).__init__(**kwargs)
 
-        # IpAddress is always a 32 bit int.
+        # Ipv4Address is always a 32 bit int.
         self.format_string = "<I"
 
     def v(self, vm=None):
-        value = super(IpAddress, self).v(vm=vm)
+        value = super(Ipv4Address, self).v(vm=vm)
         return socket.inet_ntoa(struct.pack("<I", value))
 
 
@@ -291,10 +330,10 @@ class Ipv6Address(obj.NativeType):
     """Provides proper output for Ipv6Address objects"""
     def __init__(self, **kwargs):
         super(Ipv6Address, self).__init__(**kwargs)
-        # IpAddress is always a 128 bit int.
+        # Ipv4Address is always a 128 bit int.
         self.format_string = "16s"
 
-    def v(self):
+    def v(self, vm=None):
         return utils.inet_ntop(socket.AF_INET6, obj.NativeType.v(self))
 
 
@@ -302,10 +341,10 @@ class MacAddress(obj.NativeType):
     """A MAC address."""
     def __init__(self, **kwargs):
         super(MacAddress, self).__init__(**kwargs)
-        # IpAddress is always a 128 bit int.
+        # Ipv4Address is always a 128 bit int.
         self.format_string = "6s"
 
-    def v(self):
+    def v(self, vm=None):
         return ":".join(
             ["{0:02X}".format(ord(y)) for y in super(MacAddress, self).v()])
 
@@ -413,8 +452,9 @@ class _LIST_ENTRY(ListMixIn, obj.Struct):
 class UnixTimeStamp(obj.NativeType):
     """A unix timestamp (seconds since the epoch)."""
 
-    def __init__(self, **kwargs):
-        super(UnixTimeStamp, self).__init__(format_string = "I", **kwargs)
+    def __init__(self, format_string="I", **kwargs):
+        super(UnixTimeStamp, self).__init__(
+            format_string=format_string, **kwargs)
 
     def __nonzero__(self):
         return self.v() != 0
@@ -440,7 +480,7 @@ class UnixTimeStamp(obj.NativeType):
             # Cant undestand the timezone - use UTC
             timezone = pytz.UTC
 
-        local_datetime =  timezone.normalize(dt.astimezone(timezone))
+        local_datetime = timezone.normalize(dt.astimezone(timezone))
 
         return local_datetime.strftime(timeformat)
 
@@ -449,7 +489,7 @@ class UnixTimeStamp(obj.NativeType):
             return UnixTimeStamp(
                 value=self.v() + other, profile=self.obj_profile)
 
-        raise NotImplemented
+        raise NotImplementedError
 
     def __str__(self):
         if not self:
@@ -468,7 +508,8 @@ class UnixTimeStamp(obj.NativeType):
     def as_datetime(self):
         try:
             # Return a data time object in UTC.
-            dt = datetime.datetime.utcfromtimestamp(self.v()).replace(tzinfo=pytz.UTC)
+            dt = datetime.datetime.utcfromtimestamp(
+                self.v()).replace(tzinfo=pytz.UTC)
         except ValueError, e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
 
@@ -477,49 +518,33 @@ class UnixTimeStamp(obj.NativeType):
 
 class timeval(UnixTimeStamp, obj.Struct):
 
-    def v(self):
+    def v(self, vm=None):
         return float(self.m("tv_sec")) + self.m("tv_usec")/1e6
 
 
 
-class WinTimeStamp(UnixTimeStamp):
+class WinFileTime(UnixTimeStamp):
     """Class for handling Windows Time Stamps"""
 
-    def __init__(self, is_utc = False, **kwargs):
+    def __init__(self, is_utc=False, **kwargs):
+        super(WinFileTime, self).__init__(format_string="q", **kwargs)
         self.is_utc = is_utc
-        obj.NativeType.__init__(self, format_string = "q", **kwargs)
 
-    def windows_to_unix_time(self, windows_time):
-        """
-        Converts Windows 64-bit time to UNIX time
+    def as_windows_timestamp(self):
+        return super(WinFileTime, self).v()
 
-        @type  windows_time:  Integer
-        @param windows_time:  Windows time to convert (64-bit number)
+    def v(self, vm=None):
+        value = self.as_windows_timestamp()
 
-        @rtype  Integer
-        @return  UNIX time
-        """
-        if(windows_time == 0):
-            unix_time = 0
-        else:
-            unix_time = windows_time / 10000000
-            unix_time = unix_time - 11644473600
-
+        unix_time = value / 10000000 - 11644473600
         if unix_time < 0:
             unix_time = 0
 
         return unix_time
 
-    def as_windows_timestamp(self):
-        return super(WinTimeStamp, self).v()
 
-    def v(self, vm=None):
-        value = self.as_windows_timestamp()
-        return self.windows_to_unix_time(value)
-
-
-class ThreadCreateTimeStamp(WinTimeStamp):
-    """Handles ThreadCreateTimeStamps which are bit shifted WinTimeStamps"""
+class ThreadCreateTimeStamp(WinFileTime):
+    """Handles ThreadCreateTimeStamps which are bit shifted WinFileTimes"""
 
     def as_windows_timestamp(self):
         return super(ThreadCreateTimeStamp, self).as_windows_timestamp() >> 3
@@ -556,11 +581,11 @@ class IndexedArray(obj.Array):
 
 
 class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
-    """A rekall object representing code snippets."""
+    """An object representing code snippets."""
 
-    def __init__(self, mode=None, **kwargs):
+    def __init__(self, mode=None, args=None, **kwargs):
         super(Function, self).__init__(**kwargs)
-
+        self.args = args
         if mode is None:
             self.mode = self.obj_profile.metadata("memory_model")
 
@@ -798,36 +823,35 @@ class ProfileLP64(obj.Profile):
         self.add_classes(native_types.LP64)
 
 
-common_overlay =  {
-    'LIST_ENTRY32' : [ 0x8, {
-            'Flink' : [ 0x0, ['pointer', ['LIST_ENTRY32']]],
-            'Blink' : [ 0x4, ['pointer', ['LIST_ENTRY32']]],
+common_overlay = {
+    'LIST_ENTRY32' : [0x8, {
+            'Flink' : [0x0, ['pointer', ['LIST_ENTRY32']]],
+            'Blink' : [0x4, ['pointer', ['LIST_ENTRY32']]],
             }],
-    'LIST_ENTRY64' : [ 0x10, {
-            'Flink' : [ 0x0, ['pointer', ['LIST_ENTRY64']]],
-            'Blink' : [ 0x8, ['pointer', ['LIST_ENTRY64']]],
+    'LIST_ENTRY64' : [0x10, {
+            'Flink' : [0x0, ['pointer', ['LIST_ENTRY64']]],
+            'Blink' : [0x8, ['pointer', ['LIST_ENTRY64']]],
             }]}
 
 
 class BasicWindowsClasses(obj.Profile):
     """Basic profile which introduces the basic classes."""
 
-    __abstract = True
-
     def __init__(self, **kwargs):
         super(BasicWindowsClasses, self).__init__(**kwargs)
         self.add_classes({
             'String': String,
+            "Signature": Signature,
             'UnicodeString': UnicodeString,
             'Flags': Flags,
             'Enumeration': Enumeration,
-            'IpAddress': IpAddress,
+            'Ipv4Address': Ipv4Address,
             'Ipv6Address': Ipv6Address,
             'MacAddress': MacAddress,
             '_LIST_ENTRY': _LIST_ENTRY,
             'LIST_ENTRY32': _LIST_ENTRY,
             'LIST_ENTRY64': _LIST_ENTRY,
-            'WinTimeStamp': WinTimeStamp, # WinFileTime.
+            'WinFileTime': WinFileTime,
             'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
             'UnixTimeStamp': UnixTimeStamp, 'timeval': timeval,
             "IndexedArray": IndexedArray,

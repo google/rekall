@@ -42,8 +42,8 @@ windows_overlay = {
             }],
 
     '_EPROCESS' : [None, {
-            'CreateTime' : [None, ['WinTimeStamp', {}]],
-            'ExitTime' : [None, ['WinTimeStamp', {}]],
+            'CreateTime' : [None, ['WinFileTime', {}]],
+            'ExitTime' : [None, ['WinFileTime', {}]],
             'InheritedFromUniqueProcessId' : [None, ['unsigned int']],
             'ImageFileName' : [None, ['String', dict(length=16)]],
             'UniqueProcessId' : [None, ['unsigned int']],
@@ -51,16 +51,16 @@ windows_overlay = {
 
     '_ETHREAD' : [None, {
             'CreateTime' : [None, ['ThreadCreateTimeStamp', {}]],
-            'ExitTime' : [None, ['WinTimeStamp', {}]],
+            'ExitTime' : [None, ['WinFileTime', {}]],
             }],
 
     '_OBJECT_SYMBOLIC_LINK' : [None, {
-            'CreationTime' : [None, ['WinTimeStamp', {}]],
+            'CreationTime' : [None, ['WinFileTime', {}]],
             }],
 
     '_KUSER_SHARED_DATA' : [None, {
-            'SystemTime' : [None, ['WinTimeStamp', dict(is_utc=True)]],
-            'TimeZoneBias' : [None, ['WinTimeStamp', {}]],
+            'SystemTime' : [None, ['WinFileTime', dict(is_utc=True)]],
+            'TimeZoneBias' : [None, ['WinFileTime', {}]],
             }],
 
     '_KPCR': [None, {
@@ -101,7 +101,7 @@ windows_overlay = {
 
     'PO_MEMORY_IMAGE' : [None, {
             'Signature':   [None, ['String', dict(length=4)]],
-            'SystemTime' : [None, ['WinTimeStamp', {}]],
+            'SystemTime' : [None, ['WinFileTime', {}]],
             }],
 
     '_DBGKD_GET_VERSION64' : [None, {
@@ -110,7 +110,7 @@ windows_overlay = {
 
     '_CM_KEY_NODE' : [None, {
             'Signature' : [None, ['String', dict(length=2)]],
-            'LastWriteTime' : [None, ['WinTimeStamp', {}]],
+            'LastWriteTime' : [None, ['WinFileTime', {}]],
             'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
             }],
 
@@ -951,7 +951,7 @@ crash_overlays = {
     "_DMP_HEADER": [None, {
             'Signature': [None, ['String', dict(length=4)]],
             'ValidDump': [None, ['String', dict(length=4)]],
-            'SystemTime': [None, ['WinTimeStamp']],
+            'SystemTime': [None, ['WinFileTime']],
             'DumpType': [None, ['Enumeration', {
                         'choices': {
                             1: "Full Dump",
@@ -959,8 +959,8 @@ crash_overlays = {
                             },
                         'target': 'unsigned int'}]],
             }],
-    '_PHYSICAL_MEMORY_DESCRIPTOR' : [ None, {
-            'Run' : [ None, ['Array', dict(
+    '_PHYSICAL_MEMORY_DESCRIPTOR' : [None, {
+            'Run' : [None, ['Array', dict(
                         count=lambda x: x.NumberOfRuns,
                         target='_PHYSICAL_MEMORY_RUN')]],
             }],

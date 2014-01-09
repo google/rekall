@@ -157,10 +157,10 @@ ntfs_vtypes = {
             }],
 
     "STANDARD_INFORMATION": [None, {
-            "create_time": [0, ["WinTimeStamp"]],
-            "file_altered_time": [8, ["WinTimeStamp"]],
-            "mft_altered_time": [16, ["WinTimeStamp"]],
-            "file_accessed_time": [24, ["WinTimeStamp"]],
+            "create_time": [0, ["WinFileTime"]],
+            "file_altered_time": [8, ["WinFileTime"]],
+            "mft_altered_time": [16, ["WinFileTime"]],
+            "file_accessed_time": [24, ["WinFileTime"]],
             "flags": [32, ["Flags", dict(
                         target="unsigned int",
                         bitmap=FILE_FLAGS)]],
@@ -175,10 +175,10 @@ ntfs_vtypes = {
 
     "FILE_NAME": [None, {
             "parent_mft": [0, ["unsigned long long"]],
-            "created": [8, ["WinTimeStamp"]],
-            "file_modified": [16, ["WinTimeStamp"]],
-            "mft_modified": [24, ["WinTimeStamp"]],
-            "file_accessed": [32, ["WinTimeStamp"]],
+            "created": [8, ["WinFileTime"]],
+            "file_modified": [16, ["WinFileTime"]],
+            "mft_modified": [24, ["WinFileTime"]],
+            "file_accessed": [32, ["WinFileTime"]],
             "allocated_size": [40, ["unsigned long long"]],
             "size": [48, ["unsigned long long"]],
             "flags": [56, ["Flags", dict(

@@ -353,8 +353,12 @@ class RunBasedAddressSpace(PagedReader):
     """An address space which uses a list of runs to specify a mapping."""
 
     # This is a list of (memory_offset, file_offset, length) tuples.
-    runs = []
+    runs = None
     __abstract = True
+
+    def __init__(self, **kwargs):
+        super(RunBasedAddressSpace, self).__init__(**kwargs)
+        self.runs = []
 
     def _read_chunk(self, addr, length):
         file_offset, available_length = self._get_available_buffer(addr, length)

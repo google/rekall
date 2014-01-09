@@ -313,7 +313,7 @@ class BaseObject(object):
             obj = obj.obj_parent
             yield obj
 
-    def proxied(self, _):
+    def proxied(self):
         return None
 
     def write(self, value):
@@ -392,10 +392,11 @@ class BaseObject(object):
         return self.obj_profile.Pointer(value=self.obj_offset, vm=self.obj_vm,
                                         target=self.obj_type)
 
-    def cast(self, type=None, **kwargs):
-        return self.obj_profile.Object(type_name=type, offset=self.obj_offset,
-                                       vm=self.obj_vm, parent=self.obj_parent,
-                                       context=self.obj_context, **kwargs)
+    def cast(self, type_name=None, **kwargs):
+        return self.obj_profile.Object(
+            type_name=type_name, offset=self.obj_offset,
+            vm=self.obj_vm, parent=self.obj_parent,
+            context=self.obj_context, **kwargs)
 
     def v(self, vm=None):
         """ Do the actual reading and decoding of this member
@@ -438,12 +439,12 @@ class BaseObject(object):
 def CreateMixIn(mixin):
     def make_method(name):
         def method(self, *args, **kw):
-            proxied = self.proxied(name)
+            proxied = self.proxied()
             try:
                 ## Try to coerce the other in case its also a proxied
                 ## class
                 args = list(args)
-                args[0] = args[0].proxied(name)
+                args[0] = args[0].proxied()
             except (AttributeError, IndexError):
                 pass
 
@@ -505,7 +506,7 @@ class NativeType(BaseObject, NumericProxyMixIn):
         output = struct.pack(self.format_string, data)
         return self.obj_vm.write(self.obj_offset, output)
 
-    def proxied(self, _):
+    def proxied(self):
         return self.v()
 
     def __radd__(self, other):
@@ -550,14 +551,19 @@ class Bool(NativeType):
 
 class BitField(NativeType):
     """ A class splitting an integer into a bunch of bit. """
-    def __init__(self, start_bit=0, end_bit=32, native_type=None,
-                 **kwargs):
+    def __init__(self, start_bit=0, end_bit=32, target=None,
+                 native_type=None, **kwargs):
         super(BitField, self).__init__(**kwargs)
 
+        # TODO: Fully deprecate this parameter.
+        if native_type:
+            target = native_type
+
         self._proxy = self.obj_profile.Object(
-            native_type or "address", offset=self.obj_offset, vm=self.obj_vm,
+            target or "address", offset=self.obj_offset, vm=self.obj_vm,
             context=self.obj_context)
 
+        self.target = target
         self.start_bit = start_bit
         self.end_bit = end_bit
 
@@ -1181,18 +1187,14 @@ class Profile(object):
                     metadata["ProfileClass"])
 
             result = profile_cls(name=name, session=session)
-            try:
-                constants = container.GetData(metadata["Constants"])
+            constants = container.GetData(metadata.get("Constants"))
+            if constants:
                 result.add_constants(constants_are_addresses=True,
                                      **constants)
-            except IOError:
-                pass
 
-            try:
-                types = container.GetData(metadata["VTypes"])
+            types = container.GetData(metadata.get("VTypes"))
+            if types:
                 result.add_types(types)
-            except IOError:
-                pass
 
             return result
 
@@ -1205,7 +1207,6 @@ class Profile(object):
 
         self.name = name
         self.session = session
-        self.overlayDict = {}
         self.overlays = []
         self.vtypes = {}
         self.constants = {}
@@ -1273,7 +1274,7 @@ class Profile(object):
         # Compile on demand
         self.compile_type(type_name)
 
-        return type_name in self.object_classes or type_name in self.vtypes
+        return type_name in self.object_classes or type_name in self.types
 
     def add_classes(self, classes_dict=None, **kwargs):
         """Add the classes in the dict to our object classes mapping."""
@@ -1308,7 +1309,14 @@ class Profile(object):
         ## we store curried objects (which might keep their previous
         ## definitions).
         for k, v in abstract_types.items():
-            if isinstance(v, list):
+            # If the vtypes contain sections starting with $ they must be added
+            # to the constants table. This allows us to combine struct and
+            # constant definitions into the same json data structure to simplify
+            # maintenance of profiles.
+            if k.startswith("$"):
+                self.add_constants(**v)
+
+            elif isinstance(v, list):
                 self.vtypes[k] = v
             else:
                 original = self.vtypes.get(k, [0, {}])
@@ -1765,6 +1773,10 @@ class Profile(object):
           parent: The object can maintain a reference to its parent object.
         """
         name = name or type_name
+
+        # Ensure we are called correctly.
+        if not isinstance(name, basestring):
+            raise ValueError("Type name must be a string")
 
         if offset is None:
             offset = 0

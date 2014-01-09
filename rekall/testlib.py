@@ -80,6 +80,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
     PLUGIN = None
 
+    disabled = False
+
     @classmethod
     def is_active(cls, session):
         delegate_plugin = (
@@ -366,6 +368,11 @@ class SimpleTestCase(RekallBaseUnitTestCase):
 
         # Compare the entire table
         self.assertEqual(previous, current)
+
+
+class DisabledTest(RekallBaseUnitTestCase):
+    """Disable a test."""
+    disabled = True
 
 
 class TempDirectory(object):

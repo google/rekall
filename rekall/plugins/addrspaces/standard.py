@@ -26,7 +26,6 @@
 """ These are standard address spaces supported by Rekall Memory Forensics """
 import StringIO
 import struct
-import urllib
 import os
 
 from rekall import addrspace
@@ -133,7 +132,7 @@ class WriteableAddressSpaceMixIn(object):
 
         return True
 
-    def is_valid_address(self, addr):
+    def is_valid_address(self, unused_addr):
         # All addresses are valid, we just grow the file there.
         return True
 

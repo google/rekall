@@ -106,7 +106,7 @@ linux_overlay = {
             }],
 
     'in_ifaddr': [None, {
-            'ifa_address': [None, ['IpAddress']],
+            'ifa_address': [None, ['Ipv4Address']],
             'ifa_label': [None, ['String']],
             }],
 
@@ -387,7 +387,7 @@ class inet_sock(obj.Struct):
         if self.sk.m("__sk_common").skc_family == "AF_INET":
             return (self.m("rcv_saddr") or self.m("inet_rcv_saddr") or
                     self.sk.m("__sk_common").u1.u1.skc_rcv_saddr).cast(
-                "IpAddress")
+                "Ipv4Address")
 
         else:
             return self.pinet6.saddr.cast("Ipv6Address")
@@ -397,7 +397,7 @@ class inet_sock(obj.Struct):
         if self.sk.m("__sk_common").skc_family == "AF_INET":
             return (self.m("daddr") or self.m("inet_daddr") or
                     self.sk.m("__sk_common").u1.u1.skc_daddr).cast(
-                "IpAddress")
+                "Ipv4Address")
 
         else:
             return self.pinet6.daddr.cast("Ipv6Address")
