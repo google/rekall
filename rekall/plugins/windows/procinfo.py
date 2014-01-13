@@ -28,7 +28,6 @@ from rekall import args
 from rekall import plugin
 from rekall import testlib
 
-from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.windows import common
 
@@ -44,7 +43,7 @@ class PEInfo(plugin.Command):
         parser.add_argument("--image_base", default=0, type=args.IntParser,
                             help="The base of the image.")
 
-        parser.add_argument("--filename", default=None,
+        parser.add_argument("filename", default=None,
                             help="If provided we create an address space "
                             "from this file.")
 
@@ -63,39 +62,43 @@ class PEInfo(plugin.Command):
           filename: If provided we create an address space from this file.
         """
         super(PEInfo, self).__init__(**kwargs)
+
+        # Allow users to specify the filename as the first arg.
+        if isinstance(address_space, basestring) and filename is None:
+            filename, address_space = address_space, None
+
         self.address_space = address_space
-        if filename:
-            self.address_space = standard.FileAddressSpace(filename=filename)
-        self.image_base = image_base
+
+        self.pe_helper = pe_vtypes.PE(
+            address_space=address_space,
+            filename=filename, image_base=image_base)
+
+        self.disassembler = self.session.plugins.dis(
+            address_space=self.pe_helper.vm,
+            session=self.session, length=50)
 
     def render(self, renderer):
         """Print information about a PE file from memory."""
-        try:
-            disassembler = self.session.plugins.dis(
-                address_space=self.address_space, offset=0,
-                session=self.session, length=50)
-        except AttributeError:
-            disassembler = None
-
         # Get our helper object to parse the PE file.
-        pe_helper = pe_vtypes.PE(address_space=self.address_space,
-                                 image_base=self.image_base)
-
         renderer.table_header([('Machine', 'machine', '<20'),
                                ('TimeDateStamp', 'time', '[wrap:60]')])
 
         for field in ["Machine", "TimeDateStamp", "Characteristics"]:
-            renderer.table_row(field,
-                               getattr(pe_helper.nt_header.FileHeader, field))
+            renderer.table_row(
+                field,
+                getattr(self.pe_helper.nt_header.FileHeader, field))
 
-        renderer.format("\nSections (Relative to 0x{0:08X}):\n",
-                        pe_helper.image_base)
+        renderer.format(
+            "\nSections (Relative to 0x{0:08X}):\n",
+            self.pe_helper.image_base)
+
         renderer.table_header([('Perm', 'perm', '4'),
                                ('Name', 'name', '<8'),
                                ('VMA', 'vma', '[addrpad]'),
                                ('Size', 'size', '[addrpad]')])
 
-        for permission, name, virtual_address, size in pe_helper.Sections():
+        for (permission, name,
+             virtual_address, size) in self.pe_helper.Sections():
             renderer.table_row(permission, name, virtual_address, size)
 
         renderer.format("\nData Directories:\n")
@@ -103,7 +106,7 @@ class PEInfo(plugin.Command):
                                ('VMA', 'vma', '[addrpad]'),
                                ('Size', 'size', '[addrpad]')])
 
-        for d in pe_helper.nt_header.OptionalHeader.DataDirectory:
+        for d in self.pe_helper.nt_header.OptionalHeader.DataDirectory:
             renderer.table_row(d.obj_name, d.VirtualAddress, d.Size)
 
 
@@ -111,7 +114,7 @@ class PEInfo(plugin.Command):
         renderer.table_header([('Name', 'name', '<50'),
                                ('Ord', 'ord', '5')])
 
-        for dll, name, ordinal in pe_helper.ImportDirectory():
+        for dll, name, ordinal in self.pe_helper.ImportDirectory():
             renderer.table_row(u"%s!%s" % (dll, name), ordinal)
 
         renderer.format("\nImport Address Table:\n")
@@ -119,16 +122,15 @@ class PEInfo(plugin.Command):
                                ('Address', 'address', '[addrpad]'),
                                ('Disassembly', 'disassembly', '[wrap:30]')])
 
-        for name, function, ordinal in pe_helper.IAT():
+        for name, function, ordinal in self.pe_helper.IAT():
             disassembly = []
 
-            if disassembler:
-                for i, (_, _, x) in enumerate(
-                    disassembler.disassemble(function)):
-                    if i >= 5:
-                        break
+            for i, (_, _, x) in enumerate(
+                self.disassembler.disassemble(function)):
+                if i >= 5:
+                    break
 
-                    disassembly.append(x.strip())
+                disassembly.append(x.strip())
 
             renderer.table_row(name, function, "\n".join(disassembly))
 
@@ -138,7 +140,7 @@ class PEInfo(plugin.Command):
                                ('Ord', 'ord', '5'),
                                ('Name', 'name', '<50')])
 
-        for dll, function, name, ordinal in pe_helper.ExportDirectory():
+        for dll, function, name, ordinal in self.pe_helper.ExportDirectory():
             status = 'M' if function.dereference() else "-"
             renderer.table_row(
                 function,
@@ -146,13 +148,15 @@ class PEInfo(plugin.Command):
                 ordinal,
                 u"%s!%s" % (dll, name))
 
-            self.address_space.kb.AddMemoryLocation(int(function), function)
+            if self.address_space:
+                self.address_space.kb.AddMemoryLocation(
+                    int(function), function)
 
         renderer.format("Version Information:\n")
         renderer.table_header([('key', 'key', '<20'),
                                ('value', 'value', '')])
 
-        for k, v in pe_helper.VersionInformation():
+        for k, v in self.pe_helper.VersionInformation():
             renderer.table_row(k, v)
 
 

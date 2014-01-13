@@ -144,11 +144,17 @@ def main(argv=None):
 
     flags = args.parse_args(argv=argv, user_session=user_session)
 
+    # Determine if an external script needs to be run first.
+    if getattr(flags, "run", None):
+        exec open(flags.run) in user_session._locals
+
     # Run a module and do not drop into the shell.
     if getattr(flags, "module", None):
         # Run the module
         try:
-            user_session.RunPlugin(flags.module, flags=flags)
+            # Explicitly disable our handling of the pager since we are not
+            # running in interactive mode.
+            user_session.RunPlugin(flags.module, flags=flags, pager=None)
         except Exception as e:
             if getattr(flags, "debug", None):
                 pdb.post_mortem()

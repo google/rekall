@@ -246,6 +246,7 @@ class Session(object):
         ui_renderer = kwargs.pop("renderer", None)
         fd = kwargs.pop("fd", None)
         debug = kwargs.pop("debug", False)
+        pager = kwargs.pop("pager", self.state.pager)
 
         # If the args came from the command line parse them now:
         flags = kwargs.get("flags")
@@ -278,7 +279,7 @@ class Session(object):
 
             # Allow per call overriding of the output file descriptor.
             paging_limit = self.state.paging_limit
-            if not self.state.pager:
+            if not pager:
                 paging_limit = None
 
             ui_renderer = ui_renderer_cls(session=self, fd=fd,
@@ -304,7 +305,7 @@ class Session(object):
 
             # If there was too much data and a pager is specified, simply pass
             # the data to the pager:
-            if (self.state.pager and
+            if (pager and
                 len(ui_renderer.data) >= self.state.paging_limit):
                 pager = renderer.Pager(self)
                 for data in ui_renderer.data:

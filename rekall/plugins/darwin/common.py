@@ -40,7 +40,7 @@ def ID_MAP_VTOP(x):
 
 
 class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
-                                 plugin.ProfileCommand):
+                                  plugin.ProfileCommand):
     """A base class for all darwin based plugins."""
     __abstract = True
 

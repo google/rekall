@@ -1313,7 +1313,7 @@ class Profile(object):
             # to the constants table. This allows us to combine struct and
             # constant definitions into the same json data structure to simplify
             # maintenance of profiles.
-            if k.startswith("$"):
+            if k in ["$ENUM", "$CONSTANTS"]:
                 self.add_constants(**v)
 
             elif isinstance(v, list):
