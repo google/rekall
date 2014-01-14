@@ -25,9 +25,8 @@
 This file provides support for windows Windows 7 SP 0.
 """
 
-#pylint: disable-msg=C0111
+# pylint: disable=protected-access
 
-import windows
 from rekall import obj
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import windows
@@ -36,25 +35,25 @@ from rekall.plugins.overlays.windows import windows
 # In windows 7 the VadRoot is actually composed from _MMADDRESS_NODEs instead of
 # _MMVAD structs.
 win7_overlays = {
-    '_EPROCESS': [ None, {
+    '_EPROCESS': [None, {
             # A symbolic link to the real vad root.
             'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
             }],
 
-    '_MMADDRESS_NODE': [ None, {
+    '_MMADDRESS_NODE': [None, {
             'Tag': [-12, ['String', dict(length=4)]],
             }],
 
-    '_MMVAD_SHORT': [ None, {
-            'Tag': [-12 , ['String', dict(length = 4)]],
+    '_MMVAD_SHORT': [None, {
+            'Tag': [-12, ['String', dict(length=4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
-    '_MMVAD': [ None, {
-            'Tag': [-12 , ['String', dict(length = 4)]],
+    '_MMVAD': [None, {
+            'Tag': [-12, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
@@ -62,8 +61,8 @@ win7_overlays = {
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
-    '_MMVAD_LONG': [ None, {
-            'Tag': [-12 , ['String', dict(length = 4)]],
+    '_MMVAD_LONG': [None, {
+            'Tag': [-12, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
@@ -72,7 +71,9 @@ win7_overlays = {
             }],
 
     "_CONTROL_AREA": [None, {
-            'FilePointer': [None, ['_EX_FAST_REF', dict(target="_FILE_OBJECT")]],
+            'FilePointer': [None, ['_EX_FAST_REF', dict(
+                        target="_FILE_OBJECT"
+                        )]],
             }],
     }
 
@@ -86,7 +87,7 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
     The following debugger command find the type object for index 5:
     dt nt!_OBJECT_TYPE poi(nt!ObTypeIndexTable + ( 5 * @$ptrsize ))
     """
-    type_map = { 2: 'Type',
+    type_map = {2: 'Type',
                 3: 'Directory',
                 4: 'SymbolicLink',
                 5: 'Token',
@@ -131,11 +132,12 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
             }
 
     # This specifies the order the headers are found below the _OBJECT_HEADER
-    optional_header_mask = (('CreatorInfo', '_OBJECT_HEADER_CREATOR_INFO', 0x01),
-                            ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 0x02),
-                            ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 0x04),
-                            ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO', 0x08),
-                            ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10))
+    optional_header_mask = (
+        ('CreatorInfo', '_OBJECT_HEADER_CREATOR_INFO', 0x01),
+        ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 0x02),
+        ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 0x04),
+        ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO', 0x08),
+        ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10))
 
     def find_optional_headers(self):
         """Find this object's optional headers."""
@@ -145,7 +147,8 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
         for name, struct, mask in self.optional_header_mask:
             if info_mask & mask:
                 offset -= self.obj_profile.get_obj_size(struct)
-                o = self.obj_profile.Object(type_name=struct, offset=offset, vm=self.obj_vm)
+                o = self.obj_profile.Object(
+                    type_name=struct, offset=offset, vm=self.obj_vm)
                 self._preamble_size += o.size()
             else:
                 o = obj.NoneObject("Header not set")

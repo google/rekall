@@ -563,7 +563,8 @@ class _POOL_HEADER(obj.Struct):
             offset -= self.get_rounded_size(name)
 
             # Make a new object instance.
-            obj = self.obj_profile.Object(name, vm=self.obj_vm, offset=offset)
+            obj = self.obj_profile.Object(
+                name, vm=self.obj_vm, offset=offset)
             if name == object_name:
                 return obj
 
@@ -626,31 +627,34 @@ class _HANDLE_TABLE(obj.Struct):
     tables, such as the _KDDEBUGGER_DATA64.PspCidTable.
     """
 
-    def get_item(self, entry, handle_value = 0):
+    def get_item(self, entry, handle_value=0):
         """Returns the OBJECT_HEADER of the associated handle. The parent
         is the _HANDLE_TABLE_ENTRY so that an object can be linked to its
         GrantedAccess.
         """
-        return entry.Object.dereference_as("_OBJECT_HEADER", parent = entry,
-                                           handle_value = handle_value)
+        return entry.Object.dereference_as("_OBJECT_HEADER", parent=entry,
+                                           handle_value=handle_value)
 
-    def _make_handle_array(self, offset, level, depth = 0):
+    def _make_handle_array(self, offset, level, depth=0):
         """ Returns an array of _HANDLE_TABLE_ENTRY rooted at offset,
         and iterates over them.
         """
-        # The counts below are calculated by taking the size of a page and dividing
-        # by the size of the data type contained within the page. For more information
-        # see http://blogs.technet.com/b/markrussinovich/archive/2009/09/29/3283844.aspx
+        # The counts below are calculated by taking the size of a page and
+        # dividing by the size of the data type contained within the page. For
+        # more information see
+        # http://blogs.technet.com/b/markrussinovich/archive/2009/09/29/3283844.aspx
         if level > 0:
             count = 0x1000 / self.obj_profile.get_obj_size("address")
             target = "address"
         else:
-            count = 0x1000 / self.obj_profile.get_obj_size("_HANDLE_TABLE_ENTRY")
+            count = 0x1000 / self.obj_profile.get_obj_size(
+                "_HANDLE_TABLE_ENTRY")
+
             target = "_HANDLE_TABLE_ENTRY"
 
         table = self.obj_profile.Array(
-            offset = offset, vm = self.obj_vm,
-            count = count, target = target, parent = self)
+            offset=offset, vm=self.obj_vm,
+            count=count, target=target, parent=self)
 
         if table:
             for entry in table:
@@ -663,16 +667,22 @@ class _HANDLE_TABLE(obj.Struct):
                         yield h
                     depth += 1
                 else:
-
-                    # All handle values are multiples of four, on both x86 and x64.
+                    # All handle values are multiples of four, on both x86 and
+                    # x64.
                     handle_multiplier = 4
+
                     # Calculate the starting handle value for this level.
                     handle_level_base = depth * count * handle_multiplier
+
                     # The size of a handle table entry.
-                    handle_entry_size = self.obj_profile.get_obj_size("_HANDLE_TABLE_ENTRY")
+                    handle_entry_size = self.obj_profile.get_obj_size(
+                        "_HANDLE_TABLE_ENTRY")
+
                     # Finally, compute the handle value for this object.
-                    handle_value = ((entry.obj_offset - table[0].obj_offset) /
-                                   (handle_entry_size / handle_multiplier)) + handle_level_base
+                    handle_value = (
+                        (entry.obj_offset - table[0].obj_offset) /
+                        (handle_entry_size / handle_multiplier)
+                        ) + handle_level_base
 
                     ## OK We got to the bottom table, we just resolve
                     ## objects here:
@@ -715,14 +725,14 @@ class _HANDLE_TABLE(obj.Struct):
 class _PSP_CID_TABLE(_HANDLE_TABLE):
     """Subclass the Windows handle table object for parsing PspCidTable"""
 
-    def get_item(self, entry, handle_value = 0):
+    def get_item(self, entry, handle_value=0):
         p = self.obj_profile.Object("address", entry.Object.v(), self.obj_vm)
 
         handle = self.obj_profile.Object(
             "_OBJECT_HEADER",
             offset=(p & ~7) - self.obj_profile.get_obj_offset(
                 '_OBJECT_HEADER', 'Body'),
-            vm = self.obj_vm)
+            vm=self.obj_vm)
 
         return handle
 
@@ -756,7 +766,7 @@ class _OBJECT_HEADER(obj.Struct):
                 if header_offset:
                     o = self.obj_profile.Object(type_name=objtype,
                                                 offset=offset - header_offset,
-                                                vm = self.obj_vm)
+                                                vm=self.obj_vm)
                 else:
                     o = obj.NoneObject("Header not set")
 
@@ -782,8 +792,9 @@ class _OBJECT_HEADER(obj.Struct):
 
     def dereference_as(self, type_name, vm=None):
         """Instantiate an object from the _OBJECT_HEADER.Body"""
-        return self.obj_profile.Object(type_name=type_name, offset=self.Body.obj_offset,
-                                       vm=vm or self.obj_vm, parent=self)
+        return self.obj_profile.Object(
+            type_name=type_name, offset=self.Body.obj_offset,
+            vm=vm or self.obj_vm, parent=self)
 
     def get_object_type(self, vm=None):
         """Return the object's type as a string"""
@@ -835,7 +846,8 @@ class _EX_FAST_REF(obj.Struct):
 
     def dereference(self, vm=None):
         if self.target is None:
-            raise TypeError("No target specified for dereferencing an _EX_FAST_REF.")
+            raise TypeError(
+                "No target specified for dereferencing an _EX_FAST_REF.")
 
         return self.dereference_as(self.target)
 

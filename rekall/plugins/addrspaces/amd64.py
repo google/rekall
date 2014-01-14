@@ -72,12 +72,13 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         Bits 11:3 are bits 47:39 of the linear address
         Bits 2:0 are 0.
         '''
-        pml4e_addr = (self.dtb & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
+        pml4e_addr = (
+            self.dtb & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
         return self._read_long_long_phys(pml4e_addr)
 
     def get_pdpte(self, vaddr, pml4e):
         '''
-        Return the Page Directory Pointer Table Entry for the given virtual address.
+        Return the Page Directory Pointer Table Entry for the virtual address.
 
         Bits 51:12 are from the PML4E
         Bits 11:3 are bits 38:30 of the linear address
@@ -216,13 +217,16 @@ class VTxPagedMemory(AMD64PagedMemory):
                        "Attempting to layer over another VT")
 
     def entry_present(self, entry):
-        # A page entry being present depends only on bits 2:0 for EPT translation.
+        # A page entry being present depends only on bits 2:0 for EPT
+        # translation.
         return entry and (entry & 0x7)
 
     def get_pml4e(self, vaddr):
         # PML4 for VT-x is in the EPT, not the DTB as AMD64PagedMemory does.
-        ept_pml4e_paddr = (self.ept & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
+        ept_pml4e_paddr = ((self.ept & 0xffffffffff000) |
+                           ((vaddr & 0xff8000000000) >> 36))
         return self._read_long_long_phys(ept_pml4e_paddr)
 
     def __str__(self):
-        return "%s@0x%08X" % (self.__class__.__name__, self.session.GetParameter("ept"))
+        return "%s@0x%08X" % (
+            self.__class__.__name__, self.session.GetParameter("ept"))

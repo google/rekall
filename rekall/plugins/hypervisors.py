@@ -2,7 +2,6 @@
 
 from rekall import addrspace
 from rekall import args
-from rekall import obj
 from rekall import plugin
 from rekall import scan
 from rekall.plugins.addrspaces import amd64
@@ -98,7 +97,6 @@ class VMCSProfile(basic.ProfileLP64):
                 "end_bit": 32,
                 "target": "unsigned int",
                 }]],
-            "REVISION_ID": [0, ["unsigned int"]],
             "ABORT_INDICATOR": [4, ["unsigned int"]],
             "GUEST_CR4": [744, ["unsigned long long"]],
             "HOST_CR3": [832, ["unsigned long long"]],
@@ -141,13 +139,13 @@ class VMCSScanner(scan.BaseScanner):
     to identify VT-x hypervisors.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(VMCSScanner, self).__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super(VMCSScanner, self).__init__(**kwargs)
         # Temporary address space
         self._buffer_as = addrspace.BufferAddressSpace()
         self.profile = VMCSProfile()
 
-    def scan(self, offset=0, **kwargs):
+    def scan(self, offset=0, **_):
         """We overwrite scan to achieve maximum scanning speed."""
 
         maxlen = list(self.address_space.get_available_addresses())[-1][1]
@@ -170,7 +168,6 @@ class VMCSScanner(scan.BaseScanner):
 
             # Obtain the Revision ID
             (revision_id,) = struct.unpack_from("<I", current_hypervisor)
-            is_shadow_vmcs = revision_id & 0x80000000
             revision_id = revision_id & 0x7FFFFFFF
 
             # Obtain a VMCS object based on the revision_id
@@ -189,7 +186,8 @@ class VMCSScanner(scan.BaseScanner):
                 continue
 
             # CHECK 3: Verify that the VMCS_LINK_POINTER is 0xFFFFFFFFFFFFFFFF.
-            if vmcs_obj.VMCS_LINK_POINTER == vmcs_obj.VMCS_LINK_POINTER_HIGH == 0xFFFFFFFF:
+            if (vmcs_obj.VMCS_LINK_POINTER ==
+                vmcs_obj.VMCS_LINK_POINTER_HIGH == 0xFFFFFFFF):
                 # Assign the proper address_space for the candidate.
                 vmcs_obj.obj_vm = self.address_space
 
@@ -241,8 +239,8 @@ class VmScan(plugin.PhysicalASMixin, plugin.Command):
             "--offset", action=args.IntParser, default=0,
             help="Offset in the physical image to start the scan.")
 
-    def __init__(self, offset=0, hypervisor_details=False, *args, **kwargs):
-        super(VmScan, self).__init__(*args, **kwargs)
+    def __init__(self, offset=0, hypervisor_details=False, **kwargs):
+        super(VmScan, self).__init__(**kwargs)
         self._offset = offset
         self._hypervisor_details = hypervisor_details
 

@@ -23,10 +23,8 @@
 
 """ This is Jesse Kornblum's patch to clean up the standard AS's.
 """
-import logging
 import struct
 
-from rekall.plugins.addrspaces import standard
 from rekall import addrspace
 from rekall import obj
 
@@ -73,7 +71,8 @@ class IA32PagedMemory(addrspace.PagedReader):
         # Allow the dtb to be specified in the session.
         self.dtb = dtb or self.session.GetParameter("dtb")
 
-        self.as_assert(self.dtb != None, "No valid DTB specified. Try the find_dtb"
+        self.as_assert(self.dtb != None,
+                       "No valid DTB specified. Try the find_dtb"
                        " plugin to search for the dtb.")
         self.name = (name or 'Kernel AS') + "@%#x" % self.dtb
 
@@ -83,12 +82,12 @@ class IA32PagedMemory(addrspace.PagedReader):
         in the given entry
         '''
         if entry:
-            if (entry & 1):
+            if entry & 1:
                 return True
 
             # The page is in transition and not a prototype.
             # Thus, we will treat it as present.
-            if (entry & (1 << 11)) and not (entry & (1 << 10)):
+            if (entry & (1 << 11)) and not entry & (1 << 10):
                 return True
 
         return False
@@ -99,7 +98,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         in the given entry
         '''
         if entry:
-            return (entry & (1 << 7))
+            return entry & (1 << 7)
         return False
 
     def pde_index(self, vaddr):
@@ -183,7 +182,8 @@ class IA32PagedMemory(addrspace.PagedReader):
         except IOError:
             string = None
         if not string:
-            return obj.NoneObject("Could not read_long_phys at offset " + str(addr))
+            return obj.NoneObject(
+                "Could not read_long_phys at offset " + str(addr))
         (longval,) = struct.unpack('<I', string)
         return longval
 
@@ -191,7 +191,8 @@ class IA32PagedMemory(addrspace.PagedReader):
         """Enumerate all valid memory ranges.
 
         Yields:
-          tuples of (starting virtual address, size) for valid the memory ranges.
+          tuples of (starting virtual address, size) for valid the memory
+          ranges.
         """
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is four bytes. Thus there are 0x1000 / 4 = 0x400
@@ -347,7 +348,8 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         except IOError:
             string = None
         if not string:
-            return obj.NoneObject("Unable to read_long_long_phys at " + str(addr))
+            return obj.NoneObject(
+                "Unable to read_long_long_phys at " + str(addr))
         (longlongval,) = struct.unpack('<Q', string)
         return longlongval
 
