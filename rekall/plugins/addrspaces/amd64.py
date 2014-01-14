@@ -200,7 +200,7 @@ class VTxPagedMemory(AMD64PagedMemory):
     order = 20
     _md_image = True
 
-    def __init__(self, **kwargs):
+    def __init__(self, ept=None, **kwargs):
         # A dummy DTB is passed to the base class so the DTB checks on
         # IA32PagedMemory don't bail out. We require the DTB to never be used
         # for page translation outside of get_pml4e.
@@ -208,7 +208,7 @@ class VTxPagedMemory(AMD64PagedMemory):
 
         # Reset the DTB, in case a plugin or AS relies on us providing one.
         self.dtb = None
-        self.ept = self.session.GetParameter("ept")
+        self.ept = ept
         self.as_assert(self.ept is not None, "No EPT specified")
 
         # We don't allow overlaying over another VTx AS for now.
