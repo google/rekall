@@ -20,7 +20,6 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 import re
 
-from rekall import obj
 from rekall.plugins.darwin import common
 
 

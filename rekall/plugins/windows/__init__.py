@@ -1,12 +1,11 @@
+# pylint: disable=unused-import
+
 from rekall.plugins.windows import common
 from rekall.plugins.windows import connections
 from rekall.plugins.windows import connscan
 from rekall.plugins.windows import crashinfo
-try:
-    from rekall.plugins.windows import disassembler
-except ImportError:
-    pass
-
+from rekall.plugins.windows import disassembler
+from rekall.plugins.windows import dumpcerts
 from rekall.plugins.windows import filescan
 from rekall.plugins.windows import gui
 from rekall.plugins.windows import handles
