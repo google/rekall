@@ -617,7 +617,7 @@ class PermissionFlags(basic.Flags):
         return self.is_flag('w')
 
 
-class Linux32(basic.Profile32Bits, basic.BasicWindowsClasses):
+class Linux32(basic.Profile32Bits, basic.BasicClasses):
     """A Linux profile which works with dwarfdump output files."""
     _md_os = "linux"
     _md_memory_model = "32bit"

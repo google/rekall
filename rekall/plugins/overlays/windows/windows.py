@@ -981,7 +981,7 @@ crash_overlays = {
 crash_overlays['_DMP_HEADER64'] = copy.deepcopy(crash_overlays['_DMP_HEADER'])
 
 
-class CrashDump32Profile(basic.Profile32Bits, basic.BasicWindowsClasses):
+class CrashDump32Profile(basic.Profile32Bits, basic.BasicClasses):
     """A profile for crash dumps."""
     def __init__(self, **kwargs):
         super(CrashDump32Profile, self).__init__(**kwargs)
@@ -989,7 +989,7 @@ class CrashDump32Profile(basic.Profile32Bits, basic.BasicWindowsClasses):
         self.add_overlay(crash_overlays)
 
 
-class CrashDump64Profile(basic.ProfileLLP64, basic.BasicWindowsClasses):
+class CrashDump64Profile(basic.ProfileLLP64, basic.BasicClasses):
     """A profile for crash dumps."""
     def __init__(self, **kwargs):
         super(CrashDump64Profile, self).__init__(**kwargs)
@@ -998,7 +998,7 @@ class CrashDump64Profile(basic.ProfileLLP64, basic.BasicWindowsClasses):
         self.add_overlay(crash_overlays)
 
 
-class KDDebuggerProfile(basic.ProfileLLP64, basic.BasicWindowsClasses):
+class KDDebuggerProfile(basic.ProfileLLP64, basic.BasicClasses):
     """A domain specific profile for the kernel debugger structures.
 
     The kernel debugger strucutures do not vary with windows operating system
@@ -1016,7 +1016,7 @@ class KDDebuggerProfile(basic.ProfileLLP64, basic.BasicWindowsClasses):
                 })
 
 
-class BaseWindowsProfile(basic.BasicWindowsClasses):
+class BaseWindowsProfile(basic.BasicClasses):
     """Common symbols for all of windows kernel profiles."""
     _md_os = "windows"
 

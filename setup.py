@@ -68,6 +68,7 @@ setup(
 
     install_requires=[
         "argparse >= 0.9",
+        "PyYAML>=2.10",
         "pytz >= 2012",
         "yara >= 1.7.6",
         "ipython >= 1.1.0",

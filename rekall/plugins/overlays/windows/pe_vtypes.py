@@ -1130,7 +1130,7 @@ class PEFileImplementation(obj.ProfileModification):
         return profile
 
 
-class PEProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
+class PEProfile(basic.Profile32Bits, basic.BasicClasses):
     """A profile for PE files."""
 
     def __init__(self, **kwargs):

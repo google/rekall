@@ -36,7 +36,9 @@ existing files.
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import StringIO
+import gzip
 import json
+import logging
 import os
 import urllib2
 import urlparse
@@ -88,20 +90,6 @@ class IOManager(object):
 
         Raises:
           IOManagerError: If the file is not found.
-        """
-
-    def OpenSubContainer(self, name):
-        """Opens member as a subcontainer.
-
-        Args:
-          name: The name of the subcontainer.
-
-        Returns:
-          an instance of IOManager if successful.
-
-        Raises:
-          IOManagerError if member is not found or can not be opened as a
-          container..
         """
 
     def GetData(self, name):
@@ -184,12 +172,13 @@ class DirectoryIOManager(IOManager):
 
     def Open(self, name):
         path = self._GetAbsolutePathName(name)
-        return open(path, "rb")
+        if path.endswith(".gz"):
+            return gzip.open(path)
 
-    def OpenSubContainer(self, name):
-        path = self._GetAbsolutePathName(name)
-
-        return Factory(path, mode=self.mode)
+        try:
+            return open(path, "rb")
+        except IOError:
+            return gzip.open(path + ".gz")
 
     def __str__(self):
         return "Directory:%s" % self.dump_dir
@@ -291,15 +280,6 @@ class ZipFileManager(IOManager):
         except KeyError as e:
             raise IOManagerError(e)
 
-    def OpenSubContainer(self, name):
-        if self.mode != "r":
-            raise IOManagerError("Only supports nesting for reading.")
-
-        fd = self.Open(name)
-
-        # Currently only support nested zip files here.
-        return self.__class__(fd=fd, mode="r")
-
     def __enter__(self):
         self._outstanding_writers.add(self)
         return self
@@ -356,12 +336,6 @@ class BuiltInManager(IOManager):
 
         return result
 
-    def OpenSubContainer(self, name):
-        if name not in self.data:
-            raise IOManagerError("%s not found." % name)
-
-        return BuiltInManager(data=self.data[name])
-
     def __str__(self):
         return "BuiltIn:%s" % self.__class__.__name__
 
@@ -391,33 +365,19 @@ class URLManager(IOManager):
         return urlparse.urlunparse(url)
 
     def Open(self, name):
-        return urllib2.urlopen(self._GetURL(name))
+        url = self._GetURL(name)
 
-    def _OpenSubContainer(self, name):
-        data = None
-
-        # This can either be a subdirectory
         try:
-            # This checks for a 404 Error. Sometimes, a web server can return
-            # the zip file here, even though there might not be a zip extension.
-            url = self._GetURL(name)
-            data = urllib2.urlopen(self._GetURL(name)).read()
-
-            try:
-                return ZipFileManager(fd=StringIO.StringIO(data),
-                                      file_name=url)
-            except IOError:
-                return URLManager(url)
-
-        except IOError as e:
-            raise IOManagerError(e)
-
-    def OpenSubContainer(self, name):
-        # Or it can be a zip file.
-        try:
-            return self._OpenSubContainer(name)
-        except IOError:
-            return self._OpenSubContainer(name + ".zip")
+            # Rekall repositories always use gzip to compress the files - so
+            # first try with the .gz extension.
+            fd = urllib2.urlopen(url + ".gz")
+            logging.debug("Opened url %s.gz" % url)
+            return gzip.GzipFile(
+                fileobj=StringIO.StringIO(fd.read(10000000)))
+        except urllib2.HTTPError:
+            # Try to load the file without the .gz extension.
+            logging.debug("Opened url %s" % url)
+            return urllib2.urlopen(url)
 
     def __str__(self):
         return "URL:%s" % self.urn

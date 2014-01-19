@@ -80,13 +80,15 @@ class PEInfo(plugin.Command):
     def render(self, renderer):
         """Print information about a PE file from memory."""
         # Get our helper object to parse the PE file.
-        renderer.table_header([('Machine', 'machine', '<20'),
-                               ('TimeDateStamp', 'time', '[wrap:60]')])
+        renderer.table_header([('Attribute', 'attribute', '<20'),
+                               ('Value', 'value', '[wrap:60]')])
 
         for field in ["Machine", "TimeDateStamp", "Characteristics"]:
             renderer.table_row(
                 field,
                 getattr(self.pe_helper.nt_header.FileHeader, field))
+
+        renderer.table_row("GUID", self.pe_helper.GUID.AsString)
 
         renderer.format(
             "\nSections (Relative to 0x{0:08X}):\n",

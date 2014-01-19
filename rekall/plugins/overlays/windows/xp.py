@@ -27,36 +27,35 @@ This file provides support for windows XP SP2. We provide a profile
 for SP2.
 """
 
-from rekall import obj
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import windows
 
 
 # Windows XP specific overlays.
 win_xp_overlays = {
-    '_EPROCESS' : [ None, {
-            'VadRoot': [ None, ['pointer', ['_MMVAD']]],
+    '_EPROCESS' : [None, {
+            'VadRoot': [None, ['pointer', ['_MMVAD']]],
             'RealVadRoot': lambda x: x.VadRoot.dereference(),
             }],
 
-    '_MMVAD_SHORT': [ None, {
-            'Tag': [-4 , ['String', dict(length = 4)]],
+    '_MMVAD_SHORT': [None, {
+            'Tag': [-4, ['String', dict(length=4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
-    '_MMVAD': [ None, {
-            'Tag': [-4 , ['String', dict(length = 4)]],
+    '_MMVAD': [None, {
+            'Tag': [-4, ['String', dict(length=4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
-    '_MMVAD_LONG': [ None, {
-            'Tag': [-4 , ['String', dict(length = 4)]],
+    '_MMVAD_LONG': [None, {
+            'Tag': [-4, ['String', dict(length=4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
             'Length': lambda x: x.End - x.Start + 1,
@@ -79,7 +78,7 @@ class AbstractWinXPProfile(windows.BaseWindowsProfile):
     def __init__(self, **kwargs):
         super(AbstractWinXPProfile, self).__init__(**kwargs)
 
-        self.add_constants(PoolAlignment = 8)
+        self.add_constants(PoolAlignment=8)
         self.add_overlay(win_xp_overlays)
 
         self.add_classes(dict(_MMVAD=_MMVAD))

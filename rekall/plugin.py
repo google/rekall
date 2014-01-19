@@ -66,6 +66,8 @@ class Command(object):
     @classmethod
     def args(cls, parser):
         """Declare the command line args we need."""
+        # This parameter is actually handled by the session.RunPlugin() and is
+        # used to prepare the renderer.
         parser.add_argument(
             "--output", default=None,
             help="If specified we write output to this file.")

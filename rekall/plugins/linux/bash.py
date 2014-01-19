@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-
+# pylint: disable=protected-access
 
 """Scan for bash history entries.
 
@@ -27,9 +27,6 @@ Based on the algorithm by Andrew Case but greatly optimised for speed.
 """
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
-
-import re
-import struct
 
 from rekall import scan
 from rekall.plugins.overlays import basic
@@ -49,7 +46,7 @@ class TimestampScanner(scan.DiscontigScanner, scan.BaseScanner):
             ('StringCheck', dict(needle="#")),
 
             # Refine the search with a more precise regex.
-            ('RegexCheck', dict(regex="\#\d{10}")),
+            ('RegexCheck', dict(regex=r"\#\d{10}")),
             ]
 
 
@@ -80,7 +77,7 @@ class HeapHistoryScanner(common.HeapScannerMixIn, HistoryScanner):
     """Only scan for history in the heap."""
 
 
-class BashProfile64(basic.ProfileLP64, basic.BasicWindowsClasses):
+class BashProfile64(basic.ProfileLP64, basic.BasicClasses):
     """Profile to parse internal bash data structures."""
 
     __abstract = True
@@ -99,7 +96,7 @@ class BashProfile64(basic.ProfileLP64, basic.BasicWindowsClasses):
         self.add_types(self.bash_vtype_64)
 
 
-class BashProfile32(basic.Profile32Bits, basic.BasicWindowsClasses):
+class BashProfile32(basic.Profile32Bits, basic.BasicClasses):
     """Profile to parse internal bash data structures."""
 
     __abstract = True
@@ -179,7 +176,8 @@ class BashHistory(common.LinProcessFilter):
 
         for task in self.filter_processes():
             timestamps = self.get_timestamps(task)
-            if not timestamps: continue
+            if not timestamps:
+                continue
 
             scanner = scanner_cls(
                 profile=self.bash_profile, session=self.session,
@@ -190,5 +188,6 @@ class BashHistory(common.LinProcessFilter):
                 timestamp = self.profile.UnixTimeStamp(
                     value=int(hit.timestamp.deref()[1:]))
 
-                renderer.table_row(task.pid, task.comm, timestamp, hit.line.deref())
+                renderer.table_row(
+                    task.pid, task.comm, timestamp, hit.line.deref())
 

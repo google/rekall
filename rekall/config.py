@@ -33,7 +33,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
 import logging
-import json
+import yaml
 import os
 
 def GetHomeDir():
@@ -74,7 +74,7 @@ def GetConfigFile():
     for path in search_path:
         try:
             with open(path, "rb") as fd:
-                return json.load(fd)
+                return yaml.safe_load(fd)
         except IOError:
             pass
 
@@ -88,13 +88,14 @@ def MergeConfigOptions(state):
         state.Set(name, default)
 
     config_data = GetConfigFile()
-    if config_data is None:
+    # An empty configuration file - we try to initialize a new one.
+    if not config_data:
         homedir = GetHomeDir()
         if homedir:
             try:
                 filename = "%s/.rekallrc" % homedir
                 with open(filename, "wb") as fd:
-                    json.dump(DEFAULT_CONFIGURATION, fd, indent=4)
+                    yaml.dump(DEFAULT_CONFIGURATION, fd)
 
                 logging.info("Created new configuration file %s", filename)
                 config_data = DEFAULT_CONFIGURATION

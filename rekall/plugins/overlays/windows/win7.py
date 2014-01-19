@@ -220,41 +220,15 @@ class Win7BaseProfile(windows.BaseWindowsProfile):
                               pointer64=obj.Pointer))
 
 
-class Win7SP0x86(basic.Profile32Bits, Win7BaseProfile):
-    """ A Profile for Windows 7 SP0 x86 """
+class Win7x86(basic.Profile32Bits, Win7BaseProfile):
+    """A Profile for Windows 7 x86."""
     _md_major = 6
     _md_minor = 1
-    _md_build = 7600
-    _md_type = "Kernel"
-
-    def __init__(self, **kwargs):
-        super(Win7SP0x86, self).__init__(**kwargs)
-
-        # Import the actual vtypes on demand here to reduce memory usage.
-        from rekall.plugins.overlays.windows import win7_sp0_x86_vtypes
-
-        self.add_types(win7_sp0_x86_vtypes.ntkrnlmp_types)
-
-
-class Win7SP0x64(basic.ProfileLLP64, Win7BaseProfile):
-    """ A Profile for Windows 7 SP0 x64 """
-    _md_major = 6
-    _md_minor = 1
-    _md_build = 7600
     _md_type = "Kernel"
 
 
-class Win7SP1x86(basic.Profile32Bits, Win7BaseProfile):
-    """ A Profile for Windows 7 SP1 x86 """
+class Win7x64(basic.ProfileLLP64, Win7BaseProfile):
+    """A Profile for Windows 7 x64."""
     _md_major = 6
     _md_minor = 1
-    _md_build = 7601
-    _md_type = "Kernel"
-
-
-class Win7SP1x64(basic.ProfileLLP64, Win7BaseProfile):
-    """ A Profile for Windows 7 SP1 x64 """
-    _md_major = 6
-    _md_minor = 1
-    _md_build = 7601
     _md_type = "Kernel"

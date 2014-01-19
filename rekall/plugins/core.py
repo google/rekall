@@ -54,11 +54,7 @@ class Info(plugin.Command):
 
     __name = "info"
 
-    standard_options = [("output", " Save output to this file."),
-                        ("overwrite", " Must be set to overwrite an output "
-                         "file. You can also set this in the session as a "
-                         "global setting."),
-                        ("renderer", " Use this renderer for the output.")]
+    standard_options = [("renderer", "Use this renderer for the output.")]
 
     def __init__(self, item=None, verbosity=0, **kwargs):
         """Display information about a plugin.
@@ -480,6 +476,23 @@ class LoadAddressSpace(plugin.Command):
             self.GetVirtualAddressSpace()
 
 
+class OutputFileMixin(object):
+    """A mixin for plugins that want to dump a single user controlled output."""
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(OutputFileMixin, cls).args(parser)
+        parser.add_argument("out_file",
+                            help="Path for output file.")
+
+    def __init__(self, out_file=None, **kwargs):
+        super(OutputFileMixin, self).__init__(**kwargs)
+        if out_file is None:
+            raise RuntimeError("An output must be provided.")
+
+        self.output = open(out_file, mode="w")
+
+
 class DirectoryDumperMixin(object):
     """A mixin for plugins that want to dump files to a directory."""
 
@@ -490,9 +503,15 @@ class DirectoryDumperMixin(object):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(DirectoryDumperMixin, cls).args(parser)
+        help = "Path suitable for dumping files."
+        if cls.dump_dir_optional:
+            help += " (Optional)"
+        else:
+            help += " (Required)"
+
         parser.add_argument("-D", "--dump-dir",
                             required=not cls.dump_dir_optional,
-                            help="Path suitable for dumping files (required).")
+                            help=help)
 
     def __init__(self, dump_dir=None, **kwargs):
         """Dump to a directory.

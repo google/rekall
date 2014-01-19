@@ -263,8 +263,8 @@ class DW_TAG_enumeration_type(DIETag):
                                 'target': self.byte_size_lookup[byte_size]}]
 
     def Definition(self, vtype):
-        """Enumerations go into the $ENUM vtype area."""
-        vtype.setdefault("$ENUM", {})[self.name] = self.enumerations
+        """Enumerations go into the $ENUMS vtype area."""
+        vtype.setdefault("$ENUMS", {})[self.name] = self.enumerations
 
 
 class DW_TAG_enumerator(DIETag):

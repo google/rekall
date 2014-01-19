@@ -46,13 +46,13 @@ class IdleScanner(scan.BaseScanner):
                     needles=process_names))]
 
 
-class TestProfile32(basic.Profile32Bits, basic.BasicWindowsClasses):
+class TestProfile32(basic.Profile32Bits, basic.BasicClasses):
     def __init__(self, **kwargs):
         super(TestProfile32, self).__init__(**kwargs)
         self.add_overlay(eprocess_vtypes)
 
 
-class TestProfile64(basic.ProfileLLP64, basic.BasicWindowsClasses):
+class TestProfile64(basic.ProfileLLP64, basic.BasicClasses):
     def __init__(self, **kwargs):
         super(TestProfile64, self).__init__(**kwargs)
         self.add_overlay(eprocess_vtypes)

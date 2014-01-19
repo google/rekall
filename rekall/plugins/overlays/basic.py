@@ -834,11 +834,11 @@ common_overlay = {
             }]}
 
 
-class BasicWindowsClasses(obj.Profile):
+class BasicClasses(obj.Profile):
     """Basic profile which introduces the basic classes."""
 
     def __init__(self, **kwargs):
-        super(BasicWindowsClasses, self).__init__(**kwargs)
+        super(BasicClasses, self).__init__(**kwargs)
         self.add_classes({
             'String': String,
             "Signature": Signature,

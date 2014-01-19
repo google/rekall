@@ -4,19 +4,19 @@
 #
 # This file is part of Rekall Memory Forensics.
 #
-# Rekall Memory Forensics is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License Version 2 as
+# Rekall Memory Forensics is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License Version 2 as
 # published by the Free Software Foundation.  You may not use, modify or
-# distribute this program under any other version of the GNU General
-# Public License.
+# distribute this program under any other version of the GNU General Public
+# License.
 #
 # Rekall Memory Forensics is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 """
@@ -27,7 +27,6 @@
 import itertools
 import posixpath
 
-from rekall import args
 from rekall import testlib
 from rekall.plugins.linux import common
 
@@ -94,7 +93,7 @@ class CheckProcFops(common.LinuxPlugin):
 
     def check_proc_fop(self):
         """Check the proc mount point."""
-        f_op_members = self.profile.file_operations().members.keys()
+        f_op_members = sorted(self.profile.file_operations().members.keys())
         proc_mnt = self.profile.get_constant_object(
             "proc_mnt",
             target="Pointer",
@@ -118,7 +117,7 @@ class CheckProcFops(common.LinuxPlugin):
 
     def check_fops(self):
         """Check the file ops for all the open file handles."""
-        f_op_members = self.profile.file_operations().members.keys()
+        f_op_members = sorted(self.profile.file_operations().members.keys())
         proc_root = self.profile.get_constant_object(
             "proc_root",
             target="proc_dir_entry",
@@ -164,14 +163,14 @@ class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
 
     def check_fops(self):
         """Check the file ops for all the open file handles."""
-        f_op_members = self.profile.file_operations().members.keys()
+        f_op_members = sorted(self.profile.file_operations().members.keys())
 
         # Use the lsof plugin to get all the open files in each task we care
         # about.
         lsof = self.session.plugins.lsof(session=self.session)
 
         for task in self.filter_processes():
-            for file_struct, fd in lsof.get_open_files(task):
+            for file_struct, _ in lsof.get_open_files(task):
                 for member, func, location in self._check_members(
                     file_struct.f_op, f_op_members):
                     yield task, member, func, location
@@ -190,7 +189,6 @@ class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
                 self.session.report_progress(
                     "Checking task f_ops for %(comm)s (%(pid)s)",
                     comm=task.comm, pid=task.pid)
-
             else:
                 renderer.table_row(task.pid, task.comm, member, func,
                                    location, highlight=highlight)

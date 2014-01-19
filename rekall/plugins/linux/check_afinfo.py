@@ -3,19 +3,19 @@
 # This file is part of Rekall Memory Forensics.
 # Copyright 2013 Google Inc. All Rights Reserved.
 #
-# Rekall Memory Forensics is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License Version 2 as
+# Rekall Memory Forensics is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License Version 2 as
 # published by the Free Software Foundation.  You may not use, modify or
-# distribute this program under any other version of the GNU General
-# Public License.
+# distribute this program under any other version of the GNU General Public
+# License.
 #
 # Rekall Memory Forensics is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 """
@@ -23,8 +23,6 @@
 @license:      GNU General Public License 2.0
 @contact:      scudette@gmail.com
 """
-import logging
-
 from rekall.plugins.linux import common
 
 
@@ -45,7 +43,7 @@ class CheckAFInfo(common.LinuxPlugin):
         simply ignores struct members which are not defined on this kernel.
         """
         # Older kernels have the operations in the structs.
-        members = self.profile.file_operations().members.keys()
+        members = sorted(self.profile.file_operations().members.keys())
         if self.profile.has_type("seq_operations"):
             # Newer kernels use seq_ops struct.
             members.extend(["seq_ops.%s" % x
@@ -118,7 +116,7 @@ class CheckAFInfo(common.LinuxPlugin):
         checks = self.CreateChecks()
         for variable, member, func, location in self.check_functions(checks):
             # Point out suspicious constants.
-            highlight="important" if location=="Unknown" else None
+            highlight = "important" if location=="Unknown" else None
 
             renderer.table_row(variable, member, func, location,
                                highlight=highlight)

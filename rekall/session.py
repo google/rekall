@@ -356,9 +356,11 @@ class Session(object):
         canonical_name = os.path.splitext(os.path.basename(filename))[0]
 
         # The filename is a path we try to open it directly:
-        if "/" in filename:
-            result = obj.Profile.LoadProfileFromContainer(
-                io_manager.Factory(filename), self, name=canonical_name)
+        if filename.startswith("/") or filename.startswith("."):
+            container = io_manager.Factory(os.path.dirname(filename))
+            result = obj.Profile.LoadProfileFromData(
+                container.GetData(os.path.basename(filename)),
+                self, name=canonical_name)
 
         # Traverse the profile path until one works.
         else:
@@ -373,8 +375,8 @@ class Session(object):
             for path in profile_path:
                 try:
                     manager = io_manager.Factory(path)
-                    result = obj.Profile.LoadProfileFromContainer(
-                        manager.OpenSubContainer(filename), self,
+                    result = obj.Profile.LoadProfileFromData(
+                        manager.GetData(filename), self,
                         name=canonical_name)
                     logging.info("Loaded profile %s from %s",
                                  filename, manager)

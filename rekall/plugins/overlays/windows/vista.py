@@ -26,34 +26,32 @@ This file provides support for windows XP SP3. We provide a profile
 for SP3.
 """
 
-from rekall import obj
+# pylint: disable=protected-access
+
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import windows
-from rekall.plugins.overlays.windows import xp
 
 
-# In windows 7 the VadRoot is actually composed from _MMADDRESS_NODEs instead of
-# _MMVAD structs.
 vista_overlays = {
-    '_EPROCESS': [ None, {
+    '_EPROCESS': [None, {
             # A symbolic link to the real vad root.
             'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
             }],
 
-    '_MMADDRESS_NODE': [ None, {
+    '_MMADDRESS_NODE': [None, {
             'Tag': [-4, ['String', dict(length=4)]],
             }],
 
-    '_MMVAD_SHORT': [ None, {
-            'Tag': [-4 , ['String', dict(length = 4)]],
+    '_MMVAD_SHORT': [None, {
+            'Tag': [-4, ['String', dict(length=4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
-    '_MMVAD': [ None, {
-            'Tag': [-4 , ['String', dict(length = 4)]],
+    '_MMVAD': [None, {
+            'Tag': [-4, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
@@ -61,8 +59,8 @@ vista_overlays = {
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
 
-    '_MMVAD_LONG': [ None, {
-            'Tag': [-4 , ['String', dict(length = 4)]],
+    '_MMVAD_LONG': [None, {
+            'Tag': [-4, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
@@ -71,7 +69,8 @@ vista_overlays = {
             }],
 
     "_CONTROL_AREA": [None, {
-            'FilePointer': [None, ['_EX_FAST_REF', dict(target="_FILE_OBJECT")]],
+            'FilePointer': [None, ['_EX_FAST_REF', dict(
+                        target="_FILE_OBJECT")]],
             }],
     }
 
@@ -111,7 +110,7 @@ class AbstractVistaProfile(windows.BaseWindowsProfile):
 
     def __init__(self, **kwargs):
         super(AbstractVistaProfile, self).__init__(**kwargs)
-        self.add_constants(PoolAlignment = 8)
+        self.add_constants(PoolAlignment=8)
 
         self.add_overlay(vista_overlays)
 
@@ -120,44 +119,20 @@ class AbstractVistaProfile(windows.BaseWindowsProfile):
                 _MMADDRESS_NODE=_MMADDRESS_NODE
                 ))
 
-class VistaSP0x86(obj.Profile):
-    """ A Profile for Windows Vista SP0 x86 """
-    _md_build = 6000
-    _md_memory_model = '32bit'
-
-
-class VistaSP0x64(obj.Profile):
-    """ A Profile for Windows Vista SP0 x64 """
-    _md_build = 6000
-    _md_memory_model = '64bit'
-
-
-class VistaSP1x86(basic.Profile32Bits, AbstractVistaProfile):
-    """A Profile for Windows Vista SP1 x86."""
+class WinVistax86(basic.Profile32Bits, AbstractVistaProfile):
+    """A Profile for Windows Vista x86."""
     _md_build = 6001
     _md_memory_model = '32bit'
 
 
-class VistaSP1x86PAE(VistaSP1x86):
-    """A Profile for Windows Vista SP1 x86 PAE."""
+class WinVistax86PAE(WinVistax86):
+    """A Profile for Windows Vista x86 PAE."""
     # For now we pretend its the same as the non PAE version. TODO: generate
     # profiles.
     _md_pae = True
 
 
-class VistaSP1x64(basic.ProfileLLP64, AbstractVistaProfile):
-    """A Profile for Windows Vista SP1 x64."""
+class WinVistax64(basic.ProfileLLP64, AbstractVistaProfile):
+    """A Profile for Windows Vista x64."""
     _md_build = 6001
-    _md_memory_model = '64bit'
-
-
-class VistaSP2x86(basic.Profile32Bits, AbstractVistaProfile):
-    """ A Profile for Windows Vista SP2 x86 """
-    _md_build = 6002
-    _md_memory_model = '32bit'
-
-
-class VistaSP2x64(basic.ProfileLLP64, AbstractVistaProfile):
-    """ A Profile for Windows Vista SP2 x64 """
-    _md_build = 6002
     _md_memory_model = '64bit'

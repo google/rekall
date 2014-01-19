@@ -392,7 +392,7 @@ class NTFS_ATTRIBUTE(obj.Struct):
                 yield i
 
 
-class NTFSProfile(basic.ProfileLLP64, basic.BasicWindowsClasses):
+class NTFSProfile(basic.ProfileLLP64, basic.BasicClasses):
     """A profile for the NTFS."""
 
     def __init__(self, **kwargs):

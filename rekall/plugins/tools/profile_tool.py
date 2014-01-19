@@ -95,6 +95,7 @@ from rekall import registry
 from rekall import testlib
 from rekall import utils
 
+from rekall.plugins import core
 from rekall.plugins.overlays.linux import dwarfdump
 from rekall.plugins.overlays.linux import dwarfparser
 
@@ -105,9 +106,10 @@ class ProfileConverter(object):
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
-    def __init__(self, input, output, profile_class=None):
+    def __init__(self, input, output, profile_class=None, session=None):
         self.input = input
         self.output = output
+        self.session = session
         self.profile_class = profile_class
 
     def SelectFile(self, regex):
@@ -116,15 +118,21 @@ class ProfileConverter(object):
             if re.search(regex, f, re.I):
                 return self.input.Open(f).read()
 
-    def WriteProfile(self, system_map, vtypes):
+    def BuildProfile(self, system_map, vtypes):
         # Sorting the json keys usually achieves much smaller file size due to
         # better compression. Its worth doing it once on conversion.
-        self.output.StoreData("Constants.json", system_map)
-        self.output.StoreData("vtypes.json", vtypes)
-        self.output.StoreData("metadata", dict(
-                ProfileClass=self.profile_class,
-                Constants="Constants.json",
-                VTypes="vtypes.json"))
+        result = {
+            "$METADATA": dict(ProfileClass=self.profile_class,
+                              Type="Profile", Version=1),
+            "$CONSTANTS": system_map,
+            "$STRUCTS": vtypes
+            }
+
+        return result
+
+    def WriteProfile(self, profile_file):
+        self.output.write(utils.PPrint(profile_file))
+
 
     def Convert(self):
         raise RuntimeError("Unknown profile format.")
@@ -161,9 +169,9 @@ class LinuxConverter(ProfileConverter):
             except ValueError:
                 pass
 
-        return sys_map
+            return sys_map
 
-    def WriteProfile(self, system_map, vtypes):
+    def BuildProfile(self, system_map, vtypes):
         """Write all the components needed for the output profile."""
         # Try to guess the bit size of the system if not provided.
         if self.profile_class is None:
@@ -173,7 +181,10 @@ class LinuxConverter(ProfileConverter):
             else:
                 self.profile_class = "%s32" % self.BASE_PROFILE_CLASS
 
-        super(LinuxConverter, self).WriteProfile(system_map, vtypes)
+        result = super(LinuxConverter, self).BuildProfile(system_map, vtypes)
+        result["$ENUMS"] = vtypes.pop("$ENUMS", {})
+
+        return result
 
     def Convert(self):
         # Check for a linux profile. It should have a System.map in it.
@@ -185,13 +196,11 @@ class LinuxConverter(ProfileConverter):
             ko_file = self.SelectFile(r"\.ko$")
             if ko_file:
                 logging.info("Converting Linux profile with ko module.")
-                parser = dwarfparser.DWARFParser(StringIO.StringIO(ko_file))
+                parser = dwarfparser.DWARFParser(StringIO.StringIO(ko_file),
+                                                 session=self.session)
 
-                # Also write the ko file to ensure we get to keep it.
-                with self.output.Create("module.ko") as fd:
-                    fd.write(ko_file)
-
-                return self.WriteProfile(system_map, parser.VType())
+                profile_file = self.BuildProfile(system_map, parser.VType())
+                return self.WriteProfile(profile_file)
 
             dwarf_file = self.SelectFile(r"\.dwarf$")
             if dwarf_file:
@@ -204,14 +213,8 @@ class LinuxConverter(ProfileConverter):
                 l = {}
                 exec(parser.print_output(), {}, l)
 
-                return self.WriteProfile(system_map, l["linux_types"])
-
-            # This is here just so we can transform Rekall profiles to Rekall
-            # profiles.
-            json_file = self.SelectFile(r"\.json$")
-            if json_file:
-                logging.info("Converting Linux profile with json vtype.")
-                return self.WriteProfile(system_map, json.loads(json_file))
+                profile_file = self.BuildProfile(system_map, l["linux_types"])
+                return self.WriteProfile(profile_file)
 
         raise RuntimeError("Unknown profile format.")
 
@@ -266,14 +269,8 @@ class OSXConverter(LinuxConverter):
                 l = {}
                 exec(vtype_file, {}, l)
 
-                return self.WriteProfile(system_map, l["mac_types"])
-
-            # This is here just so we can transform Rekall profiles to Rekall
-            # profiles.
-            json_file = self.SelectFile(r"\.json$")
-            if json_file:
-                logging.info("Converting Darwin profile with json vtype.")
-                return self.WriteProfile(system_map, json.loads(json_file))
+                profile_file = self.BuildProfile(system_map, l["mac_types"])
+                return self.WriteProfile(profile_file)
 
         raise RuntimeError("Unknown profile format.")
 
@@ -293,10 +290,11 @@ class WindowsConverter(ProfileConverter):
             l = {}
             exec(fd.read(), {}, l)
 
-        return self.WriteProfile({}, l["ntkrnlmp_types"])
+        profile_file = self.BuildProfile({}, l["ntkrnlmp_types"])
+        self.WriteProfile(profile_file)
 
 
-class ConvertProfile(plugin.Command):
+class ConvertProfile(core.OutputFileMixin, plugin.Command):
     """Convert a profile from another program to the Rekall format.
 
     The Rekall profile format is optimized for loading at runtime. This plugin
@@ -311,8 +309,6 @@ class ConvertProfile(plugin.Command):
     @classmethod
     def args(cls, parser):
         """Declare the command line args we need."""
-        super(ConvertProfile, cls).args(parser)
-
         parser.add_argument(
             "--profile_class", default=None,
             help="The name of the profile implementation to specify. "
@@ -326,24 +322,22 @@ class ConvertProfile(plugin.Command):
         parser.add_argument("source",
                             help="Filename of profile to read.")
 
-        parser.add_argument("destination",
-                            help="Filename of profile to write.")
+        super(ConvertProfile, cls).args(parser)
 
-    def __init__(self, profile_class=None, converter=None, source=None,
-                 destination=None, **kwargs):
+    def __init__(self, source=None, profile_class=None, converter=None,
+                 **kwargs):
         super(ConvertProfile, self).__init__(**kwargs)
         self.profile_class = profile_class
         self.converter = converter
         self.source = source
-        self.destination = destination
 
     def ConvertProfile(self, input, output):
         """Converts the input profile to a new standard profile in output."""
         # First detect what kind of profile the input profile is.
         for converter in (LinuxConverter, OSXConverter):
             try:
-                converter(input, output).Convert()
-                logging.info("Converted %s to %s", input, output)
+                converter(input, output, session=self.session).Convert()
+                logging.info("Converted %s to %s", input, output.name)
                 return
             except RuntimeError:
                 pass
@@ -352,19 +346,12 @@ class ConvertProfile(plugin.Command):
             "No suitable converter found - profile not recognized.")
 
     def render(self, renderer):
-        try:
-            output = io_manager.Factory(self.destination, mode="w")
-        except IOError:
-            logging.critical("Output profile File %s could not be opened.",
-                             self.destination)
-            return
-
         if self.converter:
             cls = ProfileConverter.classes.get(self.converter)
             if not cls:
                 raise IOError("Unknown converter %s" % self.converter)
 
-            return cls(self.source, output,
+            return cls(self.source, self.output,
                        profile_class=self.profile_class).Convert()
 
         try:
@@ -374,8 +361,8 @@ class ConvertProfile(plugin.Command):
                              self.source)
             return
 
-        with input, output:
-            self.ConvertProfile(input, output)
+        with input, self.output:
+            self.ConvertProfile(input, self.output)
 
 
 class TestConvertProfile(testlib.DisabledTest):
@@ -481,4 +468,4 @@ class BuiltInProfiles(io_manager.BuiltInManager):
 
         with open(self.output, "wb") as fd:
             fd.write(self.CODE_TEMPLATE % utils.PPrint(self.data))
-            logging.info("Wrote compressed profile into %s", self.destination)
+            logging.info("Wrote compressed profile into %s", self.out_file.name)

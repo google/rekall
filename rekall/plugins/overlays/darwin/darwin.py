@@ -653,7 +653,7 @@ class OSOrderedSet(obj.Struct):
             yield item.obj.dereference_as(type_name)
 
 
-class Darwin32(basic.Profile32Bits, basic.BasicWindowsClasses):
+class Darwin32(basic.Profile32Bits, basic.BasicClasses):
     """A Darwin profile."""
     _md_os = "darwin"
     _md_memory_model = "32bit"

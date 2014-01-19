@@ -1137,9 +1137,9 @@ class Profile(object):
     system. We parse the abstract_types and join them with
     native_types to make everything work together.
     """
-    # This is the dict which holds the overlays to be applied to the vtypes when
-    # compiling into types.
-    overlay = None
+    # This is the list of overlays to be applied to the vtypes when compiling
+    # into types.
+    overlays = None
 
     # These are the vtypes - they are just a dictionary describing the types
     # using the "vtype" language. This dictionary will be compiled into
@@ -1164,11 +1164,12 @@ class Profile(object):
     EMPTY_DESCRIPTOR = [0, {}]
 
     @classmethod
-    def LoadProfileFromContainer(cls, container, session, name=None):
-        """Try to load a profile directly from a filename.
+    def LoadProfileFromData(cls, data, session=None, name=None):
+        """Try to load a profile directly from a JSON object.
 
         Args:
-          container: An instance of IOManager.
+          data: A data structure of an encoded profile. Described:
+          http://docs.rekall.googlecode.com/git/development.html#_profile_serializations
 
         Returns:
           a Profile() instance.
@@ -1176,23 +1177,40 @@ class Profile(object):
         Raises:
           IOError if we can not load the profile.
         """
-        metadata = container.GetData("metadata")
+        metadata = data.get("$METADATA")
         if metadata:
-            profile_cls = cls.classes.get(
-                metadata["ProfileClass"])
+            profile_type = metadata.get("Type", "Profile")
+
+            # Support a symlink profile - this is a profile which is a short,
+            # human meaningful name for another profile.
+            if profile_type == "Symlink":
+                return session.LoadProfile(metadata.get("Target"))
+
+            profile_cls = cls.classes.get(metadata["ProfileClass"])
 
             if profile_cls is None:
+                logging.warn("No profile implementation class %s" %
+                             metadata["ProfileClass"])
+
                 raise IOError(
                     "No profile implementation class %s" %
                     metadata["ProfileClass"])
 
             result = profile_cls(name=name, session=session)
-            constants = container.GetData(metadata.get("Constants"))
-            if constants:
-                result.add_constants(constants_are_addresses=True,
-                                     **constants)
 
-            types = container.GetData(metadata.get("VTypes"))
+            # The constants
+            constants = data.get("$CONSTANTS")
+            if constants:
+                result.add_constants(
+                    constants_are_addresses=True, **constants)
+
+            # The enums
+            enums = data.get("$ENUMS")
+            if enums:
+                result.add_constants(
+                    constants_are_addresses=False, **enums)
+
+            types = data.get("$STRUCTS")
             if types:
                 result.add_types(types)
 
@@ -1375,8 +1393,6 @@ class Profile(object):
                     if original_v:
                         members[k] = (original_v[0],
                                       self.list_to_type(k, original_v[1]))
-                    else:
-                        members[k] = v
 
                 elif v[0] == None:
                     logging.warning(

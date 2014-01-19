@@ -105,11 +105,11 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
 
     @classmethod
     def args(cls, parser):
-        super(FetchPDB, cls).args(parser)
-
         parser.add_argument(
             "--filename", default=None,
             help="The filename of the executable to get the PDB file for.")
+
+        super(FetchPDB, cls).args(parser)
 
     def __init__(self, filename=None, **kwargs):
         super(FetchPDB, self).__init__(**kwargs)
@@ -571,7 +571,7 @@ class _PDB_ROOT_700(obj.Struct):
                     self.SUPPORTED_STREAMS[i], vm=address_space)
 
 
-class PDBProfile(basic.Profile32Bits, basic.BasicWindowsClasses):
+class PDBProfile(basic.Profile32Bits, basic.BasicClasses):
     """A profile to parse Microsoft PDB files.
 
     Note that this is built on top of the mspdb profile which exists in the
@@ -707,10 +707,6 @@ class TPI(object):
 
                 yield struct_name, definition
 
-        # Yield all the enums.
-        yield "$ENUM", self.enums
-
-
     def DefinitionByIndex(self, idx):
         """Return the vtype definition of the item identified by idx."""
         if idx < 0x700:
@@ -742,14 +738,30 @@ class ParsePDB(plugin.Command):
             "-f", "--filename", default=None,
             help="The filename of the PDB file.")
 
-    def __init__(self, filename=None, **kwargs):
+        parser.add_argument(
+            "--profile_class", default="BaseWindowsProfile",
+            help="The name of the profile implementation. ")
+
+    def __init__(self, filename=None, profile_class=None, **kwargs):
         super(ParsePDB, self).__init__(**kwargs)
         self.tpi = TPI(filename, self.session)
+        self.profile_class = profile_class
 
     def render(self, renderer):
         vtypes = {}
+
         for i, (struct_name, definition) in enumerate(self.tpi.Structs()):
             self.session.report_progress(" %s: %s", i, struct_name)
             vtypes[str(struct_name)] = definition
 
-        renderer.write(utils.PPrint(vtypes))
+        result = {
+            "$METADATA": dict(
+                Type="Profile",
+
+                # This should probably be changed for something more specific.
+                ProfileClass=self.profile_class),
+            "$STRUCTS": vtypes,
+            }
+
+
+        renderer.write(utils.PPrint(result))
