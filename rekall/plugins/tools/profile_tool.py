@@ -169,7 +169,7 @@ class LinuxConverter(ProfileConverter):
             except ValueError:
                 pass
 
-            return sys_map
+        return sys_map
 
     def BuildProfile(self, system_map, vtypes):
         """Write all the components needed for the output profile."""
