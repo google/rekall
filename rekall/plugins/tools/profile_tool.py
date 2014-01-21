@@ -324,9 +324,9 @@ class ConvertProfile(core.OutputFileMixin, plugin.Command):
 
         super(ConvertProfile, cls).args(parser)
 
-    def __init__(self, source=None, profile_class=None, converter=None,
-                 **kwargs):
-        super(ConvertProfile, self).__init__(**kwargs)
+    def __init__(self, source=None, out_file=None,
+                 profile_class=None, converter=None, **kwargs):
+        super(ConvertProfile, self).__init__(out_file=out_file, **kwargs)
         self.profile_class = profile_class
         self.converter = converter
         self.source = source

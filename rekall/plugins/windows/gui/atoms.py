@@ -17,10 +17,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+# pylint: disable=protected-access
 
 from rekall import obj
-from rekall import utils
-from rekall import scan
 
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import win32k_core
@@ -53,10 +52,10 @@ class AtomScan(common.PoolScannerPlugin):
 
     @classmethod
     def args(cls, parser):
-        parser.add_argument("-S", "--sort-by",
-                            choices=["atom", "refcount", "offset"],
-                            default = "offset",
-                            help = "Sort by [offset | atom | refcount]")
+        parser.add_argument(
+            "-S", "--sort-by",
+            choices=["atom", "refcount", "offset"], default="offset",
+            help="Sort by [offset | atom | refcount]")
 
     def __init__(self, sort_by=None, **kwargs):
         super(AtomScan, self).__init__(**kwargs)
@@ -68,11 +67,12 @@ class AtomScan(common.PoolScannerPlugin):
                                address_space=self.address_space)
 
         for pool_header in scanner.scan():
-            # Note: all OS after XP, there are an extra 8 bytes (for 32-bit)
-            # or 16 bytes (for 64-bit) between the _POOL_HEADER and _RTL_ATOM_TABLE.
-            # This is variable length structure, so we can't use the bottom-up
-            # approach as we do with other object scanners - because the size of an
-            # _RTL_ATOM_TABLE differs depending on the number of hash buckets.
+            # Note: all OS after XP, there are an extra 8 bytes (for 32-bit) or
+            # 16 bytes (for 64-bit) between the _POOL_HEADER and
+            # _RTL_ATOM_TABLE.  This is variable length structure, so we can't
+            # use the bottom-up approach as we do with other object scanners -
+            # because the size of an _RTL_ATOM_TABLE differs depending on the
+            # number of hash buckets.
 
             build = self.profile.metadatas('major', 'minor')
             fixup = 0
@@ -121,7 +121,7 @@ class AtomScan(common.PoolScannerPlugin):
             else:
                 attr = "obj_offset"
 
-            for atom in sorted(atoms, key = lambda x: getattr(x, attr)):
+            for atom in sorted(atoms, key=lambda x: getattr(x, attr)):
                 renderer.table_row(atom_table.obj_offset,
                                    atom.obj_offset,
                                    atom.Atom, atom.ReferenceCount,

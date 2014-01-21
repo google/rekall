@@ -24,41 +24,25 @@
 @contact:      brendandg@gatech.edu
 @organization: Georgia Institute of Technology
 """
-import logging
-import json
-import posixpath
-import re
-import sys
-import zipfile
-import StringIO
+# pylint: disable=protected-access
 
 from rekall import obj
-from rekall import plugin
 from rekall import utils
 
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.linux import vfs
-from rekall.plugins.overlays.linux import dwarfdump
 
-# Try to use the elftools directly if they are present.
-try:
-    from rekall.plugins.overlays.linux import dwarfparser
-
-    logging.info("Unable to load the dwarfparser module. Do you have "
-                 "elftools installed?")
-except ImportError:
-    dwarfparser = None
 
 linux_overlay = {
     'task_struct' : [None, {
-            'comm': [None , ['UnicodeString', dict(length = 16)]],
+            'comm': [None, ['UnicodeString', dict(length=16)]],
             'uid': lambda x: x.m("uid") or x.cred.uid,
             'gid': lambda x: x.m("gid") or x.cred.gid,
             'euid': lambda x: x.m("euid") or x.cred.euid,
             }],
 
     'module' : [None, {
-            'name': [None , ['UnicodeString', dict(length = 60)]],
+            'name': [None, ['UnicodeString', dict(length=60)]],
             'kp': [None, ['Pointer', dict(
                         target='Array',
                         target_args=dict(
@@ -67,7 +51,7 @@ linux_overlay = {
             }],
 
     'kernel_param': [None, {
-            'name' : [None , ['Pointer', dict(target='UnicodeString')]],
+            'name' : [None, ['Pointer', dict(target='UnicodeString')]],
             'getter_addr': lambda x: (x.m("get") or x.ops.get),
             }],
 
@@ -76,31 +60,46 @@ linux_overlay = {
             }],
 
     'super_block' : [None, {
-        's_id' : [None , ['UnicodeString', dict(length = 32)]],
+        's_id' : [None, ['UnicodeString', dict(length=32)]],
         'major': lambda x: x.s_dev >> 20,
         'minor': lambda x: x.s_dev & ((1 << 20) - 1),
         }],
 
     'net_device'  : [None, {
-            # Flags defined in include/linux/if.h
             'flags': [None, ['Flags', dict(
-                        maskmap={
-                            "IFF_UP":           0x1,  # interface is up
-                            "IFF_BROADCAST":    0x2,  # broadcast address valid
-                            "IFF_DEBUG":        0x4,  # turn on debugging
-                            "IFF_LOOPBACK":     0x8,  # is a loopback net
-                            "IFF_POINTOPOINT": 0x10,  # interface is has p-p link
-                            "IFF_NOTRAILERS":  0x20,  # avoid use of trailers
-                            "IFF_RUNNING":     0x40,  # interface RFC2863 OPER_UP
-                            "IFF_NOARP":       0x80,  # no ARP protocol
-                            "IFF_PROMISC":     0x100, # receive all packets
-                            "IFF_ALLMULTI":    0x200,
-                            }
-                        )]],
+                        maskmap=utils.MaskMapFromDefines("""
+http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
 
-            'name' : [None , ['UnicodeString', dict(length = 16)]],
+/* Standard interface flags (netdevice->flags). */
+ 30 #define IFF_UP          0x1             /* interface is up              */
+ 31 #define IFF_BROADCAST   0x2             /* broadcast address valid      */
+ 32 #define IFF_DEBUG       0x4             /* turn on debugging            */
+ 33 #define IFF_LOOPBACK    0x8             /* is a loopback net            */
+ 34 #define IFF_POINTOPOINT 0x10            /* interface is has p-p link    */
+ 35 #define IFF_NOTRAILERS  0x20            /* avoid use of trailers        */
+ 36 #define IFF_RUNNING     0x40            /* interface RFC2863 OPER_UP    */
+ 37 #define IFF_NOARP       0x80            /* no ARP protocol              */
+ 38 #define IFF_PROMISC     0x100           /* receive all packets          */
+ 39 #define IFF_ALLMULTI    0x200           /* receive all multicast packets*/
+ 40
+ 41 #define IFF_MASTER      0x400           /* master of a load balancer    */
+ 42 #define IFF_SLAVE       0x800           /* slave of a load balancer     */
+ 43
+ 44 #define IFF_MULTICAST   0x1000          /* Supports multicast           */
+ 45
+ 46 #define IFF_PORTSEL     0x2000          /* can set media type           */
+ 47 #define IFF_AUTOMEDIA   0x4000          /* auto media select active     */
+ 48 #define IFF_DYNAMIC     0x8000          /* dialup device with changing addresses*/
+ 49
+ 50 #define IFF_LOWER_UP    0x10000         /* driver signals L1 up         */
+ 51 #define IFF_DORMANT     0x20000         /* driver signals dormant       */
+ 52
+ 53 #define IFF_ECHO        0x40000         /* echo sent packets            */
+"""))]],
+            'name' : [None, ['UnicodeString', dict(length=16)]],
 
-            'mac_addr': lambda x: (x.perm_addr or x.dev_addr).cast("MacAddress"),
+            'mac_addr': lambda x: (x.perm_addr or x.dev_addr).cast(
+                "MacAddress"),
 
             'ip_ptr': [None, ['Pointer', dict(target="in_device")]],
             }],
@@ -111,12 +110,12 @@ linux_overlay = {
             }],
 
     'sockaddr_un' : [None, {
-        'sun_path'      : [ None , ['UnicodeString', dict(length =108)]],
+        'sun_path'      : [None, ['UnicodeString', dict(length=108)]],
         }],
 
     'cpuinfo_x86' : [None, {
-        'x86_model_id'  : [ None , ['UnicodeString', dict(length = 64)]],
-        'x86_vendor_id' : [ None,  ['UnicodeString', dict(length = 16)]],
+        'x86_model_id'  : [None, ['UnicodeString', dict(length=64)]],
+        'x86_vendor_id' : [None, ['UnicodeString', dict(length=16)]],
         }],
 
     'module_sect_attr': [None, {
@@ -124,7 +123,7 @@ linux_overlay = {
             }],
 
     # The size of the log record is stored in the len member.
-    'log': [lambda x: x.len, {
+    'log': [lambda x: x.m("len"), {
             # The log message starts after the level member.
             'message': [lambda x: x.flags.obj_offset + x.flags.size(),
                         ['UnicodeString', dict(
@@ -155,7 +154,7 @@ linux_overlay = {
             "vfsmnt": lambda x: x.m("f_vfsmnt") or x.f_path.mnt,
             }],
 
-    'vm_area_struct' : [ None, {
+    'vm_area_struct' : [None, {
             'vm_flags' : [None, ['PermissionFlags', dict(
                         bitmap={
                             'r': 0,
@@ -286,30 +285,48 @@ linux_overlay = {
             "sk_protocol": [None, ["Enumeration", dict(
                         # http://lxr.free-electrons.com/source/include/uapi/linux/in.h?#L26
                         choices={
-                            0:"IPPROTO_HOPOPT",               # Dummy protocol forTCP
-                            1:"IPPROTO_ICMP",             # Internet Control Message Protocol
-                            2:"IPPROTO_IGMP",             # Internet Group Management Protocol
-                            4:"IPPROTO_IPV4",             # IPIP tunnels (older KA9Q tunnels use 94)
-                            6:"IPPROTO_TCP",              # Transmission Control Protocol
-                            8:"IPPROTO_EGP",              # Exterior Gateway Protocol
-                            12:"IPPROTO_PUP",             # PUP protocol
-                            17:"IPPROTO_UDP",             # User Datagram Protocol
-                            22:"IPPROTO_IDP",             # XNS IDP protocol
-                            29:"IPPROTO_TP",              # SO Transport Protocol Class 4
-                            33:"IPPROTO_DCCP",            # Datagram Congestion Control Protocol
-                            41:"IPPROTO_IPV6",            # IPv6-in-IPv4 tunnelling
-                            46:"IPPROTO_RSVP",            # RSVP Protocol
-                            47:"IPPROTO_GRE",             # Cisco GRE tunnels (rfc 1701",1702)
-                            50:"IPPROTO_ESP",             # Encapsulation Security Payload protocol
-                            51:"IPPROTO_AH",              # Authentication Header protocol
-                            92:"IPPROTO_MTP",             # Multicast Transport Protocol
-                            94:"IPPROTO_BEETPH",          # IP option pseudo header for BEET
-                            98:"IPPROTO_ENCAP",           # Encapsulation Header
-                            103:"IPPROTO_PIM",            # Protocol Independent Multicast
-                            108:"IPPROTO_COMP",           # Compression Header Protocol
-                            132:"IPPROTO_SCTP",           # Stream Control Transport Protocol
-                            136:"IPPROTO_UDPLITE",        # UDP-Lite (RFC 3828)
-                            255:"IPPROTO_RAW",            # Raw IP packets
+                            0:"IPPROTO_HOPOPT", # Dummy protocol forTCP
+
+                            # Internet Control Message Protocol
+                            1:"IPPROTO_ICMP",
+
+                            # Internet Group Management Protocol
+                            2:"IPPROTO_IGMP",
+
+                            # IPIP tunnels (older KA9Q tunnels use 94)
+                            4:"IPPROTO_IPV4",
+                            6:"IPPROTO_TCP", # Transmission Control Protocol
+                            8:"IPPROTO_EGP", # Exterior Gateway Protocol
+                            12:"IPPROTO_PUP", # PUP protocol
+                            17:"IPPROTO_UDP", # User Datagram Protocol
+                            22:"IPPROTO_IDP", # XNS IDP protocol
+                            29:"IPPROTO_TP", # SO Transport Protocol Class 4
+
+                            # Datagram Congestion Control Protocol
+                            33:"IPPROTO_DCCP",
+                            41:"IPPROTO_IPV6", # IPv6-in-IPv4 tunnelling
+                            46:"IPPROTO_RSVP", # RSVP Protocol
+
+                            # Cisco GRE tunnels (rfc 1701",1702)
+                            47:"IPPROTO_GRE",
+
+                            # Encapsulation Security Payload protocol
+                            50:"IPPROTO_ESP",
+                            51:"IPPROTO_AH", # Authentication Header protocol
+
+                            # Multicast Transport Protocol
+                            92:"IPPROTO_MTP",
+
+                            # IP option pseudo header for BEET
+                            94:"IPPROTO_BEETPH",
+                            98:"IPPROTO_ENCAP", # Encapsulation Header
+                            103:"IPPROTO_PIM", # Protocol Independent Multicast
+                            108:"IPPROTO_COMP", # Compression Header Protocol
+
+                            # Stream Control Transport Protocol
+                            132:"IPPROTO_SCTP",
+                            136:"IPPROTO_UDPLITE", # UDP-Lite (RFC 3828)
+                            255:"IPPROTO_RAW", # Raw IP packets
                             },
                         target="BitField",
                         target_args=dict(
@@ -336,18 +353,54 @@ linux_overlay = {
                         )]],
 
             "skc_family": [None, ["Enumeration", dict(
-                        # Partial List
-                        # from: http://lxr.free-electrons.com/source/include/linux/socket.h#L140
-                        choices={
-                            0:"AF_UNSPEC",
-                            1:"AF_UNIX",        # Unix domain sockets
-                            2:"AF_INET",        # Internet IP Protocol
-                            3:"AF_AX25",        # Amateur Radio AX.25
-                            4:"AF_IPX",         # Novell IPX
-                            5:"AF_APPLETALK",   # AppleTalk DDP
-                            7:"AF_BRIDGE",      # Multiprotocol bridge
-                            10:"AF_INET6",      # IP version 6
-                            },
+                        choices=utils.EnumerationFromDefines("""
+http://lxr.free-electrons.com/source/include/linux/socket.h#L140
+
+/* Supported address families. */
+141 #define AF_UNSPEC       0
+142 #define AF_UNIX         1       /* Unix domain sockets          */
+143 #define AF_LOCAL        1       /* POSIX name for AF_UNIX       */
+144 #define AF_INET         2       /* Internet IP Protocol         */
+145 #define AF_AX25         3       /* Amateur Radio AX.25          */
+146 #define AF_IPX          4       /* Novell IPX                   */
+147 #define AF_APPLETALK    5       /* AppleTalk DDP                */
+148 #define AF_NETROM       6       /* Amateur Radio NET/ROM        */
+149 #define AF_BRIDGE       7       /* Multiprotocol bridge         */
+150 #define AF_ATMPVC       8       /* ATM PVCs                     */
+151 #define AF_X25          9       /* Reserved for X.25 project    */
+152 #define AF_INET6        10      /* IP version 6                 */
+153 #define AF_ROSE         11      /* Amateur Radio X.25 PLP       */
+154 #define AF_DECnet       12      /* Reserved for DECnet project  */
+155 #define AF_NETBEUI      13      /* Reserved for 802.2LLC project*/
+156 #define AF_SECURITY     14      /* Security callback pseudo AF */
+157 #define AF_KEY          15      /* PF_KEY key management API */
+158 #define AF_NETLINK      16
+
+160 #define AF_PACKET       17      /* Packet family                */
+161 #define AF_ASH          18      /* Ash                          */
+162 #define AF_ECONET       19      /* Acorn Econet                 */
+163 #define AF_ATMSVC       20      /* ATM SVCs                     */
+164 #define AF_RDS          21      /* RDS sockets                  */
+165 #define AF_SNA          22      /* Linux SNA Project (nutters!) */
+166 #define AF_IRDA         23      /* IRDA sockets                 */
+167 #define AF_PPPOX        24      /* PPPoX sockets                */
+168 #define AF_WANPIPE      25      /* Wanpipe API Sockets */
+169 #define AF_LLC          26      /* Linux LLC                    */
+170 #define AF_IB           27      /* Native InfiniBand address    */
+171 #define AF_CAN          29      /* Controller Area Network      */
+172 #define AF_TIPC         30      /* TIPC sockets                 */
+173 #define AF_BLUETOOTH    31      /* Bluetooth sockets            */
+174 #define AF_IUCV         32      /* IUCV sockets                 */
+175 #define AF_RXRPC        33      /* RxRPC sockets                */
+176 #define AF_ISDN         34      /* mISDN sockets                */
+177 #define AF_PHONET       35      /* Phonet sockets               */
+178 #define AF_IEEE802154   36      /* IEEE802154 sockets           */
+179 #define AF_CAIF         37      /* CAIF sockets                 */
+180 #define AF_ALG          38      /* Algorithm sockets            */
+181 #define AF_NFC          39      /* NFC sockets                  */
+182 #define AF_VSOCK        40      /* vSockets                     */
+183 #define AF_MAX          41      /* For now.. */
+"""),
                         target="short unsigned int"
                         )]],
             }],
@@ -426,21 +479,21 @@ class files_struct(obj.Struct):
 class dentry(obj.Struct):
     @property
     def path(self):
-        dentry = self
+        dentry_ = self
 
         path_components = []
 
-        # Check for deleted dentry.
+        # Check for deleted dentry_.
         if self.d_flags.DCACHE_UNHASHED and not self.is_root:
             return " (deleted) "
 
         while len(path_components) < 50:
-            if dentry.is_root:
+            if dentry_.is_root:
                 break
 
-            component = utils.SmartUnicode(dentry.d_name.name.deref())
+            component = utils.SmartUnicode(dentry_.d_name.name.deref())
             path_components = [component] + path_components
-            dentry = dentry.d_parent
+            dentry_ = dentry_.d_parent
 
         result = '/'.join(filter(None, path_components))
 
@@ -500,7 +553,7 @@ class task_struct(obj.Struct):
         try:
             process_as = self.obj_vm.__class__(
                 base=self.obj_vm.base, session=self.obj_vm.session,
-                dtb = directory_table_base)
+                dtb=directory_table_base)
 
         except AssertionError, _e:
             return obj.NoneObject("Unable to get process AS")
@@ -546,7 +599,9 @@ class timespec(obj.Struct):
 
     @property
     def total_sleep_time(self):
-        total_sleep_time_addr = self.obj_profile.get_constant("total_sleep_time")
+        total_sleep_time_addr = self.obj_profile.get_constant(
+            "total_sleep_time")
+
         if total_sleep_time_addr:
             return self.obj_profile.timespec(
                 vm=self.obj_vm, offset=total_sleep_time_addr)

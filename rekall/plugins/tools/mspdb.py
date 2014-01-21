@@ -77,6 +77,7 @@ http://undocumented.rawol.com/win_pdbx.zip: ./sbs_sdk/include/pdb_info.h
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import re
 import logging
 import ntpath
 import os
@@ -113,7 +114,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
 
     def __init__(self, filename=None, **kwargs):
         super(FetchPDB, self).__init__(**kwargs)
-        self.pe = pe_vtypes.PE(filename=filename)
+        self.pe = pe_vtypes.PE(filename=filename, session=self.session)
 
     def render(self, renderer):
         data_directory = self.pe.nt_header.OptionalHeader.DataDirectory[
@@ -209,7 +210,7 @@ LEAF_ENUM_TO_TYPE = dict(
     LF_ENUM="_lfEnum",
     LF_UNION="_lfUnion",
     LF_BITFIELD="_lfBitfield",
-
+    LF_NESTTYPE="_lfNestType",
     LF_CHAR="byte",
     LF_SHORT="short int",
     LF_USHORT="unsigned short int",
@@ -223,6 +224,7 @@ LEAF_ENUM_TO_TYPE = dict(
 LEAF_ENUM_TO_SUBRECORD = dict(
     LF_MEMBER="Member",
     LF_ENUMERATE="Enumerate",
+    LF_NESTTYPE="NestType",
     )
 
 
@@ -283,6 +285,11 @@ mspdb_overlays = {
             }],
 
     "_lfEnum": [None, {
+            # The name of the enum element.
+            "Name": [None, ["String"]],
+            }],
+
+    "_lfNestType": [None, {
             # The name of the enum element.
             "Name": [None, ["String"]],
             }],
@@ -404,10 +411,6 @@ class lfClass(obj.Struct):
         # Record the end of the object
         self.obj_end = obj_end
 
-        if self.name == "<unnamed-tag>":
-            # Generate a unique name for this object.
-            self.name = "__unnamed_%X" % self.obj_offset
-
     def Definition(self, _):
         """Returns the vtype data structure defining this element.
 
@@ -416,7 +419,7 @@ class lfClass(obj.Struct):
           of the target_args.
         """
         # The target is just the name of this class.
-        return str(self.name), {}
+        return [str(self.name), {}]
 
 
 class lfEnumerate(lfClass):
@@ -434,6 +437,27 @@ class lfBitfield(obj.Struct):
             start_bit=int(self.position),
             end_bit=int(self.position) + int(self.length),
             target_args=target_args, target=target)
+
+
+class lfNestType(obj.Struct):
+    UNNAMED_RE = re.compile("<unnamed-type-([^->]+)>")
+
+
+    def __init__(self, **kwargs):
+        super(lfNestType, self).__init__(**kwargs)
+        self.value_ = 0
+        self.name = str(self.Name)
+        m = self.UNNAMED_RE.match(self.name)
+        if m:
+            self.name = m.group(1)
+
+    def size(self):
+        """Our size is the end of the object plus any padding."""
+        return pe_vtypes.RoundUp(self.Name.obj_offset + self.Name.size())
+
+    def Definition(self, tpi):
+        return tpi.DefinitionByIndex(self.index)
+
 
 
 class lfUnion(lfClass):
@@ -595,6 +619,7 @@ class PDBProfile(basic.Profile32Bits, basic.BasicClasses):
                 "_lfProc": lfProc, "_lfEnum": lfEnum,
                 "_lfModifier": lfModifier, "_lfUnion": lfUnion,
                 "_lfBitfield": lfBitfield, "_lfEnumerate": lfEnumerate,
+                "_lfNestType": lfNestType,
                 })
 
 
@@ -702,10 +727,14 @@ class TPI(object):
                 for field in field_list.SubRecord:
                     field_definition = field.value.Definition(self)
                     if field_definition:
+                        if field_definition[0] == "<unnamed-tag>":
+                            field_definition[0] = "%s::<unnamed-type-%s>" % (
+                                struct_name, field.value.name)
+
                         definition[1][str(field.value.name)] = [
                             int(field.value.value_), field_definition]
 
-                yield struct_name, definition
+                yield [struct_name, definition]
 
     def DefinitionByIndex(self, idx):
         """Return the vtype definition of the item identified by idx."""
@@ -752,7 +781,13 @@ class ParsePDB(plugin.Command):
 
         for i, (struct_name, definition) in enumerate(self.tpi.Structs()):
             self.session.report_progress(" %s: %s", i, struct_name)
-            vtypes[str(struct_name)] = definition
+            struct_name = str(struct_name)
+            existing_definition = vtypes.get(struct_name)
+            if existing_definition:
+                # Merge the old definition into the new definition.
+                definition[1].update(existing_definition[1])
+
+            vtypes[struct_name] = definition
 
         result = {
             "$METADATA": dict(
@@ -761,6 +796,7 @@ class ParsePDB(plugin.Command):
                 # This should probably be changed for something more specific.
                 ProfileClass=self.profile_class),
             "$STRUCTS": vtypes,
+            "$ENUMS": self.tpi.enums,
             }
 
 

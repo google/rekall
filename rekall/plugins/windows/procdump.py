@@ -27,7 +27,6 @@ import logging
 import os
 import re
 
-from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.windows import common
 from rekall.plugins import core
 from rekall import args
@@ -78,7 +77,7 @@ class PEDump(common.WinProcessFilter):
             self.out_file = None
 
         # Get the pe profile.
-        self.pe_profile = pe_vtypes.PEProfile()
+        self.pe_profile = self.session.LoadProfile("pe")
 
     def WritePEFile(self, fd=None, address_space=None, image_base=None):
         """Dumps the PE file found into the filelike object.

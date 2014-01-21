@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python
 
 # Rekall
 # Copyright 2013 Google Inc. All Rights Reserved.

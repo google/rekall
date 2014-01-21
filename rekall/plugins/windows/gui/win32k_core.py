@@ -17,10 +17,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+import logging
 
 from rekall import obj
 from rekall.plugins.windows.gui import constants
-from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.overlays.windows import windows
 
 
@@ -648,8 +648,6 @@ class Win32GUIProfile(obj.ProfileModification):
 
     @classmethod
     def modify(cls, profile):
-        profile = pe_vtypes.PEFileImplementation(profile)
-
         # Some constants - These will probably change in win8 which does not
         # allow non ascii tags.
         profile.add_constants(PoolTag_WindowStation="Win\xe4",
@@ -704,7 +702,7 @@ class Win32GUIProfile(obj.ProfileModification):
                         'Signature': [0x0, ['unsigned long']],
                         'NumBuckets': [0xC, ['unsigned long']],
                         'Buckets': [0x10, ['Array', dict(
-                                    count=lambda x : x.NumBuckets,
+                                    count=lambda x: x.NumBuckets,
                                     target="Pointer",
                                     target_args=dict(
                                         target='_RTL_ATOM_TABLE_ENTRY')
@@ -773,8 +771,13 @@ class Win32GUIProfile(obj.ProfileModification):
         if memory_model == "64bit":
             profile.add_overlay({
                     '_RTL_ATOM_TABLE': [None, {
-                            'NumBuckets': [0x18, None],
-                            'Buckets': [0x20, None],
+                            'NumBuckets': [0x18, ['unsigned long']],
+                            'Buckets': [0x20, ['Array', dict(
+                                        count=lambda x: x.NumBuckets,
+                                        target="Pointer",
+                                        target_args=dict(
+                                            target='_RTL_ATOM_TABLE_ENTRY')
+                                        )]],
                             }],
 
                     '_IMAGE_ENTRY_IN_SESSION': [None, {

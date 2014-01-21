@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Rekall
 # Copyright (C) 2012 Michael Cohen <scudette@gmail.com>

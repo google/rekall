@@ -32,9 +32,9 @@ class LinuxDmesg(common.LinuxPlugin):
     __name = "dmesg"
 
     def render(self, renderer):
-        if self.profile.has_type("log"):
-            # Linux 3.x uses a log struct to keep log messages. In this case the log
-            # is a pointer to a variable length array of log messages.
+        if self.profile.get_obj_size("log"):
+            # Linux 3.x uses a log struct to keep log messages. In this case the
+            # log is a pointer to a variable length array of log messages.
             dmesg = self.profile.get_constant_object(
                 "log_buf",
                 vm=self.kernel_address_space,
@@ -65,7 +65,7 @@ class LinuxDmesg(common.LinuxPlugin):
                 "log_buf",
                 vm=self.kernel_address_space,
                 target="Pointer",
-                target_args = dict(
+                target_args=dict(
                     target="UnicodeString",
                     target_args=dict(
                         length=int(self.profile.get_constant_object(

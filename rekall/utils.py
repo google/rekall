@@ -501,3 +501,45 @@ def PPrint(data, depth=0):
 
     return str(data)
 
+
+DEFINE_REGEX = re.compile(r"#define\s+([A-Z0-9_]+)\s+((0x)?[0-9A-Z]+)")
+
+def MaskMapFromDefines(text):
+    """Generates a maskmap dict from a list of #defines.
+
+    This function allows us to copy the relevant #define sections from header
+    files without needing to manually edit them. We get to keep the comments etc
+    for readability.
+    """
+    result = {}
+    for line in text.splitlines():
+        m = DEFINE_REGEX.search(line)
+        if m:
+            name = m.group(1)
+            value = m.group(2)
+            if m.group(3):
+                value = int(value, 16)
+            else:
+                value = int(value)
+
+            result[name] = value
+
+    return result
+
+
+def EnumerationFromDefines(text):
+    """Generate an Enumeration from a list of #defines."""
+    result = {}
+    for line in text.splitlines():
+        m = DEFINE_REGEX.search(line)
+        if m:
+            name = m.group(1)
+            value = m.group(2)
+            if m.group(3):
+                value = int(value, 16)
+            else:
+                value = int(value)
+
+            result[value] = name
+
+    return result

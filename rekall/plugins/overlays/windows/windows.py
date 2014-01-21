@@ -1051,9 +1051,6 @@ class BaseWindowsProfile(basic.BasicClasses):
 
         self.add_overlay(windows_overlay)
 
-        # Also apply basic PE file parsing to the overlays.
-        pe_vtypes.PEFileImplementation.Modify(self)
-
         # Pooltags for common objects.
         self.add_constants(DRIVER_POOLTAG="Dri\xf6",
                            EPROCESS_POOLTAG="Pro\xe3",

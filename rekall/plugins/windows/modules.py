@@ -21,6 +21,7 @@
 #
 
 import bisect
+import re
 
 from rekall import obj
 from rekall.plugins.windows import common
@@ -36,9 +37,17 @@ class Modules(common.WindowsCommandPlugin):
     mod_lookup = None
     modlist = None
 
-    def __init__(self, **kwargs):
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(Modules, cls).args(parser)
+        parser.add_argument("--name_regex",
+                            help="Filter module names by this regex.")
+
+    def __init__(self, name_regex=None, **kwargs):
         """List kernel modules by walking the PsLoadedModuleList."""
         super(Modules, self).__init__(**kwargs)
+        self.name_regex = re.compile(name_regex or ".")
 
     def lsmod(self):
         """ A Generator for modules (uses _KPCR symbols) """
@@ -60,8 +69,8 @@ class Modules(common.WindowsCommandPlugin):
 
         ## Try to iterate over the process list in PsActiveProcessHead
         ## (its really a pointer to a _LIST_ENTRY)
-        PsLoadedModuleList = self.kdbg.PsLoadedModuleList.dereference_as(
-            "_LIST_ENTRY", vm=self.kernel_address_space)
+        PsLoadedModuleList = self.kdbg.PsLoadedModuleList.cast(
+            "Pointer", target="_LIST_ENTRY", vm=self.kernel_address_space)
 
         for l in PsLoadedModuleList.list_of_type("_LDR_DATA_TABLE_ENTRY",
                                                  "InLoadOrderLinks"):
@@ -99,6 +108,10 @@ class Modules(common.WindowsCommandPlugin):
                                ])
 
         for module in self.lsmod():
+            # Skip modules which do not match.
+            if not self.name_regex.search(str(module.FullDllName)):
+                continue
+
             renderer.table_row(module.obj_offset,
                                module.BaseDllName,
                                module.DllBase,

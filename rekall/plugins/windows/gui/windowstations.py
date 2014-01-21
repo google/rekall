@@ -18,10 +18,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from rekall import obj
-from rekall import scan
-from rekall import utils
-
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import win32k_core
 
@@ -32,17 +28,19 @@ class PoolScanWind(common.PoolScanner):
     def __init__(self, **kwargs):
         super(PoolScanWind, self).__init__(**kwargs)
 
-        self.checks = [('PoolTagCheck', dict(
+        self.checks = [
+            ('PoolTagCheck', dict(
                     tag=self.profile.get_constant("PoolTag_WindowStation"))),
 
-                       ('CheckPoolSize',  dict(
+            ('CheckPoolSize', dict(
                     min_size=self.profile.get_obj_size("tagWINDOWSTATION"))),
 
-                       # only look in non-paged or free pools
-                       ('CheckPoolType', dict(paged=False, non_paged=True,
-                                              free=True)),
-                       ('CheckPoolIndex', dict(value = 0)),
-                       ]
+            # only look in non-paged or free pools
+            ('CheckPoolType', dict(paged=False, non_paged=True,
+                                   free=True)),
+
+            ('CheckPoolIndex', dict(value=0)),
+            ]
 
 
 class WndScan(common.PoolScannerPlugin):

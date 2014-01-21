@@ -26,7 +26,6 @@ This file provides support for windows Windows 7 SP 0.
 """
 
 # pylint: disable=protected-access
-
 from rekall import obj
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import windows
@@ -224,6 +223,7 @@ class Win7x86(basic.Profile32Bits, Win7BaseProfile):
     """A Profile for Windows 7 x86."""
     _md_major = 6
     _md_minor = 1
+    _md_build = 7600
     _md_type = "Kernel"
 
 
@@ -231,4 +231,5 @@ class Win7x64(basic.ProfileLLP64, Win7BaseProfile):
     """A Profile for Windows 7 x64."""
     _md_major = 6
     _md_minor = 1
+    _md_build = 7600
     _md_type = "Kernel"

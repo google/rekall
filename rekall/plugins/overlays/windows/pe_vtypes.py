@@ -36,6 +36,8 @@ import copy
 from rekall import addrspace
 from rekall import obj
 from rekall import utils
+
+from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays import basic
 
 
@@ -55,7 +57,6 @@ class SentinalArray(obj.Array):
 class RVAPointer(obj.Pointer):
     """A pointer through a relative virtual address."""
     image_base = 0
-
     def __init__(self, image_base=None, **kwargs):
         super(RVAPointer, self).__init__(**kwargs)
         self.image_base = image_base or self.obj_context.get("image_base", 0)
@@ -105,6 +106,30 @@ class ResourcePointer(obj.Pointer):
         return resource_pointer
 
 
+def RoundUpToWordAlignment(offset):
+    """Round up the next word boundary."""
+    if offset % 4:
+        offset += 4 - offset % 4
+
+    return offset
+
+
+def AlignAfter(name):
+    """Align a Struct's member after another member.
+
+    Produce a callable which returns the next aligned offset after the member of
+    the required name in this struct. This callable is suitable to be specified
+    in the overlay's offset field.
+    """
+    def get_offset(x):
+        x = getattr(x, name)
+        end_of_object = x.obj_offset + x.size()
+
+        return RoundUpToWordAlignment(end_of_object)
+
+    return get_offset
+
+
 pe_overlays = {
     "_IMAGE_OPTIONAL_HEADER": [None, {
             'Subsystem' : [None, ['Enumeration', {
@@ -146,7 +171,7 @@ pe_overlays = {
                         'target': '_IMAGE_DATA_DIRECTORY'}]],
             }],
     "_IMAGE_FILE_HEADER": [None, {
-            'Machine' : [0x0, ['Enumeration', {
+            'Machine' : [None, ['Enumeration', {
                         'choices': {
                             0x0000: 'IMAGE_FILE_MACHINE_UNKNOWN',
                             0x01d3: 'IMAGE_FILE_MACHINE_AM33',
@@ -171,7 +196,7 @@ pe_overlays = {
                         'target': 'unsigned short'
                         }]],
 
-            'Characteristics' : [0x12, ['Flags', {
+            'Characteristics' : [None, ['Flags', {
                         'maskmap': {
                             'IMAGE_FILE_RELOCS_STRIPPED': 0x0001,
                             'IMAGE_FILE_EXECUTABLE_IMAGE': 0x0002,
@@ -191,12 +216,12 @@ pe_overlays = {
                             'IMAGE_FILE_BYTES_REVERSED_HI': 0x8000,
                             },
                         'target': 'unsigned short'}]],
-            'TimeDateStamp' : [0x4, ['UnixTimeStamp', {}]],
+            'TimeDateStamp' : [None, ['UnixTimeStamp', {}]],
             }],
 
     "_IMAGE_SECTION_HEADER": [None, {
-            'Name' : [0x0, ['String', {'length': 8, 'term': None}]],
-            'Characteristics' : [0x24, ['Flags', {
+            'Name' : [None, ['String', {'length': 8, 'term': None}]],
+            'Characteristics' : [None, ['Flags', {
                         'maskmap': {
                             'IMAGE_SCN_CNT_CODE':                  0x00000020,
                             'IMAGE_SCN_CNT_INITIALIZED_DATA':      0x00000040,
@@ -237,20 +262,23 @@ pe_overlays = {
             }],
 
     "_IMAGE_IMPORT_DESCRIPTOR": [None, {
-            'Name': [0xC, ['RVAPointer', dict(target="String",
-                                              target_args=dict(length=128))]],
+            'Name': [None, ['RVAPointer', dict(
+                        target="String",
+                        target_args=dict(length=128))]],
 
-            # This is an RVA pointer to an array of _IMAGE_THUNK_DATA structs.
-            'FirstThunk': [0x10, ['RVAPointer', dict(target="ThunkArray")]],
+            'TimeDateStamp': [None, ['UnixTimeStamp', {}]],
+
+            # This is an RVA pointer to an array of _IMAGE_THUNK_DATA32 structs.
+            'FirstThunk': [None, ['RVAPointer', dict(target="ThunkArray")]],
 
             # This is a copy of the original IAT in memory.
-            'OriginalFirstThunk': [0x0, ['RVAPointer', dict(
+            'OriginalFirstThunk': [None, ['RVAPointer', dict(
                         target="ThunkArray"
                         )]],
             }],
 
     "_IMAGE_EXPORT_DIRECTORY": [None, {
-            'Name': [0xC, ['RVAPointer', dict(
+            'Name': [None, ['RVAPointer', dict(
                         target="String",
                         target_args=dict(length=128)
                         )]],
@@ -281,13 +309,7 @@ pe_overlays = {
                         )]],
             }],
 
-    "_IMAGE_THUNK_DATA": [None, {
-            'AddressOfData' : [0x0, ['RVAPointer', dict(
-                        target="_IMAGE_IMPORT_BY_NAME"
-                        )]],
-            }],
-
-    "_IMAGE_THUNK_DATA64": [None, {
+    "_IMAGE_THUNK_DATA32": [None, {
             'AddressOfData' : [0x0, ['RVAPointer', dict(
                         target="_IMAGE_IMPORT_BY_NAME"
                         )]],
@@ -377,208 +399,22 @@ pe_overlays = {
             'Size': [0x04, ['unsigned int']],
             'CodePage': [0x08, ['unsigned int']],
             }],
-    }
 
-# _IMAGE_OPTIONAL_HEADER64 is the same as _IMAGE_OPTIONAL_HEADER but offsets are
-# different
-pe_overlays["_IMAGE_OPTIONAL_HEADER64"] = copy.deepcopy(
-    pe_overlays["_IMAGE_OPTIONAL_HEADER"])
-
-
-def RoundUp(offset):
-    """Round up the next word boundary."""
-    if offset % 4:
-        offset += 4 - offset % 4
-
-    return offset
-
-
-def AlignAfter(name):
-    def get_offset(x):
-        x = getattr(x, name)
-        end_of_object = x.obj_offset + x.size()
-
-        return RoundUp(end_of_object)
-
-    return get_offset
-
-
-pe_vtypes = {
-    '_IMAGE_EXPORT_DIRECTORY': [0x28, {
-            'Base': [0x10, ['unsigned int']],
-            'NumberOfFunctions': [0x14, ['unsigned int']],
-            'NumberOfNames': [0x18, ['unsigned int']],
-            'AddressOfFunctions': [0x1C, ['unsigned int']],
-            'AddressOfNames': [0x20, ['unsigned int']],
-            'AddressOfNameOrdinals': [0x24, ['unsigned int']],
+    '_IMAGE_IMPORT_BY_NAME' : [None, {
+            'Name' : [None, ['String', dict(length=128)]],
             }],
 
-    '_IMAGE_IMPORT_DESCRIPTOR': [0x14, {
-            'TimeDateStamp': [0x4, ['UnixTimeStamp', {}]],
-            'ForwarderChain': [0x8, ['unsigned int']],
-            }],
-
-    # This is really a union of members.
-    '_IMAGE_THUNK_DATA' : [0x4, {
-            # Fake member for testing if the highest bit is set
-            'OrdinalBit' : [0x0, ['BitField', dict(
-                        start_bit=31,
-                        end_bit=32
-                        )]],
-            'Function' : [0x0, ['pointer', ['void']]],
-            'Ordinal' : [0x0, ['unsigned long']],
-            'AddressOfData' : [0x0, ['unsigned long']],
-            'ForwarderString' : [0x0, ['unsigned int']],
-            }],
-
-    '_IMAGE_IMPORT_BY_NAME' : [4, {
-            'Hint' : [0x0, ['unsigned short']],
-            'Name' : [0x2, ['String', dict(length=128)]],
-            }],
-
-    '__unnamed_156e' : [0x4, {
-            'PhysicalAddress' : [0x0, ['unsigned long']],
-            'VirtualSize' : [0x0, ['unsigned long']],
-            }],
-
-    '_IMAGE_SECTION_HEADER' : [0x28, {
-            'Name' : [0x0, ['String', {'length': 8, 'term': None}]],
-            'Misc' : [0x8, ['__unnamed_156e']],
-            'VirtualAddress' : [0xc, ['unsigned long']],
-            'SizeOfRawData' : [0x10, ['unsigned long']],
-            'PointerToRawData' : [0x14, ['unsigned long']],
-            'PointerToRelocations' : [0x18, ['unsigned long']],
-            'PointerToLinenumbers' : [0x1c, ['unsigned long']],
-            'NumberOfRelocations' : [0x20, ['unsigned short']],
-            'NumberOfLinenumbers' : [0x22, ['unsigned short']],
-            }],
-
-    '_IMAGE_DOS_HEADER' : [0x40, {
-            'e_magic' : [0x0, ['unsigned short']],
-            'e_cblp' : [0x2, ['unsigned short']],
-            'e_cp' : [0x4, ['unsigned short']],
-            'e_crlc' : [0x6, ['unsigned short']],
-            'e_cparhdr' : [0x8, ['unsigned short']],
-            'e_minalloc' : [0xa, ['unsigned short']],
-            'e_maxalloc' : [0xc, ['unsigned short']],
-            'e_ss' : [0xe, ['unsigned short']],
-            'e_sp' : [0x10, ['unsigned short']],
-            'e_csum' : [0x12, ['unsigned short']],
-            'e_ip' : [0x14, ['unsigned short']],
-            'e_cs' : [0x16, ['unsigned short']],
-            'e_lfarlc' : [0x18, ['unsigned short']],
-            'e_ovno' : [0x1a, ['unsigned short']],
-            'e_res' : [0x1c, ['array', 4, ['unsigned short']]],
-            'e_oemid' : [0x24, ['unsigned short']],
-            'e_oeminfo' : [0x26, ['unsigned short']],
-            'e_res2' : [0x28, ['array', 10, ['unsigned short']]],
-            'e_lfanew' : [0x3c, ['long']],
-            }],
-
-    '_IMAGE_NT_HEADERS' : [0xf8, {
-            'Signature' : [0x0, ['unsigned long']],
-            'FileHeader' : [0x4, ['_IMAGE_FILE_HEADER']],
-            'OptionalHeader' : [0x18, ['_IMAGE_OPTIONAL_HEADER']],
-            }],
-
-    '_IMAGE_NT_HEADERS64' : [0x108, {
-            'Signature' : [0x0, ['unsigned long']],
-            'FileHeader' : [0x4, ['_IMAGE_FILE_HEADER']],
-            'OptionalHeader' : [0x18, ['_IMAGE_OPTIONAL_HEADER64']],
-            }],
-
-    '_IMAGE_OPTIONAL_HEADER64' : [0xf0, {
-            'Magic' : [0x0, ['unsigned short']],
-            'MajorLinkerVersion' : [0x2, ['unsigned char']],
-            'MinorLinkerVersion' : [0x3, ['unsigned char']],
-            'SizeOfCode' : [0x4, ['unsigned long']],
-            'SizeOfInitializedData' : [0x8, ['unsigned long']],
-            'SizeOfUninitializedData' : [0xc, ['unsigned long']],
-            'AddressOfEntryPoint' : [0x10, ['unsigned long']],
-            'BaseOfCode' : [0x14, ['unsigned long']],
-            'ImageBase' : [0x18, ['unsigned long long']],
-            'SectionAlignment' : [0x20, ['unsigned long']],
-            'FileAlignment' : [0x24, ['unsigned long']],
-            'MajorOperatingSystemVersion' : [0x28, ['unsigned short']],
-            'MinorOperatingSystemVersion' : [0x2a, ['unsigned short']],
-            'MajorImageVersion' : [0x2c, ['unsigned short']],
-            'MinorImageVersion' : [0x2e, ['unsigned short']],
-            'MajorSubsystemVersion' : [0x30, ['unsigned short']],
-            'MinorSubsystemVersion' : [0x32, ['unsigned short']],
-            'Win32VersionValue' : [0x34, ['unsigned long']],
-            'SizeOfImage' : [0x38, ['unsigned long']],
-            'SizeOfHeaders' : [0x3c, ['unsigned long']],
-            'CheckSum' : [0x40, ['unsigned long']],
-            'Subsystem' : [0x44, ['unsigned short']],
-            'DllCharacteristics' : [0x46, ['unsigned short']],
-            'SizeOfStackReserve' : [0x48, ['unsigned long long']],
-            'SizeOfStackCommit' : [0x50, ['unsigned long long']],
-            'SizeOfHeapReserve' : [0x58, ['unsigned long long']],
-            'SizeOfHeapCommit' : [0x60, ['unsigned long long']],
-            'LoaderFlags' : [0x68, ['unsigned long']],
-            'NumberOfRvaAndSizes' : [0x6c, ['unsigned long']],
-            'DataDirectory' : [0x70, ['array', 16, ['_IMAGE_DATA_DIRECTORY']]],
-            }],
-
-    '_IMAGE_OPTIONAL_HEADER' : [0xe0, {
-            'Magic' : [0x0, ['unsigned short']],
-            'MajorLinkerVersion' : [0x2, ['unsigned char']],
-            'MinorLinkerVersion' : [0x3, ['unsigned char']],
-            'SizeOfCode' : [0x4, ['unsigned long']],
-            'SizeOfInitializedData' : [0x8, ['unsigned long']],
-            'SizeOfUninitializedData' : [0xc, ['unsigned long']],
-            'AddressOfEntryPoint' : [0x10, ['unsigned long']],
-            'BaseOfCode' : [0x14, ['unsigned long']],
-            'BaseOfData' : [0x18, ['unsigned long']],
-            'ImageBase' : [0x1c, ['unsigned long']],
-            'SectionAlignment' : [0x20, ['unsigned long']],
-            'FileAlignment' : [0x24, ['unsigned long']],
-            'MajorOperatingSystemVersion' : [0x28, ['unsigned short']],
-            'MinorOperatingSystemVersion' : [0x2a, ['unsigned short']],
-            'MajorImageVersion' : [0x2c, ['unsigned short']],
-            'MinorImageVersion' : [0x2e, ['unsigned short']],
-            'MajorSubsystemVersion' : [0x30, ['unsigned short']],
-            'MinorSubsystemVersion' : [0x32, ['unsigned short']],
-            'Win32VersionValue' : [0x34, ['unsigned long']],
-            'SizeOfImage' : [0x38, ['unsigned long']],
-            'SizeOfHeaders' : [0x3c, ['unsigned long']],
-            'CheckSum' : [0x40, ['unsigned long']],
-            'Subsystem' : [0x44, ['unsigned long']],
-            'DllCharacteristics' : [0x46, ['unsigned short']],
-            'SizeOfStackReserve' : [0x48, ['unsigned long']],
-            'SizeOfStackCommit' : [0x4c, ['unsigned long']],
-            'SizeOfHeapReserve' : [0x50, ['unsigned long']],
-            'SizeOfHeapCommit' : [0x54, ['unsigned long']],
-            'LoaderFlags' : [0x58, ['unsigned long']],
-            'NumberOfRvaAndSizes' : [0x5c, ['unsigned long']],
-            'DataDirectory' : [0x60, ['unsigned long']],
-            }],
-
-    '_IMAGE_FILE_HEADER' : [0x14, {
-            'NumberOfSections' : [0x2, ['unsigned short']],
-            'TimeDateStamp' : [0x4, ['UnixTimeStamp', {}]],
-            'PointerToSymbolTable' : [0x8, ['unsigned long']],
-            'NumberOfSymbols' : [0xc, ['unsigned long']],
-            'SizeOfOptionalHeader' : [0x10, ['unsigned short']],
-            }],
-
-    '_IMAGE_DATA_DIRECTORY' : [0x8, {
-            'VirtualAddress' : [0x0, ['RVAPointer', dict(
+    '_IMAGE_DATA_DIRECTORY' : [None, {
+            'VirtualAddress' : [None, ['RVAPointer', dict(
                         target='unsigned int'
                         )]],
-            'Size' : [0x4, ['unsigned long']],
             }],
 
-    '_IMAGE_DEBUG_DIRECTORY': [28, {
-            "Characteristics": [0, ["unsigned long"]],
-            "MajorVersion": [8, ["unsigned short"]],
-            "MinorVersion": [10, ["unsigned short"]],
+    '_IMAGE_DEBUG_DIRECTORY': [None, {
             "AddressOfRawData": [20, ["RVAPointer", dict(
                         # We only support CV_RSDS_HEADER for XP+
                         target="CV_RSDS_HEADER",
                         )]],
-            "PointerToRawData": [24, ["unsigned long"]],
-            "SizeOfData": [16, ["unsigned long"]],
             "TimeDateStamp": [0x4, ["UnixTimeStamp"]],
             "Type": [12, ["Enumeration", dict(
                         choices={
@@ -599,14 +435,12 @@ pe_vtypes = {
             }],
 
     "_GUID": [16, {
-            "Data1": [0, ["unsigned long"]],
-            "Data2": [4, ["unsigned short"]],
-            "Data3": [6, ["unsigned short"]],
             "Data4": [8, ["String", dict(length=8)]],
             "AsString": lambda x: "%08x%04x%04x%s" % (
                 x.Data1, x.Data2, x.Data3, str(x.Data4).encode('hex')),
             }],
 
+    # This struct is reversed.
     'CV_RSDS_HEADER': [None, {
             "Signature": [0, ["String", dict(length=4)]],
             "GUID": [4, ["_GUID"]],
@@ -614,16 +448,107 @@ pe_vtypes = {
             "Filename": [24, ["String"]],
             }],
 
-    '_IMAGE_THUNK_DATA64' : [0x8, {
+    '_IMAGE_THUNK_DATA64' : [None, {
+            'AddressOfData' : [0, ['RVAPointer', dict(
+                        target="_IMAGE_IMPORT_BY_NAME"
+                        )]],
+
             # Fake member for testing if the highest bit is set
-            'OrdinalBit' : [0x0, ['BitField', dict(
+            'OrdinalBit' : [0, ['BitField', dict(
                         start_bit=63,
                         end_bit=64
                         )]],
-            'Function' : [0x0, ['pointer64', ['void']]],
-            'Ordinal' : [0x0, ['unsigned long long']],
-            'AddressOfData' : [0x0, ['unsigned long long']],
-            'ForwarderString' : [0x0, ['unsigned long long']],
+
+            }],
+
+    'tagVS_FIXEDFILEINFO': [None, {
+            "dwFileOS": [None, ["Flags", dict(
+                        maskmap={
+                            "VOS_DOS": 0x00010000,
+                            "VOS_NT": 0x00040000,
+                            "VOS__WINDOWS16": 0x00000001,
+                            "VOS__WINDOWS32": 0x00000004,
+                            },
+                        target='unsigned int')]],
+            "dwFileType": [None, ['Enumeration', dict(
+                        choices={
+                            1: "VFT_APP (Application)",
+                            2: "VFT_DLL (DLL)",
+                            3: "VFT_DRV (Driver)",
+                            4: "VFT_FORT (Font)",
+                            5: "VFT_VXD",
+                            7: "VFT_STATIC_LIB",
+                            },
+                        target='unsigned int')]],
+            "dwFileDate": [lambda x: x.m("dwFileDateLS").obj_offset,
+                           ['WinFileTime', {}]],
+            }],
+
+    # The size of this is given by the Length member.
+    "StringFileInfo": [lambda x: RoundUpToWordAlignment(x.Length), {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ['unsigned short int']],
+
+            # Must be "StringFileInfo"
+            "Key": [0x06, ['UnicodeString', dict(length=28)]],
+
+            "Children": [AlignAfter("Key"), ['ListArray', dict(
+                        target='StringTable',
+                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
+            }],
+
+    # The size of this is given by the Length member.
+    "VarFileInfo": [lambda x: RoundUpToWordAlignment(x.Length), {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ['unsigned short int']],
+
+            # Must be "VarFileInfo"
+            "Key": [0x06, ['UnicodeString', dict(length=24)]],
+
+            "Children": [AlignAfter("Key"), ['ListArray', dict(
+                        target='Var',
+                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
+            }],
+
+    # Round up the size of the struct to word alignment.
+    "Var": [lambda x: RoundUpToWordAlignment(x.Length), {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ['unsigned short int']],
+
+            # This is exactly Translation
+            "Key": [0x06, ['UnicodeString', dict(length=24)]],
+
+            "Value": [AlignAfter("Key"), ['String', dict(
+                        length=lambda x: x.ValueLength, term=None)]],
+            }],
+
+    "StringTable": [lambda x: RoundUpToWordAlignment(x.Length), {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ['unsigned short int']],
+
+            # In MSDN this is called szKey.
+            "LangID": [0x06, ['UnicodeString', dict(length=16, term=None)]],
+
+            "Children": [AlignAfter("LangID"), ['ListArray', dict(
+                        target='ResourceString',
+                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
+            }],
+
+    # Round up the size of the struct to word alignment.
+    "ResourceString": [lambda x: RoundUpToWordAlignment(x.Length), {
+            "Length": [0x00, ['unsigned short int']],
+            "ValueLength": [0x02, ['unsigned short int']],
+            "Type": [0x04, ['unsigned short int']],
+
+            # This is a null terminated unicode string representing the key.
+            "Key": [0x06, ['UnicodeString', dict(length=1024)]],
+
+            "Value": [AlignAfter("Key"), ['UnicodeString', dict(
+                        length=lambda x: x.ValueLength * 2)]],
             }],
 
     # Note this is a problematic structure due to the alignment
@@ -645,115 +570,19 @@ pe_vtypes = {
             "szKey": [0x06, ["UnicodeString", dict(length=32)]],
 
             # The member is 32bit aligned after the szKey member.
-            "Value": [AlignAfter("szKey"), ["VS_FIXEDFILEINFO"]],
+            "Value": [AlignAfter("szKey"), ["tagVS_FIXEDFILEINFO"]],
 
             # This member is also aligned after the Value member.
             "Children": [AlignAfter("Value"), ['ListArray', dict(
                         target="StringFileInfo",
                         maximum_offset=lambda x: x.Length + x.obj_offset)]],
             }],
-
-    'VS_FIXEDFILEINFO': [0x34, {
-            "Signature": [0x00, ['unsigned int']],
-            "StructVersion": [0x04, ['unsigned int']],
-            "FileVersionMS": [0x08, ['unsigned int']],
-            "FileVersionLS": [0x0c, ['unsigned int']],
-            "ProductVersionMS": [0x10, ['unsigned int']],
-            "ProductVersionLS": [0x14, ['unsigned int']],
-            "FileFlagsMask": [0x18, ['unsigned int']],
-            "FileFlags": [0x1c, ['unsigned int']],
-            "FileOS": [0x20, ["Flags", dict(
-                        maskmap={
-                            "VOS_DOS": 0x00010000,
-                            "VOS_NT": 0x00040000,
-                            "VOS__WINDOWS16": 0x00000001,
-                            "VOS__WINDOWS32": 0x00000004,
-                            },
-                        target='unsigned int')]],
-            "FileType": [0x24, ['Enumeration', dict(
-                        choices={
-                            1: "VFT_APP (Application)",
-                            2: "VFT_DLL (DLL)",
-                            3: "VFT_DRV (Driver)",
-                            4: "VFT_FORT (Font)",
-                            5: "VFT_VXD",
-                            7: "VFT_STATIC_LIB",
-                            },
-                        target='unsigned int')]],
-            "FileSubtype": [0x28, ['unsigned int']],
-            "FileDateMS": [0x2c, ['unsigned int']],
-            "FileDateLS": [0x30, ['unsigned int']],
-            "FileDate": [0x2c, ['WinFileTime', {}]],
-            }],
-
-    # The size of this is given by the Length member.
-    "StringFileInfo": [lambda x: RoundUp(x.Length), {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ['unsigned short int']],
-
-            # Must be "StringFileInfo"
-            "Key": [0x06, ['UnicodeString', dict(length=28)]],
-
-            "Children": [AlignAfter("Key"), ['ListArray', dict(
-                        target='StringTable',
-                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
-            }],
-
-    # The size of this is given by the Length member.
-    "VarFileInfo": [lambda x: RoundUp(x.Length), {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ['unsigned short int']],
-
-            # Must be "VarFileInfo"
-            "Key": [0x06, ['UnicodeString', dict(length=24)]],
-
-            "Children": [AlignAfter("Key"), ['ListArray', dict(
-                        target='Var',
-                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
-            }],
-
-    # Round up the size of the struct to word alignment.
-    "Var": [lambda x: RoundUp(x.Length), {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ['unsigned short int']],
-
-            # This is exactly Translation
-            "Key": [0x06, ['UnicodeString', dict(length=24)]],
-
-            "Value": [AlignAfter("Key"), ['String', dict(
-                        length=lambda x: x.ValueLength, term=None)]],
-            }],
-
-    "StringTable": [lambda x: RoundUp(x.Length), {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ['unsigned short int']],
-
-            # In MSDN this is called szKey.
-            "LangID": [0x06, ['UnicodeString', dict(length=16, term=None)]],
-
-            "Children": [AlignAfter("LangID"), ['ListArray', dict(
-                        target='ResourceString',
-                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
-            }],
-
-    # Round up the size of the struct to word alignment.
-    "ResourceString": [lambda x: RoundUp(x.Length), {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ['unsigned short int']],
-
-            # This is a null terminated unicode string representing the key.
-            "Key": [0x06, ['UnicodeString', dict(length=1024)]],
-
-            "Value": [AlignAfter("Key"), ['UnicodeString', dict(
-                        length=lambda x: x.ValueLength * 2)]],
-            }],
     }
 
+# _IMAGE_OPTIONAL_HEADER64 is the same as _IMAGE_OPTIONAL_HEADER but offsets are
+# different
+pe_overlays["_IMAGE_OPTIONAL_HEADER64"] = copy.deepcopy(
+    pe_overlays["_IMAGE_OPTIONAL_HEADER"])
 
 class _LDR_DATA_TABLE_ENTRY(obj.Struct):
     """
@@ -814,8 +643,10 @@ class _IMAGE_NT_HEADERS(obj.Struct):
     def OptionalHeader(self):
         optional_header = self.m("OptionalHeader")
         if optional_header.Magic == 0x20b:
+            self.obj_context["mode"] = "64bit"
             return optional_header.cast("_IMAGE_OPTIONAL_HEADER64")
 
+        self.obj_context["mode"] = "32bit"
         return optional_header
 
 
@@ -908,17 +739,15 @@ class _IMAGE_RESOURCE_DIRECTORY_ENTRY(obj.Struct):
 class ThunkArray(SentinalArray):
     """A sential terminated array of thunks."""
 
-    def __init__(self, parent=None, **kwargs):
-        target = "_IMAGE_THUNK_DATA"
-
+    def __init__(self, parent=None, context=None, **kwargs):
         # Are we in a 64 bit file?
-        for x in parent.parents:
-            if x.obj_name.endswith("64"):
-                target += "64"
-                break
+        if context.get("mode") == "64bit":
+            target = "_IMAGE_THUNK_DATA64"
+        else:
+            target = "_IMAGE_THUNK_DATA32"
 
-        super(ThunkArray, self).__init__(target=target, parent=parent,
-                                         **kwargs)
+        super(ThunkArray, self).__init__(
+            target=target, parent=parent, context=context, **kwargs)
 
 class VS_VERSIONINFO(obj.Struct):
 
@@ -953,27 +782,25 @@ class VS_VERSIONINFO(obj.Struct):
 
 
 class PE(object):
-    """A convenience object to access various things in a PE file."""
+    """A convenience object to access PE file information."""
 
     def __init__(self, address_space=None, image_base=0, filename=None,
-                 profile=None):
+                 session=None):
         """Constructor.
 
         Args:
           address_space: An address space to examine.
 
-          image_base: The address of the dos header.
+          image_base: The address of the dos header in the virtual address
+            space.
 
           filename: If a filename is provided we open the file as a PE File. In
             this case, image_base and address_space are ignored.
-
-          profile: If a profile is provided we add pe symbols to it. Otherwise
-            we just use a fresh PEProfile.
         """
-        if profile:
-            self.profile = PEFileImplementation(profile)
-        else:
-            self.profile = PEProfile()
+        self.session = session
+
+        # Use the session to load the pe profile.
+        self.profile = self.session.LoadProfile("pe")
 
         if filename is None and address_space is None:
             raise IOError("Filename or address_space not specified.")
@@ -983,9 +810,9 @@ class PE(object):
             self.image_base = image_base
 
         else:
-            file_address_space = PEFileAddressSpace.classes[
-                'FileAddressSpace'](filename=filename)
-            self.vm = PEFileAddressSpace(base=file_address_space)
+            file_address_space = standard.FileAddressSpace(filename=filename)
+            self.vm = PEFileAddressSpace(base=file_address_space,
+                                         profile=self.profile)
             self.image_base = self.vm.image_base
 
         self.dos_header = self.profile.Object(
@@ -1036,9 +863,9 @@ class PE(object):
         for directory in import_directory:
             dll = directory.Name.dereference()
             for thunk in directory.FirstThunk.dereference():
-                function = thunk.Function
+                function = thunk.u1.Function
 
-                yield dll, function, thunk.Ordinal
+                yield dll, function, thunk.u1.Ordinal
 
     def ExportDirectory(self):
         """A generator over the export directory."""
@@ -1102,16 +929,15 @@ class PE(object):
                    section.SizeOfRawData)
 
 
-# The following adds a profile to deal with PE files. Since PE files are not
-# actually related to the kernel version, they get their own domain specific
-# profile.
-class PEFileImplementation(obj.ProfileModification):
-    """An implementation of a parser for PE files."""
+class PEProfile(basic.ProfileLLP64, basic.BasicClasses):
+    """A profile for PE files.
 
-    @classmethod
-    def Modify(cls, profile):
-        profile.add_overlay(pe_vtypes)
-        profile.add_classes({
+    This profile is available from the repository under the name "pe".
+    """
+
+    def __init__(self, **kwargs):
+        super(PEProfile, self).__init__(**kwargs)
+        self.add_classes({
                 '_IMAGE_DOS_HEADER': _IMAGE_DOS_HEADER,
                 '_IMAGE_NT_HEADERS': _IMAGE_NT_HEADERS,
                 '_IMAGE_SECTION_HEADER': _IMAGE_SECTION_HEADER,
@@ -1125,17 +951,7 @@ class PEFileImplementation(obj.ProfileModification):
                 "_IMAGE_RESOURCE_DIRECTORY_ENTRY": _IMAGE_RESOURCE_DIRECTORY_ENTRY,
                 "VS_VERSIONINFO": VS_VERSIONINFO,
                 })
-        profile.add_overlay(pe_overlays)
-
-        return profile
-
-
-class PEProfile(basic.Profile32Bits, basic.BasicClasses):
-    """A profile for PE files."""
-
-    def __init__(self, **kwargs):
-        super(PEProfile, self).__init__(**kwargs)
-        PEFileImplementation.Modify(self)
+        self.add_overlay(pe_overlays)
 
 
 class PEFileAddressSpace(addrspace.BaseAddressSpace):
@@ -1171,13 +987,11 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
         self.as_assert(self.base is not None, "Must layer on another AS.")
         self.as_assert(self.base.read(0, 2) == "MZ",
                        "File does not have a valid signature for a PE file.")
-        self.profile = PEProfile()
 
-        nt_header = self.profile.Object(
-            "_IMAGE_DOS_HEADER", vm=self.base, offset=0).NTHeader
-
+        nt_header = self.profile._IMAGE_DOS_HEADER(vm=self.base).NTHeader
         self.image_base = obj.Pointer.integer_to_address(
             nt_header.OptionalHeader.ImageBase)
+
         # Now map all the sections into a virtual address space.
         self.runs = []
 
@@ -1195,8 +1009,9 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
         # Make sure that the sections are sorted.
         self.runs.sort()
 
-        self.nt_header = self.profile.Object(
-            "_IMAGE_DOS_HEADER", vm=self, offset=self.image_base,
+        # The real nt header is based at the virtual address of the image.
+        self.nt_header = self.profile._IMAGE_DOS_HEADER(
+            vm=self, offset=self.image_base,
             context=dict(image_base=self.image_base)).NTHeader
 
     def read(self, addr, length):

@@ -32,6 +32,7 @@ except ImportError:
 
 from rekall import plugin
 from rekall import scan
+from rekall import testlib
 
 from rekall.plugins import core
 from rekall.plugins.windows import common
@@ -182,3 +183,8 @@ class CertVadScan(core.DirectoryDumperMixin, common.WinProcessFilter):
                 renderer.table_row(*args)
 
 
+class TestCertVadScan(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="cert_vad_scan --proc_regex %(regex)s",
+        regex="csrss.exe"
+        )

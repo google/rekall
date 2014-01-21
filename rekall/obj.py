@@ -376,14 +376,6 @@ class BaseObject(object):
         return NoneObject("Can't dereference {0}".format(
                 self.obj_name), self.obj_profile)
 
-    def dereference_as(self, target=None, vm=None, target_args=None):
-        vm = vm or self.obj_vm
-
-        return self.obj_profile.Object(
-            type_name=target, offset=self.v(), vm=vm,
-            parent=self.obj_parent, name=self.obj_name,
-            context=self.obj_context, **(target_args or {}))
-
     def reference(self):
         """Produces a pointer to this object.
 
@@ -392,10 +384,10 @@ class BaseObject(object):
         return self.obj_profile.Pointer(value=self.obj_offset, vm=self.obj_vm,
                                         target=self.obj_type)
 
-    def cast(self, type_name=None, **kwargs):
+    def cast(self, type_name=None, vm=None, **kwargs):
         return self.obj_profile.Object(
             type_name=type_name, offset=self.obj_offset,
-            vm=self.obj_vm, parent=self.obj_parent,
+            vm=vm or self.obj_vm, parent=self.obj_parent,
             context=self.obj_context, **kwargs)
 
     def v(self, vm=None):
@@ -736,11 +728,25 @@ class Pointer(NativeType):
         """Delegate the iterator to the target."""
         return iter(self.dereference())
 
-    def dereference_as(self, target=None, vm=None, target_args=None):
-        """Dereference ourselves into another type, or address space."""
+    def dereference_as(self, target=None, vm=None, target_args=None,
+                       profile=None):
+        """Dereference ourselves into another type, or address space.
+
+        This method allows callers to explicitly override the setting in the
+        profile for this pointer.
+
+        Args:
+          target: The target to override.
+          target_args: The args to instantiate this target with.
+          vm: The address space to dereference the pointer in.
+          profile: If a new profile should be used to instantiate the target.
+        """
         vm = vm or self.obj_vm
 
-        return self.obj_profile.Object(
+        if profile is None:
+            profile = self.obj_profile
+
+        return profile.Object(
             type_name=target or self.target, offset=self.v(), vm=vm,
             parent=self.obj_parent, context=self.obj_context,
             **(target_args or {}))
@@ -1232,6 +1238,9 @@ class Profile(object):
         self.applied_modifications = []
         self.applied_modifications.append(self.name)
 
+        # Keep track of all the known types so we can command line complete.
+        self.known_types = set()
+
         # This is the local cache of compiled expressions.
         self.flush_cache()
 
@@ -1302,6 +1311,7 @@ class Profile(object):
             self.object_classes.update(classes_dict)
 
         self.object_classes.update(kwargs)
+        self.known_types.update(kwargs)
 
     def add_constants(self, constants_are_addresses=False, **kwargs):
         """Add the kwargs as constants for this profile."""
@@ -1320,6 +1330,7 @@ class Profile(object):
         self.flush_cache()
 
         abstract_types = copy.deepcopy(abstract_types)
+        self.known_types.update(abstract_types)
 
         ## we merge the abstract_types with self.vtypes and then recompile
         ## the whole thing again. This is essential because
@@ -1336,8 +1347,9 @@ class Profile(object):
 
             elif isinstance(v, list):
                 self.vtypes[k] = v
+
             else:
-                original = self.vtypes.get(k, [0, {}])
+                original = self.vtypes.get(k, self.EMPTY_DESCRIPTOR)
                 original[1].update(v[1])
                 if v[0]:
                     original[0] = v[0]
@@ -1591,6 +1603,7 @@ class Profile(object):
         """Add an overlay to the current overlay stack."""
         self.flush_cache()
         self.overlays.append(copy.deepcopy(overlay))
+        self.known_types.update(overlay)
 
     def _apply_type_overlay(self, type_member, overlay):
         """Update the overlay with the missing information from type.
@@ -1745,9 +1758,7 @@ class Profile(object):
 
     def __dir__(self):
         """Support tab completion."""
-        return sorted(set(self.__dict__.keys() +
-                          self.vtypes.keys() +
-                          self.object_classes.keys()))
+        return sorted(self.__dict__.keys() + list(self.known_types))
 
     def __getattr__(self, attr):
         """Make it easier to instantiate individual members.

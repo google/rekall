@@ -70,7 +70,7 @@ class PEInfo(plugin.Command):
         self.address_space = address_space
 
         self.pe_helper = pe_vtypes.PE(
-            address_space=address_space,
+            address_space=address_space, session=self.session,
             filename=filename, image_base=image_base)
 
         self.disassembler = self.session.plugins.dis(
@@ -170,7 +170,7 @@ class ProcInfo(common.WinProcessFilter):
     def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
-            renderer.format("Pid: %s %s\n",
+            renderer.format("Pid: {0} {1}\n",
                             task.UniqueProcessId, task.ImageFileName)
 
             task_address_space = task.get_process_address_space()

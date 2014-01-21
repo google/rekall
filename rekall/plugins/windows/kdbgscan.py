@@ -174,7 +174,10 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
                             "KernelBase", kdbg.KernBase,
                             kdbg.obj_vm.read(kdbg.KernBase, 2) == "MZ")
 
-            dos_header = self.profile._IMAGE_DOS_HEADER(
+            # Parse the PE header of the kernel.
+            pe_profile = self.session.LoadProfile("pe")
+
+            dos_header = pe_profile._IMAGE_DOS_HEADER(
                 offset=kdbg.KernBase, vm=kdbg.obj_vm)
             nt_header = dos_header.NTHeader
             if nt_header:

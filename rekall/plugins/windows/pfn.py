@@ -640,8 +640,8 @@ class DTBScan(common.WinProcessFilter):
                         # The _EPROCESS address is stored as the
                         # KernelStackOwner for the pfn of this dtb.
                         task = pfn_plugin.pfn_record(
-                            dtb >> 12).u1.Flink.dereference_as(
-                            "_EPROCESS")
+                            dtb >> 12).u1.Flink.cast(
+                            "Pointer", target="_EPROCESS").deref()
 
                         if not task:
                             task = obj.NoneObject("Invalid")
