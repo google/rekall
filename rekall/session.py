@@ -353,7 +353,7 @@ class Session(object):
 
         # We only want to deal with unix paths.
         filename = filename.replace("\\", "/")
-        canonical_name = os.path.splitext(os.path.basename(filename))[0]
+        canonical_name = os.path.splitext(filename)[0]
 
         # The filename is a path we try to open it directly:
         if filename.startswith("/") or filename.startswith("."):

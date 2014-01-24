@@ -73,6 +73,13 @@ simply build a profile from the C implementation, and then use it here directly
 using the "mspdb" profile (which is available in the profile repository).
 
 http://undocumented.rawol.com/win_pdbx.zip: ./sbs_sdk/include/pdb_info.h
+
+Other known implementations of PDB parsing:
+https://chromium.googlesource.com/syzygy/+/master/pdb
+
+The closest thing to official documentation can be found here:
+http://pierrelib.pagesperso-orange.fr/exec_formats/MS_Symbol_Type_v1.0.pdf
+
 """
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
@@ -110,31 +117,51 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
             "--filename", default=None,
             help="The filename of the executable to get the PDB file for.")
 
+        parser.add_argument(
+            "--guid", default=None,
+            help="The GUID of the pdb file. If provided, the pdb filename must."
+            "be provided in the --filename parameter.")
+
         super(FetchPDB, cls).args(parser)
 
-    def __init__(self, filename=None, **kwargs):
+    def __init__(self, filename=None, guid=None, **kwargs):
         super(FetchPDB, self).__init__(**kwargs)
-        self.pe = pe_vtypes.PE(filename=filename, session=self.session)
+        self.filename = filename
+        self.guid = guid
 
     def render(self, renderer):
-        data_directory = self.pe.nt_header.OptionalHeader.DataDirectory[
-            "IMAGE_DIRECTORY_ENTRY_DEBUG"].VirtualAddress.dereference_as(
-            "_IMAGE_DEBUG_DIRECTORY")
+        # The filename is an executable
+        if self.guid is None:
+            self.pe = pe_vtypes.PE(filename=self.filename,
+                                   session=self.session)
+            data_directory = self.pe.nt_header.OptionalHeader.DataDirectory[
+                "IMAGE_DIRECTORY_ENTRY_DEBUG"].VirtualAddress.dereference_as(
+                "_IMAGE_DEBUG_DIRECTORY")
 
-        # We only support the more recent RSDS format.
-        debug = data_directory.AddressOfRawData.dereference_as("CV_RSDS_HEADER")
+            # We only support the more recent RSDS format.
+            debug = data_directory.AddressOfRawData.dereference_as(
+                "CV_RSDS_HEADER")
 
-        if debug.Signature != "RSDS":
-            logging.error("PDB stream %s not supported.", debug.Signature)
-            return
+            if debug.Signature != "RSDS":
+                logging.error("PDB stream %s not supported.", debug.Signature)
+                return
 
-        filename = ntpath.basename(str(debug.Filename))
-        guid = ("%s%x" % (debug.GUID.AsString, debug.Age)).upper()
+            self.pdb_filename = ntpath.basename(str(debug.Filename))
+            self.guid = self.pe.RSDS.GUID_AGE
+
+        elif self.filename is None:
+            raise RuntimeError(
+                "Filename must be provided when GUI is specified.")
+
+        else:
+            self.pdb_filename = self.filename
+            self.guid = self.guid.upper()
 
         for url in self.SYM_URLS:
             try:
-                basename = ntpath.splitext(filename)[0]
-                url += "/%s/%s/%s.pd_" % (filename, guid, basename)
+                basename = ntpath.splitext(self.pdb_filename)[0]
+                url += "/%s/%s/%s.pd_" % (self.pdb_filename,
+                                          self.guid, basename)
 
                 renderer.format("Trying to fetch {0}\n", url)
                 request = urllib2.Request(url, None, headers={
@@ -188,8 +215,13 @@ class StreamBasedAddressSpace(addrspace.CachingAddressSpaceMixIn,
         super(StreamBasedAddressSpace, self).__init__(**kwargs)
         self.pages = pages
         self.PAGE_SIZE = page_size = int(page_size)
+        i = 0
         for i, page in enumerate(pages):
-            self.runs.append((i * page_size, page * page_size, page_size))
+            self.runs.insert((i * page_size, page * page_size, page_size))
+
+        # Record the total size of the file.
+        self.size = (i+1) * page_size
+
 
 ####################################################################
 # The following parses the TPI stream (stream 2).
@@ -225,6 +257,11 @@ LEAF_ENUM_TO_SUBRECORD = dict(
     LF_MEMBER="Member",
     LF_ENUMERATE="Enumerate",
     LF_NESTTYPE="NestType",
+    )
+
+# A map between the symbol type enum and the actual record type.
+SYM_ENUM_TO_SYM = dict(
+    S_PUB32="_PUBSYM32",
     )
 
 
@@ -346,6 +383,52 @@ mspdb_overlays = {
                         maximum_size=lambda x: x.cbGprec,
                         )]],
             }],
+
+    "_GUID": [16, {
+            "Data1": [0, ["unsigned long", {}]],
+            "Data2": [4, ["unsigned short", {}]],
+            "Data3": [6, ["unsigned short", {}]],
+            "Data4": [8, ["String", dict(length=8, term=None)]],
+            "AsString": lambda x: ("%08x%04x%04x%s" % (
+                x.Data1, x.Data2, x.Data3, str(x.Data4).encode('hex'))).upper(),
+            }],
+
+    "Info": [None, {
+            "Version": [0, ["unsigned long int"]],
+            "TimeDateStamp": [4, ["UnixTimeStamp"]],
+            "Age": [8, ["unsigned long int"]],
+            "GUID": [12, ["_GUID"]],
+            }],
+
+    # The record length does not include the tag.
+    "_ALIGNSYM": [lambda x: x.reclen+2, {
+            "rectyp": [None, ["Enumeration", dict(
+                        enum_name="_SYM_ENUM_e",
+                        target="unsigned short int")]],
+
+            # The real record type depends on the _SYM_ENUM_e.
+            "value": lambda x: x.cast(
+                SYM_ENUM_TO_SYM.get(str(x.rectyp), ""))
+
+            }],
+
+    "_PUBSYM32": [None, {
+            "name": [None, ["String"]],
+            }],
+
+    "DBI": [None, {
+            "DBIHdr": [0, ["_NewDBIHdr"]],
+            "ExHeaders": [64, ["ListArray", dict(
+                        maximum_size=lambda x: x.DBIHdr.cbGpModi,
+                        target="DBIExHeaders")]],
+            }],
+
+    "DBIExHeaders": [None, {
+            "modName": [64, ["String"]],
+            "objName": [lambda x: x.modName.obj_offset + x.modName.size(),
+                        ["String"]],
+            }],
+
     }
 
 
@@ -358,7 +441,8 @@ class lfClass(obj.Struct):
 
     def size(self):
         """Our size is the end of the object plus any padding."""
-        return pe_vtypes.RoundUp(self.obj_end - self.obj_offset)
+        return pe_vtypes.RoundUpToWordAlignment(
+            self.obj_end - self.obj_offset)
 
     def _DecodeVariableData(self):
         """This object is followed by a variable sized data structure.
@@ -581,18 +665,35 @@ class _PDB_ROOT_700(obj.Struct):
                 base=self.obj_vm.base, page_size=page_size,
                 pages=page_list)
 
-    SUPPORTED_STREAMS = {
-        2: "_HDR",
-#        1: "InfoStream",
-#        3: "DebugStream"
-        }
-
     def GetStream(self, number):
         """Only return the required streams, discarding the rest."""
         for i, address_space in enumerate(self._GetStreams()):
             if i == number:
-                return self.obj_profile.Object(
-                    self.SUPPORTED_STREAMS[i], vm=address_space)
+                return address_space
+
+
+class DBIExHeaders(obj.Struct):
+    def size(self):
+        return (pe_vtypes.RoundUpToWordAlignment(
+                self.objName.obj_offset + self.objName.size()) -
+                self.obj_offset)
+
+
+class DBI(obj.Struct):
+    def DBGHeader(self):
+        DBIHdr = self.DBIHdr
+        # Skip over all these sections which we dont care about until we get to
+        # the debug header at the end.
+        header_offset = (self.obj_offset +
+                         DBIHdr.size() +
+                         DBIHdr.cbGpModi +
+                         DBIHdr.cbSC +
+                         DBIHdr.cbSecMap +
+                         DBIHdr.cbFileInfo +
+                         DBIHdr.cbTSMap +
+                         DBIHdr.cbECInfo)
+
+        return self.obj_profile.DbgHdr(header_offset, vm=self.obj_vm)
 
 
 class PDBProfile(basic.Profile32Bits, basic.BasicClasses):
@@ -619,7 +720,8 @@ class PDBProfile(basic.Profile32Bits, basic.BasicClasses):
                 "_lfProc": lfProc, "_lfEnum": lfEnum,
                 "_lfModifier": lfModifier, "_lfUnion": lfUnion,
                 "_lfBitfield": lfBitfield, "_lfEnumerate": lfEnumerate,
-                "_lfNestType": lfNestType,
+                "_lfNestType": lfNestType, "DBIExHeaders": DBIExHeaders,
+                "DBI": DBI
                 })
 
 
@@ -675,6 +777,7 @@ class TPI(object):
     def __init__(self, filename, session):
         self.session = session
         self.enums = {}
+        self.constants = {}
         self.profile = self.session.LoadProfile("mspdb")
         self._TYPE_ENUM_e = self.profile.get_constant("_TYPE_ENUM_e")
         self._TYPE_ENUM_e = dict(
@@ -693,7 +796,7 @@ class TPI(object):
             base=self.address_space, page_size=self.header.dPageBytes,
             pages=root_pages)
 
-        root_stream_header = self.profile._PDB_ROOT_700(
+        self.root_stream_header = self.profile._PDB_ROOT_700(
             offset=0,
             vm=root_stream,
             context=dict(
@@ -701,10 +804,109 @@ class TPI(object):
                 )
             )
 
+        self.ParsePDB()
+        self.ParseDBI()
+        self.ParseTPI()
+
+    def ParsePDB(self):
+        """Parse the PDB info stream."""
+        # Get the info stream.
+        info = self.profile.Info(vm=self.root_stream_header.GetStream(1))
+        self.metadata = dict(
+            Version=int(info.Version),
+            Timestamp=str(info.TimeDateStamp),
+            GUID_AGE="%s%X" % (info.GUID.AsString, info.Age),
+            )
+
+    def ParseDBI(self):
+        """Parse the DBI stream.
+
+        This fires off subparsers for contained streams.
+        """
+        dbi = self.profile.DBI(vm=self.root_stream_header.GetStream(3))
+        DBGHeader = dbi.DBGHeader()
+
+        self.ParseSectionHeaders(DBGHeader.snSectionHdrOrig)
+        self.ParseOMAP(DBGHeader.snOmapFromSrc)
+        self.ParseGlobalSymbols(dbi.DBIHdr.u1.snSymRecs)
+
+    def ParseSectionHeaders(self, stream_id):
+        """Gather the PE sections of this executable."""
+        self.sections = []
+        stream = self.root_stream_header.GetStream(stream_id)
+        for section in self.profile.Array(
+            target="IMAGE_SECTION_HEADER", vm=stream):
+            self.sections.append(section)
+
+    def ParseOMAP(self, omap_stream_id):
+        """Build an OMAP lookup table.
+
+        The OMAP is a translation between the original symbol's offset to the
+        final offset. When the linker builds the executable, it reorders the
+        original object files in the executable section. This translation table
+        tells us where the symbols end up.
+        """
+        self.omap = utils.SortedCollection(key=lambda x: x[0])
+        omap_stream = self.root_stream_header.GetStream(omap_stream_id)
+        omap_address_space = addrspace.BufferAddressSpace(
+            data=omap_stream.read(0, omap_stream.size))
+
+        omap_array = self.profile.Array(
+            vm=omap_address_space,
+            count=omap_stream.size / self.profile.get_obj_size("_OMAP_DATA"),
+            target="_OMAP_DATA")
+
+        for i, omap in enumerate(omap_array):
+            src = int(omap.rva)
+            dest = int(omap.rvaTo)
+
+            self.omap.insert((src, dest))
+            self.session.report_progress(
+                " Extracting OMAP Information %s%%",
+                lambda: i * 100 / omap_array.count)
+
+    def ParseGlobalSymbols(self, stream_id):
+        """Parse the symbol records stream."""
+        stream = self.root_stream_header.GetStream(stream_id)
+        for container in self.profile.ListArray(target="_ALIGNSYM", vm=stream,
+                                             maximum_size=stream.size):
+
+            if container.reclen == 0:
+                break
+
+            symbol = container.value
+
+            # Skip unknown records for now.
+            if not symbol:
+                logging.warning("Unimplemented symbol %s" % container.rectyp)
+                continue
+
+            # It is a function - de-mangle the name.
+            if symbol.pubsymflags.u1.fFunction:
+                #print "Function", symbol.off, symbol.name
+                pass
+
+            name = str(symbol.name)
+            offset = int(symbol.off)
+
+            # Convert the RVA to a virtual address by referencing into the
+            # correct section.
+            virtual_address = (
+                offset + self.sections[symbol.seg - 1].VirtualAddress)
+
+            # Translate the offset according to the OMAP.
+            from_offset, dest_offset = self.omap.find_le(virtual_address)
+            translated_offset = virtual_address - from_offset + dest_offset
+
+            self.constants[translated_offset] = name
+            self.session.report_progress(" Parsing Symbols %s", name)
+
+    def ParseTPI(self):
+        """The TPI stream contains all the struct definitions."""
         self.lookup = {}
-        tpi = root_stream_header.GetStream(2)
+        tpi = self.profile._HDR(vm=self.root_stream_header.GetStream(2))
         for i, t in enumerate(tpi.types):
-            self.session.report_progress()
+            self.session.report_progress(" Parsing Structs %(spinner)s")
 
             self.lookup[tpi.tiMin + i] = t
             if not t:
@@ -773,6 +975,7 @@ class ParsePDB(plugin.Command):
 
     def __init__(self, filename=None, profile_class=None, **kwargs):
         super(ParsePDB, self).__init__(**kwargs)
+        self.filename = filename
         self.tpi = TPI(filename, self.session)
         self.profile_class = profile_class
 
@@ -780,7 +983,7 @@ class ParsePDB(plugin.Command):
         vtypes = {}
 
         for i, (struct_name, definition) in enumerate(self.tpi.Structs()):
-            self.session.report_progress(" %s: %s", i, struct_name)
+            self.session.report_progress(" Exporting %s: %s", i, struct_name)
             struct_name = str(struct_name)
             existing_definition = vtypes.get(struct_name)
             if existing_definition:
@@ -789,15 +992,22 @@ class ParsePDB(plugin.Command):
 
             vtypes[struct_name] = definition
 
-        result = {
-            "$METADATA": dict(
+        metadata = dict(
                 Type="Profile",
 
                 # This should probably be changed for something more specific.
-                ProfileClass=self.profile_class),
+                ProfileClass=self.profile_class,
+                PDBFile=self.filename,
+                )
+
+        metadata.update(self.tpi.metadata)
+
+        result = {
+            "$METADATA": metadata,
             "$STRUCTS": vtypes,
             "$ENUMS": self.tpi.enums,
+            "$CONSTANTS": self.tpi.constants
             }
 
-
         renderer.write(utils.PPrint(result))
+

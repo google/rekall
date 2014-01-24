@@ -24,6 +24,8 @@ import bisect
 import re
 
 from rekall import obj
+from rekall import plugin
+from rekall import scan
 from rekall.plugins.windows import common
 
 
@@ -47,7 +49,7 @@ class Modules(common.WindowsCommandPlugin):
     def __init__(self, name_regex=None, **kwargs):
         """List kernel modules by walking the PsLoadedModuleList."""
         super(Modules, self).__init__(**kwargs)
-        self.name_regex = re.compile(name_regex or ".")
+        self.name_regex = re.compile(name_regex or ".", re.I)
 
     def lsmod(self):
         """ A Generator for modules (uses _KPCR symbols) """
@@ -55,6 +57,10 @@ class Modules(common.WindowsCommandPlugin):
             self._make_cache()
 
         for module in self.mod_lookup.values():
+            # Skip modules which do not match.
+            if not self.name_regex.search(str(module.FullDllName)):
+                continue
+
             yield module
 
     def addresses(self):
@@ -108,12 +114,83 @@ class Modules(common.WindowsCommandPlugin):
                                ])
 
         for module in self.lsmod():
-            # Skip modules which do not match.
-            if not self.name_regex.search(str(module.FullDllName)):
-                continue
-
             renderer.table_row(module.obj_offset,
                                module.BaseDllName,
                                module.DllBase,
                                module.SizeOfImage,
                                module.FullDllName)
+
+
+class RSDSScanner(scan.BaseScanner):
+    """Scan for RSDS objects."""
+
+    checks = [
+        ("StringCheck", dict(needle="RSDS"))
+        ]
+
+
+class ModVersions(Modules):
+    """Try to determine the versions for all kernel drivers."""
+
+    __name = "version_modules"
+
+    def ScanVersions(self):
+        pe_profile = self.session.LoadProfile("pe")
+        scanner = RSDSScanner(address_space=self.kernel_address_space,
+                              session=self.session)
+
+        for module in self.lsmod():
+            for hit in scanner.scan(offset=int(module.DllBase),
+                                    maxlen=module.SizeOfImage):
+
+                rsds = pe_profile.CV_RSDS_HEADER(offset=hit,
+                                                 vm=self.kernel_address_space)
+                guid = "%s%x" % (rsds.GUID.AsString, rsds.Age)
+                yield module, rsds, guid
+
+    def render(self, renderer):
+        renderer.table_header(
+            [("Offset (V)", "offset_v", "[addrpad]"),
+             ("Name", "file_name", "20"),
+             ('GUID/Version', "guid", "32"),
+             ("PDB", "pdb", "30")])
+
+        for module, rsds, guid in self.ScanVersions():
+            renderer.table_row(
+                module,
+                module.BaseDllName,
+                guid,
+                rsds.Filename)
+
+
+class VersionScan(plugin.PhysicalASMixin, plugin.Command):
+    """Scan the physical address space for RSDS versions."""
+
+    __name = "version_scan"
+
+    def ScanVersions(self):
+        """Scans the physical AS for RSDS structures."""
+        guids = set()
+        pe_profile = self.session.LoadProfile("pe")
+        scanner = RSDSScanner(address_space=self.physical_address_space,
+                              session=self.session)
+
+        for hit in scanner.scan():
+            rsds = pe_profile.CV_RSDS_HEADER(
+                offset=hit, vm=self.physical_address_space)
+
+            guid = "%s%x" % (rsds.GUID.AsString, rsds.Age)
+            if guid not in guids:
+                guids.add(guid)
+                yield rsds, guid
+
+    def render(self, renderer):
+        renderer.table_header(
+            [("Offset (P)", "offset_p", "[addrpad]"),
+             ('GUID/Version', "guid", "32"),
+             ("PDB", "pdb", "30")])
+
+        for rsds, guid in self.ScanVersions():
+            renderer.table_row(rsds, guid, rsds.Filename)
+
+

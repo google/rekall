@@ -435,15 +435,16 @@ pe_overlays = {
             }],
 
     "_GUID": [16, {
-            "Data4": [8, ["String", dict(length=8)]],
-            "AsString": lambda x: "%08x%04x%04x%s" % (
-                x.Data1, x.Data2, x.Data3, str(x.Data4).encode('hex')),
+            "Data4": [8, ["String", dict(length=8, term=None)]],
+            "AsString": lambda x: ("%08x%04x%04x%s" % (
+                x.Data1, x.Data2, x.Data3, str(x.Data4).encode('hex'))).upper(),
             }],
 
     # This struct is reversed.
     'CV_RSDS_HEADER': [None, {
             "Signature": [0, ["String", dict(length=4)]],
             "GUID": [4, ["_GUID"]],
+            "GUID_AGE": lambda x: "%s%X" % (x.GUID.AsString, x.Age),
             "Age": [20, ["unsigned int"]],
             "Filename": [24, ["String"]],
             }],
@@ -822,10 +823,10 @@ class PE(object):
         self.nt_header = self.dos_header.NTHeader
 
     @property
-    def GUID(self):
+    def RSDS(self):
         return self.nt_header.OptionalHeader.DataDirectory[
             "IMAGE_DIRECTORY_ENTRY_DEBUG"].VirtualAddress.dereference_as(
-            "_IMAGE_DEBUG_DIRECTORY").AddressOfRawData.GUID
+            "_IMAGE_DEBUG_DIRECTORY").AddressOfRawData
 
     def ImportDirectory(self):
         """A generator over the import directory.

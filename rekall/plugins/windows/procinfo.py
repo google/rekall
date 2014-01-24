@@ -48,7 +48,7 @@ class PEInfo(plugin.Command):
                             "from this file.")
 
 
-    def __init__(self, address_space=None, image_base=0, filename=None,
+    def __init__(self, image_base=0, address_space=None, filename=None,
                  **kwargs):
         """Dump a PE binary from memory.
 
@@ -57,8 +57,8 @@ class PEInfo(plugin.Command):
           - M: The function is mapped into memory.
 
         Args:
-          address_space: The address space which contains the PE image.
           image_base: The address of the image base (dos header).
+          address_space: The address space which contains the PE image.
           filename: If provided we create an address space from this file.
         """
         super(PEInfo, self).__init__(**kwargs)
@@ -67,10 +67,10 @@ class PEInfo(plugin.Command):
         if isinstance(address_space, basestring) and filename is None:
             filename, address_space = address_space, None
 
-        self.address_space = address_space
+        self.address_space = address_space or self.session.kernel_address_space
 
         self.pe_helper = pe_vtypes.PE(
-            address_space=address_space, session=self.session,
+            address_space=self.address_space, session=self.session,
             filename=filename, image_base=image_base)
 
         self.disassembler = self.session.plugins.dis(
@@ -88,7 +88,8 @@ class PEInfo(plugin.Command):
                 field,
                 getattr(self.pe_helper.nt_header.FileHeader, field))
 
-        renderer.table_row("GUID", self.pe_helper.GUID.AsString)
+        renderer.table_row("GUID/Age", self.pe_helper.RSDS.GUID_AGE)
+        renderer.table_row("PDB", self.pe_helper.RSDS.Filename)
 
         renderer.format(
             "\nSections (Relative to 0x{0:08X}):\n",

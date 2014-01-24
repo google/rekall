@@ -226,6 +226,9 @@ class Win7x86(basic.Profile32Bits, Win7BaseProfile):
     _md_build = 7600
     _md_type = "Kernel"
 
+    METADATA = dict(major=6, minor=1, build=7600, type="Kernel")
+
+
 
 class Win7x64(basic.ProfileLLP64, Win7BaseProfile):
     """A Profile for Windows 7 x64."""
@@ -233,3 +236,5 @@ class Win7x64(basic.ProfileLLP64, Win7BaseProfile):
     _md_minor = 1
     _md_build = 7600
     _md_type = "Kernel"
+
+    METADATA = dict(major=6, minor=1, build=7600, type="Kernel")

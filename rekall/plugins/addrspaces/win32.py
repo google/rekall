@@ -72,7 +72,6 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
             None)
 
         # Try to get the memory runs from the winpmem driver.
-        self.runs = []
         try:
             self.ParseMemoryRuns()
         except Exception:
@@ -80,7 +79,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
                 import pdb
                 pdb.post_mortem()
 
-            self.runs = [[0, 0, win32file.GetFileSize(self.fhandle)]]
+            self.insert((0, 0, win32file.GetFileSize(self.fhandle)))
 
         # IO on windows is extremely slow so we are better off using a
         # cache.
@@ -110,7 +109,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
         for x in range(self.memory_parameters["NumberOfRuns"]):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
-            self.runs.append((start, start, length))
+            self.runs.insert((start, start, length))
 
     def _read_chunk(self, addr, length):
         offset, available_length = self._get_available_buffer(addr, length)

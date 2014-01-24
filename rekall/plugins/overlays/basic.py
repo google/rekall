@@ -795,6 +795,11 @@ class Profile32Bits(obj.Profile):
     _md_memory_model = '32bit'
     _md_data_model = "ILP32"
 
+    METADATA = dict(
+        memory_model="32bit",
+        data_model="ILP32"
+        )
+
     def __init__(self, **kwargs):
         super(Profile32Bits, self).__init__(**kwargs)
         self.add_classes(native_types.ILP32)
@@ -807,6 +812,11 @@ class ProfileLLP64(obj.Profile):
     _md_memory_model = '64bit'
     _md_data_model = "LLP64"
 
+    METADATA = dict(
+        memory_model="64bit",
+        data_model="LLP64"
+        )
+
     def __init__(self, **kwargs):
         super(ProfileLLP64, self).__init__(**kwargs)
         self.add_classes(native_types.LLP64)
@@ -817,6 +827,11 @@ class ProfileLP64(obj.Profile):
     """Basic profile for 64 bit Linux systems."""
     _md_memory_model = '64bit'
     _md_data_model = "LP64"
+
+    METADATA = dict(
+        memory_model="64bit",
+        data_model="LP64"
+        )
 
     def __init__(self, **kwargs):
         super(ProfileLP64, self).__init__(**kwargs)

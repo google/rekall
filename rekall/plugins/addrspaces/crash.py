@@ -25,8 +25,6 @@
 import logging
 
 from rekall import addrspace
-from rekall import obj
-from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays.windows import windows
 
 PAGE_SHIFT = 12
@@ -43,19 +41,16 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
 
     def __init__(self, **kwargs):
         super(WindowsCrashDumpSpace32, self).__init__(**kwargs)
-        self.runs = []
         self.offset = 0
         self.fname = ''
 
         # Check the file for sanity.
         self.check_file()
 
-        # This is a lookup table: (virtual_address, physical_address, length)
-        self.runs = []
         file_offset = self.header.size()
 
         for run in self.header.PhysicalMemoryBlockBuffer.Run:
-            self.runs.append((int(run.BasePage) * self.PAGE_SIZE,
+            self.runs.insert((int(run.BasePage) * self.PAGE_SIZE,
                               file_offset,
                               int(run.PageCount) * self.PAGE_SIZE))
 
@@ -88,11 +83,12 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
     def write(self, vaddr, buf):
         # Support writes straddling page runs.
         while len(buf):
-            file_offset, available_length = self._get_available_buffer(vaddr, len(buf))
+            file_offset, available_length = self._get_available_buffer(
+                vaddr, len(buf))
             if file_offset is None:
                 raise IOError("Unable to write unmapped runs yet.")
 
-            self.base.write(baddr, buf[:available_length])
+            self.base.write(vaddr, buf[:available_length])
             buf = buf[available_length:]
 
 

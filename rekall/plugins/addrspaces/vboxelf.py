@@ -40,7 +40,6 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         # Check the file for sanity.
         self.check_file()
 
-        self.runs = []
         self.offset = 0
         self.fname = ''
 
@@ -51,9 +50,6 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         self.as_assert(self.elf64_hdr.e_type == "ET_CORE",
                        "Elf file is not a core file.")
 
-        # This is a lookup table: (virtual_address, physical_address, length)
-        self.runs = []
-
         # Iterate over all the section headers and map the runs.
         for section in self.elf64_hdr.e_phoff:
             if section.p_type == "PT_LOAD":
@@ -63,7 +59,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
                     continue
 
                 # Add the run to the memory map.
-                self.runs.append((int(section.p_paddr),  # Virtual Addr
+                self.runs.insert((int(section.p_paddr),  # Virtual Addr
                                   int(section.p_offset), # File Addr
                                   int(section.p_memsz))) # Length
 

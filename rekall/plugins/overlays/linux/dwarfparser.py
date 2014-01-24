@@ -368,10 +368,25 @@ class DwarfParser(plugin.Command):
             "filename", default=None,
             help="The filename of the PDB file.")
 
-    def __init__(self, filename=None, **kwargs):
+        parser.add_argument(
+            "--profile_class", default="Linux64",
+            help="The name of the profile implementation. ")
+
+    def __init__(self, filename=None, profile_class=None, **kwargs):
         super(DwarfParser, self).__init__(**kwargs)
         self.parser = DWARFParser(open(filename, "rb"), self.session)
+        self.profile_class = profile_class
 
     def render(self, renderer):
         vtypes = self.parser.VType()
-        renderer.write(utils.PPrint(vtypes))
+        result = {
+            "$METADATA": dict(
+                Type="Profile",
+
+                # This should probably be changed for something more specific.
+                ProfileClass=self.profile_class),
+            "$STRUCTS": vtypes,
+            "$ENUMS": vtypes.pop("$ENUMS", {}),
+            }
+
+        renderer.write(utils.PPrint(result))

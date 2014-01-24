@@ -1020,6 +1020,10 @@ class BaseWindowsProfile(basic.BasicClasses):
     """Common symbols for all of windows kernel profiles."""
     _md_os = "windows"
 
+    METADATA = dict(
+        os="windows"
+        )
+
     __abstract = True
 
     def __init__(self, **kwargs):

@@ -34,7 +34,6 @@ class MACHOCoreDump(addrspace.RunBasedAddressSpace):
         super(MACHOCoreDump, self).__init__(**kwargs)
 
         self.check_file()
-        self.runs = []
 
         # Try to parse the file now.
         macho_profile = macho.MACHO64Profile()
@@ -47,7 +46,7 @@ class MACHOCoreDump(addrspace.RunBasedAddressSpace):
         for segment in self.header.segments:
             # We only map segments into memory.
             if segment.cmd == "LC_SEGMENT_64":
-                self.runs.append(
+                self.runs.insert(
                     (segment.vmaddr, segment.fileoff, segment.filesize))
 
     def check_file(self):

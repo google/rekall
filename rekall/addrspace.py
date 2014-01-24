@@ -358,7 +358,7 @@ class RunBasedAddressSpace(PagedReader):
 
     def __init__(self, **kwargs):
         super(RunBasedAddressSpace, self).__init__(**kwargs)
-        self.runs = []
+        self.runs = utils.SortedCollection(key=lambda x: x[0])
 
     def _read_chunk(self, addr, length):
         file_offset, available_length = self._get_available_buffer(addr, length)
@@ -388,18 +388,17 @@ class RunBasedAddressSpace(PagedReader):
           A tuple of (physical_offset, available_length). The physical_offset
           can be None to signify that the address is not valid.
         """
-        for virt_addr, file_address, file_length in self.runs:
-            if addr < virt_addr:
-                available_length = min(length, virt_addr - addr)
-                return (None, available_length)
+        addr = int(addr)
 
-            # The required page is inside this run.
-            if addr >= virt_addr and addr < virt_addr + file_length:
-                file_offset = file_address + (addr - virt_addr)
-                available_length = min(length, virt_addr + file_length - addr)
+        try:
+            virt_addr, file_address, file_length = self.runs.find_le(addr)
+            available_length = file_length - (addr - virt_addr)
+            physical_offset = addr - virt_addr + file_address
 
-                # Offset of page in the run.
-                return (file_offset, available_length)
+            if available_length > 0:
+                return physical_offset, min(length, available_length)
+        except ValueError:
+            pass
 
         return None, 0
 

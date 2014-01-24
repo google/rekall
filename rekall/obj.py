@@ -1139,9 +1139,10 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 ## objects
 
 class Profile(object):
-    """ A profile is a collection of types relating to a certain
-    system. We parse the abstract_types and join them with
-    native_types to make everything work together.
+    """A collection of types relating to a single compilation unit.
+
+    Profiles are usually not instantiated directly. Rather, the profiles are
+    loaded from the profile repository using the session.LoadProfile() method.
     """
     # This is the list of overlays to be applied to the vtypes when compiling
     # into types.
@@ -1169,9 +1170,18 @@ class Profile(object):
     # An empty type descriptor.
     EMPTY_DESCRIPTOR = [0, {}]
 
+    # The metadata for this profile. This should be specified by derived
+    # classes. It is OK To put a (mutable) dict in here. It will not be
+    # directory modified by anything.
+    METADATA = {}
+
+    # The constructor will build this dict of metadata by copying the values
+    # from METADATA here.
+    _metadata = None
+
     @classmethod
     def LoadProfileFromData(cls, data, session=None, name=None):
-        """Try to load a profile directly from a JSON object.
+        """Creates a profile directly from a JSON object.
 
         Args:
           data: A data structure of an encoded profile. Described:
@@ -1202,7 +1212,8 @@ class Profile(object):
                     "No profile implementation class %s" %
                     metadata["ProfileClass"])
 
-            result = profile_cls(name=name, session=session)
+            result = profile_cls(name=name, session=session,
+                                 metadata=metadata)
 
             # The constants
             constants = data.get("$CONSTANTS")
@@ -1222,12 +1233,18 @@ class Profile(object):
 
             return result
 
-    def __init__(self, name=None, session=None, **kwargs):
+    def __init__(self, name=None, session=None, metadata=None, **kwargs):
         if kwargs:
             logging.error("Unknown keyword args {0}".format(kwargs))
 
         if name is None:
             name = self.__class__.__name__
+
+        self._metadata = {}
+        for basecls in reversed(self.__class__.__mro__):
+            self._metadata.update(getattr(basecls, "METADATA", {}))
+
+        self._metadata.update(metadata or {})
 
         self.name = name
         self.session = session

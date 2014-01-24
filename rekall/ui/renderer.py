@@ -687,7 +687,14 @@ class TextRenderer(RendererBaseClass):
 
                 message = message % kwargs
             elif args:
-                message = message % args
+                format_args = []
+                for arg in args:
+                    if callable(arg):
+                        format_args.append(arg())
+                    else:
+                        format_args.append(arg)
+
+                message = message % tuple(format_args)
 
             self.ClearProgress()
 
