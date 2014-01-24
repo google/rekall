@@ -32,7 +32,6 @@ from rekall import utils
 from rekall.plugins import core
 from rekall.plugins.addrspaces import amd64
 
-
 LOW_4GB_MASK = 0x00000000FFFFFFFF
 
 def ID_MAP_VTOP(x):
@@ -56,6 +55,107 @@ class CatfishScanner(scan.BaseScanner):
         ("StringCheck", dict(needle="Catfish \x00\x00"))
         ]
 
+
+class DarwinFindKSLR(AbstractDarwinCommandPlugin):
+    """A scanner for KSLR slide values in the Darwin kernel.
+
+    The scanner works by looking up a known data structure and comparing
+    its actual location to its expected location. Verification is a similar
+    process, using a second constant. This takes advantage of the fact that both
+    data structures are in a region of kernel memory that maps to the physical
+    memory in a predictable way (see ID_MAP_VTOP).
+
+    Human-readable output includes values of the kernel version string (which is
+    used for validation) for manual review, in case there are false positives.
+    """
+
+    __name = "find_kslr"
+
+    @classmethod
+    def is_active(cls, config):
+        return (super(DarwinFindKSLR, cls).is_active(config) and
+                config.profile.get_constant("_BootPML4"))
+
+    def vm_kernel_slide_hits(self):
+        """Tries to compute the KSLR slide.
+
+        In an ideal scenario, this should return exactly one valid result.
+
+        Yields:
+          (int) semi-validated KSLR value
+        """
+
+        expected_offset = self.profile.get_constant("_lowGlo",
+                                                    is_address=False)
+        expected_offset = ID_MAP_VTOP(expected_offset)
+
+        for hit in CatfishScanner(
+            address_space=self.physical_address_space,
+            session=self.session).scan():
+            vm_kernel_slide = int(hit - expected_offset)
+
+            if self._validate_vm_kernel_slide(vm_kernel_slide):
+                yield vm_kernel_slide
+
+    def vm_kernel_slide(self):
+        """Returns the first result of vm_kernel_slide hits and stops the scan.
+
+        This is the idiomatic way of using this plugin if all you need is the
+        likely KSLR slide value.
+
+        Returns:
+          A value for the KSLR slide that appears sane.
+        """
+        for vm_kernel_slide in self.vm_kernel_slide_hits():
+            return vm_kernel_slide
+
+    def _lookup_version_string(self, vm_kernel_slide):
+        """Uses vm_kernel_slide to look up kernel version string.
+
+        This is used for validation only. Physical address space is
+        asumed to map to kernel virtual address space as expressed by
+        ID_MAP_VTOP.
+
+        Args:
+          vm_kernel_slide: KSLR slide to be used for lookup. Overrides whatever
+          may already be set in session.
+
+        Returns:
+          Kernel version string (should start with "Dawrin Kernel"
+        """
+        version_offset = self.profile.get_constant("_version",
+                                                   is_address=False)
+        version_offset += vm_kernel_slide
+        version_offset = ID_MAP_VTOP(version_offset)
+
+        return self.profile.String(vm=self.physical_address_space,
+                                   offset=version_offset)
+
+    def _validate_vm_kernel_slide(self, vm_kernel_slide):
+        """Checks sanity of vm_kernel_slide by looking up kernel version.
+        If the result a string that looks like the kernel version string the
+        slide value is assumed to be valid. Note that this can theoretically
+        give false positives.
+
+        Args:
+          vm_kernel_slide: KSLR slide to be used for validation. Overrides
+          whatever may already be set in session.
+
+        Returns:
+          True if vm_kernel_slide value appears sane. False otherwise.
+        """
+        version_string = self._lookup_version_string(vm_kernel_slide)
+        return version_string[0:13] == "Darwin Kernel"
+
+    def render(self, renderer):
+        renderer.table_header([
+            ("KSLR Slide", "vm_kernel_slide", "[addrpad]"),
+            ("Kernel Version", "_version", "30"),
+        ])
+
+        for vm_kernel_slide in self.vm_kernel_slide_hits():
+            renderer.table_row(vm_kernel_slide,
+                               self._lookup_version_string(vm_kernel_slide))
 
 
 class DarwinFindDTB(AbstractDarwinCommandPlugin):
