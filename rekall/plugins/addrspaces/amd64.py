@@ -209,7 +209,7 @@ class VTxPagedMemory(AMD64PagedMemory):
 
         # Reset the DTB, in case a plugin or AS relies on us providing one.
         self.dtb = None
-        self.ept = ept
+        self.ept = ept or self.session.GetParameter("ept")
         self.as_assert(self.ept is not None, "No EPT specified")
 
         # We don't allow overlaying over another VTx AS for now.

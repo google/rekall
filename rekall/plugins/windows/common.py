@@ -56,6 +56,26 @@ class AbstractWindowsCommandPlugin(plugin.PhysicalASMixin,
                 plugin.Command.is_active(config))
 
 
+class WinDTBScanner(scan.DiscontigScanner, scan.BaseScanner):
+    def __init__(self, process_name=None, **kwargs):
+        super(WinDTBScanner, self).__init__(**kwargs)
+        needle_process_name = process_name or "Idle"
+        needle = needle_process_name + "\x00" * (15 - len(needle_process_name))
+        self.image_name_offset = self.profile.get_obj_offset(
+            "_EPROCESS", "ImageFileName")
+        self.checks = [["StringCheck", {"needle": needle}]]
+
+    def scan(self, offset=0, maxlen=None):
+        for offset in super(WinDTBScanner, self).scan(offset, maxlen):
+            self.eprocess = self.profile.Object(
+                "_EPROCESS", offset=offset - self.image_name_offset,
+                vm=self.session.physical_address_space)
+            logging.debug("Found _EPROCESS @ 0x%x (DTB: %X)\n",
+                          self.eprocess.obj_offset,
+                          self.eprocess.Pcb.DirectoryTableBase.v())
+            yield self.eprocess
+
+
 class WinFindDTB(AbstractWindowsCommandPlugin):
     """A plugin to search for the Directory Table Base for windows systems.
 
@@ -74,9 +94,6 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
     __name = "find_dtb"
 
-    # We scan this many bytes at once
-    SCAN_BLOCKSIZE = 1024 * 1024
-
     @classmethod
     def args(cls, parser):
         """Declare the command line args we need."""
@@ -84,49 +101,12 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
         parser.add_argument("--process_name",
                             help="The name of the process to search for.")
 
-    def __init__(self, process_name=None, **kwargs):
-        """Scans the image for the Idle process.
-
-        Args:
-          process_name: The name of the process we should look for. (If we are
-            looking for the kernel DTB, any kernel process will do here.)
-
-          physical_address_space: The address space to search. If None, we use
-            the session's physical_address_space.
-
-          profile: An optional profile to use (or we use the session's).
-        """
-        super(WinFindDTB, self).__init__(**kwargs)
-
-        self.process_name = process_name or "Idle"
-
-        # This is the offset from the ImageFileName member to the start of the
-        # _EPROCESS
-        self.image_name_offset = self.profile.get_obj_offset(
-            "_EPROCESS", "ImageFileName")
-
     def scan_for_process(self):
         """Scan the image for the idle process."""
-        needle = self.process_name + "\x00" * (15 - len(self.process_name))
-        offset = 0
-        while self.physical_address_space.is_valid_address(offset):
-            data = self.physical_address_space.read(offset, self.SCAN_BLOCKSIZE)
-            found = 0
-
-            while 1:
-                found = data.find(needle, found + 1)
-                if found >= 0:
-                    # We found something that looks like the process we want.
-                    self.eprocess = self.profile.Object(
-                        "_EPROCESS",
-                        offset=offset + found - self.image_name_offset,
-                        vm=self.physical_address_space)
-
-                    yield self.eprocess
-                else:
-                    break
-
-            offset += len(data)
+        for process in WinDTBScanner(
+            session=self.session,
+            address_space=self.physical_address_space).scan():
+            yield process
 
     def dtb_hits(self):
         for eprocess in self.scan_for_process():
