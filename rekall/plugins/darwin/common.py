@@ -30,12 +30,92 @@ from rekall import scan
 from rekall import utils
 
 from rekall.plugins import core
-from rekall.plugins.addrspaces import amd64
 
-LOW_4GB_MASK = 0x00000000FFFFFFFF
+# A few notes on XNU's (64bit) memory layout:
+#
+# Because of the way the Darwin kernel (XNU) is bootstrapped, a section of its
+# virtual address space maps linearly to the base of the physical address space.
+# This relationship is basically:
+# KERNEL_MIN_ADDRESS + the_physical_address = the_virtual_address
+#
+# The kernel ensures this when allocating certain data structures, most notably
+# the page tables [1]. However, the kernel doesn't actually "know" the value of
+# KERNEL_MIN_ADDRESS, which is defined the Makefile [2]. Instead, allocations
+# are done by keeping a cursor at the lowest available physical address [3].
+#
+# Because of this, when the kernel needs to convert an address from the virtual
+# address space to the physical address space without relying on the page
+# tables, it uses a "safer" variation on the above rule and masks out the first
+# 32 bits of the address using a macro called ID_MAP_VTOP [4,5], which is a
+# simple bitmask (LOW_4GB_MASK [6]).
+#
+# We copy/adapt all three #defines below. When we need to bootstrap the virtual
+# address space, relying on ID_MAP_VTOP is preferrable, because it's less
+# fragile. However, KERNEL_MIN_ADDRESS can be a good heuristic for deciding
+# whether a particular value is a valid pointer in the kernel virtual address
+# space, so I decided to keep it around.
+#
+# [1]
+# github.com/opensource-apple/xnu/blob/10.9/osfmk/i386/i386_init.c#L134
+#
+# [2]
+# github.com/opensource-apple/xnu/blob/10.9/makedefs/MakeInc.def#L258
+#
+# [3] This is where physfree is defined as the next free page, after a blank
+# page, after the last page of the kernel image as determined by the bootloader.
+# github.com/opensource-apple/xnu/blob/10.9/osfmk/i386/i386_init.c#L330
+#
+# [4]
+# github.com/opensource-apple/xnu/blob/10.9/osfmk/i386/pmap.h#L353
+#
+# [5] Example use, to set the physical address of the DTB when switching address
+# spaces, knowing the virtual address of the first page table:
+# github.com/opensource-apple/xnu/blob/10.9/osfmk/i386/pal_routines.c#L254
+#
+# [6]
+# github.com/opensource-apple/xnu/blob/10.9/osfmk/i386/pmap.h#L119
+LOW_4GB_MASK = 0x00000000ffffffff
+KERNEL_MIN_ADDRESS = 0xffffff8000000000
 
 def ID_MAP_VTOP(x):
     return x & LOW_4GB_MASK
+
+# On x64, only 48 bits of the pointer are addressable.
+X64_POINTER_MASK = 0x0000ffffffffffff
+
+def MOUNTAIN_LION_OR_LATER(profile):
+    return profile.get_constant("_BootPML4") is not None
+
+
+class DarwinKASLRMixin(object):
+    """Ensures that KASLR slide is computed and stored in the session."""
+
+    @classmethod
+    def args(cls, parser):
+        super(DarwinKASLRMixin, cls).args(parser)
+
+        parser.add_argument("--vm_kernel_slide", action=args.IntParser,
+                            help="OS X 10.8 and later: kernel ASLR slide.")
+
+    def __init__(self, vm_kernel_slide=None, **kwargs):
+        """A mixin for Darwin plugins that require a valid KASLR slide.
+
+        Args:
+          vm_kernel_slide: THe integer KASLR slide used in this image. If not
+          given it will be computed.
+        """
+        super(DarwinKASLRMixin, self).__init__(**kwargs)
+
+        if not MOUNTAIN_LION_OR_LATER(self.profile):
+            return
+
+        if vm_kernel_slide is not None:
+            self.session.StoreParameter("vm_kernel_slide", vm_kernel_slide)
+        elif self.session.GetParameter("vm_kernel_slide") is None:
+            self.session.StoreParameter(
+                "vm_kernel_slide",
+                 self.session.plugins.find_kaslr().vm_kernel_slide()
+            )
 
 
 class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
@@ -56,8 +136,8 @@ class CatfishScanner(scan.BaseScanner):
         ]
 
 
-class DarwinFindKSLR(AbstractDarwinCommandPlugin):
-    """A scanner for KSLR slide values in the Darwin kernel.
+class DarwinFindKASLR(AbstractDarwinCommandPlugin):
+    """A scanner for KASLR slide values in the Darwin kernel.
 
     The scanner works by looking up a known data structure and comparing
     its actual location to its expected location. Verification is a similar
@@ -69,20 +149,20 @@ class DarwinFindKSLR(AbstractDarwinCommandPlugin):
     used for validation) for manual review, in case there are false positives.
     """
 
-    __name = "find_kslr"
+    __name = "find_kaslr"
 
     @classmethod
     def is_active(cls, config):
-        return (super(DarwinFindKSLR, cls).is_active(config) and
-                config.profile.get_constant("_BootPML4"))
+        return (super(DarwinFindKASLR, cls).is_active(config) and
+                MOUNTAIN_LION_OR_LATER(config.profile))
 
     def vm_kernel_slide_hits(self):
-        """Tries to compute the KSLR slide.
+        """Tries to compute the KASLR slide.
 
         In an ideal scenario, this should return exactly one valid result.
 
         Yields:
-          (int) semi-validated KSLR value
+          (int) semi-validated KASLR value
         """
 
         expected_offset = self.profile.get_constant("_lowGlo",
@@ -101,10 +181,10 @@ class DarwinFindKSLR(AbstractDarwinCommandPlugin):
         """Returns the first result of vm_kernel_slide hits and stops the scan.
 
         This is the idiomatic way of using this plugin if all you need is the
-        likely KSLR slide value.
+        likely KASLR slide value.
 
         Returns:
-          A value for the KSLR slide that appears sane.
+          A value for the KASLR slide that appears sane.
         """
         for vm_kernel_slide in self.vm_kernel_slide_hits():
             return vm_kernel_slide
@@ -117,7 +197,7 @@ class DarwinFindKSLR(AbstractDarwinCommandPlugin):
         ID_MAP_VTOP.
 
         Args:
-          vm_kernel_slide: KSLR slide to be used for lookup. Overrides whatever
+          vm_kernel_slide: KASLR slide to be used for lookup. Overrides whatever
           may already be set in session.
 
         Returns:
@@ -138,7 +218,7 @@ class DarwinFindKSLR(AbstractDarwinCommandPlugin):
         give false positives.
 
         Args:
-          vm_kernel_slide: KSLR slide to be used for validation. Overrides
+          vm_kernel_slide: KASLR slide to be used for validation. Overrides
           whatever may already be set in session.
 
         Returns:
@@ -149,7 +229,7 @@ class DarwinFindKSLR(AbstractDarwinCommandPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-            ("KSLR Slide", "vm_kernel_slide", "[addrpad]"),
+            ("KASLR Slide", "vm_kernel_slide", "[addrpad]"),
             ("Kernel Version", "_version", "30"),
         ])
 
@@ -158,24 +238,74 @@ class DarwinFindKSLR(AbstractDarwinCommandPlugin):
                                self._lookup_version_string(vm_kernel_slide))
 
 
-class DarwinFindDTB(AbstractDarwinCommandPlugin):
-    """A scanner for DTB values on the Darwin kernel.
+class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin):
+    """Tries to find the DTB address for the Darwin/XNU kernel.
 
-    For darwin, the dtb values are taken directly from the symbol file.
-
-    This one plugin handles both 32 and 64 bits.
+    As the XNU kernel developed over the years, the best way of deriving this
+    information changed. This class now offers multiple methods of finding the
+    DTB. Calling find_dtb should automatically select the best method for the
+    job, based on the profile. It will also attempt to fall back on less ideal
+    ways of getting the DTB if the best way fails.
     """
 
     __name = "find_dtb"
 
-    def dtb_hits(self):
-        """Tries to locate the DTB."""
-        if self.profile.get_constant("_BootPML4"):
-            return self._dtb_hits_m_lion()
-        else:
-            return self._dtb_hits_pre_m_lion()
+    def __init__(self, **kwargs):
+        super(DarwinFindDTB, self).__init__(**kwargs)
+        self.address_space_cls = core.GetAddressSpaceImplementation(
+            self.profile)
 
-    def _dtb_hits_pre_m_lion(self):
+    def _dtb_hits_idlepml4(self):
+        """On 10.8 and later, x64, tries to determine the DTB using IdlePML4.
+
+        IdlePML4 is the address (in Kernel AS) of the kernel DTB [1]. The DTB
+        itself happens to be located in a section of kernel memory that sits at
+        the base of the physical address space [2], and its virtual address can
+        be converted to its physical address using the ID_MAP_VTOP macro
+        which kernel defines for this express purpose [3].
+
+        Should work on: 10.8 and later.
+        Best for: 10.9 and later.
+
+        Yields:
+          The physical address of the DTB, not verified.
+
+        1:
+        github.com/opensource-apple/xnu/blob/10.9/osfmk/i386/i386_init.c#L281
+
+        Here the kernel initializes the page register at the address IdlePML4
+        points to (masked using the bitmask macro). The same function switches
+        to the newly initialized address space right before returning.
+
+        // IdlePML4 single entry for kernel space.
+        fillkpt(IdlePML4 + KERNEL_PML4_INDEX,
+                INTEL_PTE_WRITE, (uintptr_t)ID_MAP_VTOP(IdlePDPT), 0, 1);
+
+        2:
+        The first page of IdlePML4 is allocated by the ALLOCPAGES function
+        located here:
+        github.com/opensource-apple/xnu/blob/10.9/osfmk/i386/i386_init.c#L134
+
+        3:
+        ID_MAP_VTOP is defined here, as simple bitmask:
+        github.com/opensource-apple/xnu/blob/10.9/osfmk/i386/pmap.h#L353
+        """
+        idlepml4 = ID_MAP_VTOP(self.profile.get_constant("_IdlePML4"))
+        dtb = self.profile.Object("unsigned int", offset=idlepml4,
+                                  vm=self.physical_address_space)
+        yield int(dtb)
+
+    def _dtb_hits_legacy(self):
+        """The original way of getting the DTB, adapted from Volatility.
+
+        I have no idea how or why this is intended to work, but it seems to for
+        old images.
+
+        Should work on: 10.7 and earlier.
+
+        Yields:
+          The physical address of the DTB, not verified.
+        """
         if self.profile.metadata("memory_model") == "32bit":
             result = self.profile.get_constant("_IdlePDPT")
 
@@ -185,95 +315,91 @@ class DarwinFindDTB(AbstractDarwinCommandPlugin):
                 result = self.profile.get_constant_object(
                     "_IdlePDPT", "unsigned int")
 
-            yield result, None
+            yield result
         else:
             result = self.profile.get_constant("_IdlePML4")
             if result > 0xffffff8000000000:
                 result -= 0xffffff8000000000
 
-            yield result, None
+            yield result
 
-    def _dtb_hits_m_lion(self):
-        """Get DTB on Mountain Lion kernels.
+    def _dtb_hits_kernel_pmap(self):
+        """On 64-bit systems, finds the DTB from the kernel pmap struct.
 
-        From 10.8 Onwards, OSX implements Kernsl ASLR as described here:
-        http://essay.utwente.nl/62852/1/Thesis_Daan_Keuper.pdf (3.4).
+        This is a very easy way of getting the DTB on systems where the kernel
+        pmap is a static symbol (which seems to be most of them.)
 
-        This essentially addes a constant vm_kernel_slide to all kernel
-        addresses:
-
-        http://www.opensource.apple.com/source/xnu/xnu-2422.1.72/osfmk/mach/vm_param.h
-
-        The Catfish trick is very similar to how we find KDBG on windows. There
-        is a known signature for the lowGlo struct which we can find in memory,
-        but there is also an exported symbol for this. The difference is
-        therefore the slide value (vm_kernel_slide).
-
-        http://www.opensource.apple.com/source/xnu/xnu-2422.1.72/osfmk/x86_64/lowmem_vectors.c
-
-        lowglo lowGlo __attribute__ ((aligned(PAGE_SIZE))) = {
-           .lgVerCode= { 'C','a','t','f','i','s','h',' ' },
-        ....
-
-        Note that we also allow the user to specify vm_kernel_slide in the
-        session.
-
-        #define LOW_4GB_MASK((vm_offset_t)0x00000000FFFFFFFFUL)
-
-        At xnu-2422.1.72/osfmk/i386/pmap.h:
-        #define ID_MAP_VTOP(x) ((void *)(((uint64_t)(x)) & LOW_4GB_MASK))
-
-        xnu-2422.1.72/osfmk/x86_64/pmap.c:
-        kernel_pmap->pm_cr3 = (uintptr_t)ID_MAP_VTOP(IdlePML4);
-
+        Yields:
+          The physical address of the DTB, not verified.
         """
-        lowGlo = ID_MAP_VTOP(self.profile.get_constant("_lowGlo"))
-        vm_kernel_slide = self.session.GetParameter("vm_kernel_slide")
-        if vm_kernel_slide is None:
-            for hit in CatfishScanner(
-                address_space=self.physical_address_space,
-                session=self.session).scan():
+        kernel_pmap_addr = self.profile.get_constant("_kernel_pmap_store")
+        kernel_pmap = self.profile.pmap(offset=ID_MAP_VTOP(kernel_pmap_addr),
+                                        vm=self.physical_address_space)
+        yield int(kernel_pmap.pm_cr3)
 
-                # From this point on, the profile will automatically slide
-                # constants by this amount.
-                vm_kernel_slide = hit - lowGlo
-                self.session.StoreParameter(
-                    "vm_kernel_slide", int(vm_kernel_slide))
+    def verify_address_space(self, address_space):
+        address = self.profile.get_constant("_version")
+        if not address_space.is_valid_address(address):
+            return False
 
-                bootpml4 = ID_MAP_VTOP(self.profile.get_constant("_BootPML4"))
-                boot_as = amd64.AMD64PagedMemory(
-                    base=self.physical_address_space, dtb=bootpml4)
+        if address_space.read(address, 13) != "Darwin Kernel":
+            return False
 
-                idlepml4_addr = ID_MAP_VTOP(
-                    self.profile.get_constant("_IdlePML4"))
+        return True
 
-                idlepml4 = self.profile.Object(
-                    "unsigned int", offset=idlepml4_addr, vm=boot_as)
+    def try_build_with_dtb(self, dtb):
+        address_space = self.address_space_cls(
+            base=self.physical_address_space,
+            session=self.session,
+            dtb=dtb,
+            profile=self.profile)
 
-                if idlepml4:
-                    yield idlepml4, None
+        if not self.verify_address_space(address_space):
+            return obj.NoneObject("Couldn't build address spac with this DTB.")
 
-    def verify_address_space(self, address_space=None, **_):
-        # Check the os version symbol using this address space.
-        return "Darwin" == self.profile.get_constant_object(
-            "_version",
-            target="String",
-            target_args=dict(length=6),
-            vm=address_space)
+        return address_space
+
+    def _dtb_methods(self):
+        """Determines viable methods of getting the DTB based on profile.
+
+        Yields:
+          Callable object that will yield DTB values.
+        """
+        if MOUNTAIN_LION_OR_LATER(self.profile):
+            yield self._dtb_hits_idlepml4
+        else:
+            yield self._dtb_hits_legacy
+
+        if self.profile.metadata("memory_model") == "64bit":
+            yield self._dtb_hits_kernel_pmap
+
+    def address_space_hits(self):
+        """Finds DTBs and yields virtual address spaces that expose kernel.
+
+        Yields:
+          BaseAddressSpace-derived instances, valid for the kernel.
+        """
+        for method in self._dtb_methods():
+            for dtb_hit in method():
+                address_space = self.try_build_with_dtb(dtb_hit)
+                if address_space is not None:
+                    yield address_space
 
     def render(self, renderer):
-        renderer.table_header([("DTB", "dtv", "[addrpad]"),
-                               ("Valid", "valid", "")])
+        renderer.table_header([("DTB", "dtb", "[addrpad]"),
+                               ("Verified", "verified", "8"),
+                               ("Source", "method", "15")])
+        for method in self._dtb_methods():
+            for dtb_hit in method():
+                renderer.table_row(
+                    dtb_hit,
+                    self.try_build_with_dtb(dtb_hit) is not None,
+                    method.__name__)
 
-        for dtb, _ in self.dtb_hits():
-            address_space = core.GetAddressSpaceImplementation(self.profile)(
-                session=self.session, base=self.physical_address_space, dtb=dtb)
 
-            renderer.table_row(
-                dtb, self.verify_address_space(address_space=address_space))
-
-
-class DarwinPlugin(plugin.KernelASMixin, AbstractDarwinCommandPlugin):
+class DarwinPlugin(DarwinKASLRMixin,
+                   plugin.KernelASMixin,
+                   AbstractDarwinCommandPlugin):
     """Plugin which requires the kernel Address space to be loaded."""
     __abstract = True
 

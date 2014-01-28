@@ -360,40 +360,40 @@ class LoadAddressSpace(plugin.Command):
             raise plugin.PluginError(
                 "Must specify a profile to load virtual AS.")
 
-        address_space_curry = obj.Curry(
-            GetAddressSpaceImplementation(self.profile),
-            base=self.session.physical_address_space,
-            session=self.session, profile=self.profile)
+        # If we know the DTB, just build the address space.
+        # Otherwise, delegate to a find_dtb plugin.
 
-        # If dtb is not known, find it though a (profile specific) plugin.
-        if not dtb:
-            logging.debug("DTB is not specified, about to search for it.")
-
-            # Delegate to the find_dtb plugin.
+        if dtb:
+            address_space_cls = GetAddressSpaceImplementation(self.profile)
+            self.session.kernel_address_space = address_space_cls(
+                dtb=dtb,
+                base=self.session.physical_address_space,
+                session=self.session,
+                profile=self.profile)
+        else:
+            logging.debug("DTB not specified. Delegating to find_dtb.")
             find_dtb = self.session.plugins.find_dtb()
+            for address_space in find_dtb.address_space_hits():
+                self.session.kernel_address_space = address_space
+                self.session.StoreParameter("dtb", address_space.dtb)
+                break
 
-            for dtb, eprocess in find_dtb.dtb_hits():
-                # Found it!
-                # Ask the find_dtb plugin to make sure this dtb works with the
-                # address space.
-                test_as = address_space_curry(dtb=dtb)
-                if find_dtb.verify_address_space(
-                    eprocess=eprocess, address_space=test_as):
-                    self.session.kernel_address_space = test_as
-
-                    # Cache the dtb now since it is verified.
-                    self.session.StoreParameter("dtb", int(dtb))
-                    break
-
-            if not self.session.kernel_address_space:
+            if self.session.kernel_address_space is None:
+                logging.info(
+                    "A DTB value was found but failed to verify. "
+                    "Some troubleshooting steps to consider: "
+                    "(1) Is the profile correct? (2) Is the KASLR correct? "
+                    "Try running the find_kaslr plugin on systems that "
+                    "use KASLR and see if there are more possible values. "
+                    "You can specify which offset to use using "
+                    "--vm_kernel_slide. (3) If you know the DTB, for "
+                    "example from knowing the value of the CR3 register "
+                    "at time of acquisition, you can set it using --dtb. "
+                    "On most 64-bit systems, you can use the DTB of any "
+                    "process, not just the kernel!")
                 raise plugin.PluginError(
                     "A DTB value was found but failed to verify. "
-                    "You can try setting it manualy using --dtb. "
-                    "This could also happen when the profile is incorrect.")
-
-        else:
-            self.session.kernel_address_space = address_space_curry(
-                dtb=dtb)
+                    "See logging messages for more information.")
 
         if self.session.default_address_space is None:
             self.session.default_address_space = \
@@ -664,6 +664,7 @@ class Dump(plugin.Command):
 
     def __init__(self, target=None, offset=0, width=16, rows=30,
                  suppress_headers=False, **kwargs):
+        # pylint: disable=C0301
         """Hexdump an object or memory location.
 
         You can use this plugin repeateadely to keep dumping more data using the
@@ -692,6 +693,7 @@ class Dump(plugin.Command):
           rows: How many rows to dump.
           suppress_headers: If set we do not write the headers.
         """
+        # pylint: enable=C0301
         super(Dump, self).__init__(**kwargs)
         if isinstance(target, (int, long)):
             offset = target
