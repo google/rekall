@@ -27,8 +27,7 @@ This file provides support for windows Windows 7 SP 0.
 
 # pylint: disable=protected-access
 from rekall import obj
-from rekall.plugins.overlays import basic
-from rekall.plugins.overlays.windows import windows
+from rekall.plugins.overlays.windows import common
 
 
 # In windows 7 the VadRoot is actually composed from _MMADDRESS_NODEs instead of
@@ -77,7 +76,7 @@ win7_overlays = {
     }
 
 
-class _OBJECT_HEADER(windows._OBJECT_HEADER):
+class _OBJECT_HEADER(common._OBJECT_HEADER):
     """A Rekall Memory Forensics object to handle Windows 7 object headers.
 
     Windows 7 changes the way objects are handled:
@@ -170,8 +169,8 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
         return False
 
 
-class _MMADDRESS_NODE(windows.VadTraverser):
-    """In win7 the base of all Vad objects in _MMADDRESS_NODE.
+class _MMADDRESS_NODE(common.VadTraverser):
+    """In win7 the base of all Vad objects is _MMADDRESS_NODE.
 
     The Vad structures can be either _MMVAD_SHORT or _MMVAD or _MMVAD_LONG. At
     the base of each struct there is an _MMADDRESS_NODE which contains the
@@ -189,7 +188,7 @@ class _MMADDRESS_NODE(windows.VadTraverser):
               }
 
 
-class _POOL_HEADER(windows._POOL_HEADER):
+class _POOL_HEADER(common._POOL_HEADER):
     """A class for pool headers"""
 
     @property
@@ -201,40 +200,10 @@ class _POOL_HEADER(windows._POOL_HEADER):
         return self.PoolType.v() % 2 == 1
 
 
-class Win7BaseProfile(windows.BaseWindowsProfile):
-    """The common ancestor of all windows 7 profiles."""
-
-    __abstract = True
-
-    def __init__(self, **kwargs):
-        super(Win7BaseProfile, self).__init__(**kwargs)
-        self.add_types({
-                'pointer64': ['NativeType', dict(format_string='<Q')]
-                })
-        self.add_overlay(win7_overlays)
-
-        self.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
-                              _MMADDRESS_NODE=_MMADDRESS_NODE,
-                              _POOL_HEADER=_POOL_HEADER,
-                              pointer64=obj.Pointer))
-
-
-class Win7x86(basic.Profile32Bits, Win7BaseProfile):
-    """A Profile for Windows 7 x86."""
-    _md_major = 6
-    _md_minor = 1
-    _md_build = 7600
-    _md_type = "Kernel"
-
-    METADATA = dict(major=6, minor=1, build=7600, type="Kernel")
-
-
-
-class Win7x64(basic.ProfileLLP64, Win7BaseProfile):
-    """A Profile for Windows 7 x64."""
-    _md_major = 6
-    _md_minor = 1
-    _md_build = 7600
-    _md_type = "Kernel"
-
-    METADATA = dict(major=6, minor=1, build=7600, type="Kernel")
+def InitializeWindows7Profile(profile):
+    profile.add_overlay(win7_overlays)
+    profile.add_classes(
+        _OBJECT_HEADER=_OBJECT_HEADER,
+        _MMADDRESS_NODE=_MMADDRESS_NODE,
+        _POOL_HEADER=_POOL_HEADER,
+        )

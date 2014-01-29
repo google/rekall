@@ -50,10 +50,10 @@ class AbstractWindowsCommandPlugin(plugin.PhysicalASMixin,
     __abstract = True
 
     @classmethod
-    def is_active(cls, config):
+    def is_active(cls, session):
         """We are only active if the profile is windows."""
-        return (getattr(config.profile, "_md_os", None) == 'windows' and
-                plugin.Command.is_active(config))
+        return (super(AbstractWindowsCommandPlugin, cls).is_active(session) and
+                session.profile.metadata("os") == 'windows')
 
 
 class WinDTBScanner(scan.DiscontigScanner, scan.BaseScanner):
@@ -126,7 +126,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
 
         version = self.profile.metadata("major"), self.profile.metadata("minor")
         # The test below does not work on windows 8 with the idle process.
-        if version < (6, 2):
+        if version < ("6", "2"):
             # Reflect through the address space at ourselves. Note that the Idle
             # process is not usually in the PsActiveProcessHead list, so we use
             # the ThreadListHead instead.

@@ -19,11 +19,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import windows
+# pylint: disable=protected-access
 
 from rekall import obj
-from rekall.plugins.overlays import basic
-from rekall.plugins.overlays.windows import windows
 from rekall.plugins.overlays.windows import win7
 
 
@@ -34,24 +32,24 @@ from rekall.plugins.overlays.windows import win7
 # simply casts all objects to an _MM_AVL_NODE without caring what they actually
 # are, then depending on the vad tag, they get casted to different structs.
 win8_overlays = {
-    '_EPROCESS': [ None, {
+    '_EPROCESS': [None, {
             # A symbolic link to the real vad root.
             'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
             }],
 
-    '_MM_AVL_NODE': [ None, {
-            'Tag': [-12 , ['String', dict(length = 4)]],
+    '_MM_AVL_NODE': [None, {
+            'Tag': [-12, ['String', dict(length=4)]],
             }],
 
-    '_MMVAD_SHORT': [ None, {
-            'Tag': [-12 , ['String', dict(length = 4)]],
+    '_MMVAD_SHORT': [None, {
+            'Tag': [-12, ['String', dict(length=4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
             'CommitCharge': lambda x: x.u1.VadFlags1.CommitCharge,
             }],
 
-    '_MMVAD': [ None, {
-            'Tag': [-12 , ['String', dict(length = 4)]],
+    '_MMVAD': [None, {
+            'Tag': [-12, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
             'Start': lambda x: x.Core.StartingVpn << 12,
             'End': lambda x: ((x.Core.EndingVpn + 1) << 12) - 1,
@@ -60,7 +58,9 @@ win8_overlays = {
             }],
 
     "_CONTROL_AREA": [None, {
-            'FilePointer': [None, ['_EX_FAST_REF', dict(target="_FILE_OBJECT")]],
+            'FilePointer': [None, ['_EX_FAST_REF', dict(
+                        target="_FILE_OBJECT"
+                        )]],
             }],
     }
 
@@ -72,7 +72,7 @@ class _OBJECT_HEADER(win7._OBJECT_HEADER):
     References: http://www.codemachine.com/article_objectheader.html
     """
 
-    type_map = { 2: 'Type',
+    type_map = {2: 'Type',
                 3: 'Directory',
                 4: 'SymbolicLink',
                 5: 'Token',
@@ -114,16 +114,17 @@ class _OBJECT_HEADER(win7._OBJECT_HEADER):
                 41: 'FilterConnectionPort',
                 42: 'FilterCommunicationPort',
                 43: 'PcwObject',
-            }
+                }
 
     # This specifies the order the headers are found below the _OBJECT_HEADER
-    optional_header_mask = (('CreatorInfo', '_OBJECT_HEADER_CREATOR_INFO', 0x01),
-                            ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 0x02),
-                            ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 0x04),
-                            ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO', 0x08),
-                            ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10),
-                            ('AuditInfo', '_OBJECT_HEADER_AUDIT_INFO', 0x40),
-                            )
+    optional_header_mask = (
+        ('CreatorInfo', '_OBJECT_HEADER_CREATOR_INFO', 0x01),
+        ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 0x02),
+        ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 0x04),
+        ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO', 0x08),
+        ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10),
+        ('AuditInfo', '_OBJECT_HEADER_AUDIT_INFO', 0x40),
+        )
 
     def find_optional_headers(self):
         """Find this object's optional headers."""
@@ -140,7 +141,7 @@ class _OBJECT_HEADER(win7._OBJECT_HEADER):
             else:
                 o = obj.NoneObject("Header not set")
 
-            setattr(self,name, o)
+            setattr(self, name, o)
 
     def get_object_type(self, kernel_address_space):
         """Return the object's type as a string"""
@@ -174,6 +175,14 @@ class _HANDLE_TABLE(obj.Struct):
 
 class _POOL_HEADER(obj.Struct):
     MAX_PREAMBLE_SIZE = 0xa0
+
+    @property
+    def NonPagedPool(self):
+        return self.PoolType.v() % 2 == 0 and self.PoolType.v() > 0
+
+    @property
+    def PagedPool(self):
+        return self.PoolType.v() % 2 == 1
 
     def get_next_object(self, offset, object_name):
         """Gets the next object that fits after this offset."""
@@ -240,43 +249,18 @@ class _MM_AVL_NODE(win7._MMADDRESS_NODE):
               }
 
 
-class Win8BaseProfile(windows.BaseWindowsProfile):
-    """The common ancestor of all windows 7 profiles."""
+def InitializeWindows8Profile(profile):
+    profile.add_overlay(win8_overlays)
 
-    __abstract = True
+    profile.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
+                             _HANDLE_TABLE=_HANDLE_TABLE,
+                             _MM_AVL_NODE=_MM_AVL_NODE,
+                             pointer64=obj.Pointer))
 
-    def __init__(self, **kwargs):
-        super(Win8BaseProfile, self).__init__(**kwargs)
-        self.add_types({
-                'pointer64': ['NativeType', dict(format_string='<Q')]
-                })
-        self.add_overlay(win8_overlays)
+    # Windows 8 changes many of the pool tags.
+    profile.add_constants(
+        EPROCESS_POOLTAG="Proc",
+        DRIVER_POOLTAG="Driv",
+        )
 
-        self.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
-                              _HANDLE_TABLE=_HANDLE_TABLE,
-                              _MM_AVL_NODE=_MM_AVL_NODE,
-                              pointer64=obj.Pointer))
-
-
-class Win8SP0x86(basic.Profile32Bits, Win8BaseProfile):
-    """ A Profile for Windows 8 SP0 x86 """
-    __abstract = True   # Not implemented yet.
-
-    _md_major = 6
-    _md_minor = 2
-
-
-class Win8SP0x64(basic.ProfileLLP64, Win8BaseProfile):
-    """ A Profile for Windows 8 SP0 x64 """
-    _md_major = 6
-    _md_minor = 2
-
-    def __init__(self, **kwargs):
-        super(Win8SP0x64, self).__init__(**kwargs)
-
-        # Windows 8 changes many of the pool tags.
-        self.add_constants(EPROCESS_POOLTAG="Proc",
-                           DRIVER_POOLTAG="Driv",
-                           )
-
-        self.add_classes(dict(_POOL_HEADER=_POOL_HEADER))
+    profile.add_classes(dict(_POOL_HEADER=_POOL_HEADER))

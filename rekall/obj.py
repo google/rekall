@@ -1233,6 +1233,26 @@ class Profile(object):
 
             return result
 
+    @classmethod
+    def Initialize(cls, profile):
+        """Install required types, classes and constants.
+
+        This method should be extended by derived classes. It is a class method
+        to allow other profiles to call this method and install the various
+        components into their own profiles.
+        """
+        # Basic types used in all profiles.
+        profile.add_classes({'BitField': BitField,
+                             'Pointer': Pointer,
+                             'Void': Void,
+                             'void': Void,
+                             'Array': Array,
+                             'ListArray': ListArray,
+                             'NativeType': NativeType,
+                             'Struct': Struct})
+
+        profile._initialized = True  # pylint: disable=protected-access
+
     def __init__(self, name=None, session=None, metadata=None, **kwargs):
         if kwargs:
             logging.error("Unknown keyword args {0}".format(kwargs))
@@ -1240,7 +1260,7 @@ class Profile(object):
         if name is None:
             name = self.__class__.__name__
 
-        self._metadata = {}
+        self._metadata = self.METADATA.copy()
         for basecls in reversed(self.__class__.__mro__):
             self._metadata.update(getattr(basecls, "METADATA", {}))
 
@@ -1254,6 +1274,7 @@ class Profile(object):
         self.constant_addresses = {}
         self.applied_modifications = []
         self.applied_modifications.append(self.name)
+        self.object_classes = {}
 
         # Keep track of all the known types so we can command line complete.
         self.known_types = set()
@@ -1273,16 +1294,8 @@ class Profile(object):
         # A dummy address space used internally.
         self._dummy = dummy()
 
-        # We initially populate this with objects in this module that will be
-        # used everywhere
-        self.object_classes = {'BitField': BitField,
-                               'Pointer': Pointer,
-                               'Void': Void,
-                               'void': Void,
-                               'Array': Array,
-                               'ListArray': ListArray,
-                               'NativeType': NativeType,
-                               'Struct': Struct}
+        # Call Initialize on demand.
+        self._initialized = False
 
     def flush_cache(self):
         self.types = {}
@@ -1293,26 +1306,33 @@ class Profile(object):
         result.vtypes = self.vtypes.copy()
         result.overlays = self.overlays[:]
         result.constants = self.constants.copy()
+        result.constant_addresses = self.constant_addresses.copy()
         result.applied_modifications = self.applied_modifications[:]
 
         # Object classes are shallow dicts.
         result.object_classes = self.object_classes.copy()
+        result._initialized = self._initialized
+        result.known_types = self.known_types.copy()
+        result._metadata = self._metadata.copy()
 
         return result
 
-    @classmethod
-    def metadata(cls, name, default=None):
+    def metadata(self, name, default=None):
         """Obtain metadata about this profile."""
-        prefix = '_md_'
+        if not self._initialized:
+            self.Initialize(self)
 
-        return getattr(cls, prefix + name, default)
+        return self._metadata.get(name, default)
 
-    @classmethod
-    def metadatas(cls, *args):
+    def set_metadata(self, name, value):
+        self._metadata[name] = value
+
+    def metadatas(self, *args):
         """Obtain metadata about this profile."""
-        prefix = '_md_'
+        if not self._initialized:
+            self.Initialize(self)
 
-        return tuple([getattr(cls, prefix + x, None) for x in args])
+        return tuple([self._metadata.get(x) for x in args])
 
     def has_type(self, type_name):
         # Compile on demand
@@ -1379,6 +1399,10 @@ class Profile(object):
         The type_name here is a reference to the vtypes which are loaded into
         the profile.
         """
+        # Make sure we are initialized on demand.
+        if not self._initialized:
+            self.Initialize(self)
+
         if type_name in self.types:
             return
 

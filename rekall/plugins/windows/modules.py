@@ -179,6 +179,10 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
             rsds = pe_profile.CV_RSDS_HEADER(
                 offset=hit, vm=self.physical_address_space)
 
+            # The filename must end with pdb for valid pdb.
+            if not unicode(rsds.Filename).endswith("pdb"):
+                continue
+
             guid = "%s%x" % (rsds.GUID.AsString, rsds.Age)
             if guid not in guids:
                 guids.add(guid)

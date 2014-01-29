@@ -27,8 +27,7 @@ This file provides support for windows XP SP2. We provide a profile
 for SP2.
 """
 
-from rekall.plugins.overlays import basic
-from rekall.plugins.overlays.windows import windows
+from rekall.plugins.overlays.windows import common
 
 
 # Windows XP specific overlays.
@@ -64,43 +63,14 @@ win_xp_overlays = {
     }
 
 
-class _MMVAD(windows.VadTraverser):
+class _MMVAD(common.VadTraverser):
     """Windows XP uses the _MMVAD struct itself as a traversor.
 
     i.e. The _MMVAD contains the LeftChild and RightChild.
     """
 
 
-class AbstractWinXPProfile(windows.BaseWindowsProfile):
-    """Base class for windows XP support."""
-    __abstract = True
-
-    def __init__(self, **kwargs):
-        super(AbstractWinXPProfile, self).__init__(**kwargs)
-
-        self.add_constants(PoolAlignment=8)
-        self.add_overlay(win_xp_overlays)
-
-        self.add_classes(dict(_MMVAD=_MMVAD))
-
-
-class WinXPSP2x86(AbstractWinXPProfile, basic.Profile32Bits):
-    """ A Profile for Windows XP SP2 x86 """
-    _md_major = 5
-    _md_minor = 1
-    _md_type = "Kernel"
-
-
-class WinXPSP3x86(AbstractWinXPProfile, basic.Profile32Bits):
-    """ A Profile for Windows XP SP3 x86 """
-    _md_major = 5
-    _md_minor = 1
-    _md_type = "Kernel"
-
-
-class WinXPSP3x86PAE(AbstractWinXPProfile, basic.Profile32Bits):
-    """A Profile for Windows XP SP3 x86 PAE."""
-    _md_major = 5
-    _md_minor = 1
-    _md_type = "Kernel"
-    _md_pae = True
+def InitializeXPProfile(profile):
+    profile.add_constants(PoolAlignment=8)
+    profile.add_overlay(win_xp_overlays)
+    profile.add_classes(dict(_MMVAD=_MMVAD))

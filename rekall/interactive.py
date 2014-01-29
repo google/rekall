@@ -30,22 +30,26 @@ def ImportEnvironment(**kwargs):
     # Run the pslist command rendering to stdout.
     print pslist()
     """
-    s = session.InteractiveSession(**kwargs)
-    with s.state as state:
+    isession = session.InteractiveSession(**kwargs)
+    with isession.state as state:
         config.MergeConfigOptions(state)
 
     stack = inspect.stack()
     # pylint: disable=protected-access
-    s._locals = stack[1][0].f_locals
-    s._prepare_local_namespace()
+    isession._locals = stack[1][0].f_locals
+    isession._prepare_local_namespace()
 
 
     # For IPython fix up the completion.
     try:
         shell = IPython.get_ipython()
-        shell.Completer.matchers.insert(
-            0, lambda x: ipython_support.RekallCompleter(shell.Completer, x))
+        if shell:
+            shell.Completer.matchers.insert(
+                0,
+                lambda x: ipython_support.RekallCompleter(shell.Completer, x))
 
-        shell.Completer.merge_completions = False
+            shell.Completer.merge_completions = False
     except Exception, e:
         print e
+
+    return isession

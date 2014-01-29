@@ -916,7 +916,7 @@ class PE(object):
         for data in resource_directory.Open("RT_VERSION").Traverse():
             version_info = data.OffsetToData.dereference_as("VS_VERSIONINFO")
             for string in version_info.Strings():
-                yield string.Key, string.Value
+                yield unicode(string.Key), unicode(string.Value)
 
     def Sections(self):
         for section in self.nt_header.Sections:

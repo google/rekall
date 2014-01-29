@@ -690,5 +690,6 @@ class Linux32(basic.Profile32Bits, basic.BasicClasses):
         self.add_overlay(linux_overlay)
         self.add_constants(default_text_encoding="utf8")
 
+
 class Linux64(basic.ProfileLP64, Linux32):
     """Support for 64 bit linux systems."""

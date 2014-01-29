@@ -415,7 +415,7 @@ class Error(Exception):
     """Address space errors."""
 
 
-class ASAssertionError(Error):
+class ASAssertionError(Error, IOError):
     """The address space failed to instantiate."""
 
 

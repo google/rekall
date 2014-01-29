@@ -40,7 +40,7 @@ class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
     @classmethod
     def is_active(cls, config):
         """We are only active if the profile is linux."""
-        return (getattr(config.profile, "_md_os", None) == 'linux' and
+        return (config.profile.metadata("os") == 'linux' and
                 plugin.Command.is_active(config))
 
 

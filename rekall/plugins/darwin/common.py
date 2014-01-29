@@ -126,7 +126,7 @@ class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
     @classmethod
     def is_active(cls, config):
         """We are only active if the profile is darwin."""
-        return (getattr(config.profile, "_md_os", None) == 'darwin' and
+        return (config.profile.metadata("os") == 'darwin' and
                 plugin.Command.is_active(config))
 
 

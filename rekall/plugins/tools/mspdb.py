@@ -175,7 +175,8 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
                     fd.write(data)
 
                 try:
-                    subprocess.check_call(["cabextract", output_file],
+                    subprocess.check_call(["cabextract",
+                                           os.path.basename(output_file)],
                                           cwd=self.dump_dir)
                 except subprocess.CalledProcessError:
                     renderer.format(
@@ -429,6 +430,10 @@ mspdb_overlays = {
                         ["String"]],
             }],
 
+    "IMAGE_SECTION_HEADER": [None, {
+            "Name": [None, ["String"]],
+            }],
+
     }
 
 
@@ -526,7 +531,6 @@ class lfBitfield(obj.Struct):
 class lfNestType(obj.Struct):
     UNNAMED_RE = re.compile("<unnamed-type-([^->]+)>")
 
-
     def __init__(self, **kwargs):
         super(lfNestType, self).__init__(**kwargs)
         self.value_ = 0
@@ -537,7 +541,8 @@ class lfNestType(obj.Struct):
 
     def size(self):
         """Our size is the end of the object plus any padding."""
-        return pe_vtypes.RoundUp(self.Name.obj_offset + self.Name.size())
+        return pe_vtypes.RoundUpToWordAlignment(
+            self.Name.obj_offset + self.Name.size())
 
     def Definition(self, tpi):
         return tpi.DefinitionByIndex(self.index)
@@ -612,6 +617,9 @@ class lfArray(lfClass):
 
     def Definition(self, tpi):
         target, target_args = tpi.DefinitionByIndex(self.elemtype)
+        if target == "<unnamed-tag>":
+            target = "<unnamed-%s>" % self.elemtype
+
         return ["Array", dict(
                 target=target, target_args=target_args,
                 count=int(self.value_),
@@ -725,8 +733,8 @@ class PDBProfile(basic.Profile32Bits, basic.BasicClasses):
                 })
 
 
-class TPI(object):
-    """Abstracts away the TPI stream semantics."""
+class PDBParser(object):
+    """Parses a Microsoft PDB file."""
 
     # A mapping between _TYPE_ENUM_e basic pdb types and vtype
     # descriptions. Keys: The _TYPE_ENUM_e enum, values a tuple of target,
@@ -834,6 +842,9 @@ class TPI(object):
         """Gather the PE sections of this executable."""
         self.sections = []
         stream = self.root_stream_header.GetStream(stream_id)
+        if stream is None:
+            return
+
         for section in self.profile.Array(
             target="IMAGE_SECTION_HEADER", vm=stream):
             self.sections.append(section)
@@ -848,6 +859,9 @@ class TPI(object):
         """
         self.omap = utils.SortedCollection(key=lambda x: x[0])
         omap_stream = self.root_stream_header.GetStream(omap_stream_id)
+        if omap_stream is None:
+            return
+
         omap_address_space = addrspace.BufferAddressSpace(
             data=omap_stream.read(0, omap_stream.size))
 
@@ -887,18 +901,28 @@ class TPI(object):
                 pass
 
             name = str(symbol.name)
-            offset = int(symbol.off)
+            translated_offset = offset = int(symbol.off)
 
-            # Convert the RVA to a virtual address by referencing into the
-            # correct section.
-            virtual_address = (
-                offset + self.sections[symbol.seg - 1].VirtualAddress)
+            # Some files do not have OMAP information or section information. In
+            # that case we just export the symbol offsets untranslated.
+            if self.sections:
+                # Convert the RVA to a virtual address by referencing into the
+                # correct section.
+                virtual_address = (
+                    offset + self.sections[symbol.seg - 1].VirtualAddress)
 
-            # Translate the offset according to the OMAP.
-            from_offset, dest_offset = self.omap.find_le(virtual_address)
-            translated_offset = virtual_address - from_offset + dest_offset
+                # Translate the offset according to the OMAP.
+                try:
+                    from_offset, dest_offset = self.omap.find_le(
+                        virtual_address)
 
-            self.constants[translated_offset] = name
+                    translated_offset = (
+                        virtual_address - from_offset + dest_offset)
+
+                except ValueError:
+                    pass
+
+            self.constants[name] = translated_offset
             self.session.report_progress(" Parsing Symbols %s", name)
 
     def ParseTPI(self):
@@ -916,22 +940,27 @@ class TPI(object):
         self.enums[name] = enumeration
 
     def Structs(self):
-        for v in self.lookup.itervalues():
+        for key, value in self.lookup.iteritems():
             # Ignore the forward references.
-            if (v.type_enum == "LF_STRUCTURE" or
-                v.type_enum == "LF_UNION") and not v.type.property.fwdref:
-                struct_name = v.type.name
-                struct_size = int(v.type.value_)
+            if ((value.type_enum == "LF_STRUCTURE" or
+                 value.type_enum == "LF_UNION") and
+                not value.type.property.fwdref):
 
-                field_list = self.lookup[int(v.type.field)].type
+                struct_name = value.type.name
+                if struct_name == "<unnamed-tag>":
+                    struct_name = "<unnamed-%s>" % key
+
+                struct_size = int(value.type.value_)
+
+                field_list = self.lookup[int(value.type.field)].type
                 definition = [struct_size, {}]
 
                 for field in field_list.SubRecord:
                     field_definition = field.value.Definition(self)
                     if field_definition:
                         if field_definition[0] == "<unnamed-tag>":
-                            field_definition[0] = "%s::<unnamed-type-%s>" % (
-                                struct_name, field.value.name)
+                            field_definition[0] = (
+                                "<unnamed-%s>" % field.value.index)
 
                         definition[1][str(field.value.name)] = [
                             int(field.value.value_), field_definition]
@@ -970,14 +999,16 @@ class ParsePDB(plugin.Command):
             help="The filename of the PDB file.")
 
         parser.add_argument(
-            "--profile_class", default="BaseWindowsProfile",
+            "--profile_class", default="Ntoskrnl",
             help="The name of the profile implementation. ")
 
-    def __init__(self, filename=None, profile_class=None, **kwargs):
+    def __init__(self, filename=None, profile_class=None, metadata=None,
+                 **kwargs):
         super(ParsePDB, self).__init__(**kwargs)
         self.filename = filename
-        self.tpi = TPI(filename, self.session)
+        self.tpi = PDBParser(filename, self.session)
         self.profile_class = profile_class
+        self.metadata = metadata or dict(ProfileClass=self.profile_class)
 
     def render(self, renderer):
         vtypes = {}
@@ -992,22 +1023,18 @@ class ParsePDB(plugin.Command):
 
             vtypes[struct_name] = definition
 
-        metadata = dict(
+        self.metadata.update(dict(
                 Type="Profile",
+                PDBFile=os.path.basename(self.filename),
+                ))
 
-                # This should probably be changed for something more specific.
-                ProfileClass=self.profile_class,
-                PDBFile=self.filename,
-                )
-
-        metadata.update(self.tpi.metadata)
+        self.metadata.update(self.tpi.metadata)
 
         result = {
-            "$METADATA": metadata,
+            "$METADATA": self.metadata,
             "$STRUCTS": vtypes,
             "$ENUMS": self.tpi.enums,
             "$CONSTANTS": self.tpi.constants
             }
 
         renderer.write(utils.PPrint(result))
-

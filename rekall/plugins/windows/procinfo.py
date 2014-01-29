@@ -91,6 +91,16 @@ class PEInfo(plugin.Command):
         renderer.table_row("GUID/Age", self.pe_helper.RSDS.GUID_AGE)
         renderer.table_row("PDB", self.pe_helper.RSDS.Filename)
 
+        for field in ["MajorOperatingSystemVersion",
+                      "MinorOperatingSystemVersion",
+                      "MajorImageVersion",
+                      "MinorImageVersion",
+                      "MajorSubsystemVersion",
+                      "MinorSubsystemVersion"]:
+            renderer.table_row(
+                field,
+                getattr(self.pe_helper.nt_header.OptionalHeader, field))
+
         renderer.format(
             "\nSections (Relative to 0x{0:08X}):\n",
             self.pe_helper.image_base)

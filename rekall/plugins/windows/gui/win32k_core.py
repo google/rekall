@@ -21,7 +21,7 @@ import logging
 
 from rekall import obj
 from rekall.plugins.windows.gui import constants
-from rekall.plugins.overlays.windows import windows
+from rekall.plugins.overlays.windows import common
 
 
 #--------------------------------------------------------------------------------
@@ -660,7 +660,7 @@ class Win32GUIProfile(obj.ProfileModification):
             '_RTL_ATOM_TABLE_ENTRY': _RTL_ATOM_TABLE_ENTRY,
             'tagTHREADINFO': tagTHREADINFO,
             'tagHOOK': tagHOOK,
-            '_LARGE_UNICODE_STRING': windows._UNICODE_STRING,
+            '_LARGE_UNICODE_STRING': common._UNICODE_STRING,
             'tagWND': tagWND,
             '_MM_SESSION_SPACE': _MM_SESSION_SPACE,
             'tagSHAREDINFO': tagSHAREDINFO,

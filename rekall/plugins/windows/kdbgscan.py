@@ -46,7 +46,7 @@ class KDBGScanner(scan.DiscontigScanner, scan.BaseScanner):
         # Depending on the memory model this behaves slightly differently.
         memory_model = self.profile.metadata("memory_model", "32bit")
 
-        # This basical iterates over all hits on the string "KDBG".
+        # This basically iterates over all hits on the string "KDBG".
         for offset in super(KDBGScanner, self).scan(offset, maxlen):
             # For each hit we overlay a _DBGKD_DEBUG_DATA_HEADER64 on it and
             # reflect through the "List" member.
@@ -103,7 +103,7 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
         super(KDBGScan, self).__init__(**kwargs)
 
     def hits(self):
-        scanner = scan.BaseScanner.classes['KDBGScanner'](
+        scanner = KDBGScanner(
             session=self.session, profile=self.profile,
             address_space=self.kernel_address_space)
 

@@ -800,11 +800,12 @@ class Profile32Bits(obj.Profile):
         data_model="ILP32"
         )
 
-    def __init__(self, **kwargs):
-        super(Profile32Bits, self).__init__(**kwargs)
-        self.add_classes(native_types.ILP32)
-        self.add_constants(PoolAlignment=8, MAX_FAST_REF=7,
-                           MaxPointer=2**32-1)
+    @classmethod
+    def Initialize(cls, profile):
+        super(Profile32Bits, cls).Initialize(profile)
+        profile.add_classes(native_types.ILP32)
+        profile.add_constants(PoolAlignment=8, MAX_FAST_REF=7,
+                              MaxPointer=2**32-1)
 
 
 class ProfileLLP64(obj.Profile):
@@ -817,11 +818,12 @@ class ProfileLLP64(obj.Profile):
         data_model="LLP64"
         )
 
-    def __init__(self, **kwargs):
-        super(ProfileLLP64, self).__init__(**kwargs)
-        self.add_classes(native_types.LLP64)
-        self.add_constants(PoolAlignment=16, MAX_FAST_REF=15,
-                           MaxPointer=2**48-1)
+    @classmethod
+    def Initialize(cls, profile):
+        super(ProfileLLP64, cls).Initialize(profile)
+        profile.add_classes(native_types.LLP64)
+        profile.add_constants(PoolAlignment=16, MAX_FAST_REF=15,
+                              MaxPointer=2**48-1)
 
 class ProfileLP64(obj.Profile):
     """Basic profile for 64 bit Linux systems."""
@@ -833,9 +835,10 @@ class ProfileLP64(obj.Profile):
         data_model="LP64"
         )
 
-    def __init__(self, **kwargs):
-        super(ProfileLP64, self).__init__(**kwargs)
-        self.add_classes(native_types.LP64)
+    @classmethod
+    def Initialize(cls, profile):
+        super(ProfileLP64, cls).Initialize(profile)
+        profile.add_classes(native_types.LP64)
 
 
 common_overlay = {
@@ -852,29 +855,30 @@ common_overlay = {
 class BasicClasses(obj.Profile):
     """Basic profile which introduces the basic classes."""
 
-    def __init__(self, **kwargs):
-        super(BasicClasses, self).__init__(**kwargs)
-        self.add_classes({
-            'String': String,
-            "Signature": Signature,
-            'UnicodeString': UnicodeString,
-            'Flags': Flags,
-            'Enumeration': Enumeration,
-            'Ipv4Address': Ipv4Address,
-            'Ipv6Address': Ipv6Address,
-            'MacAddress': MacAddress,
-            '_LIST_ENTRY': _LIST_ENTRY,
-            'LIST_ENTRY32': _LIST_ENTRY,
-            'LIST_ENTRY64': _LIST_ENTRY,
-            'WinFileTime': WinFileTime,
-            'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
-            'UnixTimeStamp': UnixTimeStamp, 'timeval': timeval,
-            "IndexedArray": IndexedArray,
-            'Function': Function,
-            })
+    @classmethod
+    def Initialize(cls, profile):
+        super(BasicClasses, cls).Initialize(profile)
+        profile.add_classes({
+                'String': String,
+                "Signature": Signature,
+                'UnicodeString': UnicodeString,
+                'Flags': Flags,
+                'Enumeration': Enumeration,
+                'Ipv4Address': Ipv4Address,
+                'Ipv6Address': Ipv6Address,
+                'MacAddress': MacAddress,
+                '_LIST_ENTRY': _LIST_ENTRY,
+                'LIST_ENTRY32': _LIST_ENTRY,
+                'LIST_ENTRY64': _LIST_ENTRY,
+                'WinFileTime': WinFileTime,
+                'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
+                'UnixTimeStamp': UnixTimeStamp, 'timeval': timeval,
+                "IndexedArray": IndexedArray,
+                'Function': Function,
+                })
 
-        self.add_constants(default_text_encoding="utf-16-le")
-        self.add_overlay(common_overlay)
+        profile.add_constants(default_text_encoding="utf-16-le")
+        profile.add_overlay(common_overlay)
 
 
 def container_of(ptr, type, member):

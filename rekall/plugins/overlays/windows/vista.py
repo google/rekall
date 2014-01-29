@@ -28,8 +28,7 @@ for SP3.
 
 # pylint: disable=protected-access
 
-from rekall.plugins.overlays import basic
-from rekall.plugins.overlays.windows import windows
+from rekall.plugins.overlays.windows import common
 
 
 vista_overlays = {
@@ -75,7 +74,7 @@ vista_overlays = {
     }
 
 
-class _MMADDRESS_NODE(windows.VadTraverser):
+class _MMADDRESS_NODE(common.VadTraverser):
     """In win7 the base of all Vad objects in _MMADDRESS_NODE.
 
     The Vad structures can be either _MMVAD_SHORT or _MMVAD or _MMVAD_LONG. At
@@ -94,7 +93,7 @@ class _MMADDRESS_NODE(windows.VadTraverser):
               }
 
 
-class _ETHREAD(windows._ETHREAD):
+class _ETHREAD(common._ETHREAD):
     """A class for Windows 7 ETHREAD objects"""
 
     def owning_process(self):
@@ -102,37 +101,10 @@ class _ETHREAD(windows._ETHREAD):
         return self.Tcb.Process.dereference_as("_EPROCESS")
 
 
-class AbstractVistaProfile(windows.BaseWindowsProfile):
-    """Vista profile base."""
-    _md_major = 6
-    _md_minor = 0
-    _md_os = 'windows'
-
-    def __init__(self, **kwargs):
-        super(AbstractVistaProfile, self).__init__(**kwargs)
-        self.add_constants(PoolAlignment=8)
-
-        self.add_overlay(vista_overlays)
-
-        self.add_classes(dict(
-                _ETHREAD=_ETHREAD,
-                _MMADDRESS_NODE=_MMADDRESS_NODE
-                ))
-
-class WinVistax86(basic.Profile32Bits, AbstractVistaProfile):
-    """A Profile for Windows Vista x86."""
-    _md_build = 6001
-    _md_memory_model = '32bit'
-
-
-class WinVistax86PAE(WinVistax86):
-    """A Profile for Windows Vista x86 PAE."""
-    # For now we pretend its the same as the non PAE version. TODO: generate
-    # profiles.
-    _md_pae = True
-
-
-class WinVistax64(basic.ProfileLLP64, AbstractVistaProfile):
-    """A Profile for Windows Vista x64."""
-    _md_build = 6001
-    _md_memory_model = '64bit'
+def InitializeVistaProfile(profile):
+    profile.add_constants(PoolAlignment=8)
+    profile.add_overlay(vista_overlays)
+    profile.add_classes(dict(
+            _ETHREAD=_ETHREAD,
+            _MMADDRESS_NODE=_MMADDRESS_NODE
+            ))

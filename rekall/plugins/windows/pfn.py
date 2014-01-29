@@ -22,6 +22,7 @@
 
 # References:
 # http://www.codemachine.com/article_kernelstruct.html#MMPFN
+# http://www.reactos.org/wiki/Techwiki:Memory_management_in_the_Windows_XP_kernel#MmPfnDatabase
 
 # pylint: disable=protected-access
 
