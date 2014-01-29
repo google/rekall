@@ -859,24 +859,23 @@ class BasicClasses(obj.Profile):
     def Initialize(cls, profile):
         super(BasicClasses, cls).Initialize(profile)
         profile.add_classes({
-                'String': String,
-                "Signature": Signature,
-                'UnicodeString': UnicodeString,
-                'Flags': Flags,
-                'Enumeration': Enumeration,
-                'Ipv4Address': Ipv4Address,
-                'Ipv6Address': Ipv6Address,
-                'MacAddress': MacAddress,
-                '_LIST_ENTRY': _LIST_ENTRY,
-                'LIST_ENTRY32': _LIST_ENTRY,
-                'LIST_ENTRY64': _LIST_ENTRY,
-                'WinFileTime': WinFileTime,
-                'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
-                'UnixTimeStamp': UnixTimeStamp, 'timeval': timeval,
-                "IndexedArray": IndexedArray,
-                'Function': Function,
-                })
-
+            'String': String,
+            "Signature": Signature,
+            'UnicodeString': UnicodeString,
+            'Flags': Flags,
+            'Enumeration': Enumeration,
+            'Ipv4Address': Ipv4Address,
+            'Ipv6Address': Ipv6Address,
+            'MacAddress': MacAddress,
+            '_LIST_ENTRY': _LIST_ENTRY,
+            'LIST_ENTRY32': _LIST_ENTRY,
+            'LIST_ENTRY64': _LIST_ENTRY,
+            'WinFileTime': WinFileTime,
+            'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
+            'UnixTimeStamp': UnixTimeStamp, 'timeval': timeval,
+            "IndexedArray": IndexedArray,
+            'Function': Function,
+            })
         profile.add_constants(default_text_encoding="utf-16-le")
         profile.add_overlay(common_overlay)
 

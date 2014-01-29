@@ -238,7 +238,8 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
                                self._lookup_version_string(vm_kernel_slide))
 
 
-class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin):
+class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin,
+                    core.FindDTB):
     """Tries to find the DTB address for the Darwin/XNU kernel.
 
     As the XNU kernel developed over the years, the best way of deriving this
@@ -249,11 +250,6 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin):
     """
 
     __name = "find_dtb"
-
-    def __init__(self, **kwargs):
-        super(DarwinFindDTB, self).__init__(**kwargs)
-        self.address_space_cls = core.GetAddressSpaceImplementation(
-            self.profile)
 
     def _dtb_hits_idlepml4(self):
         """On 10.8 and later, x64, tries to determine the DTB using IdlePML4.
@@ -337,28 +333,6 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin):
                                         vm=self.physical_address_space)
         yield int(kernel_pmap.pm_cr3)
 
-    def verify_address_space(self, address_space):
-        address = self.profile.get_constant("_version")
-        if not address_space.is_valid_address(address):
-            return False
-
-        if address_space.read(address, 13) != "Darwin Kernel":
-            return False
-
-        return True
-
-    def try_build_with_dtb(self, dtb):
-        address_space = self.address_space_cls(
-            base=self.physical_address_space,
-            session=self.session,
-            dtb=dtb,
-            profile=self.profile)
-
-        if not self.verify_address_space(address_space):
-            return obj.NoneObject("Couldn't build address spac with this DTB.")
-
-        return address_space
-
     def _dtb_methods(self):
         """Determines viable methods of getting the DTB based on profile.
 
@@ -373,17 +347,23 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin):
         if self.profile.metadata("memory_model") == "64bit":
             yield self._dtb_hits_kernel_pmap
 
-    def address_space_hits(self):
-        """Finds DTBs and yields virtual address spaces that expose kernel.
-
-        Yields:
-          BaseAddressSpace-derived instances, valid for the kernel.
-        """
+    def dtb_hits(self):
         for method in self._dtb_methods():
             for dtb_hit in method():
-                address_space = self.try_build_with_dtb(dtb_hit)
-                if address_space is not None:
-                    yield address_space
+                yield dtb_hit
+
+    def VerifyHit(self, hit):
+        address_space = self.CreateAS(hit)
+
+        if address_space:
+            address = self.profile.get_constant("_version")
+            if not address_space.is_valid_address(address):
+                return
+
+            if address_space.read(address, 13) != "Darwin Kernel":
+                return
+
+            return address_space
 
     def render(self, renderer):
         renderer.table_header([("DTB", "dtb", "[addrpad]"),
@@ -393,7 +373,7 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin):
             for dtb_hit in method():
                 renderer.table_row(
                     dtb_hit,
-                    self.try_build_with_dtb(dtb_hit) is not None,
+                    self.VerifyHit(dtb_hit) is not None,
                     method.__name__)
 
 

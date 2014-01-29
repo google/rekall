@@ -44,7 +44,7 @@ class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
                 plugin.Command.is_active(config))
 
 
-class LinuxFindDTB(AbstractLinuxCommandPlugin):
+class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
     """A scanner for DTB values.
 
     For linux, the dtb values are taken directly from the symbol file. Linux has
@@ -65,28 +65,20 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin):
             PAGE_OFFSET = (self.profile.get_constant("_text") -
                            self.profile.get_constant("phys_startup_32"))
 
-            yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET, None
+            yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
         else:
             PAGE_OFFSET = (self.profile.get_constant("_text") -
                            self.profile.get_constant("phys_startup_64"))
 
-            yield self.profile.get_constant("init_level4_pgt") - PAGE_OFFSET, None
-
-    def verify_address_space(self, address_space=None, **kwargs):
-        # There is not really much we can do if the address space is wrong, so
-        # we just keep going.
-        return True
+            yield self.profile.get_constant("init_level4_pgt") - PAGE_OFFSET
 
     def render(self, renderer):
         renderer.table_header([("DTB", "dtv", "[addrpad]"),
                                ("Valid", "valid", "")])
 
-        for dtb, _ in self.dtb_hits():
-            address_space = core.GetAddressSpaceImplementation(self.profile)(
-                session=self.session, base=self.physical_address_space, dtb=dtb)
-
-            renderer.table_row(
-                dtb, self.verify_address_space(address_space=address_space))
+        for dtb in self.dtb_hits():
+            address_space = self.VerifyHit(dtb)
+            renderer.table_row(dtb, address_space is not None)
 
 class LinuxPlugin(plugin.KernelASMixin, AbstractLinuxCommandPlugin):
     """Plugin which requires the kernel Address space to be loaded."""

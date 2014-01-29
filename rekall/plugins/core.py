@@ -259,21 +259,56 @@ class Info(plugin.Command):
         self.render_profile_info(renderer)
 
 
-def GetAddressSpaceImplementation(profile):
-    """Returns the correct address space class to use for a given profile."""
-    # The virual address space implementation is chosen by the profile.
-    memory_model = profile.metadata("memory_model")
-    if memory_model == "64bit":
-        as_class = addrspace.BaseAddressSpace.classes['AMD64PagedMemory']
+class FindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
+    """A base class to be used by all the FindDTB implementation."""
+    __abstract = True
 
-    # PAE profiles go with the pae address space.
-    elif memory_model == "32bit" and profile.metadata("pae"):
-        as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemoryPae']
+    def dtb_hits(self):
+        """Yields hits for the DTB offset."""
+        return []
 
-    else:
-        as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemory']
+    def VerifyHit(self, hit):
+        """Verify the hit for correctness, yielding an address space."""
+        return self.CreateAS(hit)
 
-    return as_class
+    def address_space_hits(self):
+        """Finds DTBs and yields virtual address spaces that expose kernel.
+
+        Yields:
+          BaseAddressSpace-derived instances, validated using the
+          verify_address_space() method..
+        """
+        for hit in self.dtb_hits():
+            address_space = self.VerifyHit(hit)
+            if address_space is not None:
+                yield address_space
+
+    def CreateAS(self, dtb):
+        """Creates an address space from this hit."""
+        address_space_cls = self.GetAddressSpaceImplementation()
+        try:
+            return address_space_cls(
+                base=self.physical_address_space,
+                dtb=dtb, session=self.session,
+                profile=self.profile)
+        except IOError:
+            return None
+
+    def GetAddressSpaceImplementation(self):
+        """Returns the correct address space class for this profile."""
+        # The virual address space implementation is chosen by the profile.
+        memory_model = self.profile.metadata("memory_model")
+        if memory_model == "64bit":
+            as_class = addrspace.BaseAddressSpace.classes['AMD64PagedMemory']
+
+        # PAE profiles go with the pae address space.
+        elif memory_model == "32bit" and self.profile.metadata("pae"):
+            as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemoryPae']
+
+        else:
+            as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemory']
+
+        return as_class
 
 
 class LoadAddressSpace(plugin.Command):

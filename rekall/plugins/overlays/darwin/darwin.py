@@ -655,21 +655,23 @@ class OSOrderedSet(obj.Struct):
 
 class Darwin32(basic.Profile32Bits, basic.BasicClasses):
     """A Darwin profile."""
-    _md_os = "darwin"
-    _md_memory_model = "32bit"
-    _md_type = "Kernel"
+    METADATA = dict(
+        os="darwin",
+        memory_model="32bit",
+        type="Kernel")
 
-    def __init__(self, **kwargs):
-        super(Darwin32, self).__init__(**kwargs)
-        self.add_classes(dict(
-                LIST_ENTRY=LIST_ENTRY, queue_entry=queue_entry,
-                sockaddr=sockaddr, sockaddr_dl=sockaddr_dl,
-                vm_map_entry=vm_map_entry, proc=proc, vnode=vnode,
-                socket=socket, OSDictionary=OSDictionary,
-                OSOrderedSet=OSOrderedSet,
-                ))
-        self.add_overlay(darwin_overlay)
-        self.add_constants(default_text_encoding="utf8")
+    @classmethod
+    def Initialize(cls, profile):
+        super(Darwin32, cls).Initialize(profile)
+        profile.add_classes(
+            LIST_ENTRY=LIST_ENTRY, queue_entry=queue_entry,
+            sockaddr=sockaddr, sockaddr_dl=sockaddr_dl,
+            vm_map_entry=vm_map_entry, proc=proc, vnode=vnode,
+            socket=socket, OSDictionary=OSDictionary,
+            OSOrderedSet=OSOrderedSet,
+            )
+        profile.add_overlay(darwin_overlay)
+        profile.add_constants(default_text_encoding="utf8")
 
     def get_constant_cpp_object(self, constant, **kwargs):
         """A variant of get_constant_object which accounts for name mangling."""
@@ -680,13 +682,15 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
 
 class Darwin64(basic.ProfileLP64, Darwin32):
     """Support for 64 bit darwin systems."""
+    METADATA = dict(
+        os="darwin",
+        memory_model="64bit",
+        type="Kernel")
 
-    _md_memory_model = "64bit"
-
-    def __init__(self, **kwargs):
-        super(Darwin64, self).__init__(**kwargs)
-
-        self.add_types(darwin64_types)
+    @classmethod
+    def Initialize(cls, profile):
+        super(Darwin64, cls).Initialize(profile)
+        profile.add_types(darwin64_types)
 
     def get_constant(self, name, is_address=True):
         """Gets the constant from the profile, correcting for KASLR."""

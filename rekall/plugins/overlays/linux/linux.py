@@ -674,22 +674,29 @@ class PermissionFlags(basic.Flags):
 
 class Linux32(basic.Profile32Bits, basic.BasicClasses):
     """A Linux profile which works with dwarfdump output files."""
-    _md_os = "linux"
-    _md_memory_model = "32bit"
-    _md_type = "Kernel"
+    METADATA = dict(
+        os="linux",
+        memory_model="32bit",
+        type="Kernel")
 
-    def __init__(self, **kwargs):
-        super(Linux32, self).__init__(**kwargs)
-        self.add_classes(dict(
+    @classmethod
+    def Initialize(cls, profile):
+        super(Linux32, cls).Initialize(profile)
+        profile.add_classes(dict(
                 list_head=list_head, hlist_head=hlist_head,
                 dentry=dentry,
                 task_struct=task_struct,
                 timespec=timespec, inet_sock=inet_sock,
                 PermissionFlags=PermissionFlags,
                 ))
-        self.add_overlay(linux_overlay)
-        self.add_constants(default_text_encoding="utf8")
+        profile.add_overlay(linux_overlay)
+        profile.add_constants(default_text_encoding="utf8")
 
 
 class Linux64(basic.ProfileLP64, Linux32):
     """Support for 64 bit linux systems."""
+
+    METADATA = dict(
+        os="linux",
+        memory_model="64bit",
+        type="Kernel")

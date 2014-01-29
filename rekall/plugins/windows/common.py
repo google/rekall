@@ -76,7 +76,7 @@ class WinDTBScanner(scan.DiscontigScanner, scan.BaseScanner):
             yield self.eprocess
 
 
-class WinFindDTB(AbstractWindowsCommandPlugin):
+class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
     """A plugin to search for the Directory Table Base for windows systems.
 
     There are a number of ways to find the DTB:
@@ -114,15 +114,18 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
             if result:
                 yield result, eprocess
 
-    def verify_address_space(self, eprocess, address_space):
+    def VerifyHit(self, hit):
         """Check the eprocess for sanity."""
+        dtb, eprocess = hit
+        address_space = self.CreateAS(dtb)
+
         # In windows the DTB must be page aligned, except for PAE images where
         # its aligned to a 0x20 size.
         if not self.profile.metadata("pae") and address_space.dtb & 0xFFF != 0:
-            return False
+            return
 
         if self.profile.metadata("pae") and address_space.dtb & 0xF != 0:
-            return False
+            return
 
         version = self.profile.metadata("major"), self.profile.metadata("minor")
         # The test below does not work on windows 8 with the idle process.
@@ -133,13 +136,13 @@ class WinFindDTB(AbstractWindowsCommandPlugin):
             list_head = eprocess.ThreadListHead.Flink
 
             if list_head == 0:
-                return False
+                return
 
             me = list_head.dereference(vm=address_space).Blink.Flink
             if me.v() != list_head.v():
-                return False
+                return
 
-        return True
+        return address_space
 
     def render(self, renderer):
         renderer.table_header(
