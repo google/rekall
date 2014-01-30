@@ -27,7 +27,6 @@ way for people to save their own results.
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import inspect
-import json
 import logging
 import pdb
 import os
@@ -36,10 +35,10 @@ import time
 
 from rekall import addrspace
 from rekall import config
-# Include the built in profiles as a last fallback.
 from rekall import io_manager
 from rekall import plugin
 from rekall import obj
+from rekall import kb
 from rekall import utils
 from rekall.ui import renderer
 
@@ -86,7 +85,15 @@ class Cache(utils.AttributeDict):
         return False
 
     def __str__(self):
-        return json.dumps(self, indent=2, sort_keys=True)
+        result = []
+        for k, v in self.iteritems():
+            if isinstance(v, obj.BaseObject):
+                v = repr(v)
+
+            value = "\n  ".join(str(v).splitlines())
+            result.append("  %s = %s" % (k, value))
+
+        return "{\n" + "\n".join(sorted(result)) + "\n}"
 
     def __repr__(self):
         return "<Configuration Object>"
@@ -161,6 +168,8 @@ class Session(object):
     This session contains the bare minimum to use rekall.
     """
     def __init__(self, **kwargs):
+        self._parameter_hooks = {}
+
         self.profile = obj.NoneObject("Set this to a valid profile "
                                       "(e.g. type profiles. and tab).")
 
@@ -175,8 +184,12 @@ class Session(object):
         We are expected to re-check the config and re-initialize this session.
         """
         self.filename = self.state.filename
-        if self.state.profile:
-            self.profile = self.LoadProfile(self.state.profile)
+        if self.filename:
+            # This may fire off the profile auto-detection code if a profile was
+            # not provided by the user.
+            profile_parameter = self.GetParameter("profile")
+            if profile_parameter:
+                self.profile = self.LoadProfile(profile_parameter)
 
         # Set the renderer.
         self.renderer = renderer.RendererBaseClass.classes.get(
@@ -185,12 +198,17 @@ class Session(object):
         self._update_runners()
 
     def _update_runners(self):
-        plugins = Container()
-        object.__setattr__(self, "plugins", plugins)
+        self.plugins = Container()
         for cls in plugin.Command.GetActiveClasses(self):
             name = cls.name
             if name:
-                setattr(plugins, name, obj.Curry(cls, session=self))
+                setattr(self.plugins, name, obj.Curry(cls, session=self))
+
+        # Install parameter hooks.
+        self._parameter_hooks = {}
+        for cls in kb.ParameterHook.classes.values():
+            if cls.is_active(self) and cls.name:
+                self._parameter_hooks[cls.name] = cls(session=self)
 
     def __getattr__(self, attr):
         """This will only get called if the attribute does not exist."""
@@ -212,17 +230,41 @@ class Session(object):
         parameter, we first check in the state, and only if the parameter does
         not exist, we check the cache.
         """
+        # The state holds user configuration from ~/.rekallrc.
         result = self.state.Get(item)
         if result is None:
+            # self.state.cache holds cached parameters.
             result = self.state.cache.Get(item)
+            if result is None:
+                result = self._RunParameterHook(item)
 
         if result is None:
             result = default
 
         return result
 
-    def StoreParameter(self, item, value):
-        self.state.cache[item] = value
+    def SetParameter(self, item, value):
+        if self.state.has_key(item):
+            self.state[item] = value
+
+        else:
+            self.state.cache[item] = value
+
+    def _RunParameterHook(self, name):
+        hook = self._parameter_hooks.get(name)
+        if hook:
+            result = hook.calculate()
+            if result is None:
+                # Set a NoneObject here so that the hook does not get called
+                # again - this effectively caches the failure of the hook in
+                # returning anything useful. If you want to force the hook to
+                # run again, actively store None for this parameters
+                # (e.g. session.SetParameter("kdbg", None).
+                result = obj.NoneObject(
+                    "Parameter %s could not be calculated." % name)
+
+            self.SetParameter(name, result)
+            return result
 
     def error(self, _plugin_cls, e):
         """An error handler for plugin errors."""
@@ -231,7 +273,7 @@ class Session(object):
     def RunPlugin(self, plugin_cls, *pos_args, **kwargs):
         """Launch a plugin and its render() method automatically.
 
-        We use the pager specified in session.state.pager.
+        We use the pager specified in session.GetParameter("pager").
 
         Args:
           plugin_cls: A string naming the plugin, or the plugin class itself.
@@ -246,7 +288,7 @@ class Session(object):
         ui_renderer = kwargs.pop("renderer", None)
         fd = kwargs.pop("fd", None)
         debug = kwargs.pop("debug", False)
-        pager = kwargs.pop("pager", self.state.pager)
+        pager = kwargs.pop("pager", self.GetParameter("pager"))
 
         # If the args came from the command line parse them now:
         flags = kwargs.get("flags")
@@ -278,7 +320,7 @@ class Session(object):
                 fd = open(output, "w")
 
             # Allow per call overriding of the output file descriptor.
-            paging_limit = self.state.paging_limit
+            paging_limit = self.GetParameter("paging_limit")
             if not pager:
                 paging_limit = None
 
@@ -351,6 +393,9 @@ class Session(object):
         if not filename:
             return
 
+        if isinstance(filename, obj.Profile):
+            return filename
+
         # We only want to deal with unix paths.
         filename = filename.replace("\\", "/")
         canonical_name = os.path.splitext(filename)[0]
@@ -390,7 +435,7 @@ class Session(object):
                     continue
 
         if not result:
-            raise ValueError("Container %s is not a valid rekall profile." %
+            raise ValueError("Unable to load profile %s from any repository." %
                              filename)
 
         return result
@@ -427,15 +472,12 @@ class InteractiveSession(Session):
         super(InteractiveSession, self).__init__(**kwargs)
 
     def _update_runners(self):
-        plugins = Container()
-        self._locals['plugins'] = Container()
+        super(InteractiveSession, self)._update_runners()
 
-        object.__setattr__(self, "plugins", plugins)
+        self._locals['plugins'] = Container()
         for cls in plugin.Command.GetActiveClasses(self):
             name = cls.name
             if name:
-                setattr(plugins, name, obj.Curry(cls, session=self))
-
                 # Use the info class to build docstrings for all plugins.
                 info_plugin = plugin.Command.classes['Info'](cls)
 

@@ -171,7 +171,7 @@ class EVTObjectTypes(obj.ProfileModification):
 
 
 class EVTScanner(scan.BaseScanner):
-    checks = [('MultiStringFinderCheck', dict(needles=["LfLe"]))]
+    checks = [('StringCheck', dict(needle="LfLe"))]
 
     def scan(self, offset, maxlen=None, context=None):
         for hit in super(EVTScanner, self).scan(offset, maxlen=maxlen):
@@ -195,14 +195,15 @@ class EvtLogs(registry.RegistryPlugin):
     @classmethod
     def args(cls, parser):
         super(EvtLogs, cls).args(parser)
-        parser.add_argument("-v", "--verbose", default=False, action="store_true",
-                            help='Resolve sids to users, services etc.')
+        parser.add_argument(
+            "-v", "--verbose", default=False, action="store_true",
+            help='Resolve sids to users, services etc.')
 
     @classmethod
     def is_active(cls, config):
         """Only active for windows XP."""
         return (super(EvtLogs, cls).is_active(config) and
-                config.profile.metadata("major") == 5)
+                config.profile.metadata("major") == "5")
 
     def __init__(self, save_evt=False, verbose=False, **kwargs):
         self.save_evt = save_evt
@@ -252,12 +253,14 @@ class EvtLogs(registry.RegistryPlugin):
             # We get the user names according to the name of the diretory where
             # their profile is. This is not very accurate - should we check the
             # SAM instead?
-            profiles = reg.open_key('Microsoft\\Windows NT\\CurrentVersion\\ProfileList')
+            profiles = reg.open_key(
+                'Microsoft\\Windows NT\\CurrentVersion\\ProfileList')
+
             for profile in profiles.subkeys():
                 path = profile.open_value("ProfileImagePath").DecodedData
                 if path:
-                    sid_cache[utils.SmartUnicode(profile.Name)] = utils.SmartUnicode(
-                        ntpath.basename(path))
+                    sid_cache[utils.SmartUnicode(profile.Name)] = (
+                        utils.SmartUnicode(ntpath.basename(path)))
 
         # Search for all service sids.
         getservicesids = self.get_plugin("getservicesids")
@@ -282,11 +285,12 @@ class EvtLogs(registry.RegistryPlugin):
                 utils.SmartUnicode(vad.ControlArea.FilePointer.FileName))
 
             for event in self.ScanEvents(vad, task.get_process_address_space()):
-                renderer.table_row(event.TimeWritten,
-                                   filename,
-                                   event.Computer,
-                                   event.Sid,
-                                   event.Source,
-                                   event.EventID,
-                                   event.EventType,
-                                   ";".join(repr(utils.SmartStr(x)) for x in event.Data))
+                renderer.table_row(
+                    event.TimeWritten,
+                    filename,
+                    event.Computer,
+                    event.Sid,
+                    event.Source,
+                    event.EventID,
+                    event.EventType,
+                    ";".join(repr(utils.SmartStr(x)) for x in event.Data))

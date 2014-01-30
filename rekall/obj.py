@@ -51,7 +51,7 @@ class ProfileLog(object):
     ENVIRONMENT_VAR = "DEBUG_PROFILE"
 
     class JSONEncoder(json.JSONEncoder):
-        def default(self, obj):
+        def default(self, obj):  # pylint: disable=method-hidden
             if isinstance(obj, set):
                 return sorted(obj)
 
@@ -1302,6 +1302,7 @@ class Profile(object):
 
     def copy(self):
         """Makes a copy of this profile."""
+        # pylint: disable=protected-access
         result = self.__class__(name=self.name, session=self.session)
         result.vtypes = self.vtypes.copy()
         result.overlays = self.overlays[:]
@@ -1314,6 +1315,7 @@ class Profile(object):
         result._initialized = self._initialized
         result.known_types = self.known_types.copy()
         result._metadata = self._metadata.copy()
+        # pylint: enable=protected-access
 
         return result
 

@@ -34,7 +34,7 @@ class KDBGScanner(scan.DiscontigScanner, scan.BaseScanner):
     Note that this does not rely on signatures, as validity of hits is
     calculated through list reflection.
     """
-    checks = [("MultiStringFinderCheck", dict(needles=["KDBG"]))]
+    checks = [("StringCheck", dict(needle="KDBG"))]
 
     def scan(self, offset=0, maxlen=None):
         maxlen = maxlen or self.profile.get_constant("MaxPointer")

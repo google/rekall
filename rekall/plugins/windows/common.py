@@ -30,6 +30,7 @@ import re
 from rekall import args
 from rekall import scan
 from rekall import obj
+from rekall import kb
 from rekall import plugin
 from rekall import utils
 
@@ -70,7 +71,7 @@ class WinDTBScanner(scan.DiscontigScanner, scan.BaseScanner):
             self.eprocess = self.profile.Object(
                 "_EPROCESS", offset=offset - self.image_name_offset,
                 vm=self.session.physical_address_space)
-            logging.debug("Found _EPROCESS @ 0x%x (DTB: %X)\n",
+            logging.debug("Found _EPROCESS @ 0x%X (DTB: 0x%X)",
                           self.eprocess.obj_offset,
                           self.eprocess.Pcb.DirectoryTableBase.v())
             yield self.eprocess
@@ -101,10 +102,15 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         parser.add_argument("--process_name",
                             help="The name of the process to search for.")
 
+    def __init__(self, process_name="Idle", **kwargs):
+        super(WinFindDTB, self).__init__(**kwargs)
+        self.process_name = process_name
+
     def scan_for_process(self):
         """Scan the image for the idle process."""
         for process in WinDTBScanner(
-            session=self.session,
+            session=self.session, process_name=self.process_name,
+            profile=self.profile,
             address_space=self.physical_address_space).scan():
             yield process
 
@@ -142,6 +148,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
             if me.v() != list_head.v():
                 return
 
+        self.session.SetParameter("idle_process", eprocess)
         return address_space
 
     def render(self, renderer):
@@ -284,8 +291,59 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
             self.address_space = address_space or self.physical_address_space
 
 
+class KDBGHook(kb.ParameterHook):
+    """A Hook to calculate the KDBG when needed."""
+
+    name = "kdbg"
+
+    def calculate(self):
+        logging.info(
+            "KDBG not provided - Rekall will try to "
+            "automatically scan for it now using plugin.kdbgscan.")
+
+        for kdbg in self.session.plugins.kdbgscan(
+            session=self.session).hits():
+            # Just return the first one
+            logging.info("Found a KDBG hit %r. Hope it works. If not try "
+                         "setting it manually.", kdbg)
+
+            return kdbg
+
+
+class PsActiveProcessHeadHook(kb.ParameterHook):
+    """The PsActiveProcessHead is actually found in the profile symbols."""
+
+    name = "PsActiveProcessHead"
+
+    def calculate(self):
+        logging.debug("PsActiveProcessHead invalid. "
+                      "Possibly the profile is not quite right.")
+        return None
+
+
 class KDBGMixin(plugin.KernelASMixin):
     """A plugin mixin to make sure the kdbg is set correctly."""
+
+    _kdbg = None
+
+    @property
+    def kdbg(self):
+        self._kdbg = self._kdbg or self.session.GetParameter("kdbg")
+
+        # Allow kdbg to be an actual object.
+        if isinstance(self._kdbg, obj.BaseObject):
+            return self._kdbg
+
+        # Or maybe its an integer representing the offset.
+        elif self._kdbg:
+            self._kdbg = self.profile._KDDEBUGGER_DATA64(
+                offset=int(self._kdbg), vm=self.kernel_address_space)
+
+            return self._kdbg
+
+    @kdbg.setter
+    def kdbg(self, value):
+        self._kdbg = value
 
     @classmethod
     def args(cls, parser):
@@ -302,43 +360,8 @@ class KDBGMixin(plugin.KernelASMixin):
              AS).
         """
         super(KDBGMixin, self).__init__(**kwargs)
-        self.kdbg = kdbg or self.session.GetParameter("kdbg")
+        self._kdbg = kdbg
 
-        # If the user specified the kdbg use it - even if it looks wrong!
-        if self.kdbg and not isinstance(self.kdbg, obj.BaseObject):
-            kdbg = self.profile._KDDEBUGGER_DATA64(
-                offset=int(self.kdbg), vm=self.kernel_address_space)
-
-            # If the user specified the kdbg use it - even if it looks wrong!
-            # This allows the user to force a corrupt kdbg.
-            self.kdbg = kdbg
-
-        if self.kdbg is None:
-            logging.info(
-                "KDBG not provided - Rekall Memory Forensics will try to "
-                "automatically scan for it now using plugin.kdbgscan.")
-
-            for kdbg in self.session.plugins.kdbgscan(
-                session=self.session).hits():
-                # Just return the first one
-                logging.info("Found a KDBG hit %r. Hope it works. If not try "
-                             "setting it manually.", kdbg)
-
-                # Cache this for next time in the session.
-                self.kdbg = kdbg
-                self.session.StoreParameter("kdbg", int(kdbg))
-                break
-
-        # Allow kdbg to be an actual object.
-        if isinstance(self.kdbg, obj.BaseObject):
-            return
-
-        # Or maybe its an integer representing the offset.
-        elif self.kdbg:
-            self.kdbg = self.profile._KDDEBUGGER_DATA64(
-                offset=int(self.kdbg), vm=self.kernel_address_space)
-        else:
-            self.kdbg = obj.NoneObject("Could not guess kdbg offset")
 
 
 class WindowsCommandPlugin(KDBGMixin, AbstractWindowsCommandPlugin):
@@ -346,7 +369,7 @@ class WindowsCommandPlugin(KDBGMixin, AbstractWindowsCommandPlugin):
     __abstract = True
 
 
-class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
+class WinProcessFilter(WindowsCommandPlugin):
     """A class for filtering processes."""
 
     __abstract = True
@@ -434,7 +457,7 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
         # No filtering required:
         if not self.filtering_requested:
             for eprocess in self.session.plugins.pslist(
-                session=self.session, kdbg=self.kdbg,
+                session=self.session, kdbg=self._kdbg,
                 eprocess_head=self.eprocess_head).list_eprocess():
                 yield eprocess
         else:
@@ -448,7 +471,7 @@ class WinProcessFilter(KDBGMixin, AbstractWindowsCommandPlugin):
 
             # We need to filter by pids
             for eprocess in self.session.plugins.pslist(
-                session=self.session, kdbg=self.kdbg,
+                session=self.session, kdbg=self._kdbg,
                 eprocess_head=self.eprocess_head).list_eprocess():
                 if int(eprocess.UniqueProcessId) in self.pids:
                     yield eprocess

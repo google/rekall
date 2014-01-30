@@ -36,7 +36,6 @@ class WinPsList(common.WinProcessFilter):
 
     __name = "pslist"
 
-    kdbg = None
     eprocess = None
 
     def __init__(self, **kwargs):
@@ -60,11 +59,8 @@ class WinPsList(common.WinProcessFilter):
 
     def list_eprocess_from_kdbg(self, kdbg):
         """List the eprocess using the kdbg method."""
-        PsActiveList = kdbg.PsActiveProcessHead.dereference_as(
-            "_LIST_ENTRY")
-
-        return iter(PsActiveList.list_of_type(
-                "_EPROCESS", "ActiveProcessLinks"))
+        return self.list_eprocess_from_PsActiveProcessHead(
+            kdbg.PsActiveProcessHead)
 
     def list_eprocess_from_eprocess(self, eprocess_offset):
         eprocess = self.profile._EPROCESS(
@@ -75,10 +71,23 @@ class WinPsList(common.WinProcessFilter):
             # really an _EPROCESS)
             yield task
 
+    def list_eprocess_from_PsActiveProcessHead(self, PsActiveProcessHead):
+        PsActiveList = PsActiveProcessHead.dereference_as(
+            "_LIST_ENTRY")
+
+        return iter(PsActiveList.list_of_type(
+                "_EPROCESS", "ActiveProcessLinks"))
+
     def list_eprocess(self):
         if self.eprocess_head:
             return self.list_eprocess_from_eprocess(self.eprocess_head)
-        elif self.kdbg:
+
+        PsActiveProcessHead = self.session.GetParameter("PsActiveProcessHead")
+        if PsActiveProcessHead:
+            return self.list_eprocess_from_PsActiveProcessHead(
+                PsActiveProcessHead)
+
+        if self.kdbg:
             return self.list_eprocess_from_kdbg(self.kdbg)
 
         logging.debug("Unable to list processes using any method.")

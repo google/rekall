@@ -74,7 +74,7 @@ def Shell(user_session):
 
     cfg.PromptManager.in_template = (
         r'{color.LightCyan}'
-        r'{session.state.profile}:{session.state.base_filename}'
+        r'{session.state.base_filename}'
         r'{color.LightBlue}{color.Green} \T> ')
 
     cfg.PromptManager.in2_template = (

@@ -110,9 +110,9 @@ class DarwinKASLRMixin(object):
             return
 
         if vm_kernel_slide is not None:
-            self.session.StoreParameter("vm_kernel_slide", vm_kernel_slide)
+            self.session.SetParameter("vm_kernel_slide", vm_kernel_slide)
         elif self.session.GetParameter("vm_kernel_slide") is None:
-            self.session.StoreParameter(
+            self.session.SetParameter(
                 "vm_kernel_slide",
                  self.session.plugins.find_kaslr().vm_kernel_slide()
             )

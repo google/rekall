@@ -102,8 +102,9 @@ class Command(object):
           kwargs: Extra args to use for instantiating the plugin.
         """
         for cls in self.classes.values():
-            if cls.name == name:
-                return cls(session=self.session, profile=self.profile, **kwargs)
+            if cls.name == name and cls.is_active(self.session):
+                return cls(session=self.session, profile=self.profile,
+                           **kwargs)
 
     def __str__(self):
         """Render into a string using the text renderer."""

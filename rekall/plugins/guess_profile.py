@@ -1,6 +1,6 @@
 # Rekall Memory Forensics
-# Copyright (C) 2012 Michael Cohen
-# Copyright 2013 Google Inc. All Rights Reserved.
+# Copyright (C) 2014 Michael Cohen
+# Copyright 2014 Google Inc. All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,426 +25,73 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import logging
 
-from rekall import addrspace
+from rekall import config
 
-from rekall import plugin
-from rekall import obj
-from rekall import scan
-
-from rekall.plugins.overlays import basic
-from rekall.plugins.overlays.windows import windows
+from rekall import kb
+from rekall.plugins.windows import common
 
 
-# The idea is to avoid importing all the plugins at once just to check a couple
-# of offsets, so we just use an abbridged version of the full profiles.
+config.DeclareOption("profile_autodetect", default=True,
+                     help="Should profiles be autodetected.")
 
 
-class IdleScanner(scan.BaseScanner):
-    def __init__(self, process_names=None, **kwargs):
-        super(IdleScanner, self).__init__(**kwargs)
-        self.checks = [('MultiStringFinderCheck', dict(
-                    needles=process_names))]
+class ProfileHook(kb.ParameterHook):
+    """If the profile is not specified, we guess it."""
+    name = "profile"
+
+    # Windows kernel pdb files.
+    KERNEL_NAMES = set(["ntoskrnl.pdb", "ntkrnlmp.pdb", "ntkrnlpa.pdb"])
 
 
-class TestProfile32(basic.Profile32Bits, basic.BasicClasses):
-    def __init__(self, **kwargs):
-        super(TestProfile32, self).__init__(**kwargs)
-        self.add_overlay(eprocess_vtypes)
+    def VerifyWinProfile(self, profile_name):
+        """Check that this profile works with this image.
 
-
-class TestProfile64(basic.ProfileLLP64, basic.BasicClasses):
-    def __init__(self, **kwargs):
-        super(TestProfile64, self).__init__(**kwargs)
-        self.add_overlay(eprocess_vtypes)
-
-
-class GuessProfile(plugin.PhysicalASMixin, plugin.Command):
-    """Guess the exact windows profile using heuristics."""
-
-    __name = "guess_profile"
-
-    DEFAULT_PROCESS_NAMES = ['System']
-
-    def __init__(self, process_names=None, quick=True, **kwargs):
-        """Guess the potential windows profiles which could be used.
-
-        Args:
-          process_names: A list of process names to search for - default System.
-
-          quick: If set we just update the session profile and quit after the
-            first result is found.
+        Currently we construct a valid DTB with this profile. This might have
+        trouble distinguishing profiles which are fairly close (e.g. Win7
+        versions).
         """
-        super(GuessProfile, self).__init__(**kwargs)
-        self.process_names = process_names or self.DEFAULT_PROCESS_NAMES
-        self.process_names = [
-            x + "\x00" * (15 - len(x)) for x in self.process_names]
+        logging.debug("Verifying profile %s", profile_name)
 
-        self.quick = quick
-
-    def guess_profile_from_kdbg(self, kdbg):
-        """Guess the profile from the PsActiveProcessList pointer.
-
-        Sometimes we can arrive at a dtb and even a kdbg without needing to know
-        the profile at all (e.g. if thes were provided on the commandline or are
-        known in advance from the image). In this case, it is not necessary to
-        scan the image for the System process since we have a valid
-        PsActiveProcessList. The following algorithm guesses the profile from
-        the PsActiveProcessHead and it much faster.
-
-        We assume a valid physical_address_space is already known here.
-
-        Args:
-          kdbg: A valid _KDDEBUGGER_DATA64 offset.
-        """
-        kdbg_profile = windows.KDDebuggerProfile()
-        lookup_map = self._build_lookup_map()
-
-        # First try to get a valid kernel address space. At this point we dont
-        # even know if its a 32 bit or 64 bit profile so we try both address
-        # spaces.
-        for address_space_name in ["IA32PagedMemoryPae",
-                                   "AMD64PagedMemory"]:
-            address_space_cls = addrspace.BaseAddressSpace.GetPlugin(
-                address_space_name)
-
-            try:
-                kernel_as = address_space_cls(
-                    base=self.session.physical_address_space,
-                    session=self.session)
-
-                kdbg = kdbg_profile._KDDEBUGGER_DATA64(
-                    offset=self.session.GetParameter("kdbg"),
-                    vm=kernel_as)
-
-                if not kdbg:
-                    continue
-
-                # Now try to see which profile fits the _EPROCESS best.
-                for name, (test_profile, cls) in lookup_map.items():
-                    active_process_list_offset = test_profile.get_obj_offset(
-                        name, "ActiveProcessLinks")
-
-                    # This is the first _EPROCESS linked from
-                    # PsActiveProcessList.
-                    eprocess = test_profile.Object(
-                        name, vm=kernel_as,
-                        offset=(kdbg.PsActiveProcessHead.Flink.v() -
-                                active_process_list_offset))
-
-                    if (eprocess.UniqueProcessId == 0 or
-                        eprocess.UniqueProcessId > 10):
-                        continue
-
-                    dtb = eprocess.DirectoryTableBase.v()
-
-                    # The first process should be the System process.
-                    address_space = self.verify_profile(cls, eprocess, dtb)
-                    if address_space:
-                        yield name, kernel_as, eprocess
-
-            except addrspace.ASAssertionError:
-                pass
-
-    def _build_lookup_map(self):
-        test_profile32 = TestProfile32()
-        test_profile64 = TestProfile64()
-
-        # Precalculate the offsets to save time later.
-        lookup_map = {}
-        for name, cls in obj.Profile.classes.items():
-            if cls.metadata("os") == "windows":
-                if cls.metadata("memory_model") == "64bit":
-                    test_profile = test_profile64
-                else:
-                    test_profile = test_profile32
-
-                lookup_map[name] = (test_profile, cls)
-
-        return lookup_map
-
-    def guess_profile(self):
-        """Guess using the Idle process technique."""
-        # First ensure there is an address space
-        if not self.session.physical_address_space:
-            return
-
-        scanner = IdleScanner(session=self.session,
-                              process_names=self.process_names,
-                              address_space=self.session.physical_address_space)
-
-        lookup_map = self._build_lookup_map()
-        logging.info("Searching for suitable System Process")
-        for hit in scanner.scan():
-            # Try every profile until one works.
-            for name, (test_profile, cls) in lookup_map.items():
-                try:
-                    eprocess_offset = test_profile.get_obj_offset(
-                        name, 'ImageFileName')
-                except AttributeError:
-                    logging.warning("Missing definition for profile %s", name)
-                    continue
-
-                eprocess = test_profile.Object(
-                    name, vm=self.session.physical_address_space,
-                    offset=hit - eprocess_offset)
-
-                if (eprocess.UniqueProcessId == 0 or
-                    eprocess.UniqueProcessId > 10):
-                    continue
-
-                dtb = eprocess.DirectoryTableBase.v()
-
-                address_space = self.verify_profile(cls, eprocess, dtb)
-                if address_space:
-                    yield name, address_space, eprocess
-
-    def verify_address_space(self, profile_cls, eprocess, address_space):
-        """Check the eprocess for sanity."""
-        # In windows the DTB must be page aligned, except for PAE images where
-        # its aligned to a 0x20 size.
-        if not profile_cls.metadata("pae") and address_space.dtb & 0xFFF != 0:
-            return False
-
-        if profile_cls.metadata("pae") and address_space.dtb & 0xF != 0:
-            return False
-
-        # Reflect through the address space at ourselves.
-        list_head = eprocess.ThreadListHead.Flink
-        if list_head == 0:
-            return False
-
-        me = list_head.dereference(vm=address_space).Blink.Flink
-        if me.v() != list_head.v():
-            return False
-
-        return True
-
-    def verify_profile(self, profile_cls, eprocess, dtb):
-        """Verify potential profiles against the dtb hit."""
-        # Make an address space to test the dtb
         try:
-            if profile_cls.metadata("memory_model") == "64bit":
-                virtual_as = addrspace.BaseAddressSpace.GetPlugin(
-                    "AMD64PagedMemory")(
-                    session=self.session,
-                    base=self.session.physical_address_space,
-                    dtb=dtb)
-            elif profile_cls.metadata("pae"):
-                virtual_as = addrspace.BaseAddressSpace.GetPlugin(
-                    "IA32PagedMemoryPae")(
-                    session=self.session,
-                    base=self.session.physical_address_space,
-                    dtb=dtb)
-            else:
-                virtual_as = addrspace.BaseAddressSpace.GetPlugin(
-                    "IA32PagedMemory")(
-                    session=self.session,
-                    base=self.session.physical_address_space,
-                    dtb=dtb)
-
-        except addrspace.Error:
+            # Try to load this profile from the repository.
+            profile = self.session.LoadProfile(profile_name)
+        except ValueError:
             return
 
-        # Do some basic checks of the address space.
-        if not self.verify_address_space(profile_cls, eprocess, virtual_as):
-            return
+        # Try to load the dtb with this profile. If it works, this is likely
+        # correct.
+        win_find_dtb = common.WinFindDTB(
+            profile=profile, session=self.session)
 
-        return virtual_as
+        for address_space in win_find_dtb.address_space_hits():
+            # Might as well cache the results of this plugin so we dont need to
+            # run it twice.
+            self.session.kernel_address_space = address_space
+            self.session.SetParameter("dtb", address_space.dtb)
 
-    def update_session(self):
-        """Try to update the session from the profile guess."""
-        logging.info("Examining image for possible profiles.")
+            return profile
 
-        # If we have a kdbg and a valid kernel address space we can try a faster
-        # approach:
-        if (self.session.GetParameter("kdbg") and
-            self.session.GetParameter("dtb")):
-            for profile, virtual_as, eprocess in self.guess_profile_from_kdbg(
-                self.session.GetParameter("kdbg")):
-                with self.session.state as state:
-                    state.profile = profile
+    def calculate(self):
+        """Try to find the correct profile by scanning for PDB files."""
+        if not self.session.physical_address_space:
+            # Try to load the physical_address_space so we can scan it.
+            if not self.session.plugins.load_as().GetPhysicalAddressSpace():
+                # No physical address space - nothing to do here.
+                return
 
-                self.session.kernel_address_space = virtual_as
-                self.session.default_address_space = virtual_as
-                logging.info("Autoselected profile %s", profile)
+        # Only do something only if we are allowed to autodetect profiles.
+        if self.session.GetParameter("profile_autodetect"):
+            logging.info("Searching for windows kernel profile.")
 
-                return True
+            logging.debug("Autodetecting profile.")
+            version_scanner = self.session.plugins.version_scan()
+            for rsds, guid in version_scanner.ScanVersions():
+                if str(rsds.Filename) in self.KERNEL_NAMES:
+                    profile = self.VerifyWinProfile("GUID/%s" % guid)
+                    if profile:
+                        logging.info(
+                            "Detected %s with GUID %s", rsds.Filename, guid)
 
-        for profile, virtual_as, eprocess in self.guess_profile():
-            with self.session.state as state:
-                state.profile = profile
+                        return profile
 
-            self.session.kernel_address_space = virtual_as
-            self.session.default_address_space = virtual_as
-            self.session.StoreParameter("dtb", int(virtual_as.dtb))
-
-            # Try to set the correct _EPROCESS here.
-            self.session.system_eprocess = self.session.profile._EPROCESS(
-                vm=self.session.physical_address_space,
-                offset=eprocess.obj_offset)
-
-            logging.info("Autoselected profile %s", profile)
-
-            return True
-
-        logging.error("Can not autodetect profile - please set it "
-                      "explicitely.")
-
-    def render(self, renderer):
-        if self.quick:
-            renderer.format("Updating session profile and address spaces.\n")
-            self.update_session()
-            return
-
-        renderer.table_header([("Potential Profile", "profile", "<30"),
-                               ("Address Space", "as", "")])
-
-        for profile, virtual_as, _ in self.guess_profile():
-            renderer.table_row(profile.__class__.__name__,
-                               virtual_as.name)
-
-
-def generate_idle_lookup_list():
-    """Generate the lookup table for _EPROCESS by loading all profiles."""
-    eprocess_vtype = {}
-
-    for name, cls in obj.Profile.classes.items():
-        # Only care about the OS profiles.
-        if cls.metadata("os") == "windows":
-            kernel_profile = cls()
-            eprocess = kernel_profile._EPROCESS(offset=0)
-
-            list_entry = 'LIST_ENTRY32'
-            if cls.metadata("memory_model") == "64bit":
-                list_entry = 'LIST_ENTRY64'
-
-            # For the idle method we want to know only the following members:
-            eprocess_vtype[name] = [0, {
-                    "ImageFileName": [eprocess.ImageFileName.obj_offset, [
-                            'String', dict(length=16)]],
-                    "ThreadListHead": [eprocess.ThreadListHead.obj_offset, [list_entry]],
-                    "ActiveProcessLinks": [eprocess.ActiveProcessLinks.obj_offset, [list_entry]],
-                    "UniqueProcessId": [eprocess.UniqueProcessId.obj_offset, ['unsigned int']],
-                    "DirectoryTableBase": [
-                        eprocess.Pcb.DirectoryTableBase.obj_offset, ["unsigned long"]],
-                    }]
-
-    return eprocess_vtype
-
-# The following is generated from generate_idle_lookup_list() above.
-eprocess_vtypes = {
-  'VistaSP1x64': [0,
-  {'ActiveProcessLinks': [232, ['LIST_ENTRY64']],
-   'DirectoryTableBase': [40, ['unsigned long']],
-   'ImageFileName': [568, ['String', {'length': 16}]],
-   'ThreadListHead': [608, ['LIST_ENTRY64']],
-   'UniqueProcessId': [224, ['unsigned int']]}],
- 'VistaSP1x86': [0,
-  {'ActiveProcessLinks': [160, ['LIST_ENTRY32']],
-   'DirectoryTableBase': [24, ['unsigned long']],
-   'ImageFileName': [332, ['String', {'length': 16}]],
-   'ThreadListHead': [360, ['LIST_ENTRY32']],
-   'UniqueProcessId': [156, ['unsigned int']]}],
- 'VistaSP1x86PAE': [0,
-  {'ActiveProcessLinks': [160, ['LIST_ENTRY32']],
-   'DirectoryTableBase': [24, ['unsigned long']],
-   'ImageFileName': [332, ['String', {'length': 16}]],
-   'ThreadListHead': [360, ['LIST_ENTRY32']],
-   'UniqueProcessId': [156, ['unsigned int']]}],
- 'VistaSP2x64': [0,
-  {'ActiveProcessLinks': [232, ['LIST_ENTRY64']],
-   'DirectoryTableBase': [40, ['unsigned long']],
-   'ImageFileName': [568, ['String', {'length': 16}]],
-   'ThreadListHead': [608, ['LIST_ENTRY64']],
-   'UniqueProcessId': [224, ['unsigned int']]}],
- 'VistaSP2x86': [0,
-  {'ActiveProcessLinks': [160, ['LIST_ENTRY32']],
-   'DirectoryTableBase': [24, ['unsigned long']],
-   'ImageFileName': [332, ['String', {'length': 16}]],
-   'ThreadListHead': [360, ['LIST_ENTRY32']],
-   'UniqueProcessId': [156, ['unsigned int']]}],
- 'Win2008R2SP0x64': [0,
-  {'ActiveProcessLinks': [392, ['LIST_ENTRY64']],
-   'DirectoryTableBase': [40, ['unsigned long']],
-   'ImageFileName': [736, ['String', {'length': 16}]],
-   'ThreadListHead': [776, ['LIST_ENTRY64']],
-   'UniqueProcessId': [384, ['unsigned int']]}],
- 'Win2008R2SP1x64': [0,
-  {'ActiveProcessLinks': [392, ['LIST_ENTRY64']],
-   'DirectoryTableBase': [40, ['unsigned long']],
-   'ImageFileName': [736, ['String', {'length': 16}]],
-   'ThreadListHead': [776, ['LIST_ENTRY64']],
-   'UniqueProcessId': [384, ['unsigned int']]}],
- 'Win2008SP1x64': [0,
-  {'ActiveProcessLinks': [232, ['LIST_ENTRY64']],
-   'DirectoryTableBase': [40, ['unsigned long']],
-   'ImageFileName': [568, ['String', {'length': 16}]],
-   'ThreadListHead': [608, ['LIST_ENTRY64']],
-   'UniqueProcessId': [224, ['unsigned int']]}],
- 'Win2008SP1x86': [0,
-  {'ActiveProcessLinks': [160, ['LIST_ENTRY32']],
-   'DirectoryTableBase': [24, ['unsigned long']],
-   'ImageFileName': [332, ['String', {'length': 16}]],
-   'ThreadListHead': [360, ['LIST_ENTRY32']],
-   'UniqueProcessId': [156, ['unsigned int']]}],
- 'Win2008SP2x64': [0,
-  {'ActiveProcessLinks': [232, ['LIST_ENTRY64']],
-   'DirectoryTableBase': [40, ['unsigned long']],
-   'ImageFileName': [568, ['String', {'length': 16}]],
-   'ThreadListHead': [608, ['LIST_ENTRY64']],
-   'UniqueProcessId': [224, ['unsigned int']]}],
- 'Win2008SP2x86': [0,
-  {'ActiveProcessLinks': [160, ['LIST_ENTRY32']],
-   'DirectoryTableBase': [24, ['unsigned long']],
-   'ImageFileName': [332, ['String', {'length': 16}]],
-   'ThreadListHead': [360, ['LIST_ENTRY32']],
-   'UniqueProcessId': [156, ['unsigned int']]}],
- 'Win7SP0x64': [0,
-  {'ActiveProcessLinks': [392, ['LIST_ENTRY64']],
-   'DirectoryTableBase': [40, ['unsigned long']],
-   'ImageFileName': [736, ['String', {'length': 16}]],
-   'ThreadListHead': [776, ['LIST_ENTRY64']],
-   'UniqueProcessId': [384, ['unsigned int']]}],
- 'Win7SP0x86': [0,
-  {'ActiveProcessLinks': [184, ['LIST_ENTRY32']],
-   'DirectoryTableBase': [24, ['unsigned long']],
-   'ImageFileName': [364, ['String', {'length': 16}]],
-   'ThreadListHead': [392, ['LIST_ENTRY32']],
-   'UniqueProcessId': [180, ['unsigned int']]}],
- 'Win7SP1x64': [0,
-  {'ActiveProcessLinks': [392, ['LIST_ENTRY64']],
-   'DirectoryTableBase': [40, ['unsigned long']],
-   'ImageFileName': [736, ['String', {'length': 16}]],
-   'ThreadListHead': [776, ['LIST_ENTRY64']],
-   'UniqueProcessId': [384, ['unsigned int']]}],
- 'Win7SP1x86': [0,
-  {'ActiveProcessLinks': [184, ['LIST_ENTRY32']],
-   'DirectoryTableBase': [24, ['unsigned long']],
-   'ImageFileName': [364, ['String', {'length': 16}]],
-   'ThreadListHead': [392, ['LIST_ENTRY32']],
-   'UniqueProcessId': [180, ['unsigned int']]}],
- 'Win8SP0x64': [0,
-  {'ActiveProcessLinks': [744, ['LIST_ENTRY64']],
-   'DirectoryTableBase': [40, ['unsigned long']],
-   'ImageFileName': [1080, ['String', {'length': 16}]],
-   'ThreadListHead': [1136, ['LIST_ENTRY64']],
-   'UniqueProcessId': [736, ['unsigned int']]}],
- 'WinXPSP2x86': [0,
-  {'ActiveProcessLinks': [136, ['LIST_ENTRY32']],
-   'DirectoryTableBase': [24, ['unsigned long']],
-   'ImageFileName': [372, ['String', {'length': 16}]],
-   'ThreadListHead': [400, ['LIST_ENTRY32']],
-   'UniqueProcessId': [132, ['unsigned int']]}],
- 'WinXPSP3x86': [0,
-  {'ActiveProcessLinks': [136, ['LIST_ENTRY32']],
-   'DirectoryTableBase': [24, ['unsigned long']],
-   'ImageFileName': [372, ['String', {'length': 16}]],
-   'ThreadListHead': [400, ['LIST_ENTRY32']],
-   'UniqueProcessId': [132, ['unsigned int']]}],
- 'WinXPSP3x86PAE': [0,
-  {'ActiveProcessLinks': [136, ['LIST_ENTRY32']],
-   'DirectoryTableBase': [24, ['unsigned long']],
-   'ImageFileName': [372, ['String', {'length': 16}]],
-   'ThreadListHead': [400, ['LIST_ENTRY32']],
-   'UniqueProcessId': [132, ['unsigned int']]}]}
 

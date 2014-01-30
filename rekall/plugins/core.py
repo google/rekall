@@ -397,20 +397,16 @@ class LoadAddressSpace(plugin.Command):
 
         # If we know the DTB, just build the address space.
         # Otherwise, delegate to a find_dtb plugin.
+        find_dtb = self.session.plugins.find_dtb()
 
         if dtb:
-            address_space_cls = GetAddressSpaceImplementation(self.profile)
-            self.session.kernel_address_space = address_space_cls(
-                dtb=dtb,
-                base=self.session.physical_address_space,
-                session=self.session,
-                profile=self.profile)
+            self.session.kernel_address_space = find_dtb.CreateAS(dtb)
+
         else:
             logging.debug("DTB not specified. Delegating to find_dtb.")
-            find_dtb = self.session.plugins.find_dtb()
             for address_space in find_dtb.address_space_hits():
                 self.session.kernel_address_space = address_space
-                self.session.StoreParameter("dtb", address_space.dtb)
+                self.session.SetParameter("dtb", address_space.dtb)
                 break
 
             if self.session.kernel_address_space is None:

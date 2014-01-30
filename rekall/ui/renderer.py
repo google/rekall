@@ -48,6 +48,9 @@ config.DeclareOption(
     "--pager", default=os.environ.get("PAGER"), group="Interface",
     help="The pager to use when output is larger than a screen full.")
 
+config.DeclareOption(
+    "--paging_limit", default=50, group="Interface", type=int,
+    help="The number of output lines before we invoke the pager.")
 
 config.DeclareOption(
     "--renderer", default="TextRenderer", group="Interface",
@@ -81,8 +84,8 @@ HIGHLIGHT_SCHEME = dict(
 class Pager(object):
     """A wrapper around a pager.
 
-    The pager can be specified by the session. (eg. session.state.pager =
-    'less') or in an PAGER environment var.
+    The pager can be specified by the session. (eg.
+    session.SetParameter("pager", 'less') or in an PAGER environment var.
     """
     # Default encoding is utf8
     encoding = "utf8"
@@ -90,7 +93,9 @@ class Pager(object):
     def __init__(self, session=None, encoding=None):
         # More is the least common denominator of pagers :-(. Less is better,
         # but most is best!
-        self.pager_command = session.state.pager or os.environ.get("PAGER")
+        self.pager_command = (session.GetParameter("pager") or
+                              os.environ.get("PAGER"))
+
         self.encoding = encoding or session.encoding or sys.stdout.encoding
 
         # Make a temporary filename to store output in.

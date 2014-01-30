@@ -1002,13 +1002,29 @@ class ParsePDB(plugin.Command):
             "--profile_class", default="Ntoskrnl",
             help="The name of the profile implementation. ")
 
-    def __init__(self, filename=None, profile_class=None, metadata=None,
-                 **kwargs):
+        parser.add_argument(
+            "--windows_version", default="6.1",
+            help="The windows version (major.minor.revision) "
+            "corresponding with this PDB. For example, Windows 7 "
+            "should be given as 6.1")
+
+    def __init__(self, filename=None, profile_class=None, windows_version=None,
+                 metadata=None, **kwargs):
         super(ParsePDB, self).__init__(**kwargs)
         self.filename = filename
-        self.tpi = PDBParser(filename, self.session)
         self.profile_class = profile_class
         self.metadata = metadata or dict(ProfileClass=self.profile_class)
+
+        if windows_version:
+            versions = windows_version.split(".", 2)
+
+        for i, metadata in enumerate(["major", "minor", "rev"]):
+            try:
+                self.metadata[metadata] = versions[i]
+            except IndexError:
+                break
+
+        self.tpi = PDBParser(filename, self.session)
 
     def render(self, renderer):
         vtypes = {}

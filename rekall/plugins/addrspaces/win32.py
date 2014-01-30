@@ -100,10 +100,10 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
                     fmt_string, result)))
 
         self.dtb = self.memory_parameters["CR3"]
-        self.session.StoreParameter("dtb", int(self.dtb))
+        self.session.SetParameter("dtb", int(self.dtb))
 
         self.kdbg = self.memory_parameters["KDBG"]
-        self.session.StoreParameter("kdbg", int(self.kdbg))
+        self.session.SetParameter("kdbg", int(self.kdbg))
 
         offset = struct.calcsize(fmt_string)
 
