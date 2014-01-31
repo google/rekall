@@ -133,4 +133,5 @@ analysis solution for at least Windows, OSX and Linux.
 More documentation
 ==================
 
-Further documentation is available in the doc/ directory of this distribution.
+Further documentation is available at
+http://docs.rekall.googlecode.com/git/index.html

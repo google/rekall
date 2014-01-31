@@ -224,13 +224,15 @@ class LinProcessFilter(LinuxPlugin):
 
 class HeapScannerMixIn(object):
     """A mixin for converting a scanner into a heap only scanner."""
-    def scan(self, **kwargs):
+
+    def scan(self, offset=0, maxlen=2**64):
         for vma in self.task.mm.mmap.walk_list("vm_next"):
             # Only use the vmas inside the heap area.
             if (vma.vm_start >= self.task.mm.start_brk or
                 vma.vm_end <= self.task.mm.brk):
                 for hit in super(HeapScannerMixIn, self).scan(
-                    offset=vma.vm_start, maxlen=vma.vm_end-vma.vm_start):
+                    offset=max(offset, vma.vm_start),
+                    maxlen=min(vma.vm_end-vma.vm_start, maxlen)):
                     yield hit
 
 
@@ -243,81 +245,6 @@ class KernelAddressCheckerMixIn(object):
         # We use the module plugin to help us local addresses inside kernel
         # modules.
         self.module_plugin = self.session.plugins.lsmod(session=self.session)
-
-
-
-# TODO: Deprecate this when all plugins have been converted.
-class AbstractLinuxCommand(object):
-
-    def __init__(self, *args, **kwargs):
-        self.addr_space = utils.load_as(self._config)
-        self.profile = self.addr_space.profile
-        self.smap = self.profile.sys_map
-
-    @classmethod
-    def is_active(cls, session):
-        """We are only active if the profile is Linux."""
-        try:
-            return session.profile and session.profile._md_os == 'linux'
-        except profile.Error:
-            return True
-
-
-def offsetof(struct_name, list_member, profile):
-
-    offset = profile.typeDict[struct_name][1][list_member][0]
-    return offset
-
-def bit_is_set(bmap, pos):
-
-    mask = 1 << pos
-    return bmap & mask
-
-# returns a list of online cpus (the processor numbers)
-def online_cpus(smap, addr_space):
-
-    #later kernels..
-    if "cpu_online_bits" in smap:
-        bmap = obj.Object("unsigned long", offset=smap["cpu_online_bits"], vm=addr_space)
-
-    elif "cpu_present_map" in smap:
-        bmap = obj.Object("unsigned long",  offset=smap["cpu_present_map"], vm=addr_space)
-
-    else:
-        raise AttributeError, "Unable to determine number of online CPUs for memory capture"
-
-    cpus = []
-    for i in xrange(0, 8):
-        if bit_is_set(bmap, i):
-            cpus.append(i)
-
-    return cpus
-
-def walk_per_cpu_var(obj_ref, per_var, var_type):
-
-    cpus = online_cpus(obj_ref.smap, obj_ref.addr_space)
-
-    # get the highest numbered cpu
-    max_cpu = cpus[-1]
-
-    per_offsets = obj.Object(type_name='Array', targetType='unsigned long', count=max_cpu, offset=obj_ref.smap["__per_cpu_offset"], vm=obj_ref.addr_space)
-    i = 0
-
-    for i in cpus:
-
-        offset = per_offsets[i]
-
-        addr = obj_ref.smap["per_cpu__" + per_var] + offset.v()
-        var = obj.Object(var_type, offset=addr, vm=obj_ref.addr_space)
-
-        yield i, var
-
-
-def S_ISDIR(mode):
-    return (mode & linux_flags.S_IFMT) == linux_flags.S_IFDIR
-
-def S_ISREG(mode):
-    return (mode & linux_flags.S_IFMT) == linux_flags.S_IFREG
 
 
 

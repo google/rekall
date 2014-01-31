@@ -184,6 +184,10 @@ class _POOL_HEADER(obj.Struct):
     def PagedPool(self):
         return self.PoolType.v() % 2 == 1
 
+    @property
+    def FreePool(self):
+        return self.PoolType.v() == 0
+
     def get_next_object(self, offset, object_name):
         """Gets the next object that fits after this offset."""
         pool_align = self.obj_profile.get_constant("PoolAlignment")

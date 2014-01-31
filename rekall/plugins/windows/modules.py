@@ -183,7 +183,7 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
             if not unicode(rsds.Filename).endswith("pdb"):
                 continue
 
-            guid = "%s%x" % (rsds.GUID.AsString, rsds.Age)
+            guid = rsds.GUID_AGE
             if guid not in guids:
                 guids.add(guid)
                 yield rsds, guid

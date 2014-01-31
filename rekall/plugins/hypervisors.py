@@ -203,7 +203,7 @@ class VMCSScanner(scan.BaseScanner):
                 yield vmcs_obj, cur_offset, validated
 
 
-    def skip(self, data, data_offset, base_offset=None):
+    def skip(self, buffer_as, offset):
         return 0x1000
 
 

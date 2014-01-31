@@ -24,6 +24,7 @@ import logging
 import re
 
 from rekall import args
+from rekall import kb
 from rekall import obj
 from rekall import plugin
 from rekall import scan
@@ -84,7 +85,20 @@ def ID_MAP_VTOP(x):
 X64_POINTER_MASK = 0x0000ffffffffffff
 
 def MOUNTAIN_LION_OR_LATER(profile):
-    return profile.get_constant("_BootPML4") is not None
+    return bool(profile.get_constant("_BootPML4", False))
+
+
+class KernelSlideHook(kb.ParameterHook):
+    """Find the kernel slide if needed."""
+
+    name = "vm_kernel_slide"
+
+    def calculate(self):
+        if MOUNTAIN_LION_OR_LATER(self.session.profile):
+            return DarwinFindKASLR(session=self.session).vm_kernel_slide()
+
+        # Kernel slide should be treated as 0 if not relevant.
+        return 0
 
 
 class DarwinKASLRMixin(object):
@@ -111,11 +125,6 @@ class DarwinKASLRMixin(object):
 
         if vm_kernel_slide is not None:
             self.session.SetParameter("vm_kernel_slide", vm_kernel_slide)
-        elif self.session.GetParameter("vm_kernel_slide") is None:
-            self.session.SetParameter(
-                "vm_kernel_slide",
-                 self.session.plugins.find_kaslr().vm_kernel_slide()
-            )
 
 
 class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
@@ -186,6 +195,7 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
         Returns:
           A value for the KASLR slide that appears sane.
         """
+        logging.debug("Searching for KASLR hits.")
         for vm_kernel_slide in self.vm_kernel_slide_hits():
             return vm_kernel_slide
 
@@ -647,19 +657,6 @@ class DarwinProcessFilter(DarwinPlugin):
         "pgrphash": list_using_pgrp_hash,
         "pidhash": list_using_pid_hash,
         }
-
-
-
-class HeapScannerMixIn(object):
-    """A mixin for converting a scanner into a heap only scanner."""
-    def scan(self, **_):
-        for vma in self.task.mm.mmap.walk_list("vm_next"):
-            # Only use the vmas inside the heap area.
-            if (vma.vm_start >= self.task.mm.start_brk or
-                vma.vm_end <= self.task.mm.brk):
-                for hit in super(HeapScannerMixIn, self).scan(
-                    offset=vma.vm_start, maxlen=vma.vm_end-vma.vm_start):
-                    yield hit
 
 
 class KernelAddressCheckerMixIn(object):

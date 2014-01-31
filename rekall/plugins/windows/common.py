@@ -168,36 +168,46 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
 
 ## The following are checks for pool scanners.
 
-class PoolTagCheck(scan.ScannerCheck):
-    """ This scanner checks for the occurance of a pool tag """
-    def __init__(self, tag=None, tags=None, **kwargs):
-        super(PoolTagCheck, self).__init__(**kwargs)
-        self.tags = tags or [tag]
+class PoolTagCheck(scan.StringCheck):
+    """This scanner checks for the occurrence of a pool tag.
+
+    It is basically a StringCheck but it offsets the check with a constant.
+    """
+    def __init__(self, tag=None, **kwargs):
+        super(PoolTagCheck, self).__init__(needle=tag, **kwargs)
 
         # The offset from the start of _POOL_HEADER to the tag.
         self.tag_offset = self.profile.get_obj_offset(
             "_POOL_HEADER", "PoolTag")
 
-    def skip(self, data, offset, **_):
-        nextvals = []
-        for tag in self.tags:
-            nextval = data.find(tag, offset + 1)
-            if nextval >= 0:
-                nextvals.append(nextval)
+    def skip(self, buffer_as, offset):
+        return super(PoolTagCheck, self).skip(
+            buffer_as, offset + self.tag_offset)
 
-        # No tag was found
-        if not nextvals:
-            # Substrings are not found - skip to the end of this data buffer
-            return len(data) - offset + 1
+    def check(self, buffer_as, offset):
+        return super(PoolTagCheck, self).check(
+             buffer_as, offset + self.tag_offset)
 
-        return min(nextvals) - offset - self.tag_offset
 
-    def check(self, offset):
-        for tag in self.tags:
-            # Check the tag field.
-            data = self.address_space.read(offset + self.tag_offset, len(tag))
-            if data == tag:
-                return True
+class MultiPoolTagCheck(scan.MultiStringFinderCheck):
+    """This scanner checks for the occurrence of a pool tag.
+
+    It is basically a StringCheck but it offsets the check with a constant.
+    """
+    def __init__(self, tags=None, **kwargs):
+        super(MultiPoolTagCheck, self).__init__(needles=tags, **kwargs)
+
+        # The offset from the start of _POOL_HEADER to the tag.
+        self.tag_offset = self.profile.get_obj_offset(
+            "_POOL_HEADER", "PoolTag")
+
+    def skip(self, buffer_as, offset):
+        return super(MultiPoolTagCheck, self).skip(
+            buffer_as, offset + self.tag_offset)
+
+    def check(self, buffer_as, offset):
+        return super(MultiPoolTagCheck, self).check(
+             buffer_as, offset + self.tag_offset)
 
 
 class CheckPoolSize(scan.ScannerCheck):
@@ -210,9 +220,9 @@ class CheckPoolSize(scan.ScannerCheck):
 
         self.pool_align = self.profile.constants['PoolAlignment']
 
-    def check(self, offset):
+    def check(self, buffer_as, offset):
         pool_hdr = self.profile._POOL_HEADER(
-            vm=self.address_space, offset=offset)
+            vm=buffer_as, offset=offset)
 
         block_size = pool_hdr.BlockSize.v()
 
@@ -227,9 +237,9 @@ class CheckPoolType(scan.ScannerCheck):
         self.paged = paged
         self.free = free
 
-    def check(self, offset):
+    def check(self, buffer_as, offset):
         pool_hdr = self.profile._POOL_HEADER(
-            vm=self.address_space, offset=offset)
+            vm=buffer_as, offset=offset)
 
         return ((self.non_paged and pool_hdr.NonPagedPool) or
                 (self.free and pool_hdr.FreePool) or
@@ -242,9 +252,9 @@ class CheckPoolIndex(scan.ScannerCheck):
         super(CheckPoolIndex, self).__init__(**kwargs)
         self.value = value
 
-    def check(self, offset):
+    def check(self, buffer_as, offset):
         pool_hdr = self.profile._POOL_HEADER(
-            vm=self.address_space, offset=offset)
+            vm=buffer_as, offset=offset)
 
         return pool_hdr.PoolIndex == self.value
 
@@ -328,7 +338,8 @@ class KDBGMixin(plugin.KernelASMixin):
 
     @property
     def kdbg(self):
-        self._kdbg = self._kdbg or self.session.GetParameter("kdbg")
+        if self._kdbg is None:
+            self._kdbg = self.session.GetParameter("kdbg")
 
         # Allow kdbg to be an actual object.
         if isinstance(self._kdbg, obj.BaseObject):

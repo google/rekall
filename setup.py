@@ -75,5 +75,6 @@ setup(
         "pycrypto >= 2.3.1",
         "pyelftools >= 0.21",
         "distorm3 >= 0",
+        "ahocorasick >= 0.9",
         ],
 )

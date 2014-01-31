@@ -114,7 +114,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
     @classmethod
     def args(cls, parser):
         parser.add_argument(
-            "--filename", default=None,
+            "-f", "--filename", default=None,
             help="The filename of the executable to get the PDB file for.")
 
         parser.add_argument(

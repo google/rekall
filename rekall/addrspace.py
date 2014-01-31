@@ -251,6 +251,18 @@ class BufferAddressSpace(BaseAddressSpace):
     def get_available_addresses(self):
         yield (self.base_offset, len(self.data))
 
+    def __repr__(self):
+        return "<%s @ %#x %s [%#X-%#X]>" % (
+            self.__class__.__name__, hash(self), self.name,
+            self.base_offset, self.end())
+
+    def __len__(self):
+        return len(self.data)
+
+    def end(self):
+        """Return the end address of the buffer."""
+        return self.base_offset + len(self.data)
+
 
 class CachingAddressSpaceMixIn(object):
     # The size of chunks we cache. This should be large enough to make file

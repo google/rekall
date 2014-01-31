@@ -20,8 +20,10 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import ahocorasick
 import re
 
+from rekall import addrspace
 from rekall import registry
 from rekall import constants
 
@@ -59,7 +61,7 @@ class BaseScanner(object):
         self.skippers = [c for c in self.constraints if hasattr(c, "skip")]
         self.hits = None
 
-    def check_addr(self, offset):
+    def check_addr(self, offset, buffer_as=None):
         """Calls our constraints on the offset and returns if any contraints did
         not match.
 
@@ -68,13 +70,15 @@ class BaseScanner(object):
         """
         for check in self.constraints:
             # Ask the check if this offset is possible.
-            val = check.check(offset)
+            val = check.check(buffer_as, offset)
+
+            # Break out on the first negative hit.
             if not val:
                 return False
 
         return True
 
-    def skip(self, data, data_offset, base_offset=None):
+    def skip(self, buffer_as, offset):
         """Skip uninteresting regions.
 
         Where should we go next? By default we go 1 byte ahead, but if some of
@@ -86,8 +90,7 @@ class BaseScanner(object):
         """
         skip = 1
         for s in self.skippers:
-            skip_value = s.skip(data, data_offset + skip,
-                                base_offset=base_offset)
+            skip_value = s.skip(buffer_as, offset)
             skip = max(skip, skip_value)
 
         return skip
@@ -117,21 +120,15 @@ class BaseScanner(object):
         # Start scanning from offset until maxlen:
         i = offset
 
-        data_offset = 0
-        data = ""
-
+        buffer_as = addrspace.BufferAddressSpace()
         while i < offset + maxlen:
             # Update the progress bar.
             if self.session:
                 self.session.report_progress(
                     "Scanning 0x%08X with %s" % (i, self.__class__.__name__))
 
-            # Check the current offset for a match.
-            if self.check_addr(i):
-                yield i
-
-            # Allow us to skip uninteresting regions (default skip is 1).
-            if data_offset + self.overlap >= len(data):
+            # Refresh the buffer if current index is too close to the end.
+            if i + self.overlap > buffer_as.end():
                 # Current region is not valid.
                 if not self.address_space.is_valid_address(i):
                     break
@@ -139,12 +136,15 @@ class BaseScanner(object):
                 to_read = min(constants.SCAN_BLOCKSIZE, maxlen - (i - offset))
 
                 # Refresh the data buffer.
-                data = self.address_space.read(i, to_read)
-                data_offset = 0
+                buffer_as.assign_buffer(
+                    self.address_space.read(i, to_read), base_offset=i)
+
+            # Check the current offset for a match.
+            if self.check_addr(i, buffer_as=buffer_as):
+                yield i
 
             # First check if we can skip this point.
-            skip = self.skip(data, data_offset, base_offset=i)
-            data_offset += skip
+            skip = self.skip(buffer_as, i)
             i += skip
 
 
@@ -245,11 +245,12 @@ class ScannerCheck(object):
     def object_offset(self, offset):
         return offset
 
-    def check(self, offset):
+    def check(self, buffer_as, offset):
         _ = offset
+        _ = buffer_as
         return False
 
-    def skip(self, data, offset, base_offset=None):
+    def skip(self, buffer_as, offset):
         """Determine how many bytes we can skip.
 
         If you want to speed up the scanning define this method - it
@@ -259,17 +260,16 @@ class ScannerCheck(object):
         that all checks have a chance of passing.
 
         Args:
-          data: A data buffer we can examine to check for skipping.
-          offset: The offset within the data buffer to look at.
-          base_offset: The data buffer represents this offset within
-            self.address_space.
+          buffer_as: A BufferAddressSpace instance wrapping self.address_space,
+          containing a copy of the data at the specified offset.
+
+          offset: The offset in the address space to check.
 
         Returns:
           number of bytes to be skipped.
         """
-        _ = data
+        _ = buffer_as
         _ = offset
-        _ = base_offset
         return 0
 
 
@@ -284,31 +284,37 @@ class MultiStringFinderCheck(ScannerCheck):
         super(MultiStringFinderCheck, self).__init__(**kwargs)
         if not needles:
             needles = []
-        self.needles = needles
-        self.maxlen = 0
+
+        self.tree = ahocorasick.KeywordTree()
+
         for needle in needles:
-            self.maxlen = max(self.maxlen, len(needle))
-        if not self.maxlen:
-            raise RuntimeError("No needles of any length were found for the "
-                               "MultiStringFinderCheck")
+            self.tree.add(needle)
 
-    def check(self, offset):
-        verify = self.address_space.read(offset, self.maxlen)
+        self.tree.make()
+        self.base_offset = None
+        self.next_hit = None
 
-        for match in self.needles:
-            if verify[:len(match)] == match:
-                return True
+    def check(self, buffer_as, offset):
+        data_offset = offset - buffer_as.base_offset
+
+        self.next_hit = self.tree.search(buffer_as.data, data_offset)
+        if self.next_hit and self.next_hit[0] == data_offset:
+            return True
 
         return False
 
-    def skip(self, data, offset, base_offset=None):
-        nextval = len(data)
-        for needle in self.needles:
-            dindex = data.find(needle, offset + 1)
-            if dindex > -1:
-                nextval = min(nextval, dindex + 1)
+    def skip(self, buffer_as, offset):
+        # Normally the scanner calls the check method first, then the skip
+        # method immediately after. We are depending on this order so
+        # self.next_hit will be set by the check method which was called
+        # before us.
+        data_offset = offset - buffer_as.base_offset
+        if self.next_hit is None:
+            # Eliminate this buffer.
+            return buffer_as.end() - offset
 
-        return nextval - offset
+        # Go to the next hit.
+        return self.next_hit[0] - data_offset
 
 
 class StringCheck(ScannerCheck):
@@ -318,15 +324,18 @@ class StringCheck(ScannerCheck):
         super(StringCheck, self).__init__(**kwargs)
         self.needle = needle
 
-    def check(self, offset):
-        return self.address_space.read(offset, len(self.needle)) == self.needle
+    def check(self, buffer_as, offset):
+        return buffer_as.read(offset, len(self.needle)) == self.needle
 
-    def skip(self, data, offset, base_offset=None):
-        dindex = data.find(self.needle, offset + 1)
+    def skip(self, buffer_as, offset):
+        data_offset = offset - buffer_as.base_offset
+
+        dindex = buffer_as.data.find(self.needle, data_offset + 1)
         if dindex > -1:
-            return dindex + 1 - offset
+            return dindex - data_offset
 
-        return len(data) - offset
+        # Skip entire region.
+        return buffer_as.end() - offset
 
 
 class RegexCheck(ScannerCheck):
@@ -337,16 +346,18 @@ class RegexCheck(ScannerCheck):
         super(RegexCheck, self).__init__(**kwargs)
         self.regex = re.compile(regex)
 
-    def check(self, offset):
-        verify = self.address_space.read(offset, self.maxlen)
+    def check(self, buffer_as, offset):
+        verify = buffer_as.read(offset, self.maxlen)
         return bool(self.regex.match(verify))
 
-    def skip(self, data, offset, base_offset=None):
-        m = self.regex.search(data[offset:])
+    def skip(self, buffer_as, offset):
+        data_offset = offset - buffer_as.base_offset
+
+        m = self.regex.search(buffer_as.data[data_offset:])
         if m:
             return m.start() + 1
 
-        return len(data) - offset
+        return buffer_as.end() - offset
 
 
 class ScannerGroup(BaseScanner):
@@ -404,7 +415,8 @@ class DebugChecker(ScannerCheck):
     Insert this check inside the check stack and we will break into the debugger
     when all the conditions below us are met.
     """
-    def check(self, offset):
+    def check(self, buffer_as, offset):
         _ = offset
+        _ = buffer_as
         import pdb; pdb.set_trace() # pylint: disable=multiple-statements
         return True

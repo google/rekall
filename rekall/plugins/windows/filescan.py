@@ -334,36 +334,27 @@ class MutantScan(FileScan):
 
 
 class CheckProcess(scan.ScannerCheck):
-    """ Check sanity of _EPROCESS """
+    """Check sanity of _EPROCESS."""
     kernel = 0x80000000
 
-    def check(self, found):
+    def check(self, buffer_as, offset):
         """Check a possible _EPROCESS."""
-        ## The offset of the object is determined by subtracting the offset
-        ## of the PoolTag member to get the start of Pool Object. This done
-        ## because PoolScanners search for the PoolTag.
-        pool_base = found - self.profile.get_obj_offset(
-            '_POOL_HEADER', 'PoolTag')
+        pool_obj = self.profile._POOL_HEADER(offset=offset, vm=buffer_as)
 
-        pool_obj = self.profile._POOL_HEADER(offset=pool_base,
-                                             vm=self.address_space)
-
-        pool_align = self.profile.constants['PoolAlignment']
-
-        eprocess = self.profile._EPROCESS(
-            vm=self.address_space,
-            offset=(pool_base + pool_obj.BlockSize * pool_align -
-                    self.profile.get_obj_size("_EPROCESS"))
-            )
+        eprocess = pool_obj.get_object(
+            "_EPROCESS", PoolScanProcess.allocation)
 
         if eprocess.Pcb.DirectoryTableBase == 0:
             return False
 
+        # The DTB is page aligned on AMD64 and I386 but aligned to 0x20 on PAE
+        # kernels.
         if eprocess.Pcb.DirectoryTableBase % 0x20 != 0:
             return False
 
         list_head = eprocess.ThreadListHead
 
+        # Pointers must point to the kernel part of the address space.
         if (list_head.Flink < self.kernel) or (list_head.Blink < self.kernel):
             return False
 
@@ -389,6 +380,7 @@ class PoolScanProcess(common.PoolScanner):
                     paged=True, non_paged=True, free=True)),
 
             ('CheckPoolIndex', dict(value=0)),
+            ('CheckProcess', {}),
             ]
 
     def scan(self, **_):
@@ -404,19 +396,15 @@ class PoolScanProcess(common.PoolScanner):
             yield eprocess
 
 
-class PSScan(common.PoolScannerPlugin):
-    """Scan Physical memory for _EPROCESS pool allocations."""
+class PSScan(common.KDBGMixin, common.PoolScannerPlugin):
+    """Scan Physical memory for _EPROCESS pool allocations.
+
+    Status flags:
+      E: A known _EPROCESS address from pslist.
+      P: A known pid from pslist.
+    """
 
     __name = "psscan"
-
-    def __init__(self, **kwargs):
-        """Scan Physical memory for _EPROCESS pool allocations.
-
-        Status flags:
-          E: A known _EPROCESS address from pslist.
-          P: A known pid from pslist.
-        """
-        super(PSScan, self).__init__(**kwargs)
 
     def guess_eprocess_virtual_address(self, eprocess):
         """Try to guess the virtual address of the eprocess."""
@@ -447,7 +435,7 @@ class PSScan(common.PoolScannerPlugin):
         """Render results in a table."""
         # Try to do a regular process listing so we can compare if the process
         # is known.
-        pslist = self.session.plugins.pslist()
+        pslist = self.session.plugins.pslist(kdbg=self.kdbg)
 
         # These are virtual addresses.
         known_eprocess = set()
