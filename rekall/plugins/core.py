@@ -296,13 +296,13 @@ class FindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
 
     def GetAddressSpaceImplementation(self):
         """Returns the correct address space class for this profile."""
-        # The virual address space implementation is chosen by the profile.
-        memory_model = self.profile.metadata("memory_model")
-        if memory_model == "64bit":
+        # The virtual address space implementation is chosen by the profile.
+        architecture = self.profile.metadata("arch")
+        if architecture == "AMD64":
             as_class = addrspace.BaseAddressSpace.classes['AMD64PagedMemory']
 
         # PAE profiles go with the pae address space.
-        elif memory_model == "32bit" and self.profile.metadata("pae"):
+        elif architecture == "I386" and self.profile.metadata("pae"):
             as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemoryPae']
 
         else:

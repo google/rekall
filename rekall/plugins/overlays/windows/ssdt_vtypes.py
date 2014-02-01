@@ -60,21 +60,21 @@ class AbstractSyscalls(obj.ProfileModification):
 class WinXPSyscalls(AbstractSyscalls):
     syscall_module = 'rekall.plugins.overlays.windows.xp_sp2_x86_syscalls'
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
+                  'arch': lambda x: x == 'I386',
                   'major': lambda x : x == 5,
                   'minor': lambda x : x == 1}
 
 class Win64SyscallVTypes(obj.ProfileModification):
     before = ['WindowsVTypes']
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '64bit'}
+                  'arch': lambda x: x == 'AMD64'}
     def modification(self, profile):
         profile.vtypes.update(ssdt_vtypes_64)
 
 class Win2003SyscallVTypes(obj.ProfileModification):
     before = ['WindowsVTypes']
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
+                  'arch': lambda x: x == 'AMD64',
                   'major': lambda x: x == 5,
                   'minor': lambda x: x == 2}
     def modification(self, profile):
@@ -85,7 +85,7 @@ class Win2003SP0Syscalls(AbstractSyscalls):
     before = ['Win2003SP12Syscalls']
     syscall_module = 'rekall.plugins.overlays.windows.win2003_sp0_x86_syscalls'
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
+                  'arch': lambda x: x == 'I386',
                   'major': lambda x: x == 5,
                   'minor': lambda x: x == 2,
                   'build': lambda x: x == 3789}
@@ -93,21 +93,21 @@ class Win2003SP0Syscalls(AbstractSyscalls):
 class Win2003SP12Syscalls(AbstractSyscalls):
     syscall_module = 'rekall.plugins.overlays.windows.win2003_sp12_x86_syscalls'
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
+                  'arch': lambda x: x == 'I386',
                   'major': lambda x : x == 5,
                   'minor': lambda x : x == 2}
 
 class Win2003SP12x64Syscalls(AbstractSyscalls):
     syscall_module = 'rekall.plugins.overlays.windows.win2003_sp12_x64_syscalls'
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '64bit',
+                  'arch': lambda x: x == 'AMD64',
                   'major': lambda x : x == 5,
                   'minor': lambda x : x == 2}
 
 class VistaSP0Syscalls(AbstractSyscalls):
     syscall_module = 'rekall.plugins.overlays.windows.vista_sp0_x86_syscalls'
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
+                  'arch': lambda x: x == 'I386',
                   'major': lambda x : x == 6,
                   'minor': lambda x : x == 0,
                   'build': lambda x : x == 6000}
@@ -115,7 +115,7 @@ class VistaSP0Syscalls(AbstractSyscalls):
 class VistaSP0x64Syscalls(AbstractSyscalls):
     syscall_module = 'rekall.plugins.overlays.windows.vista_sp0_x64_syscalls'
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '64bit',
+                  'arch': lambda x: x == 'AMD64',
                   'major': lambda x : x == 6,
                   'minor': lambda x : x == 0,
                   'build': lambda x : x == 6000}
@@ -123,7 +123,7 @@ class VistaSP0x64Syscalls(AbstractSyscalls):
 class VistaSP12Syscalls(AbstractSyscalls):
     syscall_module = 'rekall.plugins.overlays.windows.vista_sp12_x86_syscalls'
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
+                  'arch': lambda x: x == 'I386',
                   'major': lambda x : x == 6,
                   'minor': lambda x : x == 0,
                   'build': lambda x : x >= 6001}
@@ -131,7 +131,7 @@ class VistaSP12Syscalls(AbstractSyscalls):
 class VistaSP12x64Syscalls(AbstractSyscalls):
     syscall_module = 'rekall.plugins.overlays.windows.vista_sp12_x64_syscalls'
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '64bit',
+                  'arch': lambda x: x == 'AMD64',
                   'major': lambda x : x == 6,
                   'minor': lambda x : x == 0,
                   'build': lambda x : x >= 6001}
@@ -139,13 +139,13 @@ class VistaSP12x64Syscalls(AbstractSyscalls):
 class Win7SP01Syscalls(AbstractSyscalls):
     syscall_module = 'rekall.plugins.overlays.windows.win7_sp01_x86_syscalls'
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
+                  'arch': lambda x: x == 'I386',
                   'major': lambda x : x == 6,
                   'minor': lambda x : x == 1}
 
 class Win7SP01x64Syscalls(AbstractSyscalls):
     syscall_module = 'rekall.plugins.overlays.windows.win7_sp01_x64_syscalls'
     conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '64bit',
+                  'arch': lambda x: x == 'AMD64',
                   'major': lambda x : x == 6,
                   'minor': lambda x : x == 1}

@@ -45,7 +45,7 @@ class _KDDEBUGGER_DATA64(obj.Struct):
         base addresses and process list head match."""
 
         # Account for address masking differences in x86 and x64
-        memory_model = self.obj_profile.metadata('memory_model', '32bit')
+        architecture = self.obj_profile.metadata('arch', 'I386')
 
         dbgkd_off = self.obj_offset & 0xFFFFFFFFFFFFF000
         dbgkd_end = dbgkd_off + 0x1000
@@ -56,7 +56,7 @@ class _KDDEBUGGER_DATA64(obj.Struct):
             dbgkd = self.obj_profile.Object(
                 "_DBGKD_GET_VERSION64", offset = dbgkd_off, vm = self.obj_vm)
 
-            if memory_model == "32bit":
+            if architecture == "I386":
                 KernBase = dbgkd.KernBase & 0xFFFFFFFF
                 PsLoadedModuleList = dbgkd.PsLoadedModuleList & 0xFFFFFFFF
             else:
@@ -77,7 +77,7 @@ class _KDDEBUGGER_DATA64(obj.Struct):
         processors were registered.
         """
 
-        if self.obj_profile.metadata('memory_model') == '32bit':
+        if self.obj_profile.metadata('arch') == 'I386':
             prcb_member = "PrcbData"
         else:
             prcb_member = "Prcb"
@@ -109,7 +109,7 @@ kdbg_overlay = {
                         'target': 'Array',
                         'target_args': {
                             'count': lambda x: 32 + 32 * int(
-                                x.obj_profile.metadata("memory_model") == "64bit"),
+                                x.obj_profile.metadata("arch") == "AMD64"),
                             "target": "Pointer",
                             "target_args": dict(target="_KPRCB"),
                             }

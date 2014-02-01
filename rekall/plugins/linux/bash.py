@@ -141,7 +141,7 @@ class BashHistory(common.LinProcessFilter):
             kwargs["proc_regex"] = "bash"
             super(BashHistory, self).__init__(**kwargs)
 
-        if self.profile.metadata("memory_model") == "64bit":
+        if self.profile.metadata("arch") == "AMD64":
             self.bash_profile = BashProfile64(session=self.session)
         else:
             self.bash_profile = BashProfile32(session=self.session)

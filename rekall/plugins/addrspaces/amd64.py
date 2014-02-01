@@ -54,8 +54,6 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     order = 60
     pae = True
 
-    _md_memory_model = "64bit"
-
     def pml4e_index(self, vaddr):
         '''
         Returns the Page Map Level 4 Entry Index number from the given

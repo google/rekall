@@ -44,7 +44,7 @@ class KDBGScanner(scan.DiscontigScanner, scan.BaseScanner):
             "_DBGKD_DEBUG_DATA_HEADER64", "OwnerTag")
 
         # Depending on the memory model this behaves slightly differently.
-        memory_model = self.profile.metadata("memory_model", "32bit")
+        architecture = self.profile.metadata("arch", "I386")
 
         # This basically iterates over all hits on the string "KDBG".
         for offset in super(KDBGScanner, self).scan(offset, maxlen):
@@ -60,7 +60,7 @@ class KDBGScanner(scan.DiscontigScanner, scan.BaseScanner):
             # On 32 bit systems the Header.List member seems to actually be a
             # LIST_ENTRY32 instead of a LIST_ENTRY64, but it is still padded to
             # take the same space:
-            if memory_model == "32bit":
+            if architecture == "I386":
                 list_entry = list_entry.cast("LIST_ENTRY32")
 
             if list_entry.reflect():
@@ -122,7 +122,7 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
                 kdbg.obj_profile.metadata('major', "Unknown"),
                 kdbg.obj_profile.metadata('minor', "Unknown"),
                 kdbg.obj_profile.metadata('build', "Unknown"),
-                kdbg.obj_profile.metadata('memory_model', "Unknown"),
+                kdbg.obj_profile.metadata('arch', "Unknown"),
                 )
 
             renderer.format("{0:<30}: {1:#x}\n", "Offset (V)", kdbg.obj_offset)

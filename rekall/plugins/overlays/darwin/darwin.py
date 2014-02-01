@@ -657,7 +657,7 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
     """A Darwin profile."""
     METADATA = dict(
         os="darwin",
-        memory_model="32bit",
+        arch="I386",
         type="Kernel")
 
     @classmethod
@@ -684,7 +684,7 @@ class Darwin64(basic.ProfileLP64, Darwin32):
     """Support for 64 bit darwin systems."""
     METADATA = dict(
         os="darwin",
-        memory_model="64bit",
+        arch="AMD64",
         type="Kernel")
 
     @classmethod

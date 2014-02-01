@@ -106,11 +106,9 @@ class Ntoskrnl(basic.BasicClasses):
 
         # Select basic compiler model type.
         if profile.metadata("arch") == "AMD64":
-            profile.set_metadata("memory_model", "64bit")
             basic.ProfileLLP64.Initialize(profile)
 
         elif profile.metadata("arch") == "I386":
-            profile.set_metadata("memory_model", "32bit")
             basic.Profile32Bits.Initialize(profile)
 
             # Detect if this is a PAE system. PAE systems have 64 bit PTEs:

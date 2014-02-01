@@ -644,10 +644,10 @@ class _IMAGE_NT_HEADERS(obj.Struct):
     def OptionalHeader(self):
         optional_header = self.m("OptionalHeader")
         if optional_header.Magic == 0x20b:
-            self.obj_context["mode"] = "64bit"
+            self.obj_context["mode"] = "AMD64"
             return optional_header.cast("_IMAGE_OPTIONAL_HEADER64")
 
-        self.obj_context["mode"] = "32bit"
+        self.obj_context["mode"] = "I386"
         return optional_header
 
 
@@ -742,7 +742,7 @@ class ThunkArray(SentinalArray):
 
     def __init__(self, parent=None, context=None, **kwargs):
         # Are we in a 64 bit file?
-        if context.get("mode") == "64bit":
+        if context.get("mode") == "I386":
             target = "_IMAGE_THUNK_DATA64"
         else:
             target = "_IMAGE_THUNK_DATA32"

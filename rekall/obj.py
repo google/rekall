@@ -1215,23 +1215,30 @@ class Profile(object):
             result = profile_cls(name=name, session=session,
                                  metadata=metadata)
 
-            # The constants
-            constants = data.get("$CONSTANTS")
-            if constants:
-                result.add_constants(
-                    constants_are_addresses=True, **constants)
-
-            # The enums
-            enums = data.get("$ENUMS")
-            if enums:
-                result.add_constants(
-                    constants_are_addresses=False, **enums)
-
-            types = data.get("$STRUCTS")
-            if types:
-                result.add_types(types)
-
+            result._SetupProfileFromData(data)
             return result
+
+    def _SetupProfileFromData(self, data):
+        """Sets up the current profile."""
+        # The constants
+        constants = data.get("$CONSTANTS")
+        if constants:
+            self.add_constants(
+                constants_are_addresses=True, **constants)
+
+        # The enums
+        enums = data.get("$ENUMS")
+        if enums:
+            self.add_enums(**enums)
+
+        # The reverse enums
+        reverse_enums = data.get("$REVENUMS")
+        if reverse_enums:
+            self.add_reverse_enums(**reverse_enums)
+
+        types = data.get("$STRUCTS")
+        if types:
+            self.add_types(types)
 
     @classmethod
     def Initialize(cls, profile):
@@ -1272,6 +1279,8 @@ class Profile(object):
         self.vtypes = {}
         self.constants = {}
         self.constant_addresses = {}
+        self.enums = {}
+        self.reverse_enums = {}
         self.applied_modifications = []
         self.applied_modifications.append(self.name)
         self.object_classes = {}
@@ -1365,6 +1374,16 @@ class Profile(object):
                 except ValueError:
                     pass
 
+    def add_reverse_enums(self, **kwargs):
+        """Add the kwargs as a reverse enum for this profile."""
+        for k, v in kwargs.iteritems():
+            self.reverse_enums[k] = v
+
+    def add_enums(self, **kwargs):
+        """Add the kwargs as an enum for this profile."""
+        for k, v in kwargs.iteritems():
+            self.enums[k] = v
+
     def add_types(self, abstract_types):
         self.flush_cache()
 
@@ -1377,14 +1396,7 @@ class Profile(object):
         ## we store curried objects (which might keep their previous
         ## definitions).
         for k, v in abstract_types.items():
-            # If the vtypes contain sections starting with $ they must be added
-            # to the constants table. This allows us to combine struct and
-            # constant definitions into the same json data structure to simplify
-            # maintenance of profiles.
-            if k in ["$ENUM", "$CONSTANTS"]:
-                self.add_constants(**v)
-
-            elif isinstance(v, list):
+            if isinstance(v, list):
                 self.vtypes[k] = v
 
             else:
@@ -1408,7 +1420,7 @@ class Profile(object):
         if type_name in self.types:
             return
 
-        original_type_desctiptor = type_descriptor = copy.deepcopy(
+        original_type_descriptor = type_descriptor = copy.deepcopy(
             self.vtypes.get(type_name, self.EMPTY_DESCRIPTOR))
 
         for overlay in self.overlays:
@@ -1444,7 +1456,7 @@ class Profile(object):
 
                     # If the callable is masking an existing field, revert back
                     # to it.
-                    original_v = original_type_desctiptor[1].get(k)
+                    original_v = original_type_descriptor[1].get(k)
                     if original_v:
                         members[k] = (original_v[0],
                                       self.list_to_type(k, original_v[1]))
@@ -1798,6 +1810,18 @@ class Profile(object):
         if address:
             return self.constant_addresses.get(
                 Pointer.integer_to_address(address))
+
+    def get_enum(self, enum_name, field=None):
+        result = self.enums.get(enum_name)
+        if result and field != None:
+            result = result.get(field)
+        return result
+
+    def get_reverse_enum(self, enum_name, field=None):
+        result = self.reverse_enums.get(enum_name)
+        if result and field != None:
+            result = result.get(field)
+        return result
 
     def __dir__(self):
         """Support tab completion."""

@@ -223,7 +223,7 @@ class CheckTrapTable(common.DarwinPlugin):
         #    } mach_trap_t;
 
         # We only really care about the mach_trap_function here.
-        if self.profile.metadata("memory_model") == "32bit":
+        if self.profile.metadata("arch") == "I386":
             offset = 4
         else:
             offset = 8

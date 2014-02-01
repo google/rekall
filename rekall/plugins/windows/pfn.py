@@ -237,7 +237,7 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
         if address_space is None:
             address_space = self.kernel_address_space
 
-        if address_space.metadata("memory_model") == "64bit":
+        if address_space.metadata("arch") == "AMD64":
             function = self._vtop_64bit
         else:
             if address_space.metadata("pae"):
@@ -557,12 +557,12 @@ class PtoV(common.WinProcessFilter):
         Returns:
           a tuple (_EPROCESS of owning process, virtual address in process AS).
         """
-        if self.kernel_address_space.metadata("memory_model") == "32bit":
+        if self.kernel_address_space.metadata("arch") == "I386":
             if self.kernel_address_space.metadata("pae"):
                 return self._ptov_x86_pae(physical_address)
             else:
                 return self._ptov_x86(physical_address)
-        elif self.kernel_address_space.metadata("memory_model") == "64bit":
+        elif self.kernel_address_space.metadata("arch") == "AMD64":
             return self._ptov_x64(physical_address)
 
         return obj.NoneObject("Memory model not supported."), []

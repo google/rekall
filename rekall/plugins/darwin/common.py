@@ -312,7 +312,7 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin,
         Yields:
           The physical address of the DTB, not verified.
         """
-        if self.profile.metadata("memory_model") == "32bit":
+        if self.profile.metadata("arch") == "I386":
             result = self.profile.get_constant("_IdlePDPT")
 
             # Since the DTB must be page aligned, if this is not, it is probably
@@ -354,7 +354,7 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin,
         else:
             yield self._dtb_hits_legacy
 
-        if self.profile.metadata("memory_model") == "64bit":
+        if self.profile.metadata("arch") == "AMD64":
             yield self._dtb_hits_kernel_pmap
 
     def dtb_hits(self):

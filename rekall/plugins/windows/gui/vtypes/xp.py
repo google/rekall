@@ -27,7 +27,7 @@ class XP2003x86BaseVTypes(obj.ProfileModification):
 
     @classmethod
     def modify(cls, profile):
-        if profile.metadata("memory_model") == "32bit":
+        if profile.metadata("arch") == "I386":
             profile.add_overlay(cls.vtypes_xp_32)
         else:
             profile.add_overlay(cls.vtypes_xp_64)

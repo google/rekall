@@ -256,6 +256,7 @@ class DW_TAG_enumeration_type(DIETag):
     def __init__(self, die, types, parents):
         super(DW_TAG_enumeration_type, self).__init__(die, types, parents)
         self.enumerations = {}
+        self.reverse_enumerations = {}
 
     def VType(self):
         byte_size = self.attributes['DW_AT_byte_size'].value
@@ -265,6 +266,7 @@ class DW_TAG_enumeration_type(DIETag):
     def Definition(self, vtype):
         """Enumerations go into the $ENUMS vtype area."""
         vtype.setdefault("$ENUMS", {})[self.name] = self.enumerations
+        vtype.setdefault("$REVENUMS", {})[self.name] = self.reverse_enumerations
 
 
 class DW_TAG_enumerator(DIETag):
@@ -276,6 +278,7 @@ class DW_TAG_enumerator(DIETag):
         # Add ourselves to our parent container.
         value = self.attributes['DW_AT_const_value'].value
         self.parent.enumerations[value] = self.name
+        self.parent.reverse_enumerations[self.name] = value
 
 
 # A lookup table of the different tag handlers.
@@ -387,6 +390,7 @@ class DwarfParser(plugin.Command):
                 ProfileClass=self.profile_class),
             "$STRUCTS": vtypes,
             "$ENUMS": vtypes.pop("$ENUMS", {}),
+            "$REVENUMS": vtypes.pop("$REVENUMS", {}),
             }
 
         renderer.write(utils.PPrint(result))

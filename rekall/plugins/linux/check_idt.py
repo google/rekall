@@ -70,7 +70,7 @@ class CheckIdt(common.LinuxPlugin):
         and verifies that each is a symbol in the kernel
         """
         # hw handlers + system call
-        if self.profile.metadata('memory_model', '32bit') == "32bit":
+        if self.profile.metadata('arch') == "I386":
             idt_type = "desc_struct"
         else:
             idt_type = "gate_struct64"

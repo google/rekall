@@ -671,7 +671,7 @@ class Win32GUIProfile(obj.ProfileModification):
             })
 
         version = profile.metadatas('major', 'minor', 'build')
-        memory_model = profile.metadata("memory_model")
+        architecture = profile.metadata("arch")
 
         ## Windows 7 and above
         if version >= (6, 1, 0):
@@ -768,7 +768,7 @@ class Win32GUIProfile(obj.ProfileModification):
 
         # The 64 bit versions of these structs just have their members in
         # different offsets.
-        if memory_model == "64bit":
+        if architecture == "AMD64":
             profile.add_overlay({
                     '_RTL_ATOM_TABLE': [None, {
                             'NumBuckets': [0x18, ['unsigned long']],
@@ -808,7 +808,7 @@ class Win32GUIProfile(obj.ProfileModification):
                     })
 
         # This field appears in the auto-generated vtypes for all OS except XP
-        if memory_model == "32bit" and version[:2] == (5, 1):
+        if architecture == "I386" and version[:2] == (5, 1):
             profile.add_overlay({
                     '_MM_SESSION_SPACE': [ None, {
                             # nt!MiDereferenceSession

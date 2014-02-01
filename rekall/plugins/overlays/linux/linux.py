@@ -26,6 +26,8 @@
 """
 # pylint: disable=protected-access
 
+import logging
+
 from rekall import obj
 from rekall import utils
 
@@ -672,16 +674,14 @@ class PermissionFlags(basic.Flags):
         return self.is_flag('w')
 
 
-class Linux32(basic.Profile32Bits, basic.BasicClasses):
-    """A Linux profile which works with dwarfdump output files."""
+class Linux(basic.BasicClasses):
     METADATA = dict(
         os="linux",
-        memory_model="32bit",
         type="Kernel")
 
     @classmethod
     def Initialize(cls, profile):
-        super(Linux32, cls).Initialize(profile)
+        super(Linux, cls).Initialize(profile)
         profile.add_classes(dict(
                 list_head=list_head, hlist_head=hlist_head,
                 dentry=dentry,
@@ -692,11 +692,66 @@ class Linux32(basic.Profile32Bits, basic.BasicClasses):
         profile.add_overlay(linux_overlay)
         profile.add_constants(default_text_encoding="utf8")
 
+        # Autoguessing for old profiles that don't provide an arch.
+        if not profile.metadata("arch"):
+            highest_symbol = max(profile.constants.values())
+            if highest_symbol > 2**32:
+                profile.set_metadata("arch", "AMD64")
+            else:
+                profile.set_metadata("arch", "I386")
 
-class Linux64(basic.ProfileLP64, Linux32):
-    """Support for 64 bit linux systems."""
+        if profile.metadata("arch") == "I386":
+            basic.Profile32Bits.Initialize(profile)
+            try:
+                if (not profile.metadata("pae") and
+                    profile.get_kernel_config("CONFIG_X86_PAE") == "y"):
+                    profile.set_metadata("pae", True)
+            except ValueError:
+                pass
+        elif profile.metadata("arch") == "AMD64":
+            basic.ProfileLP64.Initialize(profile)
 
-    METADATA = dict(
-        os="linux",
-        memory_model="64bit",
-        type="Kernel")
+    def _SetupProfileFromData(self, data):
+        """Sets up the kernel profile, adding kernel config options."""
+        super(Linux, self)._SetupProfileFromData(data)
+        self.kernel_config_options = {}
+
+        # Add the kernel configuration
+        config = data.get("$CONFIG")
+        if config:
+            self.add_kernel_config_options(**config)
+
+        try:
+            # Set the pae flag if we're a 32bit PAE profile
+            if (self.get_kernel_config("CONFIG_X86_PAE") == "y" and
+                self.metadata("arch") == "I386"):
+                self.set_metadata("pae", True)
+        except ValueError, e:
+            # We cannot autoguess PAE at the moment if we don't know the config
+            # option value for it.
+            logging.debug(("No kernel config available in the profile, so "
+                           "we cannot detect PAE."))
+            pass
+
+    def add_kernel_config_options(self, **kwargs):
+        """Add the kwargs as kernel config options for this profile."""
+        for k, v in kwargs.iteritems():
+            self.kernel_config_options[k] = v
+
+    def get_kernel_config(self, config_option):
+        """Returns the kernel config option config_option for this profile.
+
+        Raises if no kernel configuration is present in the profile.
+        """
+        if not self.kernel_config_options:
+            raise ValueError("No kernel config options present in the profile.")
+        return self.kernel_config_options.get(config_option)
+
+
+# Legacy for old profiles
+class Linux32(Linux):
+    pass
+
+
+class Linux64(Linux):
+    pass

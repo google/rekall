@@ -356,7 +356,7 @@ class TCPIPModifications(obj.ProfileModification):
                                      _TCP_ENDPOINT=_TCP_ENDPOINT,
                                      _UDP_ENDPOINT=_UDP_ENDPOINT))
 
-        if profile.metadata("memory_model") == "64bit":
+        if profile.metadata("arch") == "AMD64":
             # Vista SP1.
             if (profile.metadatas("major", "minor") == (6, 0) and
                 profile.metadata("build") >= 6001):
@@ -376,7 +376,7 @@ class TCPIPModifications(obj.ProfileModification):
             elif profile.metadatas("major", "minor") == (5, 2):
                 profile.add_overlay(tcpip_vtypes_2003_x64)
 
-        elif profile.metadata("memory_model") == "32bit":
+        elif profile.metadata("arch") == "I386":
             profile.add_overlay(tcpip_vtypes)
 
             # Win2k3

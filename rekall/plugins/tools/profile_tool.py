@@ -171,22 +171,56 @@ class LinuxConverter(ProfileConverter):
 
         return sys_map
 
-    def BuildProfile(self, system_map, vtypes):
+    def ParseConfigFile(self, config_file):
+        """Parse the kernel .config file returning it as a dictionary."""
+        config = {}
+        for line in config_file.splitlines():
+            if line.startswith("#"):
+                continue
+            try:
+                (config_param, value) = line.strip().split("=")
+                # Remove leading and trailing spaces from the config_param.
+                config_param = config_param.lstrip(" \t").rstrip(" \t")
+                # Massage the value a bit so plugins trying to use them get more
+                # useful values. This deals with config options like
+                # CONFIG_DEFAULT_HOSTNAME="(none)" having a value of
+                # str("(none)") instead of str("\"(none)\"").
+                value = value.rstrip(" \t").lstrip(" \t")
+                value = value.rstrip('"\'').lstrip('"\'')
+                config[config_param] = value
+            except ValueError:
+                pass
+
+        return config
+
+    def BuildProfile(self, system_map, vtypes, config=None):
         """Write all the components needed for the output profile."""
         # Try to guess the bit size of the system if not provided.
         if self.profile_class is None:
-            largest_offset = max(system_map.values())
-            if largest_offset > 2**32:
-                self.profile_class = "%s64" % self.BASE_PROFILE_CLASS
-            else:
-                self.profile_class = "%s32" % self.BASE_PROFILE_CLASS
+            self.profile_class = self.BASE_PROFILE_CLASS
+
+        enums = vtypes.pop("$ENUMS", {})
+        reverse_enums = vtypes.pop("$REVENUMS", {})
 
         result = super(LinuxConverter, self).BuildProfile(system_map, vtypes)
-        result["$ENUMS"] = vtypes.pop("$ENUMS", {})
+        result["$CONFIG"] = config or dict()
+        result["$ENUMS"] = enums
+        result["$REVENUMS"] = reverse_enums
 
+        self.profile_class = self.BASE_PROFILE_CLASS
+        largest_offset = max(system_map.values())
+        if largest_offset > 2**32:
+            result["$METADATA"]["arch"] = "AMD64"
+        else:
+            result["$METADATA"]["arch"] = "I386"
         return result
 
     def Convert(self):
+        # Load the config file if it exists
+        config = self.SelectFile("(^|/)config")
+        if config:
+            config = self.ParseConfigFile(config)
+
         # Check for a linux profile. It should have a System.map in it.
         system_map = self.SelectFile("(^|/)System.map")
         if system_map:
@@ -199,7 +233,8 @@ class LinuxConverter(ProfileConverter):
                 parser = dwarfparser.DWARFParser(StringIO.StringIO(ko_file),
                                                  session=self.session)
 
-                profile_file = self.BuildProfile(system_map, parser.VType())
+                profile_file = self.BuildProfile(system_map, parser.VType(),
+                                                 config=config)
                 return self.WriteProfile(profile_file)
 
             dwarf_file = self.SelectFile(r"\.dwarf$")
@@ -213,7 +248,8 @@ class LinuxConverter(ProfileConverter):
                 l = {}
                 exec(parser.print_output(), {}, l)
 
-                profile_file = self.BuildProfile(system_map, l["linux_types"])
+                profile_file = self.BuildProfile(system_map, l["linux_types"],
+                                                 config=config)
                 return self.WriteProfile(profile_file)
 
         raise RuntimeError("Unknown profile format.")

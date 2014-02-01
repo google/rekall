@@ -54,8 +54,6 @@ class IA32PagedMemory(addrspace.PagedReader):
     order = 70
     pae = False
 
-    _md_memory_model = "32bit"
-
     def __init__(self, name=None, dtb=None, **kwargs):
         """Instantiate an Intel 32 bit Address space over the layered AS.
 

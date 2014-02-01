@@ -260,7 +260,7 @@ class Enumeration(obj.NativeType):
         super(Enumeration, self).__init__(**kwargs)
 
         if enum_name:
-            choices = self.obj_profile.get_constant(enum_name) or {}
+            choices = self.obj_profile.get_enum(enum_name) or {}
 
         if callable(choices):
             choices = choices(self.obj_parent)
@@ -587,11 +587,11 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         super(Function, self).__init__(**kwargs)
         self.args = args
         if mode is None:
-            self.mode = self.obj_profile.metadata("memory_model")
+            self.mode = self.obj_profile.metadata("arch")
 
-        if self.mode == "32bit":
+        if self.mode == "I386":
             self.distorm_mode = distorm3.Decode32Bits
-        elif self.mode == "64bit":
+        elif self.mode == "AMD64":
             self.distorm_mode = distorm3.Decode64Bits
         else:
             raise RuntimeError("Invalid mode %s" % self.mode)
@@ -647,7 +647,7 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         for op in self.Decompose(size=size):
             iat_loc = None
 
-            if self.mode == '32bit':
+            if self.mode == 'I386':
                 if (self._call_or_unc_jmp(op) and
                     op.operands[0].type == 'AbsoluteMemoryAddress'):
                     iat_loc = (op.operands[0].disp & 0xffffffff)
@@ -792,11 +792,8 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
 # We define three kinds of basic profiles, a 32 bit one and two 64 bit ones.
 class Profile32Bits(obj.Profile):
     """Basic profile for 32 bit systems."""
-    _md_memory_model = '32bit'
-    _md_data_model = "ILP32"
-
     METADATA = dict(
-        memory_model="32bit",
+        arch="I386",
         data_model="ILP32"
         )
 
@@ -810,11 +807,8 @@ class Profile32Bits(obj.Profile):
 
 class ProfileLLP64(obj.Profile):
     """Basic profile for 64 bit Windows systems."""
-    _md_memory_model = '64bit'
-    _md_data_model = "LLP64"
-
     METADATA = dict(
-        memory_model="64bit",
+        arch="AMD64",
         data_model="LLP64"
         )
 
@@ -827,11 +821,8 @@ class ProfileLLP64(obj.Profile):
 
 class ProfileLP64(obj.Profile):
     """Basic profile for 64 bit Linux systems."""
-    _md_memory_model = '64bit'
-    _md_data_model = "LP64"
-
     METADATA = dict(
-        memory_model="64bit",
+        arch="AMD64",
         data_model="LP64"
         )
 

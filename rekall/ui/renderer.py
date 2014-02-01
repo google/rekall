@@ -651,7 +651,7 @@ class TextRenderer(RendererBaseClass):
         # Determine the address size
         address_size = 14
         if (self.session and self.session.profile and
-            self.session.profile.metadata("memory_model") == "32bit"):
+            self.session.profile.metadata("arch") == "I386"):
             address_size = 10
 
         self.table = TextTable(columns=columns, tablesep=self.tablesep,

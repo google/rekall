@@ -61,7 +61,7 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
 
     def dtb_hits(self):
         """Tries to locate the DTB."""
-        if self.profile.metadata("memory_model") == "32bit":
+        if self.profile.metadata("arch") == "I386":
             PAGE_OFFSET = (self.profile.get_constant("_text") -
                            self.profile.get_constant("phys_startup_32"))
 
@@ -168,6 +168,7 @@ class LinProcessFilter(LinuxPlugin):
         self.filtering_requested = (self.pids or self.proc_regex or
                                     self.phys_task or self.task)
 
+
     def list_tasks(self):
         task = self.profile.task_struct(
             offset=self.task_head, vm=self.kernel_address_space)
@@ -245,8 +246,5 @@ class KernelAddressCheckerMixIn(object):
         # We use the module plugin to help us local addresses inside kernel
         # modules.
         self.module_plugin = self.session.plugins.lsmod(session=self.session)
-
-
-
 
 

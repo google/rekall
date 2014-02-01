@@ -157,9 +157,9 @@ class HibernationSupport(obj.ProfileModification):
         major = profile.metadata("major")
         minor = profile.metadata("minor")
         build = profile.metadata("build")
-        memory_model = profile.metadata("memory_model")
+        architecture = profile.metadata("arch")
 
-        if memory_model == "32bit":
+        if architecture == "I386":
             if major == 6 and minor == 0:
                 if build < 6000:
                     profile.add_overlay(cls.vistasp01_vtypes)
@@ -182,7 +182,7 @@ class HibernationSupport(obj.ProfileModification):
                 if build <= 7601:
                     profile.add_overlay(cls.win7_vtypes)
 
-        elif memory_model == "64bit":
+        elif architecture == "AMD64":
             # Windows 2003
             if major == 5 and minor == 2 and build <= 3790:
                 profile.add_constants(HibrProcPage=0x2, HibrEntryCount=0x7f)

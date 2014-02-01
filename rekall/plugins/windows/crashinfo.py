@@ -91,7 +91,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
         # We write the image to the destination using the WriteableAddressSpace.
         out_as = standard.WriteableAddressSpace(filename=self.destination)
 
-        if self.profile.metadata("memory_model") == "64bit":
+        if self.profile.metadata("arch") == "AMD64":
             header = self.profile.Object('_DMP_HEADER64', offset=0, vm=out_as)
 
             # Pad the header area with PAGE pattern:

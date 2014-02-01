@@ -506,5 +506,3 @@ struct mount {
 };
 
 #endif
-
-

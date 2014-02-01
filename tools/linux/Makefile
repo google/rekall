@@ -3,6 +3,8 @@ obj-m += pmem.o
 
 KVER ?= $(shell uname -r)
 KHEADER ?= /usr/src/linux-headers-$(KVER)
+KSYSTEMMAP ?= /boot/System.map-$(KVER)
+KCONFIG ?= /boot/config-$(KVER)
 
 # Fedora Core
 # KHEADER ?= /lib/modules/$(KVER)/source
@@ -23,7 +25,7 @@ dwarf: module.c
 	cp module.ko module_dwarf.ko
 
 profile: dwarf
-	zip "`uname -r`.zip" module_dwarf.ko /boot/System.map-`uname -r`
+	zip "$(KVER).zip" module_dwarf.ko $(KSYSTEMMAP) $(KCONFIG)
 
 clean:
 	$(MAKE) -C $(KHEADER) M=$(PWD) clean

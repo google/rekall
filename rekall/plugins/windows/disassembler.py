@@ -85,9 +85,9 @@ class Disassemble(plugin.Command):
         self.length = length
         self.suppress_headers = suppress_headers
         self.mode = mode or self.session.profile.metadata(
-            "memory_model", "32bit")
+            "arch", "I386")
 
-        if self.mode == "32bit":
+        if self.mode == "I386":
             self.distorm_mode = distorm3.Decode32Bits
         else:
             self.distorm_mode = distorm3.Decode64Bits

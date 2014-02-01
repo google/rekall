@@ -77,7 +77,7 @@ class AtomScan(common.PoolScannerPlugin):
             build = self.profile.metadatas('major', 'minor')
             fixup = 0
 
-            if self.profile.metadata('memory_model') == '32bit':
+            if self.profile.metadata('arch') == 'I386':
                 if build > (5, 1):
                     fixup = 8
             else:

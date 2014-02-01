@@ -482,7 +482,7 @@ class lfClass(obj.Struct):
         else:
             # The field type is an LF_ENUM which determines which struct this
             # is.
-            type_enum_name = self.obj_profile.get_constant(
+            type_enum_name = self.obj_profile.get_enum(
                 "_LEAF_ENUM_e").get(str(field_type))
 
             type_name = LEAF_ENUM_TO_TYPE.get(type_enum_name)
@@ -571,14 +571,17 @@ class lfEnum(obj.Struct):
         the definition dict.
         """
         enumeration = {}
+        reverse_enumeration = {}
         for x in tpi.Resolve(self.field).SubRecord:
             enumeration[int(x.value.value_)] = str(x.value.name)
+            reverse_enumeration[str(x.value.name)] = int(x.value.value_)
 
         enum_name = str(self.Name)
         if enum_name == "<unnamed-tag>":
             enum_name = "ENUM_%X" % self.obj_offset
 
         tpi.AddEnumeration(enum_name, enumeration)
+        tpi.AddReverseEnumeration(enum_name, reverse_enumeration)
 
         target, target_args = tpi.DefinitionByIndex(self.utype)
 
@@ -785,9 +788,10 @@ class PDBParser(object):
     def __init__(self, filename, session):
         self.session = session
         self.enums = {}
+        self.rev_enums = {}
         self.constants = {}
         self.profile = self.session.LoadProfile("mspdb")
-        self._TYPE_ENUM_e = self.profile.get_constant("_TYPE_ENUM_e")
+        self._TYPE_ENUM_e = self.profile.get_enum("_TYPE_ENUM_e")
         self._TYPE_ENUM_e = dict(
             (int(x), y) for x, y in self._TYPE_ENUM_e.items())
 
@@ -939,6 +943,9 @@ class PDBParser(object):
     def AddEnumeration(self, name, enumeration):
         self.enums[name] = enumeration
 
+    def AddReverseEnumeration(self, name, enumeration):
+        self.rev_enums[name] = enumeration
+
     def Structs(self):
         for key, value in self.lookup.iteritems():
             # Ignore the forward references.
@@ -1050,6 +1057,7 @@ class ParsePDB(plugin.Command):
             "$METADATA": self.metadata,
             "$STRUCTS": vtypes,
             "$ENUMS": self.tpi.enums,
+            "$REVENUMS": self.tpi.rev_enums,
             "$CONSTANTS": self.tpi.constants
             }
 

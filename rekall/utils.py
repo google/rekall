@@ -745,4 +745,3 @@ class SortedCollection(object):
         if i != len(self):
             return self._items[i]
         raise ValueError('No item found with key above: %r' % (k,))
-

@@ -89,9 +89,9 @@ class Win32GUIWin7(obj.ProfileModification):
     def modify(cls, profile):
         version = profile.metadatas('major', 'minor', 'build')
         build = profile.metadata("build")
-        memory_model = profile.metadata("memory_model")
+        architecture = profile.metadata("arch")
 
-        if memory_model == "64bit":
+        if architecture == "AMD64":
             # http://doxygen.reactos.org/d5/dd0/timer_8h_source.html#l00019
             profile.add_overlay({
                     'tagTIMER' : [None, {
@@ -117,7 +117,7 @@ class Win32GUIWin7(obj.ProfileModification):
 
                 profile.add_overlay(win7_sp1_x64_vtypes_gui.win32k_types)
 
-        elif memory_model == "32bit":
+        elif architecture == "I386":
             # http://doxygen.reactos.org/d5/dd0/timer_8h_source.html#l00019
             profile.vtypes.update({
                     'tagTIMER' : [None, {
