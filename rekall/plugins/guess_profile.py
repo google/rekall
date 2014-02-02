@@ -67,11 +67,11 @@ PROFILE_STRINGS = {
 
 
 
-class ProfileScanner(scan.BaseScanner):
+class ProfileScanner(scan.DiscontigScanner, scan.BaseScanner):
     checks = [("MultiStringFinderCheck", dict(needles=PROFILE_STRINGS))]
 
 
-config.DeclareOption("profile_autodetect", default=True,
+config.DeclareOption("--no_autodetect", default=False, action="store_true",
                      help="Should profiles be autodetected.")
 
 
@@ -195,7 +195,7 @@ class ProfileHook(kb.ParameterHook):
                 return
 
         # Only do something only if we are allowed to autodetect profiles.
-        if self.session.GetParameter("profile_autodetect"):
+        if not self.session.GetParameter("no_autodetect"):
             return self.ScanProfiles()
 
 

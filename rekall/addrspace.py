@@ -168,6 +168,7 @@ class BaseAddressSpace(object):
             if (voffset == contiguous_voffset + total_length and
                 self.vtop(voffset) == contiguous_poffset + total_length):
                 total_length += length
+
             else:
                 result.append((contiguous_voffset, total_length))
                 yield (contiguous_voffset, total_length)

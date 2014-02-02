@@ -221,9 +221,31 @@ def LoadPlugins(paths=None):
             logging.error("Plugin %s has incorrect extension.", path)
 
 
+def _TruncateARGV(argv):
+    """Truncate the argv list at the first sign of a plugin name.
+
+    At this stage we do not know which module is valid, or its options. The
+    syntax of the command line is:
+
+    rekal -x -y -z plugin_name -a -b -c
+
+    Where -x -y -z are global options, and -a -b -c are plugin option.  We only
+    want to parse up to the plugin name.
+    """
+    short_argv = [argv[0]]
+    for item in argv[1:]:
+        for plugin_cls in plugin.Command.classes.values():
+            if plugin_cls.name == item:
+                return short_argv
+
+        short_argv.append(item)
+
+    return short_argv
+
 def LoadProfileIntoSession(parser, argv, user_session):
-    # Figure out the profile
-    known_args, _ = parser.parse_known_args(args=argv)
+    # Figure out the profile.
+    argv = argv or sys.argv
+    known_args, _ = parser.parse_known_args(args=_TruncateARGV(argv))
 
     # Force debug level logging with the verbose flag.
     if getattr(known_args, "verbose", None):

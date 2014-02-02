@@ -57,9 +57,11 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
         self.as_assert(self.base == None, 'Must be first Address Space')
 
-        path = filename or (self.session and self.session.filename)
+        path = filename or (self.session and self.session.GetParameter(
+                "filename"))
+
         self.as_assert(path, "Filename must be specified in session (e.g. "
-                       "session.filename = 'MyFile.raw').")
+                       "session.GetParameter('filename', 'MyFile.raw').")
 
         self.fname = path
         self.fhandle = win32file.CreateFile(

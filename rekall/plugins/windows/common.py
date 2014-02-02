@@ -307,6 +307,18 @@ class KDBGHook(kb.ParameterHook):
     name = "kdbg"
 
     def calculate(self):
+        # Try to just get the KDBG address using the profile (There is some
+        # veriation in the name between WinXP and Win7.
+        for name in ["_KdDebuggerDataBlock", "KdDebuggerDataBlock"]:
+            kdbg = self.session.profile.get_constant_object(
+                name, "_KDDEBUGGER_DATA64",
+                vm=self.session.kernel_address_space)
+
+            # Verify it.
+            if kdbg.Header.OwnerTag == "KDBG":
+                return kdbg
+
+        # Cant find it from the profile, look for it the old way.
         logging.info(
             "KDBG not provided - Rekall will try to "
             "automatically scan for it now using plugin.kdbgscan.")
@@ -326,9 +338,16 @@ class PsActiveProcessHeadHook(kb.ParameterHook):
     name = "PsActiveProcessHead"
 
     def calculate(self):
-        logging.debug("PsActiveProcessHead invalid. "
-                      "Possibly the profile is not quite right.")
-        return None
+        for name in ["_PsActiveProcessHead", "PsActiveProcessHead"]:
+            head = self.session.profile.get_constant_object(
+                name, "_LIST_ENTRY",
+                vm=self.session.kernel_address_space)
+
+            # Verify it.
+            if head.reflect():
+                return head
+
+        return head
 
 
 class KDBGMixin(plugin.KernelASMixin):

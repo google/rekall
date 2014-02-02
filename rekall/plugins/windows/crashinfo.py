@@ -25,39 +25,8 @@ import os
 
 from rekall import plugin
 from rekall.plugins.windows import common
-from rekall.plugins.addrspaces import crash
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays.windows import windows
-
-
-class CrashInfo(common.AbstractWindowsCommandPlugin):
-    """Dump crash-dump information"""
-
-    __name = "crashinfo"
-
-    @classmethod
-    def is_active(cls, config):
-        """We are only active if the profile is windows."""
-        return isinstance(
-            config.physical_address_space, crash.WindowsCrashDumpSpace32)
-
-    def render(self, renderer):
-        """Renders the crashdump header as text"""
-        if not isinstance(
-            self.physical_address_space, crash.WindowsCrashDumpSpace32):
-            raise plugin.PluginError("Image is not a windows crash dump.")
-
-        renderer.write(self.physical_address_space.header)
-
-        renderer.table_header(
-            [("FileOffset", "file_offset", "[addrpad]"),
-             ("Start Address", "file_start_address", "[addrpad]"),
-             ("Length", "file_length", "[addr]")])
-        page_size = self.physical_address_space.PAGE_SIZE
-        for start, file_offset, count in self.physical_address_space.runs:
-            renderer.table_row(file_offset,
-                               start * page_size,
-                               count * page_size)
 
 
 class Raw2Dump(common.WindowsCommandPlugin):

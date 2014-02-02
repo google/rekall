@@ -25,7 +25,7 @@ def ImportEnvironment(**kwargs):
     interactive.ImportEnvironment()
 
     # Update the filename, load profile etc.
-    session.filename = "xpimage.dd"
+    rekal filename="xpimage.dd"
 
     # Run the pslist command rendering to stdout.
     print pslist()

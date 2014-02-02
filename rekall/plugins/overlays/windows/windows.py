@@ -140,3 +140,15 @@ class Ntoskrnl(basic.BasicClasses):
         elif version in ("5.2", "5.1"):
             xp.InitializeXPProfile(profile)
 
+
+    def get_constant(self, name, is_address=False):
+        """Gets the constant from the profile.
+
+        The windows profile specify addresses relative to the kernel image base.
+        """
+        base_constant = super(Ntoskrnl, self).get_constant(name)
+        if is_address and isinstance(base_constant, (int, long)):
+            return base_constant + self.session.GetParameter(
+                "kernel_base")
+
+        return base_constant

@@ -72,10 +72,7 @@ class WinPsList(common.WinProcessFilter):
             yield task
 
     def list_eprocess_from_PsActiveProcessHead(self, PsActiveProcessHead):
-        PsActiveList = PsActiveProcessHead.dereference_as(
-            "_LIST_ENTRY")
-
-        return iter(PsActiveList.list_of_type(
+        return iter(PsActiveProcessHead.list_of_type(
                 "_EPROCESS", "ActiveProcessLinks"))
 
     def list_eprocess(self):

@@ -173,6 +173,11 @@ class Session(object):
         self.profile = obj.NoneObject("Set this to a valid profile "
                                       "(e.g. type profiles. and tab).")
 
+        # Cache the profiles we get from LoadProfile() below.
+        # TODO: This should probably be also done on disk somewhere to avoid
+        # having to hit the profile repository all the time.
+        self.profile_cache = {}
+
         # Store user configurable attributes here. These will be read/written to
         # the configuration file.
         self.state = Configuration(self, cache=Cache(), **kwargs)
@@ -183,8 +188,8 @@ class Session(object):
 
         We are expected to re-check the config and re-initialize this session.
         """
-        self.filename = self.state.filename
-        if self.filename:
+        filename = self.state.filename
+        if filename:
             # This may fire off the profile auto-detection code if a profile was
             # not provided by the user.
             profile_parameter = self.GetParameter("profile")
@@ -318,6 +323,7 @@ class Session(object):
             # Allow the output to be written to file.
             if output is not None:
                 fd = open(output, "w")
+                pager = None
 
             # Allow per call overriding of the output file descriptor.
             paging_limit = self.GetParameter("paging_limit")
@@ -400,6 +406,11 @@ class Session(object):
         filename = filename.replace("\\", "/")
         canonical_name = os.path.splitext(filename)[0]
 
+        try:
+            return self.profile_cache[canonical_name]
+        except KeyError:
+            pass
+
         # The filename is a path we try to open it directly:
         if filename.startswith("/") or filename.startswith("."):
             container = io_manager.Factory(os.path.dirname(filename))
@@ -437,6 +448,9 @@ class Session(object):
         if not result:
             raise ValueError("Unable to load profile %s from any repository." %
                              filename)
+
+        # Cache it for later.
+        self.profile_cache[canonical_name] = result
 
         return result
 

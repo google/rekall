@@ -46,9 +46,9 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
 
     def __init__(self, filename=None, **kwargs):
         super(MmapFileAddressSpace, self).__init__(**kwargs)
-        self.as_assert(self.base == None , 'Must be first Address Space')
+        self.as_assert(self.base==None , 'Must be first Address Space')
 
-        path = self.session.filename or filename
+        path = self.session.GetParameter("filename") or filename
         self.as_assert(path and os.path.exists(path),
                        'Filename must be specified and exist')
 

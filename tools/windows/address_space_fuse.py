@@ -83,10 +83,8 @@ class AddressSpaceFuse(Fuse):
           print "No image file specied."
           return
 
-      self.session = session.Session()
-      self.session.filename = args[0]
-      self.session.logging = 2
-      self.session.profile = options.profile
+      self.session = session.Session(
+          filename=args[0], logging=2, profile=options.profile)
 
       # List all processes and hold on to their address spaces.
       self.tasks = {}

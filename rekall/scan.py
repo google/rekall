@@ -154,8 +154,10 @@ class DiscontigScanner(object):
     def scan(self, offset=0, maxlen=None):
         maxlen = maxlen or self.profile.get_constant("MaxPointer")
 
-        for (start, length) in self.address_space.get_address_ranges(
-            offset, offset + maxlen):
+        for (start, length) in self.address_space.get_available_addresses():
+            if start < offset:
+                continue
+
             for match in super(DiscontigScanner, self).scan(start, length):
                 yield match
 

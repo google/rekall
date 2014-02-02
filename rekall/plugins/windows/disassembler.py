@@ -81,6 +81,9 @@ class Disassemble(plugin.Command):
 
         load_as = self.session.plugins.load_as(session=self.session)
         self.address_space = load_as.ResolveAddressSpace(address_space)
+        if not self.address_space:
+            self.address_space = self.session.kernel_address_space
+
         self.offset = offset
         self.length = length
         self.suppress_headers = suppress_headers

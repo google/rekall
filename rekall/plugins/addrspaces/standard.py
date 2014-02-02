@@ -102,9 +102,9 @@ class FileAddressSpace(FDAddressSpace):
         self.as_assert(base == None, 'Must be first Address Space')
 
         self.session = session
-        path = filename or (session and session.filename)
+        path = filename or (session and session.GetParameter("filename"))
         self.as_assert(path, "Filename must be specified in session (e.g. "
-                       "session.filename = 'MyFile.raw').")
+                       "session.SetParameter('filename', 'MyFile.raw').")
 
         self.name = os.path.abspath(path)
         self.fname = self.name

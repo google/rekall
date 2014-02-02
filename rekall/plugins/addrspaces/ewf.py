@@ -132,7 +132,7 @@ class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
         self.as_assert(base.read(0, 6) == "\x45\x56\x46\x09\x0D\x0A",
                        "EWF signature not present")
 
-        path = session.filename or filename
+        path = session.GetParameter("filename") or filename
         fhandle = ewf_open([path])
 
         super(EWFAddressSpace, self).__init__(

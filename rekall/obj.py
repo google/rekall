@@ -1799,7 +1799,7 @@ class Profile(object):
         self.compile_type(constant)
 
         kwargs.update(target_args or {})
-        offset = self.get_constant(constant)
+        offset = self.get_constant(constant, is_address=True)
         if not offset:
             return offset
 
@@ -1924,7 +1924,7 @@ class Profile(object):
 
         else:
             # If we get here we have no idea what the type is supposed to be?
-            logging.info("Cant find object {0} in profile {1}?".format(
+            return NoneObject("Cant find object {0} in profile {1}?".format(
                     type_name, self))
 
     def __str__(self):

@@ -121,7 +121,7 @@ class Modules(common.WindowsCommandPlugin):
                                module.FullDllName)
 
 
-class RSDSScanner(scan.BaseScanner):
+class RSDSScanner(scan.DiscontigScanner, scan.BaseScanner):
     """Scan for RSDS objects."""
 
     checks = [
@@ -168,6 +168,18 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
 
     __name = "version_scan"
 
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(VersionScan, cls).args(parser)
+        parser.add_argument("--name_regex",
+                            help="Filter module names by this regex.")
+
+    def __init__(self, name_regex=None, **kwargs):
+        """List kernel modules by walking the PsLoadedModuleList."""
+        super(VersionScan, self).__init__(**kwargs)
+        self.name_regex = re.compile(name_regex or ".", re.I)
+
     def ScanVersions(self):
         """Scans the physical AS for RSDS structures."""
         guids = set()
@@ -195,6 +207,7 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
              ("PDB", "pdb", "30")])
 
         for rsds, guid in self.ScanVersions():
-            renderer.table_row(rsds, guid, rsds.Filename)
+            if self.name_regex.search(unicode(rsds.Filename)):
+                renderer.table_row(rsds, guid, rsds.Filename)
 
 
