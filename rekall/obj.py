@@ -1278,7 +1278,7 @@ class Profile(object):
         self.overlays = []
         self.vtypes = {}
         self.constants = {}
-        self.constant_addresses = {}
+        self.constant_addresses = utils.SortedCollection(key=lambda x: x[0])
         self.enums = {}
         self.reverse_enums = {}
         self.applied_modifications = []
@@ -1306,11 +1306,17 @@ class Profile(object):
         # Call Initialize on demand.
         self._initialized = False
 
+    def EnsureInitialized(self):
+        if not self._initialized:
+            self.Initialize(self)
+
     def flush_cache(self):
         self.types = {}
 
     def copy(self):
         """Makes a copy of this profile."""
+        self.EnsureInitialized()
+
         # pylint: disable=protected-access
         result = self.__class__(name=self.name, session=self.session)
         result.vtypes = self.vtypes.copy()
@@ -1328,11 +1334,24 @@ class Profile(object):
 
         return result
 
+    def merge(self, other):
+        """Merges another profile into this one.
+
+        The result is that we are able to parse all the type that the other
+        profile has.
+        """
+        other.EnsureInitialized()
+
+        self.vtypes.update(other.vtypes)
+        self.overlays += other.overlays
+        self.constants.update(other.constants)
+        self.object_classes.update(other.object_classes)
+        self.flush_cache()
+        self.name = "%s + %s" % (self.name, other.name)
+
     def metadata(self, name, default=None):
         """Obtain metadata about this profile."""
-        if not self._initialized:
-            self.Initialize(self)
-
+        self.EnsureInitialized()
         return self._metadata.get(name, default)
 
     def set_metadata(self, name, value):
@@ -1340,9 +1359,7 @@ class Profile(object):
 
     def metadatas(self, *args):
         """Obtain metadata about this profile."""
-        if not self._initialized:
-            self.Initialize(self)
-
+        self.EnsureInitialized()
         return tuple([self._metadata.get(x) for x in args])
 
     def has_type(self, type_name):
@@ -1370,7 +1387,8 @@ class Profile(object):
             if constants_are_addresses:
                 try:
                     # We need to interpret the value as a pointer.
-                    self.constant_addresses[Pointer.integer_to_address(v)] = k
+                    self.constant_addresses.insert(
+                        (Pointer.integer_to_address(v), k))
                 except ValueError:
                     pass
 
@@ -1414,9 +1432,7 @@ class Profile(object):
         the profile.
         """
         # Make sure we are initialized on demand.
-        if not self._initialized:
-            self.Initialize(self)
-
+        self.EnsureInitialized()
         if type_name in self.types:
             return
 
@@ -1807,9 +1823,21 @@ class Profile(object):
         return result
 
     def get_constant_by_address(self, address):
-        if address:
-            return self.constant_addresses.get(
+        lowest_eq, name = self.get_nearest_constant_by_address(address)
+        if lowest_eq != address:
+            return NoneObject("Constant not found")
+
+        return name
+
+    def get_nearest_constant_by_address(self, address):
+        """Returns the closest constant below or equal to the address."""
+        try:
+            offset, name = self.constant_addresses.find_le(
                 Pointer.integer_to_address(address))
+
+            return offset, name
+        except ValueError:
+            return NoneObject("Constant not found")
 
     def get_enum(self, enum_name, field=None):
         result = self.enums.get(enum_name)

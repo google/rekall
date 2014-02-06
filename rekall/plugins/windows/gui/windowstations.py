@@ -43,26 +43,22 @@ class PoolScanWind(common.PoolScanner):
             ]
 
 
-class WndScan(common.PoolScannerPlugin):
+class WndScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
     """Pool scanner for tagWINDOWSTATION (window stations)"""
 
     __name = "wndscan"
 
     allocation = ['_POOL_HEADER', '_OBJECT_HEADER', 'tagWINDOWSTATION']
 
-    def __init__(self, **kwargs):
-        super(WndScan, self).__init__(**kwargs)
-        self.profile = win32k_core.Win32GUIProfile(self.profile)
-
     def generate_hits(self):
         sessions_plugin = self.session.plugins.sessions()
-
-        scanner = PoolScanWind(profile=self.profile, session=self.session,
+        scanner = PoolScanWind(profile=self.profile,
+                               session=self.session,
                                address_space=self.address_space)
 
         for pool_obj in scanner.scan():
-            window_station = pool_obj.get_object("tagWINDOWSTATION",
-                                                 self.allocation)
+            window_station = pool_obj.get_object(
+                "tagWINDOWSTATION", self.allocation)
 
             # Basic sanity checks are included here
             if not window_station.is_valid():
@@ -83,16 +79,21 @@ class WndScan(common.PoolScannerPlugin):
     def render(self, renderer):
         seen = []
         for window_station, session_address_space in self.generate_hits():
+            if window_station.obj_vm == self.physical_address_space:
+                phys_offset = window_station.obj_offset
+            else:
+                phys_offset = window_station.obj_vm.vtop(
+                    window_station.obj_offset)
+
             # Always store the physical addresses to prevent duplicates.
-            offset = window_station.obj_vm.vtop(window_station.obj_offset)
-            if offset in seen:
+            if phys_offset in seen:
                 continue
 
-            seen.append(offset)
+            seen.append(phys_offset)
             renderer.section()
 
             renderer.format("WindowStation: {0:#x}, Name: {1}, Next: {2:#x}\n",
-                            offset,
+                            phys_offset,
                             window_station.Name.v(vm=session_address_space),
                             window_station.rpwinstaNext)
 

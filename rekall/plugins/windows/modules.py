@@ -141,7 +141,7 @@ class ModVersions(Modules):
 
         for module in self.lsmod():
             for hit in scanner.scan(offset=int(module.DllBase),
-                                    maxlen=module.SizeOfImage):
+                                    maxlen=int(module.SizeOfImage)):
 
                 rsds = pe_profile.CV_RSDS_HEADER(offset=hit,
                                                  vm=self.kernel_address_space)
@@ -157,7 +157,7 @@ class ModVersions(Modules):
 
         for module, rsds, guid in self.ScanVersions():
             renderer.table_row(
-                module,
+                rsds,
                 module.BaseDllName,
                 guid,
                 rsds.Filename)
@@ -198,7 +198,9 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
             guid = rsds.GUID_AGE
             if guid not in guids:
                 guids.add(guid)
-                yield rsds, guid
+
+                if self.name_regex.search(unicode(rsds.Filename)):
+                    yield rsds, guid
 
     def render(self, renderer):
         renderer.table_header(
@@ -207,7 +209,6 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
              ("PDB", "pdb", "30")])
 
         for rsds, guid in self.ScanVersions():
-            if self.name_regex.search(unicode(rsds.Filename)):
-                renderer.table_row(rsds, guid, rsds.Filename)
+            renderer.table_row(rsds, guid, rsds.Filename)
 
 

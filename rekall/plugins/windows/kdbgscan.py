@@ -23,6 +23,7 @@ import logging
 
 # pylint: disable=protected-access
 
+from rekall import obj
 from rekall import scan
 from rekall import plugin
 from rekall.plugins.windows import common
@@ -75,40 +76,61 @@ class KDBGScanner(scan.DiscontigScanner, scan.BaseScanner):
 
 
 class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
-    """A scanner for the kdbg structures."""
+    """Scan for possible _KDDEBUGGER_DATA64 structures.
+
+    The scanner is detailed here:
+    http://moyix.blogspot.com/2008/04/finding-kernel-global-variables-in.html
+
+    The relevant structures are detailed here:
+    http://doxygen.reactos.org/d3/ddf/include_2psdk_2wdbgexts_8h_source.html
+
+    We can see that _KDDEBUGGER_DATA64.Header is:
+
+    typedef struct _DBGKD_DEBUG_DATA_HEADER64 {
+        LIST_ENTRY64    List;
+        ULONG           OwnerTag;
+        ULONG           Size;
+    }
+
+    We essentially search for an owner tag of "KDBG", then overlay the
+    _KDDEBUGGER_DATA64 struct on it. We test for validity by reflecting
+    through the Header.List member.
+    """
 
     __name = "kdbgscan"
 
-    def __init__(self, **kwargs):
-        """Scan for possible _KDDEBUGGER_DATA64 structures.
+    @classmethod
+    def args(cls, parser):
+        super(KDBGScan, cls).args(parser)
+        parser.add_argument("--full_scan", default=False, action="store_true",
+                            help="Scan the full address space.")
 
-        The scanner is detailed here:
-        http://moyix.blogspot.com/2008/04/finding-kernel-global-variables-in.html
 
-        The relevant structures are detailed here:
-        http://doxygen.reactos.org/d3/ddf/include_2psdk_2wdbgexts_8h_source.html
-
-        We can see that _KDDEBUGGER_DATA64.Header is:
-
-        typedef struct _DBGKD_DEBUG_DATA_HEADER64 {
-            LIST_ENTRY64    List;
-            ULONG           OwnerTag;
-            ULONG           Size;
-        }
-
-        We essentially search for an owner tag of "KDBG", then overlay the
-        _KDDEBUGGER_DATA64 struct on it. We test for validity by reflecting
-        through the Header.List member.
-        """
+    def __init__(self, full_scan=False, **kwargs):
         super(KDBGScan, self).__init__(**kwargs)
+        self.full_scan = full_scan
 
     def hits(self):
+        if self.full_scan:
+            start, end = 0, 2**64
+        else:
+            # The kernel image is always loaded in the same range called the
+            # "Initial Loader Mappings". Narrowing the possible range makes
+            # scanning much faster. (See
+            # http://www.codemachine.com/article_x64kvas.html)
+            if self.session.profile.metadata("arch") == "AMD64":
+                start, end = 0xFFFFF80000000000, 0xFFFFF87FFFFFFFFF
+            else:
+                start, end = 0x80000000, 0xFFFFFFFF
+
         scanner = KDBGScanner(
             session=self.session, profile=self.profile,
             address_space=self.kernel_address_space)
 
         # Yield actual objects here
-        for kdbg in scanner.scan():
+        for kdbg in scanner.scan(
+            obj.Pointer.integer_to_address(start),
+            end - start):
             yield kdbg
 
     def render(self, renderer):

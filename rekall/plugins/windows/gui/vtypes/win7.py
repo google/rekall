@@ -87,8 +87,8 @@ class Win32GUIWin7(obj.ProfileModification):
 
     @classmethod
     def modify(cls, profile):
-        version = profile.metadatas('major', 'minor', 'build')
-        build = profile.metadata("build")
+        version = ".".join(profile.metadatas('major', 'minor'))
+        build = profile.metadata("build", 7601)
         architecture = profile.metadata("arch")
 
         if architecture == "AMD64":

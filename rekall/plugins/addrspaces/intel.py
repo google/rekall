@@ -52,7 +52,8 @@ class IA32PagedMemory(addrspace.PagedReader):
     an OS specific way).
     """
     order = 70
-    pae = False
+
+    _md_arch = "I386"
 
     def __init__(self, name=None, dtb=None, **kwargs):
         """Instantiate an Intel 32 bit Address space over the layered AS.
@@ -238,9 +239,9 @@ class IA32PagedMemoryPae(IA32PagedMemory):
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
     """
     order = 80
-    pae = True
 
     _md_pae = True
+    _md_arch = "I386"
 
     def pdpte_index(self, vaddr):
         '''

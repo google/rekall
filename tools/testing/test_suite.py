@@ -273,8 +273,12 @@ class RekallTester(object):
         result = []
 
         # Pull the profile path etc from the rekall config file.
-        s = session.Session(profile=config["--profile"],
-                            **rekall_config.GetConfigFile())
+        kwargs = rekall_config.GetConfigFile()
+        for x, y in config.items():
+            if x.startswith("--"):
+                kwargs[x[2:]] = y
+
+        s = session.Session(**kwargs)
 
         # A map of all the specialized tests which are defined. Only include
         # those classes which are active for the currently selected profile.
@@ -348,7 +352,10 @@ class RekallTester(object):
                 self.test_directory, plugin_cls.__name__)
 
             try:
-                baseline_data = json.load(open(baseline_filename, "rb"))
+                data = open(baseline_filename, "rb").read()
+                # Strip possible preamble:
+                data = data[data.find("{"):]
+                baseline_data = json.loads(data)
             except IOError:
                 baseline_data = None
 
@@ -403,7 +410,15 @@ class RekallTester(object):
             else:
                 # Store the current run someplace for closer inspection.
                 with tempfile.NamedTemporaryFile(
-                    prefix=plugin_cls.__name__, delete=False) as fd:
+                    prefix=plugin_cls.__name__ + "_", delete=False) as fd:
+
+                    output_filename = os.path.join(
+                        self.test_directory, plugin_cls.__name__)
+
+                    fd.write("#!/bin/bash\n" +
+                             "meld %s %s\n" % (fd.name, output_filename) +
+                             "exit 0\n")
+
                     fd.write(json.dumps(current_run, indent=4))
 
                     self.renderer.table_row(

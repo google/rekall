@@ -197,5 +197,3 @@ class ProfileHook(kb.ParameterHook):
         # Only do something only if we are allowed to autodetect profiles.
         if not self.session.GetParameter("no_autodetect"):
             return self.ScanProfiles()
-
-

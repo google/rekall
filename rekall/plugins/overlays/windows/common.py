@@ -44,6 +44,7 @@ windows_overlay = {
             'InheritedFromUniqueProcessId' : [None, ['unsigned int']],
             'ImageFileName' : [None, ['String', dict(length=16)]],
             'UniqueProcessId' : [None, ['unsigned int']],
+            'Session': [None, ["Pointer", dict(target="_MM_SESSION_SPACE")]],
             }],
 
     '_ETHREAD' : [None, {

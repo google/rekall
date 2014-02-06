@@ -248,7 +248,7 @@ class Formatter(string.Formatter):
 
     def format_type_L(self, value, fields):
         """Support extended list format."""
-        return ", ".join(value)
+        return ", ".join([utils.SmartUnicode(x) for x in value])
 
 
 class TextColumn(object):

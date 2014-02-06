@@ -8,22 +8,31 @@ struct Pmem_KernelExports_t Pmem_KernelExports;
 NTSTATUS PmemGetProcAddresses() {
   void *image_base = KernelGetModuleBaseByPtr(NtBuildNumber, "NtBuildNumber");
   char key[sizeof(OBFUSCATION_KEY)] = OBFUSCATION_KEY;
+  void *api = NULL;
+
 
   RtlZeroMemory(&Pmem_KernelExports, sizeof(Pmem_KernelExports));
 
+  if (!image_base) {
+    goto error;
+  };
+
+  // If any of the below APIs fail, they will have a NULL pointer in the export
+  // table - this will cause that acquisition method to be rejected.
   if (image_base) {
     {
       int i;
       char parameter[sizeof(X_MmGetPhysicalMemoryRanges)] =
         X_MmGetPhysicalMemoryRanges;
 
+
       for(i=0; i<min(sizeof(parameter), sizeof(key)); i++) {
         parameter[i] ^= key[i];
       };
 
       WinDbgPrint("Fetching API %s\n", parameter);
-      Pmem_KernelExports.MmGetPhysicalMemoryRanges =
-        KernelGetProcAddress(image_base, parameter);
+      api = KernelGetProcAddress(image_base, parameter);
+      Pmem_KernelExports.MmGetPhysicalMemoryRanges = api;
     };
 
     {
@@ -36,8 +45,8 @@ NTSTATUS PmemGetProcAddresses() {
       };
 
       WinDbgPrint("Fetching API %s\n", parameter);
-      Pmem_KernelExports.MmGetVirtualForPhysical =
-        KernelGetProcAddress(image_base, parameter);
+      api = KernelGetProcAddress(image_base, parameter);
+      Pmem_KernelExports.MmGetVirtualForPhysical = api;
     };
 
     {
@@ -48,8 +57,8 @@ NTSTATUS PmemGetProcAddresses() {
       };
 
       WinDbgPrint("Fetching API %s\n", parameter);
-      Pmem_KernelExports.MmMapIoSpace =
-        KernelGetProcAddress(image_base, parameter);
+      api = KernelGetProcAddress(image_base, parameter);
+      Pmem_KernelExports.MmMapIoSpace = api;
     };
 
     {
@@ -60,10 +69,13 @@ NTSTATUS PmemGetProcAddresses() {
       };
 
       WinDbgPrint("Fetching API %s\n", parameter);
-      Pmem_KernelExports.MmUnmapIoSpace =
-        KernelGetProcAddress(image_base, parameter);
+      api = KernelGetProcAddress(image_base, parameter);
+      Pmem_KernelExports.MmUnmapIoSpace = api;
     };
   };
 
   return STATUS_SUCCESS;
+
+ error:
+  return STATUS_INVALID_PARAMETER;
 };

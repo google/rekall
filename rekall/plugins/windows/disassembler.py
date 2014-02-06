@@ -39,6 +39,7 @@ import distorm3
 import re
 
 from rekall import args
+from rekall import kb
 from rekall import plugin
 from rekall import testlib
 
@@ -95,6 +96,11 @@ class Disassemble(plugin.Command):
         else:
             self.distorm_mode = distorm3.Decode64Bits
 
+        if not self.session.address_resolver:
+            self.session.address_resolver = kb.AddressResolver(self.session)
+
+        self.resolver = self.session.address_resolver
+
     def disassemble(self, offset):
         """Disassemble the number of instructions required.
 
@@ -107,6 +113,46 @@ class Disassemble(plugin.Command):
 
         for (offset, _size, instruction, hexdump) in iterable:
             yield offset, hexdump, instruction
+
+    def format_address(self, operand):
+        # Try to locate the symbol below it.
+        offset, name = self.resolver.get_nearest_constant_by_address(
+            operand)
+
+        difference = operand - offset
+        if name:
+            if difference == 0:
+                return name
+
+            elif 0 < difference < 0x1000:
+                return "%s + 0x%X" % (name, operand - offset)
+
+    def format_indirect(self, operand):
+        target = self.session.profile.Pointer(
+            offset=operand, vm=self.address_space)
+
+        # Try to locate the symbol below it.
+        offset, name = self.resolver.get_nearest_constant_by_address(
+            target.v())
+
+        difference = target.v() - offset
+        if not name:
+            return ""
+
+        if name.startswith("("):
+            return "0x%X @ %s" % (target.v(), name)
+
+        else:
+            if difference == 0:
+                return "[%s]" % name
+
+            elif 0 < difference < 0x1000:
+                return "0x%X [%s + 0x%X]" % (
+                    target.v(), name, target.v() - offset)
+
+            else:
+                return "0x%X @ %s + 0x%X" % (
+                    target.v(), name, target.v() - offset)
 
     def render(self, renderer):
         """Disassemble code at a given address.
@@ -128,21 +174,28 @@ class Disassemble(plugin.Command):
 
         offset = 0
         regex = re.compile("0x[0-9a-fA-F]+$")
+        indirect_regex = re.compile(r"\[(0x[0-9a-fA-F]+)\]$")
+
         for i, (offset, hexdump, instruction) in enumerate(
             self.disassemble(self.offset)):
             if i >= self.length:
                 break
 
-            comment = ""
-            match = regex.search(instruction)
-            if match:
-                operand = int(match.group(0), 16)
+            func_name = self.resolver.get_constant_by_address(offset)
+            if func_name:
+                renderer.format("------ %s ------\n" % func_name)
 
-                # Try to locate the symbol below it.
-                symbol, _ = self.address_space.kb.GetSpan(operand)
-                if symbol:
-                    comment = "%s+0x%X" % (symbol[0].obj_name,
-                                           operand - int(symbol[0]))
+            comment = ""
+            match = indirect_regex.search(instruction)
+            if match:
+                operand = int(match.group(1), 16)
+                comment = self.format_indirect(operand) or ""
+
+            else:
+                match = regex.search(instruction)
+                if match:
+                    operand = int(match.group(0), 16)
+                    comment = self.format_address(operand) or ""
 
             renderer.table_row(offset, hexdump, instruction, comment)
 

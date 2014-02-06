@@ -208,7 +208,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     // Return information about memory layout etc through this ioctrl.
   case IOCTL_GET_INFO: {
     struct PmemMemoryInfo *info = (void *)IoBuffer;
-    IMAGE_DOS_HEADER *KernBase;
+    IMAGE_DOS_HEADER *KernBase = NULL;
     KDDEBUGGER_DATA64 *kdbg = NULL;
 
     // Get the memory ranges according to the mode.
@@ -235,6 +235,7 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     info->CR3.QuadPart = CR3.QuadPart;
 
     info->NtBuildNumber.QuadPart = *NtBuildNumber;
+    info->NtBuildNumberAddr.QuadPart = (uintptr_t)NtBuildNumber;
 
     // Fill in KPCR.
     GetKPCR(info);
@@ -293,7 +294,8 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 
       case ACQUISITION_MODE_PTE_MMAP:
         if (!Pmem_KernelExports.MmGetVirtualForPhysical ||
-            !Pmem_KernelExports.MmGetPhysicalMemoryRanges) {
+            !Pmem_KernelExports.MmGetPhysicalMemoryRanges ||
+            !ext->pte_mmapper) {
           WinDbgPrint("Kernel APIs required for this method are not "
                       "available.");
           status = STATUS_UNSUCCESSFUL;
@@ -304,7 +306,8 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
         break;
 
       case ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE:
-        if (!Pmem_KernelExports.MmGetVirtualForPhysical) {
+        if (!Pmem_KernelExports.MmGetVirtualForPhysical ||
+            !ext->pte_mmapper) {
           WinDbgPrint("Kernel APIs required for this method are not "
                       "available.");
           status = STATUS_UNSUCCESSFUL;
@@ -361,7 +364,7 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   WinDbgPrint("WinPMEM write support available!");
 #endif
 
-  WinDbgPrint("Copyright (c) 2012, Michael Cohen <scudette@gmail.com>\n");
+  WinDbgPrint("Copyright (c) 2014, Michael Cohen <scudette@gmail.com>\n");
 
   // Initialize import tables:
   if(PmemGetProcAddresses() != STATUS_SUCCESS) {
@@ -427,9 +430,15 @@ NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,
   extension->mode = ACQUISITION_MODE_PHYSICAL_MEMORY;
   extension->MemoryHandle = 0;
 
+#if _WIN64
+  // Disable pte mapping for 32 bit systems.
   extension->pte_mmapper = pte_mmap_windows_new();
   extension->pte_mmapper->loglevel = PTE_ERR;
+#else
+  extension->pte_mmapper = NULL;
+#endif
 
+  WinDbgPrint("Driver intialization completed.");
   return NtStatus;
 
  error:

@@ -152,13 +152,18 @@ class DiscontigScanner(object):
     """A Mixin for Discontiguous scanning."""
 
     def scan(self, offset=0, maxlen=None):
-        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+        maxlen = maxlen or 2**64
+        end = offset + maxlen
 
         for (start, length) in self.address_space.get_available_addresses():
             if start < offset:
                 continue
 
-            for match in super(DiscontigScanner, self).scan(start, length):
+            if start > end:
+                break
+
+            for match in super(DiscontigScanner, self).scan(
+                start, maxlen=min(length, end - start)):
                 yield match
 
 

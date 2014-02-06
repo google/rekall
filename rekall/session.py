@@ -103,6 +103,11 @@ class Cache(utils.AttributeDict):
             self['filename'] = filename
             self['base_filename'] = os.path.basename(filename)
 
+            # Clear the profile since the profile should be unique to each
+            # image.
+            self.profile = None
+            self.session.Reset()
+
     def _set_logging(self, value):
         level = value
         if isinstance(value, basestring):
@@ -182,6 +187,11 @@ class Session(object):
         # the configuration file.
         self.state = Configuration(self, cache=Cache(), **kwargs)
         self.UpdateFromConfigObject()
+
+    def Reset(self):
+        self.physical_address_space = None
+        self.kernel_address_space = None
+        self.state.cache.clear()
 
     def UpdateFromConfigObject(self):
         """This method is called whenever the config object was updated.
@@ -292,8 +302,8 @@ class Session(object):
         """
         ui_renderer = kwargs.pop("renderer", None)
         fd = kwargs.pop("fd", None)
-        debug = kwargs.pop("debug", False)
-        pager = kwargs.pop("pager", self.GetParameter("pager"))
+        debug = self.GetParameter("debug", False)
+        pager = self.GetParameter("pager")
 
         # If the args came from the command line parse them now:
         flags = kwargs.get("flags")

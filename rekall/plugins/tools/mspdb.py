@@ -500,6 +500,10 @@ class lfClass(obj.Struct):
         # Record the end of the object
         self.obj_end = obj_end
 
+        # Sometimes the field is named '__unnamed' so we disambiguate it here.
+        if self.name == "__unnamed":
+            self.name = "__unnamed_%s" % self.field
+
     def Definition(self, _):
         """Returns the vtype data structure defining this element.
 
@@ -1022,6 +1026,7 @@ class ParsePDB(plugin.Command):
         self.profile_class = profile_class
         self.metadata = metadata or dict(ProfileClass=self.profile_class)
 
+        versions = []
         if windows_version:
             versions = windows_version.split(".", 2)
 

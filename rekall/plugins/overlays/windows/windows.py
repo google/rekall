@@ -22,7 +22,7 @@
 # pylint: disable=protected-access
 
 import copy
-
+from rekall import obj
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import common
 from rekall.plugins.overlays.windows import xp
@@ -31,6 +31,7 @@ from rekall.plugins.overlays.windows import win7
 from rekall.plugins.overlays.windows import win8
 from rekall.plugins.overlays.windows import crash_vtypes
 from rekall.plugins.overlays.windows import kdbg_vtypes
+from rekall.plugins.overlays.windows import undocumented
 
 # Reference:
 # http://computer.forensikblog.de/en/2006/03/dmp-file-structure.html
@@ -88,7 +89,45 @@ def InstallKDDebuggerProfile(profile):
             })
 
 
-class Ntoskrnl(basic.BasicClasses):
+class RelativeOffsetMixin(object):
+    """A mixin which shifts all constant addresses by a constant."""
+
+    # This should be adjusted to the correct image base.
+    def GetImageBase(self):
+        return 0
+
+    def get_constant(self, name, is_address=False):
+        """Gets the constant from the profile.
+
+        The windows profile specify addresses relative to the kernel image base.
+        """
+        base_constant = super(RelativeOffsetMixin, self).get_constant(name)
+        if is_address and isinstance(base_constant, (int, long)):
+            return base_constant + self.GetImageBase()
+
+        return base_constant
+
+    def get_nearest_constant_by_address(self, address):
+        if address < self.GetImageBase():
+            return 0, ""
+
+        offset, name = super(
+            RelativeOffsetMixin, self).get_nearest_constant_by_address(
+            address - self.GetImageBase())
+
+        return offset + self.GetImageBase(), name
+
+
+class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
+    """A basic profile for a pe image."""
+
+    image_base = 0
+
+    def GetImageBase(self):
+        return self.image_base
+
+
+class Ntoskrnl(RelativeOffsetMixin, basic.BasicClasses):
     """A profile for Windows."""
 
     METADATA = dict(os="windows")
@@ -107,9 +146,11 @@ class Ntoskrnl(basic.BasicClasses):
         # Select basic compiler model type.
         if profile.metadata("arch") == "AMD64":
             basic.ProfileLLP64.Initialize(profile)
+            profile.add_types(undocumented.AMD64)
 
         elif profile.metadata("arch") == "I386":
             basic.Profile32Bits.Initialize(profile)
+            profile.add_types(undocumented.I386)
 
             # Detect if this is a PAE system. PAE systems have 64 bit PTEs:
             if profile.get_obj_size("_MMPTE") == 8:
@@ -128,6 +169,8 @@ class Ntoskrnl(basic.BasicClasses):
             # just given a GUID and a pdb file without a kernel executable.
             version = "6.1"
 
+        profile.set_metadata("version", version)
+
         if version in ("6.2", "6.3"):
             win8.InitializeWindows8Profile(profile)
 
@@ -140,15 +183,6 @@ class Ntoskrnl(basic.BasicClasses):
         elif version in ("5.2", "5.1"):
             xp.InitializeXPProfile(profile)
 
+    def GetImageBase(self):
+        return self.session.GetParameter("kernel_base")
 
-    def get_constant(self, name, is_address=False):
-        """Gets the constant from the profile.
-
-        The windows profile specify addresses relative to the kernel image base.
-        """
-        base_constant = super(Ntoskrnl, self).get_constant(name)
-        if is_address and isinstance(base_constant, (int, long)):
-            return base_constant + self.session.GetParameter(
-                "kernel_base")
-
-        return base_constant

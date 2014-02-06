@@ -52,7 +52,9 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
     """
     order = 60
-    pae = True
+
+    _md_arch = "AMD64"
+
 
     def pml4e_index(self, vaddr):
         '''

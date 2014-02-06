@@ -29,7 +29,7 @@
 void help(TCHAR *ExeName)
 {
   Log(L"Winpmem - A memory imager for windows.\n"
-          L"Copyright Michael Cohen (scudette@gmail.com) 2012-2013.\n\n");
+          L"Copyright Michael Cohen (scudette@gmail.com) 2012-2014.\n\n");
 
   Log(L"Version %s\n", version);
   Log(L"Usage:\n");
@@ -40,10 +40,10 @@ void help(TCHAR *ExeName)
       L"  -u    Unload the driver and exit.\n"
       L"  -h    Display this help.\n"
       L"  -w    Turn on write mode.\n"
-      L"  -0    Use MmMapIoSpace method.\n"
-      L"  -1    Use \\\\Device\\PhysicalMemory method (Default).\n"
-      L"  -2    Use PTE remapping.\n"
-      L"  -3    Use PTE remapping with PCI instrospection.\n"
+      L"  -0    Use MmMapIoSpace method (Default).\n"
+      L"  -1    Use \\\\Device\\PhysicalMemory method.\n"
+      L"  -2    Use PTE remapping (AMD64 only).\n"
+      L"  -3    Use PTE remapping with PCI instrospection (AMD64 Only).\n"
       L"  -d    Produce a crashdump file.\n"
       L"\n");
 
@@ -77,7 +77,7 @@ WinPmem *WinPmemFactory() {
 
 int _tmain(int argc, _TCHAR* argv[]) {
   int i, status;
-  int mode = PMEM_MODE_PHYSICAL;
+  int mode = PMEM_MODE_IOSPACE;
   int write_mode = 0;
   int only_load_driver = 0;
   int only_unload_driver = 0;

@@ -18,19 +18,20 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+# pylint: disable=protected-access
+
+# References:
+# http://volatility-labs.blogspot.ch/2012/09/movp-11-logon-sessions-processes-and.html
+
+
 from rekall import obj
 from rekall.plugins.windows import common
-from rekall.plugins.windows.gui import win32k_core
 
 
 class Sessions(common.WinProcessFilter):
     """List details on _MM_SESSION_SPACE (user logon sessions)"""
 
     __name = "sessions"
-
-    def __init__(self, **kwargs):
-        super(Sessions, self).__init__(**kwargs)
-        self.profile = win32k_core.Win32GUIProfile(self.profile)
 
     def session_spaces(self):
         """Generates unique _MM_SESSION_SPACE objects.
@@ -43,13 +44,12 @@ class Sessions(common.WinProcessFilter):
         """
         seen = []
         for proc in self.filter_processes():
-            if proc.SessionId and proc.SessionId.v() not in seen:
+            if proc.SessionId not in seen:
                 ps_ad = proc.get_process_address_space()
-                if ps_ad:
-                    seen.append(proc.SessionId.v())
+                if proc.SessionId and ps_ad:
+                    seen.append(proc.SessionId)
 
-                    yield self.profile._MM_SESSION_SPACE(
-                        offset=proc.Session.v(), vm=ps_ad)
+                    yield proc.Session.deref(vm=ps_ad)
 
     def find_session_space(self, session_id):
         """ Get a _MM_SESSION_SPACE object by its ID.
@@ -73,23 +73,29 @@ class Sessions(common.WinProcessFilter):
         for session in self.session_spaces():
             renderer.section()
 
+            processes = list(session.ProcessList.list_of_type(
+                    "_EPROCESS", "SessionProcessLinks"))
+
             renderer.format("Session(V): {0:x} ID: {1} Processes: {2}\n",
                             session.obj_offset,
                             session.SessionId,
-                            len(list(session.processes())))
+                            len(processes))
 
             renderer.format("PagedPoolStart: {0:x} PagedPoolEnd {1:x}\n",
                             session.PagedPoolStart,
                             session.PagedPoolEnd)
 
-            for process in session.processes():
+            for process in processes:
                 renderer.format(" Process: {0} {1} {2} @ {3:#x}\n",
                                 process.UniqueProcessId,
                                 process.ImageFileName,
                                 process.CreateTime,
                                 process)
 
-            for image in session.images():
+            # Follow the undocumented _IMAGE_ENTRY_IN_SESSION list to find the
+            # kernel modules loaded in this session.
+            for image in session.ImageList.list_of_type(
+                "_IMAGE_ENTRY_IN_SESSION", "Link"):
                 module = module_plugin.find_module(image.Address)
 
                 renderer.format(" Image: {0:#x}, Address {1:x}, Name: {2}\n",

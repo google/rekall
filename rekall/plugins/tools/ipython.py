@@ -50,8 +50,17 @@ class TestNoteBook(testlib.DisabledTest):
 
 
 class Rekall(plugin.Command):
-    """Starts a new rekall analysis session."""
+    """Starts or modifies a new rekall analysis session.
 
+    This plugin is probably only useful within the interactive shell. It
+    modifies the current state of the session. (The state can be viewed by
+    printing the session parameter.
+
+    Any session parameters can be set here. For example:
+
+    rekal nocolors=True, paging_limit=10, pager="less"
+
+    """
     __name = "rekal"
 
     interactive = True
@@ -70,26 +79,15 @@ class Rekall(plugin.Command):
                             help="The name of a program to page output "
                             "(e.g. notepad or less).")
 
-    def __init__(self, filename=None, profile=None, verbose=False,
-                 pager=None, **kwargs):
-        super(Rekall, self).__init__(**kwargs)
-
-        self.filename = filename
-        self.profile = profile
-        self.verbose = verbose
-        self.pager = pager
+    def __init__(self, session=None, **kwargs):
+        super(Rekall, self).__init__(session=session)
+        self.kwargs = kwargs
 
     def render(self, renderer):
         renderer.format("Initializing Rekall session.\n")
-
         with self.session.state as state:
-            state.logging = "DEBUG" if self.verbose else "WARN"
-            state.pager = self.pager
-            state.filename = self.filename
-
-            # Clear the profile from the session.
-            self.session.profile = None
-            state.profile = self.profile
+            for k, v in self.kwargs.items():
+                state.Set(k, v)
 
         renderer.format("Done!\n")
 

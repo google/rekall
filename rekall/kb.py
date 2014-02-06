@@ -4,6 +4,7 @@
 import bisect
 import re
 
+from rekall import utils
 from rekall import registry
 
 
@@ -110,3 +111,39 @@ class ParameterHook(object):
 
     def calculate(self):
         """Derive the value of the parameter."""
+
+
+class AddressResolver(object):
+    """Wrapper around a profile which allows addresses to be resolved in it."""
+
+    def __init__(self, session):
+        self.images = [session.profile]
+        self.modules = session.plugins.modules()
+
+    def get_constant_by_address(self, address):
+        for image in self.images:
+            name = image.get_constant_by_address(address)
+            if name:
+                return name
+
+    def get_nearest_constant_by_address(self, address):
+        nearest_offset = 0
+        module_name = nearest_name = ""
+
+        containing_module = self.modules.find_module(address)
+        if containing_module:
+            nearest_offset = containing_module.DllBase.v()
+            module_name = unicode(containing_module.BaseDllName)
+
+        for image in self.images:
+            offset, name = image.get_nearest_constant_by_address(address)
+            if address - offset < address - nearest_offset:
+                nearest_offset = offset
+                nearest_name = name
+
+        if module_name:
+            full_name = "%s!%s" % (module_name, nearest_name)
+        else:
+            full_name = ""
+
+        return nearest_offset, full_name

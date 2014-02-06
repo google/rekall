@@ -17,8 +17,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _VOLATILITY_DRIVER_PTE_MMAP_H_
-#define _VOLATILITY_DRIVER_PTE_MMAP_H_
+#ifndef _REKALL_DRIVER_PTE_MMAP_H_
+#define _REKALL_DRIVER_PTE_MMAP_H_
 
 #define PFN_TO_PAGE(pfn) (pfn << PAGE_SHIFT)
 #define PAGE_TO_PFN(pfn) (pfn >> PAGE_SHIFT)
@@ -178,4 +178,4 @@ void pte_mmap_init(PTE_MMAP_OBJ *self);
 // Will reset the page table entry for the rogue page.
 void pte_mmap_cleanup(PTE_MMAP_OBJ *self);
 
-#endif  // _VOLATILITY_DRIVER_PTE_MMAP_H_
+#endif  // _REKALL_DRIVER_PTE_MMAP_H_

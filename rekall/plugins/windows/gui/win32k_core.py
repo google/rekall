@@ -17,16 +17,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+
+# pylint: disable=protected-access
+
 import logging
-
+from rekall import utils
 from rekall import obj
-from rekall.plugins.windows.gui import constants
+from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import common
+from rekall.plugins.windows.gui import constants
 
-
-#--------------------------------------------------------------------------------
-# object classes
-#--------------------------------------------------------------------------------
 
 class _MM_SESSION_SPACE(obj.Struct):
     """A class for session spaces"""
@@ -37,7 +37,8 @@ class _MM_SESSION_SPACE(obj.Struct):
         A process is always associated with exactly
         one session.
         """
-        for p in self.ProcessList.list_of_type("_EPROCESS", "SessionProcessLinks"):
+        for p in self.ProcessList.list_of_type(
+            "_EPROCESS", "SessionProcessLinks"):
             yield p
 
     @property
@@ -104,8 +105,8 @@ class _MM_SESSION_SPACE(obj.Struct):
             if not chunk.is_valid():
                 continue
 
-            gahti = obj.Object("gahti", offset = chunk.obj_offset,
-                vm = self.obj_vm)
+            gahti = obj.Object("gahti", offset=chunk.obj_offset,
+                               vm=self.obj_vm)
 
             ## The sanity check here is based on the fact that the first entry
             ## in the gahti is always for TYPE_FREE. The fnDestroy pointer will
@@ -128,14 +129,15 @@ class _MM_SESSION_SPACE(obj.Struct):
         iterate over each DWORD-aligned possibility and treat
         it as a tagSHAREDINFO until the sanity checks are met.
         """
-        import pdb; pdb.set_trace()
         for chunk in self._section_chunks(".data"):
             # If the base of the value is paged
             if not chunk.is_valid():
                 continue
+
             # Treat it as a shared info struct
-            shared_info = obj.Object("tagSHAREDINFO",
-                offset = chunk.obj_offset, vm = self.obj_vm)
+            shared_info = obj.tagSHAREDINFO(
+                offset=chunk.obj_offset, vm=self.obj_vm)
+
             # Sanity check it
             try:
                 if shared_info.is_valid():
@@ -180,7 +182,7 @@ class tagSHAREDINFO(obj.Struct):
                     self.obj_vm.profile.get_obj_size("_HANDLEENTRY")
                 == self.psi.cHandleEntries)
 
-    def handles(self, filters = None):
+    def handles(self, filters=None):
         """Carve handles from the shared info block.
 
         @param filters: a list of callables that perform
@@ -191,10 +193,10 @@ class tagSHAREDINFO(obj.Struct):
         if filters == None:
             filters = []
 
-        hnds = obj.Object("Array", targetType = "_HANDLEENTRY",
-                            offset = self.aheList,
-                            vm = self.obj_vm,
-                            count = self.psi.cHandleEntries)
+        hnds = obj.Array(target="_HANDLEENTRY",
+                         offset=self.aheList,
+                         vm=self.obj_vm,
+                         count=self.psi.cHandleEntries)
 
         for i, h in enumerate(hnds):
 
@@ -226,20 +228,21 @@ class _HANDLEENTRY(obj.Struct):
         obj.NoneObject() instead.
         """
 
-        object_map = dict(TYPE_WINDOW = "tagWND",
-                        TYPE_HOOK = "tagHOOK",
-                        TYPE_CLIPDATA = "tagCLIPDATA",
-                        TYPE_WINEVENTHOOK = "tagEVENTHOOK",
-                        TYPE_TIMER = "tagTIMER",
-                        )
+        object_map = dict(
+            TYPE_WINDOW="tagWND",
+            TYPE_HOOK="tagHOOK",
+            TYPE_CLIPDATA="tagCLIPDATA",
+            TYPE_WINEVENTHOOK="tagEVENTHOOK",
+            TYPE_TIMER="tagTIMER",
+            )
 
         object_type = object_map.get(str(self.bType), None)
 
         if not object_type:
             return obj.NoneObject("Cannot reference object type")
 
-        return obj.Object(object_type,
-                    offset = self.phead, vm = self.obj_vm)
+        return obj.Object(
+            object_type, offset=self.phead, vm=self.obj_vm)
 
     @property
     def Free(self):
@@ -250,10 +253,10 @@ class _HANDLEENTRY(obj.Struct):
     def ThreadOwned(self):
         """Handles of these types are always thread owned"""
         return str(self.bType) in [
-                            'TYPE_WINDOW', 'TYPE_SETWINDOWPOS', 'TYPE_HOOK',
-                            'TYPE_DDEACCESS', 'TYPE_DDECONV', 'TYPE_DDEXACT',
-                            'TYPE_WINEVENTHOOK', 'TYPE_INPUTCONTEXT', 'TYPE_HIDDATA',
-                            'TYPE_TOUCH', 'TYPE_GESTURE']
+            'TYPE_WINDOW', 'TYPE_SETWINDOWPOS', 'TYPE_HOOK',
+            'TYPE_DDEACCESS', 'TYPE_DDECONV', 'TYPE_DDEXACT',
+            'TYPE_WINEVENTHOOK', 'TYPE_INPUTCONTEXT', 'TYPE_HIDDATA',
+            'TYPE_TOUCH', 'TYPE_GESTURE']
     @property
     def ProcessOwned(self):
         """Handles of these types are always process owned"""
@@ -315,8 +318,8 @@ class tagWINDOWSTATION(obj.Struct):
         header which stores the name.
         """
         object_hdr = self.obj_profile._OBJECT_HEADER(
-            vm = self.obj_vm,
-            offset = self.obj_offset - self.obj_profile.get_obj_offset(
+            vm=self.obj_vm,
+            offset=self.obj_offset - self.obj_profile.get_obj_offset(
                 '_OBJECT_HEADER', 'Body')
             )
 
@@ -345,7 +348,7 @@ class tagDESKTOP(tagWINDOWSTATION):
     """A class for Desktop objects"""
 
     def is_valid(self):
-        return (obj.Struct.is_valid(self) and self.dwSessionId < 0xFF)
+        return  obj.Struct.is_valid(self) and self.dwSessionId < 0xFF
 
     @property
     def WindowStation(self):
@@ -392,7 +395,7 @@ class tagDESKTOP(tagWINDOWSTATION):
                 for hook in hook.traverse():
                     yield name, hook
 
-    def windows(self, win, filter = lambda x: True, level = 0): #pylint: disable-msg=W0622
+    def windows(self, win, filter=lambda x: True, level=0):
         """Traverses windows in their Z order, bottom to top.
 
         @param win: an HWND to start. Usually this is the desktop
@@ -431,7 +434,8 @@ class tagDESKTOP(tagWINDOWSTATION):
             yield cur, level
 
             if cur.spwndChild.is_valid() and cur.spwndChild.v() != 0:
-                for info in self.windows(cur.spwndChild, filter = filter, level = level + 1):
+                for info in self.windows(
+                    cur.spwndChild, filter=filter, level=level+1):
                     yield info
 
     def heaps(self):
@@ -440,16 +444,16 @@ class tagDESKTOP(tagWINDOWSTATION):
             for entry in segment.heap_entries():
                 yield entry
 
-    def traverse(self):
+    def traverse(self, vm=None):
         """Generator for next desktops in the list"""
 
         # Include this object in the results
         yield self
         # Now walk the singly-linked list
-        nextdesk = self.rpdeskNext.dereference()
+        nextdesk = self.rpdeskNext.dereference(vm=vm)
         while nextdesk.is_valid() and nextdesk.v() != 0:
             yield nextdesk
-            nextdesk = nextdesk.rpdeskNext.dereference()
+            nextdesk = nextdesk.rpdeskNext.dereference(vm=vm)
 
 class tagWND(obj.Struct):
     """A class for window structures"""
@@ -499,7 +503,8 @@ class tagWND(obj.Struct):
     @property
     def ExStyle(self):
         """The extended style flags as a string"""
-        return self._get_flags(self.m('ExStyle').v(), constants.WINDOW_STYLES_EX)
+        return self._get_flags(
+            self.m('ExStyle').v(), constants.WINDOW_STYLES_EX)
 
 class tagRECT(obj.Struct):
     """A class for window rects"""
@@ -528,15 +533,17 @@ class tagCLIPDATA(obj.Struct):
         else:
             encoding = "utf8"
 
-        return obj.Object("String", offset = self.abData.obj_offset,
-                        vm = self.obj_vm, encoding = encoding,
-                        length = self.cbData)
+        return obj.String(
+            offset=self.abData.obj_offset,
+            vm=self.obj_vm, encoding=encoding,
+            length=self.cbData)
 
     def as_hex(self):
         """Format the clipboard contents as a hexdump"""
         data = ''.join([chr(c) for c in self.abData])
-        return "".join(["{0:#x}  {1:<48}  {2}\n".format(self.abData.obj_offset + o, h, ''.join(c))
-                    for o, h, c in utils.Hexdump(data)])
+        return "".join(["{0:#x}  {1:<48}  {2}\n".format(
+                    self.abData.obj_offset + o, h, ''.join(c))
+                        for o, h, c in utils.Hexdump(data)])
 
 class tagTHREADINFO(tagDESKTOP):
     """A class for thread information objects"""
@@ -565,7 +572,8 @@ class tagEVENTHOOK(obj.Struct):
         # First we shift the value
         f = self.m('dwFlags') >> 1
 
-        flags = [name for (val, name) in constants.EVENT_FLAGS.items() if f & val == val]
+        flags = [
+            name for (val, name) in constants.EVENT_FLAGS.items() if f & val]
 
         return '|'.join(flags)
 
@@ -639,15 +647,72 @@ class _RTL_ATOM_TABLE_ENTRY(obj.Struct):
         # There is a maximum name length enforced
         return self.NameLength <= 255
 
-#--------------------------------------------------------------------------------
-# profile modifications
-#--------------------------------------------------------------------------------
 
 class Win32GUIProfile(obj.ProfileModification):
     """Install win32 gui specific modifications."""
 
     @classmethod
     def modify(cls, profile):
+        pass
+
+
+class Win32kPluginMixin(object):
+    """A mixin which loads the relevant win32k profile."""
+
+    @classmethod
+    def args(cls, parser):
+        super(Win32kPluginMixin, cls).args(parser)
+        parser.add_argument("--win32k_guid", default=None,
+                            help="Force this profile to be used for Win32k.")
+
+    def __init__(self, win32k_guid=None, **kwargs):
+        super(Win32kPluginMixin, self).__init__(**kwargs)
+        if self.session.win32k_profile:
+            # Get the profile from the session cache.
+            self.profile = self.session.win32k_profile
+
+        else:
+            # Find the proper win32k profile and merge in with this kernel
+            # profile.
+            if win32k_guid is None:
+                scanner = self.session.plugins.version_scan(name_regex="win32k")
+                for _, guid in scanner.ScanVersions():
+                    try:
+                        win32k_profile = self.session.LoadProfile(
+                            "GUID/%s" % guid)
+                        break
+
+                    except IOError:
+                        logging.info(
+                            "Unable to find profile for win32k.sys: %s.", guid)
+
+                        raise RuntimeError("No profile")
+
+            else:
+                win32k_profile = self.session.LoadProfile(win32k_guid)
+
+            # The win32k types and kernel types interact with each other, so we
+            # merge them here into a single profile.
+            self.profile.merge(win32k_profile)
+            self.session.win32k_profile = self.profile
+
+
+class Win32k(basic.BasicClasses):
+    """A profile for the Win32 GUI system."""
+
+    METADATA = dict(os="windows")
+
+    @classmethod
+    def Initialize(cls, profile):
+        super(Win32k, cls).Initialize(profile)
+
+        # Select basic compiler model type.
+        if profile.metadata("arch") == "AMD64":
+            basic.ProfileLLP64.Initialize(profile)
+
+        elif profile.metadata("arch") == "I386":
+            basic.Profile32Bits.Initialize(profile)
+
         # Some constants - These will probably change in win8 which does not
         # allow non ascii tags.
         profile.add_constants(PoolTag_WindowStation="Win\xe4",
@@ -662,7 +727,6 @@ class Win32GUIProfile(obj.ProfileModification):
             'tagHOOK': tagHOOK,
             '_LARGE_UNICODE_STRING': common._UNICODE_STRING,
             'tagWND': tagWND,
-            '_MM_SESSION_SPACE': _MM_SESSION_SPACE,
             'tagSHAREDINFO': tagSHAREDINFO,
             '_HANDLEENTRY': _HANDLEENTRY,
             'tagEVENTHOOK': tagEVENTHOOK,
@@ -670,17 +734,17 @@ class Win32GUIProfile(obj.ProfileModification):
             'tagCLIPDATA': tagCLIPDATA,
             })
 
-        version = profile.metadatas('major', 'minor', 'build')
+        version = ".".join(profile.metadatas('major', 'minor'))
         architecture = profile.metadata("arch")
 
         ## Windows 7 and above
-        if version >= (6, 1, 0):
+        if version >= "6.1":
             num_handles = len(constants.HANDLE_TYPE_ENUM_SEVEN)
         else:
             num_handles = len(constants.HANDLE_TYPE_ENUM)
 
         # Add autogenerated vtypes for the different versions.
-        if version[:2] == (6, 1):  # Windows 7
+        if version.startswith("6.1"):  # Windows 7
             from rekall.plugins.windows.gui.vtypes import win7
 
             profile = win7.Win32GUIWin7.modify(profile)
@@ -711,49 +775,40 @@ class Win32GUIProfile(obj.ProfileModification):
                 '_RTL_ATOM_TABLE_ENTRY': [None, {
                         'Name': [None, ['UnicodeString', dict(
                                     encoding='utf16',
-                                    length=lambda x : x.NameLength * 2)]],
+                                    length=lambda x: x.NameLength * 2)]],
                         }],
                 'tagWIN32HEAP': [None, {
-                        'Heap': [ 0, ['_HEAP']],
+                        'Heap': [0, ['_HEAP']],
                         }],
-                'tagCLIPDATA' : [ None, {
-                        'cbData' : [ 0x08, ['unsigned int']],
-                        'abData' : [ 0x0C, ['Array', dict(
+                'tagCLIPDATA' : [None, {
+                        'cbData' : [0x08, ['unsigned int']],
+                        'abData' : [0x0C, ['Array', dict(
                                     count=lambda x: x.cbData,
                                     target='unsigned char')]],
                         }],
-                '_IMAGE_ENTRY_IN_SESSION': [ None, {
-                        'Link': [0, ['_LIST_ENTRY']],
-                        'Address': [8, ['pointer', ['address']]],
-                        'LastAddress': [12, ['pointer', ['address']]],
-
-                        # This is optional and usually supplied as null
-                        'DataTableEntry': [ 24, ['pointer', ['_LDR_DATA_TABLE_ENTRY']]],
-                        }],
-
-                'tagEVENTHOOK' : [ 0x30, {
-                        'phkNext' : [ 0xC, ['pointer', ['tagEVENTHOOK']]],
-                        'eventMin' : [ 0x10, ['Enumeration', dict(
+                'tagEVENTHOOK' : [0x30, {
+                        'phkNext' : [0xC, ['pointer', ['tagEVENTHOOK']]],
+                        'eventMin' : [0x10, ['Enumeration', dict(
                                     target='unsigned long',
                                     choices=constants.EVENT_ID_ENUM)]],
 
-                        'eventMax' : [ 0x14, ['Enumeration', dict(
+                        'eventMax' : [0x14, ['Enumeration', dict(
                                     target='unsigned long',
                                     choices=constants.EVENT_ID_ENUM)]],
 
-                        'dwFlags' : [ 0x18, ['unsigned long']],
-                        'idProcess' : [ 0x1C, ['unsigned long']],
-                        'idThread' : [ 0x20, ['unsigned long']],
-                        'offPfn' : [ 0x24, ['Pointer', dict(target="Void")]],
-                        'ihmod' : [ 0x28, ['long']],
+                        'dwFlags' : [0x18, ['unsigned long']],
+                        'idProcess' : [0x1C, ['unsigned long']],
+                        'idThread' : [0x20, ['unsigned long']],
+                        'offPfn' : [0x24, ['Pointer', dict(target="Void")]],
+                        'ihmod' : [0x28, ['long']],
                         }],
 
-                'tagHANDLETYPEINFO' : [ 12, {
-                        'fnDestroy' : [ 0, ['pointer', ['void']]],
-                        'dwAllocTag' : [ 4, ['String', dict(length=4)]],
-                        'bObjectCreateFlags' : [ 8, ['Flags', dict(
+                'tagHANDLETYPEINFO' : [12, {
+                        'fnDestroy' : [0, ['pointer', ['void']]],
+                        'dwAllocTag' : [4, ['String', dict(length=4)]],
+                        'bObjectCreateFlags' : [8, ['Flags', dict(
                                     target='unsigned char',
-                                    bitmap= {
+                                    bitmap={
                                         'OCF_THREADOWNED': 0,
                                         'OCF_PROCESSOWNED': 1,
                                         'OCF_MARKPROCESS': 2,
@@ -780,26 +835,19 @@ class Win32GUIProfile(obj.ProfileModification):
                                         )]],
                             }],
 
-                    '_IMAGE_ENTRY_IN_SESSION': [None, {
-                            'Address': [0x10, None],
-                            'LastAddress': [ 0x18, None],
-                            # This is optional and usually supplied as null
-                            'DataTableEntry': [ 0x20, None],
-                            }],
-
                     'tagCLIPDATA' : [None, {
                             'cbData' : [0x10, None],
-                            'abData' : [ 0x14, None],
+                            'abData' : [0x14, None],
                             }],
                     'tagEVENTHOOK' : [0x60, {
-                            'phkNext' : [ 0x18, None],
-                            'eventMin' : [ 0x20, None],
-                            'eventMax' : [ 0x24, None],
-                            'dwFlags' : [ 0x28, None],
-                            'idProcess' : [ 0x2C, None],
-                            'idThread' : [ 0x30, None],
-                            'offPfn' : [ 0x40, None],
-                            'ihmod' : [ 0x48, None],
+                            'phkNext' : [0x18, None],
+                            'eventMin' : [0x20, None],
+                            'eventMax' : [0x24, None],
+                            'dwFlags' : [0x28, None],
+                            'idProcess' : [0x2C, None],
+                            'idThread' : [0x30, None],
+                            'offPfn' : [0x40, None],
+                            'ihmod' : [0x48, None],
                             }],
                     'tagHANDLETYPEINFO' : [16, {
                             'dwAllocTag' : [8, None],
@@ -810,9 +858,9 @@ class Win32GUIProfile(obj.ProfileModification):
         # This field appears in the auto-generated vtypes for all OS except XP
         if architecture == "I386" and version[:2] == (5, 1):
             profile.add_overlay({
-                    '_MM_SESSION_SPACE': [ None, {
+                    '_MM_SESSION_SPACE': [None, {
                             # nt!MiDereferenceSession
-                            'ResidentProcessCount': [ 0x248, ['long']],
+                            'ResidentProcessCount': [0x248, ['long']],
                             }]})
 
         return profile

@@ -742,7 +742,7 @@ class ThunkArray(SentinalArray):
 
     def __init__(self, parent=None, context=None, **kwargs):
         # Are we in a 64 bit file?
-        if context.get("mode") == "I386":
+        if context.get("mode") == "AMD64":
             target = "_IMAGE_THUNK_DATA64"
         else:
             target = "_IMAGE_THUNK_DATA32"

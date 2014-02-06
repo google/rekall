@@ -22,7 +22,7 @@
  */
 #define SILENT_OPERATION 0
 #define PMEM_DEVICE_NAME L"pmem"
-#define PMEM_VERSION "v1.5.2"
+#define PMEM_VERSION "v1.5.4"
 #define PMEM_POOL_TAG 0x4d454d50
 
 // In order to enable writing this must be set to 1 and the
@@ -91,9 +91,13 @@ struct PmemMemoryInfo {
   LARGE_INTEGER PsLoadedModuleList;
   LARGE_INTEGER PsActiveProcessHead;
 
+  // The address of the NtBuildNumber integer - this is used to find the kernel
+  // base quickly.
+  LARGE_INTEGER NtBuildNumberAddr;
+
   // As the driver is extended we can add fields here maintaining
   // driver alignment..
-  LARGE_INTEGER Padding[0xff];
+  LARGE_INTEGER Padding[0xfe];
 
   LARGE_INTEGER NumberOfRuns;
 

@@ -181,18 +181,16 @@ class Info(plugin.Command):
 
     def render_item_info(self, item, renderer):
         """Render information about the specific item."""
-        cls_doc = item.__doc__ or " "
+        cls_doc = inspect.cleandoc(item.__doc__ or " ")
+        init_doc = inspect.cleandoc(
+            (item.__init__.__doc__ or " ").split("Args:")[0])
 
         if isinstance(item, registry.MetaclassRegistry):
-            renderer.format("{0}: {1}\n", item.name, cls_doc.splitlines()[0])
-
             # show the args it takes. Relies on the docstring to be formatted
             # properly.
-            doc_string = item.__init__.__doc__ or " "
-            doc_string = inspect.cleandoc(doc_string).split("Args:")[0]
-
+            doc_string = cls_doc + init_doc
             doc_string += (
-                "\nLink:\n"
+                "\n\nLink:\n"
                 "http://epydocs.rekall.googlecode.com/git/%s.%s-class.html"
                 "\n\n" % (item.__module__, item.__name__))
 

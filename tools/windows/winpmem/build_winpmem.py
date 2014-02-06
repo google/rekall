@@ -2,7 +2,7 @@
 """Build script for winpmem.
 
 This script builds the drivers and then the userspace application which embeds
-them. To have it run, you will need to install the following components on a 
+them. To have it run, you will need to install the following components on a
 windows system:
 
 1) .Net framework:
@@ -26,7 +26,7 @@ import os
 import subprocess
 import shutil
 
-VERSION="1.5.2"
+VERSION="1.5.4"
 PATH_TO_DDK = r"C:\WinDDK\7600.16385.1"
 PATH_TO_VS = r"C:\Program Files\Microsoft SDKs\Windows\v7.1"
 
