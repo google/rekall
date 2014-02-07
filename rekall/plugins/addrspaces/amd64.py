@@ -24,13 +24,13 @@
 """
 import struct
 
-from rekall import args
 from rekall import config
 from rekall.plugins.addrspaces import intel
 
 
 config.DeclareOption(name="ept", group="Virtualization support",
-                     action=args.IntParser, help="The EPT physical address.")
+                     action=config.IntParser,
+                     help="The EPT physical address.")
 
 
 class AMD64PagedMemory(intel.IA32PagedMemoryPae):

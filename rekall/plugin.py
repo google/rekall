@@ -24,6 +24,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import StringIO
 
+from rekall import config
 from rekall import registry
 from rekall.ui import renderer as rekall_renderer
 
@@ -143,10 +144,10 @@ class Command(object):
         return True
 
     @classmethod
-    def GetActiveClasses(cls, config):
+    def GetActiveClasses(cls, session):
         """Return only the active commands based on config."""
         for command_cls in cls.classes.values():
-            if command_cls.is_active(config):
+            if command_cls.is_active(session):
                 yield command_cls
 
 
@@ -185,9 +186,8 @@ class KernelASMixin(object):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(KernelASMixin, cls).args(parser)
-        from rekall import args
 
-        parser.add_argument("--dtb", action=args.IntParser,
+        parser.add_argument("--dtb", action=config.IntParser,
                             help="The DTB physical address.")
 
     def __init__(self, kernel_address_space=None, dtb=None, **kwargs):

@@ -1,7 +1,7 @@
 """Implements scanners and plugins to find hypervisors in memory."""
 
 from rekall import addrspace
-from rekall import args
+from rekall import config
 from rekall import plugin
 from rekall import scan
 from rekall.plugins.addrspaces import amd64
@@ -236,7 +236,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.Command):
             "--hypervisor_details", default=False,
             action="store_true", help="Show details about each hypervisor.")
         parser.add_argument(
-            "--offset", action=args.IntParser, default=0,
+            "--offset", action=config.IntParser, default=0,
             help="Offset in the physical image to start the scan.")
 
     def __init__(self, offset=0, hypervisor_details=False, **kwargs):

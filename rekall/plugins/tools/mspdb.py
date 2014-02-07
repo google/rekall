@@ -678,7 +678,7 @@ class _PDB_ROOT_700(obj.Struct):
 
             yield StreamBasedAddressSpace(
                 base=self.obj_vm.base, page_size=page_size,
-                pages=page_list)
+                session=self.obj_profile.session, pages=page_list)
 
     def GetStream(self, number):
         """Only return the required streams, discarding the rest."""
@@ -810,7 +810,7 @@ class PDBParser(object):
 
         root_stream = StreamBasedAddressSpace(
             base=self.address_space, page_size=self.header.dPageBytes,
-            pages=root_pages)
+            pages=root_pages, session=self.profile.session)
 
         self.root_stream_header = self.profile._PDB_ROOT_700(
             offset=0,

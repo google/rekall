@@ -30,6 +30,7 @@ import textwrap
 
 from rekall import addrspace
 from rekall import args
+from rekall import config
 from rekall import constants
 from rekall import io_manager
 from rekall import registry
@@ -688,7 +689,7 @@ class Dump(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(Dump, cls).args(parser)
-        parser.add_argument("offset", action=args.IntParser,
+        parser.add_argument("offset", action=config.IntParser,
                             help="An offset to hexdump.")
 
     def __init__(self, target=None, offset=0, width=16, rows=30,
@@ -788,7 +789,7 @@ class Grep(plugin.Command):
         parser.add_argument("--address_space", default="Kernel",
                             help="Name of the address_space to search.")
 
-        parser.add_argument("--offset", default=0, action=args.IntParser,
+        parser.add_argument("--offset", default=0, action=config.IntParser,
                             help="Start searching from this offset.")
 
         parser.add_argument("keyword",

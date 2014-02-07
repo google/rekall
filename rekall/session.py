@@ -60,6 +60,12 @@ config.DeclareOption(
 config.DeclareOption("-f", "--filename",
                      help="The raw image to load.")
 
+config.DeclareOption(
+    "--buffer_size", default=10*1024*1024,
+    action=config.IntParser,
+    help="The maximum size of buffers we are allowed to read. "
+    "This is used to control Rekall memory usage.")
+
 
 class Container(object):
     """Just a container."""
@@ -395,7 +401,7 @@ class Session(object):
             else:
                 raise
 
-    def LoadProfile(self, filename):
+    def LoadProfile(self, filename, use_cache=True):
         """Try to load a profile directly from a filename.
 
         Args:
@@ -417,7 +423,8 @@ class Session(object):
         canonical_name = os.path.splitext(filename)[0]
 
         try:
-            return self.profile_cache[canonical_name]
+            if use_cache:
+                return self.profile_cache[canonical_name]
         except KeyError:
             pass
 

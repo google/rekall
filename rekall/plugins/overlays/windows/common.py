@@ -27,6 +27,7 @@
 from rekall import obj
 from rekall import utils
 
+from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.overlays import basic
 
 
@@ -329,8 +330,23 @@ windows_overlay = {
             }],
 
     # This defines _PSP_CID_TABLE as an alias for _HANDLE_TABLE.
-    "_PSP_CID_TABLE": "_HANDLE_TABLE"
+    "_PSP_CID_TABLE": "_HANDLE_TABLE",
+
+    "_LDR_DATA_TABLE_ENTRY": [None, {
+            "TimeDateStamp": [None, ["WinFileTime"]],
+            }],
 }
+
+
+class _LDR_DATA_TABLE_ENTRY(obj.Struct):
+
+    @property
+    def RSDS(self):
+        helper = pe_vtypes.PE(address_space=self.obj_vm,
+                              image_base=self.DllBase,
+                              session=self.obj_session)
+
+        return helper.RSDS
 
 
 class _UNICODE_STRING(obj.Struct):
@@ -363,6 +379,16 @@ class _UNICODE_STRING(obj.Struct):
 
     def __str__(self):
         return self.v() or ""
+
+    def __repr__(self):
+        value = str(self)
+        elide = ""
+        if len(value) > 50:
+            elide = "..."
+            value = value[:50]
+
+        return "%s (%s%s)" % (super(_UNICODE_STRING, self).__repr__(),
+                              value, elide)
 
     def write(self, string):
         self.Buffer.dereference().write(string)
@@ -971,6 +997,7 @@ def InitializeWindowsProfile(profile):
             '_MMVAD_FLAGS': _MMVAD_FLAGS,
             '_MMVAD_FLAGS2': _MMVAD_FLAGS2,
             '_MMSECTION_FLAGS': _MMSECTION_FLAGS,
+            '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
             })
 
     profile.add_overlay(windows_overlay)

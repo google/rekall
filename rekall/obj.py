@@ -264,7 +264,7 @@ class BaseObject(object):
     # kwargs down. Any **kwargs which arrive here are not handled, and represent
     # an error in the vtype specifications.
     def __init__(self, type_name=None, offset=0, vm=None, profile=None,
-                 parent=None, name='', context=None, **kwargs):
+                 parent=None, name='', context=None, session=None, **kwargs):
         """Constructor for Base object.
 
         Args:
@@ -304,6 +304,7 @@ class BaseObject(object):
         self.obj_name = name
         self.obj_profile = profile
         self.obj_context = context or {}
+        self.obj_session = session
 
     @property
     def parents(self):
@@ -1810,16 +1811,19 @@ class Profile(object):
         return result
 
     def get_constant_object(self, constant, target=None, target_args=None,
-                            **kwargs):
+                            vm=None, **kwargs):
         """A help function for retrieving pointers from the symbol table."""
         self.compile_type(constant)
+        if vm is None:
+            vm = self.session.kernel_address_space
 
         kwargs.update(target_args or {})
         offset = self.get_constant(constant, is_address=True)
         if not offset:
             return offset
 
-        result = self.Object(target, profile=self, offset=offset, **kwargs)
+        result = self.Object(target, profile=self, offset=offset, vm=vm,
+                             **kwargs)
         return result
 
     def get_constant_by_address(self, address):
@@ -1930,17 +1934,20 @@ class Profile(object):
         if self.types[type_name] is not None:
             result = self.types[type_name](
                 offset=offset, vm=vm, name=name,
-                parent=parent, context=context, **kwargs)
+                parent=parent, context=context,
+                session=self.session, **kwargs)
             return result
 
         elif type_name in self.object_classes:
-            result = self.object_classes[type_name](type_name=type_name,
-                                                  offset=offset,
-                                                  vm=vm,
-                                                  name=name,
-                                                  parent=parent,
-                                                  context=context,
-                                                  **kwargs)
+            result = self.object_classes[type_name](
+                type_name=type_name,
+                offset=offset,
+                vm=vm,
+                name=name,
+                parent=parent,
+                context=context,
+                session=self.session,
+                **kwargs)
 
             if isinstance(result, Struct):
                 # This should not normally happen.

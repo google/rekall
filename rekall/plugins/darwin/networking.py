@@ -93,7 +93,6 @@ class DarwinRoute(common.DarwinPlugin):
         So we replace these below.
         """
         rn = h.rnh_treetop
-        rnh_cnt = h.rnh_cnt
 
         seen = set()
 
@@ -292,7 +291,7 @@ class DarwinNetstat(common.DarwinProcessFilter):
 
         for proc, _, socket, name in unix_sockets:
             renderer.table_row(
-                sock.so_proto.pr_domain.dom_family,
+                socket.so_proto.pr_domain.dom_family,
                 proc.p_pid,
                 proc.p_comm,
                 name

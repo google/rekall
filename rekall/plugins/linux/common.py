@@ -24,7 +24,7 @@
 """
 import re
 
-from rekall import args
+from rekall import config
 from rekall import obj
 from rekall import plugin
 from rekall import utils
@@ -38,10 +38,10 @@ class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
     __abstract = True
 
     @classmethod
-    def is_active(cls, config):
+    def is_active(cls, session):
         """We are only active if the profile is linux."""
-        return (config.profile.metadata("os") == 'linux' and
-                plugin.Command.is_active(config))
+        return (session.profile.metadata("os") == 'linux' and
+                plugin.Command.is_active(session))
 
 
 class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
@@ -94,20 +94,21 @@ class LinProcessFilter(LinuxPlugin):
     def args(cls, parser):
         super(LinProcessFilter, cls).args(parser)
         parser.add_argument("--pid",
-                            action=args.ArrayIntParser, nargs="+",
+                            action=config.ArrayIntParser, nargs="+",
                             help="One or more pids of processes to select.")
 
         parser.add_argument("--proc_regex", default=None,
                             help="A regex to select a process by name.")
 
         parser.add_argument("--phys_task",
-                            action=args.ArrayIntParser, nargs="+",
+                            action=config.ArrayIntParser, nargs="+",
                             help="Physical addresses of task structs.")
 
-        parser.add_argument("--task", action=args.ArrayIntParser, nargs="+",
-                            help="Kernel addresses of task structs.")
+        parser.add_argument(
+            "--task", action=config.ArrayIntParser, nargs="+",
+            help="Kernel addresses of task structs.")
 
-        parser.add_argument("--task_head", action=args.IntParser,
+        parser.add_argument("--task_head", action=config.IntParser,
                             help="Use this as the process head. If "
                             "specified we do not use kdbg.")
 

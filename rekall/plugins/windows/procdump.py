@@ -29,7 +29,7 @@ import re
 
 from rekall.plugins.windows import common
 from rekall.plugins import core
-from rekall import args
+from rekall import config
 from rekall import utils
 
 
@@ -43,7 +43,7 @@ class PEDump(common.WinProcessFilter):
         """Declare the command line args we need."""
         super(PEDump, cls).args(parser)
         parser.add_argument(
-            "--image_base", default=0, action=args.IntParser,
+            "--image_base", default=0, action=config.IntParser,
             help="The address of the image base (dos header).")
 
         parser.add_argument("--out_file", default=None,

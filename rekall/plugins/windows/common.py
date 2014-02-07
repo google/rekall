@@ -27,7 +27,7 @@
 import logging
 import re
 
-from rekall import args
+from rekall import config
 from rekall import scan
 from rekall import obj
 from rekall import kb
@@ -379,7 +379,7 @@ class KDBGMixin(plugin.KernelASMixin):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(KDBGMixin, cls).args(parser)
-        parser.add_argument("--kdbg", action=args.IntParser,
+        parser.add_argument("--kdbg", action=config.IntParser,
                             help="Location of the KDBG structure.")
 
     def __init__(self, kdbg=None, **kwargs):
@@ -409,21 +409,22 @@ class WinProcessFilter(WindowsCommandPlugin):
         """Declare the command line args we need."""
         super(WinProcessFilter, cls).args(parser)
 
-        parser.add_argument("--eprocess", action=args.ArrayIntParser, nargs="+",
+        parser.add_argument("--eprocess",
+                            action=config.ArrayIntParser, nargs="+",
                             help="Kernel addresses of eprocess structs.")
 
         parser.add_argument("--phys_eprocess",
-                            action=args.ArrayIntParser, nargs="+",
+                            action=config.ArrayIntParser, nargs="+",
                             help="Physical addresses of eprocess structs.")
 
         parser.add_argument("--pid",
-                            action=args.ArrayIntParser, nargs="+",
+                            action=config.ArrayIntParser, nargs="+",
                             help="One or more pids of processes to select.")
 
         parser.add_argument("--proc_regex", default=None,
                             help="A regex to select a process by name.")
 
-        parser.add_argument("--eprocess_head", action=args.IntParser,
+        parser.add_argument("--eprocess_head", action=config.IntParser,
                             help="Use this as the process head. If "
                             "specified we do not use kdbg.")
 

@@ -101,15 +101,12 @@ class BaseAddressSpace(object):
             raise ASAssertionError(
                 error or "Instantiation failed for unspecified reason")
 
-    def read(self, addr, length):
-        data = self.read(int(addr), int(length))
-        if not data:
-            return "\x00" * length
+    def read(self, unused_addr, length):
+        """Should be overridden by derived classes."""
+        if length > self.session.GetParameter("buffer_size"):
+            raise IOError("Too much data to read.")
 
-        if len(data) < length:
-            data += "\x00" * (length - len(data))
-
-        return data
+        return "\x00" * length
 
     def get_available_addresses(self):
         """Generates address ranges as (offset, size) for by this AS."""
@@ -338,6 +335,9 @@ class PagedReader(BaseAddressSpace):
         """
         Read 'length' bytes from the virtual address 'vaddr'.
         """
+        if length > self.session.GetParameter("buffer_size"):
+            raise IOError("Too much data to read.")
+
         vaddr, length = int(vaddr), int(length)
 
         result = ''

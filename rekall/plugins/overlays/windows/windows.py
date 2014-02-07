@@ -22,7 +22,6 @@
 # pylint: disable=protected-access
 
 import copy
-from rekall import obj
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import common
 from rekall.plugins.overlays.windows import xp
@@ -123,38 +122,25 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
     image_base = 0
 
+    METADATA = dict(os="windows")
+
     def GetImageBase(self):
         return self.image_base
 
 
-class Ntoskrnl(RelativeOffsetMixin, basic.BasicClasses):
+class Ntoskrnl(BasicPEProfile):
     """A profile for Windows."""
-
-    METADATA = dict(os="windows")
 
     @classmethod
     def Initialize(cls, profile):
         super(Ntoskrnl, cls).Initialize(profile)
 
-        # Architecture not known - guess.
-        if profile.metadata("arch") is None:
-            if profile.get_obj_size("_LIST_ENTRY") == 16:
-                profile.set_metadata("arch", "AMD64")
-            else:
-                profile.set_metadata("arch", "I386")
-
-        # Select basic compiler model type.
+        # Add undocumented types.
         if profile.metadata("arch") == "AMD64":
-            basic.ProfileLLP64.Initialize(profile)
             profile.add_types(undocumented.AMD64)
 
         elif profile.metadata("arch") == "I386":
-            basic.Profile32Bits.Initialize(profile)
             profile.add_types(undocumented.I386)
-
-            # Detect if this is a PAE system. PAE systems have 64 bit PTEs:
-            if profile.get_obj_size("_MMPTE") == 8:
-                profile.set_metadata("pae", True)
 
         # Install the base windows support.
         common.InitializeWindowsProfile(profile)

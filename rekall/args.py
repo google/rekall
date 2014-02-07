@@ -24,7 +24,6 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
 import logging
-import re
 import os
 import sys
 import zipfile
@@ -40,69 +39,6 @@ config.DeclareOption("--plugin", default=[], nargs="+",
 config.DeclareOption(
     "-h", "--help", default=False, action="store_true",
     help="Show help about global paramters.")
-
-
-class IntParser(argparse.Action):
-    """Class to parse ints either in hex or as ints."""
-    def parse_int(self, value):
-        # Support suffixes
-        multiplier = 1
-        m = re.search("(.*)(mb|kb|m|k)", value)
-        if m:
-            value = m.group(1)
-            suffix = m.group(2).lower()
-            if suffix in ("mb", "m"):
-                multiplier = 1024 * 1024
-            elif suffix in ("kb", "k"):
-                multiplier = 1024
-
-        try:
-            if value.startswith("0x"):
-                value = int(value, 16) * multiplier
-            else:
-                value = int(value) * multiplier
-        except ValueError:
-            raise argparse.ArgumentError(self, "Invalid integer value")
-
-        return value
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, self.parse_int(values))
-
-
-class ArrayIntParser(IntParser):
-    """Parse input as a comma separated list of integers.
-
-    We support input in the following forms:
-
-    --pid 1,2,3,4,5
-
-    --pid 1 2 3 4 5
-
-    --pid 0x1 0x2 0x3
-    """
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        result = []
-        if isinstance(values, basestring):
-            values = [values]
-
-        for value in values:
-            result.extend([self.parse_int(x) for x in value.split(",")])
-
-        setattr(namespace, self.dest, result)
-
-
-class ArrayStringParser(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        result = []
-        if isinstance(values, basestring):
-            values = [values]
-
-        for value in values:
-            result.extend([x for x in value.split(",")])
-
-        setattr(namespace, self.dest, result)
 
 
 class MockArgParser(object):

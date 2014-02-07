@@ -24,7 +24,7 @@ Output is similar to objdump or pefile.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-from rekall import args
+from rekall import config
 from rekall import plugin
 from rekall import testlib
 
@@ -40,7 +40,7 @@ class PEInfo(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(PEInfo, cls).args(parser)
-        parser.add_argument("--image_base", default=0, type=args.IntParser,
+        parser.add_argument("--image_base", default=0, type=config.IntParser,
                             help="The base of the image.")
 
         parser.add_argument("filename", default=None,

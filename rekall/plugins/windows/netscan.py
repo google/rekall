@@ -93,7 +93,7 @@ class Netscan(common.PoolScannerPlugin):
     @classmethod
     def is_active(cls, session):
         return (session.profile and
-                session.profile.metadatas('os', 'major') == ('windows', 6))
+                session.profile.metadatas('os', 'major') == ('windows', '6'))
 
     def __init__(self, **kwargs):
         super(Netscan, self).__init__(**kwargs)

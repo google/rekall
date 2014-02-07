@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from rekall import args
+from rekall import config
 from rekall import utils
 from rekall.plugins.windows import common
 
@@ -35,7 +35,8 @@ class Handles(common.WinProcessFilter):
         """Declare the command line args we need."""
         super(Handles, cls).args(parser)
         parser.add_argument(
-            "-t", "--object_types", action=args.ArrayStringParser, nargs="+",
+            "-t", "--object_types",
+            action=config.ArrayStringParser, nargs="+",
             help="Types of objects to show.")
 
 

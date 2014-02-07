@@ -23,7 +23,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import logging
 import re
 
-from rekall import args
+from rekall import config
 from rekall import kb
 from rekall import obj
 from rekall import plugin
@@ -108,7 +108,7 @@ class DarwinKASLRMixin(object):
     def args(cls, parser):
         super(DarwinKASLRMixin, cls).args(parser)
 
-        parser.add_argument("--vm_kernel_slide", action=args.IntParser,
+        parser.add_argument("--vm_kernel_slide", action=config.IntParser,
                             help="OS X 10.8 and later: kernel ASLR slide.")
 
     def __init__(self, vm_kernel_slide=None, **kwargs):
@@ -133,10 +133,10 @@ class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
     __abstract = True
 
     @classmethod
-    def is_active(cls, config):
+    def is_active(cls, session):
         """We are only active if the profile is darwin."""
-        return (config.profile.metadata("os") == 'darwin' and
-                plugin.Command.is_active(config))
+        return (session.profile.metadata("os") == 'darwin' and
+                plugin.Command.is_active(session))
 
 
 class CatfishScanner(scan.BaseScanner):
@@ -161,9 +161,9 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
     __name = "find_kaslr"
 
     @classmethod
-    def is_active(cls, config):
-        return (super(DarwinFindKASLR, cls).is_active(config) and
-                MOUNTAIN_LION_OR_LATER(config.profile))
+    def is_active(cls, session):
+        return (super(DarwinFindKASLR, cls).is_active(session) and
+                MOUNTAIN_LION_OR_LATER(session.profile))
 
     def vm_kernel_slide_hits(self):
         """Tries to compute the KASLR slide.
@@ -403,20 +403,20 @@ class DarwinProcessFilter(DarwinPlugin):
     def args(cls, parser):
         super(DarwinProcessFilter, cls).args(parser)
         parser.add_argument("--pid",
-                            action=args.ArrayIntParser, nargs="+",
+                            action=config.ArrayIntParser, nargs="+",
                             help="One or more pids of processes to select.")
 
         parser.add_argument("--proc_regex", default=None,
                             help="A regex to select a process by name.")
 
         parser.add_argument("--phys_proc",
-                            action=args.ArrayIntParser, nargs="+",
+                            action=config.ArrayIntParser, nargs="+",
                             help="Physical addresses of proc structs.")
 
-        parser.add_argument("--proc", action=args.ArrayIntParser, nargs="+",
+        parser.add_argument("--proc", action=config.ArrayIntParser, nargs="+",
                             help="Kernel addresses of proc structs.")
 
-        parser.add_argument("--first", action=args.IntParser,
+        parser.add_argument("--first", action=config.IntParser,
                             help="Kernel addresses of first proc to start "
                             "following.")
 

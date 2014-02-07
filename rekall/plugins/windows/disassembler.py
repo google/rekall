@@ -38,7 +38,7 @@ except Exception:
 import distorm3
 import re
 
-from rekall import args
+from rekall import config
 from rekall import kb
 from rekall import plugin
 from rekall import testlib
@@ -52,7 +52,7 @@ class Disassemble(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(Disassemble, cls).args(parser)
-        parser.add_argument("offset", action=args.IntParser,
+        parser.add_argument("offset", action=config.IntParser,
                             help="An offset to disassemble.")
 
         parser.add_argument("-a", "--address_space", default="K",
@@ -62,8 +62,12 @@ class Disassemble(plugin.Command):
             "-l", "--length", default=50,
             help="The number of instructions (lines) to disassemble.")
 
-    def __init__(self, offset=0, address_space=None, length=50, mode=None,
-                 suppress_headers=False, target=None, **kwargs):
+        parser.add_argument(
+            "-e", "--end", default=None,
+            help="The end address to disassemble up to.")
+
+    def __init__(self, offset=0, address_space=None, length=50, end=None,
+                 mode=None, suppress_headers=False, target=None, **kwargs):
         """Dumps a disassembly of a location.
 
         Args:
@@ -87,6 +91,7 @@ class Disassemble(plugin.Command):
 
         self.offset = offset
         self.length = length
+        self.end = end
         self.suppress_headers = suppress_headers
         self.mode = mode or self.session.profile.metadata(
             "arch", "I386")
@@ -107,12 +112,25 @@ class Disassemble(plugin.Command):
         Returns:
           A tuple of (Address, Opcode, Instructions).
         """
-        data = self.address_space.read(offset, self.length * 10)
-        iterable = distorm3.DecodeGenerator(
-            int(offset), data, self.distorm_mode)
+        # Disassemble the data one buffer at the time.
+        while 1:
+            data = self.address_space.read(
+                offset, self.session.GetParameter("buffer_size"))
 
-        for (offset, _size, instruction, hexdump) in iterable:
-            yield offset, hexdump, instruction
+            iterable = distorm3.DecodeGenerator(
+                int(offset), data, self.distorm_mode)
+
+            for i, (offset, _size, instruction, hexdump) in enumerate(
+                iterable):
+                yield offset, hexdump, instruction
+
+                # Exit condition can be specified by length.
+                if self.length is not None and i >= self.length:
+                    return
+
+                # Exit condition can be specified by end address.
+                if self.end and offset > self.end:
+                    return
 
     def format_address(self, operand):
         # Try to locate the symbol below it.
@@ -127,32 +145,34 @@ class Disassemble(plugin.Command):
             elif 0 < difference < 0x1000:
                 return "%s + 0x%X" % (name, operand - offset)
 
-    def format_indirect(self, operand):
-        target = self.session.profile.Pointer(
-            offset=operand, vm=self.address_space)
-
+    def format_relative_address(self, address):
         # Try to locate the symbol below it.
         offset, name = self.resolver.get_nearest_constant_by_address(
-            target.v())
+            address)
+        difference = address - offset
 
-        difference = target.v() - offset
-        if not name:
-            return ""
-
-        if name.startswith("("):
-            return "0x%X @ %s" % (target.v(), name)
-
-        else:
+        if name:
             if difference == 0:
-                return "[%s]" % name
+                return "%s" % (name)
 
             elif 0 < difference < 0x1000:
-                return "0x%X [%s + 0x%X]" % (
-                    target.v(), name, target.v() - offset)
+                return "%s+0x%X" % (
+                    name, address - offset)
 
-            else:
-                return "0x%X @ %s + 0x%X" % (
-                    target.v(), name, target.v() - offset)
+        return ""
+
+    def format_indirect(self, operand):
+        target = self.session.profile.Object(
+            "address", offset=operand, vm=self.address_space).v()
+
+
+        target_name = self.format_relative_address(target)
+        operand_name = self.format_relative_address(operand)
+
+        if target_name:
+            return "0x%X %s -> %s" % (target, operand_name, target_name)
+        else:
+            return "0x%X %s" % (target, operand_name)
 
     def render(self, renderer):
         """Disassemble code at a given address.
@@ -166,24 +186,27 @@ class Disassemble(plugin.Command):
         The mode is '32bit' or '64bit'. If not supplied, the disasm
         mode is taken from the profile.
         """
-        renderer.table_header([('Address', "cmd_address", '[addrpad]'),
-                               ('Op Codes', "opcode", '<20'),
-                               ('Instruction', "instruction", '<40'),
-                               ('Comment', "comment", "")],
-                              suppress_headers=self.suppress_headers)
+        renderer.table_header(
+            [('Address', "cmd_address", '[addrpad]'),
+             ('Rel', "relative_address", '>4'),
+             ('Op Codes', "opcode", '<20'),
+             ('Instruction', "instruction", '<30'),
+             ('Comment', "comment", "")],
+            suppress_headers=self.suppress_headers)
 
         offset = 0
         regex = re.compile("0x[0-9a-fA-F]+$")
-        indirect_regex = re.compile(r"\[(0x[0-9a-fA-F]+)\]$")
+        indirect_regex = re.compile(r"\[(0x[0-9a-fA-F]+)\]")
+        last_function = 0
+        self.last_function_name = ""
 
-        for i, (offset, hexdump, instruction) in enumerate(
-            self.disassemble(self.offset)):
-            if i >= self.length:
-                break
-
-            func_name = self.resolver.get_constant_by_address(offset)
-            if func_name:
+        for offset, hexdump, instruction in self.disassemble(self.offset):
+            _, func_name = self.resolver.get_nearest_constant_by_address(
+                offset)
+            if func_name and func_name != self.last_function_name:
                 renderer.format("------ %s ------\n" % func_name)
+                last_function = offset
+                self.last_function_name = func_name
 
             comment = ""
             match = indirect_regex.search(instruction)
@@ -197,7 +220,12 @@ class Disassemble(plugin.Command):
                     operand = int(match.group(0), 16)
                     comment = self.format_address(operand) or ""
 
-            renderer.table_row(offset, hexdump, instruction, comment)
+            relative = "%X" % (offset - last_function)
+            if offset - last_function > 0x1000:
+                relative = ""
+
+            renderer.table_row(
+                offset, relative, hexdump, instruction, comment)
 
         # Continue from where we left off when the user calls us again with the
         # v() plugin.

@@ -25,13 +25,15 @@
 __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
               "by Brendan Dolan-Gavitt")
 
+# pylint: disable=protected-access
+
 import logging
 import ntpath
 import re
 import struct
 
 from rekall import addrspace
-from rekall import args
+from rekall import config
 from rekall import obj
 from rekall import utils
 
@@ -120,9 +122,10 @@ class HiveAddressSpace(HiveBaseAddressSpace):
 
         self.as_assert(hive_addr, "Hive offset not provided.")
         self.as_assert(self.base, "Must be layered on kernel address space.")
-        self.profile = RekallRegisteryImplementation(profile or self.session.profile)
+        self.profile = RekallRegisteryImplementation(
+            profile or self.session.profile)
 
-        self.hive = self.profile.Object("_CMHIVE", offset=hive_addr, vm=self.base)
+        self.hive = self.profile._CMHIVE(offset=hive_addr, vm=self.base)
         self.baseblock = self.hive.Hive.BaseBlock.v()
         self.flat = self.hive.Hive.Flat.v() > 0
         self.storage = self.hive.Hive.Storage
@@ -182,7 +185,7 @@ class HiveAddressSpace(HiveBaseAddressSpace):
 
             yield data
 
-    def stats(self, stable = True):
+    def stats(self, stable=True):
         if stable:
             stor = 0
             ci = lambda x: x
@@ -209,9 +212,14 @@ class HiveAddressSpace(HiveBaseAddressSpace):
                 bad_blocks_mem += 1
 
         print "{0} bytes in hive.".format(length)
-        print "{0} blocks not loaded by CM, {1} blocks paged out, {2} total blocks.".format(bad_blocks_reg, bad_blocks_mem, total_blocks)
+        print ("{0} blocks not loaded by CM, {1} blocks "
+               "paged out, {2} total blocks.".format(
+                bad_blocks_reg, bad_blocks_mem, total_blocks))
+
         if total_blocks:
-            print "Total of {0:.2f}% of hive unreadable.".format(((bad_blocks_reg + bad_blocks_mem) / float(total_blocks)) * 100)
+            print "Total of {0:.2f}% of hive unreadable.".format(
+                ((bad_blocks_reg + bad_blocks_mem) / float(total_blocks)
+                 ) * 100)
 
         return (bad_blocks_reg, bad_blocks_mem, total_blocks)
 
@@ -269,8 +277,8 @@ class _CM_KEY_NODE(obj.Struct):
         for list_index, count in enumerate(self.SubKeyCounts):
             if count > 0:
                 sk_offset = sk_lists[list_index]
-                for subkey in self.obj_profile.Object("_CM_KEY_INDEX", offset=sk_offset,
-                                                      vm=self.obj_vm, parent=self):
+                for subkey in self.obj_profile._CM_KEY_INDEX(
+                    offset=sk_offset, vm=self.obj_vm, parent=self):
                     yield subkey
 
     def values(self):
@@ -288,7 +296,8 @@ class _CM_KEY_NODE(obj.Struct):
         while key:
             try:
                 path.append(unicode(key.Name))
-            except AttributeError: pass
+            except AttributeError:
+                pass
             key = key.obj_parent
 
         return "/".join(reversed(path))
@@ -323,8 +332,10 @@ class _CM_KEY_INDEX(obj.Struct):
     NK_SIG = "nk"
 
     def __iter__(self):
-        """Depending on our type (from the Signature) we use different methods."""
-        if (self.Signature == self.LH_SIG or self.Signature == self.LF_SIG):
+        """Iterate over all the keys in the index.
+
+        Depending on our type (from the Signature) we use different methods."""
+        if self.Signature == self.LH_SIG or self.Signature == self.LF_SIG:
             # The List contains alternating pointers/hash elements here. We do
             # not care about the hash at all, so we skip every other entry. See
             # http://www.sentinelchicken.com/data/TheWindowsNTRegistryFileFormat.pdf
@@ -387,8 +398,9 @@ class _CM_KEY_VALUE(obj.Struct):
 
         if valtype in ["REG_DWORD", "REG_DWORD_BIG_ENDIAN", "REG_QWORD"]:
             if len(data) != struct.calcsize(self.value_formats[valtype]):
-                return obj.NoneObject("Value data did not match the expected data "
-                                      "size for a {0}".format(valtype))
+                return obj.NoneObject(
+                    "Value data did not match the expected data "
+                    "size for a {0}".format(valtype))
 
         if valtype in ["REG_SZ", "REG_EXPAND_SZ", "REG_LINK"]:
             data = data.decode('utf-16-le', "ignore")
@@ -490,7 +502,8 @@ class Registry(object):
 
 
 class RegistryHive(Registry):
-    def __init__(self, hive_offset=None, kernel_address_space=None, profile=None,
+    def __init__(self, hive_offset=None, kernel_address_space=None,
+                 profile=None,
                  session=None, **kwargs):
         """A Registry hive instantiated from the hive offsets.
 
@@ -500,7 +513,8 @@ class RegistryHive(Registry):
         """
         if session:
             profile = profile or session.profile
-            kernel_address_space = kernel_address_space or session.kernel_address_space
+            kernel_address_space = (kernel_address_space or
+                                    session.kernel_address_space)
 
         hive_address_space = HiveAddressSpace(base=kernel_address_space,
                                               hive_addr=hive_offset,
@@ -521,7 +535,7 @@ class RegistryPlugin(common.WindowsCommandPlugin):
     def args(cls, parser):
         parser.add_argument(
             "-o", "--hive-offsets", default=None,
-            action=args.ArrayIntParser, nargs="+",
+            action=config.ArrayIntParser, nargs="+",
             help="A list of hive offsets as found by hivelist. "
             "If not provided we call hivescan ourselves and list "
             "the keys on all hives.")

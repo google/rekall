@@ -28,7 +28,7 @@
 import re
 import os
 
-from rekall import args
+from rekall import config
 from rekall import utils
 from rekall.plugins import core
 from rekall.plugins.windows import common
@@ -59,12 +59,12 @@ class PrintKey(common.WindowsCommandPlugin):
                             help="Registry key to print.")
 
         parser.add_argument("-o", "--hive_offsets", default=None,
-                            action=args.ArrayIntParser, nargs="+",
-                            help = 'Hive offsets to search (virtual)')
+                            action=config.ArrayIntParser, nargs="+",
+                            help='Hive offsets to search (virtual)')
 
         parser.add_argument("-r", "--recursive", default=False,
                             action="store_true",
-                            help = 'If set print the entire subtree.')
+                            help='If set print the entire subtree.')
 
 
     def __init__(self, hive_offsets=None, key="", recursive=False, **kwargs):
@@ -107,7 +107,8 @@ class PrintKey(common.WindowsCommandPlugin):
             seen.add(hive_offset)
 
             reg = registry.RegistryHive(
-                profile=self.profile, kernel_address_space=self.kernel_address_space,
+                profile=self.profile,
+                kernel_address_space=self.kernel_address_space,
                 hive_offset=hive_offset)
 
             key = reg.open_key(self.key)
@@ -133,7 +134,8 @@ class PrintKey(common.WindowsCommandPlugin):
 
                 for subkey in key.subkeys():
                     if not subkey.Name:
-                        renderer.format("  Unknown subkey: {0}\n", subkey.Name.reason)
+                        renderer.format(
+                            "  Unknown subkey: {0}\n", subkey.Name.reason)
                     else:
                         renderer.format(u"  {1:3s} {0}\n",
                                         subkey.Name, self.voltext(subkey))
@@ -146,9 +148,10 @@ class PrintKey(common.WindowsCommandPlugin):
                         if isinstance(data, basestring):
                             utils.WriteHexdump(renderer, value.DecodedData)
                     else:
-                        renderer.format(u"{0:13} {1:15} : {3:3s} {2}\n",
-                                        value.Type, value.Name, value.DecodedData,
-                                        self.voltext(value))
+                        renderer.format(
+                            u"{0:13} {1:15} : {3:3s} {2}\n",
+                            value.Type, value.Name, value.DecodedData,
+                            self.voltext(value))
 
 
 class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
@@ -160,8 +163,9 @@ class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(RegDump, cls).args(parser)
-        parser.add_argument("-o", "--hive_offsets", action=args.ArrayIntParser,
-                            nargs="+", help='Hive offsets to search (virtual)')
+        parser.add_argument(
+            "-o", "--hive_offsets", action=config.ArrayIntParser,
+            nargs="+", help='Hive offsets to search (virtual)')
 
 
     def __init__(self, hive_offsets=None, **kwargs):
@@ -188,14 +192,16 @@ class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
         """
         if reg is None:
             reg = registry.RegistryHive(
-                profile=self.profile, kernel_address_space=self.kernel_address_space,
+                profile=self.profile,
+                kernel_address_space=self.kernel_address_space,
                 hive_offset=hive_offset)
 
         count = 0
         for data in reg.address_space.save():
             fd.write(data)
             count += len(data)
-            self.session.report_progress("Dumping {0}Mb".format(count/1024/1024))
+            self.session.report_progress(
+                "Dumping {0}Mb".format(count/1024/1024))
 
     def render(self, renderer):
         # Get all the offsets if needed.
@@ -208,14 +214,15 @@ class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
                 continue
 
             reg = registry.RegistryHive(
-                profile=self.profile, kernel_address_space=self.kernel_address_space,
+                profile=self.profile,
+                kernel_address_space=self.kernel_address_space,
                 hive_offset=hive_offset)
 
             # Make up a filename for it, should be similar to the hive name.
             filename = reg.Name.rsplit("\\", 1).pop()
 
             # Sanitize it.
-            filename = re.sub("[^a-zA-Z0-9_\-@ ]", "_", filename)
+            filename = re.sub(r"[^a-zA-Z0-9_\-@ ]", "_", filename)
 
             # Make up the path.
             path = os.path.join(self.dump_dir, filename)
@@ -244,7 +251,8 @@ class HiveDump(registry.RegistryPlugin):
         seen = set()
 
         for hive_offset in self.hive_offsets:
-            if hive_offset in seen: continue
+            if hive_offset in seen:
+                continue
 
             reg = registry.RegistryHive(
                 hive_offset=hive_offset,

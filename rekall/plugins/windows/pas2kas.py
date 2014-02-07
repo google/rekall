@@ -23,7 +23,7 @@
 
 import bisect
 
-from rekall import args
+from rekall import config
 from rekall import testlib
 from rekall.plugins.windows import common
 
@@ -41,8 +41,9 @@ class WinPas2Vas(common.WinProcessFilter):
     @classmethod
     def args(cls, parser):
         super(WinPas2Vas, cls).args(parser)
-        parser.add_argument("offsets", action=args.ArrayIntParser, nargs="+",
-                            help="A list of physical offsets to resolve.")
+        parser.add_argument(
+            "offsets", action=config.ArrayIntParser, nargs="+",
+            help="A list of physical offsets to resolve.")
 
     def __init__(self, offsets=None, **kwargs):
         """Resolves a physical address to a vertial address.
