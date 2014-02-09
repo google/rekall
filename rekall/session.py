@@ -108,10 +108,6 @@ class Cache(utils.AttributeDict):
         if filename:
             self['filename'] = filename
             self['base_filename'] = os.path.basename(filename)
-
-            # Clear the profile since the profile should be unique to each
-            # image.
-            self.profile = None
             self.session.Reset()
 
     def _set_logging(self, value):

@@ -22,7 +22,7 @@
 
 import bisect
 
-from rekall import args
+from rekall import config
 from rekall.plugins.linux import common
 
 
@@ -34,7 +34,7 @@ class LinPas2Vas(common.LinProcessFilter):
     @classmethod
     def args(cls, parser):
         super(LinPas2Vas, cls).args(parser)
-        parser.add_argument("offsets", action=args.ArrayIntParser, nargs="+",
+        parser.add_argument("offsets", action=config.ArrayIntParser, nargs="+",
                             help="A list of physical offsets to resolve.")
 
     def __init__(self, offsets=None, **kwargs):
