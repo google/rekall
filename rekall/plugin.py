@@ -88,6 +88,9 @@ class Command(object):
             session by default, if not provided. This allows users to omit
             specifying many options.
         """
+        if session is None:
+            raise InvalidArgs("A session must be provided.")
+
         self.session = session
         if kwargs:
             raise InvalidArgs(unicode(kwargs.keys()))

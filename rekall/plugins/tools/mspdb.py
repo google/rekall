@@ -1010,7 +1010,7 @@ class ParsePDB(plugin.Command):
             help="The filename of the PDB file.")
 
         parser.add_argument(
-            "--profile_class", default="Ntoskrnl",
+            "--profile_class", default="BasicPEProfile",
             help="The name of the profile implementation. ")
 
         parser.add_argument(

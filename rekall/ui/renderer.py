@@ -589,6 +589,13 @@ class TextRenderer(RendererBaseClass):
         # Make sure that our output is unicode safe.
         self.fd = UnicodeWrapper(self.fd or sys.stdout)
 
+        # The stream we write the progress on. Only write to stdout if it is a
+        # tty.
+        if sys.stdout.isatty():
+            self.progress_fd = sys.stdout
+        else:
+            self.progress_fd = None
+
     def start(self, plugin_name=None, kwargs=None):
         """The method is called when new output is required.
 
@@ -608,7 +615,11 @@ class TextRenderer(RendererBaseClass):
             self.session.progress = None
 
     def format(self, formatstring, *data):
-        self.ClearProgress()
+        # Only clear the progress if we share the same output stream as the
+        # progress.
+        if self.fd is self.progress_fd:
+            self.ClearProgress()
+
         super(TextRenderer, self).format(formatstring, *data)
 
     def write(self, data):
@@ -666,15 +677,15 @@ class TextRenderer(RendererBaseClass):
 
     def ClearProgress(self):
         """Delete the last progress message."""
-        if not sys.stdout.isatty():
+        if self.progress_fd is None:
             return
 
         # Wipe the last message.
-        sys.stdout.write("\r" + " " * self.last_message_len + "\r")
-        sys.stdout.flush()
+        self.progress_fd.write("\r" + " " * self.last_message_len + "\r")
+        self.progress_fd.flush()
 
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
-        if not sys.stdout.isatty():
+        if self.progress_fd is None:
             return
 
         # Only write once per second.
@@ -703,9 +714,16 @@ class TextRenderer(RendererBaseClass):
 
             self.ClearProgress()
 
-            sys.stdout.write(message + "\r")
+            message = " " + message + "\r"
+            # Truncate the message to the terminal width to avoid wrapping.
+            try:
+                message = message[:int(os.environ["COLUMNS"])-5]
+            except (KeyError, ValueError):
+                pass
+
+            self.progress_fd.write(message)
             self.last_message_len = len(message)
-            sys.stdout.flush()
+            self.progress_fd.flush()
 
 
 class JsonFormatter(Formatter):

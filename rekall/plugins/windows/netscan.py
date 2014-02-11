@@ -72,6 +72,7 @@ class PoolScanTcpEndpoint(common.PoolScanner):
 
     def __init__(self, **kwargs):
         super(PoolScanTcpEndpoint, self).__init__(**kwargs)
+
         self.checks = [
             ('PoolTagCheck', dict(
                     tag=self.profile.get_constant("TCP_END_POINT_POOLTAG"))),
@@ -85,19 +86,17 @@ class PoolScanTcpEndpoint(common.PoolScanner):
             ]
 
 
-class Netscan(common.PoolScannerPlugin):
+class Netscan(tcpip_vtypes.TcpipPluginMixin,
+              common.PoolScannerPlugin):
     """Scan a Vista, 2008 or Windows 7 image for connections and sockets"""
 
     __name = "netscan"
 
     @classmethod
     def is_active(cls, session):
-        return (session.profile and
-                session.profile.metadatas('os', 'major') == ('windows', '6'))
-
-    def __init__(self, **kwargs):
-        super(Netscan, self).__init__(**kwargs)
-        self.profile = tcpip_vtypes.TCPIPModifications(self.profile)
+        # This plugin works with the _TCP_ENDPOINT interfaces.
+        return (super(Netscan, cls).is_active(session) and
+                session.profile.has_type('_TCP_ENDPOINT'))
 
     def generate_hits(self):
         scanner = PoolScanTcpListener(

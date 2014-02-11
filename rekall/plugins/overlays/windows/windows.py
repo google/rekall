@@ -110,11 +110,14 @@ class RelativeOffsetMixin(object):
         if address < self.GetImageBase():
             return 0, ""
 
-        offset, name = super(
-            RelativeOffsetMixin, self).get_nearest_constant_by_address(
-            address - self.GetImageBase())
+        try:
+            offset, name = super(
+                RelativeOffsetMixin, self).get_nearest_constant_by_address(
+                address - self.GetImageBase())
 
-        return offset + self.GetImageBase(), name
+            return offset + self.GetImageBase(), name
+        except ValueError:
+            return self.GetImageBase(), "image_base"
 
 
 class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
@@ -126,6 +129,20 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
     def GetImageBase(self):
         return self.image_base
+
+    @classmethod
+    def Initialize(cls, profile):
+        super(BasicPEProfile, cls).Initialize(profile)
+
+        # Version specific support.
+        try:
+            version = ".".join(profile.metadatas("major", "minor"))
+        except TypeError:
+            # We have no idea what version it is, this can happen if we were
+            # just given a GUID and a pdb file without a kernel executable.
+            version = "6.1"
+
+        profile.set_metadata("version", version)
 
 
 class Ntoskrnl(BasicPEProfile):
@@ -147,16 +164,7 @@ class Ntoskrnl(BasicPEProfile):
 
         InstallKDDebuggerProfile(profile)
 
-        # Version specific support.
-        try:
-            version = ".".join(profile.metadatas("major", "minor"))
-        except TypeError:
-            # We have no idea what version it is, this can happen if we were
-            # just given a GUID and a pdb file without a kernel executable.
-            version = "6.1"
-
-        profile.set_metadata("version", version)
-
+        version = profile.metadata("version")
         if version in ("6.2", "6.3"):
             win8.InitializeWindows8Profile(profile)
 

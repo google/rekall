@@ -108,6 +108,7 @@ class Cache(utils.AttributeDict):
         if filename:
             self['filename'] = filename
             self['base_filename'] = os.path.basename(filename)
+
             self.session.Reset()
 
     def _set_logging(self, value):
@@ -506,7 +507,8 @@ class InteractiveSession(Session):
             name = cls.name
             if name:
                 # Use the info class to build docstrings for all plugins.
-                info_plugin = plugin.Command.classes['Info'](cls)
+                info_plugin = plugin.Command.classes['Info'](
+                    cls, session=self)
 
                 # Create a runner for this plugin and set its documentation.
                 runner = obj.Curry(

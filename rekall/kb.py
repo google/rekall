@@ -2,9 +2,10 @@
 # collect information.
 
 import bisect
+import logging
 import re
 
-from rekall import utils
+from rekall import obj
 from rekall import registry
 
 
@@ -116,30 +117,99 @@ class ParameterHook(object):
 class AddressResolver(object):
     """Wrapper around a profile which allows addresses to be resolved in it."""
 
-    def __init__(self, session):
-        self.images = [session.profile]
-        self.modules = session.plugins.modules()
+    # The format of a symbol name. Used by get_address_by_name().
+    ADDRESS_NAME_REGEX = re.compile(
+        "([^!]+)!([^ ]+)?(( *[+-] *)([0-9a-fA-Fx]+))?")
+
+    def __init__(self, session, module_plugin):
+        self.profiles = {}
+        self.modules = module_plugin
+        self.modules_by_name = {}
+        self.session = session
+
+        if module_plugin:
+            for module in module_plugin.lsmod():
+                self.modules_by_name[module.name] = module
+
+    def LoadProfileForModule(self, module):
+        if module:
+            if module.name in self.profiles:
+                return self.profiles[module.name]
+
+            try:
+                module_profile = self.session.LoadProfile(
+                    "GUID/%s" % module.RSDS.GUID_AGE)
+                module_profile.image_base = module.base
+                self.profiles[module.name] = module_profile
+
+                return module_profile
+            except ValueError:
+                # Cache the fact that we did not find this profile.
+                self.profiles[module.name] = None
+
+                logging.debug("Unable to resolve symbols in module %s",
+                              module.name)
+
+    def get_address_by_name(self, name):
+        # Can be represented as hex.
+        if name.startswith("0x"):
+            return int(name, 16)
+
+        m = self.ADDRESS_NAME_REGEX.match(name)
+        if m:
+            module_name = m.group(1)
+            symbol = m.group(2)
+
+            module = self.modules_by_name[module_name]
+            if symbol:
+                module_profile = self.LoadProfileForModule(module)
+                address = module_profile.get_constant(symbol, True)
+            else:
+                address = module.base
+
+            if m.group(3):
+                operator = m.group(4).strip()
+                offset = self.get_address_by_name(m.group(5))
+                if operator == "+":
+                    address += offset
+                else:
+                    address -= offset
+
+            return address
+
+        # name can be just a straight forward integer.
+        return int(name)
 
     def get_constant_by_address(self, address):
-        for image in self.images:
-            name = image.get_constant_by_address(address)
-            if name:
-                return name
+        address = obj.Pointer.integer_to_address(address)
+        if self.modules:
+            containing_module = self.modules.find_module(address)
+            module_profile = self.LoadProfileForModule(containing_module)
+
+            return module_profile.get_constant_by_address(address)
 
     def get_nearest_constant_by_address(self, address):
+        address = obj.Pointer.integer_to_address(address)
         nearest_offset = 0
         module_name = nearest_name = ""
+        profile = None
 
-        containing_module = self.modules.find_module(address)
-        if containing_module:
-            nearest_offset = containing_module.DllBase.v()
-            module_name = unicode(containing_module.BaseDllName)
+        # Find the containing module and see if we have a profile for it.
+        if self.modules:
+            containing_module = self.modules.find_module(address)
+            if containing_module:
+                nearest_offset = containing_module.base
+                module_name = containing_module.name
 
-        for image in self.images:
-            offset, name = image.get_nearest_constant_by_address(address)
-            if address - offset < address - nearest_offset:
-                nearest_offset = offset
-                nearest_name = name
+                # Try to load the module profile.
+                profile = self.LoadProfileForModule(containing_module)
+                if profile:
+                    offset, name = profile.get_nearest_constant_by_address(
+                        address)
+
+                    if address - offset < address - nearest_offset:
+                        nearest_offset = offset
+                        nearest_name = name
 
         if module_name:
             full_name = "%s!%s" % (module_name, nearest_name)

@@ -341,6 +341,14 @@ windows_overlay = {
 class _LDR_DATA_TABLE_ENTRY(obj.Struct):
 
     @property
+    def name(self):
+        return unicode(self.BaseDllName)
+
+    @property
+    def base(self):
+        return int(self.DllBase)
+
+    @property
     def RSDS(self):
         helper = pe_vtypes.PE(address_space=self.obj_vm,
                               image_base=self.DllBase,

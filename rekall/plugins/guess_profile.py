@@ -80,7 +80,8 @@ class ProfileHook(kb.ParameterHook):
     name = "profile"
 
     # Windows kernel pdb files.
-    KERNEL_NAMES = set(["ntoskrnl.pdb", "ntkrnlmp.pdb", "ntkrnlpa.pdb"])
+    KERNEL_NAMES = set(
+        ["ntoskrnl.pdb", "ntkrnlmp.pdb", "ntkrnlpa.pdb", "ntkrpamp.pdb"])
 
     # Darwin TEMPLATE from xnu-1699.26.8/libkern/libkern/version.h.template
     DARWIN_TEMPLATE = re.compile(

@@ -20,6 +20,7 @@ import logging
 import socket
 
 from rekall import obj
+from rekall import type_generator
 from rekall import utils
 from rekall.plugins.overlays.windows import windows
 
@@ -257,6 +258,9 @@ tcpip_vtypes_vista = {
             'CreateTime' : [0x20, ['WinFileTime', {}]],
             'LocalAddr' : [0x34, ['pointer', ['_LOCAL_ADDRESS']]],
             'InetAF' : [0x38, ['pointer', ['_INETAF']]],
+            "Endpoint": [0x50, ['Pointer', dict(
+                        target="_TCP_ENDPOINT"
+                        )]],
             'Port' : [0x3E, ['unsigned be short']],
             }],
     '_TCP_ENDPOINT': [0x1f0, { # TcpE
@@ -447,6 +451,56 @@ overlays = {
 }
 
 
+# This is not used just yet but soon!
+win7_x86_dynamic_overlays = type_generator.GenerateOverlay({
+        "_TCP_LISTENER": dict(
+            # The Owner process.
+            Owner=[
+                # Attempt 1
+                ["Disassembler", dict(
+                        start="tcpip.sys!_TcpCreateListener@8",
+                        length=300,
+                        rules=[
+                            "CALL *InetGetClientProcess",
+                            "MOV [EBX+$out], EAX",
+                            ],
+                        target="Pointer",
+                        target_args=dict(
+                            target="_EPROCESS"
+                            ),
+                        )],
+                # Attempt 2
+                ["Disassembler", dict(
+                        start="tcpip.sys!_TcpCovetNetBufferList@20",
+                        rules=[
+                            "MOV EAX, [ESI+$out]",
+                            "TEST EAX, EAX",
+                            "PUSH EAX",
+                            "CALL DWORD *PsGetProcessId",
+                            ],
+                        target="Pointer",
+                        target_args=dict(
+                            target="_EPROCESS"
+                            ),
+                        )]
+                ],
+            # Socket creation time.
+            CreateTime=[
+                ["Disassembler", dict(
+                        start="tcpip.sys!_TcpCreateListener@8",
+                        length=300,
+                        rules=[
+                            "LEA EAX, [EBX+$out]",
+                            "PUSH EAX",
+                            "CALL DWORD *KeQuerySystemTime",
+                            ],
+                        target="WinFileTime",
+                        )],
+                ],
+            ),
+        })
+
+
 
 class _TCP_LISTENER(obj.Struct):
     """Class for objects found in TcpL pools"""
@@ -518,7 +572,7 @@ class TcpipPluginMixin(object):
         super(TcpipPluginMixin, self).__init__(**kwargs)
         if self.session.tcpip_profile:
             # Get the profile from the session cache.
-            self.profile = self.session.tcpip_profile
+            self.tcpip_profile = self.session.tcpip_profile
             return
 
         # Find the proper tcpip.sys profile and merge in with this kernel
@@ -547,7 +601,7 @@ class TcpipPluginMixin(object):
         # The tcpip.sys types and kernel types interact with each other, so we
         # merge them here into a single profile.
         self.profile.merge(self.tcpip_profile)
-        self.session.tcpip_profile = self.profile
+        self.session.tcpip_profile = self.tcpip_profile
 
 
 class Tcpip(windows.BasicPEProfile):
@@ -596,6 +650,7 @@ class Tcpip(windows.BasicPEProfile):
 
             # Windows 7
             elif profile.metadata("version") == "6.1":
+                profile.add_overlay(tcpip_vtypes_vista)
                 profile.add_overlay(tcpip_vtypes_7)
 
         # Pool tags

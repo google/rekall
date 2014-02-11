@@ -62,7 +62,8 @@ setup(
 
     entry_points={
         "console_scripts": [
-            "rekal = rekall.rekal:main"
+            "rekal = rekall.rekal:main",
+            "rekall = rekall.rekal:main",
         ]
     },
 

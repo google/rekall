@@ -728,6 +728,9 @@ class Dump(plugin.Command):
         if isinstance(target, (int, long)):
             offset = target
             target = None
+        elif isinstance(target, basestring):
+            offset = self.session.address_resolver.get_address_by_name(target)
+            target = None
 
         if target is None:
             self.session.plugins.load_as(session=self.session).render(None)
