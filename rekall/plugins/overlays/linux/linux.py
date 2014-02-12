@@ -694,10 +694,10 @@ class Linux(basic.BasicClasses):
 
         # Autoguessing for old profiles that don't provide an arch.
         if not profile.metadata("arch"):
-            highest_symbol = max(profile.constants.values())
-            if highest_symbol > 2**32:
+            try:
+                profile.constant_addresses.find_gt(2**32)
                 profile.set_metadata("arch", "AMD64")
-            else:
+            except ValueError:
                 profile.set_metadata("arch", "I386")
 
         if profile.metadata("arch") == "I386":

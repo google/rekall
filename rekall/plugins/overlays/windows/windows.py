@@ -152,6 +152,24 @@ class Ntoskrnl(BasicPEProfile):
     def Initialize(cls, profile):
         super(Ntoskrnl, cls).Initialize(profile)
 
+        # Architecture not known - guess.
+        if profile.metadata("arch") is None:
+            if profile.get_obj_size("_LIST_ENTRY") == 16:
+                profile.set_metadata("arch", "AMD64")
+            else:
+                profile.set_metadata("arch", "I386")
+
+        # Select basic compiler model type.
+        if profile.metadata("arch") == "AMD64":
+            ProfileLLP64.Initialize(profile)
+
+        elif profile.metadata("arch") == "I386":
+            Profile32Bits.Initialize(profile)
+
+            # Detect if this is a PAE system. PAE systems have 64 bit PTEs:
+            if profile.get_obj_size("_MMPTE") == 8:
+                profile.set_metadata("pae", True)
+
         # Add undocumented types.
         if profile.metadata("arch") == "AMD64":
             profile.add_types(undocumented.AMD64)
