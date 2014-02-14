@@ -104,15 +104,6 @@ class Disassemble(plugin.Command):
         else:
             self.distorm_mode = distorm3.Decode64Bits
 
-        if not self.session.address_resolver:
-            try:
-                modules = self.session.plugins.modules()
-            except AttributeError:
-                modules = None
-
-            self.session.address_resolver = kb.AddressResolver(
-                self.session, modules)
-
         self.resolver = self.session.address_resolver
 
     def disassemble(self, offset):
@@ -123,7 +114,7 @@ class Disassemble(plugin.Command):
         """
         # Allow the offset to be specified as a symbol name.
         if isinstance(offset, basestring):
-            offset = self.session.address_resolver.get_address_by_name(offset)
+            offset = self.resolver.get_address_by_name(offset)
 
         # Disassemble the data one buffer at the time.
         while 1:

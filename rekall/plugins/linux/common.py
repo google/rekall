@@ -227,15 +227,19 @@ class LinProcessFilter(LinuxPlugin):
 class HeapScannerMixIn(object):
     """A mixin for converting a scanner into a heap only scanner."""
 
+    def __init__(self, task=None, **kwargs):
+      super(HeapScannerMixIn, self).__init__(**kwargs)
+      self.task = task
+
     def scan(self, offset=0, maxlen=2**64):
         for vma in self.task.mm.mmap.walk_list("vm_next"):
+            start = max(vma.vm_start, self.task.mm.start_brk)
+            end = min(vma.vm_end, self.task.mm.brk)
+
             # Only use the vmas inside the heap area.
-            if (vma.vm_start >= self.task.mm.start_brk or
-                vma.vm_end <= self.task.mm.brk):
-                for hit in super(HeapScannerMixIn, self).scan(
-                    offset=max(offset, vma.vm_start),
-                    maxlen=min(vma.vm_end-vma.vm_start, maxlen)):
-                    yield hit
+            for hit in super(HeapScannerMixIn, self).scan(
+                offset=start, maxlen=end-start):
+                yield hit
 
 
 class KernelAddressCheckerMixIn(object):
@@ -247,5 +251,3 @@ class KernelAddressCheckerMixIn(object):
         # We use the module plugin to help us local addresses inside kernel
         # modules.
         self.module_plugin = self.session.plugins.lsmod(session=self.session)
-
-

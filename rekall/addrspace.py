@@ -243,6 +243,10 @@ class BufferAddressSpace(BaseAddressSpace):
     def get_available_addresses(self):
         yield (self.base_offset, len(self.data))
 
+    def get_buffer_offset(self, offset):
+      """Returns the offset in self.data for the virtual offset."""
+      return offset - self.base_offset
+
     def __repr__(self):
         return "<%s @ %#x %s [%#X-%#X]>" % (
             self.__class__.__name__, hash(self), self.name,
@@ -446,4 +450,3 @@ class AddrSpaceError(Error):
             result += " {0}: {1}\n".format(k, v)
 
         return result
-

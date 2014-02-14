@@ -1652,8 +1652,8 @@ class Profile(object):
         ACCESS_LOG.LogFieldAccess(self.name, name, member)
 
         tmp = self._get_dummy_obj(name)
-        if tmp is None:
-            raise AttributeError("Object %s not known" % name)
+        if not tmp:
+            return tmp
 
         offset, _cls = tmp.members[member]
 
@@ -2044,6 +2044,3 @@ class ProfileModification(object):
         Args:
            A profile to be modified.
         """
-
-
-

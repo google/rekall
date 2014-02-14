@@ -843,7 +843,7 @@ class Grep(plugin.Command):
                 for _, hexdata, translated_data in utils.Hexdump(
                     data[idx-20:idx+20], width=self.context):
                     comment = ""
-                    symbol, _ = self.address_space.kb.GetSpan(offset + idx)
+                    symbol, _ = self.session.address_resolver.get_nearest_constant_by_address(offset + idx)
                     if symbol:
                         comment = "%s+0x%X" % (symbol[0].obj_name,
                                                offset + idx - int(symbol[0]))
@@ -855,5 +855,3 @@ class Grep(plugin.Command):
             offset += len(data)
 
         self.offset = offset
-
-

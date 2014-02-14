@@ -168,12 +168,7 @@ class DiscontigScanner(object):
 
 
 class PointerScanner(DiscontigScanner, BaseScanner):
-    """Scan for a bunch of pointers at the same time.
-
-    This scanner takes advantage of the fact that usually the most significant
-    bytes of a group of pointers is the same. This common part is scanned for
-    first, thereby taking advantage of the scanner skippers.
-    """
+    """Scan for a bunch of pointers at the same time."""
     def __init__(self, pointers=None, **kwargs):
         """Creates the Pointer Scanner.
 
@@ -196,39 +191,9 @@ class PointerScanner(DiscontigScanner, BaseScanner):
             self.needles.append(tmp.obj_vm.read(0, tmp.size()))
 
         # The common string between all the needles.
-        self.common = self.FindCommonString(self.needles)
         self.checks = [
-            ('StringCheck', dict(needle=self.common)),
+            ('MultiStringFinderCheck', dict(needles=self.needles)),
             ]
-
-    def FindCommonString(self, needles):
-        """Find the largest common suffix among all the needles.
-
-        Note we assume all the needles are the same size and pointers are little
-        endian (so we work from the end of the string to the beginning).
-        """
-        common = ""
-        for i in range(1, self.address_size):
-            possible_match = None
-            for needle in needles:
-                # If this does not match we stop early.
-                if possible_match is not None and possible_match != needle[-i]:
-                    return common
-
-                possible_match = needle[-i]
-
-            common = possible_match + common
-
-        return common
-
-    def scan(self, **kwargs):
-        for hit in super(PointerScanner, self).scan(**kwargs):
-            # Correct the hit for the common suffix.
-            hit -= self.address_size - len(self.common)
-            data = self.address_space.read(hit, self.address_size)
-
-            if data in self.needles:
-                yield hit
 
 
 class ScannerCheck(object):
@@ -332,14 +297,16 @@ class StringCheck(ScannerCheck):
         self.needle = needle
 
     def check(self, buffer_as, offset):
-        return buffer_as.read(offset, len(self.needle)) == self.needle
+        # Just check the buffer without needing to copy it on slice.
+        buffer_offset = buffer_as.get_buffer_offset(offset)
+        return buffer_as.data.startswith(self.needle, buffer_offset)
 
     def skip(self, buffer_as, offset):
-        data_offset = offset - buffer_as.base_offset
-
-        dindex = buffer_as.data.find(self.needle, data_offset + 1)
+        # Search the rest of the buffer for the needle.
+        buffer_offset = buffer_as.get_buffer_offset(offset)
+        dindex = buffer_as.data.find(self.needle, buffer_offset + 1)
         if dindex > -1:
-            return dindex - data_offset
+            return dindex - buffer_offset - 1
 
         # Skip entire region.
         return buffer_as.end() - offset
@@ -354,17 +321,10 @@ class RegexCheck(ScannerCheck):
         self.regex = re.compile(regex)
 
     def check(self, buffer_as, offset):
-        verify = buffer_as.read(offset, self.maxlen)
-        return bool(self.regex.match(verify))
+        m = self.regex.match(
+            buffer_as.data, offset - buffer_as.base_offset)
 
-    def skip(self, buffer_as, offset):
-        data_offset = offset - buffer_as.base_offset
-
-        m = self.regex.search(buffer_as.data[data_offset:])
-        if m:
-            return m.start() + 1
-
-        return buffer_as.end() - offset
+        return bool(m)
 
 
 class ScannerGroup(BaseScanner):

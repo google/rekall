@@ -213,6 +213,9 @@ class Session(object):
         self.renderer = renderer.RendererBaseClass.classes.get(
             self.GetParameter("renderer"), "TextRenderer")
 
+        # Make a new address resolver.
+        self.address_resolver = kb.AddressResolver(self)
+
         self._update_runners()
 
     def _update_runners(self):
