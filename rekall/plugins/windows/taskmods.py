@@ -198,9 +198,8 @@ class WinMemMap(common.WinProcessFilter):
             else:
                 ranges = task_space.get_available_addresses()
 
-            for virtual_address, length in ranges:
-                phys_address = task_space.vtop(virtual_address)
-                renderer.table_row(virtual_address, phys_address, length)
+            for virtual_address, physical_address, length in ranges:
+                renderer.table_row(virtual_address, physical_address, length)
 
 
 class WinMemDump(core.DirectoryDumperMixin, WinMemMap):

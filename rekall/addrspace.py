@@ -103,7 +103,10 @@ class BaseAddressSpace(object):
         return "\x00" * length
 
     def get_available_addresses(self):
-        """Generates address ranges as (offset, size) for by this AS."""
+        """Generates address ranges (offset, phys_offset, size) for this AS.
+
+        Address ranges must be returned ordered.
+        """
         return []
 
     def get_address_ranges(self, start=0, end=None):
@@ -136,7 +139,11 @@ class BaseAddressSpace(object):
                 yield range_start, range_end - range_start
 
     def _get_address_ranges(self):
-        """Generates merged address ranges from get_available_addresses()."""
+        """Generates merged address ranges from get_available_addresses().
+
+        TODO: Improve this to be able to take advantage of physical addresses
+        returned by get_available_addresses.
+        """
         try:
             # Try to get this from the cache.
             for x in self.cache.Get("Ranges"):
@@ -148,7 +155,7 @@ class BaseAddressSpace(object):
         contiguous_voffset = 0
         contiguous_poffset = 0
         total_length = 0
-        for (voffset, length) in self.get_available_addresses():
+        for (voffset, poffset, length) in self.get_available_addresses():
             # This can take sometime as we enumerate all the address ranges.
             if self.session:
                 self.session.report_progress(
@@ -157,7 +164,7 @@ class BaseAddressSpace(object):
 
             # Try to join up adjacent pages as much as possible.
             if (voffset == contiguous_voffset + total_length and
-                self.vtop(voffset) == contiguous_poffset + total_length):
+                poffset == contiguous_poffset + total_length):
                 total_length += length
 
             else:
@@ -166,7 +173,7 @@ class BaseAddressSpace(object):
 
                 # Reset the contiguous range.
                 contiguous_voffset = voffset
-                contiguous_poffset = self.vtop(voffset) or 0
+                contiguous_poffset = poffset or 0
                 total_length = length
 
         if total_length > 0:
@@ -241,7 +248,7 @@ class BufferAddressSpace(BaseAddressSpace):
         return True
 
     def get_available_addresses(self):
-        yield (self.base_offset, len(self.data))
+        yield (self.base_offset, self.base_offset, len(self.data))
 
     def __repr__(self):
         return "<%s @ %#x %s [%#X-%#X]>" % (
@@ -352,8 +359,10 @@ class PagedReader(BaseAddressSpace):
         return vaddr is not None and self.base.is_valid_address(vaddr)
 
     def get_available_addresses(self):
-        for start, length in self.get_available_pages():
-            yield start * self.PAGE_SIZE, length * self.PAGE_SIZE
+        for vstart, pstart, length in self.get_available_pages():
+            yield (vstart * self.PAGE_SIZE,
+                   pstart * self.PAGE_SIZE,
+                   length * self.PAGE_SIZE)
 
 
 class RunBasedAddressSpace(PagedReader):
@@ -413,8 +422,8 @@ class RunBasedAddressSpace(PagedReader):
         return self.vtop(addr) is not None
 
     def get_available_addresses(self):
-        for start, _, length in self.runs:
-            yield start, length
+        for start, file_address, length in self.runs:
+            yield start, file_address, length
 
 
 

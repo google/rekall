@@ -82,7 +82,7 @@ class ImageCopy(plugin.PhysicalASMixin, plugin.Command):
         blocksize = 1024 * 1024 * 5
         with open(self.output_image, "wb") as fd:
             for _ in self.address_space.get_available_addresses():
-                range_offset, range_length = _
+                range_offset, phys_range_offset, range_length = _
                 renderer.format("Range {0:#x} - {1:#x}\n",
                                 range_offset, range_length)
 

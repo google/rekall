@@ -116,7 +116,8 @@ class CertScan(core.DirectoryDumperMixin, plugin.PhysicalASMixin,
         renderer.table_header(headers)
 
         scanner = CertScanner(address_space=self.physical_address_space,
-                              profile=basic.Profile32Bits())
+                              profile=basic.Profile32Bits(),
+                              session=self.session)
 
         for hit, type, data, description in scanner.scan():
             args = [hit, type, len(data)]

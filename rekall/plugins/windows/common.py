@@ -57,7 +57,7 @@ class AbstractWindowsCommandPlugin(plugin.PhysicalASMixin,
                 session.profile.metadata("os") == 'windows')
 
 
-class WinDTBScanner(scan.DiscontigScanner, scan.BaseScanner):
+class WinDTBScanner(scan.BaseScanner):
     def __init__(self, process_name=None, **kwargs):
         super(WinDTBScanner, self).__init__(**kwargs)
         needle_process_name = process_name or "Idle"
@@ -259,7 +259,7 @@ class CheckPoolIndex(scan.ScannerCheck):
         return pool_hdr.PoolIndex == self.value
 
 
-class PoolScanner(scan.DiscontigScanner, scan.BaseScanner):
+class PoolScanner(scan.BaseScanner):
     """A scanner for pool allocations."""
 
     # These objects are allocated in the pool allocation.

@@ -5,10 +5,13 @@ from rekall import config
 from rekall import plugin
 from rekall import scan
 from rekall.plugins.addrspaces import amd64
+from rekall.plugins.addrspaces import intel
 from rekall.plugins.overlays import basic
 
 import struct
 
+
+ONE_GB = 1024 * 1024 * 1024
 
 KNOWN_REVISION_IDS = {
     # Intel VT-x microarchitectures.
@@ -16,6 +19,7 @@ KNOWN_REVISION_IDS = {
     0x0e: "NEHALEM",
     0x0f: "WESTMERE",
     0x10: "SANDYBRIDGE",
+    0x12: "HASWELL",
     }
 
 
@@ -34,101 +38,37 @@ class VMCSProfile(basic.ProfileLP64):
     for each data type.
     """
 
-    vmcs_vtype_64 = {
-        # The base VMCS structure
-        "VMCS": [0x0, {
-            "REVISION_ID": [0, ["BitField", {
-                "start_bit": 0,
-                "end_bit": 30,
-                "target": "unsigned int"
-                }]],
-            "IS_SHADOW_VMCS": [0, ["BitField", {
-                "start_bit": 31,
-                "end_bit": 32,
-                "target": "unsigned int",
-                }]],
-            "ABORT_INDICATOR": [4, ["unsigned int"]],
-            }],
-        "PENRYN_VMCS": [0x0, {
-            "REVISION_ID": [0, ["BitField", {
-                "start_bit": 0,
-                "end_bit": 30,
-                "target": "unsigned int",
-                }]],
-            "IS_SHADOW_VMCS": [0, ["BitField", {
-                "start_bit": 31,
-                "end_bit": 32,
-                "target": "unsigned int",
-                }]],
-            "ABORT_INDICATOR": [4, ["unsigned int"]],
-            "GUEST_CR4": [784, ["unsigned long long"]],
-            "HOST_CR3": [904, ["unsigned long long"]],
-            "HOST_CR4": [912, ["unsigned long long"]],
-            "VMCS_LINK_POINTER": [32, ["unsigned int"]],
-            "VMCS_LINK_POINTER_HIGH": [36, ["unsigned int"]],
-            }],
-        "NEHALEM_VMCS": [0x0, {
-            "REVISION_ID": [0, ["BitField", {
-                "start_bit": 0,
-                "end_bit": 30,
-                "target": "unsigned int",
-                }]],
-            "IS_SHADOW_VMCS": [0, ["BitField", {
-                "start_bit": 31,
-                "end_bit": 32,
-                "target": "unsigned int",
-                }]],
-            "ABORT_INDICATOR": [4, ["unsigned int"]],
-            "GUEST_CR4": [744, ["unsigned long long"]],
-            "HOST_CR3": [832, ["unsigned long long"]],
-            "HOST_CR4": [840, ["unsigned long long"]],
-            "VMCS_LINK_POINTER": [248, ["unsigned int"]],
-            "VMCS_LINK_POINTER_HIGH": [252, ["unsigned int"]],
-            "EPT_POINTER": [232, ["unsigned long long"]],
-            }],
-        "WESTMERE_VMCS": [0x0, {
-            "REVISION_ID": [0, ["BitField", {
-                "start_bit": 0,
-                "end_bit": 30,
-                "target": "unsigned int",
-                }]],
-            "IS_SHADOW_VMCS": [0, ["BitField", {
-                "start_bit": 31,
-                "end_bit": 32,
-                "target": "unsigned int",
-                }]],
-            "ABORT_INDICATOR": [4, ["unsigned int"]],
-            "GUEST_CR4": [744, ["unsigned long long"]],
-            "HOST_CR3": [832, ["unsigned long long"]],
-            "HOST_CR4": [840, ["unsigned long long"]],
-            "VMCS_LINK_POINTER": [248, ["unsigned int"]],
-            "VMCS_LINK_POINTER_HIGH": [252, ["unsigned int"]],
-            "EPT_POINTER": [320, ["unsigned long long"]],
-            }],
-        "SANDYBRIDGE_VMCS": [0x0, {
-            "REVISION_ID": [0, ["BitField", {
-                "start_bit": 0,
-                "end_bit": 30,
-                "target": "unsigned int",
-                }]],
-            "IS_SHADOW_VMCS": [0, ["BitField", {
-                "start_bit": 31,
-                "end_bit": 32,
-                "target": "unsigned int",
-                }]],
-            "ABORT_INDICATOR": [4, ["unsigned int"]],
-            "GUEST_CR4": [744, ["unsigned long long"]],
-            "HOST_CR3": [832, ["unsigned long long"]],
-            "HOST_CR4": [840, ["unsigned long long"]],
-            "VMCS_LINK_POINTER": [248, ["unsigned int"]],
-            "VMCS_LINK_POINTER_HIGH": [252, ["unsigned int"]],
-            "EPT_POINTER": [232, ["unsigned long long"]],
-            }],
-    }
 
-    def __init__(self, **kwargs):
-        super(VMCSProfile, self).__init__(**kwargs)
-        self.add_types(self.vmcs_vtype_64)
+class VMCSCheck(scan.ScannerCheck):
+    def check(self, buffer_as, offset):
+        # CHECK 1: Verify that the VMX-Abort indicator has a known value.
+        #
+        # The VMX-Abort indicator field is always at offset 4 in the VMCS
+        # and is a 32-bit field.
+        # This field should be 0 unless the memory image was taken while a
+        # VMX-abort occurred, which is fairly unlikely. Also, if a VMX-abort
+        # occurs, only a set of values are supposed to be set.
+        if buffer_as.read(offset+4, 4) in KNOWN_ABORT_INDICATOR_CODES:
+            # Obtain the Revision ID
+            (revision_id,) = struct.unpack_from("<I", buffer_as.read(offset, 4))
+            revision_id = revision_id & 0x7FFFFFFF
+
+            # Obtain a VMCS object based on the revision_id
+            try:
+                platform = KNOWN_REVISION_IDS.get(revision_id)
+                if platform is not None:
+                    vmcs_obj = self.profile.Object("%s_VMCS" % platform,
+                                                   offset=offset,
+                                                   vm=buffer_as)
+                    # CHECK 2: Verify that the VMCS has the VMX flag enabled.
+                    if vmcs_obj.HOST_CR4 & 0x2000:
+                        # CHECK 3: Verify that VMCS_LINK_POINTER is
+                        # 0xFFFFFFFFFFFFFFFF.
+                        if (vmcs_obj.VMCS_LINK_PTR_FULL == 0xFFFFFFFFFFFFFFFF):
+                            return True
+            except (AttributeError, TypeError):
+                pass
+        return False
 
 
 class VMCSScanner(scan.BaseScanner):
@@ -139,69 +79,67 @@ class VMCSScanner(scan.BaseScanner):
     to identify VT-x hypervisors.
     """
 
+    overlap = 0
+
+    checks = [["VMCSCheck", {}]]
+
     def __init__(self, **kwargs):
         super(VMCSScanner, self).__init__(**kwargs)
-        # Temporary address space
-        self._buffer_as = addrspace.BufferAddressSpace()
-        self.profile = VMCSProfile()
+        self.profile = self.session.LoadProfile("VMCS")
 
     def scan(self, offset=0, **_):
-        """We overwrite scan to achieve maximum scanning speed."""
+        """Returns instances of VMCS objects found."""
 
-        maxlen = list(self.address_space.get_available_addresses())[-1][1]
-        for cur_offset in range(offset, maxlen, 0x1000):
-            current_hypervisor = self.address_space.read(cur_offset, 0x1000)
-            # Update our temporary buffer address space
-            self._buffer_as.assign_buffer(current_hypervisor,
-                                         base_offset=cur_offset)
-
-           # CHECK 1: Verify that the VMX-Abort indicator has a known value.
-           #
-           # The VMX-Abort indicator field is always at offset 4 in the VMCS
-           # and is a 32-bit field.
-           # This field should be 0 unless the memory image was taken while a
-           # VMX-abort occurred, which is fairly unlikely. Also, if a VMX-abort
-           # occurs, only a set of values are supposed to be set.
-           #
-            if not current_hypervisor[4:8] in KNOWN_ABORT_INDICATOR_CODES:
-                continue
-
-            # Obtain the Revision ID
-            (revision_id,) = struct.unpack_from("<I", current_hypervisor)
+        for offset in super(VMCSScanner, self).scan(offset=offset):
+            (revision_id,) = struct.unpack("<I",
+                                           self.address_space.read(offset, 4))
             revision_id = revision_id & 0x7FFFFFFF
+            vmcs_obj = self.profile.Object(
+                "%s_VMCS" % KNOWN_REVISION_IDS.get(revision_id),
+                offset=offset, vm=self.address_space)
 
-            # Obtain a VMCS object based on the revision_id
-            try:
-                platform = KNOWN_REVISION_IDS.get(revision_id)
-                if platform is None:
-                    continue
-                vmcs_obj = self.profile.Object("%s_VMCS" % platform,
-                                               offset=cur_offset,
-                                               vm=self._buffer_as)
-            except (AttributeError, TypeError):
-                continue
+            yield vmcs_obj
 
-            # CHECK 2: Verify that the VMCS has the VMX flag enabled.
-            if not vmcs_obj.HOST_CR4 & 0x2000:
-                continue
+    def validate_vmcs(self, vmcs_obj):
+      """Validates that the VMCS is mapped in the page tables of HOST_CR3.
 
-            # CHECK 3: Verify that the VMCS_LINK_POINTER is 0xFFFFFFFFFFFFFFFF.
-            if (vmcs_obj.VMCS_LINK_POINTER ==
-                vmcs_obj.VMCS_LINK_POINTER_HIGH == 0xFFFFFFFF):
-                # Assign the proper address_space for the candidate.
-                vmcs_obj.obj_vm = self.address_space
+      Returns a tuple of (validates, host_as_type, host_as_size).
+      """
+      validated = False
+      if not vmcs_obj.HOST_CR4 & (1 << 5):  # PAE bit
+          # No PAE
+          validation_as = intel.IA32PagedMemory(
+              dtb=vmcs_obj.HOST_CR3, base=self.address_space)
+          host_as_type = "32bit"
 
-                # VALIDATION: Verify that the EPT translation works.
-                # Note that this validation may fail for nested VMCS.
-                validation_as = amd64.VTxPagedMemory(ept=vmcs_obj.EPT_POINTER,
-                                                     base=self.address_space)
-                validated = False
-                for _ in validation_as.get_available_addresses():
-                    validated = True
-                    break
+      elif not vmcs_obj.EXIT_CONTROLS & (1 << 9):  # long mode bit
+          # PAE and no long mode = 32bit PAE
+          validation_as = intel.IA32PagedMemoryPae(
+              dtb=vmcs_obj.HOST_CR3, base=self.address_space)
+          host_as_type = "32bit+PAE"
 
-                yield vmcs_obj, cur_offset, validated
+      elif vmcs_obj.EXIT_CONTROLS & (1 << 9):  # long mode bit
+          # Long mode AND PAE = IA-32e
+          validation_as = amd64.AMD64PagedMemory(
+              dtb=vmcs_obj.HOST_CR3, base=self.address_space)
+          host_as_type = "64bit"
+      else:
+          # We don't have an address space for other paging modes
+          return validated, None, None
 
+      # The size of the AS of the host
+      as_size = 0
+      for vaddr, paddr, size in validation_as.get_available_addresses():
+          as_size += size
+
+          if self.session:
+              self.session.report_progress("Validating VMCS %08X @ %08X" %
+                  (vmcs_obj.obj_offset, vaddr))
+          if (paddr <= vmcs_obj.obj_offset and
+              vmcs_obj.obj_offset < paddr + size):
+              validated = True
+              break
+      return validated, host_as_type, as_size
 
     def skip(self, buffer_as, offset):
         return 0x1000
@@ -219,6 +157,8 @@ class VmScan(plugin.PhysicalASMixin, plugin.Command):
         + Westmere
         + Nehalem
         + Sandybridge
+        + Ivy Bridge
+        + Haswell
 
       * Intel VT-X without EPT (unsupported page translatioa in rekall).
         + Penryn
@@ -233,16 +173,21 @@ class VmScan(plugin.PhysicalASMixin, plugin.Command):
         """Declare the command line args we accept."""
         super(VmScan, cls).args(parser)
         parser.add_argument(
+            "--no_validation", default=False,
+            action="store_true", help="Validate each VMCS.")
+        parser.add_argument(
             "--hypervisor_details", default=False,
             action="store_true", help="Show details about each hypervisor.")
         parser.add_argument(
             "--offset", action=config.IntParser, default=0,
             help="Offset in the physical image to start the scan.")
 
-    def __init__(self, offset=0, hypervisor_details=False, **kwargs):
+    def __init__(self, offset=0, hypervisor_details=False, no_validation=False,
+                 **kwargs):
         super(VmScan, self).__init__(**kwargs)
         self._offset = offset
         self._hypervisor_details = hypervisor_details
+        self._validate = not no_validation
 
     def render(self, renderer=None):
         scanner = VMCSScanner(address_space=self.physical_address_space,
@@ -250,16 +195,28 @@ class VmScan(plugin.PhysicalASMixin, plugin.Command):
         renderer.table_header([("Offset", "offset", "[addrpad]"),
                                ("Type", "type", ">20s"),
                                ("EPT", "ept", "[addrpad]"),
-                               ("Valid", "valid", ">6s"),
+                               ("Valid", "valid", ">10s"),
+                               ("Host AS type", "valid", ">14s"),
+                               ("Host AS size (GB)", "valid", ">17s"),
                                ])
         hypervisors = [hypervisor for hypervisor in
                        scanner.scan(offset=self._offset)]
 
-        for (vmcs, vmcs_offset, valid) in hypervisors:
+        for vmcs in hypervisors:
+            valid = as_type = as_size = None
+
+            if self._validate:
+                valid, as_type, as_size = scanner.validate_vmcs(vmcs)
+                try:
+                    as_size = '%12.02f' % (as_size / float(ONE_GB))
+                except TypeError:
+                    pass
+
             renderer.table_row(vmcs.obj_offset, vmcs.obj_name,
-                               vmcs.m("EPT_POINTER"), valid)
+                               vmcs.m("EPT_POINTER_FULL"), valid,
+                               as_type, as_size)
 
         if self._hypervisor_details:
-            for (vmcs, vmcs_offset, valid) in hypervisors:
+            for vmcs, valid in hypervisors:
                 renderer.section("Hypervisor @ %#x" % vmcs_offset)
                 self.session.plugins.p(vmcs).render(renderer)

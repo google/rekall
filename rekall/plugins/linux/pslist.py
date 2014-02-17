@@ -108,8 +108,7 @@ class LinMemMap(common.LinProcessFilter):
             else:
                 ranges = task_space.get_available_addresses()
 
-            for virtual_address, length in ranges:
-                phys_address = task_space.vtop(virtual_address)
+            for virtual_address, phys_address, length in ranges:
                 renderer.table_row(virtual_address, phys_address, length)
 
 

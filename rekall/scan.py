@@ -24,8 +24,8 @@ import ahocorasick
 import re
 
 from rekall import addrspace
-from rekall import registry
 from rekall import constants
+from rekall import registry
 
 
 class BaseScanner(object):
@@ -50,6 +50,8 @@ class BaseScanner(object):
         self.max_length = None
         self.base_offset = None
         self.session = session
+        self.scan_buffer_offset = None
+        self.buffer_as = addrspace.BufferAddressSpace()
 
     def build_constraints(self):
         self.constraints = []
@@ -108,66 +110,75 @@ class BaseScanner(object):
         Yields:
           offsets where all the constrainst are satisfied.
         """
-        if maxlen is None:
-            last_range = list(self.address_space.get_available_addresses())[-1]
-            maxlen = last_range[0] + last_range[1]
+        maxlen = maxlen or 2**64
+        end = offset + maxlen
 
         # Delay building the constraints so they can be added after scanner
         # construction.
         if self.constraints is None:
             self.build_constraints()
 
-        # Start scanning from offset until maxlen:
-        i = offset
+        # We try to optimize the scanning by first merging contiguous ranges
+        # and then passing up to constants.SCAN_BLOCKSIZE bytes to the checkers
+        # and skippers.
+        #
+        # If range has less data than the block size, then the full range is
+        # scanned at once.
+        #
+        # If a range is larger than the block size, it's split in chunks until
+        # it's fully consumed. Overlap is applied only in this case, starting
+        # from the second chunk.
 
-        buffer_as = addrspace.BufferAddressSpace()
-        while i < offset + maxlen:
-            # Update the progress bar.
-            if self.session:
-                self.session.report_progress(
-                    "Scanning 0x%08X with %s" % (i, self.__class__.__name__))
-
-            # Refresh the buffer if current index is too close to the end.
-            if i + self.overlap > buffer_as.end():
-                # Current region is not valid.
-                if not self.address_space.is_valid_address(i):
-                    break
-
-                to_read = min(constants.SCAN_BLOCKSIZE, maxlen - (i - offset))
-
-                # Refresh the data buffer.
-                buffer_as.assign_buffer(
-                    self.address_space.read(i, to_read), base_offset=i)
-
-            # Check the current offset for a match.
-            if self.check_addr(i, buffer_as=buffer_as):
-                yield i
-
-            # First check if we can skip this point.
-            skip = self.skip(buffer_as, i)
-            i += skip
-
-
-class DiscontigScanner(object):
-    """A Mixin for Discontiguous scanning."""
-
-    def scan(self, offset=0, maxlen=None):
-        maxlen = maxlen or 2**64
-        end = offset + maxlen
-
-        for (start, length) in self.address_space.get_available_addresses():
-            if start < offset:
+        for (range_start, range_length) in self.address_space.get_address_ranges():
+            # Find a new range if offset is past this range.
+            if range_start + range_length < offset:
                 continue
 
-            if start > end:
+            # Stop searching for ranges if this is past end.
+            if range_start > end:
                 break
 
-            for match in super(DiscontigScanner, self).scan(
-                start, maxlen=min(length, end - start)):
-                yield match
+            # Calculate where in the range we'll be reading data from.
+            # Covers the case where offset falls within a range.
+            chunk_offset = max(offset - range_start, 0)
+            # Keep scanning this range as long as the current chunk isn't
+            # past the end.
+            while chunk_offset < maxlen and chunk_offset < range_length:
+                if self.session:
+                    self.session.report_progress(
+                        "Scanning 0x%08X with %s" %
+                        (chunk_offset, self.__class__.__name__))
+                # We'll read with overlap, making sure we don't go below 0.
+                chunk_offset = max(chunk_offset - self.overlap, 0)
+                chunk_size = min(range_length - chunk_offset,
+                                 constants.SCAN_BLOCKSIZE)
+
+                # Adjust chunk_size if the chunk we're gonna read goes past
+                # maxlen or we could end up scanning more data than requested.
+                chunk_size = min(chunk_size,
+                                 maxlen - chunk_offset - range_start)
+                where_to_read = range_start + chunk_offset
+
+                # Consume the next block in this range being careful as
+                # sometimes we may get a range that's actually outside of the
+                # base address space bounds.
+                buffer_as = addrspace.BufferAddressSpace()
+                buffer_as.assign_buffer(
+                    self.address_space.read(where_to_read, chunk_size),
+                    base_offset=where_to_read)
+
+                scan_offset = where_to_read
+                while scan_offset < where_to_read + chunk_size:
+                    # Check the current offset for a match.
+                    if self.check_addr(scan_offset, buffer_as=buffer_as):
+                        yield scan_offset
+
+                    # Skip as much data as the skippers tell us to.
+                    chunk_offset += self.skip(buffer_as, scan_offset)
+                    scan_offset = range_start + chunk_offset
 
 
-class PointerScanner(DiscontigScanner, BaseScanner):
+class PointerScanner(BaseScanner):
     """Scan for a bunch of pointers at the same time.
 
     This scanner takes advantage of the fact that usually the most significant

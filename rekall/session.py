@@ -326,7 +326,7 @@ class Session(object):
 
         output = kwargs.pop("output", None)
 
-       # Select the renderer from the session or from the kwargs.
+        # Select the renderer from the session or from the kwargs.
         if not isinstance(ui_renderer, renderer.RendererBaseClass):
             ui_renderer_cls = self.renderer or renderer.TextRenderer
 

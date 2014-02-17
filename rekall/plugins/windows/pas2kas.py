@@ -105,8 +105,7 @@ class WinPas2Vas(common.WinProcessFilter):
         # This lookup map is sorted by the physical address. We then use
         # bisect to efficiently look up the physical page.
         tmp_lookup_map = []
-        for va, length in virtual_address_space.get_available_addresses():
-            pa = virtual_address_space.vtop(va)
+        for va, pa, length in virtual_address_space.get_available_addresses():
             tmp_lookup_map.append((pa, length, va, task))
 
         tmp_lookup_map.sort()
