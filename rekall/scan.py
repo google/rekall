@@ -129,9 +129,10 @@ class BaseScanner(object):
         # it's fully consumed. Overlap is applied only in this case, starting
         # from the second chunk.
 
-        for (range_start, range_length) in self.address_space.get_address_ranges():
+        for (range_start, length) in self.address_space.get_address_ranges():
             # Find a new range if offset is past this range.
-            if range_start + range_length < offset:
+            range_end = range_start + length
+            if range_end < offset:
                 continue
 
             # Stop searching for ranges if this is past end.
@@ -140,42 +141,46 @@ class BaseScanner(object):
 
             # Calculate where in the range we'll be reading data from.
             # Covers the case where offset falls within a range.
-            chunk_offset = max(offset - range_start, 0)
+            start = max(range_start, offset)
+
+            # Store where this chunk will start. Absolute offset.
+            chunk_offset = start
+
             # Keep scanning this range as long as the current chunk isn't
-            # past the end.
-            while chunk_offset < maxlen and chunk_offset < range_length:
+            # past the end of the range or the end of the scanner.
+            while chunk_offset < end and chunk_offset < range_end:
                 if self.session:
                     self.session.report_progress(
                         "Scanning 0x%08X with %s" %
                         (chunk_offset, self.__class__.__name__))
-                # We'll read with overlap, making sure we don't go below 0.
-                chunk_offset = max(chunk_offset - self.overlap, 0)
-                chunk_size = min(range_length - chunk_offset,
-                                 constants.SCAN_BLOCKSIZE)
+                # We'll read with overlap, making sure we don't go below
+                # start.
+                chunk_offset = max(start, chunk_offset - self.overlap)
+
+                # Our chunk is SCAN_BLOCKSIZE long or as much data there's
+                # left in the range.
+                chunk_size = min(constants.SCAN_BLOCKSIZE,
+                                 range_end - chunk_offset)
 
                 # Adjust chunk_size if the chunk we're gonna read goes past
-                # maxlen or we could end up scanning more data than requested.
-                chunk_size = min(chunk_size,
-                                 maxlen - chunk_offset - range_start)
-                where_to_read = range_start + chunk_offset
+                # the end or we could end up scanning more data than requested.
+                chunk_size = min(chunk_size, end - chunk_offset)
 
-                # Consume the next block in this range being careful as
-                # sometimes we may get a range that's actually outside of the
-                # base address space bounds.
+                # Consume the next block in this range.
                 buffer_as = addrspace.BufferAddressSpace()
                 buffer_as.assign_buffer(
-                    self.address_space.read(where_to_read, chunk_size),
-                    base_offset=where_to_read)
+                    self.address_space.read(chunk_offset, chunk_size),
+                    base_offset=chunk_offset)
 
-                scan_offset = where_to_read
-                while scan_offset < where_to_read + chunk_size:
+                scan_offset = chunk_offset
+                while scan_offset < chunk_offset + chunk_size:
                     # Check the current offset for a match.
                     if self.check_addr(scan_offset, buffer_as=buffer_as):
                         yield scan_offset
 
                     # Skip as much data as the skippers tell us to.
-                    chunk_offset += self.skip(buffer_as, scan_offset)
-                    scan_offset = range_start + chunk_offset
+                    scan_offset += self.skip(buffer_as, scan_offset)
+                chunk_offset = scan_offset
 
 
 class PointerScanner(BaseScanner):
