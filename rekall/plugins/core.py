@@ -435,7 +435,7 @@ class LoadAddressSpace(plugin.Command):
         """Loads an address space by stacking valid ASes on top of each other
         (priority order first).
         """
-        base_as = base_as or obj.NoneObject("Address space not found.")
+        base_as = base_as
         error = addrspace.AddrSpaceError()
 
         address_spaces = sorted(addrspace.BaseAddressSpace.classes.values(),

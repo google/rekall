@@ -61,7 +61,7 @@ config.DeclareOption("-f", "--filename",
                      help="The raw image to load.")
 
 config.DeclareOption(
-    "--buffer_size", default=10*1024*1024,
+    "--buffer_size", default=20*1024*1024,
     action=config.IntParser,
     help="The maximum size of buffers we are allowed to read. "
     "This is used to control Rekall memory usage.")

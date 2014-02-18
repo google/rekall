@@ -74,7 +74,7 @@ class BaseAddressSpace(object):
             logging.error("Unknown keyword args {0} for {1}".format(
                     kwargs, self.__class__.__name__))
 
-        self.base = base
+        self.base = base or self
         self.profile = profile
         self.session = session
         self.writeable = (
@@ -121,29 +121,26 @@ class BaseAddressSpace(object):
         if end is None:
             end = 0xfffffffffffff
 
-        for offset, length in self._get_address_ranges():
+        for voffset, poffset, length in self._get_address_ranges():
             # The entire range is below what is required - ignore it.
-            if offset + length < start:
+            if voffset + length < start:
                 continue
 
             # The range starts after the address we care about - we are done.
-            if offset > end:
+            if voffset > end:
                 return
 
             # Clip the bottom of the range to the start point, and the end of
             # the range to the end point.
-            range_start = max(start, offset)
-            range_end = min(end, offset + length)
+            range_start = max(start, voffset)
+            phys_range_start = poffset + range_start - voffset
+            range_end = min(end, voffset + length)
 
             if range_end > range_start:
-                yield range_start, range_end - range_start
+                yield range_start, phys_range_start, range_end - range_start
 
     def _get_address_ranges(self):
-        """Generates merged address ranges from get_available_addresses().
-
-        TODO: Improve this to be able to take advantage of physical addresses
-        returned by get_available_addresses.
-        """
+        """Generates merged address ranges from get_available_addresses()."""
         try:
             # Try to get this from the cache.
             for x in self.cache.Get("Ranges"):
@@ -168,8 +165,8 @@ class BaseAddressSpace(object):
                 total_length += length
 
             else:
-                result.append((contiguous_voffset, total_length))
-                yield (contiguous_voffset, total_length)
+                result.append((contiguous_voffset, contiguous_poffset, total_length))
+                yield (contiguous_voffset, contiguous_poffset, total_length)
 
                 # Reset the contiguous range.
                 contiguous_voffset = voffset
@@ -177,8 +174,8 @@ class BaseAddressSpace(object):
                 total_length = length
 
         if total_length > 0:
-            result.append((contiguous_voffset, total_length))
-            yield (contiguous_voffset, total_length)
+            result.append((contiguous_voffset, contiguous_poffset, total_length))
+            yield (contiguous_voffset, contiguous_poffset, total_length)
 
         # Cache this for next time.
         self.cache.Put("Ranges", result)
@@ -228,7 +225,7 @@ class BufferAddressSpace(BaseAddressSpace):
         super(BufferAddressSpace, self).__init__(**kwargs)
         self.fname = "Buffer"
         self.data = data
-        self.base = None
+        self.base = self
         self.base_offset = base_offset
 
     def assign_buffer(self, data, base_offset=0):
@@ -381,7 +378,7 @@ class RunBasedAddressSpace(PagedReader):
 
         # Mapping not valid.
         if file_offset is None:
-            return "\x00" * available_length
+            return "\x00" * length
 
         else:
             return self.base.read(file_offset, min(length, available_length))

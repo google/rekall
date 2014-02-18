@@ -129,7 +129,10 @@ class BaseScanner(object):
         # it's fully consumed. Overlap is applied only in this case, starting
         # from the second chunk.
 
-        for (range_start, length) in self.address_space.get_address_ranges():
+        for (range_start,
+             phys_start,
+             length) in self.address_space.get_address_ranges(
+                 offset, offset+maxlen):
             # Find a new range if offset is past this range.
             range_end = range_start + length
             if range_end < offset:
@@ -153,9 +156,8 @@ class BaseScanner(object):
                     self.session.report_progress(
                         "Scanning 0x%08X with %s" %
                         (chunk_offset, self.__class__.__name__))
-                # We'll read with overlap, making sure we don't go below
-                # start.
-                chunk_offset = max(start, chunk_offset - self.overlap)
+
+                chunk_offset = max(start, chunk_offset)
 
                 # Our chunk is SCAN_BLOCKSIZE long or as much data there's
                 # left in the range.
@@ -166,10 +168,12 @@ class BaseScanner(object):
                 # the end or we could end up scanning more data than requested.
                 chunk_size = min(chunk_size, end - chunk_offset)
 
+                phys_chunk_offset = phys_start + (chunk_offset - range_start)
                 # Consume the next block in this range.
-                buffer_as = addrspace.BufferAddressSpace()
-                buffer_as.assign_buffer(
-                    self.address_space.read(chunk_offset, chunk_size),
+                buffer_as = addrspace.BufferAddressSpace(
+                    session=self.session,
+                    data=self.address_space.base.read(
+                        phys_chunk_offset, chunk_size + self.overlap),
                     base_offset=chunk_offset)
 
                 scan_offset = chunk_offset
@@ -179,7 +183,8 @@ class BaseScanner(object):
                         yield scan_offset
 
                     # Skip as much data as the skippers tell us to.
-                    scan_offset += self.skip(buffer_as, scan_offset)
+                    scan_offset += min(chunk_size,
+                                       self.skip(buffer_as, scan_offset))
                 chunk_offset = scan_offset
 
 
@@ -425,7 +430,7 @@ class DiscontigScannerGroup(ScannerGroup):
     def scan(self, offset=0, maxlen=None):
         maxlen = maxlen or self.profile.get_constant("MaxPointer")
 
-        for (start, length) in self.address_space.get_address_ranges(
+        for (start, pstart, length) in self.address_space.get_address_ranges(
             offset, offset + maxlen):
             for match in super(DiscontigScannerGroup, self).scan(
                 start, maxlen=length):
