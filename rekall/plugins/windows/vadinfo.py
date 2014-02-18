@@ -337,7 +337,7 @@ class VadScanner(scan.BaseScanner):
 
         for vad in self.task.RealVadRoot.traverse():
             # Get only the mapped address ranges within the vad region.
-            for start, length in self.address_space.get_address_ranges(
+            for start, _, length in self.address_space.get_address_ranges(
                 vad.Start, vad.End):
                 for match in super(VadScanner, self).scan(start, length):
                     yield match

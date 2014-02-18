@@ -81,7 +81,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
 
     def get_available_addresses(self):
         # TODO: Explain why this is always fsize - 1?
-        yield (0, self.fsize - 1)
+        yield (0, 0, self.fsize - 1)
 
     def is_valid_address(self, addr):
         if addr == None:

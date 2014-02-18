@@ -37,25 +37,26 @@ from rekall.plugins.overlays.linux import vfs
 
 linux_overlay = {
     'task_struct' : [None, {
-            'comm': [None, ['UnicodeString', dict(length=16)]],
-            'uid': lambda x: x.m("uid") or x.cred.uid,
-            'gid': lambda x: x.m("gid") or x.cred.gid,
-            'euid': lambda x: x.m("euid") or x.cred.euid,
-            }],
+        'name': lambda x: x.comm,
+        'comm': [None, ['UnicodeString', dict(length=16)]],
+        'uid': lambda x: x.m("uid") or x.cred.uid,
+        'gid': lambda x: x.m("gid") or x.cred.gid,
+        'euid': lambda x: x.m("euid") or x.cred.euid,
+        }],
 
     'module' : [None, {
-            'name': [None, ['UnicodeString', dict(length=60)]],
-            'kp': [None, ['Pointer', dict(
-                        target='Array',
-                        target_args=dict(
-                            target='kernel_param',
-                            count=lambda x: x.num_kp))]],
-            }],
+        'name': [None, ['UnicodeString', dict(length=60)]],
+        'kp': [None, ['Pointer', dict(
+            target='Array',
+            target_args=dict(
+                target='kernel_param',
+                count=lambda x: x.num_kp))]],
+        }],
 
     'kernel_param': [None, {
-            'name' : [None, ['Pointer', dict(target='UnicodeString')]],
-            'getter_addr': lambda x: (x.m("get") or x.ops.get),
-            }],
+        'name' : [None, ['Pointer', dict(target='UnicodeString')]],
+        'getter_addr': lambda x: (x.m("get") or x.ops.get),
+        }],
 
     'kparam_array': [None, {
             'getter_addr': lambda x: (x.m("get") or x.ops.get),

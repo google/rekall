@@ -121,7 +121,7 @@ class Modules(common.WindowsCommandPlugin):
                                module.FullDllName)
 
 
-class RSDSScanner(scan.DiscontigScanner, scan.BaseScanner):
+class RSDSScanner(scan.BaseScanner):
     """Scan for RSDS objects."""
 
     checks = [

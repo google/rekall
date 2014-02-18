@@ -153,7 +153,9 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                 if not self.entry_present(pdpte_value):
                     continue
                 if self.page_size_flag(pdpte_value):
-                    yield (vaddr, 0x40000000)
+                    yield (vaddr,
+                           self.get_one_gig_paddr(vaddr, pdpte_value),
+                           0x40000000)
                     continue
                 tmp2 = vaddr
                 for pde in range(0, 0x200):
@@ -162,7 +164,9 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                     if not self.entry_present(pde_value):
                         continue
                     if self.page_size_flag(pde_value):
-                        yield (vaddr, 0x200000)
+                        yield (vaddr,
+                               self.get_two_meg_paddr(vaddr, pde_value),
+                               0x200000)
                         continue
 
                     # This reads the entire PTE table at once - On
@@ -177,7 +181,10 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
                     for i, pte_value in enumerate(pte_table):
                         if self.entry_present(pte_value):
-                            yield (vaddr | i << 12, 0x1000)
+                            out_vaddr = vaddr | i << 12
+                            yield (out_vaddr,
+                                   self.get_phys_addr(out_vaddr, pte_value),
+                                   0x1000)
 
 
 class VTxPagedMemory(AMD64PagedMemory):

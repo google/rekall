@@ -35,7 +35,7 @@ from rekall.plugins import guess_profile
 from rekall.plugins.overlays.windows import pe_vtypes
 
 
-class ExportScanner(scan.DiscontigScanner, scan.BaseScanner):
+class ExportScanner(scan.BaseScanner):
     # We search for the name of a section present in the PE header.
     checks = [("MultiStringFinderCheck", dict(needles=[
                     "INITKDBG", "MISYSPTE", "PAGEKD"]))]

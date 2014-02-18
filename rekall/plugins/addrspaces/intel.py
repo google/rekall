@@ -203,7 +203,9 @@ class IA32PagedMemory(addrspace.PagedReader):
                 continue
 
             if self.page_size_flag(pde_value):
-                yield (vaddr, 0x400000)
+                yield (vaddr,
+                       self.get_four_meg_paddr(vaddr, pde_value),
+                       0x400000)
                 continue
 
             # This reads the entire PTE table at once - On
@@ -218,7 +220,9 @@ class IA32PagedMemory(addrspace.PagedReader):
 
             for i, pte_value in enumerate(pte_table):
                 if self.entry_present(pte_value):
-                    yield (vaddr | i << 12, 0x1000)
+                    yield (vaddr | i << 12,
+                           self.get_phys_addr(vaddr | i << 12, pte_value),
+                           0x1000)
 
     def __str__(self):
         return "%s@0x%08X (%s)" % (self.__class__.__name__, self.dtb, self.name)
@@ -369,7 +373,9 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                 if not self.entry_present(pde_value):
                     continue
                 if self.page_size_flag(pde_value):
-                    yield (vaddr, 0x200000)
+                    yield (vaddr,
+                           self.get_two_meg_paddr(vaddr, pde_value),
+                           0x200000)
                     continue
 
                 # This reads the entire PTE table at once - On
@@ -384,4 +390,6 @@ class IA32PagedMemoryPae(IA32PagedMemory):
 
                 for i, pte_value in enumerate(pte_table):
                     if self.entry_present(pte_value):
-                        yield (vaddr | i << 12, 0x1000)
+                        yield (vaddr | i << 12,
+                               self.get_phys_addr(vaddr | i << 12, pte_value),
+                               0x1000)

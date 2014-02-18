@@ -29,7 +29,7 @@ from rekall import plugin
 from rekall.plugins.windows import common
 
 
-class KDBGScanner(scan.DiscontigScanner, scan.BaseScanner):
+class KDBGScanner(scan.BaseScanner):
     """Scans for _KDDEBUGGER_DATA64 structures.
 
     Note that this does not rely on signatures, as validity of hits is

@@ -449,11 +449,11 @@ class RekallTester(object):
 
             else:
                 diff_path = output_path + ".diff"
-                with open(diff_path, "wb") as fd:
+                with open(diff_path, "wb") as diff_fd:
                     subprocess.call(
                         ["diff", "-y", "--width", "200",
                          output_path, baseline_filename],
-                        stdout=fd)
+                        stdout=diff_fd)
 
                 self.renderer.table_row(
                     plugin_cls.__name__,

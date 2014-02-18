@@ -50,8 +50,11 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
         self.offset = 0
 
     def read(self, addr, length):
-        self.fhandle.seek(addr)
-        return self.fhandle.read(length)
+        try:
+            self.fhandle.seek(addr)
+            return self.fhandle.read(length)
+        except IOError:
+            return "\x00" * length
 
     def read_long(self, addr):
         string = self.read(addr, 4)
@@ -61,7 +64,7 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
     def get_available_addresses(self):
         # Since the second parameter is the length of the run
         # not the end location, it must be set to fsize, not fsize - 1
-        yield (0, self.fsize)
+        yield (0, 0, self.fsize)
 
     def is_valid_address(self, addr):
         if addr == None:

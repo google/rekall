@@ -297,7 +297,9 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
                 if end > self.HighestPage:
                     self.HighestPage = end
 
-                self.AddressList.append((start * 0x1000, LocalPageCnt * 0x1000))
+                self.AddressList.append((start * 0x1000,  # virtual address
+                                         start * 0x1000,  # physical address
+                                         LocalPageCnt * 0x1000))
 
                 for j in range(0, LocalPageCnt):
                     if (XpressIndex and ((XpressIndex % 0x10) == 0)):
@@ -512,7 +514,7 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
         page_list = []
         for _i, xb in enumerate(self.PageDict.keys()):
             for page, _size, _offset in self.PageDict[xb]:
-                page_list.append([page * 0x1000, 0x1000])
+                page_list.append([page * 0x1000, page * 0x1000, 0x1000])
         return page_list
 
     def get_address_range(self):

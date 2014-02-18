@@ -67,7 +67,7 @@ PROFILE_STRINGS = {
 
 
 
-class ProfileScanner(scan.DiscontigScanner, scan.BaseScanner):
+class ProfileScanner(scan.BaseScanner):
     checks = [("MultiStringFinderCheck", dict(needles=PROFILE_STRINGS))]
 
 

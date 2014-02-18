@@ -33,7 +33,7 @@ from rekall.plugins.overlays import basic
 from rekall.plugins.linux import common
 
 
-class TimestampScanner(scan.DiscontigScanner, scan.BaseScanner):
+class TimestampScanner(scan.BaseScanner):
     """Search for the realine timestamps.
 
     These have a special signature which looks like "#" followed by the

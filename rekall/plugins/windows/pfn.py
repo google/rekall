@@ -623,7 +623,7 @@ class DTBScan(common.WinProcessFilter):
 
         # Now scan all the physical address space for DTBs.
         for _ in self.physical_address_space.get_available_addresses():
-            start, length = _
+            start, phys_start, length = _
             for page in range(start, start + length, 0x1000):
                 self.session.report_progress("Scanning 0x%08X (%smb)" % (
                         page, page/1024/1024))
