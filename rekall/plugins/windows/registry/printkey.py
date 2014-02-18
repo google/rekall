@@ -107,7 +107,7 @@ class PrintKey(common.WindowsCommandPlugin):
             seen.add(hive_offset)
 
             reg = registry.RegistryHive(
-                profile=self.profile,
+                profile=self.profile, session=self.session,
                 kernel_address_space=self.kernel_address_space,
                 hive_offset=hive_offset)
 
@@ -122,6 +122,8 @@ class PrintKey(common.WindowsCommandPlugin):
     def render(self, renderer):
         renderer.format("Legend: (S) = Stable   (V) = Volatile\n\n")
         for reg, key in self.list_keys():
+            self.session.report_progress("Printing %s", lambda: key.Path)
+
             if key:
                 renderer.format("----------------------------\n")
                 renderer.format("Registry: {0}\n", reg.Name)
@@ -214,7 +216,7 @@ class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
                 continue
 
             reg = registry.RegistryHive(
-                profile=self.profile,
+                profile=self.profile, session=self.session,
                 kernel_address_space=self.kernel_address_space,
                 hive_offset=hive_offset)
 
@@ -255,7 +257,7 @@ class HiveDump(registry.RegistryPlugin):
                 continue
 
             reg = registry.RegistryHive(
-                hive_offset=hive_offset,
+                hive_offset=hive_offset, session=self.session,
                 kernel_address_space=self.kernel_address_space,
                 profile=self.profile)
 

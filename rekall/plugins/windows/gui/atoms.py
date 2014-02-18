@@ -43,7 +43,7 @@ class PoolScanAtom(common.PoolScanner):
             ]
 
 
-class AtomScan(common.PoolScannerPlugin):
+class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
     """Pool scanner for _RTL_ATOM_TABLE"""
 
     allocation = ['_POOL_HEADER', '_RTL_ATOM_TABLE']
@@ -60,7 +60,6 @@ class AtomScan(common.PoolScannerPlugin):
     def __init__(self, sort_by=None, **kwargs):
         super(AtomScan, self).__init__(**kwargs)
         self.sort_by = sort_by
-        self.profile = win32k_core.Win32GUIProfile(self.profile)
 
     def generate_hits(self):
         scanner = PoolScanAtom(profile=self.profile, session=self.session,
@@ -74,14 +73,14 @@ class AtomScan(common.PoolScannerPlugin):
             # because the size of an _RTL_ATOM_TABLE differs depending on the
             # number of hash buckets.
 
-            build = self.profile.metadatas('major', 'minor')
+            version = self.profile.metadata('version')
             fixup = 0
 
             if self.profile.metadata('arch') == 'I386':
-                if build > (5, 1):
+                if version > "5.1":
                     fixup = 8
             else:
-                if build > (5, 1):
+                if version > "5.1":
                     fixup = 16
 
             atom_table = self.profile._RTL_ATOM_TABLE(

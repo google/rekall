@@ -184,8 +184,7 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
         """Scans the physical AS for RSDS structures."""
         guids = set()
         pe_profile = self.session.LoadProfile("pe")
-        scanner = RSDSScanner(address_space=self.physical_address_space,
-                              session=self.session)
+        scanner = RSDSScanner(address_space=self.physical_address_space)
 
         for hit in scanner.scan():
             rsds = pe_profile.CV_RSDS_HEADER(
@@ -210,5 +209,3 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
 
         for rsds, guid in self.ScanVersions():
             renderer.table_row(rsds, guid, rsds.Filename)
-
-

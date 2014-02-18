@@ -34,7 +34,7 @@ class Netstat(common.LinuxPlugin):
         lsof = self.session.plugins.lsof(session=self.session)
         for task, file_struct, fd in lsof.lsof():
             if (file_struct.f_op == self.profile.get_constant(
-                    "socket_file_ops") or
+                "socket_file_ops") or
                 file_struct.m("d_entry").d_op == self.profile.get_constant(
                     "sockfs_dentry_operations")):
 
@@ -65,7 +65,6 @@ class Netstat(common.LinuxPlugin):
 
             elif sk_common.skc_family in ("AF_INET", "AF_INET6"):
                 tcp_sockets.append((task, fd, sock, iaddr, sk_common))
-
 
         # First do the tcp sockets.
         renderer.table_header([("Proto", "proto", "8"),

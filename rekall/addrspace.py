@@ -74,9 +74,15 @@ class BaseAddressSpace(object):
             logging.error("Unknown keyword args {0} for {1}".format(
                     kwargs, self.__class__.__name__))
 
+        if session is None and base is not None:
+          session = base.session
+
         self.base = base
         self.profile = profile
         self.session = session
+        if session is None:
+          raise RuntimeError("Session must be provided.")
+
         self.writeable = (
             self.session and self.session.writable_address_space or write)
 

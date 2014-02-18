@@ -43,13 +43,14 @@ class BaseScanner(object):
            address_space: The address space we use for scanning.
            window_size: The size of the overlap window between each buffer read.
         """
+        self.session = session or address_space.session
         self.address_space = address_space
         self.window_size = window_size
         self.constraints = None
-        self.profile = profile or session.profile
+        self.profile = profile or self.session.profile
         self.max_length = None
         self.base_offset = None
-        self.session = session
+
 
     def build_constraints(self):
         self.constraints = []
@@ -120,7 +121,9 @@ class BaseScanner(object):
         # Start scanning from offset until maxlen:
         i = offset
 
-        buffer_as = addrspace.BufferAddressSpace()
+        buffer_as = addrspace.BufferAddressSpace(
+            session=self.address_space.session)
+
         while i < offset + maxlen:
             # Update the progress bar.
             if self.session:

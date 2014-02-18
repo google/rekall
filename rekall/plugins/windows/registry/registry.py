@@ -384,8 +384,11 @@ class _CM_KEY_VALUE(obj.Struct):
                     self.m("Data").obj_offset, self.DataLength & 0x7FFFFFFF))
 
         elif self.DataLength > 0x4000:
-            import pdb; pdb.set_trace()
-            big_data = obj.Object("_CM_BIG_DATA", self.Data, self.obj_vm)
+            return obj.NoneObject("Big data not supported.")
+
+            big_data = self.obj_profile._CM_BIG_DATA(
+                self.Data, vm=self.obj_vm)
+
             return self._decode_data(big_data.Data)
 
         else:

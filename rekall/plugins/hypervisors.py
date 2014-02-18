@@ -142,8 +142,8 @@ class VMCSScanner(scan.BaseScanner):
     def __init__(self, **kwargs):
         super(VMCSScanner, self).__init__(**kwargs)
         # Temporary address space
-        self._buffer_as = addrspace.BufferAddressSpace()
-        self.profile = VMCSProfile()
+        self._buffer_as = addrspace.BufferAddressSpace(session=self.session)
+        self.profile = VMCSProfile(session=self.session)
 
     def scan(self, offset=0, **_):
         """We overwrite scan to achieve maximum scanning speed."""
@@ -193,8 +193,9 @@ class VMCSScanner(scan.BaseScanner):
 
                 # VALIDATION: Verify that the EPT translation works.
                 # Note that this validation may fail for nested VMCS.
-                validation_as = amd64.VTxPagedMemory(ept=vmcs_obj.EPT_POINTER,
-                                                     base=self.address_space)
+                validation_as = amd64.VTxPagedMemory(
+                    ept=vmcs_obj.EPT_POINTER,
+                    base=self.address_space)
                 validated = False
                 for _ in validation_as.get_available_addresses():
                     validated = True
