@@ -353,7 +353,7 @@ class BaseObject(object):
             (self.obj_vm == other.obj_vm))
 
     def __ne__(self, other):
-        return not self == other
+        return not self.__eq__(other)
 
     def __hash__(self):
         # This needs to be the same as the object we proxy so that we can mix
@@ -1276,6 +1276,9 @@ class Profile(object):
 
         self.name = name
         self.session = session
+        if session is None:
+            raise RuntimeError("Session must be specified.")
+
         self.overlays = []
         self.vtypes = {}
         self.constants = {}
@@ -1364,10 +1367,7 @@ class Profile(object):
         return tuple([self._metadata.get(x) for x in args])
 
     def has_type(self, type_name):
-        # Compile on demand
-        self.compile_type(type_name)
-
-        return type_name in self.object_classes or type_name in self.types
+        return bool(self.Object(type_name, session=self.session))
 
     def add_classes(self, classes_dict=None, **kwargs):
         """Add the classes in the dict to our object classes mapping."""
@@ -1652,8 +1652,8 @@ class Profile(object):
         ACCESS_LOG.LogFieldAccess(self.name, name, member)
 
         tmp = self._get_dummy_obj(name)
-        if tmp is None:
-            raise AttributeError("Object %s not known" % name)
+        if not tmp:
+            return tmp
 
         offset, _cls = tmp.members[member]
 
@@ -1827,6 +1827,8 @@ class Profile(object):
         return result
 
     def get_constant_by_address(self, address):
+        address = Pointer.integer_to_address(address)
+
         lowest_eq, name = self.get_nearest_constant_by_address(address)
         if lowest_eq != address:
             return NoneObject("Constant not found")
@@ -1835,13 +1837,14 @@ class Profile(object):
 
     def get_nearest_constant_by_address(self, address):
         """Returns the closest constant below or equal to the address."""
+        address = Pointer.integer_to_address(address)
+
         try:
-            offset, name = self.constant_addresses.find_le(
-                Pointer.integer_to_address(address))
+            offset, name = self.constant_addresses.find_le(address)
 
             return offset, name
         except ValueError:
-            return NoneObject("Constant not found")
+            return -1, NoneObject("Constant not found")
 
     def get_enum(self, enum_name, field=None):
         result = self.enums.get(enum_name)
@@ -1877,7 +1880,7 @@ class Profile(object):
         return Curry(self.Object, attr)
 
     def Object(self, type_name=None, offset=None, vm=None, name=None,
-               parent=None, context=None, **kwargs):
+               parent=None, context=None, session=None, **kwargs):
         """ A function which instantiates the object named in type_name (as
         a string) from the type in profile passing optional args of
         kwargs.
@@ -1900,6 +1903,9 @@ class Profile(object):
         """
         name = name or type_name
 
+        if session is None:
+            session = self.session
+
         # Ensure we are called correctly.
         if not isinstance(name, basestring):
             raise ValueError("Type name must be a string")
@@ -1908,7 +1914,7 @@ class Profile(object):
             offset = 0
             if vm is None:
                 vm = addrspace.BaseAddressSpace.classes["DummyAddressSpace"](
-                    size=self.get_obj_size(name))
+                    size=self.get_obj_size(name), session=session)
 
         else:
             offset = int(offset)
@@ -1935,7 +1941,7 @@ class Profile(object):
             result = self.types[type_name](
                 offset=offset, vm=vm, name=name,
                 parent=parent, context=context,
-                session=self.session, **kwargs)
+                session=session, **kwargs)
             return result
 
         elif type_name in self.object_classes:
@@ -1946,7 +1952,7 @@ class Profile(object):
                 name=name,
                 parent=parent,
                 context=context,
-                session=self.session,
+                session=session,
                 **kwargs)
 
             if isinstance(result, Struct):
@@ -2009,28 +2015,11 @@ class ProfileModification(object):
     implementation.
     """
     def __new__(cls, profile):
-        if cls.__name__ in profile.applied_modifications:
-            return profile
+        # Return a copy of the profile.
+        result = profile.copy()
 
-        # See if the profile is already cached. NOTE: This assumes that profiles
-        # do not store any instance specific data - so any profile instance
-        # which came from the same modifications is equivalent.
-
-        # If any of these change we can not use the same profile instance:
-        # session object, current modification, previous modifications.
-        key = "%r:%s:%s" % (profile.session, cls.__name__,
-                            profile.applied_modifications)
-        try:
-            result = PROFILE_CACHE.Get(key)
-        except KeyError:
-            # Return a copy of the profile.
-            result = profile.copy()
-            res = cls.modify(result)
-            result = res or result
-
-            result.applied_modifications.append(cls.__name__)
-
-            PROFILE_CACHE.Put(key, result)
+        # Apply the modification.
+        cls.modify(result)
 
         return result
 
@@ -2044,6 +2033,3 @@ class ProfileModification(object):
         Args:
            A profile to be modified.
         """
-
-
-

@@ -329,12 +329,13 @@ class VadScanner(scan.BaseScanner):
         self.task = task
         super(VadScanner, self).__init__(
             profile=process_profile or task.obj_profile,
-            address_space=task.get_process_address_space(), **kwargs)
+            address_space=task.get_process_address_space(),
+            session=task.obj_session, **kwargs)
 
     def scan(self, offset=0, maxlen=None):
         maxlen = maxlen or self.profile.get_constant("MaxPointer")
 
         for vad in self.task.RealVadRoot.traverse():
-            # Get only the mapped address ranges within the vad region.
-            for match in super(VadScanner, self).scan(vad.Start, vad.End):
+            # Only scan the VAD region.
+            for match in super(VadScanner, self).scan(vad.Start, vad.Length):
                 yield match

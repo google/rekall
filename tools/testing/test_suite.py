@@ -121,6 +121,8 @@ import argparse
 import ConfigParser
 import logging
 import json
+import subprocess
+import multiprocessing
 import os
 import shutil
 import sys
@@ -141,26 +143,45 @@ from rekall import plugins
 from rekall.plugins import tests
 # pylint: enable=unused-import
 
+
+NUMBER_OF_CORES = multiprocessing.cpu_count()
+
+
 class RekallTester(object):
     """A class to manage running and controlling the test harness."""
 
     def __init__(self, argv=None):
         self.FLAGS = self.ProcessCommandLineArgs(argv)
         self.threadpool = threadpool.ThreadPool(self.FLAGS.processes)
+
+        # The path that contains all the baselines.
         self.test_directory = os.path.dirname(self.FLAGS.config)
+
+        # The path that we write all files to.
+        self.output_dir = os.path.join(
+            self.test_directory, self.FLAGS.output_dir)
+
+        self.EnsureDirExists(self.output_dir)
+
         if self.FLAGS.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
         self.renderer = renderer.TextRenderer()
 
         # Some stats.
-        self.successes = 0
-        self.failures = 0
+        self.successes = []
+        self.failures = []
         self.rebuilt = 0
+
+    def EnsureDirExists(self, dirname):
+        try:
+            os.makedirs(dirname)
+        except OSError:
+            pass
 
     def ProcessCommandLineArgs(self, argv=None):
         parser = argparse.ArgumentParser()
 
-        parser.add_argument("--processes", default=5, type=int,
+        parser.add_argument("--processes", default=NUMBER_OF_CORES, type=int,
                             help="Number of concurrent workers.")
 
         parser.add_argument("-v", "--verbose", default=False,
@@ -168,7 +189,7 @@ class RekallTester(object):
                             help="Number of concurrent workers.")
 
         parser.add_argument("-e", "--executable",
-                            default="python rekall/rekal.py ",
+                            default="rekall ",
                             help="The path to the rekall binary.")
 
         parser.add_argument("-c", "--config", default="tests.config",
@@ -177,6 +198,9 @@ class RekallTester(object):
         parser.add_argument("-d", "--debug", default=False,
                             action="store_true",
                             help="Turn on test debugging.")
+
+        parser.add_argument("--output_dir", default="output",
+                            help="Create all files inside this directory.")
 
         parser.add_argument("-b", "--baseline", default=False,
                             action="store_true",
@@ -263,6 +287,10 @@ class RekallTester(object):
         # This will block until all the threads are done.
         self.threadpool.Stop()
         shutil.rmtree(self.temp_directory, True)
+
+        # Write the json summary of the results.
+        with open(os.path.join(self.output_dir, "results"), "wb") as fd:
+          json.dump(dict(passes=self.successes, fails=self.failures), fd)
 
     def GenerateTests(self, config):
         """Generates test classes for all the plugins.
@@ -399,35 +427,41 @@ class RekallTester(object):
             result = unittest.TestResult()
             test_case(result)
 
+            # Store the current run someplace for closer inspection.
+            output_path = os.path.join(self.output_dir, plugin_cls.__name__ )
+            with open(output_path, "wb") as fd:
+                baseline_filename = os.path.join(
+                    self.test_directory, plugin_cls.__name__)
+
+                fd.write("#!/bin/bash\n" +
+                         "meld %s %s\n" % (fd.name, baseline_filename) +
+                         "exit 0\n")
+
+                fd.write(json.dumps(current_run, indent=4))
+
             if result.wasSuccessful():
                 self.renderer.table_row(
                     plugin_cls.__name__,
                     self.renderer.color("PASS", foreground="GREEN"),
                     current_run.get("time_used", 0),
                     baseline_data.get("time_used", 0))
-                self.successes += 1
+                self.successes.append(plugin_cls.__name__)
 
             else:
-                # Store the current run someplace for closer inspection.
-                with tempfile.NamedTemporaryFile(
-                    prefix=plugin_cls.__name__ + "_", delete=False) as fd:
+                diff_path = output_path + ".diff"
+                with open(diff_path, "wb") as diff_fd:
+                    subprocess.call(
+                        ["diff", "-y", "--width", "200",
+                         output_path, baseline_filename],
+                        stdout=diff_fd)
 
-                    output_filename = os.path.join(
-                        self.test_directory, plugin_cls.__name__)
-
-                    fd.write("#!/bin/bash\n" +
-                             "meld %s %s\n" % (fd.name, output_filename) +
-                             "exit 0\n")
-
-                    fd.write(json.dumps(current_run, indent=4))
-
-                    self.renderer.table_row(
-                        plugin_cls.__name__,
-                        self.renderer.color("FAIL", foreground="RED"),
-                        current_run.get("time_used", 0),
-                        baseline_data.get("time_used", 0),
-                        fd.name)
-                    self.failures += 1
+                self.renderer.table_row(
+                    plugin_cls.__name__,
+                    self.renderer.color("FAIL", foreground="RED"),
+                    current_run.get("time_used", 0),
+                    baseline_data.get("time_used", 0),
+                    fd.name)
+                self.failures.append(plugin_cls.__name__)
 
                 if self.FLAGS.verbose:
                     for test_case, error in result.errors + result.failures:
@@ -441,8 +475,8 @@ def main(_):
 
     tester.renderer.write(
         "Completed %s tests (%s passed, %s failed, %s rebuild) in "
-        "%s Seconds.\n" % (tester.successes + tester.failures,
-                           tester.successes, tester.failures,
+        "%s Seconds.\n" % (len(tester.successes) + len(tester.failures),
+                           len(tester.successes), len(tester.failures),
                            tester.rebuilt, int(time.time() - start)))
 
 if __name__ == "__main__":

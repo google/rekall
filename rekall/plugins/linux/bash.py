@@ -39,15 +39,17 @@ class TimestampScanner(scan.BaseScanner):
     These have a special signature which looks like "#" followed by the
     time since the epoch - for example #1384457055.
     """
-    def __init__(self, **kwargs):
-        super(TimestampScanner, self).__init__(**kwargs)
-        self.checks = [
-            # We use a quick string search first for this rather unique string.
-            ('StringCheck', dict(needle="#")),
+    checks = [
+        # We use a quick string search first for this rather unique string.
+        ('StringCheck', dict(needle="#")),
 
-            # Refine the search with a more precise regex.
-            ('RegexCheck', dict(regex=r"\#\d{10}")),
-            ]
+        # Refine the search with a more precise regex.
+        ('RegexCheck', dict(regex=r"\#\d{10}")),
+        ]
+
+
+class HeapTimestampScanner(common.HeapScannerMixIn, TimestampScanner):
+    pass
 
 
 class HistoryScanner(scan.PointerScanner):
@@ -56,11 +58,6 @@ class HistoryScanner(scan.PointerScanner):
     This looks for references to the timestamps discovered by the
     TimestampScanner above.
     """
-    def __init__(self, task=None, **kwargs):
-        super(HistoryScanner, self).__init__(
-            address_space=task.get_process_address_space(), **kwargs)
-        self.task = task
-
     def scan(self, **kwargs):
         for hit in super(HistoryScanner, self).scan(**kwargs):
             timestamp_relative_offset = self.profile.get_obj_offset(
@@ -135,6 +132,7 @@ class BashHistory(common.LinProcessFilter):
         super(BashHistory, self).__init__(**kwargs)
 
         self.scan_entire_address_space = scan_entire_address_space
+
         # If the user did not request any filtering operation we just look at
         # processes which contain "bash".
         if not self.filtering_requested:
@@ -146,17 +144,11 @@ class BashHistory(common.LinProcessFilter):
         else:
             self.bash_profile = BashProfile32(session=self.session)
 
-    def get_timestamps(self, process):
+    def get_timestamps(self, scanner):
         """Scan process memory for things that look like a timestamp."""
         results = {}
-        process_as = process.get_process_address_space()
-
-        scanner = TimestampScanner(
-            profile=self.profile, session=self.session,
-            address_space=process_as)
-
         for hit in scanner.scan():
-            timestamp = int(process_as.read(hit+1, 10))
+            timestamp = int(scanner.address_space.read(hit+1, 10))
             results[hit] = timestamp
 
         return results
@@ -168,20 +160,32 @@ class BashHistory(common.LinProcessFilter):
                                ("Command", "command", "<20"),
                                ])
 
-        # Choose the correct scanner to use depending on the flags.
-        if self.scan_entire_address_space:
-            scanner_cls = HistoryScanner
-        else:
-            scanner_cls = HeapHistoryScanner
-
         for task in self.filter_processes():
-            timestamps = self.get_timestamps(task)
+            process_as = task.get_process_address_space()
+
+            # Choose the correct scanner to use depending on the flags.
+            if self.scan_entire_address_space:
+                timestamp_scanner = TimestampScanner(
+                    profile=self.profile, session=self.session,
+                    address_space=process_as)
+            else:
+                timestamp_scanner = HeapTimestampScanner(
+                    profile=self.profile, session=self.session,
+                    address_space=process_as, task=task)
+
+            timestamps = self.get_timestamps(timestamp_scanner)
             if not timestamps:
                 continue
 
-            scanner = scanner_cls(
-                profile=self.bash_profile, session=self.session,
-                pointers=timestamps, task=task)
+            if self.scan_entire_address_space:
+                scanner = HistoryScanner(
+                    profile=self.bash_profile, session=self.session,
+                    address_space=process_as, pointers=timestamps)
+            else:
+                scanner = HeapHistoryScanner(
+                    profile=self.bash_profile, session=self.session,
+                    address_space=process_as, task=task,
+                    pointers=timestamps)
 
             hits = sorted(scanner.scan(), key=lambda x: x.timestamp.deref())
             for hit in hits:
@@ -190,4 +194,3 @@ class BashHistory(common.LinProcessFilter):
 
                 renderer.table_row(
                     task.pid, task.comm, timestamp, hit.line.deref())
-

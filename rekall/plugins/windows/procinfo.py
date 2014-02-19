@@ -75,7 +75,7 @@ class PEInfo(plugin.Command):
 
         self.disassembler = self.session.plugins.dis(
             address_space=self.pe_helper.vm,
-            session=self.session, length=50)
+            session=self.session, length=4)
 
     def render(self, renderer):
         """Print information about a PE file from memory."""
@@ -138,12 +138,8 @@ class PEInfo(plugin.Command):
         for name, function, ordinal in self.pe_helper.IAT():
             disassembly = []
 
-            for i, (_, _, x) in enumerate(
-                self.disassembler.disassemble(function)):
-                if i >= 5:
-                    break
-
-                disassembly.append(x.strip())
+            for x in self.disassembler.disassemble(function):
+                disassembly.append(x[-1].strip())
 
             renderer.table_row(name, function, "\n".join(disassembly))
 

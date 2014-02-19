@@ -576,7 +576,7 @@ class DirectoryDumperMixin(object):
         """
         BUFFSIZE = 1024 * 1024
 
-        for offset, length in address_space.get_address_ranges(start, end):
+        for offset, _, length in address_space.get_address_ranges(start, end):
             outfd.seek(offset - start)
             i = offset
 
@@ -843,7 +843,7 @@ class Grep(plugin.Command):
                 for _, hexdata, translated_data in utils.Hexdump(
                     data[idx-20:idx+20], width=self.context):
                     comment = ""
-                    symbol, _ = self.address_space.kb.GetSpan(offset + idx)
+                    symbol, _ = self.session.address_resolver.get_nearest_constant_by_address(offset + idx)
                     if symbol:
                         comment = "%s+0x%X" % (symbol[0].obj_name,
                                                offset + idx - int(symbol[0]))
@@ -857,3 +857,49 @@ class Grep(plugin.Command):
         self.offset = offset
 
 
+
+class MemmapMixIn(object):
+    """A Mixin used to create the memmap plugins for all the operating systems."""
+
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(MemmapMixIn, cls).args(parser)
+        parser.add_argument(
+            "--coalesce", default=False, action="store_true",
+            help="Merge contiguous pages into larger ranges.")
+
+    def __init__(self, coalesce=False, **kwargs):
+        """Calculates the memory regions mapped by a process.
+
+        Args:
+          coalesce: Merge pages which are contiguous in memory into larger
+             ranges.
+        """
+        self.coalesce = coalesce
+        super(MemmapMixIn, self).__init__(**kwargs)
+
+    def render(self, renderer):
+        for task in self.filter_processes():
+            renderer.section()
+            renderer.RenderProgress("Dumping pid {0}".format(task.pid))
+
+            task_space = task.get_process_address_space()
+            renderer.format(u"Process: '{0}' pid: {1:6}\n",
+                            task.name, task.pid)
+
+            if not task_space:
+                renderer.write("Unable to read pages for task.\n")
+                continue
+
+            renderer.table_header([("Virtual", "offset_v", "[addrpad]"),
+                                   ("Physical", "offset_p", "[addrpad]"),
+                                   ("Size", "process_size", "[addr]")])
+
+            if self.coalesce:
+                ranges = task_space.get_address_ranges()
+            else:
+                ranges = task_space.get_available_addresses()
+
+            for virtual_address, phys_address, length in ranges:
+                renderer.table_row(virtual_address, phys_address, length)

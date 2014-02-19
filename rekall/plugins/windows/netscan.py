@@ -36,12 +36,15 @@ class PoolScanUdpEndpoint(common.PoolScanner):
 
     def __init__(self, **kwargs):
         super(PoolScanUdpEndpoint, self).__init__(**kwargs)
+        min_size = self.profile.get_obj_size("_UDP_ENDPOINT")
+        if not min_size:
+            raise RuntimeError(repr(min_size))
+
         self.checks = [
             ('PoolTagCheck', dict(
-                    tag=self.profile.get_constant("UDP_END_POINT_POOLTAG"))),
+                tag=self.profile.get_constant("UDP_END_POINT_POOLTAG"))),
 
-            ('CheckPoolSize', dict(
-                    min_size=self.profile.get_obj_size("_UDP_ENDPOINT"))),
+            ('CheckPoolSize', dict(min_size=min_size)),
 
             ('CheckPoolType', dict(non_paged=True, free=True, paged=True)),
 
@@ -54,12 +57,15 @@ class PoolScanTcpListener(common.PoolScanner):
 
     def __init__(self, **kwargs):
         super(PoolScanTcpListener, self).__init__(**kwargs)
+        min_size = self.profile.get_obj_size("_TCP_LISTENER")
+        if not min_size:
+            raise RuntimeError(repr(min_size))
+
         self.checks = [
             ('PoolTagCheck', dict(
-                    tag=self.profile.get_constant("TCP_LISTENER_POOLTAG"))),
+                tag=self.profile.get_constant("TCP_LISTENER_POOLTAG"))),
 
-            ('CheckPoolSize', dict(
-                    min_size=self.profile.get_obj_size("_TCP_LISTENER"))),
+            ('CheckPoolSize', dict(min_size=min_size)),
 
             ('CheckPoolType', dict(non_paged=True, free=True, paged=True)),
 
@@ -72,13 +78,15 @@ class PoolScanTcpEndpoint(common.PoolScanner):
 
     def __init__(self, **kwargs):
         super(PoolScanTcpEndpoint, self).__init__(**kwargs)
+        min_size = self.profile.get_obj_size("_TCP_ENDPOINT")
+        if not min_size:
+            raise RuntimeError(repr(min_size))
 
         self.checks = [
             ('PoolTagCheck', dict(
-                    tag=self.profile.get_constant("TCP_END_POINT_POOLTAG"))),
+                tag=self.profile.get_constant("TCP_END_POINT_POOLTAG"))),
 
-            ('CheckPoolSize', dict(
-                    min_size=self.profile.get_obj_size("_TCP_ENDPOINT"))),
+            ('CheckPoolSize', dict(min_size=min_size)),
 
             ('CheckPoolType', dict(non_paged=True, free=True, paged=True)),
 
@@ -199,4 +207,3 @@ class Netscan(tcpip_vtypes.TcpipPluginMixin,
                 owner.UniqueProcessId,
                 owner.ImageFileName,
                 net_object.CreateTime)
-

@@ -158,12 +158,11 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
              ("Valid", "valid", "")])
 
         for dtb, eprocess in self.dtb_hits():
-            address_space = core.GetAddressSpaceImplementation(self.profile)(
-                session=self.session, base=self.physical_address_space, dtb=dtb)
+            address_space = self.CreateAS(dtb)
 
             renderer.table_row(
                 eprocess.obj_offset, dtb,
-                self.verify_address_space(eprocess, address_space))
+                self.VerifyHit((dtb, eprocess)) is not None)
 
 
 ## The following are checks for pool scanners.
@@ -219,6 +218,8 @@ class CheckPoolSize(scan.ScannerCheck):
             self.condition = lambda x: x >= min_size
 
         self.pool_align = self.profile.constants['PoolAlignment']
+        if self.condition is None:
+          raise RuntimeError("No pool size provided")
 
     def check(self, buffer_as, offset):
         pool_hdr = self.profile._POOL_HEADER(
@@ -534,5 +535,3 @@ class WinProcessFilter(WindowsCommandPlugin):
 
         # Now we get the EPROCESS object from the list entry.
         return our_list_entry.dereference_as("_EPROCESS", "ActiveProcessLinks")
-
-

@@ -152,54 +152,9 @@ class WinDllList(common.WinProcessFilter):
                 renderer.write("Unable to read PEB for task.\n")
 
 
-class WinMemMap(common.WinProcessFilter):
+class WinMemMap(core.MemmapMixIn, common.WinProcessFilter):
     """Calculates the memory regions mapped by a process."""
-
     __name = "memmap"
-
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(WinMemMap, cls).args(parser)
-        parser.add_argument(
-            "--coalesce", default=False, action="store_true",
-            help="Merge contiguous pages into larger ranges.")
-
-    def __init__(self, coalesce=False, **kwargs):
-        """Calculates the memory regions mapped by a process.
-
-        Args:
-          coalesce: Merge pages which are contiguous in memory into larger
-             ranges.
-        """
-        self.coalesce = coalesce
-        super(WinMemMap, self).__init__(**kwargs)
-
-    def render(self, renderer):
-        for task in self.filter_processes():
-            renderer.section()
-            renderer.RenderProgress("Dumping pid {0}".format(
-                    task.UniqueProcessId))
-
-            task_space = task.get_process_address_space()
-            renderer.format(u"Process: '{0}' pid: {1:6}\n",
-                            task.ImageFileName, task.UniqueProcessId)
-
-            if not task_space:
-                renderer.write("Unable to read pages for task.\n")
-                continue
-
-            renderer.table_header([("Virtual", "offset_v", "[addrpad]"),
-                                   ("Physical", "offset_p", "[addrpad]"),
-                                   ("Size", "process_size", "[addr]")])
-
-            if self.coalesce:
-                ranges = task_space.get_address_ranges()
-            else:
-                ranges = task_space.get_available_addresses()
-
-            for virtual_address, physical_address, length in ranges:
-                renderer.table_row(virtual_address, physical_address, length)
 
 
 class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
@@ -210,8 +165,7 @@ class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
     def dump_process(self, eprocess, fd):
         task_as = eprocess.get_process_address_space()
 
-        for virtual_address, length in task_as.get_available_addresses():
-            phys_address = task_as.vtop(virtual_address)
+        for virtual_address, phys_address, length in task_as.get_available_addresses():
             fd.write(self.physical_address_space.read(phys_address, length))
 
     def render(self, renderer):

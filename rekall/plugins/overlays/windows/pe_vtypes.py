@@ -597,7 +597,8 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
     @property
     def PE(self):
         if self._pe is None:
-            self._pe = PE(address_space=self.obj_vm, image_base=self.DllBase)
+            self._pe = PE(address_space=self.obj_vm, image_base=self.DllBase,
+                          session=self.obj_session)
 
         return self._pe
 
@@ -799,6 +800,8 @@ class PE(object):
             this case, image_base and address_space are ignored.
         """
         self.session = session
+        if session is None:
+          raise RuntimeError("Session must be provided.")
 
         # Use the session to load the pe profile.
         self.profile = self.session.LoadProfile("pe")
@@ -930,29 +933,33 @@ class PE(object):
                    section.SizeOfRawData)
 
 
-class PEProfile(basic.ProfileLLP64, basic.BasicClasses):
+class PEProfile(basic.BasicClasses):
     """A profile for PE files.
 
     This profile is available from the repository under the name "pe".
     """
 
-    def __init__(self, **kwargs):
-        super(PEProfile, self).__init__(**kwargs)
-        self.add_classes({
-                '_IMAGE_DOS_HEADER': _IMAGE_DOS_HEADER,
-                '_IMAGE_NT_HEADERS': _IMAGE_NT_HEADERS,
-                '_IMAGE_SECTION_HEADER': _IMAGE_SECTION_HEADER,
-                '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
-                '_IMAGE_DATA_DIRECTORY': _IMAGE_DATA_DIRECTORY,
-                "SentinalArray": SentinalArray,
-                "ThunkArray": ThunkArray,
-                "RVAPointer": RVAPointer,
-                "ResourcePointer": ResourcePointer,
-                "_IMAGE_RESOURCE_DIRECTORY": _IMAGE_RESOURCE_DIRECTORY,
-                "_IMAGE_RESOURCE_DIRECTORY_ENTRY": _IMAGE_RESOURCE_DIRECTORY_ENTRY,
-                "VS_VERSIONINFO": VS_VERSIONINFO,
-                })
-        self.add_overlay(pe_overlays)
+    @classmethod
+    def Initialize(cls, profile):
+        super(PEProfile, cls).Initialize(profile)
+        if not profile.has_type("unsigned int"):
+            basic.ProfileLLP64.Initialize(profile)
+
+        profile.add_classes({
+            '_IMAGE_DOS_HEADER': _IMAGE_DOS_HEADER,
+            '_IMAGE_NT_HEADERS': _IMAGE_NT_HEADERS,
+            '_IMAGE_SECTION_HEADER': _IMAGE_SECTION_HEADER,
+            '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
+            '_IMAGE_DATA_DIRECTORY': _IMAGE_DATA_DIRECTORY,
+            "SentinalArray": SentinalArray,
+            "ThunkArray": ThunkArray,
+            "RVAPointer": RVAPointer,
+            "ResourcePointer": ResourcePointer,
+            "_IMAGE_RESOURCE_DIRECTORY": _IMAGE_RESOURCE_DIRECTORY,
+            "_IMAGE_RESOURCE_DIRECTORY_ENTRY": _IMAGE_RESOURCE_DIRECTORY_ENTRY,
+            "VS_VERSIONINFO": VS_VERSIONINFO,
+            })
+        profile.add_overlay(pe_overlays)
 
 
 class PEFileAddressSpace(addrspace.BaseAddressSpace):

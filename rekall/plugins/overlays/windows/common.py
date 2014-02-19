@@ -40,13 +40,17 @@ windows_overlay = {
             }],
 
     '_EPROCESS' : [None, {
-            'CreateTime' : [None, ['WinFileTime', {}]],
-            'ExitTime' : [None, ['WinFileTime', {}]],
-            'InheritedFromUniqueProcessId' : [None, ['unsigned int']],
-            'ImageFileName' : [None, ['String', dict(length=16)]],
-            'UniqueProcessId' : [None, ['unsigned int']],
-            'Session': [None, ["Pointer", dict(target="_MM_SESSION_SPACE")]],
-            }],
+        # Some standard fields for windows processes.
+        'name': lambda x: x.ImageFileName,
+        'pid': lambda x: x.UniqueProcessId,
+
+        'CreateTime' : [None, ['WinFileTime', {}]],
+        'ExitTime' : [None, ['WinFileTime', {}]],
+        'InheritedFromUniqueProcessId' : [None, ['unsigned int']],
+        'ImageFileName' : [None, ['String', dict(length=16)]],
+        'UniqueProcessId' : [None, ['unsigned int']],
+        'Session': [None, ["Pointer", dict(target="_MM_SESSION_SPACE")]],
+        }],
 
     '_ETHREAD' : [None, {
             'CreateTime' : [None, ['ThreadCreateTimeStamp', {}]],

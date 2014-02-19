@@ -44,7 +44,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         self.fname = ''
 
         # Now parse the ELF file.
-        elf_profile = elf.ELFProfile()
+        elf_profile = elf.ELFProfile(session=self.session)
         self.elf64_hdr = elf_profile.elf64_hdr(vm=self.base, offset=0)
 
         self.as_assert(self.elf64_hdr.e_type == "ET_CORE",

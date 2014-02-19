@@ -799,7 +799,8 @@ class PDBParser(object):
         self._TYPE_ENUM_e = dict(
             (int(x), y) for x, y in self._TYPE_ENUM_e.items())
 
-        self.address_space = standard.FileAddressSpace(filename=filename)
+        self.address_space = standard.FileAddressSpace(
+            filename=filename, session=self.session)
         self.header = self.profile._PDB_HEADER_700(
             vm=self.address_space, offset=0)
 

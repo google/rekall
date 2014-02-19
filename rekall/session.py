@@ -213,6 +213,9 @@ class Session(object):
         self.renderer = renderer.RendererBaseClass.classes.get(
             self.GetParameter("renderer"), "TextRenderer")
 
+        # Make a new address resolver.
+        self.address_resolver = kb.AddressResolver(self)
+
         self._update_runners()
 
     def _update_runners(self):
@@ -366,7 +369,7 @@ class Session(object):
 
             # If there was too much data and a pager is specified, simply pass
             # the data to the pager:
-            if (pager and
+            if (ui_renderer.isatty and pager and
                 len(ui_renderer.data) >= self.state.paging_limit):
                 pager = renderer.Pager(self)
                 for data in ui_renderer.data:

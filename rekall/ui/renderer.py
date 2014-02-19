@@ -23,6 +23,7 @@ A renderer is used by plugins to produce formatted output.
 """
 try:
     import curses
+    curses.setupterm()
 except ImportError:
     curses = None
 
@@ -96,7 +97,8 @@ class Pager(object):
         self.pager_command = (session.GetParameter("pager") or
                               os.environ.get("PAGER"))
 
-        self.encoding = encoding or session.encoding or sys.stdout.encoding
+        self.encoding = (encoding or session.encoding or
+                         sys.stdout.encoding or "utf8")
 
         # Make a temporary filename to store output in.
         self.fd, self.filename = tempfile.mkstemp(prefix="rekall")
@@ -580,7 +582,6 @@ class TextRenderer(RendererBaseClass):
         super(TextRenderer, self).__init__(**kwargs)
         self.tablesep = tablesep
         self.elide = elide
-        self.paging_limit = paging_limit
 
         # We keep the data that we produce in memory for while.
         self.data = []
@@ -593,8 +594,12 @@ class TextRenderer(RendererBaseClass):
         # tty.
         if sys.stdout.isatty():
             self.progress_fd = sys.stdout
+            self.paging_limit = paging_limit
+            self.isatty = True
+
         else:
             self.progress_fd = None
+            self.paging_limit = None
 
     def start(self, plugin_name=None, kwargs=None):
         """The method is called when new output is required.
@@ -625,19 +630,24 @@ class TextRenderer(RendererBaseClass):
     def write(self, data):
         self.data.append(data)
 
-        if self.paging_limit is None:
-            self.fd.write(data)
-            return
-
-        elif len(self.data) < self.paging_limit:
+        # When not to use the pager.
+        if (not self.isatty or  # Not attached to a tty.
+            self.paging_limit is None or  # No paging limit specified.
+            len(self.data) < self.paging_limit):  # Not enough output yet.
             self.fd.write(data)
             self.fd.flush()
 
+        # Write a single message to the terminal.
         elif len(self.data) == self.paging_limit:
             self.fd.write(
                 self.color("Please wait while the rest is paged...",
                            foreground="YELLOW") + "\r\n")
             self.fd.flush()
+
+        # Suppress terminal output. Output is buffered in self.data and will be
+        # sent to the pager.
+        else:
+            return
 
     def flush(self):
         self.data = []
@@ -684,6 +694,12 @@ class TextRenderer(RendererBaseClass):
         self.progress_fd.write("\r" + " " * self.last_message_len + "\r")
         self.progress_fd.flush()
 
+    def _GetColumns(self):
+        if curses:
+            return curses.tigetnum('cols')
+
+        return int(os.environ.get("COLUMNS", 80))
+
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
         if self.progress_fd is None:
             return
@@ -716,10 +732,7 @@ class TextRenderer(RendererBaseClass):
 
             message = " " + message + "\r"
             # Truncate the message to the terminal width to avoid wrapping.
-            try:
-                message = message[:int(os.environ["COLUMNS"])-5]
-            except (KeyError, ValueError):
-                pass
+            message = message[:self._GetColumns()]
 
             self.progress_fd.write(message)
             self.last_message_len = len(message)
@@ -919,4 +932,3 @@ class Colorizer(object):
 
         return (escape_seq + utils.SmartUnicode(string) +
                 self.tparm(["sgr0"]))
-

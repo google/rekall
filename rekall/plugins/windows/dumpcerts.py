@@ -115,9 +115,10 @@ class CertScan(core.DirectoryDumperMixin, plugin.PhysicalASMixin,
 
         renderer.table_header(headers)
 
-        scanner = CertScanner(address_space=self.physical_address_space,
-                              profile=basic.Profile32Bits(),
-                              session=self.session)
+        scanner = CertScanner(
+            address_space=self.physical_address_space,
+            session=self.session,
+            profile=basic.Profile32Bits(session=self.session))
 
         for hit, type, data, description in scanner.scan():
             args = [hit, type, len(data)]
@@ -161,7 +162,6 @@ class CertVadScan(core.DirectoryDumperMixin, common.WinProcessFilter):
         headers.append(("Description", "description", ""))
 
         renderer.table_header(headers)
-
 
         for task in self.filter_processes():
             scanner = VadCertScanner(task=task)

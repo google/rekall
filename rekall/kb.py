@@ -68,11 +68,6 @@ class SymbolAddresses(SortedAddresses):
             pass
 
 
-# A dict keyed by AS name organizing the symbols known for this address space.
-SYMBOLS = {}
-
-
-
 class ParameterHook(object):
     """A mechanism for automatically calculating a parameter.
 
@@ -121,15 +116,21 @@ class AddressResolver(object):
     ADDRESS_NAME_REGEX = re.compile(
         "([^!]+)!([^ ]+)?(( *[+-] *)([0-9a-fA-Fx]+))?")
 
-    def __init__(self, session, module_plugin):
+    def __init__(self, session):
         self.profiles = {}
-        self.modules = module_plugin
+        self.modules = None
         self.modules_by_name = {}
         self.session = session
 
-        if module_plugin:
-            for module in module_plugin.lsmod():
-                self.modules_by_name[module.name] = module
+    def _EnsureInitialized(self):
+        if self.modules is None:
+            try:
+                self.modules = self.session.plugins.modules()
+                for module in self.modules.lsmod():
+                    self.modules_by_name[module.name] = module
+
+            except AttributeError:
+                self.modules = None
 
     def LoadProfileForModule(self, module):
         if module:
@@ -151,6 +152,11 @@ class AddressResolver(object):
                               module.name)
 
     def get_address_by_name(self, name):
+        self._EnsureInitialized()
+
+        if not isinstance(name, basestring):
+            raise TypeError("Name should be a string.")
+
         # Can be represented as hex.
         if name.startswith("0x"):
             return int(name, 16)
@@ -181,6 +187,8 @@ class AddressResolver(object):
         return int(name)
 
     def get_constant_by_address(self, address):
+        self._EnsureInitialized()
+
         address = obj.Pointer.integer_to_address(address)
         if self.modules:
             containing_module = self.modules.find_module(address)
@@ -189,6 +197,8 @@ class AddressResolver(object):
             return module_profile.get_constant_by_address(address)
 
     def get_nearest_constant_by_address(self, address):
+        self._EnsureInitialized()
+
         address = obj.Pointer.integer_to_address(address)
         nearest_offset = 0
         module_name = nearest_name = ""

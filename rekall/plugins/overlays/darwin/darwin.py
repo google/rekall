@@ -26,14 +26,19 @@ from rekall.plugins.overlays import basic
 
 darwin_overlay = {
     "proc": [None, {
-            "p_list": [None, ["LIST_ENTRY"]],
-            "p_sibling": [None, ["LIST_ENTRY"]],
+        # Some standard fields for darwin processes.
+        'name': lambda x: x.p_comm,
+        'pid': lambda x: x.p_pid,
 
-            "p_comm": [None, ["String"]],
-            "task": [None, ["Pointer", dict(
-                        target="task"
-                        )]],
-            }],
+        "p_list": [None, ["LIST_ENTRY"]],
+        "p_sibling": [None, ["LIST_ENTRY"]],
+
+        "p_comm": [None, ["String"]],
+        "task": [None, ["Pointer", dict(
+            target="task"
+            )]],
+        }],
+
     "task": [None, {
             "bsd_info": [None, ["Pointer", dict(target="proc")]],
             }],

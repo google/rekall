@@ -159,7 +159,7 @@ class ProfileHook(kb.ParameterHook):
                     return profile
 
             else:
-                guess = address_space.read(hit-100, 150)
+                guess = address_space.read(hit-100, 300)
                 m = self.DARWIN_TEMPLATE.search(guess)
                 if m:
                     version = PROFILE_STRINGS.get(m.group(1), "")

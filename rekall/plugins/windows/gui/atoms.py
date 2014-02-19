@@ -43,7 +43,7 @@ class PoolScanAtom(common.PoolScanner):
             ]
 
 
-class AtomScan(common.PoolScannerPlugin):
+class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
     """Pool scanner for _RTL_ATOM_TABLE"""
 
     allocation = ['_POOL_HEADER', '_RTL_ATOM_TABLE']
@@ -60,7 +60,6 @@ class AtomScan(common.PoolScannerPlugin):
     def __init__(self, sort_by=None, **kwargs):
         super(AtomScan, self).__init__(**kwargs)
         self.sort_by = sort_by
-        self.profile = win32k_core.Win32GUIProfile(self.profile)
 
     def generate_hits(self):
         scanner = PoolScanAtom(profile=self.profile, session=self.session,
@@ -74,14 +73,14 @@ class AtomScan(common.PoolScannerPlugin):
             # because the size of an _RTL_ATOM_TABLE differs depending on the
             # number of hash buckets.
 
-            build = self.profile.metadatas('major', 'minor')
+            version = self.profile.metadata('version')
             fixup = 0
 
             if self.profile.metadata('arch') == 'I386':
-                if build > (5, 1):
+                if version > "5.1":
                     fixup = 8
             else:
-                if build > (5, 1):
+                if version > "5.1":
                     fixup = 16
 
             atom_table = self.profile._RTL_ATOM_TABLE(
@@ -140,17 +139,18 @@ class Atoms(windowstations.WndScan):
 
         # Find the atom tables that belong to each window station
         for wndsta, session_space in self.generate_hits():
-            # Get the atom table from the windows station object. Deduplicate by
-            # physical address.
-            table_physical_offset = session_space.vtop(wndsta.pGlobalAtomTable)
-            if table_physical_offset in seen:
-                continue
-
-            seen.add(table_physical_offset)
+            # Get the atom table from the windows station object.
 
             # The atom table is dereferenced in the proper
             # session space
             atom_table = wndsta.AtomTable(vm=session_space)
+
+            # Deduplicate by physical address.
+            table_physical_offset = session_space.vtop(atom_table.obj_offset)
+            if table_physical_offset in seen:
+                continue
+
+            seen.add(table_physical_offset)
 
             if atom_table.is_valid():
                 for atom in atom_table.atoms(vm=session_space):
@@ -163,6 +163,7 @@ class Atoms(windowstations.WndScan):
         # Find atom tables not linked to specific window stations.
         # This finds win32k!UserAtomHandleTable.
         for table in self.session.plugins.atomscan().generate_hits():
+
             table_physical_offset = table.obj_vm.vtop(table.obj_offset)
             if table_physical_offset not in seen:
                 for atom in table.atoms(vm=session_space):
@@ -185,7 +186,17 @@ class Atoms(windowstations.WndScan):
              ("Name", "name", ""),
              ])
 
-        for table_physical_offset, atom, window_station in self.find_atoms():
+        seen = set()
+
+        for table_physical_offset, atom, window_station in sorted(
+            self.find_atoms()):
+
+            # Deduplicate by table_physical_offset and atom
+            if (table_physical_offset, atom.Atom) in seen:
+                continue
+
+            seen.add((table_physical_offset, atom.Atom))
+
             renderer.table_row(
                 table_physical_offset,
                 window_station.dwSessionId,

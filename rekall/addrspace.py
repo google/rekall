@@ -74,9 +74,15 @@ class BaseAddressSpace(object):
             logging.error("Unknown keyword args {0} for {1}".format(
                     kwargs, self.__class__.__name__))
 
+        if session is None and base is not None:
+          session = base.session
+
         self.base = base or self
         self.profile = profile
         self.session = session
+        if session is None:
+          raise RuntimeError("Session must be provided.")
+
         self.writeable = (
             self.session and self.session.writable_address_space or write)
 
@@ -165,7 +171,9 @@ class BaseAddressSpace(object):
                 total_length += length
 
             else:
-                result.append((contiguous_voffset, contiguous_poffset, total_length))
+                result.append(
+                    (contiguous_voffset, contiguous_poffset, total_length))
+
                 yield (contiguous_voffset, contiguous_poffset, total_length)
 
                 # Reset the contiguous range.
@@ -174,7 +182,9 @@ class BaseAddressSpace(object):
                 total_length = length
 
         if total_length > 0:
-            result.append((contiguous_voffset, contiguous_poffset, total_length))
+            result.append(
+                (contiguous_voffset, contiguous_poffset, total_length))
+
             yield (contiguous_voffset, contiguous_poffset, total_length)
 
         # Cache this for next time.
@@ -246,6 +256,10 @@ class BufferAddressSpace(BaseAddressSpace):
 
     def get_available_addresses(self):
         yield (self.base_offset, self.base_offset, len(self.data))
+
+    def get_buffer_offset(self, offset):
+      """Returns the offset in self.data for the virtual offset."""
+      return offset - self.base_offset
 
     def __repr__(self):
         return "<%s @ %#x %s [%#X-%#X]>" % (
@@ -452,4 +466,3 @@ class AddrSpaceError(Error):
             result += " {0}: {1}\n".format(k, v)
 
         return result
-

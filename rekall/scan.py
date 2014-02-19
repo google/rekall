@@ -43,15 +43,15 @@ class BaseScanner(object):
            address_space: The address space we use for scanning.
            window_size: The size of the overlap window between each buffer read.
         """
+        self.session = session or address_space.session
         self.address_space = address_space
         self.window_size = window_size
         self.constraints = None
-        self.profile = profile or session.profile
+        self.profile = profile or self.session.profile
         self.max_length = None
         self.base_offset = None
-        self.session = session
         self.scan_buffer_offset = None
-        self.buffer_as = addrspace.BufferAddressSpace()
+        self.buffer_as = addrspace.BufferAddressSpace(session=self.session)
 
     def build_constraints(self):
         self.constraints = []
@@ -69,6 +69,9 @@ class BaseScanner(object):
 
         Args:
            offset: The offset to test (in self.address_space).
+
+        Returns:
+           None if the offset is not a hit, the hit if the hit is correct.
         """
         for check in self.constraints:
             # Ask the check if this offset is possible.
@@ -76,9 +79,9 @@ class BaseScanner(object):
 
             # Break out on the first negative hit.
             if not val:
-                return False
+                return
 
-        return True
+        return offset
 
     def skip(self, buffer_as, offset):
         """Skip uninteresting regions.
@@ -129,10 +132,9 @@ class BaseScanner(object):
         # it's fully consumed. Overlap is applied only in this case, starting
         # from the second chunk.
 
-        for (range_start,
-             phys_start,
-             length) in self.address_space.get_address_ranges(
-                 offset, offset+maxlen):
+        for (range_start, phys_start,
+             length) in self.address_space.get_address_ranges(offset, end):
+
             # Find a new range if offset is past this range.
             range_end = range_start + length
             if range_end < offset:
@@ -172,19 +174,23 @@ class BaseScanner(object):
                 # Consume the next block in this range.
                 buffer_as = addrspace.BufferAddressSpace(
                     session=self.session,
+
                     data=self.address_space.base.read(
                         phys_chunk_offset, chunk_size + self.overlap),
+
                     base_offset=chunk_offset)
 
                 scan_offset = chunk_offset
                 while scan_offset < chunk_offset + chunk_size:
                     # Check the current offset for a match.
-                    if self.check_addr(scan_offset, buffer_as=buffer_as):
-                        yield scan_offset
+                    res = self.check_addr(scan_offset, buffer_as=buffer_as)
+                    if res is not None:
+                        yield res
 
                     # Skip as much data as the skippers tell us to.
                     scan_offset += min(chunk_size,
                                        self.skip(buffer_as, scan_offset))
+
                 chunk_offset = scan_offset
 
 
@@ -217,39 +223,9 @@ class PointerScanner(BaseScanner):
             self.needles.append(tmp.obj_vm.read(0, tmp.size()))
 
         # The common string between all the needles.
-        self.common = self.FindCommonString(self.needles)
         self.checks = [
-            ('StringCheck', dict(needle=self.common)),
+            ('MultiStringFinderCheck', dict(needles=self.needles)),
             ]
-
-    def FindCommonString(self, needles):
-        """Find the largest common suffix among all the needles.
-
-        Note we assume all the needles are the same size and pointers are little
-        endian (so we work from the end of the string to the beginning).
-        """
-        common = ""
-        for i in range(1, self.address_size):
-            possible_match = None
-            for needle in needles:
-                # If this does not match we stop early.
-                if possible_match is not None and possible_match != needle[-i]:
-                    return common
-
-                possible_match = needle[-i]
-
-            common = possible_match + common
-
-        return common
-
-    def scan(self, **kwargs):
-        for hit in super(PointerScanner, self).scan(**kwargs):
-            # Correct the hit for the common suffix.
-            hit -= self.address_size - len(self.common)
-            data = self.address_space.read(hit, self.address_size)
-
-            if data in self.needles:
-                yield hit
 
 
 class ScannerCheck(object):
@@ -353,14 +329,16 @@ class StringCheck(ScannerCheck):
         self.needle = needle
 
     def check(self, buffer_as, offset):
-        return buffer_as.read(offset, len(self.needle)) == self.needle
+        # Just check the buffer without needing to copy it on slice.
+        buffer_offset = buffer_as.get_buffer_offset(offset)
+        return buffer_as.data.startswith(self.needle, buffer_offset)
 
     def skip(self, buffer_as, offset):
-        data_offset = offset - buffer_as.base_offset
-
-        dindex = buffer_as.data.find(self.needle, data_offset + 1)
+        # Search the rest of the buffer for the needle.
+        buffer_offset = buffer_as.get_buffer_offset(offset)
+        dindex = buffer_as.data.find(self.needle, buffer_offset + 1)
         if dindex > -1:
-            return dindex - data_offset
+            return dindex - buffer_offset
 
         # Skip entire region.
         return buffer_as.end() - offset
@@ -375,17 +353,10 @@ class RegexCheck(ScannerCheck):
         self.regex = re.compile(regex)
 
     def check(self, buffer_as, offset):
-        verify = buffer_as.read(offset, self.maxlen)
-        return bool(self.regex.match(verify))
+        m = self.regex.match(
+            buffer_as.data, buffer_as.get_buffer_offset(offset))
 
-    def skip(self, buffer_as, offset):
-        data_offset = offset - buffer_as.base_offset
-
-        m = self.regex.search(buffer_as.data[data_offset:])
-        if m:
-            return m.start() + 1
-
-        return buffer_as.end() - offset
+        return bool(m)
 
 
 class ScannerGroup(BaseScanner):

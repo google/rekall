@@ -22,6 +22,8 @@
 # pylint: disable=protected-access
 
 import copy
+import re
+
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import common
 from rekall.plugins.overlays.windows import xp
@@ -121,7 +123,11 @@ class RelativeOffsetMixin(object):
 
 
 class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
-    """A basic profile for a pe image."""
+    """A basic profile for a pe image.
+
+    This profile deals with Microsoft Oddities like name mangling, and
+    correcting global offsets to the base image address.
+    """
 
     image_base = 0
 
@@ -129,6 +135,79 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
     def GetImageBase(self):
         return self.image_base
+
+    def GuessArchitecture(self):
+      """Guesses the architecture of this profile."""
+
+    STRING_MANGLE_MAP = {
+        "^0": ",",
+        "^2": r"\\",
+        "^4": ".",
+        "^3": ":",
+        "^5": "_",  # Really space.
+        "^6": ".",  # Really \n.
+        r"\$AA": "",
+        r"\$AN": "", # Really \r.
+        r"\$CF": "%",
+        r"\$EA": "@",
+        r"\$CD": "#",
+        r"\$CG": "&",
+        r"\$HO": "~",
+        r"\$CI": "(",
+        r"\$CJ": ")",
+        r"\$DM1": "</",
+        r"\$DMO": ">",
+        r"\$DN": "=",
+        r"\$CK": "*",
+        r"\$CB": "!",
+
+        }
+
+    def _UnpackMangledString(self, string):
+        string = string.split("@")[3]
+
+        result = []
+        for cap in string.split("?"):
+            for k, v in self.STRING_MANGLE_MAP.items():
+                cap = re.sub(k, v, cap)
+
+            result.append(cap)
+
+        return "str:" + "".join(result).strip()
+
+    SIMPLE_X86_CALL = re.compile(r"[_@]([A-Za-z0-9_]+)@\d+")
+    def DemangleName(self, mangled_name):
+      """Returns the de-mangled name.
+
+      At this stage we don't really do proper demangling since we usually dont
+      care about the prototype, nor c++ exports. In the future we should though.
+      """
+      m = self.SIMPLE_X86_CALL.match(mangled_name)
+      if m:
+          # If we see x86 name mangling (_cdecl, __stdcall) this is definitely a
+          # 32 bit pdb since those do not exist on AMD64. Sometimes we dont know
+          # the architecture of the pdb file for example if we do not have the
+          # original binary, but on the GUID as extracted by version_scan.
+          self._metadata.setdefault("arch", "I386")
+
+          return m.group(1)
+
+      if mangled_name.startswith("??_C@"):
+          return self._UnpackMangledString(mangled_name)
+
+      return mangled_name
+
+    def add_constants(self, **kwargs):
+        """Add the demangled constants.
+
+        This allows us to handle 32 bit vs 64 bit constant names easily since
+        the mangling rules are different.
+        """
+        result = {}
+        for k, v in kwargs.iteritems():
+            result[self.DemangleName(k)] = v
+
+        super(BasicPEProfile, self).add_constants(**result)
 
     @classmethod
     def Initialize(cls, profile):
@@ -144,22 +223,7 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
         profile.set_metadata("version", version)
 
-
-class Ntoskrnl(BasicPEProfile):
-    """A profile for Windows."""
-
-    @classmethod
-    def Initialize(cls, profile):
-        super(Ntoskrnl, cls).Initialize(profile)
-
-        # Architecture not known - guess.
-        if profile.metadata("arch") is None:
-            if profile.get_obj_size("_LIST_ENTRY") == 16:
-                profile.set_metadata("arch", "AMD64")
-            else:
-                profile.set_metadata("arch", "I386")
-
-        # Select basic compiler model type.
+        # Add the basic compiler model for windows.
         if profile.metadata("arch") == "AMD64":
             basic.ProfileLLP64.Initialize(profile)
 
@@ -169,6 +233,14 @@ class Ntoskrnl(BasicPEProfile):
             # Detect if this is a PAE system. PAE systems have 64 bit PTEs:
             if profile.get_obj_size("_MMPTE") == 8:
                 profile.set_metadata("pae", True)
+
+
+class Ntoskrnl(BasicPEProfile):
+    """A profile for Windows."""
+
+    @classmethod
+    def Initialize(cls, profile):
+        super(Ntoskrnl, cls).Initialize(profile)
 
         # Add undocumented types.
         if profile.metadata("arch") == "AMD64":
@@ -197,4 +269,3 @@ class Ntoskrnl(BasicPEProfile):
 
     def GetImageBase(self):
         return self.session.GetParameter("kernel_base")
-

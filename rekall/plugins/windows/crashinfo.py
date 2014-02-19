@@ -43,7 +43,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
           overwrite: Should the output be overwritten?
         """
         super(Raw2Dump, self).__init__(**kwargs)
-        self.profile = windows.CrashDump64Profile()
+        self.profile = windows.CrashDump64Profile(session=self.session)
 
         self.buffer_size = buffer_size
         self.destination = destination
@@ -167,5 +167,3 @@ class Raw2Dump(common.WindowsCommandPlugin):
                 data_length -= len(data)
                 renderer.RenderProgress(
                     "Wrote %sMB.", (start_offset + offset)/1024/1024)
-
-

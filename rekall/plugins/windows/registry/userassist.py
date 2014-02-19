@@ -164,7 +164,7 @@ class UserAssistModification(obj.ProfileModification):
     @classmethod
     def modify(cls, profile):
         # Update the profiles for user assist types.
-        if profile.metadata('major') == 6 and profile.metadata('minor') == 1:
+        if profile.metadata('version') == '6.1':
             profile.add_types(ua_win7_vtypes)
         else:
             profile.add_types(ua_vtypes)
@@ -185,7 +185,7 @@ class UserAssist(registry.RegistryPlugin):
     def find_count_keys(self):
         for hive_offset in self.hive_offsets:
             hive_address_space = registry.HiveAddressSpace(
-                base=self.kernel_address_space,
+                base=self.kernel_address_space, session=self.session,
                 hive_addr=hive_offset, profile=self.profile)
 
             reg = registry.Registry(
@@ -266,4 +266,3 @@ class UserAssist(registry.RegistryPlugin):
 
                     # Show a hexdump of the value as well.
                     utils.WriteHexdump(outfd, value.DecodedData)
-
