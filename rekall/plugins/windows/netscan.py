@@ -102,9 +102,10 @@ class Netscan(tcpip_vtypes.TcpipPluginMixin,
 
     @classmethod
     def is_active(cls, session):
-        # This plugin works with the _TCP_ENDPOINT interfaces.
+        # This plugin works with the _TCP_ENDPOINT interfaces. This interface
+        # uses the new HashTable entry in ntoskernl.exe.
         return (super(Netscan, cls).is_active(session) and
-                session.profile.has_type('_TCP_ENDPOINT'))
+                session.profile.get_constant('RtlEnumerateEntryHashTable'))
 
     def generate_hits(self):
         scanner = PoolScanTcpListener(

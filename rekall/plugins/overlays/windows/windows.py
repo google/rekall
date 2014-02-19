@@ -209,6 +209,11 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
         super(BasicPEProfile, self).add_constants(**result)
 
+    def copy(self):
+        result = super(BasicPEProfile, self).copy()
+        result.image_base = self.image_base
+        return result
+
     @classmethod
     def Initialize(cls, profile):
         super(BasicPEProfile, cls).Initialize(profile)
@@ -268,4 +273,7 @@ class Ntoskrnl(BasicPEProfile):
             xp.InitializeXPProfile(profile)
 
     def GetImageBase(self):
-        return self.session.GetParameter("kernel_base")
+        if not self.image_base:
+          self.image_base = self.session.GetParameter("kernel_base")
+
+        return self.image_base
