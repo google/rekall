@@ -339,6 +339,12 @@ windows_overlay = {
     "_LDR_DATA_TABLE_ENTRY": [None, {
             "TimeDateStamp": [None, ["WinFileTime"]],
             }],
+
+    '_PHYSICAL_MEMORY_DESCRIPTOR' : [None, {
+            'Run' : [None, ['Array', dict(
+                        count=lambda x: x.NumberOfRuns,
+                        target='_PHYSICAL_MEMORY_RUN')]],
+            }],
 }
 
 

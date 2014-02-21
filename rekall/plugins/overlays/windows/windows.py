@@ -36,7 +36,6 @@ from rekall.plugins.overlays.windows import undocumented
 
 # Reference:
 # http://computer.forensikblog.de/en/2006/03/dmp-file-structure.html
-
 crash_overlays = {
     "_DMP_HEADER": [None, {
             'Signature': [None, ['String', dict(length=4)]],
@@ -49,11 +48,7 @@ crash_overlays = {
                             },
                         'target': 'unsigned int'}]],
             }],
-    '_PHYSICAL_MEMORY_DESCRIPTOR' : [None, {
-            'Run' : [None, ['Array', dict(
-                        count=lambda x: x.NumberOfRuns,
-                        target='_PHYSICAL_MEMORY_RUN')]],
-            }],
+
     }
 
 crash_overlays['_DMP_HEADER64'] = copy.deepcopy(crash_overlays['_DMP_HEADER'])
@@ -177,25 +172,33 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
     SIMPLE_X86_CALL = re.compile(r"[_@]([A-Za-z0-9_]+)@\d+")
     def DemangleName(self, mangled_name):
-      """Returns the de-mangled name.
+        """Returns the de-mangled name.
 
-      At this stage we don't really do proper demangling since we usually dont
-      care about the prototype, nor c++ exports. In the future we should though.
-      """
-      m = self.SIMPLE_X86_CALL.match(mangled_name)
-      if m:
-          # If we see x86 name mangling (_cdecl, __stdcall) this is definitely a
-          # 32 bit pdb since those do not exist on AMD64. Sometimes we dont know
-          # the architecture of the pdb file for example if we do not have the
-          # original binary, but on the GUID as extracted by version_scan.
-          self._metadata.setdefault("arch", "I386")
+        At this stage we don't really do proper demangling since we usually dont
+        care about the prototype, nor c++ exports. In the future we should
+        though.
+        """
+        m = self.SIMPLE_X86_CALL.match(mangled_name)
+        if m:
+            # If we see x86 name mangling (_cdecl, __stdcall) this is definitely
+            # a 32 bit pdb since those do not exist on AMD64. Sometimes we dont
+            # know the architecture of the pdb file for example if we do not
+            # have the original binary, but on the GUID as extracted by
+            # version_scan.
+            self._metadata.setdefault("arch", "I386")
 
-          return m.group(1)
+            return m.group(1)
+        else:
+            # Strip the first _ from the name. I386 mangled constants have a
+            # leading _ but their AMD64 counterparts do not.
+            if mangled_name.startswith("_"):
+                mangled_name = mangled_name[1:]
 
-      if mangled_name.startswith("??_C@"):
-          return self._UnpackMangledString(mangled_name)
+        if mangled_name.startswith("??_C@"):
+            return self._UnpackMangledString(mangled_name)
 
-      return mangled_name
+
+        return mangled_name
 
     def add_constants(self, **kwargs):
         """Add the demangled constants.
