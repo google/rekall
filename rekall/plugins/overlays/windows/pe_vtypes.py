@@ -943,7 +943,7 @@ class PEProfile(basic.BasicClasses):
     def Initialize(cls, profile):
         super(PEProfile, cls).Initialize(profile)
         if not profile.has_type("unsigned int"):
-          basic.ProfileLLP64.Initialize(profile)
+            basic.ProfileLLP64.Initialize(profile)
 
         profile.add_classes({
             '_IMAGE_DOS_HEADER': _IMAGE_DOS_HEADER,

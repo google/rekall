@@ -76,7 +76,6 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
 
     def __eq__(self, other):
         return (self.__class__ == other.__class__ and
-                self.base == other.base and
                 self.fname == other.fname)
 
 

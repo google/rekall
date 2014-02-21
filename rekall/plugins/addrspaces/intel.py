@@ -64,7 +64,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         super(IA32PagedMemory, self).__init__(**kwargs)
 
         ## We must be stacked on someone else:
-        self.as_assert(self.base, "No base Address Space")
+        self.as_assert(self.base != self, "No base Address Space")
 
         # If the underlying address space already knows about the dtb we use it.
         # Allow the dtb to be specified in the session.

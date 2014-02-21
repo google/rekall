@@ -132,7 +132,9 @@ class BaseScanner(object):
         # it's fully consumed. Overlap is applied only in this case, starting
         # from the second chunk.
 
-        for (range_start, _, length) in self.address_space.get_address_ranges():
+        for (range_start, phys_start,
+             length) in self.address_space.get_address_ranges(offset, end):
+
             # Find a new range if offset is past this range.
             range_end = range_start + length
             if range_end < offset:
@@ -156,8 +158,7 @@ class BaseScanner(object):
                     self.session.report_progress(
                         "Scanning 0x%08X with %s" %
                         (chunk_offset, self.__class__.__name__))
-                # We'll read with overlap, making sure we don't go below
-                # start.
+
                 chunk_offset = max(start, chunk_offset)
 
                 # Our chunk is SCAN_BLOCKSIZE long or as much data there's
@@ -169,11 +170,14 @@ class BaseScanner(object):
                 # the end or we could end up scanning more data than requested.
                 chunk_size = min(chunk_size, end - chunk_offset)
 
+                phys_chunk_offset = phys_start + (chunk_offset - range_start)
                 # Consume the next block in this range.
                 buffer_as = addrspace.BufferAddressSpace(
                     session=self.session,
-                    data=self.address_space.read(
-                        chunk_offset, chunk_size + self.overlap),
+
+                    data=self.address_space.base.read(
+                        phys_chunk_offset, chunk_size + self.overlap),
+
                     base_offset=chunk_offset)
 
                 scan_offset = chunk_offset
@@ -334,7 +338,7 @@ class StringCheck(ScannerCheck):
         buffer_offset = buffer_as.get_buffer_offset(offset)
         dindex = buffer_as.data.find(self.needle, buffer_offset + 1)
         if dindex > -1:
-            return dindex - buffer_offset - 1
+            return dindex - buffer_offset
 
         # Skip entire region.
         return buffer_as.end() - offset
@@ -350,7 +354,7 @@ class RegexCheck(ScannerCheck):
 
     def check(self, buffer_as, offset):
         m = self.regex.match(
-            buffer_as.data, offset - buffer_as.base_offset)
+            buffer_as.data, buffer_as.get_buffer_offset(offset))
 
         return bool(m)
 
@@ -397,7 +401,7 @@ class DiscontigScannerGroup(ScannerGroup):
     def scan(self, offset=0, maxlen=None):
         maxlen = maxlen or self.profile.get_constant("MaxPointer")
 
-        for (start, length) in self.address_space.get_address_ranges(
+        for (start, pstart, length) in self.address_space.get_address_ranges(
             offset, offset + maxlen):
             for match in super(DiscontigScannerGroup, self).scan(
                 start, maxlen=length):

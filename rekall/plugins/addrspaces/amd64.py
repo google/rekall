@@ -235,5 +235,4 @@ class VTxPagedMemory(AMD64PagedMemory):
         return self._read_long_long_phys(ept_pml4e_paddr)
 
     def __str__(self):
-        return "%s@0x%08X" % (
-            self.__class__.__name__, self.session.GetParameter("ept"))
+        return "%s@0x%08X" % (self.__class__.__name__, self.ept)

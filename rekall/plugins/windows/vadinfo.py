@@ -336,8 +336,6 @@ class VadScanner(scan.BaseScanner):
         maxlen = maxlen or self.profile.get_constant("MaxPointer")
 
         for vad in self.task.RealVadRoot.traverse():
-            # Get only the mapped address ranges within the vad region.
-            for start, _, length in self.address_space.get_address_ranges(
-                vad.Start, vad.End):
-                for match in super(VadScanner, self).scan(start, length):
-                    yield match
+            # Only scan the VAD region.
+            for match in super(VadScanner, self).scan(vad.Start, vad.Length):
+                yield match

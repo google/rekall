@@ -37,7 +37,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
 
     2) no one else has picked the AS before us
 
-    3) base == None (we dont operate on anyone else so we need to be
+    3) base == self (we dont operate on anyone else so we need to be
     right at the bottom of the AS stack.)
     """
     ## We should be the AS of last resort but before the FileAddressSpace
@@ -46,7 +46,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
 
     def __init__(self, filename=None, **kwargs):
         super(MmapFileAddressSpace, self).__init__(**kwargs)
-        self.as_assert(self.base==None , 'Must be first Address Space')
+        self.as_assert(self.base is self , 'Must be first Address Space')
 
         path = self.session.GetParameter("filename") or filename
         self.as_assert(path and os.path.exists(path),
@@ -104,5 +104,5 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
         return True
 
     def __eq__(self, other):
-        return (self.__class__ == other.__class__ and
-                self.base == other.base and self.fname == other.fname)
+        return (self.__class__ == other.__class__
+                and self.fname == other.fname)
