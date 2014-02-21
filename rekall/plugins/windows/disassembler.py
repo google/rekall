@@ -38,7 +38,7 @@ except Exception:
 import distorm3
 import re
 
-from rekall import kb
+from rekall import config
 from rekall import obj
 from rekall import plugin
 from rekall import testlib
@@ -62,14 +62,14 @@ class Disassemble(plugin.Command):
                             help="The address space to use.")
 
         parser.add_argument(
-            "-l", "--length", default=50,
+            "-l", "--length", action=config.IntParser,
             help="The number of instructions (lines) to disassemble.")
 
         parser.add_argument(
-            "-e", "--end", default=None,
+            "-e", "--end", default=None, action=config.IntParser,
             help="The end address to disassemble up to.")
 
-    def __init__(self, offset=0, address_space=None, length=50, end=None,
+    def __init__(self, offset=0, address_space=None, length=None, end=None,
                  mode=None, suppress_headers=False, target=None, **kwargs):
         """Dumps a disassembly of a location.
 
@@ -181,8 +181,13 @@ class Disassemble(plugin.Command):
 
     SIMPLE_REFERENCE = re.compile("0x[0-9a-fA-F]+$")
     INDIRECT_REFERENCE = re.compile(r"\[(0x[0-9a-fA-F]+)\]")
-    RIP_REFERENCE = re.compile(r"\[RIP\+(0x[0-9a-fA-F]+)\]")
+    RIP_REFERENCE = re.compile(r"\[RIP([+-]0x[0-9a-fA-F]+)\]")
     def find_reference(self, offset, size, instruction):
+        match = self.RIP_REFERENCE.search(instruction)
+        if match:
+            operand = int(match.group(1), 16)
+            return self.format_indirect(offset + size + operand) or ""
+
         match = self.INDIRECT_REFERENCE.search(instruction)
         if match:
             operand = int(match.group(1), 16)
@@ -192,16 +197,6 @@ class Disassemble(plugin.Command):
         if match:
             operand = int(match.group(0), 16)
             return self.format_address(operand) or ""
-
-        match = self.RIP_REFERENCE.search(instruction)
-        if match:
-            operand = int(match.group(1), 16)
-            if size % 2:
-                align = 1
-            else:
-                align = 2
-
-            return self.format_indirect(offset + operand - align) or ""
 
         return ""
 
@@ -217,6 +212,10 @@ class Disassemble(plugin.Command):
         The mode is '32bit' or '64bit'. If not supplied, the disasm
         mode is taken from the profile.
         """
+        # If length nor end are specified only disassemble one pager output.
+        if self.end is None and self.length is None:
+            self.length = self.session.GetParameter("paging_limit") or 50
+
         renderer.table_header(
             [('Address', "cmd_address", '[addrpad]'),
              ('Rel', "relative_address", '>4'),

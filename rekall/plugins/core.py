@@ -736,7 +736,6 @@ class Dump(plugin.Command):
             self.session.plugins.load_as(session=self.session).render(None)
             target = self.session.kernel_address_space
 
-
         self.target = target
         self.offset = int(offset)
         self.width = int(width)

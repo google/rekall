@@ -587,7 +587,8 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         super(Function, self).__init__(**kwargs)
         self.args = args
         if mode is None:
-            self.mode = self.obj_profile.metadata("arch")
+            self.mode = (self.obj_profile.metadata("arch") or
+                         self.obj_session.profile.metadata("arch"))
 
         if self.mode == "I386":
             self.distorm_mode = distorm3.Decode32Bits

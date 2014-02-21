@@ -91,7 +91,7 @@ class DarwinMount(common.DarwinPlugin):
 class DarwinPhysicalMap(common.DarwinPlugin):
     """Prints the EFI boot physical memory map."""
 
-    __name = "efi_map"
+    __name = "phys_map"
 
     def render(self, renderer):
         renderer.table_header([
