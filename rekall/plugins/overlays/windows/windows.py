@@ -49,6 +49,11 @@ crash_overlays = {
                         'target': 'unsigned int'}]],
             }],
 
+    '_PHYSICAL_MEMORY_DESCRIPTOR' : [None, {
+            'Run' : [None, ['Array', dict(
+                        count=lambda x: x.NumberOfRuns,
+                        target='_PHYSICAL_MEMORY_RUN')]],
+            }],
     }
 
 crash_overlays['_DMP_HEADER64'] = copy.deepcopy(crash_overlays['_DMP_HEADER'])
@@ -170,7 +175,7 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
         return "str:" + "".join(result).strip()
 
-    SIMPLE_X86_CALL = re.compile(r"[_@]([A-Za-z0-9_]+)@\d+")
+    SIMPLE_X86_CALL = re.compile(r"[_@]([A-Za-z0-9_]+)@(\d+)")
     def DemangleName(self, mangled_name):
         """Returns the de-mangled name.
 
@@ -185,7 +190,8 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
             # know the architecture of the pdb file for example if we do not
             # have the original binary, but on the GUID as extracted by
             # version_scan.
-            self._metadata.setdefault("arch", "I386")
+            if m.group(2) in ["4", "12"]:
+                self._metadata.setdefault("arch", "I386")
 
             return m.group(1)
         else:
@@ -231,6 +237,10 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
         profile.set_metadata("version", version)
 
+        # If the architecture is not added yet default to 64 bit.
+        if profile.metadata("arch") is None:
+            profile.set_metadata("arch", "AMD64")
+
         # Add the basic compiler model for windows.
         if profile.metadata("arch") == "AMD64":
             basic.ProfileLLP64.Initialize(profile)
@@ -252,10 +262,10 @@ class Ntoskrnl(BasicPEProfile):
 
         # Add undocumented types.
         if profile.metadata("arch") == "AMD64":
-            profile.add_types(undocumented.AMD64)
+            profile.add_overlay(undocumented.AMD64)
 
         elif profile.metadata("arch") == "I386":
-            profile.add_types(undocumented.I386)
+            profile.add_overlay(undocumented.I386)
 
         # Install the base windows support.
         common.InitializeWindowsProfile(profile)
@@ -280,3 +290,15 @@ class Ntoskrnl(BasicPEProfile):
           self.image_base = self.session.GetParameter("kernel_base")
 
         return self.image_base
+
+
+class Ntkrnlmp(Ntoskrnl):
+    """Alias for the windows kernel class."""
+
+
+class Ntkrnlpa(Ntoskrnl):
+    """Alias for the windows kernel class."""
+
+
+class Ntkrpamp(Ntoskrnl):
+    """Alias for the windows kernel class."""

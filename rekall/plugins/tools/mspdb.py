@@ -872,6 +872,7 @@ class PDBParser(object):
             return
 
         omap_address_space = addrspace.BufferAddressSpace(
+            session=self.session,
             data=omap_stream.read(0, omap_stream.size))
 
         omap_array = self.profile.Array(
@@ -1011,11 +1012,12 @@ class ParsePDB(plugin.Command):
             help="The filename of the PDB file.")
 
         parser.add_argument(
-            "--profile_class", default="BasicPEProfile",
-            help="The name of the profile implementation. ")
+            "--profile_class",
+            help="The name of the profile implementation. "
+            "Default name is derived from the pdb filename.")
 
         parser.add_argument(
-            "--windows_version", default="6.1",
+            "--windows_version", default=None,
             help="The windows version (major.minor.revision) "
             "corresponding with this PDB. For example, Windows 7 "
             "should be given as 6.1")
@@ -1024,18 +1026,23 @@ class ParsePDB(plugin.Command):
                  metadata=None, **kwargs):
         super(ParsePDB, self).__init__(**kwargs)
         self.filename = filename
+
+        # By default select the class with the same name as the pdb file.
+        if profile_class is None:
+            profile_class = os.path.splitext(self.filename)[0].capitalize()
+
         self.profile_class = profile_class
-        self.metadata = metadata or dict(ProfileClass=self.profile_class)
+        self.metadata = metadata or {}
 
         versions = []
-        if windows_version:
+        if windows_version is not None:
             versions = windows_version.split(".", 2)
 
-        for i, metadata in enumerate(["major", "minor", "rev"]):
-            try:
-                self.metadata[metadata] = versions[i]
-            except IndexError:
-                break
+            for i, metadata in enumerate(["major", "minor", "rev"]):
+                try:
+                    self.metadata[metadata] = versions[i]
+                except IndexError:
+                    break
 
         self.tpi = PDBParser(filename, self.session)
 
@@ -1053,9 +1060,10 @@ class ParsePDB(plugin.Command):
             vtypes[struct_name] = definition
 
         self.metadata.update(dict(
-                Type="Profile",
-                PDBFile=os.path.basename(self.filename),
-                ))
+            ProfileClass=self.profile_class,
+            Type="Profile",
+            PDBFile=os.path.basename(self.filename),
+            ))
 
         self.metadata.update(self.tpi.metadata)
 

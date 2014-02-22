@@ -19,6 +19,7 @@ from rekall.plugins.windows import misc
 from rekall.plugins.windows import modscan
 from rekall.plugins.windows import modules
 from rekall.plugins.windows import netscan
+from rekall.plugins.windows import network
 #from rekall.plugins.windows import patcher
 from rekall.plugins.windows import pas2kas
 from rekall.plugins.windows import pfn

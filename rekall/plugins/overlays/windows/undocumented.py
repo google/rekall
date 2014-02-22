@@ -44,6 +44,41 @@ AMD64 = {
             'Address': [0x10, ['pointer', ['address']]],
             'LastAddress': [0x18, ['pointer', ['address']]],
             }],
+
+    # Reversed from tcpip.sys!TcpStartPartitionModule
+    "PARTITION_TABLE": [None, {
+        "Partitions": [8, ["Array", dict(
+            target="Pointer",
+
+            count=lambda x: x.obj_profile.get_constant_object(
+                "PartitionCount", "unsigned int"),
+
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    count=4,
+                    target="FIRST_LEVEL_DIR"
+                    )
+                )
+            )]],
+        }],
+
+    # ntoskrnl.exe!RtlCreateHashTable
+    "FIRST_LEVEL_DIR": [0x24, {
+        "SizeOfSecondLevel": [0x8, ["unsigned int"]],
+
+        "Mask": [0x10, ["unsigned int"]],
+
+        # Reversed from ntoskrnl.exe!RtlpAllocateSecondLevelDir
+        "SecondLevel": [0x20, ["Pointer", dict(
+            target="Array",
+            target_args=dict(
+                count=lambda x: x.SizeOfSecondLevel,
+                target="_LIST_ENTRY"
+                )
+            )]],
+        }],
+
 }
 
 
@@ -53,4 +88,39 @@ I386 = {
             'Address': [0x08, ['pointer', ['address']]],
             'LastAddress': [0x0b, ['pointer', ['address']]],
             }],
+
+    # Reversed from tcpip.sys!TcpStartPartitionModule
+    "PARTITION_TABLE": [None, {
+        "Partitions": [4, ["Array", dict(
+            target="Pointer",
+
+            count=lambda x: x.obj_profile.get_constant_object(
+                "PartitionCount", "unsigned int"),
+
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    count=4,
+                    target="FIRST_LEVEL_DIR"
+                    )
+                )
+            )]],
+        }],
+
+    # ntoskrnl.exe!RtlCreateHashTable
+    "FIRST_LEVEL_DIR": [0x24, {
+        "SizeOfSecondLevel": [0x8, ["unsigned int"]],
+
+        "Mask": [0x10, ["unsigned int"]],
+
+        # Reversed from ntoskrnl.exe!RtlpAllocateSecondLevelDir
+        "SecondLevel": [0x20, ["Pointer", dict(
+            target="Array",
+            target_args=dict(
+                count=lambda x: x.SizeOfSecondLevel,
+                target="_LIST_ENTRY"
+                )
+            )]],
+        }],
+
 }

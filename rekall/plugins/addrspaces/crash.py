@@ -74,7 +74,7 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
         self.as_assert((self.base.read(0, 8) == 'PAGEDUMP'),
                        "Header signature invalid")
 
-        self.profile = windows.CrashDump32Profile()
+        self.profile = windows.CrashDump32Profile(session=self.session)
         self.header = self.profile.Object(
             "_DMP_HEADER", offset=self.offset, vm=self.base)
 
@@ -105,7 +105,7 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
         self.as_assert((self.base.read(0, 8) == 'PAGEDU64'),
                        "Header signature invalid")
 
-        self.profile = windows.CrashDump64Profile()
+        self.profile = windows.CrashDump64Profile(session=self.session)
         self.as_assert(self.profile.has_type("_DMP_HEADER64"),
                        "_DMP_HEADER64 not available in profile")
         self.header = self.profile.Object("_DMP_HEADER64",
@@ -147,5 +147,3 @@ class CrashInfo(common.AbstractWindowsCommandPlugin):
             renderer.table_row(file_offset,
                                start * page_size,
                                count * page_size)
-
-
