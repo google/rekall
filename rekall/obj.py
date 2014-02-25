@@ -1969,7 +1969,8 @@ class Profile(object):
                     type_name, self))
 
     def __str__(self):
-        return "<Profile %s (%s)>" % (self.name, self.__class__.__name__)
+        return "<%s profile %s (%s)>" % (
+            self.metadata("arch"), self.name, self.__class__.__name__)
 
     def __repr__(self):
         return str(self)

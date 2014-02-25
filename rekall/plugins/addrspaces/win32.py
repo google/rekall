@@ -52,10 +52,9 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
     PAGE_SIZE = 0x10000
     _md_image = True
 
-    def __init__(self, filename=None, **kwargs):
+    def __init__(self, base=None, filename=None, **kwargs):
+        self.as_assert(base == None, 'Must be first Address Space')
         super(Win32FileAddressSpace, self).__init__(**kwargs)
-
-        self.as_assert(self.base == None, 'Must be first Address Space')
 
         path = filename or (self.session and self.session.GetParameter(
                 "filename"))

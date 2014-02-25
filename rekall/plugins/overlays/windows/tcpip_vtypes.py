@@ -577,30 +577,29 @@ class TcpipPluginMixin(object):
 
         # Find the proper tcpip.sys profile and merge in with this kernel
         # profile.
-        if tcpip_guid is None:
-            for module in self.session.plugins.modules(
-                name_regex=r"\\tcpip.sys$").lsmod():
+        for module in self.session.plugins.modules(
+            name_regex=r"\\tcpip.sys$").lsmod():
+
+            if tcpip_guid is None:
                 guid = module.RSDS.GUID_AGE
                 try:
                     logging.debug("Fetching profile for tcpip.sys.")
                     self.tcpip_profile = self.session.LoadProfile(
                         "GUID/%s" % guid)
 
-                    self.tcpip_profile.image_base = module.DllBase
-                    break
-
                 except (ValueError, IOError):
                     logging.info(
                         "Unable to load tcpip.sys profile: %s.", guid)
             else:
-                raise RuntimeError("No profile for tcpip.sys.")
+                self.tcpip_profile = self.session.LoadProfile(tcpip_guid)
 
-        else:
-            self.tcpip_profile = self.session.LoadProfile(tcpip_guid)
+            self.tcpip_profile.image_base = module.DllBase
+
+            break
 
         # The tcpip.sys types and kernel types interact with each other, so we
         # merge them here into a single profile.
-        self.profile.merge(self.tcpip_profile)
+        self.tcpip_profile.merge(self.profile)
         self.session.tcpip_profile = self.tcpip_profile
 
 

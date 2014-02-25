@@ -59,14 +59,14 @@ class Connections(tcpip_vtypes.TcpipPluginMixin,
 
         # The _TCBTable is a pointer to the hash table.
         TCBTable = self.tcpip_profile.get_constant_object(
-            "_TCBTable",
+            "TCBTable",
             target="Pointer",
             vm=self.kernel_address_space,
             target_args=dict(
                 target="Array",
                 target_args=dict(
                     count=int(self.tcpip_profile.get_constant_object(
-                            "_MaxHashTableSize", "unsigned int")),
+                            "MaxHashTableSize", "unsigned int")),
 
                     target="Pointer",
                     target_args=dict(
@@ -119,14 +119,14 @@ class Sockets(tcpip_vtypes.TcpipPluginMixin,
                                ])
 
         AddrObjTable = self.tcpip_profile.get_constant_object(
-            "_AddrObjTable",
+            "AddrObjTable",
             target="Pointer",
             vm=self.kernel_address_space,
             target_args=dict(
                 target="Array",
                 target_args=dict(
                     count=int(self.tcpip_profile.get_constant_object(
-                            "_AddrObjTableSize", "unsigned int")),
+                            "AddrObjTableSize", "unsigned int")),
 
                     target="Pointer",
                     target_args=dict(

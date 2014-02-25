@@ -465,7 +465,7 @@ class LoadAddressSpace(plugin.Command):
                     logging.error("Fatal Error: %s", e)
                     if self.session.debug:
                         pdb.post_mortem()
-                    return
+                    raise
 
             ## A full iteration through all the classes without anyone
             ## selecting us means we are done:

@@ -94,7 +94,7 @@ class PoolScanTcpEndpoint(common.PoolScanner):
             ]
 
 
-class Netscan(tcpip_vtypes.TcpipPluginMixin,
+class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
               common.PoolScannerPlugin):
     """Scan a Vista, 2008 or Windows 7 image for connections and sockets"""
 
@@ -102,18 +102,19 @@ class Netscan(tcpip_vtypes.TcpipPluginMixin,
 
     @classmethod
     def is_active(cls, session):
-        # This plugin works with the _TCP_ENDPOINT interfaces.
-        return (super(Netscan, cls).is_active(session) and
-                session.profile.has_type('_TCP_ENDPOINT'))
+        # This plugin works with the _TCP_ENDPOINT interfaces. This interface
+        # uses the new HashTable entry in ntoskernl.exe.
+        return (super(WinNetscan, cls).is_active(session) and
+                session.profile.get_constant('RtlEnumerateEntryHashTable'))
 
     def generate_hits(self):
         scanner = PoolScanTcpListener(
-            profile=self.profile, session=self.session,
+            profile=self.tcpip_profile, session=self.session,
             address_space=self.address_space)
 
         for pool_obj in scanner.scan():
             pool_header_end = pool_obj.obj_offset + pool_obj.size()
-            tcpentry = self.profile._TCP_LISTENER(
+            tcpentry = self.tcpip_profile._TCP_LISTENER(
                 vm=self.address_space, offset=pool_header_end)
 
             # Only accept IPv4 or IPv6
@@ -130,12 +131,12 @@ class Netscan(tcpip_vtypes.TcpipPluginMixin,
 
         # Scan for TCP endpoints also known as connections
         scanner = PoolScanTcpEndpoint(
-            profile=self.profile, session=self.session,
+            profile=self.tcpip_profile, session=self.session,
             address_space=self.address_space)
 
         for pool_obj in scanner.scan():
             pool_header_end = pool_obj.obj_offset + pool_obj.size()
-            tcpentry = self.profile._TCP_ENDPOINT(
+            tcpentry = self.tcpip_profile._TCP_ENDPOINT(
                 vm=self.address_space, offset=pool_header_end)
 
             af_inet = tcpentry.InetAF.dereference(vm=self.kernel_address_space)
@@ -163,12 +164,12 @@ class Netscan(tcpip_vtypes.TcpipPluginMixin,
 
         # Scan for UDP endpoints
         scanner = PoolScanUdpEndpoint(
-            profile=self.profile, session=self.session,
+            profile=self.tcpip_profile, session=self.session,
             address_space=self.address_space)
 
         for pool_obj in scanner.scan():
             pool_header_end = pool_obj.obj_offset + pool_obj.size()
-            udpentry = self.profile._UDP_ENDPOINT(
+            udpentry = self.tcpip_profile._UDP_ENDPOINT(
                 vm=self.address_space, offset=pool_header_end)
 
             af_inet = udpentry.InetAF.dereference(vm=self.kernel_address_space)

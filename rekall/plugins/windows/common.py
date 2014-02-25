@@ -112,6 +112,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
             session=self.session, process_name=self.process_name,
             profile=self.profile,
             address_space=self.physical_address_space).scan():
+
             yield process
 
     def dtb_hits(self):
@@ -339,16 +340,14 @@ class PsActiveProcessHeadHook(kb.ParameterHook):
     name = "PsActiveProcessHead"
 
     def calculate(self):
-        for name in ["_PsActiveProcessHead", "PsActiveProcessHead"]:
-            head = self.session.profile.get_constant_object(
-                name, "_LIST_ENTRY",
-                vm=self.session.kernel_address_space)
+        head = self.session.profile.get_constant_object(
+            "PsActiveProcessHead",
+            target="_LIST_ENTRY",
+            vm=self.session.kernel_address_space)
 
-            # Verify it.
-            if head.reflect():
-                return head
-
-        return head
+        # Verify it.
+        if head.reflect():
+            return head
 
 
 class KDBGMixin(plugin.KernelASMixin):

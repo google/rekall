@@ -838,6 +838,7 @@ common_overlay = {
             'Flink' : [0x0, ['pointer', ['LIST_ENTRY32']]],
             'Blink' : [0x4, ['pointer', ['LIST_ENTRY32']]],
             }],
+
     'LIST_ENTRY64' : [0x10, {
             'Flink' : [0x0, ['pointer', ['LIST_ENTRY64']]],
             'Blink' : [0x8, ['pointer', ['LIST_ENTRY64']]],
@@ -880,5 +881,3 @@ def container_of(ptr, type, member):
     """
     offset = ptr.v() - ptr.obj_profile.get_obj_offset(type, member)
     return ptr.obj_profile.Object(type, offset=offset, vm=ptr.obj_vm)
-
-

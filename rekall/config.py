@@ -76,7 +76,7 @@ def GetConfigFile():
         try:
             with open(path, "rb") as fd:
                 return yaml.safe_load(fd)
-        except IOError:
+        except (IOError, ValueError):
             pass
 
     return {}
