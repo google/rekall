@@ -2,7 +2,7 @@
 OSXPMem - Mac OS X Physical Memory acquisition tool
 ===================================================
 
-Version: RC1
+Version: RC2
 
 Author: Johannes Stuettgen (johannes.stuettgen@gmail.com)
 
@@ -53,6 +53,15 @@ permissions might also become corrupted. If the imager reports a failure to load
 the pmem driver, check the drivers permissions. If it is not owned by user
 'root' and group 'wheel' and step 1 can't correct this, try copying it
 somewhere else and correct permissions there.
+
+3. When running OSXPmem from an external drive there will most certainly be
+permission problems. Some file-systems (e.g. FAT) don't support ownership at all
+and OSXPmem just can't load it's kernel extension from there. You will have to
+copy the files onto the target system and launch it from there. If you are certain
+the file-system supports it you can also enable ownership either in finder by
+disabling ("Get Info" -> "Sharing and permissions" -> "Ignore ownership...") or
+by running "vsdbutil -a /Volumes/DRIVENAME" where DRIVENAME is the name of the
+external drive.
 
 Compatibility:
 ==============

@@ -179,7 +179,7 @@ end:
 // return: 0 if the temp_file has identical content as the reference file
 //         See filecmp() for other cases
 //
-int validate_test_image(const char const *reference_image_path) {
+int validate_test_image(const char *reference_image_path) {
   int result = -1;
   int reference_image = -1;
 

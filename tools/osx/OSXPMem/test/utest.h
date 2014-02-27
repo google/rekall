@@ -25,8 +25,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef VOLATILITY_TOOLS_OSX_TEST_UTEST_H_
-#define VOLATILITY_TOOLS_OSX_TEST_UTEST_H_
+#ifndef REKALL_TOOLS_OSX_TEST_UTEST_H_
+#define REKALL_TOOLS_OSX_TEST_UTEST_H_
 
 #include <assert.h>
 #include <errno.h>
@@ -38,8 +38,8 @@
 #include <sys/stat.h>
 
 static const unsigned int kTestFailed = 1;
-static const char const * kTestSuccess = "PASSED";
-static const char const * kTestFailure = "FAILED";
+static const char * kTestSuccess = "PASSED";
+static const char * kTestFailure = "FAILED";
 
 static unsigned int current_test = 0;
 static unsigned int passed_tests = 0;
@@ -70,4 +70,4 @@ void utest_summary(void) {
   }
 }
 
-#endif  // VOLATILITY_TOOLS_OSX_TEST_UTEST_H_
+#endif  // REKALL_TOOLS_OSX_TEST_UTEST_H_

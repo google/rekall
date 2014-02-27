@@ -25,20 +25,26 @@
 static const char * const device_path= "/dev/pmem";
 
 // Command line options for getopt_long().
-static const char const *opt_string = "vhludrf:";
+static const char *opt_string = "vhludrm:f:";
 static const struct option long_opts[] = {
-  {"verbose",       no_argument, NULL, 'v'},
-  {"help",          no_argument, NULL, 'h'},
-  {"load-kext",     no_argument, NULL, 'l'},
-  {"unload-kext",   no_argument, NULL, 'u'},
-  {"display-mmap",  no_argument, NULL, 'd'},
-  {"format",  required_argument, NULL, 'f'},
+  {"verbose",           no_argument, NULL, 'v'},
+  {"help",              no_argument, NULL, 'h'},
+  {"load-kext",         no_argument, NULL, 'l'},
+  {"unload-kext",       no_argument, NULL, 'u'},
+  {"display-mmap",      no_argument, NULL, 'd'},
+  {"mmap-method", required_argument, NULL, 'm'},
+  {"format",      required_argument, NULL, 'f'},
 };
 
 // Default loglevel.
 loglevel_t loglevel = STD;
 // The format of the output file.
 static dumpformat_t dumpformat = ELF;
+// Mode of operation for mapping physical memory into the kernel.
+// Default is using PTE, which is experimental, but works in cases where IOKit
+// doesn't (such as on some 10.9 systems) and is also harder to fool by a
+// rootkit.
+static int pmem_mmap_method = PMEM_MMAP_PTE;
 
 // Prints debug messages to stdout.
 //
@@ -63,27 +69,44 @@ void print_msg(loglevel_t level, const char *fmt, ...) {
 }
 
 // Displays the command line usage and arguments help.
-void display_usage(const char const *image_name) {
-  print_msg(STD, "Usage: %s [OPTION...] FILE\n"
-            "Dump physical address space to FILE.\n\n"
-            "  -h, --help             display this help and exit\n"
-            "  -v, --verbose          enable verbose logging\n"
-            "  -l, --load-kext        load /dev/pmem driver and exit\n"
-            "  -u, --unload-kext      unload /dev/pmem driver and exit\n"
-            "  -d, --display-mmap     print physical memory map and exit\n"
-            "  -f, --format [FORMAT]  set the output format (default is elf)\n"
-            "\n Output formats:\n"
-            "  elf                    64-bit ELF core dump with a program\n"
-            "                         header per physical memory section.\n\n"
-            "  mach                   64-bit MACH-O core dump with a\n"
-            "                         segment load command per physical\n"
-            "                         memory section.\n\n"
-            "  raw                    Flat binary file where physical pages\n"
-            "                         are written to their corresponding\n"
-            "                         offset in the file. Memory holes and\n"
-            "                         gaps in physical address space are\n"
-            "                         zero-padded.\n",
-            image_name);
+void display_usage(const char *image_name) {
+  print_msg(
+      STD, "Usage: %s [OPTION...] FILE\n"
+      "Dump physical address space to FILE.\n\n"
+      "  -h, --help             display this help and exit\n"
+      "  -v, --verbose          enable verbose logging\n"
+      "  -l, --load-kext        load /dev/pmem driver and exit\n"
+      "  -u, --unload-kext      unload /dev/pmem driver and exit\n"
+      "  -d, --display-mmap     print physical memory map and exit\n"
+      "  -m, --mmap-method      set the mmap method (default is pte)\n"
+      "\n"
+      " Mmap methods:\n"
+      "  iokit                  Physical memory mapping done by using\n"
+      "                         IOMemoryDescriptor->createMappingInTask().\n"
+      "                         This is stable, but easy to hook by rootkits.\n"
+      "\n"
+      "  pte                    Physical memory mapping is done manually by\n"
+      "                         directly writing to the page tables,\n"
+      "                         making existing mappings point where we want.\n"
+      "                         This is experimental but quite stable,\n"
+      "                         and much harder for rootkits to circumvent.\n"
+      "\n"
+      "  -f, --format [FORMAT]  set the output format (default is elf)\n"
+      "\n"
+      " Output formats:\n"
+      "  elf                    64-bit ELF core dump with a program\n"
+      "                         header per physical memory section.\n"
+      "\n"
+      "  mach                   64-bit MACH-O core dump with a\n"
+      "                         segment load command per physical\n"
+      "                         memory section.\n"
+      "\n"
+      "  raw                    Flat binary file where physical pages\n"
+      "                         are written to their corresponding\n"
+      "                         offset in the file. Memory holes and\n"
+      "                         gaps in physical address space are\n"
+      "                         zero-padded.\n",
+      image_name);
 }
 
 // Returns true if the memory segment is accessible, meaning it is safe to read
@@ -248,7 +271,8 @@ error_malloc:
 //       header is a pointer to the buffer which stores the prepared header.
 //       header_size is the size of the header in bytes.
 //
-unsigned int write_macho_header(int file, uint8_t *header, unsigned int header_size) {
+unsigned int write_macho_header(int file, uint8_t *header,
+                                unsigned int header_size) {
   if (lseek(file, 0, SEEK_SET) != 0) {
     PMEM_ERROR_LOG("Could not seek to beginning of mach-o file");
     return EXIT_FAILURE;
@@ -632,14 +656,33 @@ unsigned int get_dtb(int fd, uint64_t *dtb) {
   return EXIT_SUCCESS;
 }
 
+// Send an ioctl to the driver to set the method by which it maps memory.
+//
+// args: fd is an open file handle to the pmem drivers device file.
+//       method is a member of the PMEM_MMAP_METHOD enum.
+//
+// return: EXIT_SUCCESS or EXIT_FAILURE
+//
+unsigned int set_mmap_method(int fd, int method) {
+  if (fd < 0) {
+    print_msg(STD, "invalid file handle for driver device file");
+    return EXIT_FAILURE;
+  }
+  if (ioctl(fd, PMEM_IOCTL_SET_MMAP_METHOD, &method) != 0) {
+    print_msg(STD, "Failed to set the mmap method in the driver\n");
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
+}
+
 // Map a given integer to a string describing the type of memory.
 //
 // args: type is the EfiMemoryRange.Type field
 //
 // return: pointer to a text representation of the given type.
 //
-const char const *physmem_type_tostring(int type) {
-  static const char const *physmem_type[] = {"Reserved       ",   // 0x0
+const char *physmem_type_tostring(int type) {
+  static const char *physmem_type[] = {"Reserved       ",   // 0x0
                                              "Loader Code    ",   // 0x1
                                              "Loader Data    ",   // 0x2
                                              "BS Code        ",   // 0x3
@@ -735,7 +778,7 @@ char *mmap_tostring(uint8_t *mmap,
 // representation and finally print it out to the user. Will unload the driver
 // after use and is supposed to be used as an invocation from command line
 // arguments.
-unsigned int display_mmap(const char const *device_file_path) {
+unsigned int display_mmap(const char *device_file_path) {
   unsigned int status = EXIT_FAILURE;
   int device_file = -1;
   uint8_t *mmap = 0;
@@ -822,8 +865,8 @@ unsigned int unload_kext(void) {
 // itself, so it returns void.
 //
 // args: dump_file_path is the path to the desired memory dump file.
-unsigned int dump_memory(const char const *dump_file_path,
-                         const char const *device_file_path) {
+unsigned int dump_memory(const char *dump_file_path,
+                         const char *device_file_path) {
   int mem_dev = -1;
   int dump_file = -1;
   uint64_t kernel_dtb = 0;
@@ -841,6 +884,10 @@ unsigned int dump_memory(const char const *dump_file_path,
        open(dump_file_path, O_RDWR | O_CREAT | O_TRUNC, 0440)) == -1) {
     PMEM_ERROR_LOG("Error opening dump file");
     goto error_dumpfile;
+  }
+  // It's not critical if this fails, we can still acquire memory
+  if (set_mmap_method(mem_dev, pmem_mmap_method) == EXIT_FAILURE) {
+    PMEM_ERROR_LOG("Error setting mmap method, will continue with default");
   }
   // Now dump the memory in the preferred format
   switch (dumpformat) {
@@ -902,6 +949,20 @@ int main(int argc, char **argv) {
     switch (opt) {
       case 'v': // Enable verbose logging
         loglevel = DBG;
+        break;
+
+      case 'm': // Set mmap method
+        if (strcmp(optarg, "iokit") == 0) {
+          pmem_mmap_method = PMEM_MMAP_IOKIT;
+          break;
+        }
+        if (strcmp(optarg, "pte") == 0) {
+          pmem_mmap_method = PMEM_MMAP_PTE;
+          break;
+        }
+        print_msg(STD, "Mmap method %s not supported!\n", optarg);
+        display_usage(argv[0]);
+        status = EXIT_FAILURE;
         break;
 
       case 'f': // Set output format

@@ -17,8 +17,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _VOLATILITY_PMEM_IMAGER_MOCK_API_H_
-#define _VOLATILITY_PMEM_IMAGER_MOCK_API_H_
+#ifndef _REKALL_PMEM_IMAGER_MOCK_API_H_
+#define _REKALL_PMEM_IMAGER_MOCK_API_H_
 
 #include "imager_test_mock_fs.h"
 
@@ -31,4 +31,4 @@
 // the mocked imager does not need a main function
 #define main(argc, argv) imager_main(argc, argv)
 
-#endif  // _VOLATILITY_PMEM_IMAGER_MOCK_API_H_
+#endif  // _REKALL_PMEM_IMAGER_MOCK_API_H_

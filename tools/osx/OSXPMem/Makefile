@@ -18,7 +18,7 @@ KEXT_BUNDLE_NAME=pmem
 PLIST_PATH=$(BUILDDIR)/$(KEXT_BUNDLE_NAME).kext/Contents/
 KEXT_PATH=$(PLIST_PATH)/MacOS
 
-SDK_PATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk
+SDK_PATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk
 FRAMEWORK_PATH=$(SDK_PATH)/System/Library/Frameworks/
 
 KEXT_SRC=pmem/pmem.cpp pmem/pmem.h pmem/pmem_ioctls.h pmem/Info.plist \
@@ -31,8 +31,8 @@ IMAGER_MOCK_FS_SRC=test/imager_test_mock_fs.h test/imager_test_mock_fs.c \
 TEST_IMAGES=test/test_image_elf.dump test/test_image_raw.dump \
 	    test/test_image_mach.dump
 
-CC=/usr/bin/gcc
-CXX=/usr/bin/g++
+CC=/usr/bin/gcc	-I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/5.0/include
+CXX=/usr/bin/g++	-I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/5.0/include
 ARCH=x86_64
 CFLAGS=-std=gnu99 -Wall
 OSX_MIN_VERSION=10.7
@@ -60,6 +60,24 @@ INFO_CXX_FLAGS=-x c -arch $(ARCH) -fmessage-length=0 -pipe -nostdinc \
 		-DDRIVER_PRIVATE -DAPPLE -DNeXT \
 		-fasm-blocks -mmacosx-version-min=$(OSX_MIN_VERSION) -gdwarf-2
 
+PTE_MMAP_CXX_FLAGS=-x c -arch $(ARCH) -fmessage-length=0 -pipe -nostdinc \
+	           -fno-builtin -Wno-trigraphs -fno-exceptions \
+	           -force_cpusubtype_ALL -msoft-float -Os \
+		   -fno-common -mkernel -finline -fno-keep-inline-functions \
+		   -Wreturn-type -Wunused-variable -Wuninitialized \
+		   -Wshorten-64-to-32 -DKERNEL -DKERNEL_PRIVATE \
+		   -DDRIVER_PRIVATE -DAPPLE -DNeXT -fasm-blocks \
+	           -mmacosx-version-min=$(OSX_MIN_VERSION) -gdwarf-2
+
+PTE_MMAP_LINUX_CXX_FLAGS=-x c++ -arch $(ARCH) -fmessage-length=0 -pipe -nostdinc \
+	                 -fno-builtin -Wno-trigraphs -fno-exceptions \
+	                 -force_cpusubtype_ALL -msoft-float -Os \
+		         -fno-common -mkernel -finline -fno-keep-inline-functions \
+		         -Wreturn-type -Wunused-variable -Wuninitialized \
+		         -Wshorten-64-to-32 -DKERNEL -DKERNEL_PRIVATE \
+		         -DDRIVER_PRIVATE -DAPPLE -DNeXT -fasm-blocks \
+	                 -mmacosx-version-min=$(OSX_MIN_VERSION) -gdwarf-2
+
 KEXT_LINKER_FLAGS=-lcpp_kext -Xlinker -kext -nostdlib \
 		  -lkmodc++ $(BUILDDIR)/pmem_info.o -lkmod -lcc_kext
 
@@ -75,7 +93,20 @@ BUILD_KEXT_INFO=$(INFO_CXX_FLAGS) -isysroot $(SDK_PATH) \
 		-c ./pmem/pmem_info.c \
 		-o $(BUILDDIR)/pmem_info.o
 
-LINK_KEXT=-arch $(ARCH) -isysroot $(SDK_PATH) $(KEXT_LINKER_FLAGS)\
+BUILD_PTE_MMAP=$(PTE_MMAP_CXX_FLAGS) -isysroot $(SDK_PATH) \
+		-I$(FRAMEWORK_PATH)/Kernel.framework/PrivateHeaders \
+		-I$(FRAMEWORK_PATH)/Kernel.framework/Headers \
+		-c pmem/pte_mmap.c \
+		-o $(BUILDDIR)/pte_mmap.o
+
+BUILD_PTE_MMAP_LINUX=$(PTE_MMAP_LINUX_CXX_FLAGS) -isysroot $(SDK_PATH) \
+		     -I$(FRAMEWORK_PATH)/Kernel.framework/PrivateHeaders \
+		     -I$(FRAMEWORK_PATH)/Kernel.framework/Headers \
+	             -I$(FRAMEWORK_PATH)/IOKit.framework/Headersi \
+		     -c ./pmem/pte_mmap_osx.cpp \
+		     -o $(BUILDDIR)/pte_mmap_linux.o
+
+LINK_KEXT=-arch $(ARCH) -isysroot $(SDK_PATH) $(KEXT_LINKER_FLAGS) \
 	  -filelist $(BUILDDIR)/pmem.LinkFileList \
 	  -mmacosx-version-min=$(OSX_MIN_VERSION) \
 	  -o $(BUILDDIR)/pmem
@@ -110,9 +141,13 @@ kext_bundle: pmem/Info.plist $(BUILDDIR)/pmem
 
 $(BUILDDIR)/pmem: $(KEXT_SRC)
 	@echo "building kext"
-	@echo "$(BUILDDIR)/pmem.o" > $(BUILDDIR)/pmem.LinkFileList
-	@$(CXX) $(BUILD_KEXT)
+	@echo "$(BUILDDIR)/pte_mmap.o" > $(BUILDDIR)/pmem.LinkFileList
+	@echo "$(BUILDDIR)/pte_mmap_linux.o" >> $(BUILDDIR)/pmem.LinkFileList
+	@echo "$(BUILDDIR)/pmem.o" >> $(BUILDDIR)/pmem.LinkFileList
 	@$(CC) $(BUILD_KEXT_INFO)
+	@$(CC) $(BUILD_PTE_MMAP)
+	@$(CC) $(BUILD_PTE_MMAP_LINUX)
+	@$(CXX) $(BUILD_KEXT)
 	@$(CXX) $(LINK_KEXT)
 
 $(BUILDDIR)/osxpmem: $(IMAGER_SRC)

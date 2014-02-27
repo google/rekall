@@ -19,6 +19,8 @@
 
 #include "pmem.h"
 
+#include "pte_mmap_osx.h"
+
 // Toggle this flag to enable/disable debug logging.
 static const boolean_t pmem_debug_logging = TRUE;
 
@@ -46,6 +48,8 @@ static void *pmem_devpmemnode = NULL;
 static OSMallocTag pmem_tag = NULL;
 // Global buffer to cache physical pages.
 static uint8_t *pmem_zero_page = NULL;
+// pte_mmap implementation
+PTE_MMAP_OBJ *pte_mmap = NULL;
 
 // This is the switch table for the character device.
 // It registers callbacks for the device file.
@@ -77,6 +81,10 @@ static EfiMemoryRange *pmem_mmap;
 static uint32_t pmem_mmap_desc_size;
 // Number of entries in the memory map.
 static uint32_t pmem_mmap_size;
+
+// Mode of operation for mapping physical memory into the kernel.
+// Default is using IOKit, which is stable, but easy to fool by a rootkit.
+static int pmem_mmap_method = PMEM_MMAP_IOKIT;
 
 // This function is called whenever a program in user space tries to read from
 // the device file. It will dispatch the appropriate function for the file that
@@ -115,6 +123,74 @@ static kern_return_t pmem_read_memory(struct uio *uio) {
   return KERN_SUCCESS;
 }
 
+// Map a specific page into kernel virtual memory.
+// Supports multiple methods of mapping, the one used is specified in
+// pmem_mmap_method. Due to the nature of the mapping, old mappings become
+// invalid after calling this function again with a new mapping.
+//
+// Args:
+//  page:  The physical address of the page to map.
+//  vaddr: A pointer to the pointer that will be set with the address where the
+//         page has been mapped.
+//
+// Returns:
+//  KERN_SUCCESS or KERN_FAILURE.
+//
+static kern_return_t pmem_map_physical_page(uint64_t page, void **vaddr) {
+  kern_return_t status = KERN_FAILURE;
+  static IOMemoryDescriptor *page_desc = NULL;
+  static IOMemoryMap *page_map = NULL;
+
+  // Freeing these objects destroys the created mapping, so we have to keep a
+  // reference around until the next call.
+  if (page_desc != NULL) {
+    page_desc->release();
+    page_desc = NULL;
+  }
+  if (page_map != NULL) {
+    page_map->release();
+    page_map = NULL;
+  }
+
+  switch (pmem_mmap_method) {
+    case PMEM_MMAP_IOKIT:
+      page_desc = IOMemoryDescriptor::withPhysicalAddress(page,
+                                                          PAGE_SIZE,
+                                                          kIODirectionIn);
+      if (!page_desc) {
+        goto error;
+      }
+      page_map = page_desc->createMappingInTask(kernel_task, 0, kIODirectionIn,
+                                                0, 0);
+      if (!page_map) {
+        goto error;
+      }
+      *vaddr = reinterpret_cast<void *>(page_map->getAddress());
+      break;
+
+    case PMEM_MMAP_PTE:
+      if (pte_mmap == NULL) {
+        pte_mmap = pte_mmap_osx_new();
+        if (pte_mmap == NULL) {
+          pmem_log("unable to initialize pte_mmap module, aborting...");
+          return KERN_FAILURE;
+        }
+      }
+      if (pte_mmap->remap_page(pte_mmap, page) != PTE_SUCCESS) {
+        goto error;
+      }
+      *vaddr = pte_mmap->rogue_page.pointer;
+      break;
+
+    default:
+      goto error;
+  }
+  status = KERN_SUCCESS;
+
+ error:
+  return status;
+}
+
 // Copy the requested amount to userspace if it doesn't cross page boundaries
 // or memory mapped io. If it does, stop at the boundary. Will copy zeroes
 // if the given physical address is not backed by physical memory.
@@ -124,38 +200,25 @@ static kern_return_t pmem_read_memory(struct uio *uio) {
 //
 static uint64_t pmem_partial_read(struct uio *uio, addr64_t start_addr,
                                   addr64_t end_addr) {
+  void *vaddr_page = NULL;
   // Separate page and offset
   uint64_t page_offset = start_addr & PAGE_MASK;
   addr64_t page = trunc_page_64(start_addr);
   // don't copy across page boundaries
   uint32_t chunk_len = (uint32_t)MIN(PAGE_SIZE - page_offset,
                                      end_addr - start_addr);
-  // Prepare the page for IOKit
-  IOMemoryDescriptor *page_desc = (
-      IOMemoryDescriptor::withPhysicalAddress(page, PAGE_SIZE, kIODirectionIn));
-  if (page_desc == NULL) {
-    pmem_error("Can't read from %#016llx, address not in physical memory range",
-               start_addr);
-    // Skip this range as it is not even in the physical address space
-    return chunk_len;
-  } else {
-    // Map the page containing address into kernel address space.
-    IOMemoryMap *page_map = (
-        page_desc->createMappingInTask(kernel_task, 0, kIODirectionIn, 0, 0));
-    // Check if the mapping succeded.
-    if (!page_map) {
-      pmem_error("page %#016llx could not be mapped into the kernel, "
+  if (pmem_map_physical_page(page, &vaddr_page) != KERN_SUCCESS) {
+    pmem_error("page %#016llx could not be mapped into the kernel, "
                "zero padding return buffer", page);
-      // Zero pad this chunk, as it is not inside a valid page frame.
-      uiomove64((addr64_t)pmem_zero_page + page_offset,
-                (uint32_t)chunk_len, uio);
-    } else {
-      // Successfully mapped page, copy contents...
-      uiomove64(page_map->getAddress() + page_offset, (uint32_t)chunk_len, uio);
-      page_map->release();
-    }
-    page_desc->release();
+    // Zero pad this chunk, as it is not inside a valid page frame.
+    uiomove64((addr64_t)pmem_zero_page + page_offset,
+              (uint32_t)chunk_len, uio);
+  } else {
+    // Successfully mapped page, copy contents...
+    uiomove64((reinterpret_cast<uint64_t>(vaddr_page) + page_offset),
+              (uint32_t)chunk_len, uio);
   }
+
   return chunk_len;
 }
 
@@ -193,6 +256,25 @@ static kern_return_t pmem_ioctl(dev_t dev, u_long cmd, caddr_t data, int flag,
 
     case PMEM_IOCTL_GET_DTB:
       *(reinterpret_cast<int64_t *>(data)) = pmem_dtb;
+      break;
+
+    case PMEM_IOCTL_SET_MMAP_METHOD:
+      // Verify if the given method is valid
+      switch (*(reinterpret_cast<int32_t *>(data))) {
+        case PMEM_MMAP_IOKIT:
+          pmem_log("Setting mmap method to IOKit");
+          pmem_mmap_method = *(reinterpret_cast<int32_t *>(data));
+          break;
+
+        case PMEM_MMAP_PTE:
+          pmem_log("Setting mmap method to manual PTE remapping");
+          pmem_mmap_method = *(reinterpret_cast<int32_t *>(data));
+          break;
+
+        default:
+          pmem_log("Unknown mmap method %lld, ignoring ioctl SET_MMAP_METHOD",
+                   *(reinterpret_cast<int32_t *>(data)));
+      }
       break;
 
     default:
@@ -271,6 +353,9 @@ static int pmem_cleanup(int error) {
   if (pmem_zero_page) {
     OSFree(pmem_zero_page, PAGE_SIZE, pmem_tag);
   }
+  if (pte_mmap != NULL) {
+    pte_mmap_osx_delete(pte_mmap);
+  }
   if (pmem_tag) {
     OSMalloc_Tagfree(pmem_tag);
   }
@@ -288,6 +373,7 @@ static int pmem_cleanup(int error) {
       error = KERN_FAILURE;
     }
   }
+
   return error;
 }
 
@@ -344,8 +430,10 @@ kern_return_t pmem_start(kmod_info_t * ki, void *d) {
   // Only bits 51-12 (inclusive) in cr3 are part of the dtb pointer
   pmem_dtb &= ~PAGE_MASK;
   pmem_log("kernel dtb: %#016llx", pmem_dtb);
+  pmem_log("initializing pte_mmap module");
   pmem_log("pmem driver loaded, physical memory available in /dev/%s",
            pmem_pmem_devname);
+
   return error;
 }
 

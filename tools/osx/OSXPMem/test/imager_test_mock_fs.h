@@ -17,8 +17,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _VOLATILITY_PMEM_IMAGER_MOCK_FS_H_
-#define _VOLATILITY_PMEM_IMAGER_MOCK_FS_H_
+#ifndef _REKALL_PMEM_IMAGER_MOCK_FS_H_
+#define _REKALL_PMEM_IMAGER_MOCK_FS_H_
 
 #include <pexpert/i386/boot.h>
 #include <stdint.h>
@@ -45,7 +45,7 @@ unsigned int cleanup_mock_fs(void);
 unsigned int reset_mock_fs(void);
 
 // Compare the mocked dump file with a reference file.
-int validate_test_image(const char const *reference_image_path);
+int validate_test_image(const char *reference_image_path);
 
 // Will return test values instead of actually calling the ioctl.
 int mock_ioctl(int fd, unsigned long request, void *outptr);
@@ -65,4 +65,4 @@ off_t mock_lseek(int fd, off_t offset, int whence);
 unsigned int init_test_mmap(uint8_t **mmap, unsigned int num_segments,
                             unsigned int desc_size, unsigned int seg_size);
 
-#endif  // _VOLATILITY_PMEM_IMAGER_MOCK_FS_H_
+#endif  // _REKALL_PMEM_IMAGER_MOCK_FS_H_
