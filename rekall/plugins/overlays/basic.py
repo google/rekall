@@ -201,6 +201,9 @@ class Flags(obj.NativeType):
             target, offset=self.obj_offset, vm=self.obj_vm,
             context=self.obj_context, **(target_args or {}))
 
+    def size(self):
+        return self.target_obj.size()
+
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
 
