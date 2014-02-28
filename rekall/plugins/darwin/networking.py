@@ -19,6 +19,7 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 
 from rekall.plugins.darwin import common
+from rekall.plugins.darwin import lsof
 
 
 class DarwinArp(common.DarwinPlugin):
@@ -229,70 +230,48 @@ class DarwinIPFilters(common.DarwinPlugin):
                                    lsmod.ResolveSymbolName(handler))
 
 
-class DarwinNetstat(common.DarwinProcessFilter):
+class DarwinNetstat(lsof.DarwinLsof):
     """List per process network connections."""
 
     __name = "netstat"
 
+    def inet_sockets(self):
+        for open_file in self.lsof():
+            if open_file["fileproc"].fg_type != "DTYPE_SOCKET":
+                continue
+
+            sock = open_file["fileproc"].autocast_fg_data()
+            if sock.addressing_family in ["AF_INET", "AF_INET6"]:
+                yield open_file
+
     def render(self, renderer):
-        """Display all sockets for requested processes.
-
-        We show two separate lists, one for the TCP sockets and one for Unix
-        domain sockets.
-        """
-        unix_sockets = []
-        tcp_sockets = []
-
-        for proc in self.filter_processes():
-            for fd, fileproc in enumerate(proc.p_fd.fd_ofiles):
-                # When the fileproc is a socket, the fg_data is of type
-                # "socket".
-                if fileproc.f_fglob.fg_type == "DTYPE_SOCKET":
-                    socket = fileproc.f_fglob.fg_data.dereference_as("socket")
-                    family = socket.so_proto.pr_domain.dom_family
-
-                    if family == "AF_UNIX":
-                        unpcb = socket.so_pcb.dereference_as("unpcb")
-                        name = unpcb.unp_addr.sun_path
-                        unix_sockets.append((proc, fd, socket, name))
-
-                    elif family in ("AF_INET", "AF_INET6"):
-                        tcp_sockets.append((proc, fd, socket))
-
-        # First do the tcp sockets.
+        socks_by_proto = {}
+        
         renderer.table_header([("Proto", "proto", "14"),
-                               ("SAddr", "saddr", "15"),
+                               ("SAddr", "saddr", "30"),
                                ("SPort", "sport", "8"),
-                               ("DAddr", "daddr", "15"),
+                               ("DAddr", "daddr", "30"),
                                ("DPort", "dport", "5"),
                                ("State", "state", "15"),
                                ("Pid", "pid", "8"),
                                ("Comm", "comm", "20")])
 
-        for proc, fd, sock  in tcp_sockets:
-            info = sock.fill_socketinfo()
+        # Group sockets by protocol (the way netstat does).
+        for open_file in self.inet_sockets():
+            sock = open_file["fileproc"].autocast_fg_data()
+            proto = sock.l4_protocol
+            socks_by_proto.setdefault(proto, []).append((sock, open_file))
 
-            renderer.table_row(
-                sock.so_proto.pr_protocol,
-                info.local_ip,
-                info.local_port,
-                info.remote_ip,
-                info.remote_port,
-                info.state,
-                proc.p_pid,
-                proc.p_comm,
-                )
-
-        # Now do the udp sockets.
-        renderer.table_header([("Family", "proto", "14"),
-                               ("Pid", "pid", "8"),
-                               ("Comm", "comm", "20"),
-                               ("Path", "path", "20")])
-
-        for proc, _, socket, name in unix_sockets:
-            renderer.table_row(
-                socket.so_proto.pr_domain.dom_family,
-                proc.p_pid,
-                proc.p_comm,
-                name
+        # Go over all the protos in alphabetical order (like netstat does).
+        for proto, sockets in sorted(socks_by_proto.items()):
+            for sock, open_file in sockets:
+                renderer.table_row(
+                    proto,
+                    sock.src_addr,
+                    sock.src_port,
+                    sock.dst_addr,
+                    sock.dst_port,
+                    sock.tcp_state,
+                    open_file["proc"].pid,
+                    open_file["proc"].p_comm,
                 )

@@ -811,7 +811,7 @@ class socket(obj.Struct):
 
     @property
     def tcp_state(self):
-        self.get_socketinfo_attr("tcpsi_state")
+        return self.get_socketinfo_attr("tcpsi_state")
 
     @property
     def src_port(self):
@@ -1025,7 +1025,7 @@ class vnode(obj.Struct):
             result.append(_vnode.v_name.deref())
 
             # If there is no parent skip to the mount point.
-            _vnode = _vnode.v_parent or _vnode.v_mount.mnt__vnodecovered
+            _vnode = _vnode.v_parent or _vnode.v_mount.mnt_vnodecovered
 
             # This is rare, but it does happen. I currently don't understand
             # why, so we just log a warning and report the node as an orphan.
