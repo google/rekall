@@ -40,7 +40,6 @@ class PoolScanConnFast(common.PoolScanner):
               ('CheckPoolIndex', dict(value=0)),
               ]
 
-
 class ConnScan(common.PoolScannerPlugin):
     """ Scan Physical memory for _TCPT_OBJECT objects (tcp connections)
     """
@@ -51,8 +50,7 @@ class ConnScan(common.PoolScannerPlugin):
     def is_active(cls, session):
         # These only work for XP.
         return (super(ConnScan, cls).is_active(session) and
-                session.profile.metadata("major") == 5)
-
+                session.profile.metadata("major") == '5')
 
     def __init__(self, **kwargs):
         super(ConnScan, self).__init__(**kwargs)

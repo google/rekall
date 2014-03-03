@@ -384,18 +384,23 @@ class ListMixIn(object):
         nodes which do not satisfy the relation (Due to smear):
 
         x.Flink.Blink = x
+
+        Reference:
+        http://en.wikipedia.org/wiki/Depth-first_search
         """
-        if not self.is_valid():
-            return
-        elif self in seen:
-            return
+        stack = [self]
+        while stack:
+            item = stack.pop()
+            if item not in seen:
+                seen.append(item)
 
-        seen.append(self)
-        Flink = self.m(self._forward).dereference()
-        Flink.find_all_lists(seen)
+                Blink = item.m(self._backward).dereference()
+                if Blink.is_valid():
+                    stack.append(Blink)
 
-        Blink = self.m(self._backward).dereference()
-        Blink.find_all_lists(seen)
+                Flink = item.m(self._forward).dereference()
+                if Flink.is_valid():
+                    stack.append(Flink)
 
     def list_of_type(self, type, member):
         result = []
