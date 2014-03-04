@@ -75,6 +75,24 @@ config.DeclareOption("--no_autodetect", default=False, action="store_true",
                      help="Should profiles be autodetected.")
 
 
+class KernelASHook(kb.ParameterHook):
+    """A ParameterHook for default_address_space.
+
+    This will only be called if default_address_space is not set. We load the
+    kernel address space, or load it if needed.
+    """
+    name = "default_address_space"
+
+    def calculate(self):
+        if not self.session.profile:
+            self.session.GetParameter("profile")
+
+        if self.session.kernel_address_space:
+            return self.session.kernel_address_space
+
+        return self.session.plugins.load_as().GetVirtualAddressSpace()
+
+
 class ProfileHook(kb.ParameterHook):
     """If the profile is not specified, we guess it."""
     name = "profile"
@@ -137,6 +155,9 @@ class ProfileHook(kb.ParameterHook):
             # Might as well cache the results of this plugin so we dont need to
             # run it twice.
             self.session.kernel_address_space = address_space
+
+            # Start off with a default address space of the kernel.
+            self.session.SetParameter("default_address_space", address_space)
             self.session.SetParameter("dtb", address_space.dtb)
 
             return profile

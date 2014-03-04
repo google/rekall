@@ -185,8 +185,8 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
         """
         m = self.SIMPLE_X86_CALL.match(mangled_name)
         if m:
-            # If we see x86 name mangling (_cdecl, __stdcall) this is definitely
-            # a 32 bit pdb since those do not exist on AMD64. Sometimes we dont
+            # If we see x86 name mangling (_cdecl, __stdcall) with stack sizes
+            # of 4 bytes, this is definitely a 32 bit pdb. Sometimes we dont
             # know the architecture of the pdb file for example if we do not
             # have the original binary, but on the GUID as extracted by
             # version_scan.
@@ -248,10 +248,6 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
         elif profile.metadata("arch") == "I386":
             basic.Profile32Bits.Initialize(profile)
 
-            # Detect if this is a PAE system. PAE systems have 64 bit PTEs:
-            if profile.get_obj_size("_MMPTE") == 8:
-                profile.set_metadata("pae", True)
-
 
 class Ntoskrnl(BasicPEProfile):
     """A profile for Windows."""
@@ -266,6 +262,10 @@ class Ntoskrnl(BasicPEProfile):
 
         elif profile.metadata("arch") == "I386":
             profile.add_overlay(undocumented.I386)
+
+            # Detect if this is a PAE system. PAE systems have 64 bit PTEs:
+            if profile.get_obj_size("_MMPTE") == 8:
+                profile.set_metadata("pae", True)
 
         # Install the base windows support.
         common.InitializeWindowsProfile(profile)

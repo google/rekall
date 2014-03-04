@@ -570,37 +570,16 @@ class TcpipPluginMixin(object):
 
     def __init__(self, tcpip_guid=None, **kwargs):
         super(TcpipPluginMixin, self).__init__(**kwargs)
-        if self.session.tcpip_profile:
-            # Get the profile from the session cache.
-            self.tcpip_profile = self.session.tcpip_profile
-            return
 
-        # Find the proper tcpip.sys profile and merge in with this kernel
-        # profile.
-        for module in self.session.plugins.modules(
-            name_regex=r"\\tcpip.sys$").lsmod():
+        # For the address resolver to load this GUID.
+        if tcpip_guid:
+            self.session.SetParameter("tcpip_guid", tcpip_guid)
 
-            if tcpip_guid is None:
-                guid = module.RSDS.GUID_AGE
-                try:
-                    logging.debug("Fetching profile for tcpip.sys.")
-                    self.tcpip_profile = self.session.LoadProfile(
-                        "GUID/%s" % guid)
+        self.tcpip_profile = self.session.address_resolver.LoadProfileForName(
+            "tcpip")
 
-                except (ValueError, IOError):
-                    logging.info(
-                        "Unable to load tcpip.sys profile: %s.", guid)
-            else:
-                self.tcpip_profile = self.session.LoadProfile(tcpip_guid)
-
-            self.tcpip_profile.image_base = module.DllBase
-
-            break
-
-        # The tcpip.sys types and kernel types interact with each other, so we
-        # merge them here into a single profile.
-        self.tcpip_profile.merge(self.profile)
-        self.session.tcpip_profile = self.tcpip_profile
+        if not self.tcpip_profile:
+            raise RuntimeError("Unable to load the profile for tcpip.sys")
 
 
 class Tcpip(windows.BasicPEProfile):

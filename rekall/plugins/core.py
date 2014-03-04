@@ -334,7 +334,7 @@ class LoadAddressSpace(plugin.Command):
         super(LoadAddressSpace, self).__init__(**kwargs)
         self.pas_spec = pas_spec
 
-    def ResolveAddressSpace(self, name):
+    def ResolveAddressSpace(self, name=None):
         """Resolve the name into an address space.
 
         This function is intended to be called from plugins which allow an
@@ -348,6 +348,13 @@ class LoadAddressSpace(plugin.Command):
         as_type@dtb_address: Instantiates the address space at the specified
             DTB. For example: amd64@0x18700
         """
+        if name is None:
+            result = self.session.GetParameter("default_address_space")
+            if result:
+                return result
+
+            name = "K"
+
         # We can already specify a proper address space here.
         if isinstance(name, addrspace.BaseAddressSpace):
             return name
@@ -360,7 +367,7 @@ class LoadAddressSpace(plugin.Command):
             return (self.session.physical_address_space or
                     self.GetPhysicalAddressSpace())
 
-        return self.session.default_address_space
+        raise AttributeError("Address space specification %r invalid.", name)
 
     def GetPhysicalAddressSpace(self):
         try:
@@ -379,7 +386,14 @@ class LoadAddressSpace(plugin.Command):
 
         return self.session.physical_address_space
 
+    # TODO: Deprecate this method completely since it is rarely used.
     def GetVirtualAddressSpace(self, dtb=None):
+        """Load the Kernel Virtual Address Space.
+
+        Note that this function is usually not used since the Virtual AS is now
+        loaded from guess_profile.ApplyFindDTB() when profiles are guessed. This
+        function is only used when the profile is directly provided by the user.
+        """
         if dtb is None:
             dtb = self.session.GetParameter("dtb")
 
@@ -425,9 +439,10 @@ class LoadAddressSpace(plugin.Command):
                     "A DTB value was found but failed to verify. "
                     "See logging messages for more information.")
 
-        if self.session.default_address_space is None:
-            self.session.default_address_space = \
-                self.session.kernel_address_space
+        # Set the default address space for plugins like disassemble and dump.
+        if not self.session.GetParameter("default_address_space"):
+            self.session.SetParameter(
+                "default_address_space", self.session.kernel_address_space)
 
         return self.session.kernel_address_space
 
@@ -692,16 +707,18 @@ class Dump(plugin.Command):
         parser.add_argument("offset", action=config.IntParser,
                             help="An offset to hexdump.")
 
-    def __init__(self, target=None, offset=0, width=16, rows=30,
+        parser.add_argument("-a", "--address_space", default=None,
+                            help="The address space to use.")
+
+    def __init__(self, offset=0, address_space=None, width=16, rows=30,
                  suppress_headers=False, **kwargs):
-        # pylint: disable=C0301
         """Hexdump an object or memory location.
 
         You can use this plugin repeateadely to keep dumping more data using the
         "p _" (print last result) operation:
 
-        In [2]: dump session.kernel_address_space, 0x814b13b0
-        ------> dump(session.kernel_address_space, 0x814b13b0)
+        In [2]: dump 0x814b13b0, address_space="K"
+        ------> dump(0x814b13b0, address_space="K")
         Offset                         Hex                              Data
         ---------- ------------------------------------------------ ----------------
         0x814b13b0 03 00 1b 00 00 00 00 00 b8 13 4b 81 b8 13 4b 81  ..........K...K.
@@ -717,63 +734,60 @@ class Dump(plugin.Command):
         0x814b1460 00 10 3f 05 64 77 ed 81 d4 80 21 82 00 00 00 00  ..?.dw....!.....
 
         Args:
-          target: The object to dump or an address space.
           offset: The offset to start dumping from.
+
+          address_space: The address_space to dump from. If omitted we use the
+            default address space.
+
           width: How many Hex character per line.
+
           rows: How many rows to dump.
+
           suppress_headers: If set we do not write the headers.
         """
         # pylint: enable=C0301
         super(Dump, self).__init__(**kwargs)
-        if isinstance(target, (int, long)):
-            offset = target
-            target = None
-        elif isinstance(target, basestring):
-            offset = self.session.address_resolver.get_address_by_name(target)
-            target = None
 
-        if target is None:
-            self.session.plugins.load_as(session=self.session).render(None)
-            target = self.session.kernel_address_space
+        # Allow offset to be symbol name.
+        if isinstance(offset, basestring):
+            offset = self.session.address_resolver.get_address_by_name(offset)
 
-        self.target = target
-        self.offset = int(offset)
+        self.offset = obj.Pointer.integer_to_address(offset)
         self.width = int(width)
         self.rows = int(rows)
         self.suppress_headers = suppress_headers
 
+        # Resolve the correct address space. This allows the address space to be
+        # specified from the command line (e.g.
+        load_as = self.session.plugins.load_as(session=self.session)
+        self.address_space = load_as.ResolveAddressSpace(address_space)
+
     def render(self, renderer):
-        # Its an object
-        if isinstance(self.target, obj.BaseObject):
-            data = self.target.obj_vm.read(self.target.obj_offset,
-                                           self.target.size())
-        # Its an address space
-        elif isinstance(self.target, addrspace.BaseAddressSpace):
-            data = self.target.read(self.offset, self.width * self.rows)
-
-        # If the target is an integer we assume it means an offset to read from
-        # the default_address_space.
-        elif isinstance(self.target, (int, long)):
-            if self.offset == 0:
-                self.offset = self.target
-
-            data = self.session.default_address_space.read(
-                self.offset, self.width * self.rows)
-
-        # Its a string or something else:
-        else:
-            data = utils.SmartStr(self.target)
+        # Dump some data from the address space.
+        data = self.address_space.read(self.offset, self.width * self.rows)
 
         renderer.table_header([("Offset", "offset", "[addr]"),
                                ("Hex", "hex", "^" + str(3 * self.width)),
-                               ("Data", "data", "^" + str(self.width))],
+                               ("Data", "data", "^" + str(self.width)),
+                               ("Comment", "comment", "")],
                               suppress_headers=self.suppress_headers)
 
         offset = 0
+        resolver = self.session.address_resolver
         for offset, hexdata, translated_data in utils.Hexdump(
             data, width=self.width):
+
+            nearest_offset, name = resolver.get_nearest_constant_by_address(
+                offset + self.offset)
+
+            relative_offset = offset + self.offset - nearest_offset
+            if relative_offset < 10:
+                comment = "%s + %s" % (name, relative_offset)
+            else:
+                comment = ""
+
             renderer.table_row(self.offset + offset, hexdata,
-                               "".join(translated_data))
+                               "".join(translated_data), comment)
 
         # Advance the offset so we can continue from this offset next time we
         # get called.

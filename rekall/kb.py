@@ -114,42 +114,148 @@ class AddressResolver(object):
 
     # The format of a symbol name. Used by get_address_by_name().
     ADDRESS_NAME_REGEX = re.compile(
-        "([^!]+)!([^ ]+)?(( *[+-] *)([0-9a-fA-Fx]+))?")
+        r"(?P<module>[A-Za-z0-9\.]+)"   # Module name - can include extension
+                                        # (.exe, .sys)
+
+        r"!?"                           # ! separates module name from symbol
+                                        # name.
+
+        r"(?P<symbol>[^ +-]+)?"         # Symbol name.
+        r"(?P<op> *[+-] *)?"            # Possible arithmetic operator.
+        r"(?P<offset>[0-9a-fA-Fx]+)?")  # Possible hex offset.
 
     def __init__(self, session):
+        self.session = session
         self.profiles = {}
+        self.Reset()
+
+    def _NormalizeModuleName(self, module):
+        try:
+            module_name = module.name
+        except AttributeError:
+            module_name = module
+
+        result = unicode(module_name).split(".")[0]
+        if result == "ntoskrnl":
+            result = "nt"
+
+        return result.lower()
+
+    def _ParseAddress(self, name):
+        m = self.ADDRESS_NAME_REGEX.match(name)
+        if m:
+            capture = m.groupdict()
+            module = capture.get("module")
+            if not module:
+                raise TypeError("Module name not specified.")
+
+            capture["module"] = self._NormalizeModuleName(module)
+
+            if capture["op"] and not capture["offset"]:
+                raise TypeError("Operator %s must have an operand." %
+                                capture["op"])
+
+            if capture["op"] and not capture["symbol"]:
+                raise TypeError("Operator %s must operate on a symbol." %
+                                capture["op"])
+
+            return capture
+
+        raise TypeError("Unable to parse %r as a symbol name" % name)
+
+    def _FindContainingModule(self, address):
+        if self.modules:
+            return self.modules.find_module(address)
+
+    def Reset(self):
+        """Flush all caches and reset the resolver."""
         self.modules = None
         self.modules_by_name = {}
-        self.session = session
+
+    def get_constant_object(self, name, target, **kwargs):
+        """Instantiate the named constant with these args."""
+        self._EnsureInitialized()
+
+        profile = self.LoadProfileForName(name)
+        if profile:
+            components = self._ParseAddress(name)
+            if not components["symbol"]:
+                raise ValueError("No symbol name specified.")
+
+            return profile.get_constant_object(
+                components["symbol"],
+                target=target, **kwargs)
+
+        return obj.NoneObject("Profile for name %s unknown.", name)
 
     def _EnsureInitialized(self):
         if self.modules is None:
             try:
                 self.modules = self.session.plugins.modules()
                 for module in self.modules.lsmod():
-                    self.modules_by_name[module.name] = module
+                    module_name = self._NormalizeModuleName(module)
+                    self.modules_by_name[module_name] = module
+
+                    # Update the image base of our profiles.
+                    if module_name in self.profiles:
+                        self.profiles[module_name].image_base = module.base
 
             except AttributeError:
                 self.modules = None
 
+    def LoadProfileByGUID(self, module_name, guid):
+        self._EnsureInitialized()
+        try:
+            module_name = self._NormalizeModuleName(module_name)
+            module = self.modules_by_name[module_name]
+
+            module_profile = self.session.LoadProfile("GUID/%s" % guid)
+            module_profile.image_base = module.base
+
+            # Marge in the kernel profile into this profile.
+            module_profile.merge(self.session.profile)
+
+            self.profiles[module_name] = module_profile
+
+            return module_profile
+        except ValueError:
+            # Cache the fact that we did not find this profile.
+            self.profiles[module_name] = None
+
+            logging.debug("Unable to resolve symbols in module %s",
+                          module_name)
+
     def LoadProfileForModule(self, module):
-        if module:
-            if module.name in self.profiles:
-                return self.profiles[module.name]
+        self._EnsureInitialized()
 
-            try:
-                module_profile = self.session.LoadProfile(
-                    "GUID/%s" % module.RSDS.GUID_AGE)
-                module_profile.image_base = module.base
-                self.profiles[module.name] = module_profile
+        module_name = self._NormalizeModuleName(module)
+        if module_name in self.profiles:
+            return self.profiles[module_name]
 
-                return module_profile
-            except ValueError:
-                # Cache the fact that we did not find this profile.
-                self.profiles[module.name] = None
+        guid = module.RSDS.GUID_AGE
+        if guid:
+            return self.LoadProfileByGUID(module_name, guid)
 
-                logging.debug("Unable to resolve symbols in module %s",
-                              module.name)
+        return obj.NoneObject("Unable to load profile for %s" % module_name)
+
+    def LoadProfileForName(self, name):
+        """Returns the profile responsible for the symbol name."""
+        if not isinstance(name, basestring):
+            raise TypeError("Name should be a string.")
+
+        self._EnsureInitialized()
+
+        components = self._ParseAddress(name)
+        module_name = components["module"]
+
+        # See if the user has specified the GUID in the session cache.
+        guid = self.session.GetParameter("%s_guid" % module_name)
+        if guid:
+            return self.LoadProfileByGUID(module_name, guid)
+
+        # Try to detect the GUI from the module object.
+        module = self.modules_by_name[module_name]
+        return self.LoadProfileForModule(module)
 
     def get_address_by_name(self, name):
         self._EnsureInitialized()
@@ -157,72 +263,78 @@ class AddressResolver(object):
         if not isinstance(name, basestring):
             raise TypeError("Name should be a string.")
 
-        # Can be represented as hex.
-        if name.startswith("0x"):
-            return int(name, 16)
+        # Name can be represented as hex or integer.
+        try:
+            return int(name, 0)
+        except ValueError:
+            pass
 
-        m = self.ADDRESS_NAME_REGEX.match(name)
-        if m:
-            module_name = m.group(1)
-            symbol = m.group(2)
+        components = self._ParseAddress(name)
+        address = None
 
-            module = self.modules_by_name[module_name]
-            if symbol:
-                module_profile = self.LoadProfileForModule(module)
-                address = module_profile.get_constant(symbol, True)
+        module_profile = self.LoadProfileForName(components["module"])
+        if module_profile:
+            if components["symbol"]:
+                address = module_profile.get_constant(
+                    components["symbol"], True)
+
+                if components["op"]:
+                    offset = int(components["offset"], 0)
+
+                    if components["op"].strip() == "+":
+                        address += offset
+                    else:
+                        address -= offset
+
+            # No symbol provided - use the module's image base.
             else:
-                address = module.base
-
-            if m.group(3):
-                operator = m.group(4).strip()
-                offset = self.get_address_by_name(m.group(5))
-                if operator == "+":
-                    address += offset
-                else:
-                    address -= offset
+                address = module_profile.image_base
 
             return address
 
-        # name can be just a straight forward integer.
-        return int(name)
+        return obj.NoneObject("No profile found for module")
 
     def get_constant_by_address(self, address):
         self._EnsureInitialized()
 
         address = obj.Pointer.integer_to_address(address)
-        if self.modules:
-            containing_module = self.modules.find_module(address)
-            module_profile = self.LoadProfileForModule(containing_module)
+        containing_module = self._FindContainingModule(address)
+        if containing_module:
+            module_name = self._NormalizeModuleName(containing_module)
+            module_profile = self.LoadProfileForName(module_name)
 
-            return module_profile.get_constant_by_address(address)
+            if module_profile:
+                constant = module_profile.get_constant_by_address(address)
+                if constant:
+                    return "%s!%s" % (module_name, constant)
 
     def get_nearest_constant_by_address(self, address):
         self._EnsureInitialized()
 
         address = obj.Pointer.integer_to_address(address)
         nearest_offset = 0
-        module_name = nearest_name = ""
+        module_name = symbol_name = ""
         profile = None
 
         # Find the containing module and see if we have a profile for it.
-        if self.modules:
-            containing_module = self.modules.find_module(address)
-            if containing_module:
-                nearest_offset = containing_module.base
-                module_name = containing_module.name
+        containing_module = self._FindContainingModule(address)
+        if containing_module:
+            nearest_offset = containing_module.base
+            module_name = self._NormalizeModuleName(containing_module)
 
-                # Try to load the module profile.
-                profile = self.LoadProfileForModule(containing_module)
-                if profile:
-                    offset, name = profile.get_nearest_constant_by_address(
-                        address)
+            # Try to load the module profile.
+            profile = self.LoadProfileForName(module_name)
+            if profile:
+                offset, name = profile.get_nearest_constant_by_address(
+                    address)
 
-                    if address - offset < address - nearest_offset:
-                        nearest_offset = offset
-                        nearest_name = name
+                # The profile's constant is closer than the module.
+                if address - offset < address - nearest_offset:
+                    nearest_offset = offset
+                    symbol_name = name
 
-        if module_name:
-            full_name = "%s!%s" % (module_name, nearest_name)
+        if symbol_name:
+            full_name = "%s!%s" % (module_name, symbol_name)
         else:
             full_name = ""
 

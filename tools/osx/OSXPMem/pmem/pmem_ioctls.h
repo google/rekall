@@ -13,19 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _VOLATILITY_DRIVER_PMEM_IOCTLS_H_
-#define _VOLATILITY_DRIVER_PMEM_IOCTLS_H_
-
+#ifndef _REKALL_DRIVER_PMEM_IOCTLS_H_
+#define _REKALL_DRIVER_PMEM_IOCTLS_H_
 
 #define PMEM_GET_MMAP 0
 #define PMEM_GET_MMAP_SIZE 1
 #define PMEM_GET_MMAP_DESC_SIZE 2
 #define PMEM_GET_DTB 3
+#define PMEM_SET_MMAP_METHOD 4
 
 #define PMEM_MMAP_TYPE uint64_t
 #define PMEM_MMAP_SIZE_TYPE uint32_t
 #define PMEM_MMAP_DESC_SIZE_TYPE uint32_t
 #define PMEM_DTB_TYPE uint64_t
+#define PMEM_MMAP_METHOD_TYPE int32_t
 
 #define PMEM_IOCTL_BASE 'p'
 
@@ -41,5 +42,13 @@
 #define PMEM_IOCTL_GET_DTB            _IOR(PMEM_IOCTL_BASE, \
                                            PMEM_GET_DTB, \
                                            PMEM_DTB_TYPE)
+#define PMEM_IOCTL_SET_MMAP_METHOD    _IOW(PMEM_IOCTL_BASE, \
+                                           PMEM_SET_MMAP_METHOD, \
+                                           PMEM_MMAP_METHOD_TYPE)
 
-#endif  // _VOLATILITY_DRIVER_PMEM_IOCTLS_H_
+typedef enum PMEM_MMAP_METHOD_ {
+  PMEM_MMAP_IOKIT,
+  PMEM_MMAP_PTE
+} PMEM_MMAP_METHOD;
+
+#endif  // _REKALL_DRIVER_PMEM_IOCTLS_H_

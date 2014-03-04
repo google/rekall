@@ -95,7 +95,7 @@ class PoolScanTcpEndpoint(common.PoolScanner):
 
 
 class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
-              common.PoolScannerPlugin):
+                 common.PoolScannerPlugin):
     """Scan a Vista, 2008 or Windows 7 image for connections and sockets"""
 
     __name = "netscan"

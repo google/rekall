@@ -21,8 +21,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _VOLATILITY_DRIVER_PMEM_H_
-#define _VOLATILITY_DRIVER_PMEM_H_
+#ifndef _REKALL_DRIVER_PMEM_H_
+#define _REKALL_DRIVER_PMEM_H_
 
 // ioctl commands for this driver
 #include "pmem_ioctls.h"
@@ -119,4 +119,4 @@ extern "C" {
   kern_return_t pmem_stop(kmod_info_t *ki, void *d);
 }
 
-#endif  // _VOLATILITY_DRIVER_PMEM_H_
+#endif  // _REKALL_DRIVER_PMEM_H_

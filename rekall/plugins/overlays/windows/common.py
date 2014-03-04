@@ -444,6 +444,9 @@ class _EPROCESS(obj.Struct):
 
         return obj.NoneObject("Cannot find process session")
 
+    def __repr__(self):
+        return "%s (pid=%s)" % (super(_EPROCESS, self).__repr__(), self.pid)
+
     def get_process_address_space(self):
         """ Gets a process address space for a task given in _EPROCESS """
         directory_table_base = self.Pcb.DirectoryTableBase.v()
@@ -507,6 +510,31 @@ class _EPROCESS(obj.Struct):
 
         return obj.NoneObject("Could not find handle in ObjectTable")
 
+
+class _MM_SESSION_SPACE(obj.Struct):
+    """Windows separates processes into Sessions.
+
+    Sessions are logically similar groups of processes (e.g. all created as part
+    of the same RDP login). The virtual address space is divided into three main
+    parts:
+
+    - The process range - This memory is unique to each process.
+
+    - The kernel space - all regular kernel memory is mapped into all processes.
+
+    - The session space - This part of the address space is different for each
+      session, but is shared by all processes in the same session.
+    """
+
+    def processes(self):
+        """Generator for processes in this session.
+
+        A process is always associated with exactly
+        one session.
+        """
+        for p in self.ProcessList.list_of_type(
+            "_EPROCESS", "SessionProcessLinks"):
+            yield p
 
 
 class _POOL_HEADER(obj.Struct):
@@ -1016,6 +1044,7 @@ def InitializeWindowsProfile(profile):
             '_MMVAD_FLAGS2': _MMVAD_FLAGS2,
             '_MMSECTION_FLAGS': _MMSECTION_FLAGS,
             '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
+            "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
             })
 
     profile.add_overlay(windows_overlay)

@@ -115,7 +115,7 @@ class DarwinKASLRMixin(object):
         """A mixin for Darwin plugins that require a valid KASLR slide.
 
         Args:
-          vm_kernel_slide: THe integer KASLR slide used in this image. If not
+          vm_kernel_slide: The integer KASLR slide used in this image. If not
           given it will be computed.
         """
         super(DarwinKASLRMixin, self).__init__(**kwargs)

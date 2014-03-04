@@ -136,6 +136,7 @@ ILP32 = {
 # These are aliases for the same things
 for model in [LP64, ILP32, LLP64]:
     for old, new in [
+        ['char', 'signed char'],
         ['unsigned char', 'byte'],
 
         ['short', 'short int'],

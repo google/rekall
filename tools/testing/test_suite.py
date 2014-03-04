@@ -150,6 +150,15 @@ NUMBER_OF_CORES = multiprocessing.cpu_count()
 class RekallTester(object):
     """A class to manage running and controlling the test harness."""
 
+    BASELINE_TEMPLATE = """#!/bin/bash
+if [ "$1" == "ok" ]; then
+   cp %(src)s %(dest)s
+else
+   meld %(src)s %(dest)s
+fi
+exit 0
+"""
+
     def __init__(self, argv=None):
         self.FLAGS = self.ProcessCommandLineArgs(argv)
         self.threadpool = threadpool.ThreadPool(self.FLAGS.processes)
@@ -433,9 +442,8 @@ class RekallTester(object):
                 baseline_filename = os.path.join(
                     self.test_directory, plugin_cls.__name__)
 
-                fd.write("#!/bin/bash\n" +
-                         "meld %s %s\n" % (fd.name, baseline_filename) +
-                         "exit 0\n")
+                fd.write(self.BASELINE_TEMPLATE % dict(
+                    src=fd.name, dest=baseline_filename))
 
                 fd.write(json.dumps(current_run, indent=4))
 

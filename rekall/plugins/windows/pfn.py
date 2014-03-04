@@ -103,6 +103,9 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
                             help="Specify to see all the fops, even if they "
                             "are known.")
 
+        parser.add_argument("-a", "--address_space", default=None,
+                            help="The address space to use.")
+
     def __init__(self, virtual_address=None, address_space=None, **kwargs):
         """Prints information about the virtual to physical translation.
 
@@ -114,7 +117,9 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
             kernel_address_space).
         """
         super(VtoP, self).__init__(**kwargs)
-        self.address_space = address_space or self.kernel_address_space
+        load_as = self.session.plugins.load_as(session=self.session)
+        self.address_space = load_as.ResolveAddressSpace(address_space)
+
         self.address = virtual_address
 
     def _vtop_32bit(self, vaddr, address_space):
@@ -234,9 +239,6 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
 
     def vtop(self, virtual_address, address_space=None):
         """Translate the virtual_address using the address_space."""
-        if address_space is None:
-            address_space = self.kernel_address_space
-
         if address_space.metadata("arch") == "AMD64":
             function = self._vtop_64bit
         else:

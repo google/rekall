@@ -566,6 +566,24 @@ class lfModifier(lfClass):
 class lfEnum(obj.Struct):
     """Represents an enumeration definition."""
 
+    @property
+    def Name(self):
+        enum_name = str(self.m("Name"))
+        if enum_name == "<unnamed-tag>":
+            enum_name = "ENUM_%X" % self.obj_offset
+
+        return enum_name
+
+    def AddEnumeration(self, tpi):
+        enumeration = {}
+        reverse_enumeration = {}
+        for x in tpi.Resolve(self.field).SubRecord:
+            enumeration[int(x.value.value_)] = str(x.value.name)
+            reverse_enumeration[str(x.value.name)] = int(x.value.value_)
+
+        tpi.AddEnumeration(self.Name, enumeration)
+        tpi.AddReverseEnumeration(self.Name, reverse_enumeration)
+
     def Definition(self, tpi):
         """Enumerations are defined in two parts.
 
@@ -574,23 +592,10 @@ class lfEnum(obj.Struct):
         field). This allows many fields which use the same enumeration to share
         the definition dict.
         """
-        enumeration = {}
-        reverse_enumeration = {}
-        for x in tpi.Resolve(self.field).SubRecord:
-            enumeration[int(x.value.value_)] = str(x.value.name)
-            reverse_enumeration[str(x.value.name)] = int(x.value.value_)
-
-        enum_name = str(self.Name)
-        if enum_name == "<unnamed-tag>":
-            enum_name = "ENUM_%X" % self.obj_offset
-
-        tpi.AddEnumeration(enum_name, enumeration)
-        tpi.AddReverseEnumeration(enum_name, reverse_enumeration)
-
         target, target_args = tpi.DefinitionByIndex(self.utype)
 
         return "Enumeration", dict(
-            target=target, target_args=target_args, enum_name=enum_name)
+            target=target, target_args=target_args, enum_name=self.Name)
 
 class lfPointer(lfClass):
     """A Pointer object."""
@@ -939,12 +944,20 @@ class PDBParser(object):
         """The TPI stream contains all the struct definitions."""
         self.lookup = {}
         tpi = self.profile._HDR(vm=self.root_stream_header.GetStream(2))
+
+        # Build a lookup table for fast resolving of TPI indexes.
         for i, t in enumerate(tpi.types):
             self.session.report_progress(" Parsing Structs %(spinner)s")
 
             self.lookup[tpi.tiMin + i] = t
             if not t:
                 break
+
+        # Extract ALL enumerations, even if they are not referenced by any
+        # structs.
+        for key, value in self.lookup.iteritems():
+            if value.type_enum == "LF_ENUM":
+                value.type.AddEnumeration(self)
 
     def AddEnumeration(self, name, enumeration):
         self.enums[name] = enumeration

@@ -20,9 +20,9 @@
 #include "../imager/imager.h"
 
 // These paths are relative from the directory of the makefile.
-static const char const *kRawTestImagePath = "test/test_image_raw.dump";
-static const char const *kElfTestImagePath = "test/test_image_elf.dump";
-static const char const *kMachTestImagePath = "test/test_image_mach.dump";
+static const char *kRawTestImagePath = "test/test_image_raw.dump";
+static const char *kElfTestImagePath = "test/test_image_elf.dump";
+static const char *kMachTestImagePath = "test/test_image_mach.dump";
 
 unsigned int init_tests(void) {
   unsigned int status = EXIT_FAILURE;

@@ -18,28 +18,54 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-
 from rekall.plugins.darwin import common
 
 
 class DarwinLsof(common.DarwinProcessFilter):
-    """List open files for processes."""
+    """Lists open files, grouped by process that has the handle.
+
+    A file is an overloaded term; this plugin will list files, directories,
+    Unix sockets, pipes, shared memory regions and certain other kernel
+    structures.
+    """
 
     __name = "lsof"
 
-    def Lsof(self, proc):
-        for i, fileproc in enumerate(proc.p_fd.fd_ofiles):
-            # When the type of the glob is VNODE it contains a vnode struct.
-            if fileproc.f_fglob.fg_type == "DTYPE_VNODE":
-                vnode = fileproc.f_fglob.fg_data.dereference_as("vnode")
-                yield fileproc, i, vnode.full_path
+    def lsof(self, proc_sort_key=None):
+        """Get all open files (sockets, vnodes, etc.) for all processes.
+
+        Args:
+          proc_sort_key:
+            A callable that takes proc and returns a key to sort by. If None
+            (default) then no sorting will be done.
+
+        Yields:
+          Dict of proc, fd, flags and fileproc.
+        """
+        procs = self.filter_processes()
+        if proc_sort_key:
+            procs = sorted(procs, key=proc_sort_key)
+
+        for proc in procs:
+            for fd, fileproc, flags in proc.get_open_files():
+                yield dict(proc=proc,
+                           fd=fd,
+                           flags=flags,
+                           fileproc=fileproc)
 
     def render(self, renderer):
-        renderer.table_header([("PID", "pid", "8"),
-                               ("Command", "command", "16"),
-                               ("File Desc", "desc", "10"),
-                               ("Path", "path", "20")])
+        renderer.table_header([("Command", "command", "16"),
+                               ("PID", "pid", "8"),
+                               ("UID", "uid", "8"),
+                               ("FD", "fd", "10"),
+                               ("Type", "type", "15"),
+                               ("Name", "name", "40")])
 
-        for proc in sorted(self.filter_processes(), key=lambda x: x.p_pid):
-            for _, fd, path in self.Lsof(proc):
-                renderer.table_row(proc.p_pid, proc.p_comm, fd, path)
+        for open_file in self.lsof(proc_sort_key=lambda proc: proc.pid):
+            renderer.table_row(open_file["proc"].p_comm,
+                               open_file["proc"].pid,
+                               open_file["proc"].p_uid,
+                               open_file["fd"],
+                               open_file["fileproc"].human_type,
+                               open_file["fileproc"].human_name)
+

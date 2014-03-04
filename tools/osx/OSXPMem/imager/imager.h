@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _VOLATILITY_PMEM_IMAGER_H_
-#define _VOLATILITY_PMEM_IMAGER_H_
+#ifndef _REKALL_PMEM_IMAGER_H_
+#define _REKALL_PMEM_IMAGER_H_
 
 #include <errno.h>
 #include <fcntl.h>
@@ -46,7 +46,7 @@
 // the macros we have to use to interact with IOKit require these strings to
 // be literals, so we make an exception.
 #define PMEM_KEXT_PATH "./pmem.kext"
-#define PMEM_KEXT_IDENTIFIER "volatility.driver.pmem"
+#define PMEM_KEXT_IDENTIFIER "rekall.driver.pmem"
 
 // This is externalized to simplify modifying the error output.
 #define PMEM_ERROR_LOG(...) do { print_msg(ERR, "%s(%d): ", \
@@ -82,7 +82,7 @@ unsigned int get_mmap(uint8_t **mmap, unsigned int *mmap_size,
 char *mmap_tostring(uint8_t *mmap, const unsigned int mmap_size,
                     const unsigned int mmap_entry_size);
 // Load driver, get mmap and display it to the user.
-unsigned int display_mmap(const char const *device_file_path);
+unsigned int display_mmap(const char *device_file_path);
 // Get the kernel directory table base from the driver.
 unsigned int get_dtb(int fd, uint64_t *dtb);
 
@@ -107,19 +107,19 @@ unsigned int write_segment(EfiMemoryRange *segment, int mem_dev,
                                   int dump_file, uint64_t file_offset);
 // Dump physical memory to a file.
 unsigned int dump_memory(char const *dump_file_path,
-                         const char const *device_file_path);
+                         char const *device_file_path);
 // Determines if a segment is of an accessible type,
 bool segment_accessible(EfiMemoryRange *segment);
 
 // Convert the memory segment type to a human readable text representation.
-const char const *physmem_type_tostring(int type);
+const char *physmem_type_tostring(int type);
 // Print a log message.
 void print_msg(loglevel_t level, const char *fmt, ...);
 // Print a command line help text.
-void display_usage(const char const *image_name);
+void display_usage(const char *image_name);
 // Load the pmem driver.
 unsigned int load_kext(void);
 // Unload the pmem driver.
 unsigned int unload_kext(void);
 
-#endif  // _VOLATILITY_PMEM_IMAGER_H_
+#endif  // _REKALL_PMEM_IMAGER_H_

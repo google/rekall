@@ -50,7 +50,7 @@ config.DeclareOption(
     help="The pager to use when output is larger than a screen full.")
 
 config.DeclareOption(
-    "--paging_limit", default=50, group="Interface", type=int,
+    "--paging_limit", default=None, group="Interface", type=int,
     help="The number of output lines before we invoke the pager.")
 
 config.DeclareOption(
@@ -474,9 +474,8 @@ class RendererBaseClass(object):
 
     __metaclass__ = registry.MetaclassRegistry
 
-    def __init__(self, session=None, fd=None, paging_limit=50):
+    def __init__(self, session=None, fd=None):
         self.session = session
-        self.paging_limit = paging_limit
         self.fd = fd
         self.isatty = False
         self.formatter = Formatter()
@@ -576,6 +575,8 @@ class TextRenderer(RendererBaseClass):
     last_spin = 0
     last_message_len = 0
     isatty = False
+    progress_fd = None
+    paging_limit = None
 
     def __init__(self, tablesep=" ", elide=False, max_data=1024*1024,
                  paging_limit=None, **kwargs):
@@ -592,14 +593,12 @@ class TextRenderer(RendererBaseClass):
 
         # The stream we write the progress on. Only write to stdout if it is a
         # tty.
-        if sys.stdout.isatty():
-            self.progress_fd = sys.stdout
+        if self.fd.isatty():
+            if sys.stdout.isatty():
+                self.progress_fd = sys.stdout
+
             self.paging_limit = paging_limit
             self.isatty = True
-
-        else:
-            self.progress_fd = None
-            self.paging_limit = None
 
     def start(self, plugin_name=None, kwargs=None):
         """The method is called when new output is required.

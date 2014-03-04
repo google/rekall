@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _VOLATILITY_ELF_H_
-#define _VOLATILITY_ELF_H_
+#ifndef _REKALL_ELF_H_
+#define _REKALL_ELF_H_
 
 #include <stdint.h>
 
@@ -76,4 +76,4 @@ typedef struct elf64_shdr_ {
   uint64_t      sh_entsize;    // Entry Size if Table
 } elf64_shdr;
 
-#endif  // _VOLATILITY_ELF_H_
+#endif  // _REKALL_ELF_H_

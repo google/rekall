@@ -112,9 +112,10 @@ class FileAddressSpace(FDAddressSpace):
         self.fname = self.name
         self.mode = 'rb'
 
-        if path.startswith(r"\\"):
-            import pdb; pdb.set_trace()
-            raise RuntimeError("Unable to open a device without the win32file package installed.")
+        if path.startswith(r"\\\\.\\"):
+            raise RuntimeError(
+                "Unable to open a device without the win32file package "
+                "installed.")
 
         fhandle = open(self.fname, self.mode)
         super(FileAddressSpace, self).__init__(

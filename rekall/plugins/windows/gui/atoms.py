@@ -23,7 +23,6 @@ from rekall import obj
 
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import win32k_core
-from rekall.plugins.windows.gui import windowstations
 
 
 class PoolScanAtom(common.PoolScanner):
@@ -62,8 +61,9 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
         self.sort_by = sort_by
 
     def generate_hits(self):
-        scanner = PoolScanAtom(profile=self.profile, session=self.session,
-                               address_space=self.address_space)
+        scanner = PoolScanAtom(
+            profile=self.win32k_profile, session=self.session,
+            address_space=self.address_space)
 
         for pool_header in scanner.scan():
             # Note: all OS after XP, there are an extra 8 bytes (for 32-bit) or
@@ -83,7 +83,7 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
                 if version > "5.1":
                     fixup = 16
 
-            atom_table = self.profile._RTL_ATOM_TABLE(
+            atom_table = self.win32k_profile._RTL_ATOM_TABLE(
                 offset=pool_header.obj_offset + pool_header.size() + fixup,
                 vm=pool_header.obj_vm)
 
@@ -109,7 +109,7 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
             # its required if we want to be able to sort. We also
             # filter string atoms here.
             atoms = []
-            for atom in atom_table.atoms(vm=self.session.kernel_address_space):
+            for atom in atom_table.atoms(vm=self.kernel_address_space):
                 if atom.is_string_atom():
                     atoms.append(atom)
 
@@ -129,50 +129,56 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
 
 
 
-class Atoms(windowstations.WndScan):
-    """Print session and window station atom tables"""
+class Atoms(common.WindowsCommandPlugin):
+    """Print session and window station atom tables.
+
+    From:
+    http://msdn.microsoft.com/en-us/library/windows/desktop/ms649053.aspx
+
+    An atom table is a system-defined table that stores strings and
+    corresponding identifiers. An application places a string in an atom table
+    and receives a 16-bit integer, called an atom, that can be used to access
+    the string. A string that has been placed in an atom table is called an atom
+    name.
+
+    The global atom table is available to all applications. When an application
+    places a string in the global atom table, the system generates an atom that
+    is unique throughout the system. Any application that has the atom can
+    obtain the string it identifies by querying the global atom table.
+
+    (The global atom tables are only global within each session).
+    """
 
     __name = "atoms"
 
     def find_atoms(self):
-        seen = set()
-
+        windows_stations = self.session.plugins.windows_stations()
         # Find the atom tables that belong to each window station
-        for wndsta, session_space in self.generate_hits():
-            # Get the atom table from the windows station object.
+        for station in windows_stations.stations():
+            table = station.pGlobalAtomTable.deref()
+            for atom in sorted(table.atoms(), key=lambda x: x.Atom):
+                ## Filter string atoms
+                if not atom.is_string_atom():
+                    continue
 
-            # The atom table is dereferenced in the proper
-            # session space
-            atom_table = wndsta.AtomTable(vm=session_space)
+                yield table, atom, station
 
-            # Deduplicate by physical address.
-            table_physical_offset = session_space.vtop(atom_table.obj_offset)
-            if table_physical_offset in seen:
+        # Now find all the atoms in the User handle table.
+        table = station.obj_profile.get_constant_object(
+            "UserAtomTableHandle",
+            target="Pointer",
+            target_args=dict(
+                target="_RTL_ATOM_TABLE",
+                ),
+            vm=station.obj_vm,
+            )
+
+        for atom in sorted(table.atoms(), key=lambda x: x.Atom):
+            ## Filter string atoms
+            if not atom.is_string_atom():
                 continue
 
-            seen.add(table_physical_offset)
-
-            if atom_table.is_valid():
-                for atom in atom_table.atoms(vm=session_space):
-                    ## Filter string atoms
-                    if not atom.is_string_atom():
-                        continue
-
-                    yield table_physical_offset, atom, wndsta
-
-        # Find atom tables not linked to specific window stations.
-        # This finds win32k!UserAtomHandleTable.
-        for table in self.session.plugins.atomscan().generate_hits():
-
-            table_physical_offset = table.obj_vm.vtop(table.obj_offset)
-            if table_physical_offset not in seen:
-                for atom in table.atoms(vm=session_space):
-                    ## Filter string atoms
-                    if not atom.is_string_atom():
-                        continue
-
-                    yield (table_physical_offset, atom,
-                           obj.NoneObject("No windowstation"))
+            yield table, atom, obj.NoneObject("No windowstation")
 
     def render(self, renderer):
         renderer.table_header(
@@ -188,21 +194,13 @@ class Atoms(windowstations.WndScan):
 
         seen = set()
 
-        for table_physical_offset, atom, window_station in sorted(
-            self.find_atoms()):
-
-            # Deduplicate by table_physical_offset and atom
-            if (table_physical_offset, atom.Atom) in seen:
-                continue
-
-            seen.add((table_physical_offset, atom.Atom))
-
+        for table, atom, window_station in self.find_atoms():
             renderer.table_row(
-                table_physical_offset,
+                table,
                 window_station.dwSessionId,
-                window_station.Name.v(vm=atom.obj_vm),
+                window_station.Name,
                 atom.Atom,
                 atom.ReferenceCount,
                 atom.HandleIndex,
                 atom.Pinned,
-                atom.Name.v(vm=atom.obj_vm))
+                atom.Name)

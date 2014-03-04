@@ -44,6 +44,8 @@ class DIETag(object):
     def name(self):
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value
+        elif "DW_AT_sibling" in self.attributes:
+            return self.types[self.attributes["DW_AT_sibling"].value].name
         else:
             return "__unnamed_%s" % self.die.offset
 

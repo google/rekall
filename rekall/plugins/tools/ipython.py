@@ -21,11 +21,14 @@
 #
 
 __author__ = "Michael Cohen <scudette@google.com>"
+import os
 import site
 
 from rekall import testlib
 from rekall import plugin
+from rekall import kb
 from rekall.plugins import core
+from rekall.ui import renderer
 
 try:
     from rekall import ipython_support
@@ -136,3 +139,14 @@ help profile   - What are Profiles?
             print core.Info(item=item)
 
 site._Helper = RekallHelper
+
+
+class PagingLimitHook(kb.ParameterHook):
+  """If no paging_limit specified, calculate it from cursors."""
+  name = "paging_limit"
+
+  def calculate(self):
+      if renderer.curses:
+          return renderer.curses.tigetnum('lines')
+
+      return int(os.environ.get("ROWS", 50))
