@@ -370,7 +370,7 @@ class Session(object):
             # If there was too much data and a pager is specified, simply pass
             # the data to the pager:
             if (ui_renderer.isatty and pager and
-                len(ui_renderer.data) >= self.state.paging_limit):
+                len(ui_renderer.data) >= ui_renderer.paging_limit):
                 pager = renderer.Pager(self)
                 for data in ui_renderer.data:
                     pager.write(data)

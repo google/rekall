@@ -18,106 +18,78 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+"""The following is a description of windows stations from MSDN:
+
+http://msdn.microsoft.com/en-us/library/windows/desktop/ms687096(v=vs.85).aspx
+
+A window station contains a clipboard, an atom table, and one or more desktop
+objects. Each window station object is a securable object. When a window station
+is created, it is associated with the calling process and assigned to the
+current session.
+
+The interactive window station is the only window station that can display a
+user interface or receive user input. It is assigned to the logon session of the
+interactive user, and contains the keyboard, mouse, and display device. It is
+always named "WinSta0". All other window stations are noninteractive, which
+means they cannot display a user interface or receive user input.
+"""
+
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import win32k_core
 
 
-class PoolScanWind(common.PoolScanner):
-    """PoolScanner for window station objects"""
+class WindowsStations(win32k_core.Win32kPluginMixin,
+                      common.WindowsCommandPlugin):
+    """Displays all the windows stations by following lists."""
 
-    def __init__(self, **kwargs):
-        super(PoolScanWind, self).__init__(**kwargs)
+    __name = "windows_stations"
 
-        self.checks = [
-            ('PoolTagCheck', dict(
-                    tag=self.profile.get_constant("PoolTag_WindowStation"))),
+    def stations(self):
+        """A generator of tagWINDOWSTATION objects."""
+        # Each windows session has a unique set of windows stations.
+        for session in self.session.plugins.sessions().session_spaces():
+            # Get the start of the Window station list from
+            # win32k.sys. These are all the Windows stations that exist in
+            # this Windows session.
+            station_list = self.win32k_profile.get_constant_object(
+                "grpWinStaList",
+                target="Pointer",
+                target_args=dict(
+                    target="tagWINDOWSTATION"
+                    ),
+                vm=session.obj_vm,
+                )
 
-            ('CheckPoolSize', dict(
-                    min_size=self.profile.get_obj_size("tagWINDOWSTATION"))),
-
-            # only look in non-paged or free pools
-            ('CheckPoolType', dict(paged=False, non_paged=True,
-                                   free=True)),
-
-            ('CheckPoolIndex', dict(value=0)),
-            ]
-
-
-class WndScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
-    """Pool scanner for tagWINDOWSTATION (window stations)"""
-
-    __name = "wndscan"
-
-    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', 'tagWINDOWSTATION']
-
-    def generate_hits(self):
-        sessions_plugin = self.session.plugins.sessions()
-        scanner = PoolScanWind(profile=self.profile,
-                               session=self.session,
-                               address_space=self.address_space)
-
-        for pool_obj in scanner.scan():
-            window_station = pool_obj.get_object(
-                "tagWINDOWSTATION", self.allocation)
-
-            # Basic sanity checks are included here
-            if not window_station.is_valid():
-                continue
-
-            # Find an address space for this window station's session
-            session_space = sessions_plugin.find_session_space(
-                window_station.dwSessionId)
-
-            if not session_space:
-                continue
-
-            # Traverse the tagWINDOWSTATION list in the session address space.
-            for winsta in window_station.traverse(session_space.obj_vm):
-                if winsta.is_valid():
-                    yield winsta, session_space.obj_vm
+            for station in station_list.walk_list("rpwinstaNext"):
+                yield station
 
     def render(self, renderer):
-        seen = []
-        for window_station, session_address_space in self.generate_hits():
-            if window_station.obj_vm == self.physical_address_space:
-                phys_offset = window_station.obj_offset
-            else:
-                phys_offset = window_station.obj_vm.vtop(
-                    window_station.obj_offset)
-
-            # Always store the physical addresses to prevent duplicates.
-            if phys_offset in seen:
-                continue
-
-            seen.append(phys_offset)
+        for window_station in self.stations():
             renderer.section()
+            renderer.format(
+                "WindowStation: {0:#x}, Name: {1}, Next: {2:#x}\n",
+                window_station,
+                window_station.Name,
+                window_station.rpwinstaNext)
 
-            renderer.format("WindowStation: {0:#x}, Name: {1}, Next: {2:#x}\n",
-                            phys_offset,
-                            window_station.Name.v(vm=session_address_space),
-                            window_station.rpwinstaNext)
-
-            renderer.format("SessionId: {0}, AtomTable: {1:#x}, "
-                            "Interactive: {2}\n",
-                            window_station.dwSessionId,
-                            window_station.pGlobalAtomTable,
-                            window_station.Interactive)
+            renderer.format(
+                "SessionId: {0}, AtomTable: {1:#x}, "
+                "Interactive: {2}\n",
+                window_station.dwSessionId,
+                window_station.pGlobalAtomTable,
+                window_station.Interactive)
 
             renderer.format(
                 "Desktops: {0:L}\n",
-                [desk.Name.v(vm=session_address_space)
-                 for desk in window_station.desktops(vm=session_address_space)])
+                [desk.Name for desk in window_station.desktops()])
 
-            ethread = window_station.ptiDrawingClipboard.pEThread.deref(
-                vm=session_address_space)
+            ethread = window_station.ptiDrawingClipboard.pEThread
 
             renderer.format(
                 "ptiDrawingClipboard: pid {0} tid {1}\n",
                 ethread.Cid.UniqueProcess, ethread.Cid.UniqueThread)
 
-            last_registered_viewer = window_station.LastRegisteredViewer.deref(
-                vm=session_address_space)
-
+            last_registered_viewer = window_station.LastRegisteredViewer
             renderer.format("spwndClipOpen: {0:#x}, spwndClipViewer: {1:#x} "
                             "{2} {3}\n",
                             window_station.spwndClipOpen,

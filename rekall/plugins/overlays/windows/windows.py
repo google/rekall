@@ -248,10 +248,6 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
         elif profile.metadata("arch") == "I386":
             basic.Profile32Bits.Initialize(profile)
 
-            # Detect if this is a PAE system. PAE systems have 64 bit PTEs:
-            if profile.get_obj_size("_MMPTE") == 8:
-                profile.set_metadata("pae", True)
-
 
 class Ntoskrnl(BasicPEProfile):
     """A profile for Windows."""
@@ -266,6 +262,10 @@ class Ntoskrnl(BasicPEProfile):
 
         elif profile.metadata("arch") == "I386":
             profile.add_overlay(undocumented.I386)
+
+            # Detect if this is a PAE system. PAE systems have 64 bit PTEs:
+            if profile.get_obj_size("_MMPTE") == 8:
+                profile.set_metadata("pae", True)
 
         # Install the base windows support.
         common.InitializeWindowsProfile(profile)

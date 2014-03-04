@@ -40,7 +40,8 @@ class PoolScanConnFast(common.PoolScanner):
               ('CheckPoolIndex', dict(value=0)),
               ]
 
-class ConnScan(common.PoolScannerPlugin):
+class ConnScan(tcpip_vtypes.TcpipPluginMixin,
+               common.PoolScannerPlugin):
     """ Scan Physical memory for _TCPT_OBJECT objects (tcp connections)
     """
 
@@ -50,11 +51,7 @@ class ConnScan(common.PoolScannerPlugin):
     def is_active(cls, session):
         # These only work for XP.
         return (super(ConnScan, cls).is_active(session) and
-                session.profile.metadata("major") == '5')
-
-    def __init__(self, **kwargs):
-        super(ConnScan, self).__init__(**kwargs)
-        self.profile = tcpip_vtypes.TCPIPModifications(self.profile)
+                session.profile.metadata("major") == "5")
 
     def generate_hits(self):
         """Search the physical address space for _TCPT_OBJECTs.
@@ -63,12 +60,12 @@ class ConnScan(common.PoolScannerPlugin):
           _TCPT_OBJECT instantiated on the physical address space.
         """
         scanner = PoolScanConnFast(
-            session=self.session, profile=self.profile,
+            session=self.session, profile=self.tcpip_profile,
             address_space=self.address_space)
 
         for pool_obj in scanner.scan():
             # The struct is allocated out of the pool (i.e. its not an object).
-            yield self.profile._TCPT_OBJECT(
+            yield self.tcpip_profile._TCPT_OBJECT(
                 vm=self.address_space,
                 offset=pool_obj.obj_offset + pool_obj.size())
 

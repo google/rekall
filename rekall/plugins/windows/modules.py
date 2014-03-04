@@ -30,7 +30,7 @@ from rekall.plugins.windows import common
 
 
 class Modules(common.WindowsCommandPlugin):
-    """Print list of loaded modules."""
+    """Print list of loaded kernel modules."""
 
     __name = "modules"
 
@@ -46,10 +46,18 @@ class Modules(common.WindowsCommandPlugin):
         parser.add_argument("--name_regex",
                             help="Filter module names by this regex.")
 
-    def __init__(self, name_regex=None, **kwargs):
+        parser.add_argument("-a", "--address_space", default=None,
+                            help="The address space to use.")
+
+    def __init__(self, name_regex=None, address_space=None, **kwargs):
         """List kernel modules by walking the PsLoadedModuleList."""
         super(Modules, self).__init__(**kwargs)
         self.name_regex = re.compile(name_regex or ".", re.I)
+
+        # Resolve the correct address space. This allows the address space to be
+        # specified from the command line (e.g.
+        load_as = self.session.plugins.load_as(session=self.session)
+        self.address_space = load_as.ResolveAddressSpace(address_space)
 
     def lsmod(self):
         """ A Generator for modules (uses _KPCR symbols) """
@@ -76,7 +84,7 @@ class Modules(common.WindowsCommandPlugin):
         ## Try to iterate over the process list in PsActiveProcessHead
         ## (its really a pointer to a _LIST_ENTRY)
         PsLoadedModuleList = self.kdbg.PsLoadedModuleList.cast(
-            "Pointer", target="_LIST_ENTRY", vm=self.kernel_address_space)
+            "Pointer", target="_LIST_ENTRY", vm=self.address_space)
 
         for l in PsLoadedModuleList.list_of_type("_LDR_DATA_TABLE_ENTRY",
                                                  "InLoadOrderLinks"):

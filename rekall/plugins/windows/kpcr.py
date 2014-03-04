@@ -31,7 +31,7 @@ import logging
 from rekall.plugins.windows import common
 
 
-class KPCR(common.AbstractWindowsCommandPlugin):
+class KPCR(common.WindowsCommandPlugin):
     """A plugin to print all KPCR blocks."""
     __name = "kpcr"
 
@@ -39,7 +39,7 @@ class KPCR(common.AbstractWindowsCommandPlugin):
     def is_active(cls, session):
         # Only active for windows 7 right now.
         return (super(KPCR, cls).is_active(session) and
-                session.profile.metadata("major") >= 6)
+                session.profile.metadata("major") >= "6")
 
     @classmethod
     def args(cls, parser):
@@ -65,17 +65,17 @@ class KPCR(common.AbstractWindowsCommandPlugin):
         offset = self.profile._KPCR(vm=None).Prcb.WaitListHead.obj_offset
 
         seen_threads = set()
-        seen = {}
+        seen = set()
 
         # Iterate over all the threads of this process.
         for kthread in task.Pcb.ThreadListHead.list_of_type(
             "_KTHREAD", "ThreadListEntry"):
 
             # Skip threads we already examined.
-            if kthread.obj_offset in seen_threads:
-                break
+            if kthread in seen_threads:
+                continue
 
-            seen_threads.add(kthread.obj_offset)
+            seen_threads.add(kthread)
 
             # Look for threads in the Wait state. If this thread is in the Wait
             # state, the WaitListEntry will belong to the list of all waiting
@@ -83,26 +83,26 @@ class KPCR(common.AbstractWindowsCommandPlugin):
             # which lives inside the _KPCR object.
             for kwaiter in kthread.WaitListEntry.list_of_type(
                 "_KTHREAD", "WaitListEntry"):
-
                 self.session.report_progress()
 
-                if kwaiter.obj_offset in seen_threads:
-                    break
+                if kwaiter in seen_threads:
+                    continue
 
-                seen_threads.add(kwaiter.obj_offset)
+                seen_threads.add(kwaiter)
 
                 # Assume the kwaiter is actually the KPRCB.WaitListHead.
                 possible_kpcr = self.profile._KPCR(
-                    kwaiter.WaitListEntry.obj_offset - offset)
+                    offset=kwaiter.WaitListEntry.obj_offset - offset,
+                    vm=self.kernel_address_space)
 
                 # Check for validity using the usual condition.
                 if possible_kpcr.Self == possible_kpcr.obj_offset:
                     if possible_kpcr.obj_offset not in seen:
-                        seen[possible_kpcr.obj_offset] = possible_kpcr
+                        seen.add(possible_kpcr)
 
 
         # Return all the _KPCR structs we know about.
-        return seen.values()
+        return seen
 
     def render(self, renderer):
         eprocess = self.eprocess

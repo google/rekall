@@ -22,6 +22,7 @@
 
 # References:
 # http://volatility-labs.blogspot.ch/2012/09/movp-11-logon-sessions-processes-and.html
+# Windows Internals 5th Edition. Chapter 9.
 
 
 from rekall import obj
@@ -29,7 +30,14 @@ from rekall.plugins.windows import common
 
 
 class Sessions(common.WinProcessFilter):
-    """List details on _MM_SESSION_SPACE (user logon sessions)"""
+    """List details on _MM_SESSION_SPACE (user logon sessions).
+
+    Windows uses sessions in order to separate processes. Sessions are used to
+    separate the address spaces of windows processes.
+
+    Note that this plugin traverses the ProcessList member of the session object
+    to list the processes - yet another list _EPROCESS objects are on.
+    """
 
     __name = "sessions"
 
@@ -42,17 +50,25 @@ class Sessions(common.WinProcessFilter):
         Yields:
           _MM_SESSION_SPACE instantiated from the session space's address space.
         """
-        seen = []
+        # Dedup based on sessions.
+        seen = set()
         for proc in self.filter_processes():
-            if proc.SessionId not in seen:
-                ps_ad = proc.get_process_address_space()
-                if proc.SessionId and ps_ad:
-                    seen.append(proc.SessionId)
+            ps_ad = proc.get_process_address_space()
 
-                    yield proc.Session.deref(vm=ps_ad)
+            session = proc.Session
+            # Session pointer is invalid (e.g. for System process).
+            if not session:
+                continue
+
+            if session in seen:
+                continue
+
+            seen.add(session)
+
+            yield proc.Session.deref(vm=ps_ad)
 
     def find_session_space(self, session_id):
-        """ Get a _MM_SESSION_SPACE object by its ID.
+        """Get a _MM_SESSION_SPACE object by its ID.
 
         Args:
           session_id: the session ID to find.
@@ -98,7 +114,7 @@ class Sessions(common.WinProcessFilter):
                 "_IMAGE_ENTRY_IN_SESSION", "Link"):
                 module = module_plugin.find_module(image.Address)
 
-                renderer.format(" Image: {0:#x}, Address {1:x}, Name: {2}\n",
+                renderer.format(" Image: {0:#x}, Address {1:#x}, Name: {2}\n",
                                 image.obj_offset,
                                 image.Address,
                                 module.BaseDllName)

@@ -47,9 +47,14 @@ class PEInfo(plugin.Command):
                             help="If provided we create an address space "
                             "from this file.")
 
+        parser.add_argument("-a", "--address_space", default=None,
+                            help="The address space to use.")
 
-    def __init__(self, image_base=0, address_space=None, filename=None,
-                 **kwargs):
+        parser.add_argument("-v", "--verbose", default=False,
+                            help="Add more output.")
+
+    def __init__(self, image_base=0, filename=None, address_space=None,
+                 verbose=False, **kwargs):
         """Dump a PE binary from memory.
 
         Status is shown for each exported function:
@@ -62,15 +67,16 @@ class PEInfo(plugin.Command):
           filename: If provided we create an address space from this file.
         """
         super(PEInfo, self).__init__(**kwargs)
+        self.verbose = verbose
 
-        # Allow users to specify the filename as the first arg.
-        if isinstance(address_space, basestring) and filename is None:
-            filename, address_space = address_space, None
-
-        self.address_space = address_space or self.session.kernel_address_space
+        if filename is None:
+          # Resolve the correct address space. This allows the address space to
+          # be specified from the command line (e.g.
+          load_as = self.session.plugins.load_as(session=self.session)
+          address_space = load_as.ResolveAddressSpace(address_space)
 
         self.pe_helper = pe_vtypes.PE(
-            address_space=self.address_space, session=self.session,
+            address_space=address_space, session=self.session,
             filename=filename, image_base=image_base)
 
         self.disassembler = self.session.plugins.dis(
@@ -130,18 +136,19 @@ class PEInfo(plugin.Command):
         for dll, name, ordinal in self.pe_helper.ImportDirectory():
             renderer.table_row(u"%s!%s" % (dll, name), ordinal)
 
-        renderer.format("\nImport Address Table:\n")
-        renderer.table_header([('Name', 'name', '<20'),
-                               ('Address', 'address', '[addrpad]'),
-                               ('Disassembly', 'disassembly', '[wrap:30]')])
+        if self.verbose:
+          renderer.format("\nImport Address Table:\n")
+          renderer.table_header([('Name', 'name', '<20'),
+                                 ('Address', 'address', '[addrpad]'),
+                                 ('Disassembly', 'disassembly', '[wrap:30]')])
 
-        for name, function, ordinal in self.pe_helper.IAT():
-            disassembly = []
+          for name, function, ordinal in self.pe_helper.IAT():
+              disassembly = []
 
-            for x in self.disassembler.disassemble(function):
-                disassembly.append(x[-1].strip())
+              for x in self.disassembler.disassemble(function):
+                  disassembly.append(x[-1].strip())
 
-            renderer.table_row(name, function, "\n".join(disassembly))
+              renderer.table_row(name, function, "\n".join(disassembly))
 
         renderer.format("\nExport Directory:\n")
         renderer.table_header([('Entry', 'entry', '[addrpad]'),
@@ -149,13 +156,20 @@ class PEInfo(plugin.Command):
                                ('Ord', 'ord', '5'),
                                ('Name', 'name', '<50')])
 
+        resolver = self.session.address_resolver
+
         for dll, function, name, ordinal in self.pe_helper.ExportDirectory():
             status = 'M' if function.dereference() else "-"
+
+            # Resolve the exported function through the symbol resolver.
+            symbol_name = resolver.get_constant_by_address(
+                function)
+
             renderer.table_row(
                 function,
                 status,
                 ordinal,
-                u"%s!%s" % (dll, name))
+                u"%s!%s (%s)" % (dll, name, symbol_name))
 
         renderer.format("Version Information:\n")
         renderer.table_header([('key', 'key', '<20'),

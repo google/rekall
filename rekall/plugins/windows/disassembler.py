@@ -56,9 +56,9 @@ class Disassemble(plugin.Command):
             "offset",
             help="An offset to disassemble. This can also be the name of "
             "a symbol with an optional offset. For example: "
-            "tcpip.sys!_TcpCovetNetBufferList@20.")
+            "tcpip!TcpCovetNetBufferList.")
 
-        parser.add_argument("-a", "--address_space", default="K",
+        parser.add_argument("-a", "--address_space", default=None,
                             help="The address space to use.")
 
         parser.add_argument(
@@ -88,7 +88,7 @@ class Disassemble(plugin.Command):
             offset = target.offset
 
         load_as = self.session.plugins.load_as(session=self.session)
-        self.address_space = load_as.ResolveAddressSpace(address_space)
+        self.address_space = load_as.ResolveAddressSpace(address_space or "K")
         if not self.address_space:
             self.address_space = self.session.kernel_address_space
 
@@ -214,7 +214,7 @@ class Disassemble(plugin.Command):
         """
         # If length nor end are specified only disassemble one pager output.
         if self.end is None and self.length is None:
-            self.length = self.session.GetParameter("paging_limit") or 50
+            self.length = self.session.GetParameter("paging_limit") - 5
 
         renderer.table_header(
             [('Address', "cmd_address", '[addrpad]'),

@@ -155,25 +155,28 @@ class NoneObject(object):
 
     Instantiate with the reason for the error.
     """
-    def __init__(self, reason='', strict=False, log=False):
+    def __init__(self, reason, *args, **kwargs):
         # Often None objects are instantiated on purpose so its not really that
         # important to see their reason.
-        if log:
+        if kwargs.get("log"):
             logging.log(logging.WARN, reason)
         self.reason = reason
-        self.strict = strict
-        if strict:
+        self.strict = kwargs.get("strict")
+        self.args = args
+        if self.strict:
             self.bt = ''.join(traceback.format_stack()[:-2])
 
     def __str__(self):
         ## If we are strict we blow up here
         if self.strict:
-            logging.error("{0}\n{1}".format(self.reason, self.bt))
+            reason = self.reason.format(*self.args)
+            logging.error("{0}\n{1}".format(reason, self.bt))
 
         return ""
 
     def __repr__(self):
-        return "<%s>" % self.reason
+        reason = self.reason.format(*self.args)
+        return "<%s>" % reason
 
     def write(self, _):
         """Write procedure only ever returns False"""
@@ -791,7 +794,7 @@ class Array(BaseObject):
     target_size = 0
 
     def __init__(self, count=100000, target=None, target_args=None,
-                 target_size=None, **kwargs):
+                 target_size=None, max_count=100000, **kwargs):
         """Instantiate an array of like items.
 
         Args:
@@ -813,14 +816,19 @@ class Array(BaseObject):
             target_size = target_size(self.obj_parent)
 
         self.count = int(count)
+        self.max_count = max_count
 
         if not target:
             raise AttributeError("Array must use a target parameter")
 
         self.target = target
         self.target_args = target_args or {}
-        self.target_size = target_size or self.obj_profile.get_obj_size(
-            target)
+
+        self.target_size = target_size
+        if self.target_size is None:
+            self.target_size = self.obj_profile.Object(
+                self.target, offset=self.obj_offset, vm=self.obj_vm,
+                profile=self.obj_profile, **self.target_args).size()
 
     def size(self):
         """The size of the entire array."""
@@ -829,7 +837,7 @@ class Array(BaseObject):
     def __iter__(self):
         # If the array is invalid we do not iterate.
         if self.obj_vm.is_valid_address(self.obj_offset):
-            for position in range(0, self.count):
+            for position in range(0, min(self.max_count, self.count)):
                 # We don't want to stop on a NoneObject.  Its
                 # entirely possible that this array contains a bunch of
                 # pointers and some of them may not be valid (or paged
@@ -1815,7 +1823,7 @@ class Profile(object):
         """A help function for retrieving pointers from the symbol table."""
         self.compile_type(constant)
         if vm is None:
-            vm = self.session.kernel_address_space
+            vm = self.session.GetParameter("default_address_space")
 
         kwargs.update(target_args or {})
         offset = self.get_constant(constant, is_address=True)
@@ -1919,10 +1927,7 @@ class Profile(object):
         else:
             offset = int(offset)
             if vm is None:
-                if self.session and self.session.default_address_space:
-                    vm = self.session.kernel_address_space
-                else:
-                    vm = self._dummy
+                vm = self.session.GetParameter("default_address_space")
 
             if not vm.is_valid_address(offset):
                 # If we can not instantiate the object here, we just error out:

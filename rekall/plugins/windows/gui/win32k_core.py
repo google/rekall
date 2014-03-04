@@ -25,7 +25,56 @@ from rekall import utils
 from rekall import obj
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import common
+from rekall.plugins.overlays.windows import windows
 from rekall.plugins.windows.gui import constants
+
+
+win32k_overlay = {
+    '_RTL_ATOM_TABLE_ENTRY': [None, {
+        'Name': [None, ['UnicodeString', dict(
+            encoding='utf16',
+            length=lambda x: x.NameLength * 2)]],
+        }],
+
+    'tagWINDOWSTATION': [None, {
+      'pGlobalAtomTable': [None, ['Pointer', dict(
+            target="_RTL_ATOM_TABLE"
+            )]],
+      }],
+}
+
+
+# TODO: This is a hack! I do not really understand why this struct is sometimes
+# very different. I have an image with the Buckets field at offset 0x220. This
+# needs to be implemented using generate_types.
+win32k_undocumented_AMD64 = {
+    # win32k defines NTOS_MODE_USER which makes this struct different from the
+    # nt kernel one.
+    # http://doxygen.reactos.org/d5/df7/ndk_2rtltypes_8h_source.html
+    '_RTL_ATOM_TABLE': [None, {
+        'NumberOfBuckets': [0x18, ["unsigned long", {}]],
+        'Buckets': [0x20, ['Array', dict(
+            count=lambda x: x.NumberOfBuckets,
+            max_count=100,
+            target="Pointer",
+            target_args=dict(
+                target='_RTL_ATOM_TABLE_ENTRY')
+            )]],
+        }],
+}
+
+win32k_undocumented_I386 = {
+    '_RTL_ATOM_TABLE': [None, {
+        'NumberOfBuckets': [0xC, ['unsigned long']],
+        'Buckets': [0x10, ['Array', dict(
+            count=lambda x: x.NumberOfBuckets,
+            max_count=100,
+            target="Pointer",
+            target_args=dict(
+                target='_RTL_ATOM_TABLE_ENTRY')
+            )]],
+        }]
+}
 
 
 class _MM_SESSION_SPACE(obj.Struct):
@@ -147,6 +196,7 @@ class _MM_SESSION_SPACE(obj.Struct):
 
         return obj.NoneObject("Cannot find win32k!gSharedInfo")
 
+
 class tagSHAREDINFO(obj.Struct):
     """A class for shared info blocks"""
 
@@ -216,6 +266,7 @@ class tagSHAREDINFO(obj.Struct):
 
             if not b:
                 yield h
+
 
 class _HANDLEENTRY(obj.Struct):
     """A for USER handle entries"""
@@ -297,12 +348,6 @@ class tagWINDOWSTATION(obj.Struct):
         """The EPROCESS of the last registered clipboard viewer"""
         return self.spwndClipViewer.head.pti.ppi.Process
 
-    def AtomTable(self, vm=None):
-        """This atom table belonging to this window
-        station object"""
-        return self.pGlobalAtomTable.dereference_as("_RTL_ATOM_TABLE",
-                                                    vm=vm)
-
     @property
     def Interactive(self):
         """Check if a window station is interactive"""
@@ -312,37 +357,22 @@ class tagWINDOWSTATION(obj.Struct):
     def Name(self):
         """Get the window station name.
 
-        Since window stations are securable objects,
-        and are managed by the same object manager as
-        processes, threads, etc, there is an object
-        header which stores the name.
+        Since window stations are securable objects, and are managed by the same
+        object manager as processes, threads, etc, there is an object header
+        which stores the name.
         """
-        object_hdr = self.obj_profile._OBJECT_HEADER(
+        object_hdr = self.obj_session.profile._OBJECT_HEADER(
             vm=self.obj_vm,
-            offset=self.obj_offset - self.obj_profile.get_obj_offset(
+            offset=self.obj_offset - self.obj_session.profile.get_obj_offset(
                 '_OBJECT_HEADER', 'Body')
             )
 
         return object_hdr.NameInfo.Name
 
-    def traverse(self, vm=None):
-        """A generator that yields window station objects"""
-
-        # Include this object in the results.
-        yield self
-
-        # Now walk the singly-linked list.
-        nextwinsta = self.rpwinstaNext.dereference(vm=vm)
-        while nextwinsta.is_valid() and nextwinsta.v(vm=vm) != 0:
-            yield nextwinsta
-            nextwinsta = nextwinsta.rpwinstaNext.dereference(vm=vm)
-
     def desktops(self, vm=None):
         """A generator that yields the window station's desktops"""
-        desk = self.rpdeskList.dereference(vm=vm)
-        while desk.is_valid() and desk.v(vm=vm) != 0:
-            yield desk
-            desk = desk.rpdeskNext.dereference(vm=vm)
+        return self.rpdeskList.walk_list("rpdeskNext")
+
 
 class tagDESKTOP(tagWINDOWSTATION):
     """A class for Desktop objects"""
@@ -590,16 +620,14 @@ class _RTL_ATOM_TABLE(obj.Struct):
         and the maximum allowed number of buckets"""
         return (super(_RTL_ATOM_TABLE, self).is_valid() and
                 self.Signature == 0x6d6f7441 and
-                self.NumBuckets < 0xFFFF)
+                self.NumberOfBuckets < 0xFFFF)
 
     def atoms(self, vm=None):
         """Carve all atoms out of this atom table"""
-        # The default hash buckets should be 0x25
-        for bkt in self.Buckets:
-            cur = bkt.dereference(vm=vm)
-            while cur.is_valid() and cur.v(vm=vm) != 0:
-                yield cur
-                cur = cur.HashLink.dereference(vm=vm)
+        for bucket in self.Buckets:
+            for entry in bucket.deref(vm=vm).walk_list("HashLink"):
+                if entry.Atom < 0xf000:
+                    yield entry
 
     def find_atom(self, atom_to_find):
         """Find an atom by its ID.
@@ -667,51 +695,48 @@ class Win32kPluginMixin(object):
 
     def __init__(self, win32k_guid=None, **kwargs):
         super(Win32kPluginMixin, self).__init__(**kwargs)
-        if self.session.win32k_profile:
-            # Get the profile from the session cache.
-            self.profile = self.session.win32k_profile
 
-        else:
-            # Find the proper win32k profile and merge in with this kernel
-            # profile.
-            if win32k_guid is None:
-                scanner = self.session.plugins.version_scan(name_regex="win32k")
-                for _, guid in scanner.ScanVersions():
-                    try:
-                        win32k_profile = self.session.LoadProfile(
-                            "GUID/%s" % guid)
+        # For the address resolver to load this GUID.
+        if win32k_guid:
+            self.session.SetParameter("win32k_guid", win32k_guid)
+
+        resolver = self.session.address_resolver
+        self.win32k_profile = resolver.LoadProfileForName("win32k")
+        if not self.win32k_profile:
+            # The win32k.sys may not be mapped in this session, we try to find
+            # it in the other sessions.
+            for session in self.session.plugins.sessions().session_spaces():
+                # Switch the process context to this session so the address
+                # resolver can find the correctly mapped win32k.
+                cc = self.session.plugins.cc(eprocess=session.processes())
+                with cc:
+                    cc.SwitchContext()
+
+                    self.win32k_profile = resolver.LoadProfileForName("win32k")
+                    if self.win32k_profile:
                         break
 
-                    except IOError:
-                        logging.info(
-                            "Unable to find profile for win32k.sys: %s.", guid)
+        if not self.win32k_profile:
+            # Now we try to just scan blindly for it.
+            for rsds, guid in self.session.plugins.version_scan(
+                name_regex="win32k").ScanVersions():
+                self.win32k_profile = resolver.LoadProfileByGUID(
+                    "win32k", rsds.GUID_AGE)
 
-                        raise RuntimeError("No profile")
+                if self.win32k_profile:
+                    self.session.SetParameter("win32k_guid", rsds.GUID_AGE)
+                    break
 
-            else:
-                win32k_profile = self.session.LoadProfile(win32k_guid)
-
-            # The win32k types and kernel types interact with each other, so we
-            # merge them here into a single profile.
-            self.profile.merge(win32k_profile)
-            self.session.win32k_profile = self.profile
+        if not self.win32k_profile:
+            raise RuntimeError("Unable to load the profile for Win32k.sys")
 
 
-class Win32k(basic.BasicClasses):
+class Win32k(windows.BasicPEProfile):
     """A profile for the Win32 GUI system."""
-
-    METADATA = dict(os="windows")
 
     @classmethod
     def Initialize(cls, profile):
         super(Win32k, cls).Initialize(profile)
-
-        # Select basic compiler model type.
-        if profile.metadata("arch") == "AMD64":
-            basic.ProfileLLP64.Initialize(profile)
-
-        elif profile.metadata("arch") == "I386":
-            basic.Profile32Bits.Initialize(profile)
 
         # Some constants - These will probably change in win8 which does not
         # allow non ascii tags.
@@ -734,7 +759,13 @@ class Win32k(basic.BasicClasses):
             'tagCLIPDATA': tagCLIPDATA,
             })
 
-        version = ".".join(profile.metadatas('major', 'minor'))
+        profile.add_overlay(win32k_overlay)
+        if profile.metadata("arch") == "AMD64":
+            profile.add_overlay(win32k_undocumented_AMD64)
+        else:
+            profile.add_overlay(win32k_undocumented_I386)
+
+        version = profile.metadata('version')
         architecture = profile.metadata("arch")
 
         ## Windows 7 and above
@@ -742,6 +773,26 @@ class Win32k(basic.BasicClasses):
             num_handles = len(constants.HANDLE_TYPE_ENUM_SEVEN)
         else:
             num_handles = len(constants.HANDLE_TYPE_ENUM)
+
+            # Prior to Windows 7, Microsoft did not release symbols for win32k
+            # structs. However, we know that these are basically the same across
+            # different versions. Here we just copy them from the windows 7
+            # profiles.
+            if profile.metadata("arch") == "AMD64":
+                exempler = ("win32k.sys/AMD64/6.1.7601.18233/"
+                            "99227A2085CE41969CD5A06F7CC20F522")
+            else:
+                exempler = ("win32k.sys/I386/6.1.7601.18233/"
+                            "18EB20F5448A47F5B850023FEE0B24D62")
+
+            win7_profile = profile.session.LoadProfile(exempler)
+
+            for item in ["tagWINDOWSTATION", "tagDESKTOP", "tagTHREADINFO",
+                         "tagWND"]:
+                profile.vtypes[item] = win7_profile.vtypes[item]
+
+        # The below code needs refactoring.
+        return
 
         # Add autogenerated vtypes for the different versions.
         if version.startswith("6.1"):  # Windows 7
@@ -762,21 +813,6 @@ class Win32k(basic.BasicClasses):
                                     target='tagHANDLETYPEINFO')]],
                         }],
 
-                '_RTL_ATOM_TABLE': [None, {
-                        'Signature': [0x0, ['unsigned long']],
-                        'NumBuckets': [0xC, ['unsigned long']],
-                        'Buckets': [0x10, ['Array', dict(
-                                    count=lambda x: x.NumBuckets,
-                                    target="Pointer",
-                                    target_args=dict(
-                                        target='_RTL_ATOM_TABLE_ENTRY')
-                                    )]],
-                        }],
-                '_RTL_ATOM_TABLE_ENTRY': [None, {
-                        'Name': [None, ['UnicodeString', dict(
-                                    encoding='utf16',
-                                    length=lambda x: x.NameLength * 2)]],
-                        }],
                 'tagWIN32HEAP': [None, {
                         'Heap': [0, ['_HEAP']],
                         }],
@@ -826,7 +862,7 @@ class Win32k(basic.BasicClasses):
         if architecture == "AMD64":
             profile.add_overlay({
                     '_RTL_ATOM_TABLE': [None, {
-                            'NumBuckets': [0x18, ['unsigned long']],
+                            'NumberOfBuckets': [0x18, ['unsigned long']],
                             'Buckets': [0x20, ['Array', dict(
                                         count=lambda x: x.NumBuckets,
                                         target="Pointer",
