@@ -40,9 +40,9 @@ void help(TCHAR *ExeName)
       L"  -u    Unload the driver and exit.\n"
       L"  -h    Display this help.\n"
       L"  -w    Turn on write mode.\n"
-      L"  -0    Use MmMapIoSpace method (Default).\n"
-      L"  -1    Use \\\\Device\\PhysicalMemory method.\n"
-      L"  -2    Use PTE remapping (AMD64 only).\n"
+      L"  -0    Use MmMapIoSpace method.\n"
+      L"  -1    Use \\\\Device\\PhysicalMemory method (Default for 32bit OS).\n"
+      L"  -2    Use PTE remapping (AMD64 only - Default for 64bit OS).\n"
       L"  -3    Use PTE remapping with PCI instrospection (AMD64 Only).\n"
       L"  -d    Produce a crashdump file.\n"
       L"\n");
@@ -76,12 +76,12 @@ WinPmem *WinPmemFactory() {
 
 
 int _tmain(int argc, _TCHAR* argv[]) {
-  int i, status;
-  int mode = PMEM_MODE_IOSPACE;
-  int write_mode = 0;
-  int only_load_driver = 0;
-  int only_unload_driver = 0;
-  int crashdump_output = 0;
+  __int64 i, status;
+  unsigned __int32 mode = PMEM_MODE_AUTO;
+  __int64 write_mode = 0;
+  __int64 only_load_driver = 0;
+  __int64 only_unload_driver = 0;
+  __int64 crashdump_output = 0;
 
   if(argc < 2) {
     help(argv[0]);
@@ -101,23 +101,18 @@ int _tmain(int argc, _TCHAR* argv[]) {
         break;
       };
       case '0': {
-        Log(TEXT("Setting acquitision mode to MMMapIoSpace\n"));
         mode = PMEM_MODE_IOSPACE;
         break;
       };
       case '1': {
-        Log(TEXT("Setting acquitision mode to \\.\PhysicalMemory\n"));
         mode = PMEM_MODE_PHYSICAL;
         break;
       }
       case '2': {
-        Log(TEXT("Setting acquitision mode to PTE Remapping\n"));
         mode = PMEM_MODE_PTE;
         break;
       }
       case '3': {
-        Log(TEXT("Setting acquitision mode to PTE Remapping with ")
-            TEXT("PCI introspection.\n"));
         mode = PMEM_MODE_PTE_PCI;
         break;
       }
@@ -178,5 +173,5 @@ int _tmain(int argc, _TCHAR* argv[]) {
   delete pmem_handle;
 
  exit:
-  return status;
+  return (int)status;
 }
