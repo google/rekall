@@ -31,13 +31,17 @@ __int64 WinPmem::pad(__int64 length) {
   ZeroMemory(buffer_, buffer_size_);
 
   while(start < length) {
-    DWORD to_write = (DWORD)min(buffer_size_, length);
-    if(!WriteFile(out_fd_, buffer_, to_write, &to_write, NULL)) {
+    DWORD to_write = (DWORD)min(buffer_size_, length - start);
+    DWORD bytes_written;
+
+    if(!WriteFile(out_fd_, buffer_,
+                  to_write, &bytes_written, NULL) ||
+       bytes_written != to_write) {
       Log(TEXT("Failed to write padding... Aborting\n"));
       goto error;
     };
 
-    start += to_write;
+    start += bytes_written;
     Log(TEXT("."));
 
     if(!(count % 60)) {
@@ -70,20 +74,25 @@ __int64 WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
   while(start < end) {
     DWORD to_write = (DWORD)min(buffer_size_, end - start);
     DWORD bytes_read = 0;
+    DWORD bytes_written = 0;
+
     large_start.QuadPart = start;
 
-    if(0xFFFFFFFF == SetFilePointer(fd_, large_start.LowPart,
-                                    &large_start.HighPart, FILE_BEGIN)) {
+    if(0xFFFFFFFF == SetFilePointerEx(
+       fd_, large_start, NULL, FILE_BEGIN)) {
       LogError(TEXT("Failed to seek in the pmem device.\n"));
       goto error;
     };
 
-    if(!ReadFile(fd_, buffer_, to_write, &bytes_read, NULL)) {
+    if(!ReadFile(fd_, buffer_, to_write, &bytes_read, NULL) ||
+       bytes_read != to_write) {
       LogError(TEXT("Failed to Read memory."));
       goto error;
     };
 
-    if(!WriteFile(out_fd_, buffer_, bytes_read, &bytes_read, NULL)) {
+    if(!WriteFile(out_fd_, buffer_, bytes_read,
+                  &bytes_written, NULL) ||
+       bytes_written != bytes_read) {
       Log(TEXT("Failed to write image file... Aborting.\n"));
       goto error;
     };
