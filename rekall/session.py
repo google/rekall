@@ -235,7 +235,7 @@ class Session(object):
         """This will only get called if the attribute does not exist."""
         return None
 
-    def GetParameter(self, item, default=None):
+    def GetParameter(self, item, default=obj.NoneObject()):
         """Retrieves a stored parameter.
 
         Parameters are managed by the Rekall session in two layers. The state
@@ -424,7 +424,7 @@ class Session(object):
 
         try:
             if use_cache:
-                return self.profile_cache[canonical_name]
+                return self.profile_cache[canonical_name].copy()
         except KeyError:
             pass
 
@@ -451,8 +451,9 @@ class Session(object):
                     result = obj.Profile.LoadProfileFromData(
                         manager.GetData(filename), self,
                         name=canonical_name)
-                    logging.info("Loaded profile %s from %s",
-                                 filename, manager)
+                    logging.info(
+                        "Loaded profile %s from %s", filename, manager)
+
                     break
 
                 except (IOError, KeyError) as e:

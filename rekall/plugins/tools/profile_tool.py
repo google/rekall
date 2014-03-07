@@ -62,7 +62,7 @@ having to parse the vtypes in other formats (We do not allow loading of vtypes
 inside python files because this may lead to arbitrary code execution since the
 vtype file needs to be evaluated.).
 
-Often users already have profiles created for Volatility which they way to use
+Often users already have profiles created for Volatility which they want to use
 in Rekall. Rather than fall back to the slow and inefficient parsing of these
 profiles, Rekall allows users to convert the old profile into a new, efficient
 profile representation. This is what this module does with the convert command.
@@ -83,10 +83,12 @@ Now simply specify the rekall profile using the --profile command line arg.
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import logging
+import gzip
 import json
 import os
 import re
 import StringIO
+import yaml
 
 from rekall import builtin_profiles
 from rekall import io_manager
@@ -118,7 +120,8 @@ class ProfileConverter(object):
             if re.search(regex, f, re.I):
                 return self.input.Open(f).read()
 
-    def BuildProfile(self, system_map, vtypes):
+    def BuildProfile(self, system_map, vtypes, config=None):
+        _ = config
         # Sorting the json keys usually achieves much smaller file size due to
         # better compression. Its worth doing it once on conversion.
         result = {
@@ -505,3 +508,111 @@ class BuiltInProfiles(io_manager.BuiltInManager):
         with open(self.output, "wb") as fd:
             fd.write(self.CODE_TEMPLATE % utils.PPrint(self.data))
             logging.info("Wrote compressed profile into %s", self.out_file.name)
+
+
+class BuildIndex(plugin.Command):
+    """Generate a profile index file based on an index specification.
+
+    The index specification is currently a yaml file with the following
+    structure:
+
+    - repository_path: The path to the repository to index.
+    - symbols: # A list of symbols to index.
+       name: Symbol name.
+       data: Data that should be found in the image.
+
+    Example:
+
+    repository_root: ./
+    path: win32k.sys
+    symbols:
+      -
+        # The name of the symbol we test for.
+        name: "??_C@_1BO@KLKIFHLC@?$AAG?$AAU?$AAI?$AAF?$AAo?$AAn?$AAt?$AA?4?$AAH?$AAe?$AAi?$AAg?$AAh?$AAt?$AA?$AA@"
+
+        # The data we expect to find at that offset.
+        data: "47005500490046006f006e0074002e00480065006900670068007400"
+
+      -
+        name: "wcschr"
+        shift: -1
+        data: "90"
+
+    The result is an index profile. This has an $INDEX section which is a dict,
+    with keys being the profile name, and values being a list of (offset, match)
+    tuples. For example:
+
+    {
+     "$INDEX": {
+      "tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202": [[1184600, "495053656344656c657465496e626f756e644f7574626f756e64536150616972"]],
+      "tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02": [[1190376, "495053656344656c657465496e626f756e644f7574626f756e64536150616972"]],
+      "tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172": [[1194296, "495053656344656c657465496e626f756e644f7574626f756e64536150616972"]],
+    ...
+
+     "$METADATA": {
+      "ProfileClass": "Index",
+      "Type": "Profile"
+      }
+     }
+    """
+
+    __name = "build_index"
+
+    @classmethod
+    def args(cls, parser):
+        super(BuildIndex, cls).args(parser)
+        parser.add_argument(
+            "--spec", default=None,
+            help="An Index specification file.")
+
+
+    def __init__(self, spec=None, **kwargs):
+        super(BuildIndex, self).__init__(**kwargs)
+        self.spec = spec
+
+    def render(self, renderer):
+        spec = yaml.safe_load(open(self.spec))
+        index = {}
+        metadata = dict(Type="Profile",
+                        ProfileClass="Index")
+
+        result = {"$METADATA": metadata,
+                  "$INDEX": index}
+
+        repository_root = spec["repository_root"]
+        highest_offset = 0
+
+        for root, _, files in os.walk(
+            os.path.join(repository_root, spec["path"])):
+            for name in files:
+                path = os.path.join(root, name)
+                relative_path = os.path.splitext(
+                    path[len(repository_root):])[0]
+
+                if path.endswith(".gz"):
+                    self.session.report_progress("Processing %s", relative_path)
+                    try:
+                        file_data = gzip.open(path).read()
+                        data = json.loads(file_data)
+                    except Exception:
+                        continue
+
+                    index[relative_path] = []
+                    for sym_spec in spec["symbols"]:
+                        shift = sym_spec.get("shift", 0)
+                        offset = data["$CONSTANTS"].get(sym_spec["name"])
+
+                        if not offset:
+                            continue
+
+                        index[relative_path].append(
+                            (offset + shift, sym_spec["data"]))
+
+                        # Store the highest offset, so the reader can optimize
+                        # their reading.
+                        highest_offset = max(
+                            highest_offset,
+                            offset + shift + len(sym_spec["data"]))
+
+        metadata["max_offset"] = highest_offset
+        renderer.write(utils.PPrint(result))

@@ -162,7 +162,7 @@ class ProfileCommand(Command):
 
     @classmethod
     def is_active(cls, session):
-        return session.profile is not None
+        return session.profile != None
 
     def __init__(self, profile=None, **kwargs):
         """Baseclass for all plugins which accept a profile.
