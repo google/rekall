@@ -23,10 +23,11 @@
 # pylint: disable=protected-access
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
+import logging
+import re
 
 from rekall import config
 from rekall import constants
-from rekall import utils
 
 try:
     from IPython.terminal import embed
@@ -44,26 +45,47 @@ config.DeclareOption("--ipython_engine",
 
 
 def RekallCompleter(self, text):
-    command_parts = self.line_buffer.split(" ")
-    command = command_parts[0]
+    """Sophisticated command line completer for Rekall."""
+    try:
+        command_parts = self.line_buffer.split(" ")
+        command = command_parts[0]
 
-    global_matches = set(self.global_matches(command))
+        if command.startswith("plugins."):
+            command = command[len("plugins."):]
 
-    # Only complete if there is exactly one object which matches and a space was
-    # typed after it. e.g.:
-    # pslist <cursor>
-    if (global_matches and len(global_matches) == 1 and
-        len(command_parts) > 1):
+        global_matches = set(self.global_matches(command))
 
-        # Get the object and ask it about the list of default args.
-        obj = self.namespace.get(global_matches.pop())
-        try:
-            matches = ["%s=" % x for x in obj.get_default_arguments()]
-            return [x for x in matches if x.startswith(text)]
-        except Exception:
-            pass
+        # Complete strings which look like symbol names.
+        m = re.match("\"([^!]+![^\"]*)$", command_parts[-1])
+        if m:
+            session = self.namespace.get("session")
 
-    return []
+            # If this is the only match, close the quotes to save typing.
+            result = session.address_resolver.search_symbol(m.group(1) + "*")
+            if len(result) == 1:
+                result = [result[0] + "\""]
+
+            return result
+
+        # Only complete if there is exactly one object which matches and a space
+        # was typed after it. e.g.: pslist <cursor>
+        if (global_matches and len(global_matches) == 1 and
+            len(command_parts) > 1):
+
+            # Get the object and ask it about the list of default args.
+            obj = self.namespace.get(global_matches.pop())
+            try:
+                matches = ["%s=" % x for x in obj.get_default_arguments()]
+                return [x for x in matches if x.startswith(text)]
+            except Exception:
+                pass
+
+        return []
+
+    # Wide exception is necessary here because otherwise the completer will
+    # swallow all errors.
+    except Exception as e:
+        logging.debug(e)
 
 
 def Shell(user_session):
@@ -111,6 +133,7 @@ def NotebookSupport(_):
 
     # The following only reveals hidden imports to pyinstaller.
     if False:
+        # pylint: disable=unused-variable
         import IPython.html.notebookapp
         import IPython.html.base.handlers
         import IPython.html.tree.handlers

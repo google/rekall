@@ -16,9 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-import logging
 import socket
 
+from rekall import kb
 from rekall import obj
 from rekall import type_generator
 from rekall import utils
@@ -640,3 +640,14 @@ class Tcpip(windows.BasicPEProfile):
         profile.add_overlay(overlays)
 
         return profile
+
+
+class TcpipHook(kb.ParameterHook):
+    name = "tcpip_profile"
+
+    def calculate(self):
+        index = self.session.LoadProfile("tcpip.sys/index")
+        image_base = self.session.address_resolver.get_address_by_name("tcpip")
+
+        for guess in index.LookupIndex(image_base):
+            return guess

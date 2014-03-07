@@ -178,6 +178,9 @@ class Info(plugin.Command):
         dummy_parser = DummyParser()
         item.args(dummy_parser)
         for x, y in dummy_parser.args.items():
+            # Normalize the option name to use _.
+            x = x.replace("-", "_")
+
             yield x, self._clean_up_doc(y)
 
     def render_item_info(self, item, renderer):
@@ -745,7 +748,6 @@ class Dump(plugin.Command):
 
           suppress_headers: If set we do not write the headers.
         """
-        # pylint: enable=C0301
         super(Dump, self).__init__(**kwargs)
 
         # Allow offset to be symbol name.
@@ -849,20 +851,22 @@ class Grep(plugin.Command):
                                ("Comment", "comment", "")]
                               )
 
+        resolver = self.session.address_resolver
         offset = self.offset
         while offset < self.offset + self.limit:
             data = self.address_space.read(offset, 4096)
             for idx in self._GenerateHits(data):
-                for _, hexdata, translated_data in utils.Hexdump(
+                for dump_offset, hexdata, translated_data in utils.Hexdump(
                     data[idx-20:idx+20], width=self.context):
                     comment = ""
-                    symbol, _ = self.session.address_resolver.get_nearest_constant_by_address(offset + idx)
+                    nearest_offset, symbol = resolver.get_nearest_constant_by_address(offset + idx)
                     if symbol:
-                        comment = "%s+0x%X" % (symbol[0].obj_name,
-                                               offset + idx - int(symbol[0]))
+                        comment = "%s+0x%X" % (
+                            symbol, offset + idx - nearest_offset)
 
                     renderer.table_row(
-                        offset + idx - 20, hexdata, "".join(translated_data),
+                        offset + idx - 20 + dump_offset,
+                        hexdata, "".join(translated_data),
                         comment)
 
             offset += len(data)
@@ -872,7 +876,7 @@ class Grep(plugin.Command):
 
 
 class MemmapMixIn(object):
-    """A Mixin used to create the memmap plugins for all the operating systems."""
+    """A Mixin to create the memmap plugins for all the operating systems."""
 
     @classmethod
     def args(cls, parser):

@@ -49,107 +49,116 @@ class WinPhysicalMap(common.WindowsCommandPlugin):
 
 
 class SetProcessContext(common.WinProcessFilter):
-  """Set the current process context."""
+    """Set the current process context."""
 
-  __name = "cc"
-  interactive = True
+    __name = "cc"
+    interactive = True
 
-  def __enter__(self):
-      self.process_context = self.session.GetParameter("process_context")
-      return self
+    def __enter__(self):
+        """Use this plugin as a context manager.
 
-  def __exit__(self, unused_type, unused_value, unused_traceback):
-      # Restore the process context.
-      self.SwitchProcessContext(self.process_context)
+        When used as a context manager we save the state of the address resolver
+        and then restore it on exit. This prevents the address resolver from
+        losing its current state and makes switching contexts much faster.
+        """
+        self.process_context = self.session.GetParameter("process_context")
+        self.address_resolver_state = self.session.address_resolver.GetState()
+        return self
 
-  def SwitchProcessContext(self, process=None):
-      if process is None:
-          message = "Switching to Kernel context\n"
-          self.session.SetParameter("default_address_space",
-                                    self.session.kernel_address_space)
-      else:
-          message = "Switching to process context: {0} (Pid {1}@{2:#x})\n".format(
-              process.name, process.pid, process)
+    def __exit__(self, unused_type, unused_value, unused_traceback):
+        # Restore the process context.
+        self.SwitchProcessContext(self.process_context)
+        self.session.address_resolver.SetState(self.address_resolver_state)
 
-          self.session.SetParameter("default_address_space",
-                                    process.get_process_address_space())
+    def SwitchProcessContext(self, process=None):
+        if process is None:
+            message = "Switching to Kernel context\n"
+            self.session.SetParameter("default_address_space",
+                                      self.session.kernel_address_space)
+        else:
+            message = ("Switching to process context: {0} "
+                       "(Pid {1}@{2:#x})\n").format(
+                           process.name, process.pid, process)
 
-      # Reset the address resolver for the new context.
-      self.session.address_resolver.Reset()
-      self.session.SetParameter("process_context", process)
+            self.session.SetParameter("default_address_space",
+                                      process.get_process_address_space())
 
-      return message
+        # Reset the address resolver for the new context.
+        self.session.address_resolver.Reset()
+        self.session.SetParameter("process_context", process)
 
-  def SwitchContext(self):
-      if not self.filtering_requested:
-          return self.SwitchProcessContext(process=None)
+        return message
 
-      for process in self.filter_processes():
-          return self.SwitchProcessContext(process=process)
+    def SwitchContext(self):
+        if not self.filtering_requested:
+            return self.SwitchProcessContext(process=None)
 
-  def render(self, renderer):
-      message = self.SwitchContext()
-      renderer.format(message)
+        for process in self.filter_processes():
+            return self.SwitchProcessContext(process=process)
+
+    def render(self, renderer):
+        message = self.SwitchContext()
+        renderer.format(message)
 
 
 
 class WinVirtualMap(common.WindowsCommandPlugin):
-  """Prints the Windows Kernel Virtual Address Map.
+    """Prints the Windows Kernel Virtual Address Map.
 
-  On 32 bit windows, the kernel virtual address space can be managed
-  dynamically. This plugin shows each region and what it is used for.
+    On 32 bit windows, the kernel virtual address space can be managed
+    dynamically. This plugin shows each region and what it is used for.
 
-  Note that on 64 bit windows the address space is large enough to not worry
-  about it. In that case, the offsets and regions are hard coded.
+    Note that on 64 bit windows the address space is large enough to not worry
+    about it. In that case, the offsets and regions are hard coded.
 
-  http://www.woodmann.com/forum/entry.php?219-Using-nt!_MiSystemVaType-to-navigate-dynamic-kernel-address-space-in-Windows7
-  """
+    http://www.woodmann.com/forum/entry.php?219-Using-nt!_MiSystemVaType-to-navigate-dynamic-kernel-address-space-in-Windows7
+    """
 
-  __name = "virt_map"
+    __name = "virt_map"
 
-  @classmethod
-  def is_active(cls, session):
-      return (super(WinVirtualMap, cls).is_active(session) and
-              session.profile.get_constant('MiSystemVaType'))
+    @classmethod
+    def is_active(cls, session):
+        return (super(WinVirtualMap, cls).is_active(session) and
+                session.profile.get_constant('MiSystemVaType'))
 
-  def render(self, renderer):
-    renderer.table_header([
-        ("Virtual Start", "virt_start", "[addrpad]"),
-        ("Virtual End", "virt_end", "[addrpad]"),
-        ("Type", "type", "10"),
-        ])
+    def render(self, renderer):
+        renderer.table_header([
+            ("Virtual Start", "virt_start", "[addrpad]"),
+            ("Virtual End", "virt_end", "[addrpad]"),
+            ("Type", "type", "10"),
+            ])
 
-    system_va_table = self.profile.get_constant_object(
-        "MiSystemVaType",
-        target="Array",
-        target_args=dict(
-            target="Enumeration",
+        system_va_table = self.profile.get_constant_object(
+            "MiSystemVaType",
+            target="Array",
             target_args=dict(
-                target="byte",
-                enum_name="_MI_SYSTEM_VA_TYPE"
-                ),
+                target="Enumeration",
+                target_args=dict(
+                    target="byte",
+                    enum_name="_MI_SYSTEM_VA_TYPE"
+                    ),
+                )
             )
-        )
 
-    system_range_start = self.profile.get_constant_object(
-        "MiSystemRangeStart", "unsigned int")
+        system_range_start = self.profile.get_constant_object(
+            "MiSystemRangeStart", "unsigned int")
 
-    # The size varies on PAE profiles.
-    va_table_size = 0x1000 * 0x1000 / self.profile.get_obj_size("_MMPTE")
+        # The size varies on PAE profiles.
+        va_table_size = 0x1000 * 0x1000 / self.profile.get_obj_size("_MMPTE")
 
-    # Coalesce the ranges.
-    range_type = range_start = range_length = 0
+        # Coalesce the ranges.
+        range_type = range_start = range_length = 0
 
-    for offset in range(system_range_start, 0xffffffff, va_table_size):
-      table_index = (offset - system_range_start) / va_table_size
-      page_type = system_va_table[table_index]
-      if page_type != range_type:
-          if range_type:
-              renderer.table_row(
-                  range_start, range_start + range_length, range_type)
+        for offset in range(system_range_start, 0xffffffff, va_table_size):
+            table_index = (offset - system_range_start) / va_table_size
+            page_type = system_va_table[table_index]
+            if page_type != range_type:
+                if range_type:
+                    renderer.table_row(
+                        range_start, range_start + range_length, range_type)
 
-          range_type = page_type
-          range_start = offset
-          range_length = va_table_size
-      else:
-          range_length += va_table_size
+                range_type = page_type
+                range_start = offset
+                range_length = va_table_size
+            else:
+                range_length += va_table_size

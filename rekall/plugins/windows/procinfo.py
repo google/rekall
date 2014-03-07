@@ -40,21 +40,22 @@ class PEInfo(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(PEInfo, cls).args(parser)
-        parser.add_argument("--image_base", default=0, type=config.IntParser,
+        parser.add_argument("--image-base", default=0,
+                            action=config.IntParser,
                             help="The base of the image.")
 
-        parser.add_argument("filename", default=None,
+        parser.add_argument("executable", default=None, nargs='?',
                             help="If provided we create an address space "
                             "from this file.")
 
-        parser.add_argument("-a", "--address_space", default=None,
+        parser.add_argument("-a", "--address-space", default=None,
                             help="The address space to use.")
 
-        parser.add_argument("-v", "--verbose", default=False,
+        parser.add_argument("-v", "--verbosity", default=1, type=int,
                             help="Add more output.")
 
-    def __init__(self, image_base=0, filename=None, address_space=None,
-                 verbose=False, **kwargs):
+    def __init__(self, image_base=0, executable=None, address_space=None,
+                 verbosity=1, **kwargs):
         """Dump a PE binary from memory.
 
         Status is shown for each exported function:
@@ -62,22 +63,30 @@ class PEInfo(plugin.Command):
           - M: The function is mapped into memory.
 
         Args:
-          image_base: The address of the image base (dos header).
-          address_space: The address space which contains the PE image.
+          image_base: The address of the image base (dos header). Can be a
+            module name.
+
+          address_space: The address space which contains the PE image. Can be
+             specified as "K" or "P".
+
           filename: If provided we create an address space from this file.
         """
         super(PEInfo, self).__init__(**kwargs)
-        self.verbose = verbose
+        self.verbosity = verbosity
 
-        if filename is None:
-          # Resolve the correct address space. This allows the address space to
-          # be specified from the command line (e.g.
-          load_as = self.session.plugins.load_as(session=self.session)
-          address_space = load_as.ResolveAddressSpace(address_space)
+        if executable is None:
+            # Resolve the correct address space. This allows the address space
+            # to be specified from the command line (e.g.
+            load_as = self.session.plugins.load_as(session=self.session)
+            address_space = load_as.ResolveAddressSpace(address_space)
+
+        # Allow the image base to be given as a name.
+        image_base = self.session.address_resolver.get_address_by_name(
+            image_base)
 
         self.pe_helper = pe_vtypes.PE(
             address_space=address_space, session=self.session,
-            filename=filename, image_base=image_base)
+            filename=executable, image_base=image_base)
 
         self.disassembler = self.session.plugins.dis(
             address_space=self.pe_helper.vm,
@@ -129,47 +138,51 @@ class PEInfo(plugin.Command):
             renderer.table_row(d.obj_name, d.VirtualAddress, d.Size)
 
 
-        renderer.format("\nImport Directory (Original):\n")
-        renderer.table_header([('Name', 'name', '<50'),
-                               ('Ord', 'ord', '5')])
+        # Export/Import directory only if verbosity is higher than 1.
+        if self.verbosity >= 1:
+            renderer.format("\nImport Directory (Original):\n")
+            renderer.table_header([('Name', 'name', '<50'),
+                                   ('Ord', 'ord', '5')])
 
-        for dll, name, ordinal in self.pe_helper.ImportDirectory():
-            renderer.table_row(u"%s!%s" % (dll, name), ordinal)
+            for dll, name, ordinal in self.pe_helper.ImportDirectory():
+                renderer.table_row(u"%s!%s" % (dll, name), ordinal)
 
-        if self.verbose:
-          renderer.format("\nImport Address Table:\n")
-          renderer.table_header([('Name', 'name', '<20'),
-                                 ('Address', 'address', '[addrpad]'),
-                                 ('Disassembly', 'disassembly', '[wrap:30]')])
+            if self.verbosity >= 2:
+                renderer.format("\nImport Address Table:\n")
+                renderer.table_header(
+                    [('Name', 'name', '<20'),
+                     ('Address', 'address', '[addrpad]'),
+                     ('Disassembly', 'disassembly', '[wrap:30]')])
 
-          for name, function, ordinal in self.pe_helper.IAT():
-              disassembly = []
+                for name, function, ordinal in self.pe_helper.IAT():
+                    disassembly = []
 
-              for x in self.disassembler.disassemble(function):
-                  disassembly.append(x[-1].strip())
+                    for x in self.disassembler.disassemble(function):
+                        disassembly.append(x[-1].strip())
 
-              renderer.table_row(name, function, "\n".join(disassembly))
+                    renderer.table_row(name, function, "\n".join(disassembly))
 
-        renderer.format("\nExport Directory:\n")
-        renderer.table_header([('Entry', 'entry', '[addrpad]'),
-                               ('Stat', 'status', '4'),
-                               ('Ord', 'ord', '5'),
-                               ('Name', 'name', '<50')])
+            renderer.format("\nExport Directory:\n")
+            renderer.table_header([('Entry', 'entry', '[addrpad]'),
+                                   ('Stat', 'status', '4'),
+                                   ('Ord', 'ord', '5'),
+                                   ('Name', 'name', '<50')])
 
-        resolver = self.session.address_resolver
+            resolver = self.session.address_resolver
 
-        for dll, function, name, ordinal in self.pe_helper.ExportDirectory():
-            status = 'M' if function.dereference() else "-"
+            for _ in self.pe_helper.ExportDirectory():
+                dll, function, name, ordinal = _
+                status = 'M' if function.dereference() else "-"
 
-            # Resolve the exported function through the symbol resolver.
-            symbol_name = resolver.get_constant_by_address(
-                function)
+                # Resolve the exported function through the symbol resolver.
+                symbol_name = resolver.get_constant_by_address(
+                    function)
 
-            renderer.table_row(
-                function,
-                status,
-                ordinal,
-                u"%s!%s (%s)" % (dll, name, symbol_name))
+                renderer.table_row(
+                    function,
+                    status,
+                    ordinal,
+                    u"%s!%s (%s)" % (dll, name, symbol_name))
 
         renderer.format("Version Information:\n")
         renderer.table_header([('key', 'key', '<20'),
