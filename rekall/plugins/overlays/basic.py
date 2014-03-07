@@ -595,7 +595,8 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         super(Function, self).__init__(**kwargs)
         self.args = args
         if mode is None:
-            self.mode = (self.obj_profile.metadata("arch") or
+            self.mode = (self.obj_context.get("mode") or
+                         self.obj_profile.metadata("arch") or
                          self.obj_session.profile.metadata("arch"))
 
         if self.mode == "I386":

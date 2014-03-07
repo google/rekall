@@ -330,19 +330,17 @@ pe_overlays = {
                         )]],
             }],
 
-    "_IMAGE_RESOURCE_DIRECTORY": [0x10, {
-            "NumberOfNamedEntries": [0x0c, ['unsigned short int']],
-            "NumberOfIdEntries": [0x0e, ['unsigned short int']],
-            "Entries": [0x10, ["Array", dict(
-                        target="_IMAGE_RESOURCE_DIRECTORY_ENTRY",
-                        count=lambda x: (x.NumberOfIdEntries +
-                                         x.NumberOfNamedEntries)
-                        )]],
-            }],
+    "_IMAGE_RESOURCE_DIRECTORY": [None, {
+        "Entries": [0x10, ["Array", dict(
+            target="_IMAGE_RESOURCE_DIRECTORY_ENTRY",
+            count=lambda x: (x.NumberOfIdEntries +
+                             x.NumberOfNamedEntries),
+            )]],
+        }],
 
-    "_IMAGE_RESOURCE_DIRECTORY_ENTRY": [0x08, {
-            "Name": [0x00, ['ResourcePointer', dict(target="PrefixedString")]],
-            "Type": [0x00, ["Enumeration", dict(choices={
+    "_IMAGE_RESOURCE_DIRECTORY_ENTRY": [None, {
+            "Name": [None, ['ResourcePointer', dict(target="PrefixedString")]],
+            "Type": [0, ["Enumeration", dict(choices={
                             1:    'RT_CURSOR',
                             2:    'RT_BITMAP',
                             3:    'RT_ICON',
@@ -366,10 +364,6 @@ pe_overlays = {
                             24:   'RT_MANIFEST'})]],
 
             # This is true when we need to use the Name field.
-            "NameIsString": [0x00, ['BitField', dict(
-                        start_bit=31,
-                        end_bit=32,
-                        )]],
             "OffsetToDataInt": [0x04, ['unsigned int']],
             "OffsetToData": [0x04, ['ResourcePointer', dict(
                         target="_IMAGE_RESOURCE_DATA_ENTRY",
@@ -801,7 +795,7 @@ class PE(object):
         """
         self.session = session
         if session is None:
-          raise RuntimeError("Session must be provided.")
+            raise RuntimeError("Session must be provided.")
 
         # Use the session to load the pe profile.
         self.profile = self.session.LoadProfile("pe")
@@ -812,11 +806,16 @@ class PE(object):
         elif address_space:
             self.vm = address_space
             self.image_base = image_base
+            if self.image_base == None:
+                raise RuntimeError("Image base is invalid.")
 
         else:
-            file_address_space = standard.FileAddressSpace(filename=filename)
-            self.vm = PEFileAddressSpace(base=file_address_space,
-                                         profile=self.profile)
+            file_address_space = standard.FileAddressSpace(
+                filename=filename, session=self.session)
+
+            self.vm = PEFileAddressSpace(
+                base=file_address_space, profile=self.profile)
+
             self.image_base = self.vm.image_base
 
         self.dos_header = self.profile.Object(
@@ -917,7 +916,9 @@ class PE(object):
 
         # Find all the versions and their strings
         for data in resource_directory.Open("RT_VERSION").Traverse():
-            version_info = data.OffsetToData.dereference_as("VS_VERSIONINFO")
+            version_info = data.OffsetToData.dereference_as(
+                "VS_VERSIONINFO")
+
             for string in version_info.Strings():
                 yield unicode(string.Key), unicode(string.Value)
 

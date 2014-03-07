@@ -216,5 +216,3 @@ class ArrayStringParser(argparse.Action):
             result.extend([x for x in value.split(",")])
 
         setattr(namespace, self.dest, result)
-
-

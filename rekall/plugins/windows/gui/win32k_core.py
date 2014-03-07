@@ -20,11 +20,9 @@
 
 # pylint: disable=protected-access
 
-import logging
+from rekall import kb
 from rekall import utils
 from rekall import obj
-from rekall.plugins.overlays import basic
-from rekall.plugins.overlays.windows import common
 from rekall.plugins.overlays.windows import windows
 from rekall.plugins.windows.gui import constants
 
@@ -40,6 +38,14 @@ win32k_overlay = {
       'pGlobalAtomTable': [None, ['Pointer', dict(
             target="_RTL_ATOM_TABLE"
             )]],
+
+      'pClipBase': [None, ["Pointer", dict(
+          target="Array",
+          target_args=dict(
+              target='tagCLIP',
+              count=lambda x: x.cNumClipFormats
+              )
+          )]],
       }],
 }
 
@@ -369,7 +375,7 @@ class tagWINDOWSTATION(obj.Struct):
 
         return object_hdr.NameInfo.Name
 
-    def desktops(self, vm=None):
+    def desktops(self):
         """A generator that yields the window station's desktops"""
         return self.rpdeskList.walk_list("rpdeskNext")
 
@@ -676,58 +682,31 @@ class _RTL_ATOM_TABLE_ENTRY(obj.Struct):
         return self.NameLength <= 255
 
 
-class Win32GUIProfile(obj.ProfileModification):
-    """Install win32 gui specific modifications."""
-
-    @classmethod
-    def modify(cls, profile):
-        pass
-
-
 class Win32kPluginMixin(object):
     """A mixin which loads the relevant win32k profile."""
 
     @classmethod
     def args(cls, parser):
         super(Win32kPluginMixin, cls).args(parser)
-        parser.add_argument("--win32k_guid", default=None,
+        parser.add_argument("--win32k_profile", default=None,
                             help="Force this profile to be used for Win32k.")
 
-    def __init__(self, win32k_guid=None, **kwargs):
+    def _is_valid(self, profile):
+        """Returns true if the profile is a valid win32k one."""
+        return profile.get_constant("grpWinStaList")
+
+    def __init__(self, win32k_profile=None, **kwargs):
         super(Win32kPluginMixin, self).__init__(**kwargs)
 
         # For the address resolver to load this GUID.
-        if win32k_guid:
-            self.session.SetParameter("win32k_guid", win32k_guid)
+        if win32k_profile:
+            self.session.SetParameter("win32k_profile", win32k_profile)
 
         resolver = self.session.address_resolver
         self.win32k_profile = resolver.LoadProfileForName("win32k")
-        if not self.win32k_profile:
-            # The win32k.sys may not be mapped in this session, we try to find
-            # it in the other sessions.
-            for session in self.session.plugins.sessions().session_spaces():
-                # Switch the process context to this session so the address
-                # resolver can find the correctly mapped win32k.
-                cc = self.session.plugins.cc(eprocess=session.processes())
-                with cc:
-                    cc.SwitchContext()
 
-                    self.win32k_profile = resolver.LoadProfileForName("win32k")
-                    if self.win32k_profile:
-                        break
-
-        if not self.win32k_profile:
-            # Now we try to just scan blindly for it.
-            for rsds, guid in self.session.plugins.version_scan(
-                name_regex="win32k").ScanVersions():
-                self.win32k_profile = resolver.LoadProfileByGUID(
-                    "win32k", rsds.GUID_AGE)
-
-                if self.win32k_profile:
-                    self.session.SetParameter("win32k_guid", rsds.GUID_AGE)
-                    break
-
-        if not self.win32k_profile:
+        # If the resolver loads the dummy profile this is not good enough.
+        if not self._is_valid(self.win32k_profile):
             raise RuntimeError("Unable to load the profile for Win32k.sys")
 
 
@@ -750,7 +729,6 @@ class Win32k(windows.BasicPEProfile):
             '_RTL_ATOM_TABLE_ENTRY': _RTL_ATOM_TABLE_ENTRY,
             'tagTHREADINFO': tagTHREADINFO,
             'tagHOOK': tagHOOK,
-            '_LARGE_UNICODE_STRING': common._UNICODE_STRING,
             'tagWND': tagWND,
             'tagSHAREDINFO': tagSHAREDINFO,
             '_HANDLEENTRY': _HANDLEENTRY,
@@ -900,3 +878,14 @@ class Win32k(windows.BasicPEProfile):
                             }]})
 
         return profile
+
+
+class Win32kHook(kb.ParameterHook):
+    """Guess the version of win32k.sys from the index."""
+
+    name = "win32k_profile"
+
+    def calculate(self):
+        for _, guess in self.session.plugins.guess_guid(
+            module="win32k.sys").GuessProfiles():
+            return guess

@@ -9,8 +9,7 @@ from rekall.plugins.windows import dumpcerts
 from rekall.plugins.windows import filescan
 from rekall.plugins.windows import gui
 from rekall.plugins.windows import handles
-#from rekall.plugins.windows import hibinfo
-
+from rekall.plugins.windows import index
 from rekall.plugins.windows import kdbgscan
 from rekall.plugins.windows import kpcr
 

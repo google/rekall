@@ -4,7 +4,7 @@
 #include "Dump.h"
 
 // Executable version.
-static TCHAR version[] = TEXT("1.5.4 Built ") TEXT(__DATE__);
+static TCHAR version[] = TEXT("1.5.5 Built ") TEXT(__DATE__);
 #define PMEM_DEVICE_NAME "pmem"
 #define PMEM_SERVICE_NAME TEXT("pmem")
 
@@ -20,10 +20,10 @@ class WinPmem {
   WinPmem();
   virtual ~WinPmem();
 
-  virtual int install_driver();
-  virtual int uninstall_driver();
-  virtual int set_write_enabled();
-  virtual int set_acquisition_mode(unsigned __int32 mode);
+  virtual __int64 install_driver();
+  virtual __int64 uninstall_driver();
+  virtual __int64 set_write_enabled();
+  virtual __int64 set_acquisition_mode(unsigned __int32 mode);
 
   virtual void print_memory_info();
 
@@ -32,25 +32,25 @@ class WinPmem {
   // 1. Create an output file with create_output_file()
   // 2. Select either write_raw_image() or write_crashdump().
   // 3. When thid object is deleted, the file is closed.
-  virtual int create_output_file(TCHAR *output_filename);
-  virtual int write_raw_image();
-  virtual int write_crashdump();
+  virtual __int64 create_output_file(TCHAR *output_filename);
+  virtual __int64 write_raw_image();
+  virtual __int64 write_crashdump();
 
   // This is set if output should be suppressed (e.g. if we pipe the
   // image to the STDOUT).
-  int suppress_output;
+  __int64 suppress_output;
   TCHAR last_error[1024];
 
  protected:
-  int extract_file_(int driver_id);
-  virtual int load_driver_() = 0;
-  virtual int write_crashdump_header_(struct PmemMemoryInfo *info) = 0;
+  __int64 extract_file_(__int64 driver_id);
+  virtual __int64 load_driver_() = 0;
+  virtual __int64 write_crashdump_header_(struct PmemMemoryInfo *info) = 0;
 
   virtual void LogError(TCHAR *message);
   virtual void Log(const TCHAR *message, ...);
 
-  int pad(__int64 length);
-  int copy_memory(unsigned __int64 start, unsigned __int64 end);
+  __int64 pad(__int64 length);
+  __int64 copy_memory(unsigned __int64 start, unsigned __int64 end);
 
   // The file handle to the pmem device.
   HANDLE fd_;
@@ -66,19 +66,23 @@ class WinPmem {
   unsigned __int64 max_physical_memory_;
 
   // The current acquisition mode.
-  unsigned int mode_;
+  unsigned __int32 mode_;
+  unsigned __int32 default_mode_;
+
+ private:
+  void print_mode_(unsigned __int32 mode);
 };
 
 class WinPmem32: public WinPmem {
  protected:
-  virtual int load_driver_();
-  virtual int write_crashdump_header_(struct PmemMemoryInfo *info);
+  virtual __int64 load_driver_();
+  virtual __int64 write_crashdump_header_(struct PmemMemoryInfo *info);
 };
 
 class WinPmem64: public WinPmem {
  protected:
-  virtual int load_driver_();
-  virtual int write_crashdump_header_(struct PmemMemoryInfo *info);
+  virtual __int64 load_driver_();
+  virtual __int64 write_crashdump_header_(struct PmemMemoryInfo *info);
 };
 
 
@@ -95,6 +99,8 @@ static TCHAR driver_filename[MAX_PATH];
 #define PMEM_MODE_PHYSICAL 1
 #define PMEM_MODE_PTE 2
 #define PMEM_MODE_PTE_PCI 3
+
+#define PMEM_MODE_AUTO 99
 
 #pragma pack(push, 2)
 typedef struct pmem_info_runs {

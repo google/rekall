@@ -155,7 +155,7 @@ class NoneObject(object):
 
     Instantiate with the reason for the error.
     """
-    def __init__(self, reason, *args, **kwargs):
+    def __init__(self, reason="None Object", *args, **kwargs):
         # Often None objects are instantiated on purpose so its not really that
         # important to see their reason.
         if kwargs.get("log"):
@@ -177,6 +177,10 @@ class NoneObject(object):
     def __repr__(self):
         reason = self.reason.format(*self.args)
         return "<%s>" % reason
+
+    def __format__(self, _):
+        """We suppress output for all format operators."""
+        return ""
 
     def write(self, _):
         """Write procedure only ever returns False"""

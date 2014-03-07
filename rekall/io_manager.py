@@ -370,14 +370,14 @@ class URLManager(IOManager):
         try:
             # Rekall repositories always use gzip to compress the files - so
             # first try with the .gz extension.
-            fd = urllib2.urlopen(url + ".gz")
+            fd = urllib2.urlopen(url + ".gz", timeout=10)
             logging.debug("Opened url %s.gz" % url)
             return gzip.GzipFile(
                 fileobj=StringIO.StringIO(fd.read(10000000)))
         except urllib2.HTTPError:
             # Try to load the file without the .gz extension.
             logging.debug("Opened url %s" % url)
-            return urllib2.urlopen(url)
+            return urllib2.urlopen(url, timeout=10)
 
     def __str__(self):
         return "URL:%s" % self.urn

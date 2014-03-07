@@ -24,20 +24,24 @@
 #include "winpmem.h"
 
 
-int WinPmem::pad(__int64 length) {
-  int count = 1;
-  int start = 0;
+__int64 WinPmem::pad(__int64 length) {
+  __int64 count = 1;
+  __int64 start = 0;
 
   ZeroMemory(buffer_, buffer_size_);
 
   while(start < length) {
-    DWORD to_write = (DWORD)min(buffer_size_, length);
-    if(!WriteFile(out_fd_, buffer_, to_write, &to_write, NULL)) {
+    DWORD to_write = (DWORD)min(buffer_size_, length - start);
+    DWORD bytes_written;
+
+    if(!WriteFile(out_fd_, buffer_,
+                  to_write, &bytes_written, NULL) ||
+       bytes_written != to_write) {
       Log(TEXT("Failed to write padding... Aborting\n"));
       goto error;
     };
 
-    start += to_write;
+    start += bytes_written;
     Log(TEXT("."));
 
     if(!(count % 60)) {
@@ -54,9 +58,9 @@ int WinPmem::pad(__int64 length) {
   return 0;
 };
 
-int WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
+__int64 WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
   LARGE_INTEGER large_start;
-  int count = 0;
+  __int64 count = 0;
 
   if (start > max_physical_memory_) {
     return 0;
@@ -68,22 +72,27 @@ int WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
   };
 
   while(start < end) {
-    int to_write = (int)min(buffer_size_, end - start);
+    DWORD to_write = (DWORD)min(buffer_size_, end - start);
     DWORD bytes_read = 0;
+    DWORD bytes_written = 0;
+
     large_start.QuadPart = start;
 
-    if(0xFFFFFFFF == SetFilePointer(fd_, large_start.LowPart,
-                                    &large_start.HighPart, FILE_BEGIN)) {
+    if(0xFFFFFFFF == SetFilePointerEx(
+       fd_, large_start, NULL, FILE_BEGIN)) {
       LogError(TEXT("Failed to seek in the pmem device.\n"));
       goto error;
     };
 
-    if(!ReadFile(fd_, buffer_, to_write, &bytes_read, NULL)) {
+    if(!ReadFile(fd_, buffer_, to_write, &bytes_read, NULL) ||
+       bytes_read != to_write) {
       LogError(TEXT("Failed to Read memory."));
       goto error;
     };
 
-    if(!WriteFile(out_fd_, buffer_, bytes_read, &bytes_read, NULL)) {
+    if(!WriteFile(out_fd_, buffer_, bytes_read,
+                  &bytes_written, NULL) ||
+       bytes_written != bytes_read) {
       Log(TEXT("Failed to write image file... Aborting.\n"));
       goto error;
     };
@@ -108,7 +117,7 @@ int WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
 
 
 // Turn on write support in the driver.
-int WinPmem::set_write_enabled(void) {
+__int64 WinPmem::set_write_enabled(void) {
   unsigned _int32 mode;
   DWORD size;
 
@@ -123,10 +132,35 @@ int WinPmem::set_write_enabled(void) {
   return 1;
 };
 
+
+void WinPmem::print_mode_(unsigned __int32 mode) {
+  switch(mode) {
+  case PMEM_MODE_IOSPACE:
+    Log(TEXT("MMMapIoSpace"));
+    break;
+
+  case PMEM_MODE_PHYSICAL:
+    Log(TEXT("\\.\PhysicalMemory"));
+    break;
+
+  case PMEM_MODE_PTE:
+    Log(TEXT("PTE Remapping"));
+    break;
+
+  case PMEM_MODE_PTE_PCI:
+    Log(TEXT("PTE Remapping with PCI introspection"));
+    break;
+
+  default:
+    Log(TEXT("Unknown"));
+  };
+};
+
+
 // Display information about the memory geometry.
 void WinPmem::print_memory_info() {
   struct PmemMemoryInfo info;
-  int i;
+  __int64 i;
   DWORD size;
 
   // Get the memory ranges.
@@ -148,7 +182,10 @@ void WinPmem::print_memory_info() {
 
   // When using the pci introspection we dont know the maximum physical memory,
   // we therefore make a guess based on the total ram in the system.
-  Log(TEXT("Acquitision mode %X\n"), mode_);
+  Log(TEXT("Acquitision mode "));
+  print_mode_(mode_);
+  Log(TEXT("\n"));
+
   if (mode_ == PMEM_MODE_PTE_PCI) {
     ULONGLONG installed_memory = 0;
     MEMORYSTATUSEX statusx;
@@ -171,13 +208,19 @@ void WinPmem::print_memory_info() {
   return;
 };
 
-int WinPmem::set_acquisition_mode(unsigned __int32 mode) {
+__int64 WinPmem::set_acquisition_mode(unsigned __int32 mode) {
   DWORD size;
+
+  if (mode == PMEM_MODE_AUTO) {
+    mode = default_mode_;
+  }
 
   // Set the acquisition mode.
   if(!DeviceIoControl(fd_, PMEM_CTRL_IOCTRL, &mode, 4, NULL, 0,
                       &size, NULL)) {
-    LogError(TEXT("Failed to set acquisition mode.\n"));
+    Log(TEXT("Failed to set acquisition mode %lu "), mode);
+    print_mode_(mode);
+    Log(TEXT("\n"));
     return -1;
   };
 
@@ -185,8 +228,8 @@ int WinPmem::set_acquisition_mode(unsigned __int32 mode) {
   return 1;
 };
 
-int WinPmem::create_output_file(TCHAR *output_filename) {
-  int status = 1;
+__int64 WinPmem::create_output_file(TCHAR *output_filename) {
+  __int64 status = 1;
 
   // The special file name of - means we should use stdout.
   if (!_tcscmp(output_filename, TEXT("-"))) {
@@ -215,12 +258,12 @@ int WinPmem::create_output_file(TCHAR *output_filename) {
   return status;
 }
 
-int WinPmem::write_crashdump() {
+__int64 WinPmem::write_crashdump() {
   // Somewhere to store the info from the driver;
   struct PmemMemoryInfo info;
   DWORD size;
-  int i;
-  int status = -1;
+  __int64 i;
+  __int64 status = -1;
 
   if(out_fd_==INVALID_HANDLE_VALUE) {
     LogError(TEXT("Must open an output file first."));
@@ -257,12 +300,12 @@ int WinPmem::write_crashdump() {
 };
 
 
-int WinPmem::write_raw_image() {
+__int64 WinPmem::write_raw_image() {
   // Somewhere to store the info from the driver;
   struct PmemMemoryInfo info;
   DWORD size;
-  int i;
-  int status = -1;
+  __int64 i;
+  __int64 status = -1;
 
   if(out_fd_==INVALID_HANDLE_VALUE) {
     LogError(TEXT("Must open an output file first."));
@@ -313,6 +356,8 @@ WinPmem::WinPmem():
   buffer_ = new char[buffer_size_];
   _tcscpy_s(last_error, TEXT(""));
   max_physical_memory_ = 0;
+  mode_ = PMEM_MODE_AUTO;
+  default_mode_ = PMEM_MODE_AUTO;
   }
 
 WinPmem::~WinPmem() {
@@ -341,7 +386,7 @@ void WinPmem::Log(const TCHAR *message, ...) {
   va_end(ap);
 };
 
-int WinPmem::extract_file_(int driver_id) {
+__int64 WinPmem::extract_file_(__int64 driver_id) {
   TCHAR path[MAX_PATH + 1];
 
   // Locate the driver resource in the .EXE file.
@@ -395,9 +440,9 @@ int WinPmem::extract_file_(int driver_id) {
   return -1;
 };
 
-int WinPmem::install_driver() {
+__int64 WinPmem::install_driver() {
   SC_HANDLE scm, service;
-  int status = -1;
+  __int64 status = -1;
 
   // Try to load the driver from the resource section.
   if (load_driver_() < 0)
@@ -466,7 +511,7 @@ int WinPmem::install_driver() {
   return status;
 }
 
-int WinPmem::uninstall_driver() {
+__int64 WinPmem::uninstall_driver() {
   SC_HANDLE scm, service;
   SERVICE_STATUS ServiceStatus;
 
@@ -492,10 +537,9 @@ int WinPmem::uninstall_driver() {
 
 
 // WinPmem64 - A 64 bit implementation of the imager.
-
-int WinPmem64::write_crashdump_header_(struct PmemMemoryInfo *info) {
+__int64 WinPmem64::write_crashdump_header_(struct PmemMemoryInfo *info) {
   DUMP_HEADER64 header;
-  int i;
+  ULONG i;
   __int32 *p = (__int32 *)&header;
   DWORD header_size = 0x2000;
 
@@ -547,15 +591,18 @@ int WinPmem64::write_crashdump_header_(struct PmemMemoryInfo *info) {
   return 0;
 };
 
-int WinPmem64::load_driver_() {
+
+
+__int64 WinPmem64::load_driver_() {
+  // 64 bit drivers use PTE acquisition by default.
+  default_mode_ = PMEM_MODE_PTE;
   return extract_file_(WINPMEM_64BIT_DRIVER);
 }
 
 // WinPmem32 - A 32 bit implementation of the imager.
-
-int WinPmem32::write_crashdump_header_(struct PmemMemoryInfo *info) {
+__int64 WinPmem32::write_crashdump_header_(struct PmemMemoryInfo *info) {
   DUMP_HEADER header;
-  int i;
+  ULONG i;
   __int32 *p = (__int32 *)&header;
   DWORD header_size = 0x1000;
 
@@ -611,6 +658,8 @@ int WinPmem32::write_crashdump_header_(struct PmemMemoryInfo *info) {
   return 0;
 }
 
-int WinPmem32::load_driver_() {
+__int64 WinPmem32::load_driver_() {
+  // 32 bit acquisition defaults to physical device.
+  default_mode_ = PMEM_MODE_PHYSICAL;
   return extract_file_(WINPMEM_32BIT_DRIVER);
 }

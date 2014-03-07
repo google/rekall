@@ -739,7 +739,7 @@ class socket(obj.Struct):
 
             if (type == "SOCK_STREAM"
                 and (protocol == 0 or protocol == "IPPROTO_TCP")
-                and inp.inp_ppcb is not None):
+                and inp.inp_ppcb != None):
 
                 tp = inp.inp_ppcb.dereference_as("tcpcb")
                 si["soi_kind"] = "SOCKINFO_TCP"

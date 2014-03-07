@@ -167,10 +167,21 @@ class AddressResolver(object):
         if self.modules:
             return self.modules.find_module(address)
 
+    def GetState(self):
+        return dict(modules=self.modules,
+                    modules_by_name=self.modules_by_name,
+                    profiles=self.profiles)
+
+    def SetState(self, state):
+        self.modules = state["modules"]
+        self.modules_by_name = state["modules_by_name"]
+        self.profiles = state["profiles"]
+
     def Reset(self):
         """Flush all caches and reset the resolver."""
         self.modules = None
         self.modules_by_name = {}
+        self.profiles = {}
 
     def get_constant_object(self, name, target, **kwargs):
         """Instantiate the named constant with these args."""
@@ -186,7 +197,7 @@ class AddressResolver(object):
                 components["symbol"],
                 target=target, **kwargs)
 
-        return obj.NoneObject("Profile for name %s unknown.", name)
+        return obj.NoneObject("Profile for name %s unknown.", name, log=True)
 
     def _EnsureInitialized(self):
         if self.modules is None:
@@ -203,16 +214,16 @@ class AddressResolver(object):
             except AttributeError:
                 self.modules = None
 
-    def LoadProfileByGUID(self, module_name, guid):
+    def _LoadProfile(self, module_name, profile):
         self._EnsureInitialized()
         try:
             module_name = self._NormalizeModuleName(module_name)
             module = self.modules_by_name[module_name]
 
-            module_profile = self.session.LoadProfile("GUID/%s" % guid)
+            module_profile = self.session.LoadProfile(profile)
             module_profile.image_base = module.base
 
-            # Marge in the kernel profile into this profile.
+            # Merge in the kernel profile into this profile.
             module_profile.merge(self.session.profile)
 
             self.profiles[module_name] = module_profile
@@ -227,6 +238,8 @@ class AddressResolver(object):
 
     def LoadProfileForModule(self, module):
         self._EnsureInitialized()
+        result = None
+        module_base = module.base
 
         module_name = self._NormalizeModuleName(module)
         if module_name in self.profiles:
@@ -234,9 +247,30 @@ class AddressResolver(object):
 
         guid = module.RSDS.GUID_AGE
         if guid:
-            return self.LoadProfileByGUID(module_name, guid)
+            result = self._LoadProfile(module_name, "GUID/%s" % guid)
 
-        return obj.NoneObject("Unable to load profile for %s" % module_name)
+        if not result:
+            # Create a dummy profile.
+            result = obj.Profile.classes["BasicPEProfile"](
+                name="Dummy Profile %s" % module_name,
+                session=self.session)
+            result.image_base = module_base
+
+        peinfo = self.session.plugins.peinfo(image_base=module_base,
+                                             address_space=module.obj_vm)
+
+        constants = {}
+        for _, func, name, _ in peinfo.pe_helper.ExportDirectory():
+            self.session.report_progress("Merging export table: %s", name)
+            func_offset = func.v()
+            if not result.get_constant_by_address(func_offset):
+                constants[str(name)] = func_offset - module_base
+
+        result.add_constants(constants_are_addresses=True, **constants)
+
+        self.profiles[module_name] = result
+
+        return result
 
     def LoadProfileForName(self, name):
         """Returns the profile responsible for the symbol name."""
@@ -248,10 +282,10 @@ class AddressResolver(object):
         components = self._ParseAddress(name)
         module_name = components["module"]
 
-        # See if the user has specified the GUID in the session cache.
-        guid = self.session.GetParameter("%s_guid" % module_name)
-        if guid:
-            return self.LoadProfileByGUID(module_name, guid)
+        # See if the user has specified the profile in the session cache.
+        profile = self.session.GetParameter("%s_profile" % module_name)
+        if profile:
+            return self._LoadProfile(module_name, profile)
 
         # Try to detect the GUI from the module object.
         module = self.modules_by_name[module_name]
@@ -259,6 +293,9 @@ class AddressResolver(object):
 
     def get_address_by_name(self, name):
         self._EnsureInitialized()
+
+        if isinstance(name, (int, long)):
+            return name
 
         if not isinstance(name, basestring):
             raise TypeError("Name should be a string.")
@@ -272,12 +309,23 @@ class AddressResolver(object):
         components = self._ParseAddress(name)
         address = None
 
-        module_profile = self.LoadProfileForName(components["module"])
-        if module_profile:
-            if components["symbol"]:
+        module = self.modules_by_name.get(components["module"])
+        if module is None:
+            return obj.NoneObject("No module %s" % name, log=True)
+
+        # User is after just the module's base address.
+        if not components["symbol"]:
+            return module.base
+
+        # Search for a symbol in the module.
+        if components["symbol"]:
+            # Get the profile for this module.
+            module_profile = self.LoadProfileForModule(module)
+            if module_profile:
                 address = module_profile.get_constant(
                     components["symbol"], True)
 
+                # Support basic offset operations (+/-).
                 if components["op"]:
                     offset = int(components["offset"], 0)
 
@@ -286,13 +334,9 @@ class AddressResolver(object):
                     else:
                         address -= offset
 
-            # No symbol provided - use the module's image base.
-            else:
-                address = module_profile.image_base
-
             return address
 
-        return obj.NoneObject("No profile found for module")
+        return obj.NoneObject("No profile found for module", log=True)
 
     def get_constant_by_address(self, address):
         self._EnsureInitialized()
@@ -339,3 +383,19 @@ class AddressResolver(object):
             full_name = ""
 
         return nearest_offset, full_name
+
+    def search_symbol(self, pattern):
+        # Currently we only allow searching in the same module.
+        self._EnsureInitialized()
+        result = []
+
+        components = self._ParseAddress(pattern)
+        profile = self.LoadProfileForName(components["module"])
+
+        # Match all symbols.
+        symbol_regex = re.compile(components["symbol"].replace("*", ".*"))
+        for constant in profile.constants:
+            if symbol_regex.match(constant):
+                result.append(constant)
+
+        return result
