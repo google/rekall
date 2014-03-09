@@ -153,8 +153,10 @@ class RekallTester(object):
     BASELINE_TEMPLATE = """#!/bin/bash
 if [ "$1" == "ok" ]; then
    cp %(src)s %(dest)s
-else
+elif [ "$1" == "meld" ]; then
    meld %(src)s %(dest)s
+else
+   less %(src)s
 fi
 exit 0
 """

@@ -25,6 +25,7 @@ from rekall import utils
 from rekall import obj
 from rekall.plugins.overlays.windows import windows
 from rekall.plugins.windows.gui import constants
+from rekall.plugins.windows.gui.vtypes import xp
 
 
 win32k_overlay = {
@@ -47,6 +48,12 @@ win32k_overlay = {
               )
           )]],
       }],
+
+    'tagDESKTOP': [None, {
+        'pheapDesktop': [None, ['Pointer', dict(
+                        target="_HEAP"
+                        )]],
+        }],
 }
 
 
@@ -744,7 +751,7 @@ class Win32k(windows.BasicPEProfile):
             profile.add_overlay(win32k_undocumented_I386)
 
         version = profile.metadata('version')
-        architecture = profile.metadata("arch")
+        arch = profile.metadata("arch")
 
         ## Windows 7 and above
         if version >= "6.1":
@@ -756,7 +763,7 @@ class Win32k(windows.BasicPEProfile):
             # structs. However, we know that these are basically the same across
             # different versions. Here we just copy them from the windows 7
             # profiles.
-            if profile.metadata("arch") == "AMD64":
+            if arch == "AMD64":
                 exempler = ("win32k.sys/AMD64/6.1.7601.18233/"
                             "99227A2085CE41969CD5A06F7CC20F522")
             else:
@@ -766,8 +773,14 @@ class Win32k(windows.BasicPEProfile):
             win7_profile = profile.session.LoadProfile(exempler)
 
             for item in ["tagWINDOWSTATION", "tagDESKTOP", "tagTHREADINFO",
-                         "tagWND"]:
+                         "tagWND", "tagDESKTOPINFO", "tagPROCESSINFO"]:
                 profile.vtypes[item] = win7_profile.vtypes[item]
+
+        if version < "6.0":
+            if arch == "I386":
+                profile.add_overlay(xp.vtypes_xp_32)
+            else:
+                profile.add_overlay(xp.vtypes_xp_64)
 
         # The below code needs refactoring.
         return
@@ -778,8 +791,6 @@ class Win32k(windows.BasicPEProfile):
 
             profile = win7.Win32GUIWin7.modify(profile)
         else:
-            from rekall.plugins.windows.gui.vtypes import xp
-
             profile = xp.XP2003x86BaseVTypes.modify(profile)
 
         # The type we want to use is not the same as the one already defined
@@ -887,5 +898,5 @@ class Win32kHook(kb.ParameterHook):
 
     def calculate(self):
         for _, guess in self.session.plugins.guess_guid(
-            module="win32k.sys").GuessProfiles():
+            module_name="win32k.sys").GuessProfiles():
             return guess

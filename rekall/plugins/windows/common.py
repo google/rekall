@@ -428,7 +428,7 @@ class WinProcessFilter(WindowsCommandPlugin):
                             help="Use this as the process head. If "
                             "specified we do not use kdbg.")
 
-    def __init__(self, eprocess=None, phys_eprocess=None, pid=None,
+    def __init__(self, pid=None, eprocess=None, phys_eprocess=None,
                  proc_regex=None, eprocess_head=None, **kwargs):
         """Filters processes by parameters.
 

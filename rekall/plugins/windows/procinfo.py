@@ -24,7 +24,6 @@ Output is similar to objdump or pefile.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-from rekall import config
 from rekall import plugin
 from rekall import testlib
 
@@ -32,7 +31,7 @@ from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.windows import common
 
 
-class PEInfo(plugin.Command):
+class PEInfo(plugin.VerbosityMixIn, plugin.Command):
     """Print information about a PE binary."""
 
     __name = "peinfo"
@@ -41,7 +40,6 @@ class PEInfo(plugin.Command):
     def args(cls, parser):
         super(PEInfo, cls).args(parser)
         parser.add_argument("--image-base", default=0,
-                            action=config.IntParser,
                             help="The base of the image.")
 
         parser.add_argument("executable", default=None, nargs='?',
@@ -51,11 +49,8 @@ class PEInfo(plugin.Command):
         parser.add_argument("-a", "--address-space", default=None,
                             help="The address space to use.")
 
-        parser.add_argument("-v", "--verbosity", default=1, type=int,
-                            help="Add more output.")
-
     def __init__(self, image_base=0, executable=None, address_space=None,
-                 verbosity=1, **kwargs):
+                 **kwargs):
         """Dump a PE binary from memory.
 
         Status is shown for each exported function:
@@ -72,8 +67,6 @@ class PEInfo(plugin.Command):
           filename: If provided we create an address space from this file.
         """
         super(PEInfo, self).__init__(**kwargs)
-        self.verbosity = verbosity
-
         if executable is None:
             # Resolve the correct address space. This allows the address space
             # to be specified from the command line (e.g.
@@ -190,6 +183,13 @@ class PEInfo(plugin.Command):
 
         for k, v in self.pe_helper.VersionInformation():
             renderer.table_row(k, v)
+
+
+class TestPEInfo(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="peinfo --image-base nt"
+        )
+
 
 
 class ProcInfo(common.WinProcessFilter):

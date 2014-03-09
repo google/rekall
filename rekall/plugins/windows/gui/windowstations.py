@@ -32,8 +32,12 @@ user interface or receive user input. It is assigned to the logon session of the
 interactive user, and contains the keyboard, mouse, and display device. It is
 always named "WinSta0". All other window stations are noninteractive, which
 means they cannot display a user interface or receive user input.
-"""
 
+
+Ref:
+http://volatility-labs.blogspot.de/2012/09/movp-13-desktops-heaps-and-ransomware.html
+"""
+from rekall import plugin
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import win32k_core
 
@@ -105,3 +109,63 @@ class WindowsStations(win32k_core.Win32kPluginMixin,
                 "pClipBase: {0:#x}, Formats: {1:L}\n",
                 window_station.pClipBase,
                 [clip.fmt for clip in window_station.pClipBase.dereference()])
+
+
+
+class WinDesktops(plugin.VerbosityMixIn, WindowsStations):
+    """Print information on each desktop."""
+
+    __name = "desktops"
+
+    def render(self, renderer):
+        for window_station in self.stations():
+            for desktop in window_station.desktops():
+                renderer.section()
+
+                renderer.format(
+                    "Desktop: {0:#x}, Name: {1}\\{2}, Next: {3:#x}\n",
+                    desktop,
+                    desktop.WindowStation.Name,
+                    desktop.Name,
+                    desktop.rpdeskNext.v(),
+                    )
+
+                renderer.format(
+                    "SessionId: {0}, DesktopInfo: {1:#x}, fsHooks: {2}\n",
+                    desktop.dwSessionId,
+                    desktop.pDeskInfo.v(),
+                    desktop.DeskInfo.fsHooks,
+                    )
+
+                renderer.format(
+                    "spwnd: {0:#x}, Windows: {1}\n",
+                    desktop.DeskInfo.spwnd,
+                    len(list(desktop.windows(desktop.DeskInfo.spwnd)))
+                    )
+                renderer.format(
+                    "Heap: {0:#x}, Size: {1:#x}, Base: {2:#x}, Limit: {3:#x}\n",
+                    desktop.pheapDesktop.v(),
+                    (desktop.DeskInfo.pvDesktopLimit.v() -
+                     desktop.DeskInfo.pvDesktopBase.v()),
+                    desktop.DeskInfo.pvDesktopBase,
+                    desktop.DeskInfo.pvDesktopLimit,
+                    )
+
+                # Print heap allocations.
+                if self.verbosity > 1:
+                    for entry in desktop.pheapDesktop.Entries:
+                        renderer.format(
+                            "   Alloc: {0:#x}, Size: {1:#x} Previous: {2:#x}\n",
+                            entry,
+                            entry.Size,
+                            entry.PreviousSize
+                            )
+
+                for thrd in desktop.threads():
+                    renderer.format(
+                        " {0} ({1} {2} parent {3})\n",
+                        thrd.pEThread.Cid.UniqueThread,
+                        thrd.ppi.Process.ImageFileName,
+                        thrd.ppi.Process.UniqueProcessId,
+                        thrd.ppi.Process.InheritedFromUniqueProcessId,
+                        )

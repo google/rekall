@@ -218,7 +218,7 @@ class Flags(obj.NativeType):
 
     def __repr__(self):
         abridged = str(self)
-        if len(abridged) > 10:
+        if len(abridged) > 40:
             abridged = abridged[:40] + " ..."
 
         return "%s (%s)" % (super(Flags, self).__repr__(), abridged)
