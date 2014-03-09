@@ -1140,7 +1140,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
         item = self
         while True:
-            item = item.m(list_member).deref()
+            item = getattr(item, list_member).deref()
             if not item or item.obj_offset in seen:
                 break
 

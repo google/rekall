@@ -254,4 +254,3 @@ def parse_args(argv=None, user_session=None):
         sys.exit(-1)
 
     return result
-

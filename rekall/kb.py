@@ -294,8 +294,10 @@ class AddressResolver(object):
     def get_address_by_name(self, name):
         self._EnsureInitialized()
 
-        if isinstance(name, (int, long)):
-            return name
+        try:
+            return int(name)
+        except ValueError:
+            pass
 
         if not isinstance(name, basestring):
             raise TypeError("Name should be a string.")

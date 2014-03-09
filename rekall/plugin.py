@@ -250,3 +250,19 @@ class PhysicalASMixin(object):
         if self.physical_address_space is None:
             raise PluginError("Physical address space is not set. "
                               "(Try plugins.load_as)")
+
+
+class VerbosityMixIn(object):
+    """Use this mixin to provide a --verbosity option to a plugin."""
+
+    @classmethod
+    def args(cls, parser):
+        super(VerbosityMixIn, cls).args(parser)
+
+        parser.add_argument("-v", "--verbosity", default=1, type=int,
+                            help="Add more output.")
+
+    def __init__(self, verbosity=1, **kwargs):
+        super(VerbosityMixIn, self).__init__(**kwargs)
+
+        self.verbosity = verbosity
