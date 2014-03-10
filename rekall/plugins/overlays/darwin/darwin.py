@@ -827,7 +827,19 @@ class socket(obj.Struct):
             # All the values start with IPPROTO_.
             return str(self.so_proto.pr_protocol).replace("IPPROTO_", "")
 
-        return None
+    @property
+    def unix_type(self):
+        if self.addressing_family == "AF_UNIX":
+            pr_type = str(self.so_proto.pr_type)
+
+            if pr_type:
+                # All values begin with SOCK_.
+                return pr_type.replace("SOCK_", "")
+            else:
+                # I am about 80% sure that this should never happen. Before
+                # deciding how this should be handled (possibly by logging an
+                # error), I'll need to do more research.
+                return "Unix Socket"
 
     @property
     def human_name(self):
@@ -859,7 +871,7 @@ class socket(obj.Struct):
             return "{}v6".format(self.l4_protocol)
 
         if self.addressing_family == "AF_UNIX":
-            return "Unix Socket"
+            return self.unix_type
 
         return "Sock: {}".format(self.addressing_family)
 

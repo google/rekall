@@ -499,14 +499,20 @@ class RendererBaseClass(object):
     def write(self, data):
         """Renderer should write some data."""
 
-    def section(self, name=None):
+    def section(self, name=None, width=50):
         """Start a new section.
 
         Sections are used to separate distinct entries (e.g. reports of
         different files).
         """
-        _ = name
-        self.write("*" * 50 + "\n")
+        if name is None:
+            self.write("*" * width + "\n")
+            return
+
+        pad_len = width - len(name) - 2  # 1 space on each side.
+        padding = "*" * (pad_len / 2)  # Name is centered.
+
+        self.write("{} {} {}\n".format(padding, name, padding))
 
     def format(self, formatstring, *data):
         """Write formatted data.
