@@ -1116,6 +1116,13 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
         return result
 
+    def __getattr__(self, attr):
+        result = self.m(attr)
+        if result == None:
+            raise AttributeError(attr)
+
+        return result
+
     def SetMember(self, attr, value):
         """Write a value to a member."""
         member = self.m(attr)

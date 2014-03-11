@@ -651,11 +651,15 @@ class fileproc(obj.Struct):
 class socket(obj.Struct):
     """Provides human-readable accessors for sockets of the more common AFs.
 
-    Information is derived in the fill_socketinfo method, which returns all
-    information this class knows about in a dict.
+    This class has two basic ways of getting information. Most attributes are
+    computed using the method fill_socketinfo, which is directly adapted from
+    the kernel function of the same name. For the few things that
+    fill_socketinfo doesn't care about, the properties themselves get the
+    data and provide references to the kernel source for anyone wondering
+    why and how all this works.
     """
 
-    socketinfo = None
+    cached_socketinfo = None
 
     def fill_socketinfo(self):
         """Computes information about sockets of some addressing families.
@@ -782,17 +786,18 @@ class socket(obj.Struct):
 
     def get_socketinfo_attr(self, attr):
         """Run fill_socketinfo if needed, cache result, return value of attr."""
-        if not self.socketinfo:
-            self.socketinfo = self.fill_socketinfo()
+        if not self.cached_socketinfo:
+            self.cached_socketinfo = self.fill_socketinfo()
 
-        if attr not in self.socketinfo:
+        if attr not in self.cached_socketinfo:
             return obj.NoneObject(
                 "socket of family {}/{} has no member {}".format(
                     self.addressing_family,
-                    self.socketinfo["soi_kind"],
+                    self.cached_socketinfo["soi_kind"],
                     attr))
 
-        return self.socketinfo[attr]
+        return self.cached_socketinfo[attr]
+
 
     @property
     def src_addr(self):
@@ -812,6 +817,34 @@ class socket(obj.Struct):
     @property
     def tcp_state(self):
         return self.get_socketinfo_attr("tcpsi_state")
+
+    @property
+    def vnode(self):
+        """For Unix sockets, pointer to vnode, if any.
+
+        This is the same way that OS gathers this information in response to
+        syscall [1] (this is the API used by netstat, among others).
+
+        1:
+        https://github.com/opensource-apple/xnu/blob/10.9/bsd/kern/uipc_usrreq.c#L1683
+        """
+        if self.addressing_family == "AF_UNIX":
+            return self.so_pcb.dereference_as("unpcb").unp_vnode
+
+    @property
+    def unp_conn(self):
+        """For Unix sockets, the pcb of the paired socket. [1]
+
+        You most likely want to do sock.conn_pcb.unp_socket to get at the
+        other socket in the pair. However, because the sockets are paired
+        through the protocol control block, it's actually useful to have
+        a direct pointer at it in order to be able to spot paired sockets.
+
+        1:
+        https://github.com/opensource-apple/xnu/blob/10.9/bsd/sys/unpcb.h#L128
+        """
+        if self.addressing_family == "AF_UNIX":
+            return self.so_pcb.dereference_as("unpcb").unp_conn
 
     @property
     def src_port(self):

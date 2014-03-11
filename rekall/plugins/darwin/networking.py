@@ -285,14 +285,12 @@ class DarwinNetstat(lsof.DarwinLsof):
                 )
 
         # Render the UNIX sockets.
-        # TODO: The netstat command also lists inode numbers and connection
-        # state. I'll add these once I figure out how to do so reliably. (A lot
-        # of the code around inodes in XNU is recently, or not-so-recently,
-        # deprecated.)
         renderer.section("Active UNIX domain sockets")
         renderer.table_header([
-            ("Proto", "proto", "4"),
+            ("Address", "address", "14"),
+            ("Conn", "conn", "14"),
             ("Type", "type", "10"),
+            ("Vnode", "vnode", "14"),
             ("Path", "path", "60"),
             ("Pid", "pid", "8"),
             ("Comm", "comm", "20"),
@@ -300,8 +298,10 @@ class DarwinNetstat(lsof.DarwinLsof):
 
         for sock, open_file in unix_socks:
             renderer.table_row(
-                "unix",
+                "0x%x" % int(sock.so_pcb),
+                "0x%x" % int(sock.unp_conn),
                 sock.human_type,
+                "0x%x" % int(sock.vnode),
                 sock.human_name,
                 open_file["proc"].pid,
                 open_file["proc"].p_comm,
