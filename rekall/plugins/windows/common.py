@@ -159,8 +159,6 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
              ("Valid", "valid", "")])
 
         for dtb, eprocess in self.dtb_hits():
-            address_space = self.CreateAS(dtb)
-
             renderer.table_row(
                 eprocess.obj_offset, dtb,
                 self.VerifyHit((dtb, eprocess)) is not None)
@@ -220,7 +218,7 @@ class CheckPoolSize(scan.ScannerCheck):
 
         self.pool_align = self.profile.constants['PoolAlignment']
         if self.condition is None:
-          raise RuntimeError("No pool size provided")
+            raise RuntimeError("No pool size provided")
 
     def check(self, buffer_as, offset):
         pool_hdr = self.profile._POOL_HEADER(
@@ -309,16 +307,14 @@ class KDBGHook(kb.ParameterHook):
     name = "kdbg"
 
     def calculate(self):
-        # Try to just get the KDBG address using the profile (There is some
-        # veriation in the name between WinXP and Win7.
-        for name in ["_KdDebuggerDataBlock", "KdDebuggerDataBlock"]:
-            kdbg = self.session.profile.get_constant_object(
-                name, "_KDDEBUGGER_DATA64",
-                vm=self.session.kernel_address_space)
+        # Try to just get the KDBG address using the profile.
+        kdbg = self.session.profile.get_constant_object(
+            "KdDebuggerDataBlock", "_KDDEBUGGER_DATA64",
+            vm=self.session.kernel_address_space)
 
-            # Verify it.
-            if kdbg.Header.OwnerTag == "KDBG":
-                return kdbg
+        # Verify it.
+        if kdbg.Header.OwnerTag == "KDBG":
+            return kdbg
 
         # Cant find it from the profile, look for it the old way.
         logging.info(
@@ -348,6 +344,11 @@ class PsActiveProcessHeadHook(kb.ParameterHook):
         # Verify it.
         if head.reflect():
             return head
+
+        # Failing this, we try to get PsActiveProcessHead using the KDBG.
+        kdbg = self.session.GetParameter("kdbg")
+        if kdbg:
+            return kdbg.PsActiveProcessHead
 
 
 class KDBGMixin(plugin.KernelASMixin):
@@ -424,12 +425,12 @@ class WinProcessFilter(WindowsCommandPlugin):
         parser.add_argument("--proc_regex", default=None,
                             help="A regex to select a process by name.")
 
-        parser.add_argument("--eprocess_head", action=config.IntParser,
-                            help="Use this as the process head. If "
-                            "specified we do not use kdbg.")
+        parser.add_argument(
+            "--method", choices=dict(cls.METHODS), nargs="+",
+            help="Method to list processes (Default uses all methods).")
 
     def __init__(self, pid=None, eprocess=None, phys_eprocess=None,
-                 proc_regex=None, eprocess_head=None, **kwargs):
+                 proc_regex=None, method=None, **kwargs):
         """Filters processes by parameters.
 
         Args:
@@ -441,10 +442,10 @@ class WinProcessFilter(WindowsCommandPlugin):
            proc_regex: A regular expression for filtering process name (using
              _EPROCESS.ImageFileName).
 
-           eprocess_head: Use this as the start of the process listing (in case
-             PsActiveProcessHead is missing).
+           method: Methods to use for process listing.
         """
         super(WinProcessFilter, self).__init__(**kwargs)
+        self.methods = method or sorted(dict(self.METHODS))
 
         if isinstance(phys_eprocess, (int, long)):
             phys_eprocess = [phys_eprocess]
@@ -458,7 +459,13 @@ class WinProcessFilter(WindowsCommandPlugin):
         elif eprocess is None:
             eprocess = []
 
-        self.phys_eprocess = phys_eprocess
+        # Convert the physical eprocess offsets to virtual addresses.
+        for phys_offset in phys_eprocess:
+            virtual_offset = self.virtual_process_from_physical_offset(
+                phys_offset)
+            if virtual_offset:
+                eprocess.append(virtual_offset)
+
         self.eprocess = eprocess
 
         pids = []
@@ -468,48 +475,31 @@ class WinProcessFilter(WindowsCommandPlugin):
         elif isinstance(pid, (int, long)):
             pids.append(pid)
 
-        if self.session.pid and not pid:
-            pids.append(self.session.pid)
-
         self.pids = pids
+
         self.proc_regex_text = proc_regex
         if isinstance(proc_regex, basestring):
             proc_regex = re.compile(proc_regex, re.I)
 
         self.proc_regex = proc_regex
-        self.eprocess_head = eprocess_head
 
         # Sometimes its important to know if any filtering is specified at all.
         self.filtering_requested = (self.pids or self.proc_regex or
-                                    self.phys_eprocess or self.eprocess)
+                                    self.eprocess)
 
     def filter_processes(self):
         """Filters eprocess list using phys_eprocess and pids lists."""
-        # No filtering required:
-        if not self.filtering_requested:
-            for eprocess in self.session.plugins.pslist(
-                session=self.session, kdbg=self._kdbg,
-                eprocess_head=self.eprocess_head).list_eprocess():
-                yield eprocess
-        else:
-            # We need to filter by phys_eprocess
-            for offset in self.phys_eprocess:
-                yield self.virtual_process_from_physical_offset(offset)
+        for proc in self.list_eprocess():
+            if not self.filtering_requested:
+                yield proc
 
-            for offset in self.eprocess:
-                yield self.profile._EPROCESS(vm=self.kernel_address_space,
-                                             offset=int(offset))
+            else:
+                if int(proc.pid) in self.pids:
+                    yield proc
 
-            # We need to filter by pids
-            for eprocess in self.session.plugins.pslist(
-                session=self.session, kdbg=self._kdbg,
-                eprocess_head=self.eprocess_head).list_eprocess():
-                if int(eprocess.UniqueProcessId) in self.pids:
-                    yield eprocess
                 elif self.proc_regex and self.proc_regex.match(
-                    utils.SmartUnicode(eprocess.ImageFileName)):
-                    yield eprocess
-
+                    utils.SmartUnicode(proc.name)):
+                    yield proc
 
     def virtual_process_from_physical_offset(self, physical_offset):
         """Tries to return an eprocess in virtual space from a physical offset.
@@ -524,13 +514,111 @@ class WinProcessFilter(WindowsCommandPlugin):
         """
         physical_eprocess = self.profile._EPROCESS(
             offset=int(physical_offset),
-            vm=self.kernel_address_space.base)
+            vm=self.physical_address_space)
 
-        # We cast our list entry in the kernel AS by following Flink into the
-        # kernel AS and then the Blink. Note the address space switch upon
-        # dereferencing the pointer.
-        our_list_entry = physical_eprocess.ActiveProcessLinks.Flink.dereference(
-            vm=self.kernel_address_space).Blink.dereference()
+        return physical_eprocess.ThreadListHead.reflect(
+            vm=self.kernel_address_space).dereference_as(
+                "_EPROCESS", "ThreadListHead")
 
-        # Now we get the EPROCESS object from the list entry.
-        return our_list_entry.dereference_as("_EPROCESS", "ActiveProcessLinks")
+    def list_from_PsActiveProcessHead(self, seen=None):
+        _ = seen
+        return self.session.GetParameter("PsActiveProcessHead").list_of_type(
+            "_EPROCESS", "ActiveProcessLinks")
+
+    def list_from_eprocess(self):
+        for eprocess_offset in self.eprocess:
+            eprocess = self.profile._EPROCESS(
+                offset=eprocess_offset, vm=self.kernel_address_space)
+
+            for task in eprocess.ActiveProcessLinks:
+                # TODO: Need to filter out the PsActiveProcessHead (which is not
+                # really an _EPROCESS)
+                yield task
+
+    def list_from_csrss_handles(self, seen=None):
+        """Enumerate processes using the csrss.exe handle table"""
+        if seen:
+            csrss_processes = []
+            for proc_offset in seen:
+                proc = self.profile._EPROCESS(proc_offset)
+                if proc.name == "csrss.exe":
+                    csrss_processes.append(proc)
+
+        else:
+            csrss_processes = list(
+                self.session.plugins.pslist(
+                    proc_regex="csrss.exe",
+                    method="PsActiveProcessHead").filter_processes())
+
+        for task in csrss_processes:
+            # Gather the handles to process objects
+            for handle in task.ObjectTable.handles():
+                if handle.get_object_type() == "Process":
+                    process = handle.dereference_as("_EPROCESS")
+                    yield process
+
+    def list_from_pspcid(self, seen=None):
+        """Enumerate processes by walking the PspCidTable"""
+        _ = seen
+
+        # Follow the pointers to the table base
+        PspCidTable = self.profile.get_constant_object(
+            "PspCidTable",
+            target="Pointer",
+            target_args=dict(
+                target="_PSP_CID_TABLE"
+                )
+            )
+
+        # Walk the handle table
+        for handle in PspCidTable.handles():
+            if handle.get_object_type() == "Process":
+                process = handle.dereference_as("_EPROCESS")
+                yield process
+
+    def list_from_sessions(self, seen=None):
+        """List processes using the SessionProcessLinks."""
+        if seen:
+            sessions = set([self.profile._EPROCESS(x).Session for x in seen])
+        else:
+            sessions = self.session.plugins.sessions().session_spaces()
+
+        for session in sessions:
+            for proc in session.ProcessList.list_of_type(
+                "_EPROCESS", "SessionProcessLinks"):
+                yield proc
+
+    def list_eprocess(self):
+        """List processes using chosen methods."""
+        # We actually keep the results from each method around in case we need
+        # to find out later which process was revealed by which method.
+        self.cache = self.session.GetParameter("pslist_cache")
+        if not self.cache:
+            self.cache = {}
+            self.session.SetParameter("pslist_cache", self.cache)
+
+        seen = set()
+        for proc in self.list_from_eprocess():
+            seen.add(proc.obj_offset)
+
+        for k, handler in self.METHODS:
+            if k in self.methods:
+                if k not in self.cache:
+                    self.cache[k] = set()
+                    for proc in handler(self, seen=seen):
+                        self.cache[k].add(proc.obj_offset)
+
+                logging.debug("Listed %s processes using %s",
+                              len(self.cache[k]), k)
+                seen.update(self.cache[k])
+
+        # Sort by pid so that the output ordering remains stable.
+        return sorted([self.profile._EPROCESS(x) for x in seen],
+                      key=lambda x: x.pid)
+
+    METHODS = [
+        ("PsActiveProcessHead", list_from_PsActiveProcessHead),
+        ("CSRSS", list_from_csrss_handles),
+        ("PspCidTable", list_from_pspcid),
+        ("Sessions", list_from_sessions),
+        ]

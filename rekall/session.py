@@ -253,13 +253,13 @@ class Session(object):
         """
         # The state holds user configuration from ~/.rekallrc.
         result = self.state.Get(item)
-        if result is None:
+        if result == None:
             # self.state.cache holds cached parameters.
             result = self.state.cache.Get(item)
-            if result is None:
+            if result == None:
                 result = self._RunParameterHook(item)
 
-        if result is None:
+        if result == None:
             result = default
 
         return result

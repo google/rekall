@@ -24,7 +24,7 @@ A renderer is used by plugins to produce formatted output.
 try:
     import curses
     curses.setupterm()
-except ImportError:
+except Exception:  # curses sometimes raises weird exceptions.
     curses = None
 
 import logging

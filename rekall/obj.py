@@ -167,6 +167,9 @@ class NoneObject(object):
             self.bt = ''.join(traceback.format_stack()[:-2])
 
     def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __unicode__(self):
         ## If we are strict we blow up here
         if self.strict:
             reason = self.reason.format(*self.args)
@@ -208,8 +211,8 @@ class NoneObject(object):
     def __eq__(self, other):
         return other is None
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    def __ne__(self, _):
+        return False
 
     ## Make us subscriptable obj[j]
     def __getitem__(self, item):
@@ -410,10 +413,10 @@ class BaseObject(object):
                 self.obj_name), self.obj_profile)
 
     def __str__(self):
-        return str(self.v())
+        return unicode(self).encode('utf-8')
 
     def __unicode__(self):
-        return self.__str__().decode("utf8", "ignore")
+        return utils.SmartUnicode(self.v())
 
     def __repr__(self):
         return "[{0} {1}] @ 0x{2:08X}".format(
@@ -544,9 +547,9 @@ class NativeType(BaseObject, NumericProxyMixIn):
 
 
 class Bool(NativeType):
-    def __str__(self):
+    def __unicode__(self):
         """Format boolean values nicely."""
-        return str(bool(self))
+        return unicode(bool(self))
 
 
 class BitField(NativeType):
@@ -723,8 +726,8 @@ class Pointer(NativeType):
             self.target, self.obj_name or '', self.v(),
             self.__class__.__name__)
 
-    def __str__(self):
-        return "Pointer to %s" % self.deref()
+    def __unicode__(self):
+        return u"Pointer to %s" % self.deref()
 
     def __getattr__(self, attr):
         ## We just dereference ourself
@@ -855,16 +858,16 @@ class Array(BaseObject):
         return "<{3} {0} x {1} @ 0x{2:08X}>".format(
             self.count, self.target, self.obj_offset, self.__class__.__name__)
 
-    def __str__(self):
+    def __unicode__(self):
         result = [repr(self)]
         for i, x in enumerate(self):
-            result.append("0x%04X %r" % (i, x))
+            result.append(u"0x%04X %r" % (i, x))
 
             if len(result) > 10:
-                result.append("... More entries hidden")
+                result.append(u"... More entries hidden")
                 break
 
-        return "\n".join(result)
+        return u"\n".join(result)
 
     def __eq__(self, other):
         if self.count != len(other):
@@ -1042,7 +1045,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         return "[{0} {1}] @ 0x{2:08X}".format(
             self.obj_type, self.obj_name or '', self.obj_offset)
 
-    def __str__(self):
+    def __unicode__(self):
         result = self.__repr__() + "\n"
         width_name = 0
 
@@ -1060,9 +1063,6 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         return result + "\n".join(
             ["  0x%02X %s%s %s" % (offset, k, " " * (width_name - len(k)), v)
              for offset, k, v in fields]) + "\n"
-
-    def __unicode__(self):
-        return self.__str__()
 
     def v(self, vm=None):
         """ When a struct is evaluated we just return our offset.
@@ -1148,7 +1148,11 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         item = self
         while True:
             item = getattr(item, list_member).deref()
-            if not item or item.obj_offset in seen:
+
+            # Sometimes in usermode page 0 is mapped, hence bool(item) == True
+            # even if item == 0 since bool(item) refers to the pointer's
+            # validity.
+            if not item or item == 0 or item.obj_offset in seen:
                 break
 
             seen.add(item.obj_offset)
@@ -1464,14 +1468,15 @@ class Profile(object):
             type_descriptor = self._apply_type_overlay(
                 type_descriptor, type_overlay)
 
-        # An overlay which specifies a string as a definition is simply an
-        # alias for another struct.
+        # An overlay which specifies a string as a definition is simply an alias
+        # for another struct. We just copy the old struct in place of the
+        # aliased one.
         if isinstance(type_descriptor, str):
             self.compile_type(type_descriptor)
             self.types[type_name] = self.types[type_descriptor]
-            return
+            type_descriptor = self.vtypes[type_descriptor]
 
-        elif type_descriptor == self.EMPTY_DESCRIPTOR:
+        if type_descriptor == self.EMPTY_DESCRIPTOR:
             # Mark that this is a pure object - not described by a
             # vtype. E.g. it is purely a class.
             self.types[type_name] = None
@@ -1984,12 +1989,12 @@ class Profile(object):
             return NoneObject("Cant find object {0} in profile {1}?".format(
                     type_name, self))
 
-    def __str__(self):
-        return "<%s profile %s (%s)>" % (
+    def __unicode__(self):
+        return u"<%s profile %s (%s)>" % (
             self.metadata("arch"), self.name, self.__class__.__name__)
 
     def __repr__(self):
-        return str(self)
+        return unicode(self)
 
 
 PROFILE_CACHE = utils.FastStore()
