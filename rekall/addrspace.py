@@ -248,7 +248,8 @@ class BufferAddressSpace(BaseAddressSpace):
 
     def read(self, addr, length):
         offset = addr - self.base_offset
-        return self.data[offset: offset + length]
+        data = self.data[offset: offset + length]
+        return data + "\x00" * (length - len(data))
 
     def write(self, addr, data):
         self.data = self.data[:addr] + data + self.data[addr + len(data):]
@@ -395,7 +396,8 @@ class RunBasedAddressSpace(PagedReader):
             return "\x00" * length
 
         else:
-            return self.base.read(file_offset, min(length, available_length))
+            data = self.base.read(file_offset, min(length, available_length))
+            return data + "\x00" * (length - len(data))
 
     def vtop(self, addr):
         file_offset, _ = self._get_available_buffer(addr, 1)

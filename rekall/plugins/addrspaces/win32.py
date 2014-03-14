@@ -80,7 +80,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
                 import pdb
                 pdb.post_mortem()
 
-            self.insert((0, 0, win32file.GetFileSize(self.fhandle)))
+            self.runs.insert((0, 0, win32file.GetFileSize(self.fhandle)))
 
         # IO on windows is extremely slow so we are better off using a
         # cache.

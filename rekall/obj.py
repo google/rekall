@@ -229,6 +229,7 @@ class NoneObject(object):
     __mul__ = __call__
     __floordiv__ = __call__
     __mod__ = __call__
+    __div__ = __call__
     __divmod__ = __call__
     __pow__ = __call__
     __lshift__ = __call__

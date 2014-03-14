@@ -22,6 +22,7 @@
 
 """ This is based on Jesse Kornblum's patch to clean up the standard AS's.
 """
+import logging
 import struct
 
 from rekall import config
@@ -29,7 +30,7 @@ from rekall.plugins.addrspaces import intel
 
 
 config.DeclareOption(name="ept", group="Virtualization support",
-                     action=config.IntParser,
+                     action=config.ArrayIntParser,
                      help="The EPT physical address.")
 
 
@@ -215,13 +216,22 @@ class VTxPagedMemory(AMD64PagedMemory):
         AMD64PagedMemory.__init__(self, dtb=0xFFFFFFFF, **kwargs)
 
         # Reset the DTB, in case a plugin or AS relies on us providing one.
-        self.dtb = None
-        self.ept = ept or self.session.GetParameter("ept")
-        self.as_assert(self.ept != None, "No EPT specified")
+        ept_list = ept or self.session.GetParameter("ept")
+        self.as_assert(ept_list , "No EPT specified")
 
-        # We don't allow overlaying over another VTx AS for now.
-        self.as_assert(not isinstance(self.base, VTxPagedMemory),
-                       "Attempting to layer over another VT")
+        this_ept = None
+        if isinstance(self.base, VTxPagedMemory):
+            # Find our EPT, which will be the next one after the base one.
+            base_idx = ept_list.index(self.base.ept)
+            try:
+                this_ept = ept_list[base_idx + 1]
+            except IndexError:
+                pass
+        else:
+            this_ept = ept_list[0]
+
+        self.as_assert(this_ept != None, "No more EPTs specified")
+        self.ept = this_ept
 
     def entry_present(self, entry):
         # A page entry being present depends only on bits 2:0 for EPT

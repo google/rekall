@@ -52,7 +52,8 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
     def read(self, addr, length):
         try:
             self.fhandle.seek(addr)
-            return self.fhandle.read(length)
+            data = self.fhandle.read(length)
+            return data + "\x00" * (length - len(data))
         except IOError:
             return "\x00" * length
 
