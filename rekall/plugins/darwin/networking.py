@@ -235,35 +235,43 @@ class DarwinNetstat(lsof.DarwinLsof):
 
     __name = "netstat"
 
-    def inet_sockets(self):
+    def sockets(self):
         for open_file in self.lsof():
             if open_file["fileproc"].fg_type != "DTYPE_SOCKET":
                 continue
 
             sock = open_file["fileproc"].autocast_fg_data()
-            if sock.addressing_family in ["AF_INET", "AF_INET6"]:
+            if sock.addressing_family in ["AF_INET", "AF_INET6", "AF_UNIX"]:
                 yield open_file
 
     def render(self, renderer):
-        socks_by_proto = {}
-        
-        renderer.table_header([("Proto", "proto", "14"),
-                               ("SAddr", "saddr", "30"),
-                               ("SPort", "sport", "8"),
-                               ("DAddr", "daddr", "30"),
-                               ("DPort", "dport", "5"),
-                               ("State", "state", "15"),
-                               ("Pid", "pid", "8"),
-                               ("Comm", "comm", "20")])
+        inet_by_proto = {}
+        unix_socks = []
 
-        # Group sockets by protocol (the way netstat does).
-        for open_file in self.inet_sockets():
+        # Group sockets by protocol/addressing family.
+        for open_file in self.sockets():
             sock = open_file["fileproc"].autocast_fg_data()
             proto = sock.l4_protocol
-            socks_by_proto.setdefault(proto, []).append((sock, open_file))
 
-        # Go over all the protos in alphabetical order (like netstat does).
-        for proto, sockets in sorted(socks_by_proto.items()):
+            if proto:
+                inet_by_proto.setdefault(proto, []).append((sock, open_file))
+            else:
+                unix_socks.append((sock, open_file))
+
+        # Render all inet protos in alphabetical order (like netstat).
+        renderer.section("Active Internet connections")
+        renderer.table_header([
+            ("Proto", "proto", "14"),
+            ("SAddr", "saddr", "30"),
+            ("SPort", "sport", "8"),
+            ("DAddr", "daddr", "30"),
+            ("DPort", "dport", "5"),
+            ("State", "state", "15"),
+            ("Pid", "pid", "8"),
+            ("Comm", "comm", "20"),
+        ])
+
+        for proto, sockets in sorted(inet_by_proto.iteritems()):
             for sock, open_file in sockets:
                 renderer.table_row(
                     proto,
@@ -275,3 +283,27 @@ class DarwinNetstat(lsof.DarwinLsof):
                     open_file["proc"].pid,
                     open_file["proc"].p_comm,
                 )
+
+        # Render the UNIX sockets.
+        renderer.section("Active UNIX domain sockets")
+        renderer.table_header([
+            ("Address", "address", "14"),
+            ("Conn", "conn", "14"),
+            ("Type", "type", "10"),
+            ("Vnode", "vnode", "14"),
+            ("Path", "path", "60"),
+            ("Pid", "pid", "8"),
+            ("Comm", "comm", "20"),
+        ])
+
+        for sock, open_file in unix_socks:
+            renderer.table_row(
+                "0x%x" % int(sock.so_pcb),
+                "0x%x" % int(sock.unp_conn),
+                sock.human_type,
+                "0x%x" % int(sock.vnode),
+                sock.human_name,
+                open_file["proc"].pid,
+                open_file["proc"].p_comm,
+            )
+

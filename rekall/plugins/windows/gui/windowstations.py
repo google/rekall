@@ -48,23 +48,27 @@ class WindowsStations(win32k_core.Win32kPluginMixin,
 
     __name = "windows_stations"
 
+    def stations_in_session(self, session):
+        # Get the start of the Window station list from
+        # win32k.sys. These are all the Windows stations that exist in
+        # this Windows session.
+        station_list = self.win32k_profile.get_constant_object(
+            "grpWinStaList",
+            target="Pointer",
+            target_args=dict(
+                target="tagWINDOWSTATION"
+                ),
+            vm=session.obj_vm,
+            )
+
+        for station in station_list.walk_list("rpwinstaNext"):
+            yield station
+
     def stations(self):
         """A generator of tagWINDOWSTATION objects."""
         # Each windows session has a unique set of windows stations.
         for session in self.session.plugins.sessions().session_spaces():
-            # Get the start of the Window station list from
-            # win32k.sys. These are all the Windows stations that exist in
-            # this Windows session.
-            station_list = self.win32k_profile.get_constant_object(
-                "grpWinStaList",
-                target="Pointer",
-                target_args=dict(
-                    target="tagWINDOWSTATION"
-                    ),
-                vm=session.obj_vm,
-                )
-
-            for station in station_list.walk_list("rpwinstaNext"):
+            for station in self.stations_in_session(session):
                 yield station
 
     def render(self, renderer):

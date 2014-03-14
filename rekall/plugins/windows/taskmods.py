@@ -23,7 +23,6 @@
 
 # pylint: disable=protected-access
 
-import logging
 import os
 
 from rekall.plugins import core
@@ -57,39 +56,6 @@ class WinPsList(common.WinProcessFilter):
         """
         super(WinPsList, self).__init__(**kwargs)
 
-    def list_eprocess_from_kdbg(self, kdbg):
-        """List the eprocess using the kdbg method."""
-        return self.list_eprocess_from_PsActiveProcessHead(
-            kdbg.PsActiveProcessHead)
-
-    def list_eprocess_from_eprocess(self, eprocess_offset):
-        eprocess = self.profile._EPROCESS(
-            offset=eprocess_offset, vm=self.kernel_address_space)
-
-        for task in eprocess.ActiveProcessLinks:
-            # TODO: Need to filter out the PsActiveProcessHead (which is not
-            # really an _EPROCESS)
-            yield task
-
-    def list_eprocess_from_PsActiveProcessHead(self, PsActiveProcessHead):
-        return iter(PsActiveProcessHead.list_of_type(
-                "_EPROCESS", "ActiveProcessLinks"))
-
-    def list_eprocess(self):
-        if self.eprocess_head:
-            return self.list_eprocess_from_eprocess(self.eprocess_head)
-
-        PsActiveProcessHead = self.session.GetParameter("PsActiveProcessHead")
-        if PsActiveProcessHead:
-            return self.list_eprocess_from_PsActiveProcessHead(
-                PsActiveProcessHead)
-
-        if self.kdbg:
-            return self.list_eprocess_from_kdbg(self.kdbg)
-
-        logging.debug("Unable to list processes using any method.")
-        return []
-
     def render(self, renderer):
 
         renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
@@ -116,7 +82,6 @@ class WinPsList(common.WinProcessFilter):
                                task.CreateTime,
                                task.ExitTime,
                                )
-
 
 
 class WinDllList(common.WinProcessFilter):
@@ -165,7 +130,7 @@ class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
     def dump_process(self, eprocess, fd):
         task_as = eprocess.get_process_address_space()
 
-        for virtual_address, phys_address, length in task_as.get_available_addresses():
+        for _, phys_address, length in task_as.get_available_addresses():
             fd.write(self.physical_address_space.read(phys_address, length))
 
     def render(self, renderer):

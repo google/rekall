@@ -438,11 +438,11 @@ class _UNICODE_STRING(obj.Struct):
     def __eq__(self, other):
         return unicode(self) == utils.SmartUnicode(other)
 
-    def __str__(self):
-        return self.v() or ""
+    def __unicode__(self):
+        return self.v() or u""
 
     def __repr__(self):
-        value = str(self)
+        value = utils.SmartStr(self)
         elide = ""
         if len(value) > 50:
             elide = "..."
@@ -740,77 +740,41 @@ class _HANDLE_TABLE(obj.Struct):
     tables, such as the _KDDEBUGGER_DATA64.PspCidTable.
     """
 
-    def get_item(self, entry, handle_value=0):
+    def get_item(self, entry):
         """Returns the OBJECT_HEADER of the associated handle. The parent
         is the _HANDLE_TABLE_ENTRY so that an object can be linked to its
         GrantedAccess.
         """
-        return entry.Object.dereference_as("_OBJECT_HEADER", parent=entry,
-                                           handle_value=handle_value)
+        return entry.Object.dereference_as("_OBJECT_HEADER", parent=entry)
 
-    def _make_handle_array(self, offset, level, depth=0):
+    def _make_handle_array(self, table_offset, level):
         """ Returns an array of _HANDLE_TABLE_ENTRY rooted at offset,
         and iterates over them.
         """
-        # The counts below are calculated by taking the size of a page and
-        # dividing by the size of the data type contained within the page. For
-        # more information see
-        # http://blogs.technet.com/b/markrussinovich/archive/2009/09/29/3283844.aspx
-        if level > 0:
-            count = 0x1000 / self.obj_profile.get_obj_size("address")
-            target = "address"
-        else:
-            count = 0x1000 / self.obj_profile.get_obj_size(
-                "_HANDLE_TABLE_ENTRY")
-
+        # level == 0 means we are at the bottom level and this is a table of
+        # _HANDLE_TABLE_ENTRY, otherwise, it means we are a table of pointers to
+        # lower tables.
+        if level == 0:
             target = "_HANDLE_TABLE_ENTRY"
+            table = self.obj_profile.Array(
+                offset=table_offset, target=target,
+                count=0x1000/self.obj_profile.get_obj_size(target),
+                parent=self)
 
-        table = self.obj_profile.Array(
-            offset=offset, vm=self.obj_vm,
-            count=count, target=target, parent=self)
-
-        if table:
             for entry in table:
-                if not entry.is_valid():
-                    break
+                yield self.get_item(entry)
 
-                if level > 0:
-                    ## We need to go deeper:
-                    for h in self._make_handle_array(entry, level - 1, depth):
-                        yield h
-                    depth += 1
-                else:
-                    # All handle values are multiples of four, on both x86 and
-                    # x64.
-                    handle_multiplier = 4
+        else:
+            target = "Pointer"
+            table = self.obj_profile.Array(
+                offset=table_offset,
+                target=target,
+                count=0x1000/self.obj_profile.get_obj_size(target),
+                parent=self)
 
-                    # Calculate the starting handle value for this level.
-                    handle_level_base = depth * count * handle_multiplier
-
-                    # The size of a handle table entry.
-                    handle_entry_size = self.obj_profile.get_obj_size(
-                        "_HANDLE_TABLE_ENTRY")
-
-                    # Finally, compute the handle value for this object.
-                    handle_value = (
-                        (entry.obj_offset - table[0].obj_offset) /
-                        (handle_entry_size / handle_multiplier)
-                        ) + handle_level_base
-
-                    ## OK We got to the bottom table, we just resolve
-                    ## objects here:
-                    item = self.get_item(entry, handle_value)
-
-                    if item == None:
-                        continue
-
-                    try:
-                        # New object header
-                        if item.TypeIndex != 0x0:
-                            yield item
-                    except AttributeError:
-                        if item.Type.Name:
-                            yield item
+            for entry in table:
+                for item in self._make_handle_array(entry, level-1):
+                    yield item
 
     def handles(self):
         """ A generator which yields this process's handles
@@ -823,22 +787,28 @@ class _HANDLE_TABLE(obj.Struct):
         This generator iterates over all the handles recursively
         yielding all handles. We take care of recursing into the
         nested tables automatically.
+
+        Reference:
+        http://forum.sysinternals.com/hiding-a-process-pspcidtable_topic15362.html
         """
         # This should work equally for 32 and 64 bit systems
         LEVEL_MASK = 7
 
-        TableCode = self.TableCode.v() & ~LEVEL_MASK
-        table_levels = self.TableCode.v() & LEVEL_MASK
-        offset = TableCode
+        table = self.TableCode & ~LEVEL_MASK
+        level = self.TableCode & LEVEL_MASK
 
-        for h in self._make_handle_array(offset, table_levels):
-            yield h
+        for i, handle in enumerate(self._make_handle_array(table, level)):
+            # New object header
+            if handle.m("TypeIndex") != 0x0 or handle.m("Type").Name:
+                handle.HandleValue = i * 4
+
+                yield handle
 
 
 class _PSP_CID_TABLE(_HANDLE_TABLE):
     """Subclass the Windows handle table object for parsing PspCidTable"""
 
-    def get_item(self, entry, handle_value=0):
+    def get_item(self, entry):
         p = self.obj_profile.Object("address", entry.Object.v(), self.obj_vm)
 
         handle = self.obj_profile.Object(
@@ -968,10 +938,11 @@ class _EX_FAST_REF(obj.Struct):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the
         specified type.
         """
+        parent = parent or self.obj_parent or self
         MAX_FAST_REF = self.obj_profile.constants['MAX_FAST_REF']
         return self.obj_profile.Object(
             type_name=type_name, offset=self.m("Object").v() & ~MAX_FAST_REF,
-            vm=vm or self.obj_vm, parent=parent or self, **kwargs)
+            vm=vm or self.obj_vm, parent=parent, **kwargs)
 
     def __getattr__(self, attr):
         return getattr(self.dereference(), attr)

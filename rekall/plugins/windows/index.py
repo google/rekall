@@ -122,12 +122,13 @@ class GuessGUID(common.WindowsCommandPlugin):
         except ValueError:
             return
 
+        cc = self.session.plugins.cc()
         for session in self.session.plugins.sessions().session_spaces():
             # Switch the process context to this session so the address
             # resolver can find the correctly mapped driver.
-            cc = self.session.plugins.cc(eprocess=session.processes())
+
             with cc:
-                cc.SwitchContext()
+                cc.SwitchProcessContext(iter(session.processes()).next())
 
                 # Get the image base of the win32k module.
                 image_base = self.session.address_resolver.get_address_by_name(
