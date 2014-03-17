@@ -391,13 +391,18 @@ class RunBasedAddressSpace(PagedReader):
     def _read_chunk(self, addr, length):
         file_offset, available_length = self._get_available_buffer(addr, length)
 
-        # Mapping not valid.
+        # Mapping not valid. We need to pad until the next run.
         if file_offset is None:
-            return "\x00" * length
-
+            pad_length = length
+            try:
+                virt_addr, file_address, file_length = self.runs.find_gt(addr)
+                pad_length = min(length, (virt_addr - addr))
+            except ValueError:
+                # If there's no next run, we need to add length padding.
+                pass
+            return "\x00" * pad_length
         else:
-            data = self.base.read(file_offset, min(length, available_length))
-            return data + "\x00" * (length - len(data))
+            return self.base.read(file_offset, min(length, available_length))
 
     def vtop(self, addr):
         file_offset, _ = self._get_available_buffer(addr, 1)
