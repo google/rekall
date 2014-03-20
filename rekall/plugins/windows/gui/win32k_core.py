@@ -25,6 +25,7 @@ from rekall import utils
 from rekall import obj
 from rekall.plugins.overlays.windows import windows
 from rekall.plugins.windows.gui import constants
+from rekall.plugins.windows.gui.vtypes import xp
 
 
 win32k_overlay = {
@@ -47,13 +48,44 @@ win32k_overlay = {
               )
           )]],
       }],
+
+    'tagDESKTOP': [None, {
+        'pheapDesktop': [None, ['Pointer', dict(
+                        target="_HEAP"
+                        )]],
+        }],
+
+    'tagSHAREDINFO': [None, {
+        'aheList': [None, ['Pointer', dict(
+            target='Array',
+            target_args=dict(
+                target="_HANDLEENTRY",
+                count=lambda x: x.psi.cHandleEntries,
+                )
+            )]],
+        }],
+
+    '_HEAD': [None, {
+            'h': [None, ['unsigned int']],
+            }],
+
+    "_HANDLEENTRY": [None, {
+        'bType': [None, ['Enumeration', dict(
+            target='unsigned char',
+            choices=constants.HANDLE_TYPE_ENUM,
+            )]],
+
+            }],
 }
 
+# Reference:
+# http://reactos.org/wiki/Techwiki:Win32k/structures
 
-# TODO: This is a hack! I do not really understand why this struct is sometimes
-# very different. I have an image with the Buckets field at offset 0x220. This
-# needs to be implemented using generate_types.
 win32k_undocumented_AMD64 = {
+    # TODO: This is a hack! I do not really understand why this struct is
+    # sometimes very different. I have an image with the Buckets field at offset
+    # 0x220. This needs to be implemented using generate_types.
+
     # win32k defines NTOS_MODE_USER which makes this struct different from the
     # nt kernel one.
     # http://doxygen.reactos.org/d5/df7/ndk_2rtltypes_8h_source.html
@@ -67,6 +99,45 @@ win32k_undocumented_AMD64 = {
                 target='_RTL_ATOM_TABLE_ENTRY')
             )]],
         }],
+
+    'tagEVENTHOOK' : [0x60, {
+        'phkNext' : [0x18, ['Pointer', dict(
+            target='tagEVENTHOOK'
+            )]],
+        'eventMin' : [0x20, ['Enumeration', dict(
+            target='unsigned long',
+            choices=constants.EVENT_ID_ENUM)]],
+
+        'eventMax' : [0x24, ['Enumeration', dict(
+            target='unsigned long',
+            choices=constants.EVENT_ID_ENUM)]],
+
+        'dwFlags' : [0x28, ['unsigned long']],
+        'idProcess' : [0x2C, ['unsigned long']],
+        'idThread' : [0x30, ['unsigned long']],
+        'offPfn' : [0x40, ['Pointer', dict(target="Void")]],
+        'ihmod' : [0x48, ['long']],
+        }],
+
+    'tagHANDLETYPEINFO' : [16, {
+        'fnDestroy' : [0, ['Pointer', dict(
+                        target="Function"
+                        )]],
+        'dwAllocTag' : [8, ['String', dict(length=4)]],
+        'bObjectCreateFlags' : [12, ['Flags', dict(
+            target='unsigned char',
+            bitmap={
+                'OCF_THREADOWNED': 0,
+                'OCF_PROCESSOWNED': 1,
+                'OCF_MARKPROCESS': 2,
+                'OCF_USEPOOLQUOTA': 3,
+                'OCF_DESKTOPHEAP': 4,
+                'OCF_USEPOOLIFNODESKTOP': 5,
+                'OCF_SHAREDHEAP': 6,
+                'OCF_VARIABLESIZE': 7}
+            )]],
+        }],
+
 }
 
 win32k_undocumented_I386 = {
@@ -79,8 +150,46 @@ win32k_undocumented_I386 = {
             target_args=dict(
                 target='_RTL_ATOM_TABLE_ENTRY')
             )]],
-        }]
-}
+        }],
+
+    'tagEVENTHOOK' : [0x30, {
+        'phkNext' : [0xC, ['Pointer', dict(
+            target='tagEVENTHOOK'
+            )]],
+        'eventMin' : [0x10, ['Enumeration', dict(
+            target='unsigned long',
+            choices=constants.EVENT_ID_ENUM)]],
+
+        'eventMax' : [0x14, ['Enumeration', dict(
+            target='unsigned long',
+            choices=constants.EVENT_ID_ENUM)]],
+
+        'dwFlags' : [0x18, ['unsigned long']],
+        'idProcess' : [0x1C, ['unsigned long']],
+        'idThread' : [0x20, ['unsigned long']],
+        'offPfn' : [0x24, ['Pointer', dict(target="Void")]],
+        'ihmod' : [0x28, ['long']],
+        }],
+
+    'tagHANDLETYPEINFO' : [12, {
+        'fnDestroy' : [0, ['Pointer', dict(
+                        target="Function"
+                        )]],
+        'dwAllocTag' : [4, ['String', dict(length=4)]],
+        'bObjectCreateFlags' : [8, ['Flags', dict(
+            target='unsigned char',
+            bitmap={
+                'OCF_THREADOWNED': 0,
+                'OCF_PROCESSOWNED': 1,
+                'OCF_MARKPROCESS': 2,
+                'OCF_USEPOOLQUOTA': 3,
+                'OCF_DESKTOPHEAP': 4,
+                'OCF_USEPOOLIFNODESKTOP': 5,
+                'OCF_SHAREDHEAP': 6,
+                'OCF_VARIABLESIZE': 7}
+            )]],
+        }],
+    }
 
 
 class _MM_SESSION_SPACE(obj.Struct):
@@ -176,103 +285,6 @@ class _MM_SESSION_SPACE(obj.Struct):
 
         return obj.NoneObject("Cannot find win32k!_gahti")
 
-    def find_shared_info(self):
-        """Find this session's tagSHAREDINFO structure.
-
-        This structure is embedded in win32k's .data section,
-        (i.e. not in dynamically allocated memory). Thus we
-        iterate over each DWORD-aligned possibility and treat
-        it as a tagSHAREDINFO until the sanity checks are met.
-        """
-        for chunk in self._section_chunks(".data"):
-            # If the base of the value is paged
-            if not chunk.is_valid():
-                continue
-
-            # Treat it as a shared info struct
-            shared_info = obj.tagSHAREDINFO(
-                offset=chunk.obj_offset, vm=self.obj_vm)
-
-            # Sanity check it
-            try:
-                if shared_info.is_valid():
-                    return shared_info
-            except obj.InvalidOffsetError:
-                pass
-
-        return obj.NoneObject("Cannot find win32k!gSharedInfo")
-
-
-class tagSHAREDINFO(obj.Struct):
-    """A class for shared info blocks"""
-
-    def is_valid(self):
-        """The sanity checks for tagSHAREDINFO structures"""
-
-        if not super(tagSHAREDINFO, self).is_valid():
-            return False
-
-        # The kernel's version of tagSHAREDINFO should always have
-        # a zeroed-out shared delta member.
-        if self.ulSharedDelta != 0:
-            return False
-
-        # The pointer to our server information structure must be valid
-        if not self.psi.is_valid():
-            return False
-
-        # Annoying check, but required for some samples
-        # whose psi is a valid pointer, but cbHandleTable
-        # cannot be read due to objects that cross page
-        # boundaries.
-        if self.psi.cbHandleTable == None:
-            return False
-
-        if self.psi.cbHandleTable < 0x1000:
-            return False
-
-        # The final check is that the total size in bytes of the handle
-        # table is equal to the size of a _HANDLEENTRY multiplied by the
-        # number of _HANDLEENTRY structures.
-        return (self.psi.cbHandleTable /
-                    self.obj_vm.profile.get_obj_size("_HANDLEENTRY")
-                == self.psi.cHandleEntries)
-
-    def handles(self, filters=None):
-        """Carve handles from the shared info block.
-
-        @param filters: a list of callables that perform
-        checks and return True if the handle should be
-        included in output.
-        """
-
-        if filters == None:
-            filters = []
-
-        hnds = obj.Array(target="_HANDLEENTRY",
-                         offset=self.aheList,
-                         vm=self.obj_vm,
-                         count=self.psi.cHandleEntries)
-
-        for i, h in enumerate(hnds):
-
-            # Sanity check the handle value if the handle Object
-            # has not been freed.
-            if not h.Free:
-                if h.phead.h != (h.wUniq << 16) | (0xFFFF & i):
-                    continue
-
-            b = False
-
-            # Run the filters and break if any tests fail
-            for filt in filters:
-                if not filt(h):
-                    b = True
-                    break
-
-            if not b:
-                yield h
-
 
 class _HANDLEENTRY(obj.Struct):
     """A for USER handle entries"""
@@ -293,12 +305,11 @@ class _HANDLEENTRY(obj.Struct):
             TYPE_TIMER="tagTIMER",
             )
 
-        object_type = object_map.get(str(self.bType), None)
-
-        if not object_type:
+        object_type = object_map.get(str(self.bType))
+        if object_type is None:
             return obj.NoneObject("Cannot reference object type")
 
-        return obj.Object(
+        return self.obj_profile.Object(
             object_type, offset=self.phead, vm=self.obj_vm)
 
     @property
@@ -401,34 +412,14 @@ class tagDESKTOP(tagWINDOWSTATION):
         for ti in self.PtiList.list_of_type("tagTHREADINFO", "PtiLink"):
             yield ti
 
-    def hook_params(self):
-        """ Parameters for the hooks() method.
-
-        These are split out into a function so it can be
-        subclassed by tagTHREADINFO.
-        """
-        return (self.DeskInfo.fsHooks, self.DeskInfo.aphkStart)
-
     def hooks(self):
-        """Generator for tagHOOK info.
-
-        Hooks are carved using the same algorithm, but different
-        starting points for desktop hooks and thread hooks. Thus
-        the algorithm is presented in this function and the starting
-        point is acquired by calling hook_params (which is then sub-
-        classed by tagTHREADINFO.
-        """
-
-        (fshooks, aphkstart) = self.hook_params()
-
-        # Convert the WH_* index into a bit position for the fsHooks fields
-        WHF_FROM_WH = lambda x: (1 << x + 1)
+        """Generator for tagHOOK info."""
+        fsHooks = self.DeskInfo.fsHooks
 
         for pos, (name, value) in enumerate(constants.MESSAGE_TYPES):
-            # Is the bit for this WH_* value set ?
-            if fshooks & WHF_FROM_WH(value):
-                hook = aphkstart[pos].dereference()
-                for hook in hook.traverse():
+            # Is the bit for this message type WH_* value set ?
+            if fsHooks & (1 << value + 1):
+                for hook in self.DeskInfo.aphkStart[pos].walk_list("phkNext"):
                     yield name, hook
 
     def windows(self, win, filter=lambda x: True, level=0):
@@ -581,22 +572,20 @@ class tagCLIPDATA(obj.Struct):
                     self.abData.obj_offset + o, h, ''.join(c))
                         for o, h, c in utils.Hexdump(data)])
 
-class tagTHREADINFO(tagDESKTOP):
+
+class tagTHREADINFO(obj.Struct):
     """A class for thread information objects"""
 
-    def get_params(self):
-        """Parameters for the _hooks() function"""
-        return (self.fsHooks, self.aphkStart)
+    def hooks(self):
+        """Generator for tagHOOK info."""
+        fsHooks = self.fsHooks
 
-class tagHOOK(obj.Struct):
-    """A class for message hooks"""
+        for pos, (name, value) in enumerate(constants.MESSAGE_TYPES):
+            # Is the bit for this message type WH_* value set ?
+            if fsHooks & (1 << value + 1):
+                for hook in self.aphkStart[pos].walk_list("phkNext"):
+                    yield name, hook
 
-    def traverse(self):
-        """Find the next hook in a chain"""
-        hook = self
-        while hook.is_valid() and hook.v() != 0:
-            yield hook
-            hook = hook.phkNext.dereference()
 
 class tagEVENTHOOK(obj.Struct):
     """A class for event hooks"""
@@ -635,23 +624,34 @@ class _RTL_ATOM_TABLE(obj.Struct):
                 if entry.Atom < 0xf000:
                     yield entry
 
-    def find_atom(self, atom_to_find):
+    def find_atom(self, atom_to_find, use_cache=False):
         """Find an atom by its ID.
 
         @param atom_to_find: the atom ID (ushort) to find
 
         @returns an _RTL_ATOM_TALE_ENTRY object
         """
+        atom_to_find = int(atom_to_find)
+        not_found = obj.NoneObject("Atom not found")
 
         # Use the cached results if they exist
-        if self.atom_cache:
-            return self.atom_cache.get(atom_to_find.v(), None)
+        if use_cache:
+            if self.atom_cache:
+                return self.atom_cache.get(atom_to_find, not_found)
 
-        # Build the atom cache
-        self.atom_cache = dict(
-                (atom.Atom.v(), atom) for atom in self.atoms())
+            # Build the atom cache
+            self.atom_cache = dict(
+                (int(atom.Atom), atom) for atom in self.atoms())
 
-        return self.atom_cache.get(atom_to_find.v(), None)
+            return self.atom_cache.get(atom_to_find, not_found)
+        else:
+            # We often instantiate this atom table once - in this case its not
+            # worth caching it.
+            for atom in self.atoms():
+                if atom.Atom == atom_to_find:
+                    return atom
+
+        return not_found
 
 
 class _RTL_ATOM_TABLE_ENTRY(obj.Struct):
@@ -728,9 +728,7 @@ class Win32k(windows.BasicPEProfile):
             '_RTL_ATOM_TABLE': _RTL_ATOM_TABLE,
             '_RTL_ATOM_TABLE_ENTRY': _RTL_ATOM_TABLE_ENTRY,
             'tagTHREADINFO': tagTHREADINFO,
-            'tagHOOK': tagHOOK,
             'tagWND': tagWND,
-            'tagSHAREDINFO': tagSHAREDINFO,
             '_HANDLEENTRY': _HANDLEENTRY,
             'tagEVENTHOOK': tagEVENTHOOK,
             'tagRECT': tagRECT,
@@ -744,7 +742,7 @@ class Win32k(windows.BasicPEProfile):
             profile.add_overlay(win32k_undocumented_I386)
 
         version = profile.metadata('version')
-        architecture = profile.metadata("arch")
+        arch = profile.metadata("arch")
 
         ## Windows 7 and above
         if version >= "6.1":
@@ -756,7 +754,7 @@ class Win32k(windows.BasicPEProfile):
             # structs. However, we know that these are basically the same across
             # different versions. Here we just copy them from the windows 7
             # profiles.
-            if profile.metadata("arch") == "AMD64":
+            if arch == "AMD64":
                 exempler = ("win32k.sys/AMD64/6.1.7601.18233/"
                             "99227A2085CE41969CD5A06F7CC20F522")
             else:
@@ -766,8 +764,15 @@ class Win32k(windows.BasicPEProfile):
             win7_profile = profile.session.LoadProfile(exempler)
 
             for item in ["tagWINDOWSTATION", "tagDESKTOP", "tagTHREADINFO",
-                         "tagWND"]:
+                         "tagWND", "tagDESKTOPINFO", "tagPROCESSINFO",
+                         "tagSHAREDINFO", "_HANDLEENTRY", "_HEAD"]:
                 profile.vtypes[item] = win7_profile.vtypes[item]
+
+        if version < "6.0":
+            if arch == "I386":
+                profile.add_types(xp.vtypes_xp_32)
+            else:
+                profile.add_types(xp.vtypes_xp_64)
 
         # The below code needs refactoring.
         return
@@ -778,8 +783,6 @@ class Win32k(windows.BasicPEProfile):
 
             profile = win7.Win32GUIWin7.modify(profile)
         else:
-            from rekall.plugins.windows.gui.vtypes import xp
-
             profile = xp.XP2003x86BaseVTypes.modify(profile)
 
         # The type we want to use is not the same as the one already defined
@@ -799,39 +802,6 @@ class Win32k(windows.BasicPEProfile):
                         'abData' : [0x0C, ['Array', dict(
                                     count=lambda x: x.cbData,
                                     target='unsigned char')]],
-                        }],
-                'tagEVENTHOOK' : [0x30, {
-                        'phkNext' : [0xC, ['pointer', ['tagEVENTHOOK']]],
-                        'eventMin' : [0x10, ['Enumeration', dict(
-                                    target='unsigned long',
-                                    choices=constants.EVENT_ID_ENUM)]],
-
-                        'eventMax' : [0x14, ['Enumeration', dict(
-                                    target='unsigned long',
-                                    choices=constants.EVENT_ID_ENUM)]],
-
-                        'dwFlags' : [0x18, ['unsigned long']],
-                        'idProcess' : [0x1C, ['unsigned long']],
-                        'idThread' : [0x20, ['unsigned long']],
-                        'offPfn' : [0x24, ['Pointer', dict(target="Void")]],
-                        'ihmod' : [0x28, ['long']],
-                        }],
-
-                'tagHANDLETYPEINFO' : [12, {
-                        'fnDestroy' : [0, ['pointer', ['void']]],
-                        'dwAllocTag' : [4, ['String', dict(length=4)]],
-                        'bObjectCreateFlags' : [8, ['Flags', dict(
-                                    target='unsigned char',
-                                    bitmap={
-                                        'OCF_THREADOWNED': 0,
-                                        'OCF_PROCESSOWNED': 1,
-                                        'OCF_MARKPROCESS': 2,
-                                        'OCF_USEPOOLQUOTA': 3,
-                                        'OCF_DESKTOPHEAP': 4,
-                                        'OCF_USEPOOLIFNODESKTOP': 5,
-                                        'OCF_SHAREDHEAP': 6,
-                                        'OCF_VARIABLESIZE': 7}
-                                    )]],
                         }],
                 })
 
@@ -887,5 +857,5 @@ class Win32kHook(kb.ParameterHook):
 
     def calculate(self):
         for _, guess in self.session.plugins.guess_guid(
-            module="win32k.sys").GuessProfiles():
+            module_name="win32k.sys").GuessProfiles():
             return guess

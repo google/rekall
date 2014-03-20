@@ -129,7 +129,8 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
 
 
 
-class Atoms(common.WindowsCommandPlugin):
+class Atoms(win32k_core.Win32kPluginMixin,
+            common.WindowsCommandPlugin):
     """Print session and window station atom tables.
 
     From:
@@ -151,26 +152,26 @@ class Atoms(common.WindowsCommandPlugin):
 
     __name = "atoms"
 
-    def find_atoms(self):
-        windows_stations = self.session.plugins.windows_stations()
-        # Find the atom tables that belong to each window station
-        for station in windows_stations.stations():
-            table = station.pGlobalAtomTable.deref()
-            for atom in sorted(table.atoms(), key=lambda x: x.Atom):
-                ## Filter string atoms
-                if not atom.is_string_atom():
-                    continue
+    def station_atoms(self, station):
+        """Generate all the atoms in the windows station atom table."""
+        table = station.pGlobalAtomTable
+        for atom in sorted(table.atoms(), key=lambda x: x.Atom):
+            ## Filter string atoms
+            if not atom.is_string_atom():
+                continue
 
-                yield table, atom, station
+            yield table, atom
 
+    def session_atoms(self, session):
+        """Generate all (Session) Global User Atoms."""
         # Now find all the atoms in the User handle table.
-        table = station.obj_profile.get_constant_object(
+        table = self.win32k_profile.get_constant_object(
             "UserAtomTableHandle",
             target="Pointer",
             target_args=dict(
                 target="_RTL_ATOM_TABLE",
                 ),
-            vm=station.obj_vm,
+            vm=session.obj_vm,
             )
 
         for atom in sorted(table.atoms(), key=lambda x: x.Atom):
@@ -178,7 +179,19 @@ class Atoms(common.WindowsCommandPlugin):
             if not atom.is_string_atom():
                 continue
 
-            yield table, atom, obj.NoneObject("No windowstation")
+            yield table, atom
+
+    def find_atoms(self):
+        windows_stations = self.session.plugins.windows_stations()
+        # List the atom tables that belong to each window station.
+        for station in windows_stations.stations():
+            for table, atom in self.station_atoms(station):
+                yield table, atom, station, station.dwSessionId
+
+        # List the global user atom tables.
+        for session in self.session.plugins.sessions().session_spaces():
+            for table, atom in self.session_atoms(session):
+                yield table, atom, obj.NoneObject(), session.SessionId
 
     def render(self, renderer):
         renderer.table_header(
@@ -192,12 +205,10 @@ class Atoms(common.WindowsCommandPlugin):
              ("Name", "name", ""),
              ])
 
-        seen = set()
-
-        for table, atom, window_station in self.find_atoms():
+        for table, atom, window_station, session_id in self.find_atoms():
             renderer.table_row(
                 table,
-                window_station.dwSessionId,
+                session_id,
                 window_station.Name,
                 atom.Atom,
                 atom.ReferenceCount,

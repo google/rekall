@@ -761,7 +761,7 @@ class Dump(plugin.Command):
 
         # Resolve the correct address space. This allows the address space to be
         # specified from the command line (e.g.
-        load_as = self.session.plugins.load_as(session=self.session)
+        load_as = self.session.plugins.load_as()
         self.address_space = load_as.ResolveAddressSpace(address_space)
 
     def render(self, renderer):

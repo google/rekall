@@ -35,6 +35,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 import logging
 from rekall import obj
+from rekall import testlib
 from rekall.plugins.windows import common
 
 
@@ -100,12 +101,12 @@ class GuessGUID(common.WindowsCommandPlugin):
     @classmethod
     def args(cls, parser):
         super(GuessGUID, cls).args(parser)
-        parser.add_argument("module", default=None,
+        parser.add_argument("module_name", default=None,
                             help="The name of the module to guess.")
 
-    def __init__(self, module=None, **kwargs):
+    def __init__(self, module_name=None, **kwargs):
         super(GuessGUID, self).__init__(**kwargs)
-        self.module = module
+        self.module = module_name
 
     def ScanProfile(self):
         """Scan for module using version_scan for RSDS scanning."""
@@ -121,12 +122,13 @@ class GuessGUID(common.WindowsCommandPlugin):
         except ValueError:
             return
 
+        cc = self.session.plugins.cc()
         for session in self.session.plugins.sessions().session_spaces():
             # Switch the process context to this session so the address
             # resolver can find the correctly mapped driver.
-            cc = self.session.plugins.cc(eprocess=session.processes())
+
             with cc:
-                cc.SwitchContext()
+                cc.SwitchProcessContext(iter(session.processes()).next())
 
                 # Get the image base of the win32k module.
                 image_base = self.session.address_resolver.get_address_by_name(
@@ -157,3 +159,9 @@ class GuessGUID(common.WindowsCommandPlugin):
             ])
         for context, possibility in self.GuessProfiles():
             renderer.table_row(context.pid, context.SessionId, possibility)
+
+
+class TestGuessGUID(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="guess_guid win32k.sys"
+        )

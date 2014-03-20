@@ -159,12 +159,8 @@ class UnicodeString(String):
     def __unicode__(self):
         return self.v().split("\x00")[0] or u""
 
-    def __str__(self):
-        """This function returns an encoded string in utf8."""
-        return super(UnicodeString, self).__str__().encode("utf8")
-
     def __repr__(self):
-        value = str(self)
+        value = utils.SmartStr(self)
         elide = ""
         if len(value) > 50:
             elide = "..."
@@ -207,18 +203,18 @@ class Flags(obj.NativeType):
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
 
-    def __str__(self):
+    def __unicode__(self):
         result = []
         value = self.v()
         for k, v in sorted(self.maskmap.items()):
             if value & v:
                 result.append(k)
 
-        return ', '.join(result)
+        return u', '.join(result)
 
     def __repr__(self):
         abridged = str(self)
-        if len(abridged) > 10:
+        if len(abridged) > 40:
             abridged = abridged[:40] + " ..."
 
         return "%s (%s)" % (super(Flags, self).__repr__(), abridged)
@@ -296,7 +292,7 @@ class Enumeration(obj.NativeType):
     def write(self, data):
         return self.target_obj.write(data)
 
-    def __str__(self):
+    def __unicode__(self):
         value = self.v()
         return self.choices.get(value, self.default) or (
             "UNKNOWN (%s)" % str(value))
@@ -499,7 +495,7 @@ class UnixTimeStamp(obj.NativeType):
 
         raise NotImplementedError
 
-    def __str__(self):
+    def __unicode__(self):
         if not self:
             return "-"
 
@@ -518,7 +514,7 @@ class UnixTimeStamp(obj.NativeType):
             # Return a data time object in UTC.
             dt = datetime.datetime.utcfromtimestamp(
                 self.v()).replace(tzinfo=pytz.UTC)
-        except ValueError, e:
+        except (ValueError, TypeError), e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
 
         return dt
@@ -563,8 +559,13 @@ class IndexedArray(obj.Array):
 
     def __init__(self, index_table=None, **kwargs):
         super(IndexedArray, self).__init__(**kwargs)
-        self.index_table = index_table or {}
-        self.count = len(index_table)
+        try:
+            self.index_table = dict((x, int(y)) for x, y in index_table.items())
+        except ValueError:
+            self.index_table = dict((y, int(x)) for x, y in index_table.items())
+
+        if self.count is None:
+            self.count = len(index_table)
 
     def __getitem__(self, item):
         # Still support numeric indexes
@@ -612,7 +613,7 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
     def __hash__(self):
         return self.obj_offset + hash(self.obj_vm)
 
-    def __str__(self):
+    def __unicode__(self):
         result = []
         for data in self.Disassemble():
             result.append("0x%08X %20s %s" % data)

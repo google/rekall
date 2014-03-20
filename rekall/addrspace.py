@@ -248,7 +248,8 @@ class BufferAddressSpace(BaseAddressSpace):
 
     def read(self, addr, length):
         offset = addr - self.base_offset
-        return self.data[offset: offset + length]
+        data = self.data[offset: offset + length]
+        return data + "\x00" * (length - len(data))
 
     def write(self, addr, data):
         self.data = self.data[:addr] + data + self.data[addr + len(data):]
@@ -390,10 +391,16 @@ class RunBasedAddressSpace(PagedReader):
     def _read_chunk(self, addr, length):
         file_offset, available_length = self._get_available_buffer(addr, length)
 
-        # Mapping not valid.
+        # Mapping not valid. We need to pad until the next run.
         if file_offset is None:
-            return "\x00" * length
-
+            pad_length = length
+            try:
+                virt_addr, file_address, file_length = self.runs.find_gt(addr)
+                pad_length = min(length, (virt_addr - addr))
+            except ValueError:
+                # If there's no next run, we need to add length padding.
+                pass
+            return "\x00" * pad_length
         else:
             return self.base.read(file_offset, min(length, available_length))
 

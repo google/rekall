@@ -406,22 +406,6 @@ class PSScan(common.KDBGMixin, common.PoolScannerPlugin):
 
     __name = "psscan"
 
-    def guess_eprocess_virtual_address(self, eprocess):
-        """Try to guess the virtual address of the eprocess."""
-        # This is the list entry of the ProcessListEntry reflected through the
-        # next process in the list
-        list_entry = eprocess.ThreadListHead.Flink.dereference_as(
-            '_LIST_ENTRY', vm=self.kernel_address_space).Blink.dereference()
-
-        # Take us back to the _EPROCESS offset
-        list_entry_offset = self.profile.get_obj_offset(
-            '_EPROCESS', 'ThreadListHead')
-
-        # The virtual eprocess should be the same as the physical one
-        kernel_eprocess_offset = list_entry.obj_offset - list_entry_offset
-
-        return kernel_eprocess_offset
-
     def scan_processes(self):
         """Generate possible hits."""
         # Just grab the AS and scan it using our scanner
@@ -435,13 +419,13 @@ class PSScan(common.KDBGMixin, common.PoolScannerPlugin):
         """Render results in a table."""
         # Try to do a regular process listing so we can compare if the process
         # is known.
-        pslist = self.session.plugins.pslist(kdbg=self.kdbg)
+        pslist = self.session.plugins.pslist()
 
         # These are virtual addresses.
         known_eprocess = set()
         known_pids = set()
         for task in pslist.list_eprocess():
-            known_eprocess.add(task.obj_offset)
+            known_eprocess.add(task)
             known_pids.add(task.UniqueProcessId)
 
         renderer.table_header([('Offset', "offset_p", '[addrpad]'),
@@ -456,20 +440,19 @@ class PSScan(common.KDBGMixin, common.PoolScannerPlugin):
                                )
 
         for eprocess in self.scan_processes():
-
-            # Try to guess the virtual address of the eprocess
-            eprocess_virtual_address = self.guess_eprocess_virtual_address(
+            # Switch address space from physical to virtual.
+            virtual_eprocess = pslist.virtual_process_from_physical_offset(
                 eprocess)
 
             known = ""
-            if eprocess_virtual_address in known_eprocess:
+            if virtual_eprocess in known_eprocess:
                 known += "E"
 
             if eprocess.UniqueProcessId in known_pids:
                 known += "P"
 
-            renderer.table_row(eprocess.obj_offset,
-                               eprocess_virtual_address,
+            renderer.table_row(eprocess,
+                               virtual_eprocess,
                                eprocess.ImageFileName,
                                eprocess.UniqueProcessId,
                                eprocess.InheritedFromUniqueProcessId,

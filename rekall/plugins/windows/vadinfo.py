@@ -135,7 +135,7 @@ class VADInfo(common.WinProcessFilter):
         renderer.format(
             "Control Flags: {0}\n", control_area.u.Flags)
 
-        file_object = vad.ControlArea.FilePointer.dereference()
+        file_object = control_area.FilePointer.dereference()
         if file_object and file_object != 0:
             renderer.format(
                 "FileObject @{0:08x} FileBuffer @ {1:08x}          , "
@@ -290,10 +290,12 @@ class VAD(common.WinProcessFilter):
 
         for vad in vad_root.traverse():
             filename = ""
-            file_obj = vad.m("ControlArea").FilePointer
-            if file_obj:
-                filename = file_obj.FileName or "Pagefile-backed section"
-
+            try:
+                file_obj = vad.ControlArea.FilePointer
+                if file_obj:
+                    filename = file_obj.FileName or "Pagefile-backed section"
+            except AttributeError:
+                pass
             renderer.table_row(
                 vad.obj_offset, vad.obj_context.get('depth', 0),
                 vad.Start >> self.PAGE_SIZE,

@@ -96,6 +96,8 @@ class SetProcessContext(common.WinProcessFilter):
         for process in self.filter_processes():
             return self.SwitchProcessContext(process=process)
 
+        return "Process not found!\n"
+
     def render(self, renderer):
         message = self.SwitchContext()
         renderer.format(message)
