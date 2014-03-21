@@ -28,7 +28,7 @@ from rekall import testlib
 from rekall import plugin
 from rekall import kb
 from rekall.plugins import core
-from rekall.ui import renderer
+from rekall.ui import renderer as ui_renderer
 
 try:
     from rekall import ipython_support
@@ -142,11 +142,11 @@ site._Helper = RekallHelper
 
 
 class PagingLimitHook(kb.ParameterHook):
-  """If no paging_limit specified, calculate it from cursors."""
-  name = "paging_limit"
+    """If no paging_limit specified, calculate it from cursors."""
+    name = "paging_limit"
 
-  def calculate(self):
-      if renderer.curses:
-          return renderer.curses.tigetnum('lines')
+    def calculate(self):
+        if ui_renderer.curses:
+            return ui_renderer.curses.tigetnum('lines')
 
-      return int(os.environ.get("ROWS", 50))
+        return int(os.environ.get("ROWS", 50))

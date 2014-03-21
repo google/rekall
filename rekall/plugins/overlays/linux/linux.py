@@ -734,6 +734,14 @@ class Linux(basic.BasicClasses):
                            "we cannot detect PAE."))
             pass
 
+    def get_constant(self, name, is_address=True):
+        """Gets the constant from the profile, correcting for KASLR."""
+        base_constant = super(Linux, self).get_constant(name)
+        if is_address and isinstance(base_constant, (int, long)):
+            return base_constant + self.session.GetParameter("kaslr_shift")
+
+        return base_constant
+
     def add_kernel_config_options(self, **kwargs):
         """Add the kwargs as kernel config options for this profile."""
         for k, v in kwargs.iteritems():

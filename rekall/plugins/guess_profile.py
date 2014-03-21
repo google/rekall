@@ -149,7 +149,9 @@ class ProfileHook(kb.ParameterHook):
     def ApplyFindDTB(self, find_dtb_cls, profile):
         # Try to load the dtb with this profile. If it works, this is likely
         # correct.
-        find_dtb_plugin = find_dtb_cls(profile=profile, session=self.session)
+        self.session.profile = profile
+
+        find_dtb_plugin = find_dtb_cls(session=self.session)
 
         for address_space in find_dtb_plugin.address_space_hits():
             # Might as well cache the results of this plugin so we dont need to
