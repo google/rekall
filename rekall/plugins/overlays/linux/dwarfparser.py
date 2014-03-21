@@ -18,12 +18,77 @@
 #
 
 """A parser for dwarf modules which generates vtypes."""
-
+from elftools import construct
+from elftools.dwarf import callframe
+from elftools.dwarf import compileunit
 from elftools.dwarf import descriptions
+from elftools.dwarf import dwarfinfo
+from elftools.dwarf import enums
+from elftools.dwarf import structs as dwarf_structs
 from elftools.elf import elffile
 
 from rekall import plugin
 from rekall import utils
+
+
+def PatchPyElftools():
+    """Upgrade pyelftools to support DWARF 4.
+
+    Hopefully these fixes will be pushed upstream soon.
+    """
+    # Check if pyelftools already supports dwarf 4.
+    if "DW_FORM_sec_offset" not in enums.ENUM_DW_FORM:
+        enums.ENUM_DW_FORM.update(dict(
+            DW_FORM_sec_offset=0x17,
+            DW_FORM_exprloc=0x18,
+            DW_FORM_flag_present=0x19,
+            DW_FORM_ref_sig8=0x20,
+            ))
+
+        class Implicit(object):
+            def parse_stream(self, _):
+                """This form consumes no data."""
+                return True
+
+        class DWARFStructs(dwarf_structs.DWARFStructs):
+            def _create_dw_form(self):
+                super(DWARFStructs, self)._create_dw_form()
+
+                self.Dwarf_dw_form.update(dict(
+                    DW_FORM_sec_offset=self.Dwarf_offset(''),
+                    DW_FORM_exprloc=construct.PrefixedArray(
+                        subcon=self.Dwarf_uint8('elem'),
+                        length_field=self.Dwarf_uleb128('')),
+                    DW_FORM_flag_present=Implicit(),
+                    DW_FORM_ref_sig8=self.Dwarf_uint64(''),
+                    ))
+
+        dwarf_structs.DWARFStructs = DWARFStructs
+        dwarfinfo.DWARFStructs = DWARFStructs
+        callframe.DWARFStructs = DWARFStructs
+
+        class DWARFInfo(dwarfinfo.DWARFInfo):
+            def _is_supported_version(self, version):
+                return 2 <= version <= 4
+
+        dwarfinfo.DWARFInfo = DWARFInfo
+        elffile.DWARFInfo = DWARFInfo
+
+        class CompileUnit(compileunit.CompileUnit):
+            def iter_DIEs(self):
+                try:
+                    self._parse_DIEs()
+                except IndexError:
+                    pass
+
+                return iter(self._dielist)
+
+        compileunit.CompileUnit = CompileUnit
+        dwarfinfo.CompileUnit = CompileUnit
+
+
+# Ensure Pyelftools is patched to support DWARF 4.
+PatchPyElftools()
 
 
 class DIETag(object):
@@ -44,7 +109,8 @@ class DIETag(object):
     def name(self):
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value
-        elif "DW_AT_sibling" in self.attributes:
+        elif ("DW_AT_sibling" in self.attributes and
+              self.attributes["DW_AT_sibling"].value in self.types):
             return self.types[self.attributes["DW_AT_sibling"].value].name
         else:
             return "__unnamed_%s" % self.die.offset
@@ -205,9 +271,6 @@ class DW_TAG_member(DIETag):
         return self.types[self.type_id]
 
     def VType(self):
-        if self.type_id not in self.types:
-            import pdb; pdb.set_trace()
-
         member_type = self.delegate().VType()
 
         # Does this member represent a bitfield?
@@ -379,6 +442,7 @@ class DwarfParser(plugin.Command):
 
     def __init__(self, filename=None, profile_class=None, **kwargs):
         super(DwarfParser, self).__init__(**kwargs)
+
         self.parser = DWARFParser(open(filename, "rb"), self.session)
         self.profile_class = profile_class
 
