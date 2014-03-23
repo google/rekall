@@ -26,6 +26,7 @@ OS's
 """
 import datetime
 import distorm3
+import logging
 import pytz
 import re
 import socket
@@ -50,7 +51,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     Note that these strings are _not_ text strings - they are effectively bytes
     arrays and therefore are not encoded in any particular unicode encoding.
     """
-    def __init__(self, length=1024, term="\x00", **kwargs):
+    def __init__(self, length=1024, max_length=1024000, term="\x00", **kwargs):
         """Constructor.
 
         Args:
@@ -66,6 +67,10 @@ class String(obj.StringProxyMixIn, obj.NativeType):
             length = length(self.obj_parent)
 
         self.term = term
+        if length > max_length:
+            logging.warn("%s@%#x truncated", self.obj_name, self.obj_offset)
+            length = 0
+
         self.length = int(length)
 
     def startswith(self, other):
