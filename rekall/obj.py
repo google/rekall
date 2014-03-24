@@ -1181,6 +1181,10 @@ class Profile(object):
     # This hold the executable code compiled from the vtypes above.
     types = None
 
+    # This holds the entity generators indexed by the class of entity they
+    # generate.
+    generators = None
+
     # This is the base class for all profiles.
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
@@ -1305,6 +1309,7 @@ class Profile(object):
 
         self.overlays = []
         self.vtypes = {}
+        self.generators = {}
         self.constants = {}
         self.constant_addresses = utils.SortedCollection(key=lambda x: x[0])
         self.enums = {}
@@ -1348,6 +1353,7 @@ class Profile(object):
         # pylint: disable=protected-access
         result = self.__class__(name=self.name, session=self.session)
         result.vtypes = self.vtypes.copy()
+        result.generators = self.generators.copy()
         result.overlays = self.overlays[:]
         result.constants = self.constants.copy()
         result.constant_addresses = self.constant_addresses.copy()
@@ -1371,6 +1377,7 @@ class Profile(object):
         other.EnsureInitialized()
 
         self.vtypes.update(other.vtypes)
+        self.generators.update(other.generators)
         self.overlays += other.overlays
         self.constants.update(other.constants)
         self.object_classes.update(other.object_classes)
@@ -1701,6 +1708,33 @@ class Profile(object):
         self.flush_cache()
         self.overlays.append(copy.deepcopy(overlay))
         self.known_types.update(overlay)
+
+    def add_generator(self, entity_cls, generator):
+        """Add a generator for a particular entity class.
+
+        Arguments:
+          generator: A Callable that takes instance of Session as argument
+          and yields instances of entity_cls.
+
+          entity_cls: A subclass of Entity.
+        """
+        self.generators.setdefault(entity_cls, []).append(generator)
+
+    def entity_generators(self, entity_cls, subclasses=True):
+        """Get generators that return a particular entity class.
+
+        Arguments:
+          subclasses (default: True): Include generators for subclasses too.
+
+        Yields:
+          Callables that take session as argument and return instances of
+          entity_cls.
+        """
+        for cls, generators in self.generators.iteritems():
+            if (entity_cls == cls
+                or (subclasses and issubclass(cls, entity_cls))):
+                for generator in generators:
+                    yield generator
 
     def _apply_type_overlay(self, type_member, overlay):
         """Update the overlay with the missing information from type.
