@@ -271,8 +271,7 @@ class Enumeration(obj.NativeType):
         elif not choices:
             choices = {}
 
-        # Force the keys to be integers to trap misuse.
-        self.choices = dict((int(x), y) for x, y in choices.items())
+        self.choices = choices
         self.default = default
         if callable(value):
             value = value(self.obj_parent)
@@ -300,7 +299,7 @@ class Enumeration(obj.NativeType):
     def __unicode__(self):
         value = self.v()
         return self.choices.get(value, self.default) or (
-            "UNKNOWN (%s)" % str(value))
+            u"UNKNOWN (%s)" % utils.SmartUnicode(value))
 
     def __eq__(self, other):
         if isinstance(other, (int, long)):
@@ -420,6 +419,10 @@ class ListMixIn(object):
                 # Only yield valid objects (In case of dangling links).
                 yield task
 
+    def list_of_type_fast(self, type, member):
+        for lst in self.walk_list(self._forward):
+            yield container_of(lst, type, member)
+
     def reflect(self, vm=None):
         """Reflect this list element by following its Flink and Blink.
 
@@ -444,6 +447,9 @@ class ListMixIn(object):
             return obj.NoneObject("Flink and Blink not consistent.")
 
         return result1
+
+    def empty(self):
+        return self.m(self._forward) == self.m(self._backward)
 
     def __nonzero__(self):
         ## List entries are valid when both Flinks and Blink are valid
@@ -569,7 +575,7 @@ class IndexedArray(obj.Array):
         except ValueError:
             self.index_table = dict((y, int(x)) for x, y in index_table.items())
 
-        if self.count is None:
+        if self.count == 0:
             self.count = len(index_table)
 
     def __getitem__(self, item):

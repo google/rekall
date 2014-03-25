@@ -39,7 +39,6 @@ import distorm3
 import re
 
 from rekall import config
-from rekall import obj
 from rekall import plugin
 from rekall import testlib
 
@@ -142,44 +141,12 @@ class Disassemble(plugin.Command):
                 if offset - buffer_offset > 0x1000:
                     break
 
-
-    def format_address(self, operand):
-        # Try to locate the symbol below it.
-        offset, name = self.resolver.get_nearest_constant_by_address(
-            operand)
-
-        difference = operand - offset
-        if name:
-            if difference == 0:
-                return name
-
-            elif 0 < difference < 0x1000:
-                return "%s + 0x%X" % (name, operand - offset)
-
-    def format_relative_address(self, address):
-        address = obj.Pointer.integer_to_address(address)
-
-        # Try to locate the symbol below it.
-        offset, name = self.resolver.get_nearest_constant_by_address(
-            address)
-        difference = address - offset
-
-        if name:
-            if difference == 0:
-                return "%s" % (name)
-
-            elif 0 < difference < 0x1000:
-                return "%s+0x%X" % (
-                    name, address - offset)
-
-        return ""
-
     def format_indirect(self, operand):
         target = self.session.profile.Object(
             "address", offset=operand, vm=self.address_space).v()
 
-        target_name = self.format_relative_address(target)
-        operand_name = self.format_relative_address(operand)
+        target_name = self.resolver.format_address(target)
+        operand_name = self.resolver.format_address(operand)
 
         if target_name:
             return "0x%X %s -> %s" % (target, operand_name, target_name)
@@ -203,7 +170,7 @@ class Disassemble(plugin.Command):
         match = self.SIMPLE_REFERENCE.search(instruction)
         if match:
             operand = int(match.group(0), 16)
-            return self.format_address(operand) or ""
+            return self.resolver.format_address(operand) or ""
 
         return ""
 

@@ -18,8 +18,19 @@
 #
 import time
 
-VERSION = "1.0rc3"
+VERSION = "1.0rc7"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
+
+PROFILE_REPOSITORY = "http://profiles.rekall.googlecode.com/git/"
+
+# This is the last supported version of the profile repository. When the user
+# specifies the profile repository above, we really use the below. This allows
+# us to fix the version of the repository which a Rekall release uses, so it
+# does not break when changes are made to the profile repository in future which
+# are incompatible with the released version.
+SUPPORTED_PROFILE_REPOSITORY = (
+    "http://profiles.rekall.googlecode.com/git-history/"
+    "f3b473709b43678de6891fec3bedef93d24739bd/")
 
 BANNER = """
 ----------------------------------------------------------------------------

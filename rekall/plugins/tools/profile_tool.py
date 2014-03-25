@@ -565,7 +565,6 @@ class BuildIndex(plugin.Command):
             "--spec", default=None,
             help="An Index specification file.")
 
-
     def __init__(self, spec=None, **kwargs):
         super(BuildIndex, self).__init__(**kwargs)
         self.spec = spec
@@ -600,6 +599,9 @@ class BuildIndex(plugin.Command):
                     index[relative_path] = []
                     for sym_spec in spec["symbols"]:
                         shift = sym_spec.get("shift", 0)
+                        if "$CONSTANTS" not in data:
+                            continue
+
                         offset = data["$CONSTANTS"].get(sym_spec["name"])
 
                         if not offset:

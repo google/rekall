@@ -138,7 +138,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
                                    ('Ord', 'ord', '5')])
 
             for dll, name, ordinal in self.pe_helper.ImportDirectory():
-                renderer.table_row(u"%s!%s" % (dll, name), ordinal)
+                renderer.table_row(u"%s!%s" % (dll, name or ""), ordinal)
 
             if self.verbosity >= 2:
                 renderer.format("\nImport Address Table:\n")
@@ -168,14 +168,18 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
                 status = 'M' if function.dereference() else "-"
 
                 # Resolve the exported function through the symbol resolver.
-                symbol_name = resolver.get_constant_by_address(
-                    function)
+                symbol_name = resolver.format_address(function)
+                if symbol_name:
+                    symbol_name = u"%s!%s (%s)" % (
+                        dll, name or "", symbol_name)
+                else:
+                    symbol_name = u"%s!%s" % (dll, name or "")
 
                 renderer.table_row(
                     function,
                     status,
                     ordinal,
-                    u"%s!%s (%s)" % (dll, name, symbol_name))
+                    symbol_name)
 
         renderer.format("Version Information:\n")
         renderer.table_header([('key', 'key', '<20'),
@@ -209,9 +213,9 @@ class ProcInfo(common.WinProcessFilter):
                 continue
 
             renderer.format("\nProcess Environment\n")
-            # The environment is just a sentinal terminated array of strings.
+            # The environment is just a sentinel terminated array of strings.
             for line in task.Peb.ProcessParameters.Environment:
-                renderer.format("   %s\n" % line)
+                renderer.format("   {0}\n", line)
 
             renderer.format("\nPE Infomation\n")
 

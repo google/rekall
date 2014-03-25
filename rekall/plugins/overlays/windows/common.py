@@ -23,6 +23,7 @@
 
 """Common windows overlays and classes."""
 
+import struct
 
 from rekall import obj
 from rekall import utils
@@ -70,8 +71,8 @@ windows_overlay = {
             # The processor block has varying names between windows versions so
             # we just make them synonyms.
             'ProcessorBlock': lambda x: x.m("Prcb") or x.m("PrcbData"),
-            '_IDT': lambda x: x.m("IDT") or x.m("IdtBase"),
-            '_GDT': lambda x: x.m("GDT") or x.m("GdtBase"),
+            'IDT': lambda x: x.m("IDT") or x.m("IdtBase"),
+            'GDT': lambda x: x.m("GDT") or x.m("GdtBase"),
             'KdVersionBlock': [None, ['Pointer', dict(
                         target='_KDDEBUGGER_DATA64')]],
             }],
@@ -226,13 +227,13 @@ windows_overlay = {
     # The environment is a null termionated _UNICODE_STRING array. Print with
     # list(eprocess.Peb.ProcessParameters.Environment)
     '_RTL_USER_PROCESS_PARAMETERS': [None, {
-            'Environment': [None, ['Pointer', {
-                        'target': 'ListArray',
-                        'target_args': {
-                            'target': "UnicodeString"
-                            }
-                        }]],
-            }],
+        'Environment': [None, ['Pointer', dict(
+            target='SentinelListArray',
+            target_args=dict(
+                target="UnicodeString",
+                )
+            )]],
+        }],
 
     '_DEVICE_OBJECT': [None, {
             'DeviceType': [None, ['Enumeration', dict(choices={
@@ -388,6 +389,13 @@ windows_overlay = {
                    x.Size * x.obj_profile.get_obj_size("_HEAP_ENTRY")),
             vm=x.obj_vm)
         }],
+
+    '_DISPATCHER_HEADER': [None, {
+        "Type": [None, ["Enumeration", dict(
+            enum_name="_KOBJECTS",
+            target="unsigned char",
+            )]],
+        }],
 }
 
 
@@ -400,6 +408,11 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
     @property
     def base(self):
         return int(self.DllBase)
+
+    @property
+    def end(self):
+        """The end address of this module's code in memory."""
+        return int(self.DllBase) + int(self.SizeOfImage)
 
     @property
     def RSDS(self):
@@ -416,7 +429,7 @@ class _UNICODE_STRING(obj.Struct):
     Adds the following behavior:
       * The Buffer attribute is presented as a Python string rather
         than a pointer to an unsigned short.
-      * The __str__ method returns the value of the Buffer.
+      * The __unicode__ method returns the value of the Buffer.
     """
 
     def v(self, vm=None):
@@ -798,8 +811,8 @@ class _HANDLE_TABLE(obj.Struct):
         level = self.TableCode & LEVEL_MASK
 
         for i, handle in enumerate(self._make_handle_array(table, level)):
-            # New object header
-            if handle.m("TypeIndex") != 0x0 or handle.m("Type").Name:
+            # New object header uses TypeIndex.
+            if handle.m("TypeIndex") > 0x0 or handle.m("Type").Name:
                 handle.HandleValue = i * 4
 
                 yield handle
@@ -961,10 +974,11 @@ class _CM_KEY_BODY(obj.Struct):
             kcb = kcb.ParentKcb
         return "\\".join(reversed(output))
 
+
 class _MMVAD_FLAGS(obj.Struct):
     """This is for _MMVAD_SHORT.u.VadFlags"""
 
-    def __str__(self):
+    def __unicode__(self):
         result = []
         for name in sorted(self.members):
             if name.endswith("Enum"):
@@ -1074,6 +1088,55 @@ class _HEAP(obj.Struct):
                 yield entry
 
 
+class _KTIMER(obj.Struct):
+    @property
+    def Dpc(self):
+        # On Windows 7 Patch guard obfuscates the DPC address.
+        self.KiWaitNever = self.obj_profile.get_constant_object(
+            "KiWaitNever", "unsigned long long")
+        if not self.KiWaitNever:
+            return self.m("Dpc")
+
+        self.KiWaitAlways = self.obj_profile.get_constant_object(
+            "KiWaitAlways", "unsigned long long")
+
+        return self._DeobfuscateDpc()
+
+    def _byteswap(self, value):
+        return struct.unpack(">Q", struct.pack("<Q", value))[0]
+
+    def _Rol64(self, value, bits):
+        return ((value << bits % 64) & (2**64-1) |
+                ((value & (2**64-1)) >> (64-(bits % 64))))
+
+    def _DeobfuscateDpc(self):
+        # Reference:
+        # http://uninformed.org/index.cgi?v=8&a=5&p=10
+
+        # ------ nt!KiSetTimerEx ------
+        # MOV RAX, [RIP+0x229bf0]        0x6D7CFFA404933FBB nt!KiWaitNever
+        # MOV RBX, [RIP+0x229cc1]        0x933DD660CFFF8004 nt!KiWaitAlways
+        # MOV R14, [RSP+0xb0]    <----- DPC
+        # XOR RBX, R14
+        # ...
+        # BSWAP RBX
+        # ...
+        # XOR RBX, RCX  <---- Timer object.
+        # MOV ECX, EAX
+        # ROR RBX, CL
+        # XOR RBX, RAX  <--- Obfuscated DPC
+        Obfuscated = self.m("Dpc").cast("unsigned long long")
+
+        Deobfuscated = Obfuscated ^ self.KiWaitNever
+        Deobfuscated = self._Rol64(Deobfuscated, 0xFF & self.KiWaitNever)
+        Deobfuscated = Deobfuscated ^ (self.obj_offset | 0xffff000000000000)
+        Deobfuscated = self._byteswap(Deobfuscated)
+        Deobfuscated = Deobfuscated ^ self.KiWaitAlways
+
+        return self.obj_profile._KDPC(Deobfuscated, parent=self,
+                                      vm=self.obj_vm)
+
+
 def InitializeWindowsProfile(profile):
     """Install the basic windows overlays."""
     profile.add_types({
@@ -1097,6 +1160,10 @@ def InitializeWindowsProfile(profile):
             '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
             "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
             "_HEAP": _HEAP,
+            "_KTIMER": _KTIMER,
+            "RVAPointer": pe_vtypes.RVAPointer,
+            "SentinelArray": pe_vtypes.SentinelArray,
+            "SentinelListArray": pe_vtypes.SentinelListArray,
             })
 
     profile.add_overlay(windows_overlay)

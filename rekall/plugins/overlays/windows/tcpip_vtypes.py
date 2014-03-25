@@ -570,7 +570,6 @@ class TcpipPluginMixin(object):
 
     def __init__(self, tcpip_guid=None, **kwargs):
         super(TcpipPluginMixin, self).__init__(**kwargs)
-
         # For the address resolver to load this GUID.
         if tcpip_guid:
             self.session.SetParameter("tcpip_guid", tcpip_guid)
@@ -590,15 +589,18 @@ class Tcpip(windows.BasicPEProfile):
         super(Tcpip, cls).Initialize(profile)
 
         # Network Object Classess for Vista, 2008, and 7 x86 and x64
-        if profile.metadata("version") >= "6.0":
+        if profile.get_constant("TCP_LISTENER_ACTIVATED"):
             profile.add_classes(dict(_TCP_LISTENER=_TCP_LISTENER,
                                      _TCP_ENDPOINT=_TCP_ENDPOINT,
                                      _UDP_ENDPOINT=_UDP_ENDPOINT))
 
+        # Switch on the kernel version. FIXME: This should be done using the
+        # generate_types module.
+        version = profile.session.profile.metadata("version")
+
         if profile.metadata("arch") == "AMD64":
             # Vista SP1.
-            if (profile.metadata("version") == "6.0" and
-                profile.metadata("build") >= "6001"):
+            if version == "6.0":
                 profile.add_overlay(tcpip_vtypes_vista_64)
                 profile.add_overlay({
                         '_TCP_ENDPOINT': [None, {
@@ -607,27 +609,27 @@ class Tcpip(windows.BasicPEProfile):
                         })
 
             # Windows 7
-            elif profile.metadata("version") == "6.1":
+            elif version == "6.1":
                 profile.add_overlay(tcpip_vtypes_vista_64)
                 profile.add_overlay(tcpip_vtypes_win7_64)
 
             # Win2k3
-            elif profile.metadata("version") == "5.2":
+            elif version == "5.2":
                 profile.add_overlay(tcpip_vtypes_2003_x64)
 
         elif profile.metadata("arch") == "I386":
             profile.add_overlay(tcpip_vtypes)
 
             # Win2k3
-            if profile.metadata("version") == "5.2":
+            if version == "5.2":
                 profile.add_overlay(tcpip_vtypes_2003_sp1_sp2)
 
             # Vista
-            elif profile.metadata("version") == "6.0":
+            elif version == "6.0":
                 profile.add_overlay(tcpip_vtypes_vista)
 
             # Windows 7
-            elif profile.metadata("version") == "6.1":
+            elif version == "6.1":
                 profile.add_overlay(tcpip_vtypes_vista)
                 profile.add_overlay(tcpip_vtypes_7)
 
@@ -646,7 +648,7 @@ class TcpipHook(kb.ParameterHook):
     name = "tcpip_profile"
 
     def calculate(self):
-        index = self.session.LoadProfile("tcpip.sys/index")
+        index = self.session.LoadProfile("tcpip/index")
         image_base = self.session.address_resolver.get_address_by_name("tcpip")
 
         for guess in index.LookupIndex(image_base):

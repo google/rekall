@@ -35,6 +35,7 @@ import time
 
 from rekall import addrspace
 from rekall import config
+from rekall import constants
 from rekall import io_manager
 from rekall import plugin
 from rekall import obj
@@ -390,6 +391,8 @@ class Session(object):
         fd = kwargs.pop("fd", None)
         debug = self.GetParameter("debug", False)
         pager = self.GetParameter("pager")
+        if pager == "-":
+            pager = None
 
         # If the args came from the command line parse them now:
         flags = kwargs.get("flags")
@@ -520,12 +523,10 @@ class Session(object):
             result = None
             # The profile path is specified in search order.
             profile_path = self.state.Get("profile_path")
-
-            # Make sure that we always fallback to the built in profiles last.
-            if None not in profile_path:
-                profile_path.append(None)
-
             for path in profile_path:
+                if path == constants.PROFILE_REPOSITORY:
+                    path = constants.SUPPORTED_PROFILE_REPOSITORY
+
                 try:
                     manager = io_manager.Factory(path)
                     result = obj.Profile.LoadProfileFromData(
@@ -543,12 +544,12 @@ class Session(object):
 
                     continue
 
+        # Cache it for later. Note that this also caches failures so we do not
+        # retry again.
+        self.profile_cache[canonical_name] = result
         if not result:
             raise ValueError("Unable to load profile %s from any repository." %
                              filename)
-
-        # Cache it for later.
-        self.profile_cache[canonical_name] = result
 
         return result
 

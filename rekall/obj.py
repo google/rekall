@@ -175,7 +175,7 @@ class NoneObject(object):
             reason = self.reason.format(*self.args)
             logging.error("{0}\n{1}".format(reason, self.bt))
 
-        return ""
+        return "-"
 
     def __repr__(self):
         reason = self.reason.format(*self.args)
@@ -208,11 +208,19 @@ class NoneObject(object):
     def __nonzero__(self):
         return False
 
+    # Comparisons.
     def __eq__(self, other):
         return other is None
 
-    def __ne__(self, _):
+    def __ne__(self, other):
+        return other is not None
+
+    def __gt__(self, _):
         return False
+
+    __lt__ = __gt__
+    __le__ = __gt__
+    __ge__ = __gt__
 
     ## Make us subscriptable obj[j]
     def __getitem__(self, item):
@@ -398,7 +406,7 @@ class BaseObject(object):
 
     def cast(self, type_name=None, vm=None, **kwargs):
         return self.obj_profile.Object(
-            type_name=type_name, offset=self.obj_offset,
+            type_name=type_name or self.obj_type, offset=self.obj_offset,
             vm=vm or self.obj_vm, parent=self.obj_parent,
             context=self.obj_context, **kwargs)
 
@@ -414,7 +422,7 @@ class BaseObject(object):
                 self.obj_name), self.obj_profile)
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return utils.SmartStr(self)
 
     def __unicode__(self):
         return utils.SmartUnicode(self.v())
@@ -801,7 +809,7 @@ class Array(BaseObject):
 
     target_size = 0
 
-    def __init__(self, count=100000, target=None, target_args=None,
+    def __init__(self, count=0, target=None, target_args=None,
                  target_size=None, max_count=100000, **kwargs):
         """Instantiate an array of like items.
 
@@ -809,6 +817,10 @@ class Array(BaseObject):
           count: How many items belong to the array (not strictly enforced -
             i.e. it is possible to read past the end). By default the array is
             unbound.
+
+          max_count: The maximum size of the array. This is a safety mechanism
+            if count is calculated. max_count should be set to an upper bound on
+            the size of the array.
 
           target: The name of the element to be instantiated on each point. The
             size of the object returned by this should be the same for all
@@ -823,7 +835,7 @@ class Array(BaseObject):
         if callable(target_size):
             target_size = target_size(self.obj_parent)
 
-        self.count = int(count)
+        self.count = count
         self.max_count = max_count
 
         if not target:
@@ -836,7 +848,8 @@ class Array(BaseObject):
         if self.target_size is None:
             self.target_size = self.obj_profile.Object(
                 self.target, offset=self.obj_offset, vm=self.obj_vm,
-                profile=self.obj_profile, **self.target_args).size()
+                profile=self.obj_profile, parent=self,
+                **self.target_args).size()
 
     def size(self):
         """The size of the entire array."""
@@ -845,14 +858,23 @@ class Array(BaseObject):
     def __iter__(self):
         # If the array is invalid we do not iterate.
         if self.obj_vm.is_valid_address(self.obj_offset):
-            for position in range(0, min(self.max_count, self.count)):
+            for position in range(0, self.count):
+                # Since we often calculate array counts it is possible to
+                # calculate huge arrays. This will then spin here
+                # uncontrollably. We use max_count as a safety to break out
+                # early - but we need to ensure that users see we hit this
+                # artificial limit.
+                if position > self.max_count:
+                    logging.warn("%s Array iteration truncated by max_count!",
+                                 self.obj_name)
+                    break
+
                 # We don't want to stop on a NoneObject.  Its
                 # entirely possible that this array contains a bunch of
                 # pointers and some of them may not be valid (or paged
                 # in). This should not stop us though we just return the
                 # invalid pointers to our callers.  It's up to the callers
                 # to do what they want with the array.
-
                 yield self[position]
 
     def __repr__(self):
@@ -871,7 +893,7 @@ class Array(BaseObject):
         return u"\n".join(result)
 
     def __eq__(self, other):
-        if self.count != len(other):
+        if not other or self.count != len(other):
             return False
 
         for i in range(self.count):
@@ -909,11 +931,18 @@ class Array(BaseObject):
 class ListArray(Array):
     """An array of structs which do not all have the same size."""
 
-    def __init__(self, maximum_size=1024, maximum_offset=None, **kwargs):
+    def __init__(self, maximum_size=None, maximum_offset=None, **kwargs):
         """Constructor.
 
-        Args:
-          maximum_size: The maximum size of the array in bytes.
+        This array may be initialized using one of the following parameters:
+
+        maximum_size: The maximum size of the array in bytes.
+        maximum_offset: If we reach this offset iteration is terminated.
+        count: The total count of items in this list.
+
+        max_count: The maximum size of the array. This is a safety mechanism if
+          count is calculated. max_count should be set to an upper bound on the
+          size of the array.
         """
         super(ListArray, self).__init__(**kwargs)
         if callable(maximum_size):
@@ -922,12 +951,40 @@ class ListArray(Array):
         if callable(maximum_offset):
             maximum_offset = int(maximum_offset(self.obj_parent))
 
-        self.maximum_offset = maximum_offset or (self.obj_offset + maximum_size)
+        # Check the values for sanity.
+        if self.count == 0 and maximum_size is None and maximum_offset is None:
+            raise TypeError(
+                "One of count, maximum_offset, maximum_size must be specified.")
+
+        if maximum_size is not None:
+            maximum_offset = self.obj_offset + maximum_size
+
+        self.maximum_offset = maximum_offset
+
+    def __len__(self):
+        """It is generally too expensive to rely on the count of this array."""
+        raise NotImplementedError
+
+    def size(self):
+        """It is generally too expensive to rely on the size of this array."""
+        raise NotImplementedError
 
     def __iter__(self):
         offset = self.obj_offset
         count = 0
-        while offset < self.maximum_offset and count < self.count:
+        while 1:
+            # Exit conditions.
+            if self.maximum_offset and offset > self.maximum_offset:
+                break
+
+            if self.count and count >= self.count:
+                break
+
+            if count >= self.max_count:
+                logging.warn("%s ListArray iteration truncated by max_count!",
+                             self.obj_name)
+                break
+
             if not self.obj_vm.is_valid_address(offset):
                 return
 
@@ -1187,7 +1244,6 @@ class Profile(object):
 
     # This is the base class for all profiles.
     __metaclass__ = registry.MetaclassRegistry
-    __abstract = True
 
     # This is a dict of constants
     constants = None
@@ -1355,6 +1411,8 @@ class Profile(object):
         result.vtypes = self.vtypes.copy()
         result.generators = self.generators.copy()
         result.overlays = self.overlays[:]
+        result.enums = self.enums.copy()
+        result.reverse_enums = self.reverse_enums.copy()
         result.constants = self.constants.copy()
         result.constant_addresses = self.constant_addresses.copy()
         result.applied_modifications = self.applied_modifications[:]
@@ -1431,8 +1489,11 @@ class Profile(object):
 
     def add_enums(self, **kwargs):
         """Add the kwargs as an enum for this profile."""
+        # Alas JSON converts integer keys to strings.
         for k, v in kwargs.iteritems():
-            self.enums[k] = v
+            self.enums[k] = enum_definition = {}
+            for enum, name in v.items():
+                enum_definition[int(enum)] = name
 
     def add_types(self, abstract_types):
         self.flush_cache()
@@ -1684,12 +1745,7 @@ class Profile(object):
         ACCESS_LOG.LogFieldAccess(self.name, name, member)
 
         tmp = self._get_dummy_obj(name)
-        if not tmp:
-            return tmp
-
-        offset, _cls = tmp.members[member]
-
-        return offset
+        return tmp.members.get(member, NoneObject("No member"))[0]
 
     def get_obj_size(self, name):
         """Returns the size of a struct"""
@@ -1961,7 +2017,6 @@ class Profile(object):
           parent: The object can maintain a reference to its parent object.
         """
         name = name or type_name
-
         if session is None:
             session = self.session
 

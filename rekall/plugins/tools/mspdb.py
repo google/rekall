@@ -339,7 +339,7 @@ mspdb_overlays = {
 
                         # Total length is determined by the size of the
                         # container.
-                        maximum_size=lambda x: x.obj_parent.length - 2
+                        maximum_size=lambda x: x.obj_parent.length - 2,
                         )]],
             }],
 
@@ -483,7 +483,7 @@ class lfClass(obj.Struct):
             # The field type is an LF_ENUM which determines which struct this
             # is.
             type_enum_name = self.obj_profile.get_enum(
-                "_LEAF_ENUM_e").get(str(field_type))
+                "_LEAF_ENUM_e").get(int(field_type))
 
             type_name = LEAF_ENUM_TO_TYPE.get(type_enum_name)
 
@@ -859,7 +859,8 @@ class PDBParser(object):
         if stream is None:
             return
 
-        for section in self.profile.Array(
+        for section in self.profile.ListArray(
+            maximum_size=stream.size,
             target="IMAGE_SECTION_HEADER", vm=stream):
             self.sections.append(section)
 
@@ -883,6 +884,7 @@ class PDBParser(object):
         omap_array = self.profile.Array(
             vm=omap_address_space,
             count=omap_stream.size / self.profile.get_obj_size("_OMAP_DATA"),
+            max_count=omap_stream.size,
             target="_OMAP_DATA")
 
         for i, omap in enumerate(omap_array):
@@ -910,12 +912,12 @@ class PDBParser(object):
                 logging.warning("Unimplemented symbol %s" % container.rectyp)
                 continue
 
-            # It is a function - de-mangle the name.
-            if symbol.pubsymflags.u1.fFunction:
-                #print "Function", symbol.off, symbol.name
-                pass
+            try:
+                name = str(symbol.name)
+            except AttributeError:
+                # We do not support symbols without name (e.g. annotations).
+                continue
 
-            name = str(symbol.name)
             translated_offset = offset = int(symbol.off)
 
             # Some files do not have OMAP information or section information. In
@@ -955,7 +957,7 @@ class PDBParser(object):
 
         # Extract ALL enumerations, even if they are not referenced by any
         # structs.
-        for key, value in self.lookup.iteritems():
+        for value in self.lookup.values():
             if value.type_enum == "LF_ENUM":
                 value.type.AddEnumeration(self)
 
@@ -997,6 +999,7 @@ class PDBParser(object):
         """Return the vtype definition of the item identified by idx."""
         if idx < 0x700:
             type_name = self._TYPE_ENUM_e.get(idx)
+
             return self.TYPE_ENUM_TO_VTYPE.get(type_name)
 
         try:
@@ -1035,17 +1038,25 @@ class ParsePDB(plugin.Command):
             "corresponding with this PDB. For example, Windows 7 "
             "should be given as 6.1")
 
+        parser.add_argument(
+            "--concise", default=False, action="store_true",
+            help="Specify this to emit less detailed information.")
+
     def __init__(self, filename=None, profile_class=None, windows_version=None,
-                 metadata=None, **kwargs):
+                 metadata=None, concise=False, **kwargs):
         super(ParsePDB, self).__init__(**kwargs)
         self.filename = filename
+        self.metadata = metadata or {}
+        self.concise = concise
+
+        profile_class = self.metadata.get("ProfileClass", profile_class)
 
         # By default select the class with the same name as the pdb file.
         if profile_class is None:
-            profile_class = os.path.splitext(self.filename)[0].capitalize()
+            profile_class = os.path.splitext(
+                os.path.basename(self.filename))[0].capitalize()
 
         self.profile_class = profile_class
-        self.metadata = metadata or {}
 
         versions = []
         if windows_version is not None:
@@ -1084,8 +1095,10 @@ class ParsePDB(plugin.Command):
             "$METADATA": self.metadata,
             "$STRUCTS": vtypes,
             "$ENUMS": self.tpi.enums,
-            "$REVENUMS": self.tpi.rev_enums,
-            "$CONSTANTS": self.tpi.constants
             }
+
+        if not self.concise:
+            result["$REVENUMS"] = self.tpi.rev_enums
+            result["$CONSTANTS"] = self.tpi.constants
 
         renderer.write(utils.PPrint(result))
