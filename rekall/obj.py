@@ -1485,7 +1485,7 @@ class Profile(object):
     def add_reverse_enums(self, **kwargs):
         """Add the kwargs as a reverse enum for this profile."""
         for k, v in kwargs.iteritems():
-            self.reverse_enums[k] = v
+            self.reverse_enums[k] = str(v)
 
     def add_enums(self, **kwargs):
         """Add the kwargs as an enum for this profile."""
@@ -1493,7 +1493,7 @@ class Profile(object):
         for k, v in kwargs.iteritems():
             self.enums[k] = enum_definition = {}
             for enum, name in v.items():
-                enum_definition[int(enum)] = name
+                enum_definition[str(enum)] = name
 
     def add_types(self, abstract_types):
         self.flush_cache()

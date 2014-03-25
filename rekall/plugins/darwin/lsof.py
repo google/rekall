@@ -68,4 +68,3 @@ class DarwinLsof(common.DarwinProcessFilter):
                                open_file["fd"],
                                open_file["fileproc"].human_type,
                                open_file["fileproc"].human_name)
-

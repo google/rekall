@@ -271,7 +271,9 @@ class Enumeration(obj.NativeType):
         elif not choices:
             choices = {}
 
-        self.choices = choices
+        # Due to the way JSON serializes dicts, we must always operate on the
+        # choices dict with string keys.
+        self.choices = dict((str(k), v) for k, v in choices.iteritems())
         self.default = default
         if callable(value):
             value = value(self.obj_parent)
@@ -291,6 +293,7 @@ class Enumeration(obj.NativeType):
         if self.value is None:
             return self.target_obj.v(vm=vm)
 
+        # This return an instance of the target type.
         return self.value
 
     def write(self, data):
@@ -298,17 +301,18 @@ class Enumeration(obj.NativeType):
 
     def __unicode__(self):
         value = self.v()
-        return self.choices.get(value, self.default) or (
+        # Choices dict keys are always strings.
+        return self.choices.get(utils.SmartStr(value), self.default) or (
             u"UNKNOWN (%s)" % utils.SmartUnicode(value))
 
     def __eq__(self, other):
         if isinstance(other, (int, long)):
-            return self.v() == other
+            return self.v() == str(other)
 
         # Search the choices.
         for k, v in self.choices.iteritems():
             if v == other:
-                return self.v() == k
+                return str(self.v()) == k
 
     def __repr__(self):
         return "%s (%s)" % (super(Enumeration, self).__repr__(),
