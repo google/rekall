@@ -586,6 +586,39 @@ class PtoV(common.WinProcessFilter):
                             "{1!r}\n", self.physical_address, result)
 
 
+class DTBScan2(common.WindowsCommandPlugin):
+    """A Fast scanner for hidden DTBs.
+
+    This scanner uses the fact that the virtual address of the DTB is always the
+    same. We walk over all the physical pages, assume each page is a DTB and try
+    to resolve the constant to a physical address.
+    """
+
+    name = "dtbscan2"
+
+    def render(self, renderer):
+        kernel_base = self.session.GetParameter("kernel_base")
+        physical_kernel_base = self.kernel_address_space.vtop(kernel_base)
+        phys_as = self.physical_address_space
+
+        renderer.table_header([("DTB", "dtb", "[addrpad]"),
+                               ("Base", "dtb", "[addrpad]"),
+                               ("Phys", "dtb", "[addrpad]"),
+                               ])
+
+        # On 64 bit images DTBs are aligned to page boundaries.
+        dtb_step = 0x1000
+
+        for start, _, length in phys_as.get_available_addresses():
+            for page in range(start, start+length, dtb_step):
+                test_as = self.session.kernel_address_space.__class__(
+                    dtb=page, base=phys_as)
+
+                if test_as.vtop(kernel_base) == physical_kernel_base:
+                    renderer.table_row(
+                        page, kernel_base, test_as.vtop(kernel_base))
+
+
 class DTBScan(common.WinProcessFilter):
     """Scans the physical memory for DTB values.
 

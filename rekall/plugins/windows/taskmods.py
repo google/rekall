@@ -147,3 +147,45 @@ class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
 
             with open(os.path.join(self.dump_dir, filename), 'wb') as fd:
                 self.dump_process(task, fd)
+
+
+class Threads(plugin.VerbosityMixIn, common.WinProcessFilter):
+    """Enumerate threads."""
+    name = "threads"
+
+    def render(self, renderer):
+        headers = [("Offset", "offset", "[addrpad]"),
+                   ("PID", "pid", ">6"),
+                   ("TID", "tid", ">6"),
+                   ("Start Address", "start", "[addr]"),
+                   ("Process", "name", "16"),
+                   ]
+
+        if self.verbosity > 1:
+            headers.append(("Symbol", "symbol", ""))
+
+        cc = self.session.plugins.cc()
+        renderer.table_header(headers)
+
+        for task in self.filter_processes():
+            with cc:
+                # Resolve names in the process context.
+                cc.SwitchProcessContext(process=task)
+
+                for thread in task.ThreadListHead.list_of_type(
+                    "_ETHREAD", "ThreadListEntry"):
+
+                    columns = [thread,
+                               thread.Cid.UniqueProcess,
+                               thread.Cid.UniqueThread,
+                               thread.StartAddress,
+                               task.ImageFileName,
+                               ]
+
+                    if self.verbosity > 1:
+                        columns.append(
+                            self.session.address_resolver.format_address(
+                                thread.StartAddress, max_distance=0xffffffff))
+
+
+                    renderer.table_row(*columns)

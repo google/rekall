@@ -22,8 +22,9 @@
 
 """ These are standard address spaces supported by Rekall Memory Forensics """
 import struct
-import os
 import mmap
+import sys
+import os
 
 from rekall import addrspace
 
@@ -41,7 +42,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
     right at the bottom of the AS stack.)
     """
     ## We should be the AS of last resort but before the FileAddressSpace
-    order = 90
+    order = 110
     _md_image = True
 
     def __init__(self, filename=None, **kwargs):

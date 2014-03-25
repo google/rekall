@@ -149,7 +149,9 @@ class ProfileHook(kb.ParameterHook):
     def ApplyFindDTB(self, find_dtb_cls, profile):
         # Try to load the dtb with this profile. If it works, this is likely
         # correct.
-        find_dtb_plugin = find_dtb_cls(profile=profile, session=self.session)
+        self.session.profile = profile
+
+        find_dtb_plugin = find_dtb_cls(session=self.session)
 
         for address_space in find_dtb_plugin.address_space_hits():
             # Might as well cache the results of this plugin so we dont need to
@@ -171,7 +173,9 @@ class ProfileHook(kb.ParameterHook):
             rsds = pe_profile.CV_RSDS_HEADER(offset=hit, vm=address_space)
             if (rsds.Signature.is_valid() and
                 str(rsds.Filename) in self.KERNEL_NAMES):
-                profile = self.VerifyWinProfile("GUID/%s" % rsds.GUID_AGE)
+                profile = self.VerifyWinProfile(
+                    "nt/GUID/%s" % rsds.GUID_AGE)
+
                 if profile:
                     logging.info(
                         "Detected %s with GUID %s", rsds.Filename,

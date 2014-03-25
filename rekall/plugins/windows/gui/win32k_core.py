@@ -755,10 +755,10 @@ class Win32k(windows.BasicPEProfile):
             # different versions. Here we just copy them from the windows 7
             # profiles.
             if arch == "AMD64":
-                exempler = ("win32k.sys/AMD64/6.1.7601.18233/"
+                exempler = ("win32k/AMD64/6.1.7601.18233/"
                             "99227A2085CE41969CD5A06F7CC20F522")
             else:
-                exempler = ("win32k.sys/I386/6.1.7601.18233/"
+                exempler = ("win32k/I386/6.1.7601.18233/"
                             "18EB20F5448A47F5B850023FEE0B24D62")
 
             win7_profile = profile.session.LoadProfile(exempler)
@@ -857,5 +857,5 @@ class Win32kHook(kb.ParameterHook):
 
     def calculate(self):
         for _, guess in self.session.plugins.guess_guid(
-            module_name="win32k.sys").GuessProfiles():
+            module_name="win32k").GuessProfiles():
             return guess

@@ -41,17 +41,26 @@ from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays import basic
 
 
-class SentinalArray(obj.Array):
+class SentinelArray(obj.Array):
     """A sential terminated array."""
 
+    def __init__(self, max_count=100000, **kwargs):
+        # The size of this array is determined by the sentinel.
+        super(SentinelArray, self).__init__(
+            count=max_count, max_count=max_count, **kwargs)
+
     def __iter__(self):
-        """Break when the sentinal is reached."""
-        for member in super(SentinalArray, self).__iter__():
+        """Break when the sentinel is reached."""
+        for member in super(SentinelArray, self).__iter__():
             data = member.obj_vm.read(member.obj_offset, member.size())
             if data == "\x00" * member.size():
                 break
 
             yield member
+
+
+class SentinelListArray(SentinelArray, obj.ListArray):
+    """A variable sized array with a sentinel termination."""
 
 
 class RVAPointer(obj.Pointer):
@@ -60,6 +69,8 @@ class RVAPointer(obj.Pointer):
     def __init__(self, image_base=None, **kwargs):
         super(RVAPointer, self).__init__(**kwargs)
         self.image_base = image_base or self.obj_context.get("image_base", 0)
+        if callable(self.image_base):
+            self.image_base = self.image_base(self.obj_parent)
 
         # RVA pointers are always 32 bits - even on 64 bit systems.
         self._proxy = self.obj_profile.Object(
@@ -431,7 +442,7 @@ pe_overlays = {
     "_GUID": [16, {
             "Data4": [8, ["String", dict(length=8, term=None)]],
             "AsString": lambda x: ("%08x%04x%04x%s" % (
-                x.Data1, x.Data2, x.Data3, str(x.Data4).encode('hex'))).upper(),
+                x.Data1, x.Data2, x.Data3, x.Data4.v().encode('hex'))).upper(),
             }],
 
     # This struct is reversed.
@@ -675,7 +686,7 @@ class _IMAGE_DATA_DIRECTORY(obj.Struct):
 
         if self.obj_name == "IMAGE_DIRECTORY_ENTRY_IMPORT":
             return result.dereference_as(
-                target="SentinalArray", target_args=dict(
+                target="SentinelArray", target_args=dict(
                     target="_IMAGE_IMPORT_DESCRIPTOR"
                     ),
                 vm=vm,
@@ -732,7 +743,7 @@ class _IMAGE_RESOURCE_DIRECTORY_ENTRY(obj.Struct):
             return self.m("OffsetToData")
 
 
-class ThunkArray(SentinalArray):
+class ThunkArray(SentinelArray):
     """A sential terminated array of thunks."""
 
     def __init__(self, parent=None, context=None, **kwargs):
@@ -952,7 +963,7 @@ class PEProfile(basic.BasicClasses):
             '_IMAGE_SECTION_HEADER': _IMAGE_SECTION_HEADER,
             '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
             '_IMAGE_DATA_DIRECTORY': _IMAGE_DATA_DIRECTORY,
-            "SentinalArray": SentinalArray,
+            "SentinelArray": SentinelArray,
             "ThunkArray": ThunkArray,
             "RVAPointer": RVAPointer,
             "ResourcePointer": ResourcePointer,

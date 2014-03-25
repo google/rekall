@@ -79,6 +79,29 @@ AMD64 = {
             )]],
         }],
 
+    '_SERVICE_DESCRIPTOR_TABLE' : [0x40, {
+        'Descriptors' : [0x0, ['Array', dict(
+            target='_SERVICE_DESCRIPTOR_ENTRY',
+            count=2
+            )]],
+        }],
+
+    # In 64 bit the KiServiceTable is a list of RVAs based off the table base to
+    # the destination pointers.
+    # Ref:
+    # http://forum.sysinternals.com/keservicedescriptortableshadow-address_topic14093.html
+    '_SERVICE_DESCRIPTOR_ENTRY' : [0x20, {
+        'KiServiceTable' : [0x0, ['Pointer', dict(
+            target="Array",
+            target_args=dict(
+                count=lambda x: x.ServiceLimit,
+                target="int",
+                )
+            )]],
+        'CounterBaseTable' : [0x8, ['Pointer']],
+        'ServiceLimit' : [0x10, ['unsigned long long']],
+        'ArgumentTable' : [0x18, ['Pointer']],
+        }],
 }
 
 
@@ -123,4 +146,57 @@ I386 = {
             )]],
         }],
 
+    '_SERVICE_DESCRIPTOR_TABLE' : [0x20, {
+        'Descriptors' : [0x0, ['Array', dict(
+            target='_SERVICE_DESCRIPTOR_ENTRY',
+            count=2
+            )]],
+        }],
+
+    '_SERVICE_DESCRIPTOR_ENTRY' : [0x10, {
+        'KiServiceTable' : [0x0, ['Pointer', dict(
+            target="Array",
+            target_args=dict(
+                count=lambda x: x.ServiceLimit,
+                target="unsigned int",
+                )
+            )]],
+        'CounterBaseTable' : [0x4, ['Pointer']],
+        'ServiceLimit' : [0x8, ['unsigned long']],
+        'ArgumentTable' : [0xc, ['Pointer']],
+        }],
+
+}
+
+# TODO: Move to their own profile.
+# These come from the reactos ndk project.
+ENUMS = {
+  "_KOBJECTS": {
+   "0": "EventNotificationObject",
+   "1": "EventSynchronizationObject",
+   "2": "MutantObject",
+   "3": "ProcessObject",
+   "4": "QueueObject",
+   "5": "SemaphoreObject",
+   "6": "ThreadObject",
+   "7": "GateObject",
+   "8": "TimerNotificationObject",
+   "9": "TimerSynchronizationObject",
+   "10": "Spare2Object",
+   "11": "Spare3Object",
+   "12": "Spare4Object",
+   "13": "Spare5Object",
+   "14": "Spare6Object",
+   "15": "Spare7Object",
+   "16": "Spare8Object",
+   "17": "Spare9Object",
+   "18": "ApcObject",
+   "19": "DpcObject",
+   "20": "DeviceQueueObject",
+   "21": "EventPairObject",
+   "22": "InterruptObject",
+   "23": "ProfileObject",
+   "24": "ThreadedDpcObject",
+   "25": "MaximumKernelObject"
+   },
 }

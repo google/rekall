@@ -113,7 +113,7 @@ class GuessGUID(common.WindowsCommandPlugin):
         module_name = self.module.split(".")[0]
         for _, guid in self.session.plugins.version_scan(
             name_regex="^%s.pdb" % module_name).ScanVersions():
-            yield obj.NoneObject(), "GUID/%s" % guid
+            yield obj.NoneObject(), "%s/GUID/%s" % (module_name, guid)
 
     def LookupIndex(self):
         """Loookup the profile from an index."""
@@ -163,5 +163,5 @@ class GuessGUID(common.WindowsCommandPlugin):
 
 class TestGuessGUID(testlib.SimpleTestCase):
     PARAMETERS = dict(
-        commandline="guess_guid win32k.sys"
+        commandline="guess_guid win32k"
         )

@@ -27,6 +27,6 @@ from rekall.plugins.windows import procinfo
 from rekall.plugins.windows import pstree
 from rekall.plugins.windows import registry
 #from rekall.plugins.windows import sockscan
-#from rekall.plugins.windows import ssdt
+from rekall.plugins.windows import ssdt
 from rekall.plugins.windows import taskmods
 from rekall.plugins.windows import vadinfo

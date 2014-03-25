@@ -114,7 +114,7 @@ class AddressResolver(object):
 
     # The format of a symbol name. Used by get_address_by_name().
     ADDRESS_NAME_REGEX = re.compile(
-        r"(?P<module>[A-Za-z0-9\.]+)"   # Module name - can include extension
+        r"(?P<module>[A-Za-z_0-9\.]+)"  # Module name - can include extension
                                         # (.exe, .sys)
 
         r"!?"                           # ! separates module name from symbol
@@ -126,6 +126,7 @@ class AddressResolver(object):
 
     def __init__(self, session):
         self.session = session
+        self.vad = None
         self.profiles = {}
         self.Reset()
 
@@ -166,6 +167,11 @@ class AddressResolver(object):
     def _FindContainingModule(self, address):
         if self.modules:
             return self.modules.find_module(address)
+
+    def _FindProcessVad(self, address):
+        task = self.session.GetParameter("process_context")
+        if task and self.vad:
+            return self.vad.find_file_in_task(address, task)
 
     def GetState(self):
         return dict(modules=self.modules,
@@ -214,6 +220,12 @@ class AddressResolver(object):
             except AttributeError:
                 self.modules = None
 
+        if self.vad is None and hasattr(self.session.plugins, "vad"):
+            # Hold on to the vad plugin for resolving process address
+            # spaces. The vad plugin maintains its own per-process cache so we
+            # do not need to reset it here.
+            self.vad = self.session.plugins.vad()
+
     def _LoadProfile(self, module_name, profile):
         self._EnsureInitialized()
         try:
@@ -232,7 +244,6 @@ class AddressResolver(object):
         except ValueError:
             # Cache the fact that we did not find this profile.
             self.profiles[module_name] = None
-
             logging.debug("Unable to resolve symbols in module %s",
                           module_name)
 
@@ -247,7 +258,8 @@ class AddressResolver(object):
 
         guid = module.RSDS.GUID_AGE
         if guid:
-            result = self._LoadProfile(module_name, "GUID/%s" % guid)
+            result = self._LoadProfile(
+                module_name, "%s/GUID/%s" % (module_name, guid))
 
         if not result:
             # Create a dummy profile.
@@ -264,7 +276,7 @@ class AddressResolver(object):
             self.session.report_progress("Merging export table: %s", name)
             func_offset = func.v()
             if not result.get_constant_by_address(func_offset):
-                constants[str(name)] = func_offset - module_base
+                constants[str(name or "")] = func_offset - module_base
 
         result.add_constants(constants_are_addresses=True, **constants)
 
@@ -340,6 +352,26 @@ class AddressResolver(object):
 
         return obj.NoneObject("No profile found for module", log=True)
 
+    def format_address(self, address, max_distance=0x1000):
+        address = obj.Pointer.integer_to_address(address)
+
+        # Try to locate the symbol below it.
+        offset, name = self.get_nearest_constant_by_address(address)
+        difference = address - offset
+
+        if name:
+            if difference == 0:
+                return name
+
+            # Ensure address falls within the current module.
+            containing_module = self._FindContainingModule(address)
+            if (address < containing_module.end and
+                0 < difference < max_distance):
+                return "%s + 0x%X" % (
+                    name, address - offset)
+
+        return ""
+
     def get_constant_by_address(self, address):
         self._EnsureInitialized()
 
@@ -353,20 +385,26 @@ class AddressResolver(object):
                 constant = module_profile.get_constant_by_address(address)
                 if constant:
                     return "%s!%s" % (module_name, constant)
+            else:
+                return module_name
+
+        # Check the process context for process addresses.
+        return self._FindProcessVad(address)
 
     def get_nearest_constant_by_address(self, address):
         self._EnsureInitialized()
 
         address = obj.Pointer.integer_to_address(address)
         nearest_offset = 0
-        module_name = symbol_name = ""
+        full_name = module_name = symbol_name = ""
         profile = None
 
         # Find the containing module and see if we have a profile for it.
         containing_module = self._FindContainingModule(address)
         if containing_module:
             nearest_offset = containing_module.base
-            module_name = self._NormalizeModuleName(containing_module)
+            full_name = module_name = self._NormalizeModuleName(
+                containing_module)
 
             # Try to load the module profile.
             profile = self.LoadProfileForName(module_name)
@@ -379,10 +417,12 @@ class AddressResolver(object):
                     nearest_offset = offset
                     symbol_name = name
 
-        if symbol_name:
-            full_name = "%s!%s" % (module_name, symbol_name)
+            if symbol_name:
+                full_name = "%s!%s" % (module_name, symbol_name)
         else:
-            full_name = ""
+            vad_desc = self._FindProcessVad(address)
+            if vad_desc:
+                nearest_offset, _, full_name = vad_desc
 
         return nearest_offset, full_name
 

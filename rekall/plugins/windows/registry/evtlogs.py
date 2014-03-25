@@ -146,17 +146,17 @@ class _SID(obj.Struct):
 
     Reference: http://www.sekchek.com/downloads/white-papers/windows-about-sids.pdf
     """
-    def __str__(self):
+    def __unicode__(self):
         """Format the Sid using SDDL Notation."""
         components = [self.Revision, self.NumericIdentifier]
         components.extend(self.SubAuthority)
 
-        result = "S-" + "-".join([str(x) for x in components])
+        result = u"S-" + u"-".join([str(x) for x in components])
 
         # Try to resolve a friendly name from the cache in the context.
         friendly_name = self.obj_context.get("sid_cache", {}).get(result)
         if friendly_name:
-            result = "%s (%s)" % (result, friendly_name)
+            result = u"%s (%s)" % (result, friendly_name)
 
         return result
 
@@ -285,6 +285,9 @@ class EvtLogs(registry.RegistryPlugin):
                 utils.SmartUnicode(vad.ControlArea.FilePointer.FileName))
 
             for event in self.ScanEvents(vad, task.get_process_address_space()):
+                args = ";".join(
+                    repr(utils.SmartStr(x)) for x in event.Data)
+
                 renderer.table_row(
                     event.TimeWritten,
                     filename,
@@ -293,4 +296,4 @@ class EvtLogs(registry.RegistryPlugin):
                     event.Source,
                     event.EventID,
                     event.EventType,
-                    ";".join(repr(utils.SmartStr(x)) for x in event.Data))
+                    args)

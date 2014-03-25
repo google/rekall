@@ -136,9 +136,6 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
     def GetImageBase(self):
         return self.image_base
 
-    def GuessArchitecture(self):
-      """Guesses the architecture of this profile."""
-
     STRING_MANGLE_MAP = {
         "^0": ",",
         "^2": r"\\",
@@ -227,17 +224,9 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
     def Initialize(cls, profile):
         super(BasicPEProfile, cls).Initialize(profile)
 
-        # Version specific support.
-        try:
-            version = ".".join(profile.metadatas("major", "minor"))
-        except TypeError:
-            # We have no idea what version it is, this can happen if we were
-            # just given a GUID and a pdb file without a kernel executable.
-            version = "6.1"
-
-        profile.set_metadata("version", version)
-
-        # If the architecture is not added yet default to 64 bit.
+        # If the architecture is not added yet default to 64 bit. NOTE that with
+        # PE Profiles we normally guess the architecture based on the name
+        # mangling conventions.
         if profile.metadata("arch") is None:
             profile.set_metadata("arch", "AMD64")
 
@@ -253,10 +242,49 @@ class Ntoskrnl(BasicPEProfile):
     """A profile for Windows."""
 
     @classmethod
+    def GuessVersion(cls, profile):
+        """Guess the windows version of a profile."""
+        # If the version is provided, then just use it.
+        try:
+            version = ".".join(profile.metadatas("major", "minor"))
+            profile.set_metadata("version", version)
+
+            return version
+        except TypeError:
+            pass
+
+        # Rekall is moving away from having features keyed by version, rather we
+        # use the profile to dictate the algorithms to use. In future we will
+        # remove all requirement to know the windows version, but for now we
+        # just guess the version based on structures which are known to exist in
+        # the profile.
+        version = "5.2"
+
+        # Windows XP did not use a BalancedRoot for VADs.
+        if profile.get_obj_offset("_MM_AVL_TABLE", "BalancedRoot") == None:
+            version = "5.1"
+
+        # Windows 7 introduces TypeIndex into the object header.
+        if profile.get_obj_offset("_OBJECT_HEADER", "TypeIndex") != None:
+            if profile.has_type("_MM_AVL_NODE"):
+                # Windows 8 uses _MM_AVL_NODE as the VAD traversor struct.
+                version = "6.2"
+            else:
+                version = "6.1"
+
+        profile.set_metadata("version", version)
+        major, minor = version.split(".")
+        profile.set_metadata("minor", minor)
+        profile.set_metadata("major", major)
+
+        return version
+
+    @classmethod
     def Initialize(cls, profile):
         super(Ntoskrnl, cls).Initialize(profile)
 
         # Add undocumented types.
+        profile.add_enums(**undocumented.ENUMS)
         if profile.metadata("arch") == "AMD64":
             profile.add_overlay(undocumented.AMD64)
 
@@ -272,7 +300,8 @@ class Ntoskrnl(BasicPEProfile):
 
         InstallKDDebuggerProfile(profile)
 
-        version = profile.metadata("version")
+        # Get the windows version of this profile.
+        version = cls.GuessVersion(profile)
         if version in ("6.2", "6.3"):
             win8.InitializeWindows8Profile(profile)
 
@@ -287,7 +316,7 @@ class Ntoskrnl(BasicPEProfile):
 
     def GetImageBase(self):
         if not self.image_base:
-          self.image_base = self.session.GetParameter("kernel_base")
+            self.image_base = self.session.GetParameter("kernel_base")
 
         return self.image_base
 
@@ -301,4 +330,8 @@ class Ntkrnlpa(Ntoskrnl):
 
 
 class Ntkrpamp(Ntoskrnl):
+    """Alias for the windows kernel class."""
+
+
+class Nt(Ntoskrnl):
     """Alias for the windows kernel class."""

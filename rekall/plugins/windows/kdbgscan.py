@@ -139,11 +139,8 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
         for kdbg in self.hits():
             renderer.section()
             renderer.format(
-                "Instantiating KDBG using: {0} {1} ({2}.{3}.{4} {5})\n",
+                "Instantiating KDBG using: {0} {1} ({2})\n",
                 kdbg.obj_vm.name, kdbg.obj_profile.__class__.__name__,
-                kdbg.obj_profile.metadata('major', "Unknown"),
-                kdbg.obj_profile.metadata('minor', "Unknown"),
-                kdbg.obj_profile.metadata('build', "Unknown"),
                 kdbg.obj_profile.metadata('arch', "Unknown"),
                 )
 
@@ -171,9 +168,9 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
 
             # Count the total number of tasks from PsActiveProcessHead.
             try:
-                pslist = self.session.plugins.pslist(session=self.session,
-                                                     kdbg=kdbg)
-                num_tasks = len(list(pslist.list_eprocess_from_kdbg(kdbg)))
+                pslist = kdbg.PsActiveProcessHead.list_of_type(
+                    "_EPROCESS", "ActiveProcessLinks")
+                num_tasks = len(list(pslist))
             except AttributeError:
                 num_tasks = 0
 

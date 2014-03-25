@@ -164,3 +164,64 @@ class WinVirtualMap(common.WindowsCommandPlugin):
                 range_length = va_table_size
             else:
                 range_length += va_table_size
+
+
+class Objects(common.WindowsCommandPlugin):
+    """Displays all object Types on the system."""
+
+    name = "object_types"
+
+    def object_types(self):
+        type_table = self.profile.get_constant_object(
+            "ObpObjectTypes",
+            target="Array", target_args=dict(
+                target="Pointer",
+                count=32,
+                target_args=dict(
+                    target="_OBJECT_TYPE")
+                )
+            )
+
+        for t in type_table:
+            if t:
+                yield t
+
+
+    def render(self, renderer):
+        renderer.table_header(
+            [("Index", "idx", ">5"),
+             ("Number Objects", "TotalNumberOfObjects", ">15"),
+             ("PoolType", "PoolType", "15"),
+             ("Name", "name", "")])
+
+        for obj_type in self.object_types():
+            renderer.table_row(
+                obj_type.Index,
+                obj_type.TotalNumberOfObjects,
+                obj_type.TypeInfo.PoolType,
+                obj_type.Name)
+
+
+class ImageInfo(common.WindowsCommandPlugin):
+    """List overview information about this image."""
+
+    name = "imageinfo"
+
+    def render(self, renderer):
+        renderer.table_header([("Fact", "key", "20"),
+                               ("Value", "value", "")])
+
+        renderer.table_row(
+            "Kernel DTB", "%#x" % self.session.kernel_address_space.dtb)
+
+        resolver = self.session.address_resolver
+        for desc, name, type in (
+            ("NT Build", "nt!NtBuildLabEx", "String"),
+            ("Signed Drivers", "nt!g_CiEnabled", "bool"),
+            ):
+
+            renderer.table_row(
+                desc, resolver.get_constant_object(name, target=type))
+
+        renderer.section("Physical Layout")
+        self.session.plugins.phys_map().render(renderer)

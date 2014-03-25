@@ -32,6 +32,7 @@
 import os.path
 
 from rekall import scan
+from rekall import utils
 from rekall.plugins import core
 from rekall.plugins.windows import common
 
@@ -277,6 +278,47 @@ class VAD(common.WinProcessFilter):
 
     PAGE_SIZE = 12
 
+    def __init__(self, *args, **kwargs):
+        super(VAD, self).__init__(*args, **kwargs)
+        self._cache = {}
+
+    def find_file(self, addr):
+        """Finds the file mapped at this address."""
+        for task in self.filter_processes():
+            yield self.find_file_in_task(addr, task)
+
+    def find_file_in_task(self, addr, task):
+        resolver = self._cache.get(task)
+        if resolver is None:
+            resolver = self._cache[task] = self._make_cache(task)
+
+        try:
+            return resolver.find_le(addr)
+        except ValueError:
+            return None
+
+    def _make_cache(self, task):
+        result = utils.SortedCollection(key=lambda x: x[0])
+        self.session.report_progress(
+            " Enumerating VADs in %s (%s)", task.name, task.pid)
+
+        for vad in task.RealVadRoot.traverse():
+            result.insert(
+                (vad.Start, vad.End, self._get_filename(vad)))
+
+        return result
+
+    def _get_filename(self, vad):
+        filename = ""
+        try:
+            file_obj = vad.ControlArea.FilePointer
+            if file_obj:
+                filename = file_obj.FileName or "Pagefile-backed section"
+        except AttributeError:
+            pass
+
+        return unicode(filename)
+
     def render_vadroot(self, renderer, vad_root):
         renderer.table_header([('VAD', 'offset', '[addrpad]'),
                                ('lev', 'depth', '<2'),
@@ -289,13 +331,6 @@ class VAD(common.WinProcessFilter):
                                ('Filename', 'filename', '')])
 
         for vad in vad_root.traverse():
-            filename = ""
-            try:
-                file_obj = vad.ControlArea.FilePointer
-                if file_obj:
-                    filename = file_obj.FileName or "Pagefile-backed section"
-            except AttributeError:
-                pass
             renderer.table_row(
                 vad.obj_offset, vad.obj_context.get('depth', 0),
                 vad.Start >> self.PAGE_SIZE,
@@ -304,7 +339,7 @@ class VAD(common.WinProcessFilter):
                 "Private" if vad.u.VadFlags.PrivateMemory > 0 else "Mapped",
                 "Exe" if "EXECUTE" in str(vad.u.VadFlags.ProtectionEnum) else "",
                 vad.u.VadFlags.ProtectionEnum,
-                filename)
+                self._get_filename(vad))
 
     def render(self, renderer):
         for task in self.filter_processes():

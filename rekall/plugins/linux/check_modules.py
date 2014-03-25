@@ -54,7 +54,7 @@ class CheckModules(common.LinuxPlugin):
     @classmethod
     def is_active(cls, config):
         if super(CheckModules, cls).is_active(config):
-            return config.profile.get_constant("module_kset")
+            return config.profile.get_constant("module_kset", False)
 
     def get_kset_modules(self):
         module_kset = self.profile.get_constant_object(

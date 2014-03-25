@@ -18,6 +18,8 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
+from rekall import entity
+
 from rekall.plugins.darwin import common
 from rekall.plugins.darwin import lsof
 
@@ -228,6 +230,80 @@ class DarwinIPFilters(common.DarwinPlugin):
                 handler = filter.ipf_detach.deref()
                 renderer.table_row("DETACH", name, handler,
                                    lsmod.ResolveSymbolName(handler))
+
+
+class DarwinEntityNetstat(common.DarwinPlugin):
+    """List per process network connections."""
+
+    __name = "enetstat"
+
+    def render(self, renderer):
+        connections = self.session.get_entities(entity.Connection)
+
+        # Group connections by protocol/addressing family.
+        inet_by_proto = {}
+        unix_socks = []
+
+        for connection in connections:
+            if connection.addressing_family in ["AF_INET", "AF_INET6"]:
+                proto = connection.protocol
+                inet_by_proto.setdefault(proto, []).append(connection)
+            elif connection.addressing_family == "AF_UNIX":
+                unix_socks.append(connection)
+
+        # Render inet protos first, in alphabetical order (like netstat).
+        renderer.section("Active Internet connections")
+        renderer.table_header([
+            ("Proto", "proto", "14"),
+            ("SAddr", "saddr", "30"),
+            ("SPort", "sport", "8"),
+            ("DAddr", "daddr", "30"),
+            ("DPort", "dport", "5"),
+            ("State", "state", "15"),
+            ("Pid", "pid", "8"),
+            ("Comm", "comm", "20"),
+        ])
+
+        # Sort by inet protos, then PID.
+        for proto, connections in sorted(inet_by_proto.iteritems()):
+            for connection in sorted(
+                connections,
+                key=lambda x: x.handle.process.pid):
+                renderer.table_row(
+                    proto,
+                    connection.src_address,
+                    connection.src_port,
+                    connection.dst_address,
+                    connection.dst_port,
+                    connection.state,
+                    connection.handle.process.pid,
+                    connection.handle.process.command,
+                )
+
+        # Render the UNIX sockets.
+        renderer.section("Active UNIX domain sockets")
+        renderer.table_header([
+            ("Address", "address", "14"),
+            ("Conn", "conn", "14"),
+            ("Type", "type", "10"),
+            ("Vnode", "vnode", "14"),
+            ("Path", "path", "60"),
+            ("Pid", "pid", "8"),
+            ("Comm", "comm", "20"),
+        ])
+
+        for connection in sorted(
+            unix_socks,
+            key=lambda x: x.handle.process.pid):
+            renderer.table_row(
+                connection.source,
+                connection.destination,
+                connection.entity_type,
+                "0x%x" % int(connection.key_obj.vnode),
+                connection.entity_name,
+                connection.handle.process.pid,
+                connection.handle.process.command,
+            )
 
 
 class DarwinNetstat(lsof.DarwinLsof):

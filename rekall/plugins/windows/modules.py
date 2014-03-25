@@ -80,14 +80,8 @@ class Modules(common.WindowsCommandPlugin):
 
     def _make_cache(self):
         self.mod_lookup = {}
-
-        ## Try to iterate over the process list in PsActiveProcessHead
-        ## (its really a pointer to a _LIST_ENTRY)
-        PsLoadedModuleList = self.kdbg.PsLoadedModuleList.cast(
-            "Pointer", target="_LIST_ENTRY", vm=self.address_space)
-
-        for l in PsLoadedModuleList.list_of_type("_LDR_DATA_TABLE_ENTRY",
-                                                 "InLoadOrderLinks"):
+        for l in self.session.GetParameter("PsLoadedModuleList").list_of_type(
+            "_LDR_DATA_TABLE_ENTRY", "InLoadOrderLinks"):
             self.mod_lookup[l.DllBase.v()] = l
 
         self.modlist = sorted(self.mod_lookup.keys())
@@ -183,10 +177,18 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
         parser.add_argument("--name_regex",
                             help="Filter module names by this regex.")
 
-    def __init__(self, name_regex=None, **kwargs):
+        parser.add_argument("--filename",
+                            help="Optional file to scan. If not specified "
+                            "we scan the physical address space.")
+
+    def __init__(self, name_regex=None, filename=None, **kwargs):
         """List kernel modules by walking the PsLoadedModuleList."""
         super(VersionScan, self).__init__(**kwargs)
         self.name_regex = re.compile(name_regex or ".", re.I)
+        if filename is not None:
+            load_as = self.session.plugins.load_as()
+            self.physical_address_space = load_as.GuessAddressSpace(
+                filename=filename)
 
     def ScanVersions(self):
         """Scans the physical AS for RSDS structures."""

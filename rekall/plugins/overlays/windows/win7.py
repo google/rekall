@@ -26,6 +26,7 @@ This file provides support for windows Windows 7 SP 0.
 """
 
 # pylint: disable=protected-access
+from rekall import kb
 from rekall import obj
 from rekall.plugins.overlays.windows import common
 
@@ -81,53 +82,7 @@ class _OBJECT_HEADER(common._OBJECT_HEADER):
 
     Windows 7 changes the way objects are handled:
     References: http://www.codemachine.com/article_objectheader.html
-
-    The following debugger command find the type object for index 5:
-    dt nt!_OBJECT_TYPE poi(nt!ObTypeIndexTable + ( 5 * @$ptrsize ))
     """
-    type_map = {2: 'Type',
-                3: 'Directory',
-                4: 'SymbolicLink',
-                5: 'Token',
-                6: 'Job',
-                7: 'Process',
-                8: 'Thread',
-                9: 'UserApcReserve',
-                10: 'IoCompletionReserve',
-                11: 'DebugObject',
-                12: 'Event',
-                13: 'EventPair',
-                14: 'Mutant',
-                15: 'Callback',
-                16: 'Semaphore',
-                17: 'Timer',
-                18: 'Profile',
-                19: 'KeyedEvent',
-                20: 'WindowStation',
-                21: 'Desktop',
-                22: 'TpWorkerFactory',
-                23: 'Adapter',
-                24: 'Controller',
-                25: 'Device',
-                26: 'Driver',
-                27: 'IoCompletion',
-                28: 'File',
-                29: 'TmTm',
-                30: 'TmTx',
-                31: 'TmRm',
-                32: 'TmEn',
-                33: 'Section',
-                34: 'Session',
-                35: 'Key',
-                36: 'ALPC Port',
-                37: 'PowerRequest',
-                38: 'WmiGuid',
-                39: 'EtwRegistration',
-                40: 'EtwConsumer',
-                41: 'FilterConnectionPort',
-                42: 'FilterCommunicationPort',
-                43: 'PcwObject',
-            }
 
     # This specifies the order the headers are found below the _OBJECT_HEADER
     optional_header_mask = (
@@ -155,7 +110,8 @@ class _OBJECT_HEADER(common._OBJECT_HEADER):
 
     def get_object_type(self, vm=None):
         """Return the object's type as a string"""
-        return self.type_map.get(self.TypeIndex.v(), '')
+        return self.obj_session.GetParameter("ObjectTypeMap")[
+            self.TypeIndex].Name.v()
 
     def is_valid(self):
         """Determine if the object makes sense."""
@@ -198,6 +154,28 @@ class _POOL_HEADER(common._POOL_HEADER):
     @property
     def PagedPool(self):
         return self.PoolType.v() % 2 == 1
+
+
+class ObjectTypeMapHook(kb.ParameterHook):
+    """Get and cache the object type map.
+
+    In windows 7, rather than store a pointer to the _OBJECT_TYPE object
+    directly, there is a global table of object types, and the object simply
+    stores an index to it.
+    """
+    name = "ObjectTypeMap"
+
+    def calculate(self):
+        return self.session.profile.get_constant_object(
+            "ObTypeIndexTable",
+            target="Array",
+            target_args=dict(
+                target="Pointer",
+                target_args=dict(
+                    target="_OBJECT_TYPE"
+                    )
+                )
+            )
 
 
 def InitializeWindows7Profile(profile):

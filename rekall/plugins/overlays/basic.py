@@ -26,6 +26,7 @@ OS's
 """
 import datetime
 import distorm3
+import logging
 import pytz
 import re
 import socket
@@ -50,7 +51,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     Note that these strings are _not_ text strings - they are effectively bytes
     arrays and therefore are not encoded in any particular unicode encoding.
     """
-    def __init__(self, length=1024, term="\x00", **kwargs):
+    def __init__(self, length=1024, max_length=1024000, term="\x00", **kwargs):
         """Constructor.
 
         Args:
@@ -66,6 +67,10 @@ class String(obj.StringProxyMixIn, obj.NativeType):
             length = length(self.obj_parent)
 
         self.term = term
+        if length > max_length:
+            logging.warn("%s@%#x truncated", self.obj_name, self.obj_offset)
+            length = 0
+
         self.length = int(length)
 
     def startswith(self, other):
@@ -266,8 +271,7 @@ class Enumeration(obj.NativeType):
         elif not choices:
             choices = {}
 
-        # Force the keys to be integers to trap misuse.
-        self.choices = dict((int(x), y) for x, y in choices.items())
+        self.choices = choices
         self.default = default
         if callable(value):
             value = value(self.obj_parent)
@@ -295,7 +299,7 @@ class Enumeration(obj.NativeType):
     def __unicode__(self):
         value = self.v()
         return self.choices.get(value, self.default) or (
-            "UNKNOWN (%s)" % str(value))
+            u"UNKNOWN (%s)" % utils.SmartUnicode(value))
 
     def __eq__(self, other):
         if isinstance(other, (int, long)):
@@ -415,6 +419,10 @@ class ListMixIn(object):
                 # Only yield valid objects (In case of dangling links).
                 yield task
 
+    def list_of_type_fast(self, type, member):
+        for lst in self.walk_list(self._forward):
+            yield container_of(lst, type, member)
+
     def reflect(self, vm=None):
         """Reflect this list element by following its Flink and Blink.
 
@@ -439,6 +447,9 @@ class ListMixIn(object):
             return obj.NoneObject("Flink and Blink not consistent.")
 
         return result1
+
+    def empty(self):
+        return self.m(self._forward) == self.m(self._backward)
 
     def __nonzero__(self):
         ## List entries are valid when both Flinks and Blink are valid
@@ -514,7 +525,7 @@ class UnixTimeStamp(obj.NativeType):
             # Return a data time object in UTC.
             dt = datetime.datetime.utcfromtimestamp(
                 self.v()).replace(tzinfo=pytz.UTC)
-        except ValueError, e:
+        except (ValueError, TypeError), e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
 
         return dt
@@ -564,7 +575,7 @@ class IndexedArray(obj.Array):
         except ValueError:
             self.index_table = dict((y, int(x)) for x, y in index_table.items())
 
-        if self.count is None:
+        if self.count == 0:
             self.count = len(index_table)
 
     def __getitem__(self, item):

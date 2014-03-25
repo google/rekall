@@ -351,6 +351,27 @@ class PsActiveProcessHeadHook(kb.ParameterHook):
             return kdbg.PsActiveProcessHead
 
 
+class PsLoadedModuleList(kb.ParameterHook):
+    """The PsLoadedModuleList is actually found in the profile symbols."""
+
+    name = "PsLoadedModuleList"
+
+    def calculate(self):
+        head = self.session.profile.get_constant_object(
+            "PsLoadedModuleList",
+            target="_LIST_ENTRY",
+            vm=self.session.kernel_address_space)
+
+        # Verify it.
+        if head.reflect():
+            return head
+
+        # Failing this, we try to get PsActiveProcessHead using the KDBG.
+        kdbg = self.session.GetParameter("kdbg")
+        if kdbg:
+            return kdbg.PsLoadedModuleList
+
+
 class KDBGMixin(plugin.KernelASMixin):
     """A plugin mixin to make sure the kdbg is set correctly."""
 

@@ -22,11 +22,14 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+import logging
 import re
 
 from rekall import config
+from rekall import kb
 from rekall import obj
 from rekall import plugin
+from rekall import scan
 from rekall import utils
 
 from rekall.plugins import core
@@ -44,6 +47,63 @@ class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
                 plugin.Command.is_active(session))
 
 
+class SlideScanner(scan.BaseScanner):
+    checks = [
+        # Ref: http://lxr.free-electrons.com/source/init/version.c#L48
+        ("StringCheck", dict(needle="%s version %s"))
+        ]
+
+
+class LinuxFindKASLR(AbstractLinuxCommandPlugin):
+    """Locate the KASLR if it exists."""
+
+    name = "find_kaslr"
+
+    def vm_kernel_slide_hits(self):
+        """Tries to compute the KASLR slide.
+
+        In an ideal scenario, this should return exactly one valid result.
+
+        Yields:
+          (int) semi-validated KASLR value
+        """
+
+        virtual_offset = self.profile.get_constant("linux_proc_banner",
+                                                   is_address=False)
+
+        page_offset = LinuxFindDTB.GetPageOffset(self.profile)
+        expected_physical_offset = virtual_offset - page_offset
+
+        for hit in SlideScanner(
+            address_space=self.physical_address_space,
+            session=self.session).scan():
+            vm_kernel_slide = int(hit - expected_physical_offset)
+
+            yield vm_kernel_slide
+
+    def render(self, renderer):
+        renderer.table_header([
+            ("KASLR Slide", "vm_kernel_slide", "[addrpad]"),
+        ])
+
+        for vm_kernel_slide in self.vm_kernel_slide_hits():
+            renderer.table_row(vm_kernel_slide)
+
+
+class KASLRHook(kb.ParameterHook):
+    name = "kaslr_shift"
+
+    def calculate(self):
+        find_kaslr = LinuxFindKASLR(session=self.session,
+                                    profile=self.session.profile)
+        for hit in find_kaslr.vm_kernel_slide_hits():
+            logging.debug("Found Kernel ASLR slide %#x.", hit)
+            return hit
+
+        logging.debug("Unable to locate a KASLR.")
+        return 0
+
+
 class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
     """A scanner for DTB values.
 
@@ -59,18 +119,30 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
 
     __name = "find_dtb"
 
+    @classmethod
+    def GetPageOffset(cls, profile):
+        """Gets the expected page offset without taking KASLR into account."""
+        if profile.metadata("arch") == "I386":
+            return (profile.get_constant("_text", False) -
+                    profile.get_constant("phys_startup_32", False))
+
+        elif profile.metadata("arch") == "AMD64":
+            return (profile.get_constant("_text", False) -
+                    profile.get_constant("phys_startup_64", False))
+
+        else:
+            raise RuntimeError("No profile architecture set.")
+
     def dtb_hits(self):
         """Tries to locate the DTB."""
+        PAGE_OFFSET = self.GetPageOffset(self.profile)
+
         if self.profile.metadata("arch") == "I386":
-            PAGE_OFFSET = (self.profile.get_constant("_text") -
-                           self.profile.get_constant("phys_startup_32"))
-
             yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
-        else:
-            PAGE_OFFSET = (self.profile.get_constant("_text") -
-                           self.profile.get_constant("phys_startup_64"))
 
-            yield self.profile.get_constant("init_level4_pgt") - PAGE_OFFSET
+        else:
+            yield (self.profile.get_constant("init_level4_pgt", True) -
+                   PAGE_OFFSET)
 
     def render(self, renderer):
         renderer.table_header([("DTB", "dtv", "[addrpad]"),
@@ -79,6 +151,7 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
         for dtb in self.dtb_hits():
             address_space = self.VerifyHit(dtb)
             renderer.table_row(dtb, address_space is not None)
+
 
 class LinuxPlugin(plugin.KernelASMixin, AbstractLinuxCommandPlugin):
     """Plugin which requires the kernel Address space to be loaded."""
@@ -228,8 +301,8 @@ class HeapScannerMixIn(object):
     """A mixin for converting a scanner into a heap only scanner."""
 
     def __init__(self, task=None, **kwargs):
-      super(HeapScannerMixIn, self).__init__(**kwargs)
-      self.task = task
+        super(HeapScannerMixIn, self).__init__(**kwargs)
+        self.task = task
 
     def scan(self, offset=0, maxlen=2**64):
         for vma in self.task.mm.mmap.walk_list("vm_next"):
