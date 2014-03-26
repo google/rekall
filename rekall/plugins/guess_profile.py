@@ -173,7 +173,9 @@ class ProfileHook(kb.ParameterHook):
             rsds = pe_profile.CV_RSDS_HEADER(offset=hit, vm=address_space)
             if (rsds.Signature.is_valid() and
                 str(rsds.Filename) in self.KERNEL_NAMES):
-                profile = self.VerifyWinProfile("GUID/%s" % rsds.GUID_AGE)
+                profile = self.VerifyWinProfile(
+                    "nt/GUID/%s" % rsds.GUID_AGE)
+
                 if profile:
                     logging.info(
                         "Detected %s with GUID %s", rsds.Filename,

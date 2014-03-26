@@ -25,9 +25,7 @@ Control Blocks.
 """
 
 # pylint: disable=protected-access
-
-import logging
-
+from rekall import obj
 from rekall.plugins.windows import common
 
 
@@ -35,145 +33,74 @@ class KPCR(common.WindowsCommandPlugin):
     """A plugin to print all KPCR blocks."""
     __name = "kpcr"
 
-    @classmethod
-    def is_active(cls, session):
-        # Only active for windows 7 right now.
-        return (super(KPCR, cls).is_active(session) and
-                session.profile.metadata("major") >= "6")
+    def kpcr(self):
+        """A generator of KPCR objects (one for each CPU)."""
+        # On windows 7 the KPCR is just stored in a symbol.
+        initial_pcr = self.profile.get_constant_object(
+            "KiInitialPCR",
+            "_KPCR")
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(KPCR, cls).args(parser)
-        parser.add_argument("--eprocess",
-                            help="An _EPROCESS virtual address to start "
-                            "scanning with.")
+        # Validate the PCR through the self member.
+        self_Pcr = initial_pcr.m("SelfPcr") or initial_pcr.m("Self")
+        if self_Pcr.v() == initial_pcr.obj_offset:
+            return initial_pcr
 
-    def __init__(self, eprocess=None, **kwargs):
-        """Print all KPCR Objects.
+        # On windows XP the KPCR is hardcoded to 0xFFDFF000
+        pcr = self.profile._KPCR(0xFFDFF000)
+        if pcr.SelfPcr.v() == pcr.obj_offset:
+            return pcr
 
-        Args:
-          eprocess: an _EPROCESS virtual address to use to enumerate threads.
-        """
-        super(KPCR, self).__init__(**kwargs)
-        self.eprocess = eprocess
-
-    def find_kpcr(self, task):
-        """Given an _EPROCESS object, find KPCR."""
-        # This is the offset of the WaitListHead from the start of the _KPCR
-        # struct.
-        offset = self.profile._KPCR(vm=None).Prcb.WaitListHead.obj_offset
-
-        seen_threads = set()
-        seen = set()
-
-        # Iterate over all the threads of this process.
-        for kthread in task.Pcb.ThreadListHead.list_of_type(
-            "_KTHREAD", "ThreadListEntry"):
-
-            # Skip threads we already examined.
-            if kthread in seen_threads:
-                continue
-
-            seen_threads.add(kthread)
-
-            # Look for threads in the Wait state. If this thread is in the Wait
-            # state, the WaitListEntry will belong to the list of all waiting
-            # threads. By following this list we should get to the list head
-            # which lives inside the _KPCR object.
-            for kwaiter in kthread.WaitListEntry.list_of_type(
-                "_KTHREAD", "WaitListEntry"):
-                self.session.report_progress()
-
-                if kwaiter in seen_threads:
-                    continue
-
-                seen_threads.add(kwaiter)
-
-                # Assume the kwaiter is actually the KPRCB.WaitListHead.
-                possible_kpcr = self.profile._KPCR(
-                    offset=kwaiter.WaitListEntry.obj_offset - offset,
-                    vm=self.kernel_address_space)
-
-                # Check for validity using the usual condition.
-                if possible_kpcr.Self == possible_kpcr.obj_offset:
-                    if possible_kpcr.obj_offset not in seen:
-                        seen.add(possible_kpcr)
-
-
-        # Return all the _KPCR structs we know about.
-        return seen
+        return obj.NoneObject("Unknown KPCR")
 
     def render(self, renderer):
-        eprocess = self.eprocess
+        kpcr = self.kpcr()
 
-        if self.session.system_eprocess:
-            # Convert the eprocess to the virtual address space by reflecting
-            # through the ActiveProcessLinks.
-            eprocess = self.session.system_eprocess.ActiveProcessLinks.reflect(
-                vm=self.session.kernel_address_space).dereference_as(
-                "_EPROCESS", "ActiveProcessLinks")
+        renderer.section()
 
-        if not eprocess:
-            for task in self.session.plugins.pslist().list_eprocess():
-                eprocess = task
-                break
+        renderer.table_header([("Property", "property", "<30"),
+                               ("Value", "value", "<")])
 
-        if not eprocess:
-            logging.error("Require at least one _EPROCESS to use.")
-            return
+        renderer.table_row("Offset (V)", "%#x" % kpcr.obj_offset)
+        renderer.table_row("KdVersionBlock", kpcr.KdVersionBlock)
 
-        for kpcr in self.find_kpcr(eprocess):
-            renderer.section()
+        renderer.table_row("IDT", "%#x" % kpcr.IDT)
+        renderer.table_row("GDT", "%#x" % kpcr.GDT)
 
-            renderer.table_header([("Property", "property", "<30"),
-                                   ("Value", "value", "<")])
+        current_thread = kpcr.ProcessorBlock.CurrentThread
+        idle_thread = kpcr.ProcessorBlock.IdleThread
+        next_thread = kpcr.ProcessorBlock.NextThread
 
-            renderer.table_row("Offset (V)", hex(kpcr.obj_offset))
-            renderer.table_row(
-                "Offset (P)", hex(self.session.kernel_address_space.vtop(
-                        kpcr.obj_offset)))
+        if current_thread:
+            renderer.format("{0:<30}: {1:#x} TID {2} ({3}:{4})\n",
+                            "CurrentThread",
+                            current_thread, current_thread.Cid.UniqueThread,
+                            current_thread.owning_process().ImageFileName,
+                            current_thread.Cid.UniqueProcess,
+                            )
 
-            renderer.table_row("KdVersionBlock", kpcr.KdVersionBlock)
+        if idle_thread:
+            renderer.format("{0:<30}: {1:#x} TID {2} ({3}:{4})\n",
+                            "IdleThread",
+                            idle_thread, idle_thread.Cid.UniqueThread,
+                            idle_thread.owning_process().ImageFileName,
+                            idle_thread.Cid.UniqueProcess,
+                            )
 
-            renderer.table_row("IDT", hex(kpcr._IDT))
-            renderer.table_row("GDT", hex(kpcr._GDT))
+        if next_thread:
+            renderer.format("{0:<30}: {1:#x} TID {2} ({3}:{4})\n",
+                            "NextThread",
+                            next_thread,
+                            next_thread.Cid.UniqueThread,
+                            next_thread.owning_process().ImageFileName,
+                            next_thread.Cid.UniqueProcess,
+                            )
 
-            current_thread = kpcr.ProcessorBlock.CurrentThread
-            idle_thread = kpcr.ProcessorBlock.IdleThread
-            next_thread = kpcr.ProcessorBlock.NextThread
+        renderer.format("{0:<30}: CPU {1} ({2} @ {3} MHz)\n",
+                        "Details",
+                        kpcr.ProcessorBlock.Number,
+                        kpcr.ProcessorBlock.VendorString,
+                        kpcr.ProcessorBlock.MHz)
 
-            if current_thread:
-                renderer.format("{0:<30}: {1:#x} TID {2} ({3}:{4})\n",
-                                "CurrentThread",
-                                current_thread, current_thread.Cid.UniqueThread,
-                                current_thread.owning_process().ImageFileName,
-                                current_thread.Cid.UniqueProcess,
-                                )
-
-            if idle_thread:
-                renderer.format("{0:<30}: {1:#x} TID {2} ({3}:{4})\n",
-                                "IdleThread",
-                                idle_thread, idle_thread.Cid.UniqueThread,
-                                idle_thread.owning_process().ImageFileName,
-                                idle_thread.Cid.UniqueProcess,
-                                )
-
-            if next_thread:
-                renderer.format("{0:<30}: {1:#x} TID {2} ({3}:{4})\n",
-                                "NextThread",
-                                next_thread,
-                                next_thread.Cid.UniqueThread,
-                                next_thread.owning_process().ImageFileName,
-                                next_thread.Cid.UniqueProcess,
-                                )
-
-            renderer.format("{0:<30}: CPU {1} ({2} @ {3} MHz)\n",
-                            "Details",
-                            kpcr.ProcessorBlock.Number,
-                            kpcr.ProcessorBlock.VendorString,
-                            kpcr.ProcessorBlock.MHz)
-
-            renderer.format(
-                "{0:<30}: {1:#x}\n", "CR3/DTB",
-                kpcr.ProcessorBlock.ProcessorState.SpecialRegisters.Cr3)
+        renderer.format(
+            "{0:<30}: {1:#x}\n", "CR3/DTB",
+            kpcr.ProcessorBlock.ProcessorState.SpecialRegisters.Cr3)

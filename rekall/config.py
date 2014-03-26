@@ -37,6 +37,8 @@ import re
 import yaml
 import os
 
+from rekall import constants
+
 def GetHomeDir():
     return (os.environ.get("HOME") or      # Unix
             os.environ.get("USERPROFILE")) # Windows
@@ -46,7 +48,7 @@ def GetHomeDir():
 # not have an existing file. The aim is not to exhaustively list all possible
 # options, rather to ensure that reasonable defaults are specified initially.
 DEFAULT_CONFIGURATION = dict(
-    profile_path=["http://profiles.rekall.googlecode.com/git/"],
+    profile_path=[constants.PROFILE_REPOSITORY],
 
     # By default we just drop the notebooks at the home directory.
     notebook_dir=GetHomeDir(),

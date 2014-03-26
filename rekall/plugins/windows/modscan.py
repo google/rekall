@@ -136,7 +136,8 @@ class ThrdScan(ModScan):
                                ("Start Address", "start", "[addr]"),
                                ("Create Time", "create_time", "24"),
                                ("Exit Time", "exit_time", "24"),
-                               ("Process", "name", ""),
+                               ("Process", "name", "16"),
+                               ("Symbol", "symbol", ""),
                                ])
 
         for thread in self.generate_hits():
@@ -151,4 +152,6 @@ class ThrdScan(ModScan):
                                thread.CreateTime,
                                thread.ExitTime,
                                task.ImageFileName,
+                               self.session.address_resolver.format_address(
+                                   thread.StartAddress.v()),
                                )

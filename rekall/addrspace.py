@@ -30,8 +30,6 @@
    Alias for all address spaces
 
 """
-import logging
-
 from rekall import registry
 from rekall import utils
 
@@ -55,7 +53,7 @@ class BaseAddressSpace(object):
     _md_image = False
 
     def __init__(self, base=None, session=None, write=False, profile=None,
-                 **kwargs):
+                 **_):
         """Base is the AS we will be stacking on top of, opts are options which
         we may use.
 
@@ -70,18 +68,14 @@ class BaseAddressSpace(object):
           profile: An optional profile to use for parsing the address space
             (e.g. needed for hibernation, crash etc.)
         """
-        if kwargs:
-            logging.error("Unknown keyword args {0} for {1}".format(
-                    kwargs, self.__class__.__name__))
-
         if session is None and base is not None:
-          session = base.session
+            session = base.session
 
         self.base = base or self
         self.profile = profile
         self.session = session
         if session is None:
-          raise RuntimeError("Session must be provided.")
+            raise RuntimeError("Session must be provided.")
 
         self.writeable = (
             self.session and self.session.writable_address_space or write)
@@ -259,8 +253,8 @@ class BufferAddressSpace(BaseAddressSpace):
         yield (self.base_offset, self.base_offset, len(self.data))
 
     def get_buffer_offset(self, offset):
-      """Returns the offset in self.data for the virtual offset."""
-      return offset - self.base_offset
+        """Returns the offset in self.data for the virtual offset."""
+        return offset - self.base_offset
 
     def __repr__(self):
         return "<%s @ %#x %s [%#X-%#X]>" % (
@@ -368,7 +362,7 @@ class PagedReader(BaseAddressSpace):
 
     def is_valid_address(self, addr):
         vaddr = self.vtop(addr)
-        return vaddr is not None and self.base.is_valid_address(vaddr)
+        return vaddr != None and self.base.is_valid_address(vaddr)
 
     def get_available_addresses(self):
         for vstart, pstart, length in self.get_available_pages():
@@ -389,6 +383,7 @@ class RunBasedAddressSpace(PagedReader):
         self.runs = utils.SortedCollection(key=lambda x: x[0])
 
     def _read_chunk(self, addr, length):
+        """Read from addr as much as possible up to a length of length."""
         file_offset, available_length = self._get_available_buffer(addr, length)
 
         # Mapping not valid. We need to pad until the next run.

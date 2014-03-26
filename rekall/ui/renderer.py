@@ -597,12 +597,11 @@ class TextRenderer(RendererBaseClass):
         # Make sure that our output is unicode safe.
         self.fd = UnicodeWrapper(self.fd or sys.stdout)
 
-        # The stream we write the progress on. Only write to stdout if it is a
-        # tty.
-        if self.fd.isatty():
-            if sys.stdout.isatty():
-                self.progress_fd = sys.stdout
+        # Write progress to stdout but only if it is a tty.
+        if sys.stdout.isatty():
+            self.progress_fd = sys.stdout
 
+        if self.fd.isatty():
             self.paging_limit = paging_limit
             self.isatty = True
 

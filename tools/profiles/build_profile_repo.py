@@ -18,26 +18,28 @@
 
 """This script rebuilds all the profiles in the repository.
 
-We assume the repository contains a directory "files/" which contains all the pe
-files of ntoskrnl.exe. We then iterate over them, download their pdb files, and
-parse these - finally creating a Rekall repository.
+This script parses a file of GUIDs, one per line with the pdb filename. e.g.:
 
-The final directory contains paths under:
+4033A4DE6936470BAB02F14DCE270B772 ntkrnlmp.pdb
+AED9ED72BEE246CAAC9A587B970A8E0C1 ntkrnlpa.pdb
+C77DDDA381D246EDBE11A332456F9FBE1 ntkrpamp.pdb
+...
 
-ntoskrnl.exe/$ARCH/$VERSION/$GUID
-GUID/$GUID    <- This is a symlink to the full path.
+We then check if we have the pdb file in the repository's src/pdb/ directory. If
+not we download it.
 
+We then parse the pdb file and store the result in the repository under:
 
-For example:
-ntoskrnl.exe/AMD64/6.1.7601.17514/3844DBB920174967BE7AA4A2C20430FA2
-GUID/3844DBB920174967BE7AA4A2C20430FA2
+ntoskrnl.exe/GUID/
 
+If that file does not exist.
 """
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-import json
+import gzip
 import os
+import traceback
 import sys
 import multiprocessing
 
@@ -46,6 +48,14 @@ session = interactive.ImportEnvironment(verbose="debug")
 
 NUMBER_OF_CORES = multiprocessing.cpu_count()
 
+PDB_TO_SYS = {
+    "ntkrnlmp.pdb": "nt",
+    "ntoskrnl.pdb": "nt",
+    "ntkrnlpa.pdb": "nt",
+    "ntkrpamp.pdb": "nt",
+    "win32k.pdb": "win32k",
+    "tcpip.pdb": "tcpip",
+    }
 
 def EnsurePathExists(path):
     try:
@@ -54,93 +64,82 @@ def EnsurePathExists(path):
         pass
 
 
-def BuildProfile(pdb_path, filename, profile_path, target_path, symlink_path,
-                 metadata):
-    session.RunPlugin(
-        "parse_pdb",
-        filename=os.path.join(pdb_path, filename),
-        output=profile_path,
-        metadata=metadata)
+def BuildProfile(pdb_filename, profile_path, metadata):
+    print "Parsing %s into %s" % (pdb_filename, profile_path)
+    try:
+        session.RunPlugin(
+            "parse_pdb",
+            filename=pdb_filename,
+            output=profile_path,
+            metadata=metadata)
 
-    with open(symlink_path, "wb") as fd:
-        json.dump({
-                "$METADATA": dict(
-                    Type="Symlink",
-                    Target=target_path,
-                    )
-                }, fd)
+        # Gzip the output
+        with gzip.GzipFile(filename=profile_path+".gz", mode="wb") as outfd:
+            outfd.write(open(profile_path).read())
+    except Exception:
+        print "Error during profile %s" % pdb_filename
+        print ("You can run it manually: "
+               "rekall parse_pdb --filename=%r --output=%r --metadata=%r" %
+               (pdb_filename, profile_path, metadata))
+        traceback.print_exc()
+
+    finally:
+        os.unlink(profile_path)
 
 
-def BuildAllProfiles(executable_path, rebuild=False):
-    executable_path = os.path.abspath(executable_path)
+def BuildAllProfiles(guidfile_path, rebuild=False):
+    changed_files = set()
     pool = multiprocessing.Pool(NUMBER_OF_CORES)
+    for line in open(guidfile_path):
+        guid, pdb_filename = line.strip().split(" ", 2)
 
-    for filename in os.listdir(os.path.join(executable_path, "files")):
-        path = os.path.join(executable_path, "files", filename)
-        try:
-            peinfo = session.plugins.peinfo(filename=path)
-        except IOError:
+        # We dont care about this pdb.
+        if pdb_filename not in PDB_TO_SYS:
             continue
 
-        version_info = dict(peinfo.pe_helper.VersionInformation())
-
-        # The version string e.g. 5.2.3790.4354
-        version = version_info["ProductVersion"]
-        major, minor, revision = version.split(".", 2)
-
-        # The guid + age as needed by the MS symbol server.
-        guid = peinfo.pe_helper.RSDS.GUID_AGE
-        filename = str(peinfo.pe_helper.RSDS.Filename)
-        arch = str(peinfo.pe_helper.nt_header.FileHeader.Machine).split("_")[-1]
-
         # Fetch the pdb from the MS symbol server.
-        output_path = os.path.join(executable_path, arch, version)
-        EnsurePathExists(output_path)
-
-        implementation = os.path.basename(executable_path).split(
-            ".")[0].capitalize()
-
-        profile_path = os.path.join(output_path, guid)
-        pdb_path = os.path.join(output_path, "%s.pdb" % guid)
-        pdb_filename = os.path.join(pdb_path, filename)
-        EnsurePathExists(pdb_path)
+        profile_path = os.path.join(PDB_TO_SYS[pdb_filename], "GUID", guid)
+        pdb_path = os.path.join("src", "pdb")
+        pdb_out_filename = os.path.join(pdb_path, "%s.pdb" % guid)
 
         # Dont bother downloading the pdb file if we already have it.
-        if not os.access(pdb_filename, os.R_OK):
+        if not os.access(pdb_out_filename, os.R_OK):
             session.RunPlugin(
                 "fetch_pdb",
-                filename=filename, guid=guid,
+                filename=pdb_filename, guid=guid,
                 dump_dir=pdb_path)
 
+            os.rename(os.path.join(pdb_path, pdb_filename), pdb_out_filename)
 
         # Do not export the profile if we already have it.
-        if rebuild or not os.access(profile_path, os.R_OK):
+        if rebuild or not os.access(profile_path + ".gz", os.R_OK):
+            implementation = os.path.splitext(
+                PDB_TO_SYS[pdb_filename])[0].capitalize()
+
             metadata = dict(
                 ProfileClass=implementation,
-                major=major,
-                minor=minor,
-                arch=arch,
-                revision=revision)
+                PDBFile=pdb_filename,
+                )
 
-            print "Exporting profile %s" % profile_path
-            # Make the symlink to it.
-            EnsurePathExists("GUID")
-            symlink_path = os.path.join("GUID", guid)
-
-            # Target path is relative to the root of the repository.
-            target_path = profile_path[
-                len(os.path.dirname(executable_path))+1:]
-
+            changed_files.add(PDB_TO_SYS[pdb_filename])
             pool.apply_async(
                 BuildProfile,
-                (pdb_path, filename, profile_path, target_path,
-                 symlink_path, metadata))
-
+                (pdb_out_filename, profile_path, metadata))
 
     # Wait here until all the pool workers are done.
     pool.close()
     pool.join()
 
+    return changed_files
+
 
 if __name__ == "__main__":
-    BuildAllProfiles(sys.argv[1])
+    changes = BuildAllProfiles(sys.argv[1])
+
+    # If the files have changed, rebuild the indexes.
+    for change in changes:
+        print "Rebuilding profile index for %s" % change
+        session.RunPlugin(
+            "build_index",
+            spec=os.path.join(change, "index.yaml"),
+            output=os.path.join(change, "index"))

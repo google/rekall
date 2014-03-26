@@ -24,6 +24,8 @@ from rekall import obj
 from rekall import utils
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.overlays import basic
+from rekall.plugins.darwin import entities
+from rekall.plugins.darwin import generators
 
 
 darwin_overlay = {
@@ -568,7 +570,7 @@ class queue_entry(LIST_ENTRY):
 
 
 class sockaddr_dl(obj.Struct):
-    def __str__(self):
+    def __unicode__(self):
         result = []
         for i in range(self.sdl_alen):
             result.append(
@@ -924,7 +926,7 @@ class sockaddr(obj.Struct):
 
         return addr
 
-    def __str__(self):
+    def __unicode__(self):
         result = ""
         addr = self._get_address_obj()
         if addr:
@@ -1134,6 +1136,32 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
         profile.add_enums(**darwin_enums)
         profile.add_overlay(darwin_overlay)
         profile.add_constants(default_text_encoding="utf8")
+
+        profile.add_generator(entities.DarwinUnixSocket,
+                              generators.DarwinUnixSocketGenerator)
+
+        profile.add_generator(entities.DarwinProcess,
+                              generators.DarwinPgrpHashProcessGenerator)
+        profile.add_generator(entities.DarwinProcess,
+                              generators.DarwinTaskProcessGenerator)
+        profile.add_generator(entities.DarwinProcess,
+                              generators.DarwinAllprocProcessGenerator)
+        profile.add_generator(entities.DarwinProcess,
+                              generators.DarwinPidHashProcessGenerator)
+
+        profile.add_generator(entities.DarwinSocket,
+                              generators.DarwinFileprocMultiGenerator)
+        profile.add_generator(entities.DarwinInetSocket,
+                              generators.DarwinFileprocMultiGenerator)
+        profile.add_generator(entities.DarwinUnixSocket,
+                              generators.DarwinFileprocMultiGenerator)
+        profile.add_generator(entities.DarwinOpenHandle,
+                              generators.DarwinFileprocMultiGenerator)
+        profile.add_generator(entities.DarwinOpenFile,
+                              generators.DarwinFileprocMultiGenerator)
+
+        profile.add_generator(entities.DarwinNetworkInterface,
+                              generators.DarwinNetworkInterfaceGenerator)
 
     def get_constant_cpp_object(self, constant, **kwargs):
         """A variant of get_constant_object which accounts for name mangling."""
