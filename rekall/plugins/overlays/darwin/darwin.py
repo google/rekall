@@ -570,7 +570,7 @@ class queue_entry(LIST_ENTRY):
 
 
 class sockaddr_dl(obj.Struct):
-    def __str__(self):
+    def __unicode__(self):
         result = []
         for i in range(self.sdl_alen):
             result.append(
@@ -926,7 +926,7 @@ class sockaddr(obj.Struct):
 
         return addr
 
-    def __str__(self):
+    def __unicode__(self):
         result = ""
         addr = self._get_address_obj()
         if addr:
@@ -1159,6 +1159,9 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
                               generators.DarwinFileprocMultiGenerator)
         profile.add_generator(entities.DarwinOpenFile,
                               generators.DarwinFileprocMultiGenerator)
+
+        profile.add_generator(entities.DarwinNetworkInterface,
+                              generators.DarwinNetworkInterfaceGenerator)
 
     def get_constant_cpp_object(self, constant, **kwargs):
         """A variant of get_constant_object which accounts for name mangling."""

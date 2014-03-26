@@ -16,8 +16,32 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+"""
+Darwin entities are declared here.
+"""
+__author__ = "Adam Sindelar <adamsh@google.com>"
+
 from rekall import entity
 from rekall import obj
+
+
+class DarwinNetworkInterface(entity.NetworkInterface):
+    @property
+    def addresses(self):
+        for address in self.key_obj.if_addrhead.tqh_first.walk_list(
+            "ifa_link.tqe_next"):
+            yield (
+                address.ifa_addr.sa_family,
+                address.ifa_addr.deref(),
+            )
+
+    @property
+    def interface_name(self):
+        return "%s%d" % (
+            self.key_obj.if_name.deref(),
+            self.key_obj.if_unit
+        )
+
 
 class DarwinProcess(entity.Process):
     @property

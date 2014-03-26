@@ -150,6 +150,21 @@ class Process(Entity):
         pass
 
 
+class NetworkInterface(Entity):
+    @property
+    def addresses(self):
+        """Tuples of (protocol, address)."""
+        pass
+
+    @property
+    def interface_name(self):
+        pass
+
+    @property
+    def entity_name(self):
+        return self.interface_name
+
+
 class OpenResource(Entity):
     @property
     def handle(self):
