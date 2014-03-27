@@ -71,8 +71,8 @@ class CrashDump64Profile(basic.ProfileLLP64, basic.BasicClasses):
     """A profile for crash dumps."""
     def __init__(self, **kwargs):
         super(CrashDump64Profile, self).__init__(**kwargs)
-        self.add_overlay(crash_vtypes.crash_vtypes)
-        self.add_overlay(crash_vtypes.crash_64_vtypes)
+        self.add_types(crash_vtypes.crash_vtypes)
+        self.add_types(crash_vtypes.crash_64_vtypes)
         self.add_overlay(crash_overlays)
 
 

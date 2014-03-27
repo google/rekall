@@ -309,6 +309,10 @@ darwin_overlay = {
         )]],
     }],
 
+    "_Element": [8, {
+        "obj": [0, ["pointer", ["OSMetaClassBase"]]]
+    }],
+
     "PE_state": [None, {
         "bootArgs": [None, ["Pointer", dict(target="boot_args")]],
     }],
@@ -1126,12 +1130,27 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
     @classmethod
     def Initialize(cls, profile):
         super(Darwin32, cls).Initialize(profile)
+
+        # Some Darwin profiles add a suffix to IOKIT objects. So OSDictionary
+        # becomes OSDictionary_class. We automatically generate the overlays and
+        # classes to account for this.
+        for k in profile.vtypes.keys():
+            if k.endswith("_class"):
+                stripped_k = k[:-len("_class")]
+                if stripped_k not in profile.vtypes:
+                    profile.vtypes[stripped_k] = profile.vtypes[k]
+                    if stripped_k in darwin_overlay:
+                        darwin_overlay[k] = darwin_overlay[stripped_k]
+
         profile.add_classes(
             LIST_ENTRY=LIST_ENTRY, queue_entry=queue_entry,
             sockaddr=sockaddr, sockaddr_dl=sockaddr_dl,
             vm_map_entry=vm_map_entry, proc=proc, vnode=vnode,
-            socket=socket, OSDictionary=OSDictionary,
-            OSOrderedSet=OSOrderedSet, fileproc=fileproc,
+            socket=socket,
+            # Support both forms with and without _class suffix.
+            OSDictionary=OSDictionary, OSDictionary_class=OSDictionary,
+            OSOrderedSet=OSOrderedSet, OSOrderedSet_class=OSOrderedSet,
+            fileproc=fileproc,
         )
         profile.add_enums(**darwin_enums)
         profile.add_overlay(darwin_overlay)

@@ -1,6 +1,5 @@
 """Implements scanners and plugins to find hypervisors in memory."""
 
-from rekall import addrspace
 from rekall import config
 from rekall import plugin
 from rekall import scan
@@ -36,7 +35,7 @@ KNOWN_ABORT_INDICATOR_CODES = {
     }
 
 
-vmcs_overlay =  {
+vmcs_overlay = {
     'NEHALEM_VMCS' : [None, {
         'IS_NESTED': lambda x: False,
         }],
@@ -119,12 +118,12 @@ class VMCSCheck(scan.ScannerCheck):
             return False
 
         # CHECK 2: Verify that the VMCS has the VMX flag enabled.
-        if not (vmcs_obj.HOST_CR4 & 0x2000):
+        if not vmcs_obj.HOST_CR4 & 0x2000:
             return False
 
         # CHECK 3: Verify that VMCS_LINK_POINTER is
         # 0xFFFFFFFFFFFFFFFF.
-        if (vmcs_obj.VMCS_LINK_PTR_FULL != 0xFFFFFFFFFFFFFFFF):
+        if vmcs_obj.VMCS_LINK_PTR_FULL != 0xFFFFFFFFFFFFFFFF:
             return False
 
         return True
@@ -227,17 +226,17 @@ class VirtualMachine(object):
 
     @property
     def ept_list(self):
-      """The list of EPT values needed to instantiate this VM guest physical AS.
+        """The list of EPT values needed to instantiate VM guest physical AS.
 
-      This is used in conjunction with the VTxPagedMemory AS.
-      """
+        This is used in conjunction with the VTxPagedMemory AS.
+        """
 
-      if isinstance(self.parent, VirtualMachine):
-          ept_list = self.parent.ept_list
-          ept_list.extend([self.ept])
-      else:
-          ept_list = [self.ept]
-      return ept_list
+        if isinstance(self.parent, VirtualMachine):
+            ept_list = self.parent.ept_list
+            ept_list.extend([self.ept])
+        else:
+            ept_list = [self.ept]
+        return ept_list
 
     @property
     def physical_address_space(self):
@@ -254,41 +253,41 @@ class VirtualMachine(object):
 
     @classmethod
     def get_vmcs_guest_as_type(cls, vmcs):
-      """Returns the address space type of the guest of a VMCS.
+        """Returns the address space type of the guest of a VMCS.
 
-      One of I386, I386+PAE, AMD64 or None.
-      """
-      if not vmcs.GUEST_CR4 & (1 << 5):  # PAE bit
-          # No PAE
-          return "I386"
-      elif not vmcs.ENTRY_CONTROLS & (1 << 9):  # long mode bit
-          # PAE and no long mode = 32bit PAE
-          return "I386+PAE"
-      elif vmcs.ENTRY_CONTROLS & (1 << 9):  # long mode bit
-          # Long mode AND PAE = IA-32e
-          return "AMD64"
-      else:
-          # We don't have an address space for other paging modes
-          return None
+        One of I386, I386+PAE, AMD64 or None.
+        """
+        if not vmcs.GUEST_CR4 & (1 << 5):  # PAE bit
+            # No PAE
+            return "I386"
+        elif not vmcs.ENTRY_CONTROLS & (1 << 9):  # long mode bit
+            # PAE and no long mode = 32bit PAE
+            return "I386+PAE"
+        elif vmcs.ENTRY_CONTROLS & (1 << 9):  # long mode bit
+            # Long mode AND PAE = IA-32e
+            return "AMD64"
+        else:
+            # We don't have an address space for other paging modes
+            return None
 
     @classmethod
     def get_vmcs_host_as_type(cls, vmcs):
-      """Returns the address space type of the host of a VMCS.
+        """Returns the address space type of the host of a VMCS.
 
-      One of I386, I386+PAE, AMD64 or None.
-      """
-      if not vmcs.HOST_CR4 & (1 << 5):  # PAE bit
-          # No PAE
-          return "I386"
-      elif not vmcs.EXIT_CONTROLS & (1 << 9):  # long mode bit
-          # PAE and no long mode = 32bit PAE
-          return "I386+PAE"
-      elif vmcs.EXIT_CONTROLS & (1 << 9):  # long mode bit
-          # Long mode AND PAE = IA-32e
-          return "AMD64"
-      else:
-          # We don't have an address space for other paging modes
-          return None
+        One of I386, I386+PAE, AMD64 or None.
+        """
+        if not vmcs.HOST_CR4 & (1 << 5):  # PAE bit
+            # No PAE
+            return "I386"
+        elif not vmcs.EXIT_CONTROLS & (1 << 9):  # long mode bit
+            # PAE and no long mode = 32bit PAE
+            return "I386+PAE"
+        elif vmcs.EXIT_CONTROLS & (1 << 9):  # long mode bit
+            # Long mode AND PAE = IA-32e
+            return "AMD64"
+        else:
+            # We don't have an address space for other paging modes
+            return None
 
     @classmethod
     def get_vmcs_host_address_space(cls, vmcs, base_as=None):
@@ -373,6 +372,7 @@ class VirtualMachine(object):
             self.vmcs_validation.clear()
 
     def unset_parent(self, parent):
+        _ = parent
         self.parent = None
 
     def validate_vmcs(self, vmcs):
@@ -400,7 +400,7 @@ class VirtualMachine(object):
                 self.base_session.report_progress(
                     "Validating VMCS %08X @ %08X" % (
                         vmcs.obj_offset, vaddr))
-            if (paddr <= vmcs.obj_offset and vmcs.obj_offset < paddr + size):
+            if paddr <= vmcs.obj_offset and vmcs.obj_offset < paddr + size:
                 validated = True
                 break
         self.vmcs_validation[vmcs] = validated
@@ -439,10 +439,10 @@ class VirtualMachine(object):
 
         return sess
 
-    def RunPlugin(self, plugin, *args, **kwargs):
+    def RunPlugin(self, plugin_name, *args, **kwargs):
         """Runs a plugin in the context of this virtual machine."""
         vm_sess = self.GetSession()
-        return vm_sess.RunPlugin(plugin, *args, **kwargs)
+        return vm_sess.RunPlugin(plugin_name, *args, **kwargs)
 
     def _validate_nested_vmcs(self, vmcs):
         """Validates a VMCS as a nested VMCS in this VM's context."""
@@ -508,7 +508,7 @@ class VirtualMachine(object):
                     "Validating NESTED VMCS %08X @ %08X" % (
                         vmcs.obj_offset, vaddr))
 
-            if (paddr <= vmcs.obj_offset and vmcs.obj_offset < paddr + size):
+            if paddr <= vmcs.obj_offset and vmcs.obj_offset < paddr + size:
                 validated = True
                 break
 
@@ -588,12 +588,12 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         # virtualization product would ever want to have different EPTP's per
         # core.
         for host_rip, rip_vmcs_list in groupby(
-            sorted(all_vmcs, key=lambda x:long(x.HOST_RIP)),
-            lambda x:long(x.HOST_RIP)):
+            sorted(all_vmcs, key=lambda x: long(x.HOST_RIP)),
+            lambda x: long(x.HOST_RIP)):
 
             for ept, rip_ept_vmcs_list in groupby(
-                sorted(rip_vmcs_list, key=lambda x:long(x.EPT_POINTER_FULL)),
-                lambda x:long(x.EPT_POINTER_FULL)):
+                sorted(rip_vmcs_list, key=lambda x: long(x.EPT_POINTER_FULL)),
+                lambda x: long(x.EPT_POINTER_FULL)):
 
                 vm = VirtualMachine(host_rip=host_rip, ept=ept,
                                     session=self.session)
@@ -723,12 +723,10 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
 
         if self.verbosity > 1:
             for vmcs in sorted(vm.vmcss,
-                               key=lambda x:x.m("VPID")):
+                               key=lambda x: x.m("VPID")):
                 if not self._show_all and not vm.is_valid_vmcs(vmcs):
                     continue
 
-                vmcs_host_as_type = vm.get_vmcs_host_as_type(vmcs)
-                vmcs_guest_as_type = vm.get_vmcs_guest_as_type(vmcs)
                 valid = vm.is_valid_vmcs(vmcs)
                 renderer.table_row(
                     "{0:s}VMCS @ {1:#x} vCORE {2:X}".format(

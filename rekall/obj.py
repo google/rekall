@@ -1300,7 +1300,7 @@ class Profile(object):
             result = profile_cls(name=name, session=session,
                                  metadata=metadata)
 
-            result._SetupProfileFromData(data)
+            result._SetupProfileFromData(data)  # pylint: disable=protected-access
             return result
 
     def _SetupProfileFromData(self, data):
@@ -1429,7 +1429,7 @@ class Profile(object):
     def merge(self, other):
         """Merges another profile into this one.
 
-        The result is that we are able to parse all the type that the other
+        The result is that we are able to parse all the types that the other
         profile has.
         """
         other.EnsureInitialized()
@@ -1441,6 +1441,11 @@ class Profile(object):
         self.object_classes.update(other.object_classes)
         self.flush_cache()
         self.name = "%s + %s" % (self.name, other.name)
+
+        # Merge in the other's profile metadata which is not in this profile.
+        metadata = other._metadata.copy()  # pylint: disable=protected-access
+        metadata.update(self._metadata)
+        self._metadata = metadata
 
     def metadata(self, name, default=None):
         """Obtain metadata about this profile."""
@@ -1456,7 +1461,10 @@ class Profile(object):
         return tuple([self._metadata.get(x) for x in args])
 
     def has_type(self, type_name):
-        return bool(self.Object(type_name, session=self.session))
+        return type_name in self.vtypes
+
+    def has_class(self, class_name):
+        return class_name in self.object_classes
 
     def add_classes(self, classes_dict=None, **kwargs):
         """Add the classes in the dict to our object classes mapping."""
@@ -1477,8 +1485,10 @@ class Profile(object):
             if constants_are_addresses:
                 try:
                     # We need to interpret the value as a pointer.
-                    self.constant_addresses.insert(
-                        (Pointer.integer_to_address(v), k))
+                    address = Pointer.integer_to_address(v)
+                    if (address, 0) not in self.constant_addresses:
+                        self.constant_addresses.insert((address, k))
+
                 except ValueError:
                     pass
 

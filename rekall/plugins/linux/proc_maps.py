@@ -37,7 +37,7 @@ class ProcMaps(common.LinProcessFilter):
     def render(self, renderer):
         renderer.table_header([("Pid", "pid", "8"),
                                ("Start", "start", "[addrpad]"),
-                               ("End",   "end", "[addrpad]"),
+                               ("End", "end", "[addrpad]"),
                                ("Flags", "flags", "6"),
                                ("Pgoff", "pgoff", "[addrpad]"),
                                ("Major", "major", "6"),

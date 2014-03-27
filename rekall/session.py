@@ -523,9 +523,10 @@ class Session(object):
             result = None
             # The profile path is specified in search order.
             profile_path = self.state.Get("profile_path")
-            for path in profile_path:
-                if path == constants.PROFILE_REPOSITORY:
-                    path = constants.SUPPORTED_PROFILE_REPOSITORY
+
+            # Add the last supported repository as the last fallback path.
+            for path in profile_path + [
+                constants.SUPPORTED_PROFILE_REPOSITORY]:
 
                 try:
                     manager = io_manager.Factory(path)

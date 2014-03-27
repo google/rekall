@@ -954,7 +954,7 @@ class PEProfile(basic.BasicClasses):
     @classmethod
     def Initialize(cls, profile):
         super(PEProfile, cls).Initialize(profile)
-        if not profile.has_type("unsigned int"):
+        if not profile.has_class("unsigned int"):
             basic.ProfileLLP64.Initialize(profile)
 
         profile.add_classes({

@@ -71,7 +71,7 @@ class PSTree(common.WinProcessFilter):
 
         def draw_children(pad, pid):
             """Given a pid output all its children."""
-            for task in process_dict.values():
+            for task in sorted(process_dict.values(), key=lambda x: x.pid):
                 if task.InheritedFromUniqueProcessId != pid:
                     continue
 
@@ -94,8 +94,8 @@ class PSTree(common.WinProcessFilter):
                                         ' ' * pad, process_params.ImagePathName)
                         renderer.format(
                             u"{0}    audit: {1}\n", ' ' * pad,
-                            task.SeAuditProcessCreationInfo.ImageFileName.Name or
-                            "UNKNOWN")
+                            (task.SeAuditProcessCreationInfo.ImageFileName.Name
+                             or "UNKNOWN"))
                     except KeyError:
                         pass
 
