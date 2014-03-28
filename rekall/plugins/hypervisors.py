@@ -11,7 +11,6 @@ from rekall.plugins.overlays import basic
 from itertools import groupby
 import struct
 
-
 KNOWN_REVISION_IDS = {
     # Nested hypervisors
     # VMware Workstation 10.X
@@ -181,7 +180,7 @@ class VirtualMachine(object):
         # Dictionary where the key is a VMCS object and the value
         # represents whether the VMCS is valid, or not.
         self.vmcs_validation = dict()
-        self.virtual_machines = []
+        self.virtual_machines = set()
 
     @property
     def is_valid(self):
@@ -301,7 +300,7 @@ class VirtualMachine(object):
 
     @classmethod
     def get_vmcs_address_space(cls, vmcs, host=True, base_as=None):
-        """Returns the address_space of the host or guest of a VMCS."""
+        """Returns the address_space of the host or guest process of a VMCS."""
         address_space = None
         base_as = base_as or vmcs.obj_vm
 
@@ -350,30 +349,14 @@ class VirtualMachine(object):
 
         self.vmcss.add(vmcs)
 
-    def add_nested_vm(self, vm):
-        """Adds a nested VM to this VM."""
-
-        if vm.parent != self:
-            vm.set_parent(self)
-
-        self.virtual_machines.append(vm)
-
-    def remove_nested_vm(self, vm):
-        """Removes a VM from the list of nested VMs."""
-        if vm in self.virtual_machines:
-            self.virtual_machines.remove(vm)
-            vm.unset_parent()
-        raise InvalidVM("This VM is unknown.")
-
     def set_parent(self, parent):
         """Sets the parent of this VM and resets the validation cache."""
         if self.parent != parent:
             self.parent = parent
             self.vmcs_validation.clear()
 
-    def unset_parent(self, parent):
-        _ = parent
-        self.parent = None
+    def unset_parent(self):
+        self.set_parent(None)
 
     def validate_vmcs(self, vmcs):
         """Validates a VMCS and returns if it's valid in this VM's context.
@@ -382,12 +365,12 @@ class VirtualMachine(object):
         that it points to. The result of this validation is cached. Use
         the _reset_validation_state method if you need to invalidate cache
         entries.
+
+        A VMCS object will only validate properly if its defined in the context
+        of the address space of the physical AS of the parent of the VM.
         """
         if vmcs in self.vmcs_validation:
             return self.vmcs_validation.get(vmcs)
-
-        if self.is_nested:
-            return self._validate_nested_vmcs(vmcs)
 
         validated = False
 
@@ -444,77 +427,59 @@ class VirtualMachine(object):
         vm_sess = self.GetSession()
         return vm_sess.RunPlugin(plugin_name, *args, **kwargs)
 
-    def _validate_nested_vmcs(self, vmcs):
-        """Validates a VMCS as a nested VMCS in this VM's context."""
-        if vmcs in self.vmcs_validation:
-            return self.vmcs_validation.get(vmcs)
+    def add_nested_vms(self, vm_list):
+        """Tries to add the list of VMs as nested VMs of this one.
 
-        validated = False
+        To validate nested VMs, we need to see if its identifying VMCS are
+        mapped in our physical AS and then try to validate them via HOST_CR3
+        in our context.
+        """
 
-        # VMCS that are nested in nature cannot be validated against VMs that
-        # are not nested and viceversa.
-        if ((self.is_nested and not vmcs.IS_NESTED)
-            or (not self.is_nested and vmcs.IS_NESTED)):
-            return False
 
-        # We validate nested VMCS by walking the HOST_CR3 of the VMCS and
-        # then the EPT page tables of the parent.
+        if not vm_list:
+            return
 
-        # We need to make sure the vmcs's AS is in this VM's AS chain, so
-        # we can eventually validate it.
-        parent_as = self.parent.physical_address_space
-        while parent_as != vmcs.obj_vm and parent_as != parent_as.base:
-            parent_as = parent_as.base
-        if parent_as != vmcs.obj_vm:
-            raise IncompatibleASError(
-                "Unable to validate VMCS. Incompatible address spaces.")
+        # If a VM is running under us, its VMCS has to be mapped in our
+        # physical address space.
+        phys_as = self.physical_address_space
+        for vaddr, paddr, size in phys_as.get_available_addresses():
+            for vm in vm_list:
+                if self.base_session:
+                    self.base_session.report_progress(
+                        "Validating VM(%X) > VM(%X) @ %#X",
+                        self.ept, vm.ept, paddr)
 
-        # We cannot validate PENRYN or previous microarchitectures
-        # that don't support EPT translation.
-        if vmcs.v("EPT_POINTER_FULL") == None:
-            return False
+                for vmcs in vm.vmcss:
+                    # Skip VMCS that we already validated
+                    if vm.is_valid_vmcs(vmcs):
+                        continue
 
-        # Now we create an address space that translates from the parent's
-        # physical AS to the parent's parent physical AS.
-        # This is VMCS01.
-        parent_as = self.parent.physical_address_space
+                    if (paddr <= vmcs.obj_offset and
+                        vmcs.obj_offset < paddr+size):
+                        # VMCS is mapped in our physical AS. Now we need to
+                        # validate it.
+                        vm.set_parent(self)
+                        vmcs_stored_vm = vmcs.obj_vm
+                        vmcs_stored_offset = vmcs.obj_offset
+                        # Change the VMCS to be mapped in this VM's physical AS.
+                        vmcs.obj_vm = self.physical_address_space
+                        # The new offset is the vaddr + the offset within the
+                        # physical page. We need to do this when we're dealing
+                        # with large/huge pages.
+                        vmcs.obj_offset = vaddr + (paddr - vmcs.obj_offset)
+                        if vm.validate_vmcs(vmcs):
+                            self.virtual_machines.update([vm])
+                        else:
+                            # Reset the VMCS settings
+                            vmcs.obj_vm = vmcs_stored_vm
+                            vmcs.obj_offset = vmcs_stored_offset
 
-        # And now we stack the VMCS12 HOST_CR3 AS on top of the VMCS01
-        # address space.
-        validation_as = self.get_vmcs_host_address_space(
-            vmcs, base_as=parent_as)
-
-        for vaddr, paddr, size in validation_as.get_available_addresses():
-            # Now note that this paddr isn't a real physical
-            # address. This is the parent VM physical address.
-            # So we now need to do EPT translation to get the
-            # actual physical address.
-            test_as = validation_as
-            while test_as.base != vmcs.obj_vm:
-                test_as = test_as.base
-                paddr = test_as.vtop(paddr)
-                # Because we may be validating invalid VMCS, it's
-                # likely we will get invalid addresses.
-                if paddr == None:
-                    break
-            if paddr == None:
-                continue
-            paddr = test_as.base.vtop(paddr)
-            if paddr == None:
-                continue
-
-            if self.base_session:
-                self.base_session.report_progress(
-                    "Validating NESTED VMCS %08X @ %08X" % (
-                        vmcs.obj_offset, vaddr))
-
-            if paddr <= vmcs.obj_offset and vmcs.obj_offset < paddr + size:
-                validated = True
-                break
-
-        self.vmcs_validation[vmcs] = validated
-        return validated
-
+        # If any of the VMs was found to be nested, remove it from the vm_list
+        for vm in self.virtual_machines:
+            try:
+                vm_list.remove(vm)
+            except ValueError:
+                pass
 
     def _reset_validation_state(self, vmcs):
         """Invalidates the vmcs validation cache entry for vmcs."""
@@ -540,7 +505,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         + Ivy Bridge
         + Haswell
 
-      * Intel VT-X without EPT (unsupported page translatioa in rekall).
+      * Intel VT-X without EPT (unsupported page translation in rekall).
         + Penryn
 
     For the specific processor models that support EPT, please check:
@@ -607,7 +572,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
                         if (vmcs.IS_NESTED
                             and not isinstance(self.physical_address_space,
                                                amd64.VTxPagedMemory)):
-                            # We cannot do validation yet for nested VMs
+                            # We cannot validate nested VMs at this point.
                             vm.add_vmcs(vmcs, validate=False)
                         else:
                             vm.add_vmcs(vmcs, validate=self._validate)
@@ -631,49 +596,19 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
                         host_vms.append(vm)
 
         # == NESTED VM validation
-        # To validate nested VMs and, in the process, discover their hierarchy,
-        # we need to try each logical combination with the identified host VMs
-        # as parents.
+        # Only 1 level of nesting supported at the moment.
         #
         # TODO: Detect turtles-type VMCSs and relate them to the proper VM.
         # https://www.usenix.org/event/osdi10/tech/full_papers/Ben-Yehuda.pdf
         #
-        # These should, at the moment, show up as another valid VM.
+        # These should show up as another valid VM.
         if self._validate:
             candidate_hosts = [vm for vm in host_vms if vm.is_valid]
         else:
             candidate_hosts = []
 
         for candidate_host_vm in candidate_hosts:
-            for nested_vm in nested_vms:
-                old_parent = nested_vm.parent
-                nested_vm.set_parent(candidate_host_vm)
-                valid_combo = False
-
-                # TODO: This could be optimized so we only do one pass per
-                # candidate_host and nested_vm for these VMCS in the nested VM
-                # that share the same HOST_CR3. In practice, it seems it will
-                # only be an improvement for just a few hypervisors.
-                for vmcs in nested_vm.vmcss:
-                    # Need to reset the validation status every round if we
-                    # didn't find a candidate host for this VM or else
-                    # validation will always fail after 1 attempt.
-                    nested_vm._reset_validation_state(vmcs)
-                    if nested_vm.validate_vmcs(vmcs):
-                        valid_combo = True
-                        break
-
-                if valid_combo:
-                    # Add this VM to the list of child VMs of the host VM
-                    candidate_host_vm.add_nested_vm(nested_vm)
-                else:
-                    # Reset the parent to leave the nested_vm untouched.
-                    nested_vm.set_parent(old_parent)
-
-            # Remove validated VMs from the list of nested_vms that still need
-            # discovering of their herarchy.
-            for vm in candidate_host_vm.virtual_machines:
-                nested_vms.remove(vm)
+            candidate_host_vm.add_nested_vms(nested_vms)
 
         # Add all remaining VMs that werent able to guess the hierarchy of to
         # the output vm list.
