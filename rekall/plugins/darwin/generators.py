@@ -86,7 +86,7 @@ def DarwinFileprocMultiGenerator(profile):
         DarwinInetSocket
         DarwinSocket
     """
-    for proc in profile.session.get_entities(entities.DarwinProcess):
+    for proc in profile.session.entities.find(entities.DarwinProcess):
         for fd, fileproc, flags in proc.key_obj.get_open_files():
             # First we yield the handle.
             yield entities.DarwinOpenHandle(

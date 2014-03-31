@@ -35,7 +35,8 @@ class EntityIFConfig(plugin.ProfileCommand):
                                ("Family", "af", "10"),
                                ("Address", "address", "20")])
 
-        for interface in self.session.get_entities(entity.NetworkInterface):
+        for interface in self.session.entities.find(
+            entity_cls=entity.NetworkInterface):
             for address in interface.addresses:
                 renderer.table_row(
                     interface.interface_name,
@@ -50,20 +51,40 @@ class EntityNetstat(plugin.ProfileCommand):
     __name = "enetstat"
 
     def render(self, renderer):
-        connections = self.session.get_entities(entity.Connection)
-
-        # Group connections by protocol/addressing family.
+        # Group connections by protocol and addressing family.
         inet_by_proto = {}
         unix_socks = []
 
-        for connection in connections:
+        for connection in self.session.entities.find(
+            entity_cls=entity.Connection):
             if connection.addressing_family in ["AF_INET", "AF_INET6"]:
                 proto = connection.protocol
-                inet_by_proto.setdefault(proto, []).append(connection)
+                for handle in connection.handles:
+                    row = (
+                        proto,
+                        connection.src_address,
+                        connection.src_port,
+                        connection.dst_address,
+                        connection.dst_port,
+                        connection.state,
+                        handle.process.pid,
+                        handle.process.command,
+                    )
+                    inet_by_proto.setdefault(proto, []).append(row)
             elif connection.addressing_family == "AF_UNIX":
-                unix_socks.append(connection)
+                for handle in connection.handles:
+                    row = (
+                        connection.source,
+                        connection.destination,
+                        connection.entity_type,
+                        "0x%x" % int(connection.key_obj.vnode),
+                        connection.entity_name,
+                        handle.process.pid,
+                        handle.process.command,
+                    )
+                    unix_socks.append(row)
 
-        # Render inet protos first, in alphabetical order (like netstat).
+        # First, render internet connections.
         renderer.section("Active Internet connections")
         renderer.table_header([
             ("Proto", "proto", "14"),
@@ -77,20 +98,9 @@ class EntityNetstat(plugin.ProfileCommand):
         ])
 
         # Sort by inet protos, then PID.
-        for proto, connections in sorted(inet_by_proto.iteritems()):
-            for connection in sorted(
-                connections,
-                key=lambda x: x.handle.process.pid):
-                renderer.table_row(
-                    proto,
-                    connection.src_address,
-                    connection.src_port,
-                    connection.dst_address,
-                    connection.dst_port,
-                    connection.state,
-                    connection.handle.process.pid,
-                    connection.handle.process.command,
-                )
+        for proto, rows in sorted(inet_by_proto.iteritems()):
+            for row in sorted(rows, key=lambda row: row[-2]):
+                renderer.table_row(*row)
 
         # Render the UNIX sockets.
         renderer.section("Active UNIX domain sockets")
@@ -104,16 +114,6 @@ class EntityNetstat(plugin.ProfileCommand):
             ("Comm", "comm", "20"),
         ])
 
-        for connection in sorted(
-            unix_socks,
-            key=lambda x: x.handle.process.pid):
-            renderer.table_row(
-                connection.source,
-                connection.destination,
-                connection.entity_type,
-                "0x%x" % int(connection.key_obj.vnode),
-                connection.entity_name,
-                connection.handle.process.pid,
-                connection.handle.process.command,
-            )
+        for row in sorted(unix_socks, key=lambda row: row[-2]):
+            renderer.table_row(*row)
 

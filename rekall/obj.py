@@ -272,6 +272,83 @@ class ProfileError(Error):
     """Errors in setting the profile."""
 
 
+class BaseObjectIdentity(object):
+    """Stores the minimum amount of data required to uniquely identify objects.
+
+    This container will store:
+      obj_offset
+      obj_type
+      obj_vm, actually an AttributeDict with:
+        dtb (or 0 for physical address space)
+
+    The interface above is the same as what BaseObject would provide which
+    is useful when using the two interchangeably.
+
+    This class also supports pickling and, once unpickled, can rebuild the
+    original BaseObject instance using an active session.
+    """
+    def __init__(self, base_obj=None, obj_offset=None, obj_vm=None,
+                 obj_type=None, dtb=None):
+        if base_obj:
+            obj_offset = base_obj.obj_offset
+            obj_type = base_obj.obj_type
+            dtb = getattr(base_obj.obj_vm, "dtb", 0)
+
+        if obj_vm:
+            dtb = getattr(obj_vm, "dtb", 0)
+
+        if None in (obj_offset, obj_type, dtb):
+            raise AttributeError(
+                "Need at least obj_offset, obj_type and dtb."
+            )
+
+        self.obj_offset = obj_offset
+        self.obj_type = obj_type
+        self.dtb = dtb
+
+    @property
+    def obj_vm(self):
+        return utils.AttributeDict(dtb=self.dtb)
+
+    def restore(self, session):
+        """Rebuild the original BaseObject instance."""
+        if self.dtb == 0:
+            vm = session.physical_address_space
+        elif self.dtb == session.kernel_address_space.dtb:
+            vm = session.kernel_address_space
+        else:
+            raise AttributeError(
+                "DTB does't match the kernel virtual address space."
+            )
+
+        if session == None:
+            raise AttributeError(
+                "Cannot restore a base object without a valid session."
+            )
+
+        return session.profile.Object(
+            type_name=self.obj_type,
+            offset=self.obj_offset,
+            vm=vm,
+        )
+
+    def __getstate__(self):
+        return (self.obj_type, self.obj_offset, self.dtb)
+
+    def __setstate__(self, state):
+        self.obj_type, self.obj_offset, self.dtb = state
+
+    def __eq__(self, other):
+        return ((self.obj_type, self.obj_offset, self.dtb)
+                == (other.obj_type, other.obj_offset, other.dtb))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((self.obj_type, self.obj_offset, self.dtb))
+
+
 class BaseObject(object):
 
     obj_parent = NoneObject("No parent")

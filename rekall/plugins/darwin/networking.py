@@ -18,8 +18,6 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-from rekall import entity
-
 from rekall.plugins.darwin import common
 from rekall.plugins.darwin import lsof
 
