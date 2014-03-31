@@ -272,6 +272,83 @@ class ProfileError(Error):
     """Errors in setting the profile."""
 
 
+class BaseObjectIdentity(object):
+    """Stores the minimum amount of data required to uniquely identify objects.
+
+    This container will store:
+      obj_offset
+      obj_type
+      obj_vm, actually an AttributeDict with:
+        dtb (or 0 for physical address space)
+
+    The interface above is the same as what BaseObject would provide which
+    is useful when using the two interchangeably.
+
+    This class also supports pickling and, once unpickled, can rebuild the
+    original BaseObject instance using an active session.
+    """
+    def __init__(self, base_obj=None, obj_offset=None, obj_vm=None,
+                 obj_type=None, dtb=None):
+        if base_obj:
+            obj_offset = base_obj.obj_offset
+            obj_type = base_obj.obj_type
+            dtb = getattr(base_obj.obj_vm, "dtb", 0)
+
+        if obj_vm:
+            dtb = getattr(obj_vm, "dtb", 0)
+
+        if None in (obj_offset, obj_type, dtb):
+            raise AttributeError(
+                "Need at least obj_offset, obj_type and dtb."
+            )
+
+        self.obj_offset = obj_offset
+        self.obj_type = obj_type
+        self.dtb = dtb
+
+    @property
+    def obj_vm(self):
+        return utils.AttributeDict(dtb=self.dtb)
+
+    def restore(self, session):
+        """Rebuild the original BaseObject instance."""
+        if self.dtb == 0:
+            vm = session.physical_address_space
+        elif self.dtb == session.kernel_address_space.dtb:
+            vm = session.kernel_address_space
+        else:
+            raise AttributeError(
+                "DTB does't match the kernel virtual address space."
+            )
+
+        if session == None:
+            raise AttributeError(
+                "Cannot restore a base object without a valid session."
+            )
+
+        return session.profile.Object(
+            type_name=self.obj_type,
+            offset=self.obj_offset,
+            vm=vm,
+        )
+
+    def __getstate__(self):
+        return (self.obj_type, self.obj_offset, self.dtb)
+
+    def __setstate__(self, state):
+        self.obj_type, self.obj_offset, self.dtb = state
+
+    def __eq__(self, other):
+        return ((self.obj_type, self.obj_offset, self.dtb)
+                == (other.obj_type, other.obj_offset, other.dtb))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((self.obj_type, self.obj_offset, self.dtb))
+
+
 class BaseObject(object):
 
     obj_parent = NoneObject("No parent")
@@ -1300,7 +1377,7 @@ class Profile(object):
             result = profile_cls(name=name, session=session,
                                  metadata=metadata)
 
-            result._SetupProfileFromData(data)
+            result._SetupProfileFromData(data)  # pylint: disable=protected-access
             return result
 
     def _SetupProfileFromData(self, data):
@@ -1429,7 +1506,7 @@ class Profile(object):
     def merge(self, other):
         """Merges another profile into this one.
 
-        The result is that we are able to parse all the type that the other
+        The result is that we are able to parse all the types that the other
         profile has.
         """
         other.EnsureInitialized()
@@ -1441,6 +1518,11 @@ class Profile(object):
         self.object_classes.update(other.object_classes)
         self.flush_cache()
         self.name = "%s + %s" % (self.name, other.name)
+
+        # Merge in the other's profile metadata which is not in this profile.
+        metadata = other._metadata.copy()  # pylint: disable=protected-access
+        metadata.update(self._metadata)
+        self._metadata = metadata
 
     def metadata(self, name, default=None):
         """Obtain metadata about this profile."""
@@ -1456,7 +1538,10 @@ class Profile(object):
         return tuple([self._metadata.get(x) for x in args])
 
     def has_type(self, type_name):
-        return bool(self.Object(type_name, session=self.session))
+        return type_name in self.vtypes
+
+    def has_class(self, class_name):
+        return class_name in self.object_classes
 
     def add_classes(self, classes_dict=None, **kwargs):
         """Add the classes in the dict to our object classes mapping."""
@@ -1477,8 +1562,10 @@ class Profile(object):
             if constants_are_addresses:
                 try:
                     # We need to interpret the value as a pointer.
-                    self.constant_addresses.insert(
-                        (Pointer.integer_to_address(v), k))
+                    address = Pointer.integer_to_address(v)
+                    if (address, 0) not in self.constant_addresses:
+                        self.constant_addresses.insert((address, k))
+
                 except ValueError:
                     pass
 

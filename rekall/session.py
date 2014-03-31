@@ -41,7 +41,7 @@ from rekall import plugin
 from rekall import obj
 from rekall import kb
 from rekall import utils
-from rekall import entity as ent
+from rekall import entity
 from rekall.ui import renderer
 
 
@@ -176,6 +176,7 @@ class Session(object):
 
     This session contains the bare minimum to use rekall.
     """
+
     def __init__(self, **kwargs):
         self._parameter_hooks = {}
 
@@ -187,90 +188,12 @@ class Session(object):
         # having to hit the profile repository all the time.
         self.profile_cache = {}
 
-        self.entities_by_key_obj = {}
-        self.key_objs_by_generator = {}
+        self.entities = entity.EntityCache(session=self)
 
         # Store user configurable attributes here. These will be read/written to
         # the configuration file.
         self.state = Configuration(self, cache=Cache(), **kwargs)
         self.UpdateFromConfigObject()
-
-    def register_entity(self, entity, generator):
-        entity.session = self
-        entity.generators = set([generator])
-
-        key_obj = entity.key_obj
-        if key_obj in self.entities_by_key_obj:
-            entity = ent.Entity.merge(
-                entity,
-                self.entities_by_key_obj[key_obj])
-
-        self.entities_by_key_obj[key_obj] = entity
-        self.key_objs_by_generator.setdefault(
-            generator,
-            set()).add(key_obj)
-
-    def get_entities(self, entity_cls, subclasses=True):
-        """Get distinct entities of a particular type.
-
-        Arguments:
-          subclasses (default: True): Also include subclasses in search.
-          entity_cls: The desired class of entities.
-
-        Yields:
-          Entities of class entity_cls (or subclass. Entities are merged
-          using Entity.merge if two or more are found to represent the
-          same key object.
-        """
-        generators = self.profile.entity_generators(
-            entity_cls=entity_cls,
-            subclasses=subclasses)
-
-        results = set()
-
-        for generator in generators:
-            # If we've already run this generator just get the cached output.
-            if generator.__name__ in self.key_objs_by_generator:
-                results.update(self.key_objs_by_generator[generator.__name__])
-                continue
-
-            # Otherwise register the entities from it.
-            for entity in generator(self.profile):
-                self.register_entity(entity, generator.__name__)
-                results.add(entity.key_obj)
-
-        # Generators can return more than one type of entity, which is why the
-        # filtering by isinstance is necessary to ensure we return correct
-        # results.
-        for key_obj in results:
-            entity = self.entities_by_key_obj[key_obj]
-            if isinstance(entity, entity_cls):
-                yield entity
-
-    def get_entity(self, key_obj, entity_cls):
-        """Get the entity for a given key object.
-
-        If the entity already exists in cache then this will return it.
-        Otherwise the entity is created using entity_cls as class and "Session"
-        as generator.
-
-        Arguments:
-          key_obj: the key object to search by.
-          entity_cls: expected class of the returned entity. Not guaranteed.
-
-        Returns:
-          Instance of Entity (probably entity_cls) for the given key object.
-        """
-        if key_obj is None:
-            return obj.NoneObject("key_obj is None")
-
-        if key_obj in self.entities_by_key_obj:
-            return self.entities_by_key_obj[key_obj]
-
-        entity = entity_cls(key_obj)
-        self.register_entity(entity, generator="Session")
-
-        return entity
 
     def Reset(self):
         self.physical_address_space = None
@@ -523,9 +446,10 @@ class Session(object):
             result = None
             # The profile path is specified in search order.
             profile_path = self.state.Get("profile_path")
-            for path in profile_path:
-                if path == constants.PROFILE_REPOSITORY:
-                    path = constants.SUPPORTED_PROFILE_REPOSITORY
+
+            # Add the last supported repository as the last fallback path.
+            for path in profile_path + [
+                constants.SUPPORTED_PROFILE_REPOSITORY]:
 
                 try:
                     manager = io_manager.Factory(path)

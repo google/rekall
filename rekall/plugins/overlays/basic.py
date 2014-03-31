@@ -299,6 +299,9 @@ class Enumeration(obj.NativeType):
     def write(self, data):
         return self.target_obj.write(data)
 
+    def __hash__(self):
+        return hash(self.v())
+
     def __unicode__(self):
         value = self.v()
         # Choices dict keys are always strings.
@@ -307,7 +310,7 @@ class Enumeration(obj.NativeType):
 
     def __eq__(self, other):
         if isinstance(other, (int, long)):
-            return self.v() == str(other)
+            return str(self.v()) == str(other)
 
         # Search the choices.
         for k, v in self.choices.iteritems():

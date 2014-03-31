@@ -22,7 +22,174 @@ The Rekall Memory Forensics entity layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+
 from rekall import obj
+from rekall import utils
+
+
+class EntityCache(object):
+    """Per-session register of entities."""
+
+    def __init__(self, session):
+        # Entity instances indexed by BaseObjIdentity.
+        self.entities_by_identity = {}
+
+        # BaseObjIdentity instances indexed by generator name, so we know which
+        # generators have run and what they returned.
+        self.identities_by_generator = {}
+        self.session = session
+
+    def register_entity(self, entity, generator):
+        """Associate entity with this register."""
+        entity.session = self.session
+        entity.generators = set([generator])
+
+        identity = entity.identity
+        if identity in self.entities_by_identity:
+            entity = Entity.merge(
+                entity,
+                self.entities_by_identity[identity]
+            )
+
+        self.entities_by_identity[identity] = entity
+        self.identities_by_generator.setdefault(
+            generator,
+            set()).add(identity)
+
+    def _generate_entities(self, entity_cls, include_subclasses=True,
+                           cache_only=False):
+        """Find distinct entities of a particular type.
+
+        Arguments:
+          include_subclasses (default: True): Also look for subclasses.
+
+          entity_cls: The desired class of entities.
+
+          cache_only: Only search the cache, don't run generators.
+
+        Yields:
+          Entities of class entity_cls (or subclass. Entities are merged
+          using Entity.merge if two or more are found to represent the
+          same key object.
+        """
+        generators = self.session.profile.entity_generators(
+            entity_cls=entity_cls,
+            subclasses=include_subclasses,
+        )
+
+        results = set()
+
+        for generator in generators:
+            # If we've already run this generator just get the cached output.
+            if generator.__name__ in self.identities_by_generator:
+                results.update(
+                    self.identities_by_generator[generator.__name__]
+                )
+                continue
+
+            # Skip ahead if we're only hitting cache.
+            if cache_only:
+                continue
+
+            # Otherwise register the entities from the generator.
+            for entity in generator(self.session.profile):
+                self.register_entity(entity, generator.__name__)
+                results.add(entity.identity)
+
+        # Generators can return more than one type of entity, which is why the
+        # filtering by isinstance is necessary to ensure we return correct
+        # results.
+        for identity in results:
+            entity = self.entities_by_identity[identity]
+            if isinstance(entity, entity_cls):
+                yield entity
+
+    def _retrieve_entities(self, entity_cls, key_obj, cache_only=False):
+        """Given a key object, find entities that represent it.
+
+        If the entity already exists in cache it will be retrieved. Otherwise,
+        it'll be creared using entity_cls as class and "Session" as generator
+        name.
+
+        If key_obj is a superposition (from merge) then more than one entity
+        will be yielded.
+
+        Yields:
+          An instance of Entity, most likely entity_cls. If the key object
+          is a superposition, more than one result will be yielded.
+
+        Arguments:
+          entity_cls: The expected class of the entity. Not guaranteed.
+
+          key_obj: The key object to look up. Can be any object that implements
+            obj_offset, obj_vm and obj_type, such as BaseObjectIdentity. Can
+            also be a superposition of more values.
+        """
+        if isinstance(key_obj, utils.Superposition):
+            key_objs = key_obj.variants
+        elif key_obj == None:
+            key_objs = []  # Handle None gracefully.
+        else:
+            key_objs = [key_obj]
+
+        for key_obj in key_objs:
+            # We coerce the key object into a type suitable for use as a
+            # dict key.
+            idx = obj.BaseObjectIdentity(base_obj=key_obj)
+
+            if idx in self.entities_by_identity:
+                yield self.entities_by_identity[idx]
+            elif not cache_only:
+                entity = entity_cls(key_obj=key_obj, session=self)
+                self.register_entity(entity, generator="Session")
+                yield entity
+
+    def find(self, entity_cls=None, key_obj=None,
+             include_subclasses=True, cache_only=False):
+        """Find and yield entities based on class or key object.
+
+        If key_obj is given, will yield entity to represent that object. If
+        one doesn't exist it will be created with "Session" as generator and
+        entity_cls as class.
+
+        If key_obj is a superposition all matches will be yielded as outlined
+        above.
+
+        If only entity_cls is given will yield all objects of that class,
+        running generators as appropriate.
+
+        Arguments:
+          key_obj: Key object to search for. Can also be any object that
+            implements obj_vm, obj_offset and obj_type, such as
+            BaseObjectIdentity. Superposition is supported (see
+            utils.Superposition).
+
+          entity_cls: Entity class to search for.
+
+          include_subclasses (default: True): If searching for all entities
+            of class, also include subclasses.
+
+          cache_only (default: False): Only search the cache, do not create
+            new entities or run generators.
+
+        Returns:
+          Iterable of instances of Entity, possibly of entity_cls.
+        """
+        if key_obj:
+            return self._retrieve_entities(
+                key_obj=key_obj,
+                entity_cls=entity_cls,
+                cache_only=cache_only,
+            )
+
+        if entity_cls:
+            return self._generate_entities(
+                entity_cls=entity_cls,
+                cache_only=cache_only,
+                include_subclasses=include_subclasses,
+            )
+
+        return []
 
 
 class Entity(object):
@@ -67,9 +234,15 @@ class Entity(object):
 
     def __init__(self, key_obj, meta=None, generators=frozenset(),
                  session=None, copies_count=1):
-        # Always deref because we need to be able to test for equivalency.
+        if isinstance(key_obj, obj.BaseObjectIdentity):
+            key_obj = key_obj.restore(session=session)
+
+        # Always deref pointers so we can test for equivalency.
         if isinstance(key_obj, obj.Pointer):
             key_obj = key_obj.dereference()
+
+        # Store identity for comparisons and quick lookups.
+        self.identity = obj.BaseObjectIdentity(base_obj=key_obj)
 
         if meta is None:
             meta = dict()
@@ -81,10 +254,10 @@ class Entity(object):
         self.copies_count = copies_count
 
     def __hash__(self):
-        return self.key_obj.__hash__()
+        return hash(self.identity)
 
     def __eq__(self, other):
-        return self.key_obj == other.key_obj
+        return self.identity == other.identity
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -122,7 +295,7 @@ class Entity(object):
         return cls(
             key_obj=e1.key_obj,
             generators=e1.generators | e2.generators,
-            meta=dict(e2.meta.items() + e1.meta.items()),
+            meta=utils.SuperpositionMerge(e2.meta, e1.meta),
             session=e1.session,
             copies_count=e1.copies_count + e2.copies_count,
         )
@@ -167,7 +340,7 @@ class NetworkInterface(Entity):
 
 class OpenResource(Entity):
     @property
-    def handle(self):
+    def handles(self):
         pass
 
 
