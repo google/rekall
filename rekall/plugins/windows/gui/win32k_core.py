@@ -745,7 +745,7 @@ class Win32k(windows.BasicPEProfile):
         arch = profile.metadata("arch")
 
         ## Windows 7 and above
-        if version >= "6.1":
+        if profile.has_type("tagWINDOWSTATION"):
             num_handles = len(constants.HANDLE_TYPE_ENUM_SEVEN)
         else:
             num_handles = len(constants.HANDLE_TYPE_ENUM)
@@ -755,10 +755,10 @@ class Win32k(windows.BasicPEProfile):
             # different versions. Here we just copy them from the windows 7
             # profiles.
             if arch == "AMD64":
-                exempler = ("win32k/AMD64/6.1.7601.18233/"
+                exempler = ("win32k/GUID/"
                             "99227A2085CE41969CD5A06F7CC20F522")
             else:
-                exempler = ("win32k/I386/6.1.7601.18233/"
+                exempler = ("win32k/GUID/"
                             "18EB20F5448A47F5B850023FEE0B24D62")
 
             win7_profile = profile.session.LoadProfile(exempler)

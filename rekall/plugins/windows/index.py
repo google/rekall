@@ -126,7 +126,6 @@ class GuessGUID(common.WindowsCommandPlugin):
         for session in self.session.plugins.sessions().session_spaces():
             # Switch the process context to this session so the address
             # resolver can find the correctly mapped driver.
-
             with cc:
                 cc.SwitchProcessContext(iter(session.processes()).next())
 

@@ -483,7 +483,7 @@ class lfClass(obj.Struct):
             # The field type is an LF_ENUM which determines which struct this
             # is.
             type_enum_name = self.obj_profile.get_enum(
-                "_LEAF_ENUM_e").get(int(field_type))
+                "_LEAF_ENUM_e").get(str(field_type))
 
             type_name = LEAF_ENUM_TO_TYPE.get(type_enum_name)
 

@@ -30,10 +30,10 @@ VERSION="1.5.5"
 PATH_TO_DDK = r"C:\WinDDK\7600.16385.1"
 PATH_TO_VS = r"C:\Program Files\Microsoft SDKs\Windows\v7.1"
 
-def BuildProgram(principle="test", store=None, signtool_params=""):
+def BuildProgram(principal="test", store=None, signtool_params=""):
     args = dict(path=PATH_TO_VS,
                 executable_src=os.path.join(os.getcwd(), "executable"),
-                principle=principle, store="",
+                principal=principal, store="",
                 signtool_params=signtool_params,
                 version=VERSION,
                 write_prefix="")
@@ -60,7 +60,7 @@ def BuildProgram(principle="test", store=None, signtool_params=""):
     # Sign the binary.
     pipe = subprocess.Popen(env_command, stdin=subprocess.PIPE, shell=False)
 
-    cmd = ("Signtool sign /v %(store)s /n %(principle)s %(signtool_params)s "
+    cmd = ("Signtool sign /v %(store)s /n %(principal)s %(signtool_params)s "
            "/t http://timestamp.verisign.com/scripts/timestamp.dll "
            "executable\\release\\winpmem.exe"
            "\n") % args
@@ -78,11 +78,11 @@ def BuildProgram(principle="test", store=None, signtool_params=""):
     print "\r\n\r\nCreated file %s" % output_path
 
 
-def BuildDriver(arch, target, principle="test", store=None, signtool_params=""):
+def BuildDriver(arch, target, principal="test", store=None, signtool_params=""):
     args = dict(path=PATH_TO_DDK,
                 arch=arch,
                 target=target, store="",
-                principle=principle, signtool_params=signtool_params,
+                principal=principal, signtool_params=signtool_params,
                 cwd=os.getcwd())
 
     if store:
@@ -103,13 +103,13 @@ def BuildDriver(arch, target, principle="test", store=None, signtool_params=""):
     output_path = r"release/%(arch2)s/winpmem.sys" % args
 
     # Before we proceed we need to make sure the binaries have no write support.
-    if ("test" not in principle and
+    if ("test" not in principal and
         "Write Supported" in open(output_path, "rb").read()):
         raise RuntimeError("Tried to sign binaries with write support!!!!!")
 
     pipe = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
     cmd = ("cd \"%(cwd)s\" && "
-           "Signtool sign /v %(store)s /n %(principle)s %(signtool_params)s "
+           "Signtool sign /v %(store)s /n %(principal)s %(signtool_params)s "
            "/t http://timestamp.verisign.com/scripts/timestamp.dll "
            "release\%(arch2)s\winpmem.sys"
            "\n") % args
@@ -134,15 +134,15 @@ def CleanUpOldFiles():
 
 def BuildSignedProductionBinaries():
     args = dict(
-        principle="Michael",
-        signtool_params="/ac \"certs\\DigiCert High Assurance EV Root CA.crt\" ")
+        principal="Michael",
+        signtool_params="/ac \"certs\\DigiCert_High_Assurance_EV_Root_CA.crt\" ")
     x64_driver = BuildDriver("x64", "WIN7", **args)
     x32_driver = BuildDriver("x86", "WXP", **args)
     BuildProgram(**args)
 
 def BuildTestSignedBinries():
     args = dict(store="PrivateCertStore",
-                principle="test")
+                principal="test")
     BuildDriver("x64", "WIN7", **args)
     BuildDriver("x86", "WXP", **args)
     BuildProgram(**args)

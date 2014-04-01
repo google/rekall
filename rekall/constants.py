@@ -30,7 +30,7 @@ PROFILE_REPOSITORY = "http://profiles.rekall.googlecode.com/git/"
 # are incompatible with the released version.
 SUPPORTED_PROFILE_REPOSITORY = (
     "http://profiles.rekall.googlecode.com/git-history/"
-    "f3b473709b43678de6891fec3bedef93d24739bd/")
+    "29100e91813c4c827a642671fb3bcf97ff6c84cf/")
 
 BANNER = """
 ----------------------------------------------------------------------------

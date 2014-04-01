@@ -16,8 +16,31 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+"""
+Darwin entities are declared here.
+"""
+__author__ = "Adam Sindelar <adamsh@google.com>"
+
 from rekall import entity
-from rekall import obj
+
+
+class DarwinNetworkInterface(entity.NetworkInterface):
+    @property
+    def addresses(self):
+        for address in self.key_obj.if_addrhead.tqh_first.walk_list(
+            "ifa_link.tqe_next"):
+            yield (
+                address.ifa_addr.sa_family,
+                address.ifa_addr.deref(),
+            )
+
+    @property
+    def interface_name(self):
+        return "%s%d" % (
+            self.key_obj.if_name.deref(),
+            self.key_obj.if_unit
+        )
+
 
 class DarwinProcess(entity.Process):
     @property
@@ -44,16 +67,16 @@ class DarwinProcess(entity.Process):
 class DarwinOpenHandle(entity.OpenHandle):
     @property
     def resource(self):
-        return self.session.get_entity(
-            key_obj=self.key_obj.autocast_fg_data()
-        )
+        for resource in self.session.entities.find(
+            key_obj=self.key_obj.autocast_fg_data()):
+            return resource
 
     @property
     def process(self):
-        return self.session.get_entity(
+        for process in self.session.entities.find(
             key_obj=self.meta["proc"],
-            entity_cls=DarwinProcess,
-        )
+            entity_cls=DarwinProcess):
+            return process
 
     @property
     def descriptor(self):
@@ -66,14 +89,14 @@ class DarwinOpenHandle(entity.OpenHandle):
 
 class DarwinOpenFile(entity.OpenFile):
     @property
-    def handle(self):
-        if "fileproc" in self.meta:
-            return self.session.get_entity(
-                key_obj=self.meta["fileproc"],
-                entity_cls=DarwinOpenHandle,
-            )
-        else:
-            return obj.NoneObject("Can't find handle without fileproc.")
+    def handles(self):
+        if "fileproc" not in self.meta:
+            return []
+
+        return self.session.entities.find(
+            key_obj=self.meta["fileproc"],
+            entity_cls=DarwinOpenHandle,
+        )
 
     @property
     def full_path(self):
@@ -90,14 +113,14 @@ class DarwinOpenFile(entity.OpenFile):
 
 class DarwinSocket(entity.Connection):
     @property
-    def handle(self):
-        if "fileproc" in self.meta:
-            return self.session.get_entity(
-                key_obj=self.meta["fileproc"],
-                entity_cls=DarwinOpenHandle
-            )
-        else:
-            return obj.NoneObject("Can't find handle without fileproc.")
+    def handles(self):
+        if "fileproc" not in self.meta:
+            return []
+
+        return self.session.entities.find(
+            key_obj=self.meta["fileproc"],
+            entity_cls=DarwinOpenHandle,
+        )
 
     @property
     def addressing_family(self):

@@ -31,6 +31,11 @@ from rekall import obj
 from rekall.plugins.overlays.windows import common
 
 
+def TagOffset(x):
+    if x.obj_profile.metadata("arch") == "AMD64":
+        return x.obj_offset - 12
+    return x.obj_offset - 4
+
 # In windows 7 the VadRoot is actually composed from _MMADDRESS_NODEs instead of
 # _MMVAD structs.
 win7_overlays = {
@@ -40,11 +45,11 @@ win7_overlays = {
             }],
 
     '_MMADDRESS_NODE': [None, {
-            'Tag': [-12, ['String', dict(length=4)]],
-            }],
+        'Tag': [TagOffset, ['String', dict(length=4)]],
+        }],
 
     '_MMVAD_SHORT': [None, {
-            'Tag': [-12, ['String', dict(length=4)]],
+            'Tag': [TagOffset, ['String', dict(length=4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
             'Length': lambda x: x.End - x.Start + 1,
@@ -52,7 +57,7 @@ win7_overlays = {
             }],
 
     '_MMVAD': [None, {
-            'Tag': [-12, ['String', dict(length=4)]],
+            'Tag': [TagOffset, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
@@ -61,7 +66,7 @@ win7_overlays = {
             }],
 
     '_MMVAD_LONG': [None, {
-            'Tag': [-12, ['String', dict(length=4)]],
+            'Tag': [TagOffset, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,

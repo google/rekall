@@ -36,9 +36,8 @@ from rekall.plugins.overlays import basic
 class ValueEnumeration(basic.Enumeration):
     """An enumeration which receives its value from a callable."""
 
-    def __init__(self, choices=None, value=None, parent=None, **kwargs):
+    def __init__(self, value=None, parent=None, **kwargs):
         super(ValueEnumeration, self).__init__(parent=parent, **kwargs)
-        self.choices = choices
         if callable(value):
             value = value(parent)
 
@@ -347,7 +346,8 @@ class PFNInfo(common.WindowsCommandPlugin):
                         pfn_obj.PteAddress,
                         pte_physical_address,
                         pfn_obj.u3.e2.ReferenceCount,
-                        pfn_obj.u3.e1.m("PageColor") or pfn_obj.u4.PageColor,
+                        pfn_obj.u3.e1.m("PageColor") or
+                        pfn_obj.u4.m("PageColor"),
                         containing_page,
                         pfn_obj.Type,
                         short_flags_string,

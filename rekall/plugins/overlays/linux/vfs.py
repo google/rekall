@@ -22,6 +22,7 @@ This file encapsulates various virtual file system operations for supported
 linux versions. The code is basically copied from the kernel sources of the
 relevant versions.
 """
+from rekall import obj
 from rekall import utils
 from rekall.plugins.overlays import basic
 
@@ -61,9 +62,9 @@ class FileName(object):
 
         # This is the normal condition for files.
         else:
-            return self.__str__()
+            return self.__unicode__()
 
-    def __str__(self):
+    def __unicode__(self):
         if self.deleted:
             deleted = " (deleted) "
         else:
@@ -117,7 +118,7 @@ class Linux3VFS(object):
         if dentry.d_flags.DCACHE_UNHASHED and not dentry.is_root:
             result.deleted = True
 
-        while (dentry != root.dentry or vfsmnt != root.mnt):
+        while dentry != root.dentry or vfsmnt != root.mnt:
             # Control the depth.
             depth += 1
             if depth >= result.MAX_DEPTH:
@@ -187,10 +188,10 @@ class Linux26VFS(Linux3VFS):
 
         # Limit the recursion here to avoid getting stuck.
         while depth < result.MAX_DEPTH:
-            if (dentry == root.dentry and vfsmnt == root.mnt):
+            if dentry == root.dentry and vfsmnt == root.mnt:
                 break
 
-            if (dentry == vfsmnt.mnt_root or dentry.is_root):
+            if dentry == vfsmnt.mnt_root or dentry.is_root:
                 if vfsmnt.mnt_parent == vfsmnt:
                     break
 
@@ -198,10 +199,10 @@ class Linux26VFS(Linux3VFS):
                 vfsmnt = vfsmnt.mnt_parent
                 continue
 
-            parent = dentry.d_parent;
+            parent = dentry.d_parent
             result.PrependName(dentry.d_name.name.deref())
 
-            dentry = parent;
+            dentry = parent
 
         # When we get here dentry is a root dentry and mnt is the mount point it
         # is mounted on. There are some special mount points we want to

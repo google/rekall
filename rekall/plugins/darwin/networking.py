@@ -18,8 +18,6 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-from rekall import entity
-
 from rekall.plugins.darwin import common
 from rekall.plugins.darwin import lsof
 
@@ -268,7 +266,7 @@ class DarwinEntityNetstat(common.DarwinPlugin):
         for proto, connections in sorted(inet_by_proto.iteritems()):
             for connection in sorted(
                 connections,
-                key=lambda x: x.handle.process.pid):
+                key=lambda x: (x.handle.process.pid, x.key_obj)):
                 renderer.table_row(
                     proto,
                     connection.src_address,
@@ -294,7 +292,7 @@ class DarwinEntityNetstat(common.DarwinPlugin):
 
         for connection in sorted(
             unix_socks,
-            key=lambda x: x.handle.process.pid):
+            key=lambda x: (x.handle.process.pid, x.key_obj)):
             renderer.table_row(
                 connection.source,
                 connection.destination,
@@ -382,4 +380,3 @@ class DarwinNetstat(lsof.DarwinLsof):
                 open_file["proc"].pid,
                 open_file["proc"].p_comm,
             )
-

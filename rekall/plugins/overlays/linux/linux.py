@@ -541,13 +541,13 @@ class task_struct(obj.Struct):
           truncate the path at the chroot point as the kernel does).
         """
         # The specific implementation depends on the kernel version.
-        try:
-            # Newer kernels have mnt_parent in the mount struct, not in the
-            # vfsmount struct.
-            self.obj_profile.get_obj_offset("vfsmount", "mnt_parent")
 
+        # Newer kernels have mnt_parent in the mount struct, not in the
+        # vfsmount struct.
+        if self.obj_profile.get_obj_offset("vfsmount", "mnt_parent"):
             return vfs.Linux26VFS().get_path(self, filp)
-        except KeyError:
+
+        else:
             return vfs.Linux3VFS().get_path(self, filp)
 
     def get_process_address_space(self):
@@ -651,7 +651,7 @@ class PermissionFlags(basic.Flags):
     """A Flags object for printing vm_area_struct permissions
     in a format like rwx or r-x"""
 
-    def __str__(self):
+    def __unicode__(self):
         result = []
         value = self.v()
         for k, v in sorted(self.maskmap.items()):

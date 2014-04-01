@@ -216,6 +216,7 @@ class VTxPagedMemory(AMD64PagedMemory):
         AMD64PagedMemory.__init__(self, dtb=0xFFFFFFFF, **kwargs)
 
         # Reset the DTB, in case a plugin or AS relies on us providing one.
+        self.dtb = None
         ept_list = ept or self.session.GetParameter("ept")
         self.as_assert(ept_list , "No EPT specified")
 
