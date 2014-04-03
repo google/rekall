@@ -45,7 +45,7 @@ KEXT_INCLUDES=-I$(FRAMEWORK_PATH)/Kernel.framework/PrivateHeaders \
 
 KEXT_CXX_FLAGS=-x c++ -arch $(ARCH) -fmessage-length=0 -pipe -nostdinc \
 	       -fno-builtin -Wno-trigraphs -fno-exceptions -fno-rtti \
-	       -fcheck-new -force_cpusubtype_ALL -msoft-float -Os -fno-common \
+	       -force_cpusubtype_ALL -msoft-float -Os -fno-common \
 	       -mkernel -finline -fno-keep-inline-functions -Wreturn-type \
 	       -Wunused-variable -Wuninitialized -Wshorten-64-to-32 \
 	       -DKERNEL -DKERNEL_PRIVATE -DDRIVER_PRIVATE -DAPPLE -DNeXT \

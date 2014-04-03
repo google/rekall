@@ -25,7 +25,7 @@
 
 #include <sys/types.h>
 
-typedef unsigned __int64 pte_uint64;
+typedef __uint64_t pte_uint64;
 
 #pragma pack(push, 1)
 typedef union CR3_ {
