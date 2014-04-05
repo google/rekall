@@ -20,3 +20,5 @@ test_data/*.raw*
 test_data/*.dmp*
 test_data/*.hiber*
 test_data/*/Test*
+
+rekal.spec
