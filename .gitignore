@@ -14,6 +14,7 @@
 buildchk_wnet_*
 objchk_wnet_*
 .scons*
+*.swp
 release
 test_data/*/*.img*
 test_data/*.raw*
