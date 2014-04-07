@@ -46,7 +46,7 @@
 // the macros we have to use to interact with IOKit require these strings to
 // be literals, so we make an exception.
 #define PMEM_KEXT_PATH "./pmem.kext"
-#define PMEM_KEXT_IDENTIFIER "rekall.driver.pmem"
+#define PMEM_KEXT_IDENTIFIER "com.rekall.driver"
 
 // This is externalized to simplify modifying the error output.
 #define PMEM_ERROR_LOG(...) do { print_msg(ERR, "%s(%d): ", \

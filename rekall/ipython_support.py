@@ -134,15 +134,18 @@ def NotebookSupport(_):
     # The following only reveals hidden imports to pyinstaller.
     if False:
         # pylint: disable=unused-variable
-        import IPython.html.notebookapp
-        import IPython.html.base.handlers
-        import IPython.html.tree.handlers
         import IPython.html.auth.login
         import IPython.html.auth.logout
+        import IPython.html.base.handlers
+        import IPython.html.nbconvert.handlers
         import IPython.html.notebook.handlers
-        import IPython.html.services.kernels.handlers
-        import IPython.html.services.notebooks.handlers
+        import IPython.html.notebookapp
         import IPython.html.services.clusters.handlers
+        import IPython.html.services.kernels.handlers
+        import IPython.html.services.nbconvert.handlers
+        import IPython.html.services.notebooks.handlers
+        import IPython.html.services.sessions.handlers
+        import IPython.html.tree.handlers
         import IPython.kernel.ioloop
         import IPython.kernel.zmq.kernelapp
 

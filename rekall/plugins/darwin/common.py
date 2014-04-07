@@ -437,6 +437,10 @@ class DarwinProcessFilter(DarwinPlugin):
            pid: A single pid.
         """
         super(DarwinProcessFilter, self).__init__(**kwargs)
+
+        # Per-method cache of procs discovered.
+        self.cache = {}
+
         self.methods = method or self.METHODS
 
         if isinstance(phys_proc, (int, long)):
@@ -589,18 +593,25 @@ class DarwinProcessFilter(DarwinPlugin):
 
         return seen
 
-    def list_procs(self):
+    def list_procs(self, sort=True):
         """Uses a few methods to list the procs."""
         seen = set()
 
-        for k, handler in self.METHODS.items():
-            if k in self.methods:
-                result = handler(self)
-                logging.debug("Listed %s processes using %s", len(result), k)
-                seen.update(result)
+        for method, handler in self.METHODS.iteritems():
+            if method not in self.methods:
+                continue
 
-        # Sort by pid so that the output ordering remains stable.
-        return sorted(seen, key=lambda x: x.p_pid)
+            procs = self.cache.setdefault(method, handler(self))
+            logging.debug(
+                "Listed {} processes using {}".format(len(procs), method)
+            )
+
+            seen.update(procs)
+
+        if sort:
+            return sorted(seen, key=lambda proc: proc.p_pid)
+
+        return seen
 
     def filter_processes(self):
         """Filters proc list using phys_proc and pids lists."""

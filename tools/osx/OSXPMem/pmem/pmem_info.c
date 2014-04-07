@@ -23,7 +23,7 @@ extern kern_return_t _stop(kmod_info_t *ki, void *data);
 __private_extern__ kern_return_t pmem_start(kmod_info_t *ki, void *data);
 __private_extern__ kern_return_t pmem_stop(kmod_info_t *ki, void *data);
 
-__attribute__((visibility("default"))) KMOD_EXPLICIT_DECL(volatility.driver.pmem
+__attribute__((visibility("default"))) KMOD_EXPLICIT_DECL(com.rekall.driver
                                                           ,"1.0.0d1",
                                                           _start,
                                                           _stop)

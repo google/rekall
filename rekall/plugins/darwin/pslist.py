@@ -24,32 +24,64 @@ from rekall.plugins import core
 from rekall.plugins.darwin import common
 
 
+class DarwinPsxView(common.DarwinProcessFilter):
+    __name = "psxview"
+
+    def render(self, renderer):
+        headers = [
+            ("Offset (V)", "offset_v", "[addrpad]"),
+            ("Comm", "comm", "20s"),
+            ("PID", "pid", ">6"),
+        ]
+
+        method_names = self.METHODS.keys()
+
+        for method in method_names:
+            headers.append((method, method, str(len(method))))
+
+        renderer.table_header(headers)
+
+        for process in self.filter_processes():
+            row = [
+                process,
+                process.p_comm,
+                process.p_pid,
+            ]
+
+            for method in method_names:
+                row.append(process in self.cache[method])
+
+            renderer.table_row(*row)
+
+
 class DarwinPsList(common.DarwinProcessFilter):
     __name = "pslist"
 
     def render(self, renderer):
-    	renderer.table_header( [("Offset (V)", "offset_v", "[addrpad]"),
-                                ("Name", "file_name", "20s"),
-                                ("PID", "pid", ">6"),
-                                ("PPID", "ppid", ">6"),
-                                ("UID", "uid", ">6"),
-                                ("GID", "gid", ">6"),
-                                ("Bits", "bits", "12"),
-                                ("DTB", "dtb", "[addrpad]"),
-                                ("Start Time", "start_time", ">24"),
-                                ])
+        renderer.table_header([
+            ("Offset (V)", "offset_v", "[addrpad]"),
+            ("Name", "file_name", "20s"),
+            ("PID", "pid", ">6"),
+            ("PPID", "ppid", ">6"),
+            ("UID", "uid", ">6"),
+            ("GID", "gid", ">6"),
+            ("Bits", "bits", "12"),
+            ("DTB", "dtb", "[addrpad]"),
+            ("Start Time", "start_time", ">24"),
+        ])
 
         for proc in self.filter_processes():
-            renderer.table_row(proc,
-                               proc.p_comm,
-                               proc.p_pid,
-                               proc.p_pgrpid,
-                               proc.p_uid,
-                               proc.p_gid,
-                               proc.task.map.pmap.pm_task_map,
-                               proc.task.map.pmap.pm_cr3,
-                               proc.p_start
-                               )
+            renderer.table_row(
+                proc,
+                proc.p_comm,
+                proc.p_pid,
+                proc.p_pgrpid,
+                proc.p_uid,
+                proc.p_gid,
+                proc.task.map.pmap.pm_task_map,
+                proc.task.map.pmap.pm_cr3,
+                proc.p_start,
+            )
 
 
 class DawrinPSTree(common.DarwinPlugin):
@@ -61,16 +93,17 @@ class DawrinPSTree(common.DarwinPlugin):
     __name = "pstree"
 
     def render(self, renderer):
-        renderer.table_header([("Pid", "pid", ">6"),
-                               ("Ppid", "ppid", ">6"),
-                               ("Uid", "uid", ">6"),
-                               ("", "depth", "0"),
-                               ("Name", "name", "<30"),
-                               ])
+        renderer.table_header([
+            ("Pid", "pid", ">6"),
+            ("Ppid", "ppid", ">6"),
+            ("Uid", "uid", ">6"),
+            ("", "depth", "0"),
+            ("Name", "name", "<30"),
+        ])
 
         # Find the kernel process.
         pslist = list(self.session.plugins.pslist(
-                proc_regex="kernel_task").filter_processes())
+            proc_regex="kernel_task").filter_processes())
         root_proc = pslist[0]
 
         for proc, level in self.recurse_proc(root_proc, 0):
@@ -94,13 +127,14 @@ class DarwinMaps(common.DarwinProcessFilter):
     __name = "maps"
 
     def render(self, renderer):
-        renderer.table_header([("Pid", "pid", "8"),
-                               ("Name", "name", "20"),
-                               ("Start", "start", "[addrpad]"),
-                               ("End",   "end", "[addrpad]"),
-                               ("Protection", "protection", "6"),
-                               ("Map Name", "map_name", "20"),
-                               ])
+        renderer.table_header([
+            ("Pid", "pid", "8"),
+            ("Name", "name", "20"),
+            ("Start", "start", "[addrpad]"),
+            ("End", "end", "[addrpad]"),
+            ("Protection", "protection", "6"),
+            ("Map Name", "map_name", "20"),
+        ])
 
         for proc in self.filter_processes():
             for map in proc.task.map.hdr.walk_list(
@@ -122,7 +156,7 @@ class DarwinMaps(common.DarwinProcessFilter):
                     map.links.end,
                     protection,
                     "sub_map" if map.is_sub_map else vnode.path,
-                    )
+                )
 
 class DarwinVadDump(core.DirectoryDumperMixin, common.DarwinProcessFilter):
     """Dump the VMA memory for a process."""
@@ -139,7 +173,6 @@ class DarwinVadDump(core.DirectoryDumperMixin, common.DarwinProcessFilter):
             # Get the task and all process specific information
             task_space = proc.get_process_address_space()
             name = proc.p_comm
-            offset = proc.obj_offset
 
             for vma in proc.task.map.hdr.walk_list(
                 "links.next", include_current=False):
@@ -211,3 +244,4 @@ class DarwinPSAUX(common.DarwinProcessFilter):
                 proc.p_argslen,
                 proc.p_argc,
                 " ".join(proc.argv))
+
