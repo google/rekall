@@ -76,7 +76,7 @@ class WinPsList(common.WinProcessFilter):
                                task.UniqueProcessId,
                                task.InheritedFromUniqueProcessId,
                                task.ActiveThreads,
-                               task.ObjectTable.HandleCount,
+                               task.ObjectTable.m("HandleCount"),
                                task.SessionId,
                                task.IsWow64,
                                task.CreateTime,

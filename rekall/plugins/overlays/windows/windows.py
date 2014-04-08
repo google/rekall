@@ -108,14 +108,14 @@ class RelativeOffsetMixin(object):
 
         return base_constant
 
-    def get_nearest_constant_by_address(self, address):
+    def get_nearest_constant_by_address(self, address, below=True):
         if address < self.GetImageBase():
             return 0, ""
 
         try:
             offset, name = super(
                 RelativeOffsetMixin, self).get_nearest_constant_by_address(
-                address - self.GetImageBase())
+                address - self.GetImageBase(), below=below)
 
             return offset + self.GetImageBase(), name
         except ValueError:
@@ -266,9 +266,14 @@ class Ntoskrnl(BasicPEProfile):
 
         # Windows 7 introduces TypeIndex into the object header.
         if profile.get_obj_offset("_OBJECT_HEADER", "TypeIndex") != None:
-            if profile.has_type("_MM_AVL_NODE"):
+            if profile._EPROCESS().m("VadRoot").obj_type == "_MM_AVL_TABLE":
                 # Windows 8 uses _MM_AVL_NODE as the VAD traversor struct.
                 version = "6.2"
+
+            elif profile._EPROCESS().m("VadRoot").obj_type == "_RTL_AVL_TREE":
+                # Windows 8.1 uses _RTL_AVL_TREE
+                version = "6.3"
+
             else:
                 version = "6.1"
 

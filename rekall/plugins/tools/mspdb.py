@@ -848,7 +848,13 @@ class PDBParser(object):
         dbi = self.profile.DBI(vm=self.root_stream_header.GetStream(3))
         DBGHeader = dbi.DBGHeader()
 
-        self.ParseSectionHeaders(DBGHeader.snSectionHdrOrig)
+        # Sometimes this stream is set to 0xFFFF so we need to use the other
+        # stream.
+        section_stream = DBGHeader.snSectionHdrOrig
+        if section_stream == 0xFFFF:
+            section_stream = DBGHeader.snSectionHdr
+
+        self.ParseSectionHeaders(section_stream)
         self.ParseOMAP(DBGHeader.snOmapFromSrc)
         self.ParseGlobalSymbols(dbi.DBIHdr.u1.snSymRecs)
 
@@ -925,19 +931,22 @@ class PDBParser(object):
             if self.sections:
                 # Convert the RVA to a virtual address by referencing into the
                 # correct section.
-                virtual_address = (
+                translated_offset = virtual_address = (
                     offset + self.sections[symbol.seg - 1].VirtualAddress)
 
-                # Translate the offset according to the OMAP.
-                try:
-                    from_offset, dest_offset = self.omap.find_le(
-                        virtual_address)
+                # If there is no OMAP specified we just translate the symbol
+                # into the right section.
+                if self.omap:
+                    # Translate the offset according to the OMAP.
+                    try:
+                        from_offset, dest_offset = self.omap.find_le(
+                            virtual_address)
 
-                    translated_offset = (
-                        virtual_address - from_offset + dest_offset)
+                        translated_offset = (
+                            virtual_address - from_offset + dest_offset)
 
-                except ValueError:
-                    pass
+                    except ValueError:
+                        pass
 
             self.constants[name] = translated_offset
             self.session.report_progress(" Parsing Symbols %s", name)
