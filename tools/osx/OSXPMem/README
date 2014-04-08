@@ -3,6 +3,7 @@ OSXPMem - Mac OS X Physical Memory acquisition tool
 ===================================================
 
 Version: RC3
+Supported OS X versions: 10.7 - 10.9.2
 
 Author: Johannes Stuettgen (johannes.stuettgen@gmail.com)
 
@@ -71,7 +72,7 @@ compiled to work in 32 bit mode, the binary distribution however only contains
 64 bit binaries.
 
 Several low-level api's have changed in recent OS X versions. We have tested the
-imager and driver on OS X 10.7 and 10.8, on which they work flawlessly. It
+imager and driver on OS X 10.7 through 10.9, on which they work flawlessly. It
 should also work on 10.6, but might encounter problems unloading the driver, as
 the unloading api in IOKit is new in 10.7.
 
@@ -92,3 +93,15 @@ kernel extension and the imager, and package them into a compressed tarball.
 
 You might need to adjust the 'SDK_PATH' and 'FRAMEWORK_PATH' in the Makefile, if
 they reside in different locations on your build system.
+
+Codesigning:
+============
+As of OS X 10.9, kernel extensions support codesigning. Unsigned extensions
+still load as of 10.9.2, but trigger a warning message to the user. In future
+versions, Apple plans to prevent loading of unsigned extensions. The binary
+releases of Rekall/PMEM are signed by one of the developers, however, if you
+build from source, you will need to supply your own signature.
+
+Codesigning certificates are issued by Apple to members of the Mac Developer
+Programme who have been explictly approved for kext development.
+

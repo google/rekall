@@ -24,7 +24,7 @@
 """Common windows overlays and classes."""
 
 import struct
-
+from rekall import addrspace
 from rekall import obj
 from rekall import utils
 
@@ -64,7 +64,11 @@ windows_overlay = {
 
     '_KUSER_SHARED_DATA' : [None, {
             'SystemTime' : [None, ['WinFileTime', dict(is_utc=True)]],
-            'TimeZoneBias' : [None, ['WinFileTime', {}]],
+
+            # When the system license activation must occur.
+            'SystemExpirationDate': [None, ['WinFileTime', {}]],
+
+            "NtSystemRoot": [None, ["UnicodeString"]],
             }],
 
     '_KPCR': [None, {
@@ -98,6 +102,10 @@ windows_overlay = {
     '_HANDLE_TABLE_ENTRY' : [None, {
             'Object' : [None, ['_EX_FAST_REF']],
             }],
+
+    '_OBJECT_HEADER': [None, {
+        'GrantedAccess': lambda x: x.obj_parent.GrantedAccess
+        }],
 
     '_IMAGE_SECTION_HEADER' : [None, {
             'Name' : [0x0, ['String', dict(length=8)]],
@@ -611,93 +619,52 @@ class _POOL_HEADER(obj.Struct):
     def end(self):
         return self.obj_offset + self.size()
 
-    def get_object(self, object_name, allocations):
-        """This implements retrieving an object from the pool allocation using
-        the "Bottom Up" method.  NOTE: This method does not work on windows 8
-        since allocations are rounded up to a fixed size. Newer versions of
-        windows have different _POOL_HEADER implementations.
+    def GetObject(self, type=None):
+        """Return the first object header found."""
+        for item in self.IterObject(type=type):
+            return item
 
-        The following is provided by MHL:
+        return obj.NoneObject("No object found.")
 
-        For example, let's assume the following object has no preamble, then
-        we'd take the base of pool header and add the size of pool header to
-        reach the base of the object. Layout in memory looks like this:
-
-
-        _POOL_HEADER
-        <TheObject>
-
-        Now let's assume the object has a preamble - an _OBJECT_HEADER with no
-        optional headers.
-
-        _POOL_HEADER
-        _OBJECT_HEADER
-        <TheObject>
-
-        Its easy to calculate the offset of the object, because you always know
-        the size of _POOL_HEADER and _OBJECT_HEADER. However, one situation
-        complicates this calculation. There may be optional headers between the
-        pool header and object header like this:
-
-        _POOL_HEADER
-        <SomeHeaderA>
-        <SomeHeaderB>
-        _OBJECT_HEADER
-        <TheObject>
-
-        The _OBJECT_HEADER itself is the "map" which tell us how many optional
-        headers there are. The question becomes - how do we find the
-        _OBJECT_HEADER when the very information we need (distance between pool
-        header and object header) is stored in the _OBJECT_HEADER? Furthermore,
-        we can't statically set preambles, because not only do they differ
-        between objects (i.e. mutants may have different optional headers than
-        file objects), but they sometimes differ between objects of the same
-        type (for example one process may have 2 optional headers and another
-        process may only have 1). That flexibility is not really possible with
-        the preambles - at least how they were implemented at the time of these
-        changes.
-
-        So the "bottom up" approach takes into account two values which *are*
-        reliable:
-
-        1. The size of the pool (_POOL_HEADER.BlockSize)
-        2. The size of the object you expect to find in the pool
-           (i.e. get_obj_size("_EPROCESS"))
-
-        So with that information, you can find the end of the pool
-        (i.e. starting from the bottom), subtract the size of the object
-        (working our way up), and then you've got the offset of the
-        object. Always, the _OBJECT_HEADER (if there is one) directly precedes
-        the object, so once you've got the object's offset, you can find the
-        _OBJECT_HEADER. And from there, since _OBJECT_HEADER is the "map" you
-        can find any optional headers.
-
-        Args:
-          name: The name of the object type to retrieve. Note: name must be
-            allocations.
-
-          allocations: The list of objects which form this allocation.
-        """
+    def IterObject(self, type=None):
+        """Gets the _OBJECT_HEADER considering optional headers."""
         pool_align = self.obj_profile.get_constant("PoolAlignment")
+        allocation_size = self.BlockSize * pool_align
 
-        # We start at the end of the allocation, and go backwards for each
-        # object.
-        offset = self.obj_offset + self.BlockSize * pool_align
+        # Operate on a cached version of the next page.
+        # We use a temporary buffer for the object to save reads of the image.
+        cached_data = self.obj_vm.read(self.obj_offset + self.size(),
+                                       allocation_size)
+        cached_vm = addrspace.BufferAddressSpace(
+            data=cached_data, session=self.obj_session)
 
-        for name in reversed(allocations):
-            # Rewind to the start of this object.
-            offset -= self.get_rounded_size(name)
+        # We search for the _OBJECT_HEADER.InfoMask in close proximity to our
+        # object. We build a lookup table between the values in the InfoMask and
+        # the minimum distance there is between the start of _OBJECT_HEADER and
+        # the end of _POOL_HEADER. This way we can quickly skip unreasonable
+        # values.
 
-            # Make a new object instance.
-            obj = self.obj_profile.Object(
-                name, vm=self.obj_vm, offset=offset)
-            if name == object_name:
-                return obj
+        for i in range(0, allocation_size, pool_align):
+            # Create a test object header from the cached vm to test for
+            # validity.
+            test_object = self.obj_profile._OBJECT_HEADER(
+                offset=i, vm=cached_vm)
 
-            # Rewind past the object's preamble
-            offset -= obj.preamble_size()
+            optional_preamble = max(test_object.NameInfoOffset,
+                                    test_object.HandleInfoOffset,
+                                    test_object.QuotaInfoOffset)
 
-        raise KeyError("object not present in preamble.")
+            # Obviously wrong because we need more space than we have.
+            if optional_preamble > i:
+                continue
+
+            if test_object.is_valid():
+                if type is not None and test_object.get_object_type() != type:
+                    continue
+
+                yield self.obj_profile._OBJECT_HEADER(
+                    offset=i + self.obj_offset + self.size(),
+                    vm=self.obj_vm, parent=self)
 
     @property
     def FreePool(self):
@@ -786,7 +753,7 @@ class _HANDLE_TABLE(obj.Struct):
                 parent=self)
 
             for entry in table:
-                for item in self._make_handle_array(entry, level-1):
+                for item in self._make_handle_array(entry.v(), level-1):
                     yield item
 
     def handles(self):
@@ -836,55 +803,34 @@ class _PSP_CID_TABLE(_HANDLE_TABLE):
 class _OBJECT_HEADER(obj.Struct):
     """A Rekall Memory Forensics object to handle Windows object headers.
 
-    This object applies only to versions below windows 7.
+    This object applies only to versions below windows 7. (old version
+    objects). See:
+    http://codemachine.com/article_objectheader.html
     """
 
     optional_headers = [
-        ('NameInfo', 'NameInfoOffset', '_OBJECT_HEADER_NAME_INFO'),
-        ('HandleInfo', 'HandleInfoOffset', '_OBJECT_HEADER_HANDLE_INFO'),
-        ('HandleInfo', 'QuotaInfoOffset', '_OBJECT_HEADER_QUOTA_INFO')]
+        ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 'NameInfoOffset'),
+        ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 'HandleInfoOffset'),
+        ('HandleInfo', '_OBJECT_HEADER_QUOTA_INFO', 'QuotaInfoOffset')]
 
     def __init__(self, handle_value=0, **kwargs):
         self.HandleValue = handle_value
         self._preamble_size = 0
         super(_OBJECT_HEADER, self).__init__(**kwargs)
 
-        # Create accessors for optional headers
-        self.find_optional_headers()
+    def _GetOptionalHeader(self, struct_name, member):
+        header_offset = self.m(member).v()
+        if header_offset == 0:
+            return obj.NoneObject("Header not set")
 
-    def find_optional_headers(self):
-        """Find this object's optional headers."""
-        offset = self.obj_offset
-
-        for name, name_offset, objtype in self.optional_headers:
-            if self.obj_profile.has_type(objtype):
-                header_offset = self.m(name_offset).v()
-                if header_offset:
-                    o = self.obj_profile.Object(type_name=objtype,
-                                                offset=offset - header_offset,
-                                                vm=self.obj_vm)
-                else:
-                    o = obj.NoneObject("Header not set")
-
-                setattr(self, name, o)
-
-                # Optional headers stack before this _OBJECT_HEADER.
-                if o:
-                    self._preamble_size += o.size()
-
-    def preamble_size(self):
-        return self._preamble_size
+        return self.obj_profile.Object(
+            struct_name, offset=self.obj_offset - header_offset,
+            vm=self.obj_vm, parent=self)
 
     def size(self):
         """The size of the object header is actually the position of the Body
         element."""
         return self.obj_profile.get_obj_offset("_OBJECT_HEADER", "Body")
-
-    @property
-    def GrantedAccess(self):
-        if self.obj_parent:
-            return self.obj_parent.GrantedAccess
-        return obj.NoneObject("No parent known")
 
     def dereference_as(self, type_name, vm=None):
         """Instantiate an object from the _OBJECT_HEADER.Body"""
@@ -894,11 +840,17 @@ class _OBJECT_HEADER(obj.Struct):
 
     def get_object_type(self, vm=None):
         """Return the object's type as a string"""
-        type_obj = self.obj_profile._OBJECT_TYPE(vm=vm or self.obj_vm,
-                                                 offset=self.Type)
+        type_obj = self.obj_profile._OBJECT_TYPE(
+            vm=vm or self.obj_session.kernel_address_space,
+            offset=self.Type)
 
         return type_obj.Name.v()
 
+
+# Build properties for the optional headers.
+for _name, _y, _z in _OBJECT_HEADER.optional_headers:
+    setattr(_OBJECT_HEADER, _name, property(
+        lambda x, y=_y, z=_z: x._GetOptionalHeader(y, z)))
 
 
 class _FILE_OBJECT(obj.Struct):
@@ -1015,6 +967,9 @@ class VadTraverser(obj.Struct):
                'Vadm': '_MMVAD_LONG',
               }
 
+    left = "LeftChild"
+    right = "RightChild"
+
     def traverse(self, visited=None, depth=0):
         """ Traverse the VAD tree by generating all the left items,
         then the right items.
@@ -1041,11 +996,11 @@ class VadTraverser(obj.Struct):
         elif depth and self.Tag.v() != "\x00":
             return
 
-        for c in self.LeftChild.traverse(visited=visited, depth=depth+1):
+        for c in self.m(self.left).traverse(visited=visited, depth=depth+1):
             visited.add(self.obj_offset)
             yield c
 
-        for c in self.RightChild.traverse(visited=visited, depth=depth+1):
+        for c in self.m(self.right).traverse(visited=visited, depth=depth+1):
             visited.add(self.obj_offset)
             yield c
 
@@ -1131,7 +1086,7 @@ class _KTIMER(obj.Struct):
         Deobfuscated = self._Rol64(Deobfuscated, 0xFF & self.KiWaitNever)
         Deobfuscated = Deobfuscated ^ (self.obj_offset | 0xffff000000000000)
         Deobfuscated = self._byteswap(Deobfuscated)
-        Deobfuscated = Deobfuscated ^ self.KiWaitAlways
+        Deobfuscated = Deobfuscated ^ int(self.KiWaitAlways)
 
         return self.obj_profile._KDPC(Deobfuscated, parent=self,
                                       vm=self.obj_vm)
@@ -1177,3 +1132,15 @@ def InitializeWindowsProfile(profile):
                           MUTANT_POOLTAG="Mut\xe1",
                           THREAD_POOLTAG='\x54\x68\x72\xe5',
                           )
+
+    # These constants are always the same in all versions of Windows.
+    if profile.metadata("arch") == "AMD64":
+        # Ref:
+        # reactos/include/xdk/amd64/ke.h:17
+        profile.add_constants(KI_USER_SHARED_DATA=0xFFFFF78000000000)
+    else:
+        # reactos/include/xdk/x86/ke.h:19
+        profile.add_constants(KI_USER_SHARED_DATA=0xffdf0000)
+
+
+

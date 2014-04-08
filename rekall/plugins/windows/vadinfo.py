@@ -335,7 +335,7 @@ class VAD(common.WinProcessFilter):
                 vad.obj_offset, vad.obj_context.get('depth', 0),
                 vad.Start >> self.PAGE_SIZE,
                 vad.End >> self.PAGE_SIZE,
-                vad.CommitCharge if vad.CommitCharge < 0x7FFFFFFFFFFFF else -1,
+                vad.CommitCharge if vad.CommitCharge < 0x7fffffff else -1,
                 "Private" if vad.u.VadFlags.PrivateMemory > 0 else "Mapped",
                 "Exe" if "EXECUTE" in str(vad.u.VadFlags.ProtectionEnum) else "",
                 vad.u.VadFlags.ProtectionEnum,

@@ -40,45 +40,45 @@ def TagOffset(x):
 # _MMVAD structs.
 win7_overlays = {
     '_EPROCESS': [None, {
-            # A symbolic link to the real vad root.
-            'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
-            }],
+        # A symbolic link to the real vad root.
+        'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
+        }],
 
     '_MMADDRESS_NODE': [None, {
         'Tag': [TagOffset, ['String', dict(length=4)]],
         }],
 
     '_MMVAD_SHORT': [None, {
-            'Tag': [TagOffset, ['String', dict(length=4)]],
-            'Start': lambda x: x.StartingVpn << 12,
-            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
-            }],
+        'Tag': [TagOffset, ['String', dict(length=4)]],
+        'Start': lambda x: x.StartingVpn << 12,
+        'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+        'Length': lambda x: x.End - x.Start + 1,
+        'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+        }],
 
     '_MMVAD': [None, {
-            'Tag': [TagOffset, ['String', dict(length=4)]],
-            'ControlArea': lambda x: x.Subsection.ControlArea,
-            'Start': lambda x: x.StartingVpn << 12,
-            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
-            }],
+        'Tag': [TagOffset, ['String', dict(length=4)]],
+        'ControlArea': lambda x: x.Subsection.ControlArea,
+        'Start': lambda x: x.StartingVpn << 12,
+        'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+        'Length': lambda x: x.End - x.Start + 1,
+        'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+        }],
 
     '_MMVAD_LONG': [None, {
-            'Tag': [TagOffset, ['String', dict(length=4)]],
-            'ControlArea': lambda x: x.Subsection.ControlArea,
-            'Start': lambda x: x.StartingVpn << 12,
-            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
-            }],
+        'Tag': [TagOffset, ['String', dict(length=4)]],
+        'ControlArea': lambda x: x.Subsection.ControlArea,
+        'Start': lambda x: x.StartingVpn << 12,
+        'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+        'Length': lambda x: x.End - x.Start + 1,
+        'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+        }],
 
     "_CONTROL_AREA": [None, {
-            'FilePointer': [None, ['_EX_FAST_REF', dict(
-                        target="_FILE_OBJECT"
-                        )]],
-            }],
+        'FilePointer': [None, ['_EX_FAST_REF', dict(
+            target="_FILE_OBJECT"
+            )]],
+        }],
     }
 
 
@@ -87,31 +87,61 @@ class _OBJECT_HEADER(common._OBJECT_HEADER):
 
     Windows 7 changes the way objects are handled:
     References: http://www.codemachine.com/article_objectheader.html
+
+    The headers look like this:
+
+    _POOL_HEADER
+
+    # These are optional headers:
+
+    _OBJECT_HEADER_PROCESS_INFO
+    _OBJECT_HEADER_QUOTA_INFO
+    _OBJECT_HEADER_HANDLE_INFO
+
+    _OBJECT_HEADER:
+       .....
+       InfoMask
+       ....
+
+    When the object manager wants to access a specific optional header, it can
+    use the constant lookup table nt!ObpInfoMaskToOffset to quickly calculate
+    the offset of that header (The headers always appear in the same order):
+
+    table = profile.get_constant_object(
+      "ObpInfoMaskToOffset",
+        target="Array",
+        target_args=dict(
+          target="byte"
+          count=0x80
+        )
+    )
+
+    option_header_offset = table[
+       OBJECT_HEADER->InfoMask & (DesiredHeaderBit | (DesiredHeaderBit-1))]
     """
 
-    # This specifies the order the headers are found below the _OBJECT_HEADER
+    # This specifies the order the headers are found below the
+    # _OBJECT_HEADER. It is obtained using "nt!ObpInfoMaskToOffset" which is a
+    # lookup table.
     optional_header_mask = (
         ('CreatorInfo', '_OBJECT_HEADER_CREATOR_INFO', 0x01),
         ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 0x02),
         ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 0x04),
         ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO', 0x08),
-        ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10))
+        ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10),
+        ('AuditInfo', '_OBJECT_HEADER_AUDIT_INFO', 0x20),
+        ('PaddingInfo', '_OBJECT_HEADER_PADDING_INFO', 0x40),
+        )
 
-    def find_optional_headers(self):
-        """Find this object's optional headers."""
-        offset = self.obj_offset
-        info_mask = int(self.InfoMask)
+    def _GetOptionalHeader(self, struct_name, desired_bit):
+        if not self.InfoMask & desired_bit:
+            return obj.NoneObject("Header not set")
 
-        for name, struct, mask in self.optional_header_mask:
-            if info_mask & mask:
-                offset -= self.obj_profile.get_obj_size(struct)
-                o = self.obj_profile.Object(
-                    type_name=struct, offset=offset, vm=self.obj_vm)
-                self._preamble_size += o.size()
-            else:
-                o = obj.NoneObject("Header not set")
-
-            setattr(self, name, o)
+        lookup = self.obj_session.GetParameter("ObpInfoMaskToOffset")
+        offset = lookup[self.InfoMask & (desired_bit | (desired_bit - 1))]
+        return self.obj_profile.Object(
+            struct_name, offset=self.obj_offset - offset,
+            vm=self.obj_vm, parent=self)
 
     def get_object_type(self, vm=None):
         """Return the object's type as a string"""
@@ -121,13 +151,24 @@ class _OBJECT_HEADER(common._OBJECT_HEADER):
     def is_valid(self):
         """Determine if the object makes sense."""
         # These need to be reasonable.
-        if (self.PointerCount < 0x100000 and self.HandleCount < 0x1000 and
-            self.PointerCount >= 0 and self.HandleCount >= 0 and
-            self.TypeIndex <= len(self.type_map) and
-            self.TypeIndex > 0):
-            return True
+        pointer_count = int(self.PointerCount)
+        if pointer_count > 0x100000 or pointer_count < 0:
+            return False
 
-        return False
+        handle_count = int(self.HandleCount)
+        if handle_count > 0x1000 or handle_count < 0:
+            return False
+
+        # Must be one to types revealed by the object_types plugins.
+        if  self.TypeIndex >= 50 or self.TypeIndex < 1:
+            return False
+
+        return True
+
+# Build properties for the optional headers
+for _name, _y, _z in _OBJECT_HEADER.optional_header_mask:
+    setattr(_OBJECT_HEADER, _name, property(
+        lambda x, y=_y, z=_z: x._GetOptionalHeader(y, z)))
 
 
 class _MMADDRESS_NODE(common.VadTraverser):

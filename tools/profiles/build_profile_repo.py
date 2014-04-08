@@ -37,14 +37,24 @@ If that file does not exist.
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
+import argparse
 import gzip
 import os
 import traceback
-import sys
 import multiprocessing
 
 from rekall import interactive
 session = interactive.ImportEnvironment(verbose="debug")
+
+PARSER = argparse.ArgumentParser(
+    description='Rebuild the profile repository.')
+
+PARSER.add_argument('path_to_guids',
+                   help='Path to the GUIDs file.')
+
+PARSER.add_argument('--rebuild', default=False, action='store_true',
+                   help='Rebuild all profiles.')
+
 
 NUMBER_OF_CORES = multiprocessing.cpu_count()
 
@@ -102,17 +112,18 @@ def BuildAllProfiles(guidfile_path, rebuild=False):
         pdb_path = os.path.join("src", "pdb")
         pdb_out_filename = os.path.join(pdb_path, "%s.pdb" % guid)
 
-        # Dont bother downloading the pdb file if we already have it.
-        if not os.access(pdb_out_filename, os.R_OK):
-            session.RunPlugin(
-                "fetch_pdb",
-                filename=pdb_filename, guid=guid,
-                dump_dir=pdb_path)
-
-            os.rename(os.path.join(pdb_path, pdb_filename), pdb_out_filename)
-
         # Do not export the profile if we already have it.
         if rebuild or not os.access(profile_path + ".gz", os.R_OK):
+            # Dont bother downloading the pdb file if we already have it.
+            if not os.access(pdb_out_filename, os.R_OK):
+                session.RunPlugin(
+                    "fetch_pdb",
+                    filename=pdb_filename, guid=guid,
+                    dump_dir=pdb_path)
+
+                os.rename(os.path.join(pdb_path, pdb_filename),
+                          pdb_out_filename)
+
             implementation = os.path.splitext(
                 PDB_TO_SYS[pdb_filename])[0].capitalize()
 
@@ -134,7 +145,8 @@ def BuildAllProfiles(guidfile_path, rebuild=False):
 
 
 if __name__ == "__main__":
-    changes = BuildAllProfiles(sys.argv[1])
+    FLAGS = PARSER.parse_args()
+    changes = BuildAllProfiles(FLAGS.path_to_guids, rebuild=FLAGS.rebuild)
 
     # If the files have changed, rebuild the indexes.
     for change in changes:

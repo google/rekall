@@ -45,8 +45,6 @@ class PoolScanAtom(common.PoolScanner):
 class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
     """Pool scanner for _RTL_ATOM_TABLE"""
 
-    allocation = ['_POOL_HEADER', '_RTL_ATOM_TABLE']
-
     __name = "atomscan"
 
     @classmethod
@@ -84,7 +82,7 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
                     fixup = 16
 
             atom_table = self.win32k_profile._RTL_ATOM_TABLE(
-                offset=pool_header.obj_offset + pool_header.size() + fixup,
+                offset=pool_header.obj_end + fixup,
                 vm=pool_header.obj_vm)
 
             # There's no way to tell which session or window station

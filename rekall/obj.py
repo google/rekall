@@ -403,6 +403,10 @@ class BaseObject(object):
         self.obj_session = session
 
     @property
+    def obj_end(self):
+        return self.obj_offset + self.size()
+
+    @property
     def parents(self):
         """Returns all the parents of this object."""
         obj = self
@@ -825,8 +829,8 @@ class Pointer(NativeType):
         """Delegate the iterator to the target."""
         return iter(self.dereference())
 
-    def dereference_as(self, target=None, vm=None, target_args=None,
-                       profile=None):
+    def dereference_as(self, target=None, target_args=None, vm=None,
+                       profile=None, parent=None):
         """Dereference ourselves into another type, or address space.
 
         This method allows callers to explicitly override the setting in the
@@ -845,7 +849,7 @@ class Pointer(NativeType):
 
         return profile.Object(
             type_name=target or self.target, offset=self.v(), vm=vm,
-            parent=self.obj_parent, context=self.obj_context,
+            parent=parent or self.obj_parent, context=self.obj_context,
             **(target_args or {}))
 
     @staticmethod
@@ -2037,12 +2041,17 @@ class Profile(object):
 
         return name
 
-    def get_nearest_constant_by_address(self, address):
+    def get_nearest_constant_by_address(self, address, below=True):
         """Returns the closest constant below or equal to the address."""
         address = Pointer.integer_to_address(address)
 
+        if below:
+            func = self.constant_addresses.find_le
+        else:
+            func = self.constant_addresses.find_ge
+
         try:
-            offset, name = self.constant_addresses.find_le(address)
+            offset, name = func(address)
 
             return offset, name
         except ValueError:
