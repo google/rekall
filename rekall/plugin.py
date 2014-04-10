@@ -26,7 +26,7 @@ import StringIO
 
 from rekall import config
 from rekall import registry
-from rekall.ui import renderer as rekall_renderer
+from rekall.ui import text as text_renderer
 
 
 class Error(Exception):
@@ -113,7 +113,7 @@ class Command(object):
     def __str__(self):
         """Render into a string using the text renderer."""
         fd = StringIO.StringIO()
-        ui_renderer = rekall_renderer.TextRenderer(
+        ui_renderer = text_renderer.TextRenderer(
             session=self.session, fd=fd)
         ui_renderer.start(plugin_name=self.name)
         self.render(ui_renderer)
@@ -127,10 +127,10 @@ class Command(object):
         renderer. The framework will initialize the plugin and provide it with
         some kind of renderer to write output on. The plugin should not assume
         that the renderer is actually TextRenderer, only that the methods
-        defined in the RendererBaseClass exist.
+        defined in the BaseRenderer exist.
 
         Args:
-          renderer: A renderer based at rekall.ui.renderer.RendererBaseClass.
+          renderer: A renderer based at rekall.ui.renderer.BaseRenderer.
         """
 
     @classmethod

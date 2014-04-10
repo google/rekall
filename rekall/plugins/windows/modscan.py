@@ -41,12 +41,15 @@ class PoolScanModuleFast(common.PoolScanner):
             ('PoolTagCheck', dict(
                     tag=self.profile.get_constant("MODULE_POOLTAG"))),
 
-            # Must be large enough for an _LDR_DATA_TABLE_ENTRY.
-            ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
-                        "_LDR_DATA_TABLE_ENTRY"))),
+            # Must be large enough for an _LDR_DATA_TABLE_ENTRY. Windows 8 seems
+            #  to not allocate the full structure here so this test does not
+            #  always work. Disabled for now.
+
+            # ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
+            #  "_LDR_DATA_TABLE_ENTRY"))),
 
             ('CheckPoolType', dict(
-                    paged=True, non_paged=True, free=True)),
+                paged=True, non_paged=True, free=True)),
 
             ('CheckPoolIndex', dict(value=0)),
             ]

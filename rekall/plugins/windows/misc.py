@@ -275,3 +275,112 @@ class ImageInfo(common.WindowsCommandPlugin):
 
         renderer.section("Physical Layout")
         self.session.plugins.phys_map().render(renderer)
+
+
+class Pools(common.WindowsCommandPlugin):
+    """Prints information about system pools.
+
+    Ref:
+    http://illmatics.com/Windows%208%20Heap%20Internals.pdf
+    https://media.blackhat.com/bh-dc-11/Mandt/BlackHat_DC_2011_Mandt_kernelpool-wp.pdf
+    https://immunityinc.com/infiltrate/archives/kernelpool_infiltrate2011.pdf
+    http://gate.upm.ro/os/LABs/Windows_OS_Internals_Curriculum_Resource_Kit-ACADEMIC/WindowsResearchKernel-WRK/WRK-v1.2/base/ntos/ex/pool.c
+    """
+
+    name = "pools"
+
+    def find_all_pool_descriptors(self):
+        """Finds all unique pool descriptors."""
+        descriptors = set()
+
+        vector_pool = self.profile.get_constant_object(
+            "PoolVector",
+            target="Array",
+            target_args=dict(
+                count=2,
+                target="Pointer",
+                )
+            )
+
+        # Non paged pool.
+        for desc in vector_pool[0].dereference_as(
+            "Array",
+            target_args=dict(
+                count=self.profile.get_constant_object(
+                    "ExpNumberOfNonPagedPools", "unsigned int").v(),
+                target="_POOL_DESCRIPTOR",
+                )
+            ):
+            desc.PoolStart = self.profile.get_constant_object(
+                "MmNonPagedPoolStart", "Pointer")
+            desc.PoolEnd = (
+                desc.PoolStart.v() +
+                self.profile.get_constant_object(
+                    "MmMaximumNonPagedPoolInBytes", "unsigned int"))
+            descriptors.add(desc)
+
+        # Paged pool.
+        paged_pool_start = self.profile.get_constant_object(
+            "MmPagedPoolStart", "unsigned int").v()
+
+        comment = ""
+        if not paged_pool_start:
+            if self.profile.metadata("arch") == "I386":
+                # On Win7x86 the paged pool is distributed (see virt_map
+                # plugin).
+                comment = "Fragmented (See virt_map plugin)"
+                paged_pool_start = paged_pool_end = None
+            else:
+                # Hard coded on Windows 7.
+                paged_pool_start = 0xFFFFA80000000000
+                paged_pool_end = 0xFFFFA81FFFFFFFFF
+        else:
+            paged_pool_end = (
+                paged_pool_start + self.profile.get_constant_object(
+                    "MmSizeOfPagedPoolInBytes", "address").v())
+
+
+        for desc in vector_pool[1].dereference_as(
+            "Array",
+            target_args=dict(
+                count=self.profile.get_constant_object(
+                    "ExpNumberOfPagedPools", "unsigned int").v() + 1,
+                target="_POOL_DESCRIPTOR",
+                )
+            ):
+            # Hard coded for 64 bit OS.
+            desc.PoolStart = paged_pool_start
+            desc.PoolEnd = paged_pool_end
+            desc.Comment = comment
+            descriptors.add(desc)
+
+        # Add session pools.
+        for task in self.session.plugins.pslist().list_eprocess():
+            desc = task.Session.PagedPool
+            if desc:
+                desc.PoolStart = task.Session.PagedPoolStart
+                desc.PoolEnd = task.Session.PagedPoolEnd
+                descriptors.add(desc)
+
+                desc.Comment = "Session ID %s" % task.Session.SessionId
+
+        return descriptors
+
+    def render(self, renderer):
+        descriptors = self.find_all_pool_descriptors()
+        renderer.table_header([
+            ("Type", "type", "20"),
+            ("Index", "index", "5"),
+            ("Size", "total_bytes", ">10"),
+            ("Start", "start", "[addrpad]"),
+            ("End", "end", "[addrpad]"),
+            ("Comment", "comment", "")])
+
+        for desc in sorted(descriptors):
+            renderer.table_row(
+                desc.PoolType,
+                desc.PoolIndex,
+                desc.m("TotalBytes") or desc.TotalPages * 0x1000,
+                desc.PoolStart,
+                desc.PoolEnd,
+                getattr(desc, "Comment", None))

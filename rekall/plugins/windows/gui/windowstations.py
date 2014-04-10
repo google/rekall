@@ -36,6 +36,10 @@ means they cannot display a user interface or receive user input.
 
 Ref:
 http://volatility-labs.blogspot.de/2012/09/movp-13-desktops-heaps-and-ransomware.html
+
+NOTE: Windows 8 does not have a global atom table any more.
+http://mista.nu/research/smashing_the_atom.pdf
+
 """
 from rekall import plugin
 from rekall.plugins.windows import common

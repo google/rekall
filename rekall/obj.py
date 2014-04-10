@@ -855,6 +855,9 @@ class Pointer(NativeType):
     @staticmethod
     def integer_to_address(value):
         """Addresses only use 48 bits."""
+        if value == None:
+            return value
+
         return 0xffffffffffff & int(value)
 
 

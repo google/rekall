@@ -609,7 +609,7 @@ class Tcpip(windows.BasicPEProfile):
                         })
 
             # Windows 7
-            elif version == "6.1":
+            elif version >= "6.1":
                 profile.add_overlay(tcpip_vtypes_vista_64)
                 profile.add_overlay(tcpip_vtypes_win7_64)
 
@@ -629,7 +629,7 @@ class Tcpip(windows.BasicPEProfile):
                 profile.add_overlay(tcpip_vtypes_vista)
 
             # Windows 7
-            elif version == "6.1":
+            elif version >= "6.1":
                 profile.add_overlay(tcpip_vtypes_vista)
                 profile.add_overlay(tcpip_vtypes_7)
 

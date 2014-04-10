@@ -765,6 +765,10 @@ class Dump(plugin.Command):
         self.address_space = load_as.ResolveAddressSpace(address_space)
 
     def render(self, renderer):
+        if self.offset == None:
+            renderer.format("Error: {0}\n", self.offset.reason)
+            return
+
         # Dump some data from the address space.
         data = self.address_space.read(self.offset, self.width * self.rows)
 
