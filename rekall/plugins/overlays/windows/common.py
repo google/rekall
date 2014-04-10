@@ -602,7 +602,11 @@ class _MM_SESSION_SPACE(obj.Struct):
 
 
 class _POOL_HEADER(obj.Struct):
-    """Extension to support retrieving allocations inside the pool."""
+    """Extension to support retrieving allocations inside the pool.
+
+    Ref for windows memory management:
+    http://illmatics.com/Windows%208%20Heap%20Internals.pdf
+    """
 
     def get_rounded_size(self, object_name):
         """Returns the size of the object accounting for pool alignment."""
@@ -1141,6 +1145,3 @@ def InitializeWindowsProfile(profile):
     else:
         # reactos/include/xdk/x86/ke.h:19
         profile.add_constants(KI_USER_SHARED_DATA=0xffdf0000)
-
-
-

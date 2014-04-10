@@ -196,6 +196,7 @@ class Session(object):
         # Store user configurable attributes here. These will be read/written to
         # the configuration file.
         self.state = Configuration(self, cache=Cache(), **kwargs)
+        self.inventories = {}
         self.UpdateFromConfigObject()
 
     def Reset(self):
@@ -444,8 +445,8 @@ class Session(object):
         except KeyError:
             pass
 
-        # The filename is a path we try to open it directly:
-        if filename.startswith("/") or filename.startswith("."):
+        # If the filename is a path we try to open it directly:
+        if os.access(filename, os.R_OK):
             container = io_manager.Factory(os.path.dirname(filename))
             result = obj.Profile.LoadProfileFromData(
                 container.GetData(os.path.basename(filename)),
@@ -463,6 +464,23 @@ class Session(object):
 
                 try:
                     manager = io_manager.Factory(path)
+                    try:
+                        # The inventory allows us to fail fetching the profile
+                        # quickly - without making the round trip.
+                        if path not in self.inventories:
+                            # Fetch the profile inventory.
+                            self.inventories[path] = manager.GetData(
+                                "inventory")
+
+                        inventory = self.inventories[path]["$INVENTORY"]
+                        if (filename not in inventory and
+                            filename + ".gz" not in inventory):
+                            continue
+
+                    # No inventory in that repository - just try anyway.
+                    except IOError:
+                        pass
+
                     result = obj.Profile.LoadProfileFromData(
                         manager.GetData(filename), self,
                         name=canonical_name)

@@ -153,6 +153,13 @@ class Atoms(win32k_core.Win32kPluginMixin,
     def station_atoms(self, station):
         """Generate all the atoms in the windows station atom table."""
         table = station.pGlobalAtomTable
+
+        # In Windows 8 this pointer is not valid or points to something else
+        # since there are no more global atom tables. Ref:
+        # http://mista.nu/research/smashing_the_atom.pdf
+        if table.Signature != 0x6D6F7441:
+            return
+
         for atom in sorted(table.atoms(), key=lambda x: x.Atom):
             ## Filter string atoms
             if not atom.is_string_atom():

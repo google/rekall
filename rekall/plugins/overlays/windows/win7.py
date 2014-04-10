@@ -26,6 +26,7 @@ This file provides support for windows Windows 7 SP 0.
 """
 
 # pylint: disable=protected-access
+from rekall import addrspace
 from rekall import kb
 from rekall import obj
 from rekall.plugins.overlays.windows import common
@@ -193,6 +194,8 @@ class _MMADDRESS_NODE(common.VadTraverser):
 class _POOL_HEADER(common._POOL_HEADER):
     """A class for pool headers"""
 
+    MAX_PREAMBLE_SIZE = 0x50
+
     @property
     def NonPagedPool(self):
         return self.PoolType.v() % 2 == 0 and self.PoolType.v() > 0
@@ -200,6 +203,106 @@ class _POOL_HEADER(common._POOL_HEADER):
     @property
     def PagedPool(self):
         return self.PoolType.v() % 2 == 1
+
+    @property
+    def FreePool(self):
+        return self.PoolType.v() == 0
+
+    # A class cached version of the lookup map. This is mutable and shared
+    # between all instances.
+    lookup = {}
+
+    def _BuildLookupTable(self):
+        """Create a fast lookup table mapping InfoMask -> minimum_offset.
+
+        We are interested in the maximum distance between the _POOL_HEADER and
+        _OBJECT_HEADER. This is dictated by the InfoMask field. Here we build a
+        quick lookup table between the InfoMask field and the offset of the
+        first optional header.
+        """
+        ObpInfoMaskToOffset = self.obj_session.GetParameter(
+            "ObpInfoMaskToOffset")
+
+        self.lookup["\x00"] = 0
+
+        # Iterate over all the possible InfoMask values.
+        for i in range(0x80):
+            # Locate the largest offset from the start of _OBJECT_HEADER.
+            bit_position = 0x40
+            while bit_position > 0:
+                # This is the optional header with the largest offset.
+                if bit_position & i:
+                    self.lookup[chr(i)] = ObpInfoMaskToOffset[
+                        i & (bit_position | (bit_position - 1))]
+
+                    break
+                bit_position >>= 1
+
+    def IterObject(self, type=None):
+        """Generates possible _OBJECT_HEADER accounting for optional headers.
+
+        Note that not all pool allocations have an _OBJECT_HEADER - only ones
+        allocated from the the object manager. This means calling this method
+        depends on which pool allocation you are after.
+
+        On windows 8, pool allocations are done from preset sizes. This means
+        that the allocation is never exactly the same size and we can not use
+        the bottom up method like before.
+
+        We therefore, have to build the headers forward by checking the preamble
+        size and validity of each object. This is a little slower than with
+        earlier versions of windows.
+
+        Args:
+          type: The object type name. If not specified we return all objects.
+        """
+        pool_align = self.obj_profile.get_constant("PoolAlignment")
+        allocation_size = self.BlockSize * pool_align
+
+        # Operate on a cached version of the next page.
+        # We use a temporary buffer for the object to save reads of the image.
+        cached_data = self.obj_vm.read(self.obj_offset + self.size(),
+                                       allocation_size)
+        cached_vm = addrspace.BufferAddressSpace(
+            data=cached_data, session=self.obj_session)
+
+        # We search for the _OBJECT_HEADER.InfoMask in close proximity to our
+        # object. We build a lookup table between the values in the InfoMask and
+        # the minimum distance there is between the start of _OBJECT_HEADER and
+        # the end of _POOL_HEADER. This way we can quickly skip unreasonable
+        # values.
+
+        # This is the offset within _OBJECT_HEADER of InfoMask.
+        info_mask_offset = self.obj_profile.get_obj_offset(
+            "_OBJECT_HEADER", "InfoMask")
+
+        # Build the cache if needed.
+        if not self.lookup:
+            self._BuildLookupTable()
+
+        for i in range(0, allocation_size - info_mask_offset, pool_align):
+            possible_info_mask = cached_data[i + info_mask_offset]
+            if possible_info_mask > '\x7f':
+                continue
+
+            minimum_offset = self.lookup[possible_info_mask]
+
+            # Obviously wrong because we need more space than we have.
+            if minimum_offset > i:
+                continue
+
+            # Create a test object header from the cached vm to test for
+            # validity.
+            test_object = self.obj_profile._OBJECT_HEADER(
+                offset=i, vm=cached_vm)
+
+            if test_object.is_valid():
+                if type is not None and test_object.get_object_type() != type:
+                    continue
+
+                yield self.obj_profile._OBJECT_HEADER(
+                    offset=i + self.obj_offset + self.size(),
+                    vm=self.obj_vm, parent=self)
 
 
 class ObjectTypeMapHook(kb.ParameterHook):

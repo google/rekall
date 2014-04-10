@@ -33,6 +33,11 @@ win32k_overlay = {
         'Name': [None, ['UnicodeString', dict(
             encoding='utf16',
             length=lambda x: x.NameLength * 2)]],
+
+        'ReferenceCount': lambda x: (x.m("ReferenceCount") or
+                                     x.m("Reference.ReferenceCount")),
+
+        'Pinned': lambda x: x.m("Flags") == 1 or x.m("Reference.Flags") == 1,
         }],
 
     'tagWINDOWSTATION': [None, {
@@ -656,11 +661,6 @@ class _RTL_ATOM_TABLE(obj.Struct):
 
 class _RTL_ATOM_TABLE_ENTRY(obj.Struct):
     """A class for atom table entries"""
-
-    @property
-    def Pinned(self):
-        """Returns True if the atom is pinned"""
-        return self.Flags == 1
 
     def is_string_atom(self):
         """Returns True if the atom is a string atom

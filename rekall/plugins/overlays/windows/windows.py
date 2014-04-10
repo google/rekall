@@ -122,20 +122,12 @@ class RelativeOffsetMixin(object):
             return self.GetImageBase(), "image_base"
 
 
-class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
-    """A basic profile for a pe image.
+class Demangler(object):
+    """A utility class to demangle VC++ names.
 
-    This profile deals with Microsoft Oddities like name mangling, and
-    correcting global offsets to the base image address.
+    This is not a complete or accurate demangler, it simply extract the name and
+    strips out args etc.
     """
-
-    image_base = 0
-
-    METADATA = dict(os="windows")
-
-    def GetImageBase(self):
-        return self.image_base
-
     STRING_MANGLE_MAP = {
         "^0": ",",
         "^2": r"\\",
@@ -160,6 +152,9 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
         }
 
+    def __init__(self, metadata):
+        self._metadata = metadata
+
     def _UnpackMangledString(self, string):
         string = string.split("@")[3]
 
@@ -172,7 +167,7 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
         return "str:" + "".join(result).strip()
 
-    SIMPLE_X86_CALL = re.compile(r"[_@]([A-Za-z0-9_]+)@(\d+)")
+    SIMPLE_X86_CALL = re.compile(r"[_@]([A-Za-z0-9_]+)@(\d{1,3})$")
     def DemangleName(self, mangled_name):
         """Returns the de-mangled name.
 
@@ -203,15 +198,31 @@ class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
 
         return mangled_name
 
+
+class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
+    """A basic profile for a pe image.
+
+    This profile deals with Microsoft Oddities like name mangling, and
+    correcting global offsets to the base image address.
+    """
+
+    image_base = 0
+
+    METADATA = dict(os="windows")
+
+    def GetImageBase(self):
+        return self.image_base
+
     def add_constants(self, **kwargs):
         """Add the demangled constants.
 
         This allows us to handle 32 bit vs 64 bit constant names easily since
         the mangling rules are different.
         """
+        demangler = Demangler(self._metadata)
         result = {}
         for k, v in kwargs.iteritems():
-            result[self.DemangleName(k)] = v
+            result[demangler.DemangleName(k)] = v
 
         super(BasicPEProfile, self).add_constants(**result)
 
@@ -266,7 +277,11 @@ class Ntoskrnl(BasicPEProfile):
 
         # Windows 7 introduces TypeIndex into the object header.
         if profile.get_obj_offset("_OBJECT_HEADER", "TypeIndex") != None:
-            if profile._EPROCESS().m("VadRoot").obj_type == "_MM_AVL_TABLE":
+            if profile._EPROCESS().m(
+                "VadRoot.BalancedRoot").obj_type == "_MMADDRESS_NODE":
+                version = "6.1"
+
+            elif profile._EPROCESS().m("VadRoot").obj_type == "_MM_AVL_TABLE":
                 # Windows 8 uses _MM_AVL_NODE as the VAD traversor struct.
                 version = "6.2"
 
@@ -275,7 +290,7 @@ class Ntoskrnl(BasicPEProfile):
                 version = "6.3"
 
             else:
-                version = "6.1"
+                raise RuntimeError("Unknown windows version")
 
         profile.set_metadata("version", version)
         major, minor = version.split(".")
