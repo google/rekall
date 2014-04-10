@@ -29,6 +29,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 import inspect
 import logging
 import pdb
+import traceback
 import os
 import sys
 import time
@@ -42,7 +43,9 @@ from rekall import obj
 from rekall import kb
 from rekall import utils
 from rekall import entity
+
 from rekall.ui import renderer
+from rekall.ui import text
 
 
 # Top level args.
@@ -214,7 +217,7 @@ class Session(object):
                 self.profile = self.LoadProfile(profile_parameter)
 
         # Set the renderer.
-        self.renderer = renderer.RendererBaseClass.classes.get(
+        self.renderer = renderer.BaseRenderer.classes.get(
             self.GetParameter("renderer"), "TextRenderer")
 
         # Make a new address resolver.
@@ -336,11 +339,11 @@ class Session(object):
         output = kwargs.pop("output", None)
 
         # Select the renderer from the session or from the kwargs.
-        if not isinstance(ui_renderer, renderer.RendererBaseClass):
-            ui_renderer_cls = self.renderer or renderer.TextRenderer
+        if not isinstance(ui_renderer, renderer.BaseRenderer):
+            ui_renderer_cls = self.renderer or text.TextRenderer
 
             if isinstance(ui_renderer_cls, basestring):
-                ui_renderer_cls = renderer.TextRenderer.classes[ui_renderer_cls]
+                ui_renderer_cls = text.TextRenderer.classes[ui_renderer_cls]
 
             # Allow the output to be written to file.
             if output is not None:
@@ -400,11 +403,18 @@ class Session(object):
             self.report_progress("Aborted!\r\n", force=True)
 
         except Exception, e:
-            logging.error("Error: %s", e)
             # If anything goes wrong, we break into a debugger here.
             if debug:
+                # With debug on, we use traceback to print detailed information
+                # about the error, because pdb can sometimes get it wrong.
+                _, _, trace = sys.exc_info()
+                logging.error(
+                    "Detailed error:\n%s",
+                    traceback.format_exc(),
+                )
                 pdb.post_mortem()
             else:
+                logging.error("Error: %s", e)
                 raise
 
     def LoadProfile(self, filename, use_cache=True):
@@ -577,3 +587,4 @@ Config:
         """Swallow the error but report it."""
         logging.error("Failed running plugin %s: %s",
                       plugin_cls.name, e)
+

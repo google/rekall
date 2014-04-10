@@ -28,7 +28,7 @@ from rekall import testlib
 from rekall import plugin
 from rekall import kb
 from rekall.plugins import core
-from rekall.ui import renderer as ui_renderer
+from rekall.ui import text as text_renderer
 
 try:
     from rekall import ipython_support
@@ -146,7 +146,8 @@ class PagingLimitHook(kb.ParameterHook):
     name = "paging_limit"
 
     def calculate(self):
-        if ui_renderer.curses:
-            return ui_renderer.curses.tigetnum('lines')
+        if text_renderer.curses:
+            return text_renderer.curses.tigetnum("lines")
 
         return int(os.environ.get("ROWS", 50))
+
