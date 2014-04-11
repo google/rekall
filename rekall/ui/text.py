@@ -183,186 +183,6 @@ class Colorizer(object):
                 self.tparm(["sgr0"]))
 
 
-class TextRenderer(renderer.BaseRenderer):
-    """Renderer for the command line that supports paging, colors and progress.
-
-    Args:
-      elide: Causes words to be shortened in the middle if they're longer than
-        format spec.
-    """
-    tablesep = " "
-    elide = False
-    spinner = r"/-\|"
-    last_spin_time = 0
-    last_spin = 0
-    last_message_len = 0
-    isatty = False
-    progress_fd = None
-    paging_limit = None
-
-    def __init__(self, tablesep=" ", elide=False, max_data=1024*1024,
-                 **kwargs):
-        super(TextRenderer, self).__init__(**kwargs)
-
-        self.tablesep = tablesep
-        self.elide = elide
-
-        # We keep the data that we produce in memory for while.
-        self.data = []
-        self.max_data = max_data
-
-        # Write progress to stdout but only if it is a tty.
-        if sys.stdout.isatty():
-            self.progress_fd = sys.stdout
-
-        self.colorizer = Colorizer(
-            self.fd,
-            nocolor=(self.session and self.session.GetParameter("nocolors")),
-        )
-
-    def start(self, plugin_name=None, kwargs=None):
-        """The method is called when new output is required.
-
-        Args:
-           plugin_name: The name of the plugin which is running.
-           kwargs: The args for this plugin.
-        """
-        # This handles the progress messages from rekall for the duration of
-        # the rendering.
-        if self.session:
-            self.session.progress = self.RenderProgress
-
-    def end(self):
-        """Tells the renderer that we finished using it for a while."""
-        # Remove the progress handler from the session.
-        if self.session:
-            self.session.progress = None
-
-    def format(self, formatstring, *data):
-        # Only clear the progress if we share the same output stream as the
-        # progress.
-        if self.fd is self.progress_fd:
-            self.ClearProgress()
-
-        super(TextRenderer, self).format(formatstring, *data)
-
-    def write(self, data):
-        self.data.append(data)
-
-        # When not to use the pager.
-        if (not self.isatty or  # Not attached to a tty.
-            self.paging_limit is None or  # No paging limit specified.
-            len(self.data) < self.paging_limit):  # Not enough output yet.
-            self.fd.write(data)
-            self.fd.flush()
-
-        # Write a single message to the terminal.
-        elif len(self.data) == self.paging_limit:
-            self.fd.write(
-                self.color("Please wait while the rest is paged...",
-                           foreground="YELLOW") + "\r\n")
-            self.fd.flush()
-
-        # Suppress terminal output. Output is buffered in self.data and will be
-        # sent to the pager.
-        else:
-            return
-
-    def flush(self):
-        self.data = []
-        self.ClearProgress()
-        self.fd.flush()
-
-    def table_header(self, columns=None, suppress_headers=False,
-                     **_):
-        """Table header renders the title row of a table.
-
-        This also stores the header types to ensure everything is formatted
-        appropriately.  It must be a list of tuples rather than a dict for
-        ordering purposes.
-
-        Args:
-           columns: A list of (Name, formatstring) tuples describing
-              the table columns.
-
-           suppress_headers: If True table headers will not be written (still
-              useful for formatting).
-        """
-        # Determine the address size
-        address_size = 14
-        if (self.session and self.session.profile and
-            self.session.profile.metadata("arch") == "I386"):
-            address_size = 10
-
-        self.table = TextTable(columns=columns, tablesep=self.tablesep,
-                               suppress_headers=suppress_headers,
-                               address_size=address_size,
-                               renderer=self)
-        self.table.render_header()
-
-    def table_row(self, *args, **kwargs):
-        """Outputs a single row of a table.
-
-        Text tables support these additional kwargs:
-          highlight: Highlights this raw according to the color scheme (e.g.
-          important, good...)
-        """
-        return super(TextRenderer, self).table_row(*args, **kwargs)
-
-    def ClearProgress(self):
-        """Delete the last progress message."""
-        if self.progress_fd is None:
-            return
-
-        # Wipe the last message.
-        self.progress_fd.write("\r" + " " * self.last_message_len + "\r")
-        self.progress_fd.flush()
-
-    def _GetColumns(self):
-        if curses:
-            return curses.tigetnum('cols')
-
-        return int(os.environ.get("COLUMNS", 80))
-
-    def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
-        if self.progress_fd is None:
-            return
-
-        # Only write once per second.
-        now = time.time()
-        force = kwargs.get("force")
-
-        if force or now > self.last_spin_time + 0.2:
-            self.last_spin_time = now
-            self.last_spin += 1
-
-            # Only expand variables when we need to.
-            if "%(" in message:
-                kwargs["spinner"] = self.spinner[
-                    self.last_spin % len(self.spinner)]
-
-                message = message % kwargs
-            elif args:
-                format_args = []
-                for arg in args:
-                    if callable(arg):
-                        format_args.append(arg())
-                    else:
-                        format_args.append(arg)
-
-                message = message % tuple(format_args)
-
-            self.ClearProgress()
-
-            message = " " + message + "\r"
-            # Truncate the message to the terminal width to avoid wrapping.
-            message = message[:self._GetColumns()]
-
-            self.progress_fd.write(message)
-            self.last_message_len = len(message)
-            self.progress_fd.flush()
-
-
 class TextColumn(renderer.BaseColumn):
     """Implementation for text (mostly CLI) tables."""
 
@@ -511,10 +331,176 @@ class TextTable(renderer.BaseTable):
             highlight=highlight)
 
 
+class TextRenderer(renderer.BaseRenderer):
+    """Renderer for the command line that supports paging, colors and progress.
+
+    Args:
+      elide: Causes words to be shortened in the middle if they're longer than
+        format spec.
+    """
+    tablesep = " "
+    elide = False
+    spinner = r"/-\|"
+    last_spin_time = 0
+    last_spin = 0
+    last_message_len = 0
+    isatty = False
+    progress_fd = None
+    paging_limit = None
+    table_cls = TextTable
+
+    def __init__(self, tablesep=" ", elide=False, max_data=1024*1024,
+                 **kwargs):
+        super(TextRenderer, self).__init__(**kwargs)
+
+        self.tablesep = tablesep
+        self.elide = elide
+
+        # We keep the data that we produce in memory for while.
+        self.data = []
+        self.max_data = max_data
+
+        # Write progress to stdout but only if it is a tty.
+        if sys.stdout.isatty():
+            self.progress_fd = sys.stdout
+
+        self.colorizer = Colorizer(
+            self.fd,
+            nocolor=(self.session and self.session.GetParameter("nocolors")),
+        )
+
+    def start(self, plugin_name=None, kwargs=None):
+        """The method is called when new output is required.
+
+        Args:
+           plugin_name: The name of the plugin which is running.
+           kwargs: The args for this plugin.
+        """
+        super(TextRenderer, self).start(plugin_name, kwargs)
+        # This handles the progress messages from rekall for the duration of
+        # the rendering.
+        if self.session:
+            self.session.progress = self.RenderProgress
+
+    def end(self):
+        """Tells the renderer that we finished using it for a while."""
+        super(TextRenderer, self).end()
+        # Remove the progress handler from the session.
+        if self.session:
+            self.session.progress = None
+
+    def format(self, formatstring, *data):
+        # Only clear the progress if we share the same output stream as the
+        # progress.
+        if self.fd is self.progress_fd:
+            self.ClearProgress()
+
+        super(TextRenderer, self).format(formatstring, *data)
+
+    def write(self, data):
+        self.data.append(data)
+
+        # When not to use the pager.
+        if (not self.isatty or  # Not attached to a tty.
+            self.paging_limit is None or  # No paging limit specified.
+            len(self.data) < self.paging_limit):  # Not enough output yet.
+            self.fd.write(data)
+            self.fd.flush()
+
+        # Write a single message to the terminal.
+        elif len(self.data) == self.paging_limit:
+            self.fd.write(
+                self.color("Please wait while the rest is paged...",
+                           foreground="YELLOW") + "\r\n")
+            self.fd.flush()
+
+        # Suppress terminal output. Output is buffered in self.data and will be
+        # sent to the pager.
+        else:
+            return
+
+    def flush(self):
+        self.data = []
+        self.ClearProgress()
+        self.fd.flush()
+    
+    def table_header(self, *args, **kwargs):
+        """Text table header also takes elide and tablesep arguments.
+        
+        The rest of this is the same as BaseRenderer.table_header."""
+        return super(TextRenderer, self).table_header(
+            *args,
+            elide=self.elide,
+            tablesep=self.tablesep,
+            **kwargs
+        )
+
+    def table_row(self, *args, **kwargs):
+        """Outputs a single row of a table.
+
+        Text tables support these additional kwargs:
+          highlight: Highlights this raw according to the color scheme (e.g.
+          important, good...)
+        """
+        return super(TextRenderer, self).table_row(*args, **kwargs)
+
+    def ClearProgress(self):
+        """Delete the last progress message."""
+        if self.progress_fd is None:
+            return
+
+        # Wipe the last message.
+        self.progress_fd.write("\r" + " " * self.last_message_len + "\r")
+        self.progress_fd.flush()
+
+    def _GetColumns(self):
+        if curses:
+            return curses.tigetnum('cols')
+
+        return int(os.environ.get("COLUMNS", 80))
+
+    def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
+        if self.progress_fd is None:
+            return
+
+        # Only write once per second.
+        now = time.time()
+        force = kwargs.get("force")
+
+        if force or now > self.last_spin_time + 0.2:
+            self.last_spin_time = now
+            self.last_spin += 1
+
+            # Only expand variables when we need to.
+            if "%(" in message:
+                kwargs["spinner"] = self.spinner[
+                    self.last_spin % len(self.spinner)]
+
+                message = message % kwargs
+            elif args:
+                format_args = []
+                for arg in args:
+                    if callable(arg):
+                        format_args.append(arg())
+                    else:
+                        format_args.append(arg)
+
+                message = message % tuple(format_args)
+
+            self.ClearProgress()
+
+            message = " " + message + "\r"
+            # Truncate the message to the terminal width to avoid wrapping.
+            message = message[:self._GetColumns()]
+
+            self.progress_fd.write(message)
+            self.last_message_len = len(message)
+            self.progress_fd.flush()
+
+
 class TestRenderer(TextRenderer):
     """A special renderer which makes parsing the output of tables easier."""
 
     def __init__(self, **kwargs):
         super(TestRenderer, self).__init__(tablesep="||", **kwargs)
-
 
