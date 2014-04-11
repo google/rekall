@@ -179,6 +179,9 @@ class BaseRenderer(object):
 
     isatty = False
     paging_limit = None
+    sort_key_func = None
+    deferred_rows = None
+    table_cls = None
 
     def __init__(self, session=None, fd=None, paging_limit=None):
         self.session = session
@@ -206,18 +209,25 @@ class BaseRenderer(object):
 
     def end(self):
         """Tells the renderer that we finished using it for a while."""
-        pass
+        if self.deferred_rows is not None:
+            # Table was sorted. Render deferred rows now.
+            self.flush_table()
 
     def write(self, data):
         """Renderer should write some data."""
         pass
 
-    def section(self, name=None, width=50):
+    def section(self, name=None, width=50, keep_sort=False):
         """Start a new section.
 
         Sections are used to separate distinct entries (e.g. reports of
         different files).
         """
+        
+        if self.deferred_rows is not None:
+            # Table is sorted. Print deferred rows from last section now.
+            self.flush_table(keep_sort=keep_sort)
+
         if name is None:
             self.write("*" * width + "\n")
             return
@@ -240,9 +250,10 @@ class BaseRenderer(object):
 
     def flush(self):
         """Renderer should flush data."""
+        pass
 
-    def table_header(self, title_format_list=None, suppress_headers=False,
-                     name=None):
+    def table_header(self, columns=None, suppress_headers=None, name=None,
+                     sort=None, *args, **kwargs):
         """Table header renders the title row of a table.
 
         This also stores the header types to ensure everything is formatted
@@ -250,18 +261,77 @@ class BaseRenderer(object):
         ordering purposes.
 
         Args:
-           title_format_list: A list of (Name, formatstring) tuples describing
-              the table headers.
+          columns: A list of (name, cname, formatstring) tuples describing
+            the table headers.
 
-           suppress_headers: If True table headers will not be written (still
-              useful for formatting).
+          suppress_headers: If True table headers will not be written (still
+            useful for formatting).
 
-           name: The name of this table.
+          name: The name of this table.
+
+          sort: Optional - tuple of cnames of columns to sort by. If sorting
+          sorting is on, rendering of table rows will be deferred either
+          until next call to table_header (or section) or until the plugin
+          render function ends.
         """
+        if self.deferred_rows is not None:
+            # Previous table we rendered was sorted. Do deferred rendering now.
+            self.flush_table()
+
+        address_size = 14
+        if (self.session and self.session.profile and
+            self.session.profile.metadata("arch") == "I386"):
+            address_size = 10
+
+        self.table = self.table_cls(
+            renderer=self, columns=columns, suppress_headers=suppress_headers,
+            address_size=address_size, **kwargs
+        )
+
+        self.table.render_header()
+
+        if sort:
+            self.sort_key_func = self._build_sort_key_function(
+                sort_cnames=sort,
+                columns=columns,
+            )
+            self.deferred_rows = []
+    
+    @staticmethod
+    def _build_sort_key_function(sort_cnames, columns):
+        """Builds a function that takes a row and returns keys to sort on."""
+        cnames_to_indices = {}
+        for idx, (_, cname, _) in enumerate(columns):
+            cnames_to_indices[cname] = idx
+        
+        sort_indices = [cnames_to_indices[x] for x in sort_cnames]
+
+        # Row is a tuple of (values, kwargs) - hence row[0][index].
+        return lambda row: [row[0][index] for index in sort_indices]
 
     def table_row(self, *args, **kwargs):
         """Outputs a single row of a table."""
-        self.table.render_row(row=args, **kwargs)
+        if self.deferred_rows is not None:
+            # Table rendering is being deferred for sorting.
+            self.deferred_rows.append((args, kwargs))
+        else:
+            self.table.render_row(row=args, **kwargs)
+
+    def flush_table(self, keep_sort=False):
+        """If sorting is on, this will trigger deferred rendering."""
+        self.deferred_rows.sort(key=self.sort_key_func)
+
+        for row, kwargs in self.deferred_rows:
+            self.table.render_row(
+                row=row,
+                **kwargs
+            )
+
+        if keep_sort:
+            self.deferred_rows = []
+        else:
+            self.deferred_rows = None
+            self.sort_key_func = None
 
     def record(self, record_data):
         """Writes a single complete record.

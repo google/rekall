@@ -120,6 +120,8 @@ class JsonTable(renderer.BaseTable):
 class JsonRenderer(renderer.BaseRenderer):
     """Render the output as a json object."""
 
+    table_cls = JsonTable
+
     def start(self, plugin_name=None, kwargs=None):
         self.formatter = JsonFormatter()
 
