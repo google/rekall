@@ -41,12 +41,15 @@ class PoolScanModuleFast(common.PoolScanner):
             ('PoolTagCheck', dict(
                     tag=self.profile.get_constant("MODULE_POOLTAG"))),
 
-            # Must be large enough for an _LDR_DATA_TABLE_ENTRY.
-            ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
-                        "_LDR_DATA_TABLE_ENTRY"))),
+            # Must be large enough for an _LDR_DATA_TABLE_ENTRY. Windows 8 seems
+            #  to not allocate the full structure here so this test does not
+            #  always work. Disabled for now.
+
+            # ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
+            #  "_LDR_DATA_TABLE_ENTRY"))),
 
             ('CheckPoolType', dict(
-                    paged=True, non_paged=True, free=True)),
+                paged=True, non_paged=True, free=True)),
 
             ('CheckPoolIndex', dict(value=0)),
             ]
@@ -61,9 +64,12 @@ class ModScan(filescan.FileScan):
         scanner = PoolScanModuleFast(profile=self.profile, session=self.session,
                                      address_space=self.address_space)
 
-        for offset in scanner.scan():
+        for pool_obj in scanner.scan():
+            if not pool_obj:
+                continue
+
             ldr_entry = self.profile._LDR_DATA_TABLE_ENTRY(
-                vm=self.address_space, offset=offset.obj_offset + offset.size())
+                vm=self.address_space, offset=pool_obj.obj_end)
 
             yield ldr_entry
 
@@ -106,25 +112,28 @@ class ThrdScan(ModScan):
 
     __name = "thrdscan"
 
-    allocation = ['_POOL_HEADER', '_OBJECT_HEADER', "_ETHREAD"]
-
     def generate_hits(self):
         scanner = PoolScanThreadFast(profile=self.profile, session=self.session,
                                      address_space=self.address_space)
 
-        for found in scanner.scan():
-            thread = found.get_object("_ETHREAD", self.allocation)
+        for pool_obj in scanner.scan():
+            thread = pool_obj.GetObject().Body.cast("_ETHREAD")
+            if not thread:
+                continue
 
             if (thread.Cid.UniqueProcess.v() != 0 and
                 thread.StartAddress == 0):
                 continue
 
-            # Check the Semaphore Type.
-            if thread.Tcb.SuspendSemaphore.Header.Type != 0x05:
-                continue
+            try:
+                # Check the Semaphore Type.
+                if thread.Tcb.SuspendSemaphore.Header.Type != 0x05:
+                    continue
 
-            if thread.KeyedWaitSemaphore.Header.Type != 0x05:
-                continue
+                if thread.KeyedWaitSemaphore.Header.Type != 0x05:
+                    continue
+            except AttributeError:
+                pass
 
             yield thread
 

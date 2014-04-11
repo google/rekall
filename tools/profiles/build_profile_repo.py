@@ -37,14 +37,27 @@ If that file does not exist.
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
+import argparse
+import json
 import gzip
 import os
 import traceback
-import sys
 import multiprocessing
 
 from rekall import interactive
+from rekall import utils
+
 session = interactive.ImportEnvironment(verbose="debug")
+
+PARSER = argparse.ArgumentParser(
+    description='Rebuild the profile repository.')
+
+PARSER.add_argument('path_to_guids',
+                   help='Path to the GUIDs file.')
+
+PARSER.add_argument('--rebuild', default=False, action='store_true',
+                   help='Rebuild all profiles.')
+
 
 NUMBER_OF_CORES = multiprocessing.cpu_count()
 
@@ -102,17 +115,18 @@ def BuildAllProfiles(guidfile_path, rebuild=False):
         pdb_path = os.path.join("src", "pdb")
         pdb_out_filename = os.path.join(pdb_path, "%s.pdb" % guid)
 
-        # Dont bother downloading the pdb file if we already have it.
-        if not os.access(pdb_out_filename, os.R_OK):
-            session.RunPlugin(
-                "fetch_pdb",
-                filename=pdb_filename, guid=guid,
-                dump_dir=pdb_path)
-
-            os.rename(os.path.join(pdb_path, pdb_filename), pdb_out_filename)
-
         # Do not export the profile if we already have it.
         if rebuild or not os.access(profile_path + ".gz", os.R_OK):
+            # Dont bother downloading the pdb file if we already have it.
+            if not os.access(pdb_out_filename, os.R_OK):
+                session.RunPlugin(
+                    "fetch_pdb",
+                    filename=pdb_filename, guid=guid,
+                    dump_dir=pdb_path)
+
+                os.rename(os.path.join(pdb_path, pdb_filename),
+                          pdb_out_filename)
+
             implementation = os.path.splitext(
                 PDB_TO_SYS[pdb_filename])[0].capitalize()
 
@@ -133,13 +147,47 @@ def BuildAllProfiles(guidfile_path, rebuild=False):
     return changed_files
 
 
+def RebuildInventory():
+    inventory = {}
+    metadata = dict(Type="Inventory",
+                    ProfileClass="Inventory")
+
+    result = {"$METADATA": metadata,
+              "$INVENTORY": inventory}
+
+    for root, _, files in os.walk('./'):
+        for filename in files:
+            if filename.endswith(".gz"):
+                path = os.path.join(root, filename)
+                print "Adding %s to inventory" % path
+                with gzip.GzipFile(filename=path, mode="rb") as fd:
+                    data = json.load(fd)
+
+                    profile_name = os.path.join(root[2:], filename[:-3])
+                    inventory[profile_name] = data["$METADATA"]
+
+    with gzip.GzipFile(filename="inventory.gz", mode="wb") as outfd:
+        outfd.write(utils.PPrint(result))
+
+
 if __name__ == "__main__":
-    changes = BuildAllProfiles(sys.argv[1])
+    FLAGS = PARSER.parse_args()
+    changes = BuildAllProfiles(FLAGS.path_to_guids, rebuild=FLAGS.rebuild)
 
     # If the files have changed, rebuild the indexes.
     for change in changes:
         print "Rebuilding profile index for %s" % change
+        output_filename = os.path.join(change, "index")
         session.RunPlugin(
             "build_index",
             spec=os.path.join(change, "index.yaml"),
-            output=os.path.join(change, "index"))
+            output=output_filename)
+
+        # Gzip the output
+        with gzip.GzipFile(filename=output_filename+".gz", mode="wb") as out:
+            out.write(open(output_filename).read())
+
+        os.unlink(output_filename)
+
+
+    RebuildInventory()

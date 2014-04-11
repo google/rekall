@@ -20,10 +20,16 @@
 #
 
 # pylint: disable=protected-access
-
+from rekall import addrspace
+from rekall import kb
 from rekall import obj
+from rekall.plugins.overlays.windows import common
 from rekall.plugins.overlays.windows import win7
 
+def TagOffset(x):
+    if x.obj_profile.metadata("arch") == "AMD64":
+        return x.obj_offset - 12
+    return x.obj_offset - 4
 
 # In windows 8 the VadRoot is actually composed from _MM_AVL_NODE instead of
 # _MMVAD structs or _MMADDRESS_NODE. The structs appear to be organised by
@@ -33,206 +39,111 @@ from rekall.plugins.overlays.windows import win7
 # are, then depending on the vad tag, they get casted to different structs.
 win8_overlays = {
     '_EPROCESS': [None, {
-            # A symbolic link to the real vad root.
-            'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
-            }],
+        # A symbolic link to the real vad root.
+        'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
+        }],
 
     '_MM_AVL_NODE': [None, {
-            'Tag': [-12, ['String', dict(length=4)]],
+            'Tag': [TagOffset, ['String', dict(length=4)]],
+            }],
+
+    '_RTL_BALANCED_NODE': [None, {
+            'Tag': [TagOffset, ['String', dict(length=4)]],
             }],
 
     '_MMVAD_SHORT': [None, {
-            'Tag': [-12, ['String', dict(length=4)]],
+            'Tag': [TagOffset, ['String', dict(length=4)]],
             'Start': lambda x: x.StartingVpn << 12,
             'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u1.VadFlags1.CommitCharge,
             }],
 
     '_MMVAD': [None, {
-            'Tag': [-12, ['String', dict(length=4)]],
+            'Tag': [TagOffset, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
             'Start': lambda x: x.Core.StartingVpn << 12,
             'End': lambda x: ((x.Core.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.Core.u1.VadFlags1.CommitCharge,
             'u': lambda x: x.Core.u,
             }],
 
-    "_CONTROL_AREA": [None, {
-            'FilePointer': [None, ['_EX_FAST_REF', dict(
-                        target="_FILE_OBJECT"
-                        )]],
+    '_MMVAD_LONG': [None, {
+            'Tag': [TagOffset, ['String', dict(length=4)]],
+            'ControlArea': lambda x: x.Subsection.ControlArea,
+            'Start': lambda x: x.Core.StartingVpn << 12,
+            'End': lambda x: ((x.Core.EndingVpn + 1) << 12) - 1,
+            'Length': lambda x: x.End - x.Start + 1,
+            'CommitCharge': lambda x: x.Core.u.VadFlags.CommitCharge,
+            'u': lambda x: x.Core.u,
             }],
+
+    "_CONTROL_AREA": [None, {
+        'FilePointer': [None, ['_EX_FAST_REF', dict(
+            target="_FILE_OBJECT"
+            )]],
+        }],
+
+    '_HANDLE_TABLE_ENTRY' : [None, {
+        # In Windows 8 the Object pointer is replaced with a bitfield.
+        'Object': lambda x: x.obj_profile.Pointer(
+            target="_OBJECT_HEADER",
+            value=(x.ObjectPointerBits << 4 | 0xFFFFE00000000000),
+            vm=x.obj_vm, parent=x)
+        }],
+
+    '_OBJECT_HEADER': [None, {
+        'GrantedAccess': lambda x: x.obj_parent.GrantedAccessBits
+        }],
+    }
+
+win8_1_overlays = {
+    '_EPROCESS': [None, {
+        # A symbolic link to the real vad root.
+        'RealVadRoot': lambda x: x.VadRoot.Root
+        }],
+
+    '_HANDLE_TABLE': [None, {
+      'HandleCount': lambda x: obj.NoneObject("Unknown")
+      }],
     }
 
 
-class _OBJECT_HEADER(win7._OBJECT_HEADER):
-    """A Rekall Memory Forensics object to handle Windows 7 object headers.
+class ObpInfoMaskToOffsetHook(kb.ParameterHook):
+    """By caching this map we can speed up lookups significantly."""
 
-    Windows 7 changes the way objects are handled:
-    References: http://www.codemachine.com/article_objectheader.html
-    """
+    name = "ObpInfoMaskToOffset"
 
-    type_map = {2: 'Type',
-                3: 'Directory',
-                4: 'SymbolicLink',
-                5: 'Token',
-                6: 'Job',
-                7: 'Process',
-                8: 'Thread',
-                9: 'UserApcReserve',
-                10: 'IoCompletionReserve',
-                11: 'DebugObject',
-                12: 'Event',
-                13: 'EventPair',
-                14: 'Mutant',
-                15: 'Callback',
-                16: 'Semaphore',
-                17: 'Timer',
-                18: 'Profile',
-                19: 'KeyedEvent',
-                20: 'WindowStation',
-                21: 'Desktop',
-                22: 'TpWorkerFactory',
-                23: 'Adapter',
-                24: 'Controller',
-                25: 'Device',
-                26: 'Driver',
-                27: 'IoCompletion',
-                28: 'File',
-                29: 'TmTm',
-                30: 'TmTx',
-                31: 'TmRm',
-                32: 'TmEn',
-                33: 'Section',
-                34: 'Session',
-                35: 'Key',
-                36: 'ALPC Port',
-                37: 'PowerRequest',
-                38: 'WmiGuid',
-                39: 'EtwRegistration',
-                40: 'EtwConsumer',
-                41: 'FilterConnectionPort',
-                42: 'FilterCommunicationPort',
-                43: 'PcwObject',
-                }
+    def calculate(self):
+        table_offset = self.session.profile.get_constant(
+            "ObpInfoMaskToOffset", True)
 
-    # This specifies the order the headers are found below the _OBJECT_HEADER
-    optional_header_mask = (
-        ('CreatorInfo', '_OBJECT_HEADER_CREATOR_INFO', 0x01),
-        ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 0x02),
-        ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 0x04),
-        ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO', 0x08),
-        ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10),
-        ('AuditInfo', '_OBJECT_HEADER_AUDIT_INFO', 0x40),
-        )
+        # We use a temporary buffer for the object to save reads of the image.
+        cached_vm = addrspace.BufferAddressSpace(
+            data=self.session.kernel_address_space.read(table_offset, 0x100),
+            session=self.session)
 
-    def find_optional_headers(self):
-        """Find this object's optional headers."""
-        offset = self.obj_offset
-
-        info_mask = int(self.InfoMask)
-
-        for name, struct, mask in self.optional_header_mask:
-            if info_mask & mask:
-                offset -= self.obj_profile.get_obj_size(struct)
-                o = self.obj_profile.Object(type_name=struct, offset=offset,
-                                            vm=self.obj_vm)
-                self._preamble_size += o.size()
-            else:
-                o = obj.NoneObject("Header not set")
-
-            setattr(self, name, o)
-
-    def get_object_type(self, kernel_address_space):
-        """Return the object's type as a string"""
-        return self.type_map.get(self.TypeIndex.v(), '')
-
-    def is_valid(self):
-        """Determine if the object makes sense."""
-        # These need to be reasonable.
-        pointer_count = int(self.PointerCount)
-        if pointer_count > 0x100000 or pointer_count < 0:
-            return False
-
-        handle_count = int(self.HandleCount)
-        if handle_count > 0x1000 or handle_count < 0:
-            return False
-
-        if  (self.TypeIndex >= len(self.type_map) or
-             self.TypeIndex < 1):
-            return False
-
-        return True
+        return [int(x) for x in self.session.profile.Array(
+            target="byte", vm=cached_vm, count=0xFF)]
 
 
-class _HANDLE_TABLE(obj.Struct):
-    @property
-    def HandleCount(self):
-        # We dont know how to figure this out yet!
-        return 0
+class _PSP_CID_TABLE(common._HANDLE_TABLE):
+    """Subclass the Windows handle table object for parsing PspCidTable"""
+
+    def get_item(self, entry):
+        p = entry.Object.v()
+
+        handle = self.obj_profile.Object(
+            "_OBJECT_HEADER",
+            offset=(p & ~7) - self.obj_profile.get_obj_offset(
+                '_OBJECT_HEADER', 'Body'),
+            vm=self.obj_vm)
+
+        return handle
 
 
-
-class _POOL_HEADER(obj.Struct):
-    MAX_PREAMBLE_SIZE = 0xa0
-
-    @property
-    def NonPagedPool(self):
-        return self.PoolType.v() % 2 == 0 and self.PoolType.v() > 0
-
-    @property
-    def PagedPool(self):
-        return self.PoolType.v() % 2 == 1
-
-    @property
-    def FreePool(self):
-        return self.PoolType.v() == 0
-
-    def get_next_object(self, offset, object_name):
-        """Gets the next object that fits after this offset."""
-        pool_align = self.obj_profile.get_constant("PoolAlignment")
-        for preamble in range(0, self.MAX_PREAMBLE_SIZE, pool_align):
-            result = self.obj_profile.Object(object_name, vm=self.obj_vm,
-                                             offset=offset + preamble)
-
-            # If the object preamble is exactly what we expect, we found it.
-            if result.preamble_size() == preamble:
-                try:
-                    # Allow the object to check for its own validity.
-                    if result.is_valid():
-                        return result
-                except AttributeError:
-                    return result
-
-    def get_object(self, object_name, allocations):
-        """On windows 8, pool allocations are done from preset sizes. This means
-        that the allocation is never exactly the same size and we can not use
-        the bottom up method like before.
-
-        We therefore, have to build the headers forward by checking the preamble
-        size and validity of each object. This is a little slower than with
-        earlier versions of windows.
-        """
-        objects = []
-
-        offset = self.obj_offset
-
-        for name in allocations:
-            result = self.get_next_object(offset, name)
-            if not result:
-                return obj.NoneObject("Object not found.")
-
-            offset = result.obj_offset + result.size()
-            objects.append(result)
-
-            # Return to the caller.
-            if name == object_name:
-                return result
-
-        raise KeyError("object not present in preamble.")
-
-
-class _MM_AVL_NODE(win7._MMADDRESS_NODE):
+class _MM_AVL_NODE(common.VadTraverser):
     """All nodes in the Vad tree are treated as _MM_AVL_NODE.
 
     The Vad structures can be either _MMVAD_SHORT or _MMVAD. At the
@@ -253,18 +164,36 @@ class _MM_AVL_NODE(win7._MMADDRESS_NODE):
               }
 
 
+class _RTL_BALANCED_NODE(_MM_AVL_NODE):
+    """Win8.1 renames this type."""
+    left = "Left"
+    right = "Right"
+
+
 def InitializeWindows8Profile(profile):
+    """Initialize windows 8 and 8.1 profiles."""
     profile.add_overlay(win8_overlays)
 
-    profile.add_classes(dict(_OBJECT_HEADER=_OBJECT_HEADER,
-                             _HANDLE_TABLE=_HANDLE_TABLE,
-                             _MM_AVL_NODE=_MM_AVL_NODE,
-                             pointer64=obj.Pointer))
+    # Win8.1 changed the vad data structures.
+    if profile.metadata("version") >= "6.3":
+        profile.add_overlay(win8_1_overlays)
 
-    # Windows 8 changes many of the pool tags.
+    profile.add_classes(dict(
+        _OBJECT_HEADER=win7._OBJECT_HEADER,
+        _PSP_CID_TABLE=_PSP_CID_TABLE,
+        _MM_AVL_NODE=_MM_AVL_NODE,
+        _RTL_BALANCED_NODE=_RTL_BALANCED_NODE,
+        _POOL_HEADER=win7._POOL_HEADER,
+        ))
+
+    # Windows 8 changes many of the pool tags. These come from windbg's
+    # pooltag.txt.
     profile.add_constants(
-        EPROCESS_POOLTAG="Proc",
         DRIVER_POOLTAG="Driv",
+        EPROCESS_POOLTAG="Proc",
+        FILE_POOLTAG="File",
+        SYMLINK_POOLTAG="Symb",
+        MODULE_POOLTAG="MmLd",
+        MUTANT_POOLTAG="Muta",
+        THREAD_POOLTAG='Thre',
         )
-
-    profile.add_classes(dict(_POOL_HEADER=_POOL_HEADER))

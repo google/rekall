@@ -134,20 +134,17 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         if self.profile.metadata("pae") and address_space.dtb & 0xF != 0:
             return
 
-        version = self.profile.metadata("major"), self.profile.metadata("minor")
-        # The test below does not work on windows 8 with the idle process.
-        if version < ("6", "2"):
-            # Reflect through the address space at ourselves. Note that the Idle
-            # process is not usually in the PsActiveProcessHead list, so we use
-            # the ThreadListHead instead.
-            list_head = eprocess.ThreadListHead.Flink
+        # Reflect through the address space at ourselves. Note that the Idle
+        # process is not usually in the PsActiveProcessHead list, so we use
+        # the ThreadListHead instead.
+        list_head = eprocess.ThreadListHead.Flink
 
-            if list_head == 0:
-                return
+        if list_head == 0:
+            return
 
-            me = list_head.dereference(vm=address_space).Blink.Flink
-            if me.v() != list_head.v():
-                return
+        me = list_head.dereference(vm=address_space).Blink.Flink
+        if me.v() != list_head.v():
+            return
 
         self.session.SetParameter("idle_process", eprocess)
         return address_space
@@ -261,9 +258,6 @@ class CheckPoolIndex(scan.ScannerCheck):
 
 class PoolScanner(scan.BaseScanner):
     """A scanner for pool allocations."""
-
-    # These objects are allocated in the pool allocation.
-    allocation = ['_POOL_HEADER']
 
     def scan(self, offset=0, maxlen=None):
         """Yields instances of _POOL_HEADER which potentially match."""

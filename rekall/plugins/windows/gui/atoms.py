@@ -45,8 +45,6 @@ class PoolScanAtom(common.PoolScanner):
 class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
     """Pool scanner for _RTL_ATOM_TABLE"""
 
-    allocation = ['_POOL_HEADER', '_RTL_ATOM_TABLE']
-
     __name = "atomscan"
 
     @classmethod
@@ -84,7 +82,7 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
                     fixup = 16
 
             atom_table = self.win32k_profile._RTL_ATOM_TABLE(
-                offset=pool_header.obj_offset + pool_header.size() + fixup,
+                offset=pool_header.obj_end + fixup,
                 vm=pool_header.obj_vm)
 
             # There's no way to tell which session or window station
@@ -155,6 +153,13 @@ class Atoms(win32k_core.Win32kPluginMixin,
     def station_atoms(self, station):
         """Generate all the atoms in the windows station atom table."""
         table = station.pGlobalAtomTable
+
+        # In Windows 8 this pointer is not valid or points to something else
+        # since there are no more global atom tables. Ref:
+        # http://mista.nu/research/smashing_the_atom.pdf
+        if table.Signature != 0x6D6F7441:
+            return
+
         for atom in sorted(table.atoms(), key=lambda x: x.Atom):
             ## Filter string atoms
             if not atom.is_string_atom():

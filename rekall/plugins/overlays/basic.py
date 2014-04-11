@@ -440,20 +440,14 @@ class ListMixIn(object):
         Returns:
           the result of Flink.Blink.
         """
-        result1 = self.m(self._forward).dereference_as(
+        result = self.m(self._forward).dereference_as(
             self.obj_type, vm=vm).m(self._backward).dereference_as(
             self.obj_type)
 
-        if not result1:
+        if not result:
             return obj.NoneObject("Flink not valid.")
 
-        result2 = self.Blink.dereference_as(self.obj_type, vm=vm).m(
-            self._forward).dereference_as(self.obj_type)
-
-        if result1 != result2:
-            return obj.NoneObject("Flink and Blink not consistent.")
-
-        return result1
+        return result
 
     def empty(self):
         return self.m(self._forward) == self.m(self._backward)
@@ -720,6 +714,7 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
             if not data:
                 return
 
+            op = obj.NoneObject()
             for op in distorm3.Decompose(offset, data, self.distorm_mode):
                 if op.address - offset > len(data) - 40:
                     break

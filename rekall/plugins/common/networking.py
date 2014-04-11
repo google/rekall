@@ -86,34 +86,40 @@ class EntityNetstat(plugin.ProfileCommand):
 
         # First, render internet connections.
         renderer.section("Active Internet connections")
-        renderer.table_header([
-            ("Proto", "proto", "14"),
-            ("SAddr", "saddr", "30"),
-            ("SPort", "sport", "8"),
-            ("DAddr", "daddr", "30"),
-            ("DPort", "dport", "5"),
-            ("State", "state", "15"),
-            ("Pid", "pid", "8"),
-            ("Comm", "comm", "20"),
-        ])
+        renderer.table_header(
+            columns=[
+                ("Proto", "proto", "14"),
+                ("SAddr", "saddr", "30"),
+                ("SPort", "sport", "8"),
+                ("DAddr", "daddr", "30"),
+                ("DPort", "dport", "5"),
+                ("State", "state", "15"),
+                ("Pid", "pid", "8"),
+                ("Comm", "comm", "20"),
+            ],
+            sort=("pid", "proto", "saddr", "sport", "daddr", "dport", "state"),
+        )
 
         # Sort by inet protos, then PID.
-        for proto, rows in sorted(inet_by_proto.iteritems()):
-            for row in sorted(rows, key=lambda row: row[-2]):
+        for rows in inet_by_proto.itervalues():
+            for row in rows:
                 renderer.table_row(*row)
 
         # Render the UNIX sockets.
         renderer.section("Active UNIX domain sockets")
-        renderer.table_header([
-            ("Address", "address", "14"),
-            ("Conn", "conn", "14"),
-            ("Type", "type", "10"),
-            ("Vnode", "vnode", "14"),
-            ("Path", "path", "60"),
-            ("Pid", "pid", "8"),
-            ("Comm", "comm", "20"),
-        ])
+        renderer.table_header(
+            columns=[
+                ("Address", "address", "14"),
+                ("Conn", "conn", "14"),
+                ("Type", "type", "10"),
+                ("Vnode", "vnode", "14"),
+                ("Path", "path", "60"),
+                ("Pid", "pid", "8"),
+                ("Comm", "comm", "20"),
+            ],
+            sort=("pid", "address"),
+        )
 
-        for row in sorted(unix_socks, key=lambda row: row[-2]):
+        for row in unix_socks:
             renderer.table_row(*row)
 

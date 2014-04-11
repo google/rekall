@@ -101,6 +101,7 @@ from rekall.plugins import core
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import pe_vtypes
+from rekall.plugins.overlays.windows import windows
 
 
 class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
@@ -440,6 +441,8 @@ mspdb_overlays = {
 class lfClass(obj.Struct):
     """Represents a class or struct."""
 
+    _obj_end = 0
+
     def __init__(self, **kwargs):
         super(lfClass, self).__init__(**kwargs)
         self._DecodeVariableData()
@@ -498,11 +501,15 @@ class lfClass(obj.Struct):
             obj_end += self.value_.size() + self.name.size()
 
         # Record the end of the object
-        self.obj_end = obj_end
+        self._obj_end = obj_end
 
         # Sometimes the field is named '__unnamed' so we disambiguate it here.
         if self.name == "__unnamed":
             self.name = "__unnamed_%s" % self.field
+
+    @property
+    def obj_end(self):
+        return self._obj_end
 
     def Definition(self, _):
         """Returns the vtype data structure defining this element.
@@ -848,7 +855,13 @@ class PDBParser(object):
         dbi = self.profile.DBI(vm=self.root_stream_header.GetStream(3))
         DBGHeader = dbi.DBGHeader()
 
-        self.ParseSectionHeaders(DBGHeader.snSectionHdrOrig)
+        # Sometimes this stream is set to 0xFFFF so we need to use the other
+        # stream.
+        section_stream = DBGHeader.snSectionHdrOrig
+        if section_stream == 0xFFFF:
+            section_stream = DBGHeader.snSectionHdr
+
+        self.ParseSectionHeaders(section_stream)
         self.ParseOMAP(DBGHeader.snOmapFromSrc)
         self.ParseGlobalSymbols(dbi.DBIHdr.u1.snSymRecs)
 
@@ -925,19 +938,22 @@ class PDBParser(object):
             if self.sections:
                 # Convert the RVA to a virtual address by referencing into the
                 # correct section.
-                virtual_address = (
+                translated_offset = virtual_address = (
                     offset + self.sections[symbol.seg - 1].VirtualAddress)
 
-                # Translate the offset according to the OMAP.
-                try:
-                    from_offset, dest_offset = self.omap.find_le(
-                        virtual_address)
+                # If there is no OMAP specified we just translate the symbol
+                # into the right section.
+                if self.omap:
+                    # Translate the offset according to the OMAP.
+                    try:
+                        from_offset, dest_offset = self.omap.find_le(
+                            virtual_address)
 
-                    translated_offset = (
-                        virtual_address - from_offset + dest_offset)
+                        translated_offset = (
+                            virtual_address - from_offset + dest_offset)
 
-                except ValueError:
-                    pass
+                    except ValueError:
+                        pass
 
             self.constants[name] = translated_offset
             self.session.report_progress(" Parsing Symbols %s", name)
@@ -1097,8 +1113,15 @@ class ParsePDB(plugin.Command):
             "$ENUMS": self.tpi.enums,
             }
 
+        # Demangle all constants.
+        demangler = windows.Demangler(self.metadata)
+        constants = {}
+        for name, value in self.tpi.constants.iteritems():
+            constants[demangler.DemangleName(name)] = value
+
         if not self.concise:
             result["$REVENUMS"] = self.tpi.rev_enums
-            result["$CONSTANTS"] = self.tpi.constants
+            result["$CONSTANTS"] = constants
+
 
         renderer.write(utils.PPrint(result))

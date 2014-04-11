@@ -135,7 +135,7 @@ from rekall import plugin
 from rekall import session
 from rekall import testlib
 from rekall import threadpool
-from rekall.ui import renderer
+from rekall.ui import text
 
 # Bring in all the tests and all the plugins
 # pylint: disable=unused-import
@@ -176,7 +176,7 @@ exit 0
 
         if self.FLAGS.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
-        self.renderer = renderer.TextRenderer()
+        self.renderer = text.TextRenderer()
 
         # Some stats.
         self.successes = []
