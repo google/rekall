@@ -639,10 +639,18 @@ class lfArray(lfClass):
         if target == "<unnamed-tag>":
             target = "<unnamed-%s>" % self.elemtype
 
-        return ["Array", dict(
+        # Note that we only specify the total size of the array. We have no idea
+        # how many items fit at this stage because we dont know the exact size
+        # of the elements. The post processing step will convert the size into a
+        # count.
+        definition = ["Array", dict(
                 target=target, target_args=target_args,
-                count=int(self.value_),
+                size=int(self.value_),
                 )]
+
+        tpi.RegisterFixUp(definition)
+
+        return definition
 
 class lfMember(lfClass):
     """A member in a struct (or class)."""
@@ -803,6 +811,7 @@ class PDBParser(object):
 
     def __init__(self, filename, session):
         self.session = session
+        self.fixups = []
         self.enums = {}
         self.rev_enums = {}
         self.constants = {}
@@ -983,6 +992,9 @@ class PDBParser(object):
     def AddReverseEnumeration(self, name, enumeration):
         self.rev_enums[name] = enumeration
 
+    def RegisterFixUp(self, definition):
+        self.fixups.append(definition)
+
     def Structs(self):
         for key, value in self.lookup.iteritems():
             # Ignore the forward references.
@@ -1086,6 +1098,57 @@ class ParsePDB(plugin.Command):
 
         self.tpi = PDBParser(filename, self.session)
 
+    NATIVE_TYPE_SIZE = {
+        "unsigned char": 1,
+        "unsigned int": 4,
+        "unsigned long": 4,
+        "unsigned long long": 8,
+        "unsigned short": 2,
+        "char": 1,
+        "int": 4,
+        "long": 4,
+        "long long": 8,
+        "short": 2,
+        }
+
+    def PostProcessVTypes(self, vtypes):
+        """Post process the vtypes to optimize some access members."""
+        arch = self.metadata.get("arch", "AMD64")
+
+        for defintion in self.tpi.fixups:
+            target, target_args = defintion
+            if target == "Array":
+                # The PDB symbols specify a UnicodeString as an array of wide
+                # char but we need to fix it to be a UnicodeString with a
+                # specified length.
+                if target_args.get("target") == "UnicodeString":
+                    defintion[0] = "UnicodeString"
+                    defintion[1] = dict(
+                        length=target_args.get("size")/2
+                        )
+                elif target_args.has_key("size"):
+                    # Work out the array target size.
+                    array_target = target_args.get("target")
+                    target_size = self.NATIVE_TYPE_SIZE.get(array_target)
+                    if target_size is None:
+                        if array_target == "Pointer":
+                            target_size = 8 if arch == "AMD64" else 4
+                        else:
+                            target_definition = vtypes.get(array_target)
+                            if target_definition is None:
+                                # We have no idea what size it is. Leave the
+                                # size parameter for the object system to work
+                                # out during runtime.
+                                continue
+
+                            target_size = target_definition[0]
+
+                    # Replace the size with a count.
+                    target_args["count"] = target_args.pop(
+                        "size") / target_size
+
+        return vtypes
+
     def render(self, renderer):
         vtypes = {}
 
@@ -1107,17 +1170,19 @@ class ParsePDB(plugin.Command):
 
         self.metadata.update(self.tpi.metadata)
 
-        result = {
-            "$METADATA": self.metadata,
-            "$STRUCTS": vtypes,
-            "$ENUMS": self.tpi.enums,
-            }
-
         # Demangle all constants.
         demangler = windows.Demangler(self.metadata)
         constants = {}
         for name, value in self.tpi.constants.iteritems():
             constants[demangler.DemangleName(name)] = value
+
+        vtypes = self.PostProcessVTypes(vtypes)
+
+        result = {
+            "$METADATA": self.metadata,
+            "$STRUCTS": vtypes,
+            "$ENUMS": self.tpi.enums,
+            }
 
         if not self.concise:
             result["$REVENUMS"] = self.tpi.rev_enums

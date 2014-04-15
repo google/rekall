@@ -20,7 +20,7 @@
 
 """This is the registry parser.
 
- We parse registry structures from files or memory.
+We parse registry structures from files or memory.
 """
 __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
               "by Brendan Dolan-Gavitt")
@@ -42,37 +42,87 @@ from rekall.plugins.windows import common
 
 registry_overlays = {
     '_CM_KEY_NODE': [None, {
-            'Parent': [None, ['pointer', ['_CM_KEY_NODE']]],
-            'Flags': [None, ['Flags', dict(bitmap={
-                            "KEY_IS_VOLATILE": 0,
-                            "KEY_HIVE_EXIT": 1,
-                            "KEY_HIVE_ENTRY": 2,
-                            "KEY_NO_DELETE": 3,
-                            "KEY_SYM_LINK": 4,
-                            "KEY_COMP_NAME": 5,
-                            "KEY_PREFEF_HANDLE": 6,
-                            "KEY_VIRT_MIRRORED": 7,
-                            "KEY_VIRT_TARGET": 8,
-                            "KEY_VIRTUAL_STORE": 9,
-                            })]],
-            }],
+        'Parent': [None, ['Pointer32', dict(
+            target='_CM_KEY_NODE'
+            )]],
+        'Flags': [None, ['Flags', dict(bitmap={
+            "KEY_IS_VOLATILE": 0,
+            "KEY_HIVE_EXIT": 1,
+            "KEY_HIVE_ENTRY": 2,
+            "KEY_NO_DELETE": 3,
+            "KEY_SYM_LINK": 4,
+            "KEY_COMP_NAME": 5,
+            "KEY_PREFEF_HANDLE": 6,
+            "KEY_VIRT_MIRRORED": 7,
+            "KEY_VIRT_TARGET": 8,
+            "KEY_VIRTUAL_STORE": 9,
+            })]],
+
+        'Signature' : [None, ['String', dict(length=2)]],
+        'LastWriteTime' : [None, ['WinFileTime', {}]],
+        'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
+        }],
+
     '_CM_KEY_VALUE': [None, {
-            'Type': [None, ['Enumeration', dict(choices={
-                            0: "REG_NONE",
-                            1: "REG_SZ",
-                            2: "REG_EXPAND_SZ",
-                            3: "REG_BINARY",
-                            4: "REG_DWORD",
-                            5: "REG_DWORD_BIG_ENDIAN",
-                            6: "REG_LINK",
-                            7: "REG_MULTI_SZ",
-                            8: "REG_RESOURCE_LIST",
-                            9: "REG_FULL_RESOURCE_DESCRIPTOR",
-                            10: "REG_RESOURCE_REQUIREMENTS_LIST",
-                            11: "REG_QWORD",
-                            })]]
-            }],
+        'Signature' : [None, ['String', dict(length=2)]],
+        'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
+
+        'Type': [None, ['Enumeration', dict(choices={
+            0: "REG_NONE",
+            1: "REG_SZ",
+            2: "REG_EXPAND_SZ",
+            3: "REG_BINARY",
+            4: "REG_DWORD",
+            5: "REG_DWORD_BIG_ENDIAN",
+            6: "REG_LINK",
+            7: "REG_MULTI_SZ",
+            8: "REG_RESOURCE_LIST",
+            9: "REG_FULL_RESOURCE_DESCRIPTOR",
+            10: "REG_RESOURCE_REQUIREMENTS_LIST",
+            11: "REG_QWORD",
+            })]]
+        }],
+
+    '_CM_NAME_CONTROL_BLOCK' : [None, {
+        'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
+        }],
+
+    '_CHILD_LIST' : [None, {
+        'List' : [None, ['Pointer32', dict(
+            target="Array",
+            target_args=dict(
+                count=lambda x: x.Count,
+                target="Pointer32",
+                target_args=dict(
+                    target="_CM_KEY_VALUE"
+                    )
+                )
+            )
+                         ]],
+        }],
+
+    '_CM_KEY_INDEX' : [None, {
+        'Signature' : [None, ['String', dict(length=2)]],
+        'List' : [None, ["Array", dict(
+            count=lambda x: x.Count.v() * 2,
+            target="Pointer32",
+            target_args=dict(
+                target='_CM_KEY_NODE'
+                )
+            )]],
+        }],
     }
+
+
+class Pointer32(obj.Pointer):
+    """A 32 bit pointer (Even in 64 bit arch).
+
+    These kinds of pointers are used most commonly in the Registry code which
+    always treats the hives as 32 bit address spaces.
+    """
+    def __init__(self, **kwargs):
+        super(Pointer32, self).__init__(**kwargs)
+        self._proxy = self._proxy.cast("unsigned int")
 
 
 class HiveBaseAddressSpace(addrspace.PagedReader):
@@ -349,7 +399,7 @@ class _CM_KEY_INDEX(obj.Struct):
             for i in range(self.Count):
                 # This is a pointer to another _CM_KEY_INDEX
                 for subkey in self.obj_profile.Object(
-                    "Pointer", offset=self.List[i].v(),
+                    "Pointer32", offset=self.List[i].v(),
                     vm=self.obj_vm, parent=self.obj_parent,
                     target="_CM_KEY_INDEX"):
                     if subkey.Signature == self.NK_SIG:
@@ -417,17 +467,19 @@ class _CM_KEY_VALUE(obj.Struct):
         return data
 
 
-class RekallRegisteryImplementation(obj.ProfileModification):
+def RekallRegisteryImplementation(profile):
     """The standard rekall registry parsing subsystem."""
-
-    @classmethod
-    def modify(cls, profile):
+    if "RekallRegisteryImplementation" not in profile.applied_modifications:
         profile.add_classes(dict(
-                _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
-                _CM_KEY_VALUE=_CM_KEY_VALUE, _CMHIVE=_CMHIVE
-                ))
+            _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
+            _CM_KEY_VALUE=_CM_KEY_VALUE, _CMHIVE=_CMHIVE,
+            Pointer32=Pointer32
+            ))
 
         profile.add_overlay(registry_overlays)
+        profile.applied_modifications.add("RekallRegisteryImplementation")
+
+    return profile
 
 
 class Registry(object):
@@ -559,7 +611,7 @@ class RegistryPlugin(common.WindowsCommandPlugin):
         super(RegistryPlugin, self).__init__(**kwargs)
         self.hive_offsets = hive_offsets
         if not self.hive_offsets:
-            self.hive_offsets = list(self.get_plugin("hivescan").list_hives())
+            self.hive_offsets = list(self.list_hives())
 
         if hive_regex is not None:
             hive_offsets = []
@@ -571,4 +623,23 @@ class RegistryPlugin(common.WindowsCommandPlugin):
             self.hive_offsets = hive_offsets
 
         # Install our specific implementation of registry support.
-        self.profile = RekallRegisteryImplementation(self.profile)
+        RekallRegisteryImplementation(self.profile)
+
+    def list_hives(self):
+        hive_list = self.profile.get_constant_object(
+            "CmpHiveListHead", "_LIST_ENTRY")
+
+        return hive_list.list_of_type("_CMHIVE", "HiveList")
+
+
+class Hives(RegistryPlugin):
+    """List all the registry hives on the system."""
+
+    name = "hives"
+
+    def render(self, renderer):
+        renderer.table_header([("Offset", "offset", "[addrpad]"),
+                               ("Name", "name", "")])
+
+        for hive in self.list_hives():
+            renderer.table_row(hive, hive.Name)

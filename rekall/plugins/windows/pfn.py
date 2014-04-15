@@ -291,12 +291,18 @@ class PFNInfo(common.WindowsCommandPlugin):
 
         self.profile = PFNModification(self.profile)
 
-        # We prefer our own private version of the kdbg.
-        self.kdbg = self.profile.Object("_KDDEBUGGER_DATA64", offset=self.kdbg,
-                                        vm=self.kernel_address_space)
-
         # A reference to the pfn database.
-        self.pfn_database = self.kdbg.MmPfnDatabase.dereference().dereference()
+        self.pfn_database = self.profile.get_constant_object(
+            "MmPfnDatabase",
+            target="Pointer",
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    target="_MMPFN",
+                    )
+                )
+            )
+
         self.pfn = pfn
         self.physical_address = physical_address
 

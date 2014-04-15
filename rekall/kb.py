@@ -114,6 +114,7 @@ class AddressResolver(object):
 
     # The format of a symbol name. Used by get_address_by_name().
     ADDRESS_NAME_REGEX = re.compile(
+        r"(?P<deref>[*])?"                # Pointer dereference.
         r"(?P<module>[A-Za-z_0-9\.]+)"  # Module name - can include extension
                                         # (.exe, .sys)
 
@@ -300,8 +301,9 @@ class AddressResolver(object):
             return self._LoadProfile(module_name, profile)
 
         # Try to detect the GUI from the module object.
-        module = self.modules_by_name[module_name]
-        return self.LoadProfileForModule(module)
+        module = self.modules_by_name.get(module_name)
+        if module:
+            return self.LoadProfileForModule(module)
 
     def get_address_by_name(self, name):
         self._EnsureInitialized()
@@ -347,6 +349,11 @@ class AddressResolver(object):
                         address += offset
                     else:
                         address -= offset
+
+            # If the symbol was a dereference, we need to read the address from
+            # this offset.
+            if components.get("deref"):
+                address = module_profile.Pointer(address).v()
 
             return address
 

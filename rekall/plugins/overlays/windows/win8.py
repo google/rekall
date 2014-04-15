@@ -23,6 +23,7 @@
 from rekall import addrspace
 from rekall import kb
 from rekall import obj
+from rekall import utils
 from rekall.plugins.overlays.windows import common
 from rekall.plugins.overlays.windows import win7
 
@@ -94,6 +95,19 @@ win8_overlays = {
         }],
 
     '_OBJECT_HEADER': [None, {
+        "InfoMask": [None, ["Flags", dict(
+            maskmap=utils.Invert({
+                0x1: "CreatorInfo",
+                0x2: "NameInfo",
+                0x4: "HandleInfo",
+                0x8: "QuotaInfo",
+                0x10: "ProcessInfo",
+                0x20: "AuditInfo",
+                0x40: "PaddingInfo",
+                }),
+            target="unsigned char",
+            )]],
+
         'GrantedAccess': lambda x: x.obj_parent.GrantedAccessBits
         }],
     }
@@ -108,6 +122,22 @@ win8_1_overlays = {
       'HandleCount': lambda x: obj.NoneObject("Unknown")
       }],
     }
+
+win8_undocumented_amd64 = {
+    # win8.1.raw 18:05:45> dis "nt!MiSessionInsertImage"
+    # 0xf802d314344a   4E e871030300           CALL 0xf802d31737c0   nt!memset
+    # ...
+    # 0xf802d314345a   5E 48897b20             MOV [RBX+0x20], RDI
+    '_IMAGE_ENTRY_IN_SESSION': [None, {
+      'Address': [0x20, ["Pointer"]],
+      }],
+}
+
+win8_undocumented_i386 = {
+    '_IMAGE_ENTRY_IN_SESSION': [None, {
+      'Address': [0x10, ["Pointer"]],
+      }],
+}
 
 
 class ObpInfoMaskToOffsetHook(kb.ParameterHook):
@@ -173,6 +203,11 @@ class _RTL_BALANCED_NODE(_MM_AVL_NODE):
 def InitializeWindows8Profile(profile):
     """Initialize windows 8 and 8.1 profiles."""
     profile.add_overlay(win8_overlays)
+
+    if profile.metadata("arch") == "AMD64":
+        profile.add_overlay(win8_undocumented_amd64)
+    else:
+        profile.add_overlay(win8_undocumented_i386)
 
     # Win8.1 changed the vad data structures.
     if profile.metadata("version") >= "6.3":

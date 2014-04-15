@@ -24,10 +24,16 @@ reversing. We try to also include references to the original reverser.
 """
 
 AMD64 = {
-    # Reference: http://gate.upm.ro/os/LABs/Windows_OS_Internals_Curriculum_Resource_Kit-ACADEMIC/WindowsResearchKernel-WRK/WRK-v1.2/base/ntos/mm/wrtfault.c
+    # Reference:
+    # http://gate.upm.ro/os/LABs/Windows_OS_Internals_Curriculum_Resource_Kit-ACADEMIC/WindowsResearchKernel-WRK/WRK-v1.2/base/ntos/mm/wrtfault.c
 
     # From http://www.cnblogs.com/kkindof/articles/2571227.html
     # Reversed from MiSessionInsertImage
+
+    # win8.1.raw 18:05:45> dis "nt!MiSessionInsertImage"
+    # 0xf802d314344a   4E e871030300           CALL 0xf802d31737c0   nt!memset
+    # ...
+    # 0xf802d314345a   5E 48897b20             MOV [RBX+0x20], RDI
 
     # typedef struct _IMAGE_ENTRY_IN_SESSION {
     #     LIST_ENTRY Link;
@@ -41,8 +47,8 @@ AMD64 = {
     # } IMAGE_ENTRY_IN_SESSION, * PIMAGE_ENTRY_IN_SESSION;
     '_IMAGE_ENTRY_IN_SESSION': [None, {
             'Link': [0, ['_LIST_ENTRY']],
-            'Address': [0x10, ['pointer', ['address']]],
-            'LastAddress': [0x18, ['pointer', ['address']]],
+            'Address': [0x10, ['Pointer']],
+            'LastAddress': [0x18, ['Pointer']],
             }],
 
     # Reversed from tcpip.sys!TcpStartPartitionModule
@@ -101,6 +107,14 @@ AMD64 = {
         'CounterBaseTable' : [0x8, ['Pointer']],
         'ServiceLimit' : [0x10, ['unsigned long long']],
         'ArgumentTable' : [0x18, ['Pointer']],
+        }],
+
+    # Documented in ./base/ntos/inc/mm.h WRK-v1.2.
+    "_UNLOADED_DRIVER": [0x28, {
+        "Name": [0, ["_UNICODE_STRING"]],
+        "StartAddress": [0x10, ["Pointer"]],
+        "EndAddress": [0x18, ["Pointer"]],
+        "CurrentTime": [0x20, ["WinFileTime"]],
         }],
 }
 
@@ -166,6 +180,13 @@ I386 = {
         'ArgumentTable' : [0xc, ['Pointer']],
         }],
 
+    # Documented in ./base/ntos/inc/mm.h WRK-v1.2.
+    "_UNLOADED_DRIVER": [24, {
+        "Name": [0, ["_UNICODE_STRING"]],
+        "StartAddress": [8, ["Pointer"]],
+        "EndAddress": [12, ["Pointer"]],
+        "CurrentTime": [16, ["WinFileTime"]],
+        }],
 }
 
 # TODO: Move to their own profile.

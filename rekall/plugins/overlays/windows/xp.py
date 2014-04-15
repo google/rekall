@@ -60,6 +60,29 @@ win_xp_overlays = {
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
             }],
+
+    # This is not documented in Windows XP but is in Windows 7.
+    "_OBJECT_HEADER_HANDLE_INFO": [16, {
+        "HandleCountDataBase": [0, ["Pointer", {
+            "target": "_OBJECT_HANDLE_COUNT_DATABASE"
+            }]],
+        "SingleEntry": [0, ["_OBJECT_HANDLE_COUNT_ENTRY", {}]]
+       }],
+
+    "_OBJECT_HANDLE_COUNT_ENTRY": [16, {
+        "HandleCount": [8, ["BitField", {
+            "end_bit": 24,
+            "target": "unsigned long"
+            }]],
+        "LockCount": [8, ["BitField", {
+            "end_bit": 32,
+            "start_bit": 24,
+            "target": "unsigned long"
+            }]],
+        "Process": [0, ["Pointer", {
+            "target": "_EPROCESS"
+            }]]
+        }],
     }
 
 

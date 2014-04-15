@@ -51,6 +51,7 @@ windows_overlay = {
         'ImageFileName' : [None, ['String', dict(length=16)]],
         'UniqueProcessId' : [None, ['unsigned int']],
         'Session': [None, ["Pointer", dict(target="_MM_SESSION_SPACE")]],
+        'Token': [None, ["_EX_FAST_REF", dict(target="_TOKEN")]],
         }],
 
     '_ETHREAD' : [None, {
@@ -120,37 +121,6 @@ windows_overlay = {
             'DebuggerDataList' : [None, ['pointer', ['unsigned long']]],
             }],
 
-    '_CM_KEY_NODE' : [None, {
-            'Signature' : [None, ['String', dict(length=2)]],
-            'LastWriteTime' : [None, ['WinFileTime', {}]],
-            'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
-            }],
-
-    '_CM_NAME_CONTROL_BLOCK' : [None, {
-            'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
-            }],
-
-    '_CHILD_LIST' : [None, {
-            'List' : [None, ['pointer', ['array', lambda x: x.Count,
-                                          ['pointer', ['_CM_KEY_VALUE']]]]],
-            }],
-
-    '_CM_KEY_VALUE' : [None, {
-            'Signature' : [None, ['String', dict(length=2)]],
-            'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
-            }],
-
-    '_CM_KEY_INDEX' : [None, {
-            'Signature' : [None, ['String', dict(length=2)]],
-            'List' : [None, ["Array", dict(
-                        count=lambda x: x.Count.v() * 2,
-                        target="Pointer",
-                        target_args=dict(
-                            target='_CM_KEY_NODE'
-                            )
-                        )]],
-            }],
-
     '_TOKEN' : [None, {
             'UserAndGroups' : [None, ['Pointer', dict(
                         target='Array',
@@ -160,6 +130,12 @@ windows_overlay = {
                             )
                         )]],
             }],
+
+    '_SID_AND_ATTRIBUTES': [None, {
+        'Sid': [None, ['Pointer', dict(
+            target='_SID'
+            )]],
+        }],
 
     '_SID' : [None, {
             'SubAuthority' : [None, ['Array', dict(
@@ -476,6 +452,43 @@ class _UNICODE_STRING(obj.Struct):
         self.Buffer.dereference().write(string)
         self.Length = len(string) * 2
 
+
+class _SID(obj.Struct):
+    """SID Structure.
+
+    Ref:
+    http://searchwindowsserver.techtarget.com/feature/The-structure-of-a-SID
+    """
+
+
+
+    def __unicode__(self):
+        """
+        Ref: RtlConvertSidToUnicodeString
+        http://doxygen.reactos.org/d9/d9b/lib_2rtl_2sid_8c_source.html
+        """
+        wcs = "S-1-"
+
+        if (self.IdentifierAuthority.Value[0] == 0 and
+            self.IdentifierAuthority.Value[1] == 0):
+            wcs += "%lu" % (
+                self.IdentifierAuthority.Value[2] << 24 |
+                self.IdentifierAuthority.Value[3] << 16 |
+                self.IdentifierAuthority.Value[4] << 8 |
+                self.IdentifierAuthority.Value[5])
+        else:
+            wcs += "0x%02hx%02hx%02hx%02hx%02hx%02hx" % (
+                self.IdentifierAuthority.Value[0],
+                self.IdentifierAuthority.Value[1],
+                self.IdentifierAuthority.Value[2],
+                self.IdentifierAuthority.Value[3],
+                self.IdentifierAuthority.Value[4],
+                self.IdentifierAuthority.Value[5])
+
+        for i in self.SubAuthority:
+            wcs += "-%u" % i
+
+        return wcs
 
 class _EPROCESS(obj.Struct):
     """ An extensive _EPROCESS with bells and whistles """
@@ -804,6 +817,16 @@ class _PSP_CID_TABLE(_HANDLE_TABLE):
         return handle
 
 
+class ObjectMixin(object):
+    """A mixin to be applied on Object Manager Objects."""
+
+    @property
+    def ObjectHeader(self):
+        return self.obj_profile._OBJECT_HEADER(
+            self.obj_offset - self.obj_profile.get_obj_size(
+                "_OBJECT_HEADER"))
+
+
 class _OBJECT_HEADER(obj.Struct):
     """A Rekall Memory Forensics object to handle Windows object headers.
 
@@ -812,10 +835,18 @@ class _OBJECT_HEADER(obj.Struct):
     http://codemachine.com/article_objectheader.html
     """
 
+    # A mapping between the object type name and the struct name for it.
+    type_lookup = dict(
+        File="_FILE_OBJECT",
+        Directory="_OBJECT_DIRECTORY",
+        SymbolicLink="_OBJECT_SYMBOLIC_LINK",
+        )
+
+
     optional_headers = [
         ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 'NameInfoOffset'),
         ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 'HandleInfoOffset'),
-        ('HandleInfo', '_OBJECT_HEADER_QUOTA_INFO', 'QuotaInfoOffset')]
+        ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO', 'QuotaInfoOffset')]
 
     def __init__(self, handle_value=0, **kwargs):
         self.HandleValue = handle_value
@@ -850,6 +881,15 @@ class _OBJECT_HEADER(obj.Struct):
 
         return type_obj.Name.v()
 
+    @property
+    def Object(self):
+        """Return the object following this header."""
+        required_type = self.type_lookup.get(self.get_object_type())
+        if required_type:
+            return self.Body.cast(required_type)
+
+        return obj.NoneObject("Unknown object type")
+
 
 # Build properties for the optional headers.
 for _name, _y, _z in _OBJECT_HEADER.optional_headers:
@@ -857,7 +897,7 @@ for _name, _y, _z in _OBJECT_HEADER.optional_headers:
         lambda x, y=_y, z=_z: x._GetOptionalHeader(y, z)))
 
 
-class _FILE_OBJECT(obj.Struct):
+class _FILE_OBJECT(ObjectMixin, obj.Struct):
     """Class for file objects"""
 
     @property
@@ -887,6 +927,23 @@ class _FILE_OBJECT(obj.Struct):
             name += self.FileName.v()
 
         return name
+
+
+class _OBJECT_DIRECTORY(ObjectMixin, obj.Struct):
+    """Object directories hold other objects.
+
+    http://msdn.microsoft.com/en-us/library/windows/hardware/ff557755(v=vs.85).aspx
+    """
+
+    def list(self):
+        for bucket in self.HashBuckets:
+            for entry in bucket.walk_list("ChainLink"):
+                target_obj_header = self.obj_profile._OBJECT_HEADER(
+                    entry.Object.v() - self.obj_profile.get_obj_size(
+                        "_OBJECT_HEADER"))
+
+                if target_obj_header:
+                    yield target_obj_header
 
 
 class _EX_FAST_REF(obj.Struct):
@@ -1111,6 +1168,7 @@ def InitializeWindowsProfile(profile):
             '_OBJECT_HEADER': _OBJECT_HEADER,
             '_PSP_CID_TABLE': _PSP_CID_TABLE,
             '_FILE_OBJECT': _FILE_OBJECT,
+            '_OBJECT_DIRECTORY': _OBJECT_DIRECTORY,
             '_EX_FAST_REF': _EX_FAST_REF,
             '_CM_KEY_BODY': _CM_KEY_BODY,
             '_MMVAD_FLAGS': _MMVAD_FLAGS,
@@ -1118,6 +1176,7 @@ def InitializeWindowsProfile(profile):
             '_MMSECTION_FLAGS': _MMSECTION_FLAGS,
             '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
             "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
+            "_SID": _SID,
             "_HEAP": _HEAP,
             "_KTIMER": _KTIMER,
             "RVAPointer": pe_vtypes.RVAPointer,
