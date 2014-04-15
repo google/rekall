@@ -605,4 +605,3 @@ Config:
         """Swallow the error but report it."""
         logging.error("Failed running plugin %s: %s",
                       plugin_cls.name, e)
-

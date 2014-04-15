@@ -71,7 +71,7 @@ class WinPsList(common.WinProcessFilter):
                               )
 
         for task in self.filter_processes():
-            renderer.table_row(task.obj_offset,
+            renderer.table_row(task,
                                task.ImageFileName,
                                task.UniqueProcessId,
                                task.InheritedFromUniqueProcessId,

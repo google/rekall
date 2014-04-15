@@ -1,0 +1,10 @@
+.plaintext .readonly .CodeMirror {
+    background: none;
+    border: none;
+}
+
+.plaintext .readonly .CodeMirror-lines {
+    background: none;
+    border: none;
+    cursor: default;
+}

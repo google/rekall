@@ -33,6 +33,7 @@ import atexit
 import inspect
 import json
 import logging
+import pdb
 import operator
 import os
 import struct
@@ -894,7 +895,8 @@ class Array(BaseObject):
     target_size = 0
 
     def __init__(self, count=0, target=None, target_args=None,
-                 target_size=None, max_count=100000, **kwargs):
+                 target_size=None, max_count=100000, size=0,
+                 **kwargs):
         """Instantiate an array of like items.
 
         Args:
@@ -909,6 +911,10 @@ class Array(BaseObject):
           target: The name of the element to be instantiated on each point. The
             size of the object returned by this should be the same for all
             members of the array (i.e. all elements should be the same size).
+
+          size: The total size of the Array. If this is nonzero we calculate the
+          count so that just the right number of items fit in this specified
+          size.
         """
         super(Array, self).__init__(**kwargs)
 
@@ -935,6 +941,9 @@ class Array(BaseObject):
                 profile=self.obj_profile, parent=self,
                 **self.target_args).size()
 
+        if size > 0:
+            self.count = size / self.target_size
+
     def size(self):
         """The size of the entire array."""
         return self.target_size * self.count
@@ -949,6 +958,9 @@ class Array(BaseObject):
                 # early - but we need to ensure that users see we hit this
                 # artificial limit.
                 if position > self.max_count:
+                    if self.obj_session.GetParameter("debug"):
+                        pdb.set_trace()
+
                     logging.warn("%s Array iteration truncated by max_count!",
                                  self.obj_name)
                     break
@@ -1454,8 +1466,7 @@ class Profile(object):
         self.constant_addresses = utils.SortedCollection(key=lambda x: x[0])
         self.enums = {}
         self.reverse_enums = {}
-        self.applied_modifications = []
-        self.applied_modifications.append(self.name)
+        self.applied_modifications = set()
         self.object_classes = {}
 
         # Keep track of all the known types so we can command line complete.
@@ -1499,7 +1510,6 @@ class Profile(object):
         result.reverse_enums = self.reverse_enums.copy()
         result.constants = self.constants.copy()
         result.constant_addresses = self.constant_addresses.copy()
-        result.applied_modifications = self.applied_modifications[:]
 
         # Object classes are shallow dicts.
         result.object_classes = self.object_classes.copy()

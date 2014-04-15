@@ -1,0 +1,15 @@
+<table class="table table-condensed">
+  <tr ng-repeat="argument in arguments">
+    <td width="20%">
+      <small>{{argument.name}} ({{argument.type}}{{argument.nargs}})</small>
+      <div ng-if="argument.help">
+        <h5><small>{{argument.help}}</small></h5>
+      </div>
+    </td>
+    <td width="80%"><input style="height: 23px; width: 50%"
+                           type="text"
+                           class="form-control input-sm"
+                           ng-placeholder="argument.default"
+                           ng-model="filledArguments[argument.name]"></input></td>
+  </tr>
+</table>

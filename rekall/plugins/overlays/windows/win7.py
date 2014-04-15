@@ -80,6 +80,22 @@ win7_overlays = {
             target="_FILE_OBJECT"
             )]],
         }],
+
+    "_OBJECT_HEADER": [None, {
+        "InfoMask": [None, ["Flags", dict(
+            maskmap={
+                0x01: "CreatorInfo",
+                0x2: "NameInfo",
+                0x4: "HandleInfo",
+                0x8: "QuotaInfo",
+                0x10: "ProcessInfo",
+                0x20: "AuditInfo",
+                0x40: "PaddingInfo",
+                },
+            target="unsigned char",
+            )
+                             ]],
+        }],
     }
 
 

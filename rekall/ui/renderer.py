@@ -223,7 +223,7 @@ class BaseRenderer(object):
         Sections are used to separate distinct entries (e.g. reports of
         different files).
         """
-        
+
         if self.deferred_rows is not None:
             # Table is sorted. Print deferred rows from last section now.
             self.flush_table(keep_sort=keep_sort)
@@ -296,14 +296,14 @@ class BaseRenderer(object):
                 columns=columns,
             )
             self.deferred_rows = []
-    
+
     @staticmethod
     def _build_sort_key_function(sort_cnames, columns):
         """Builds a function that takes a row and returns keys to sort on."""
         cnames_to_indices = {}
         for idx, (_, cname, _) in enumerate(columns):
             cnames_to_indices[cname] = idx
-        
+
         sort_indices = [cnames_to_indices[x] for x in sort_cnames]
 
         # Row is a tuple of (values, kwargs) - hence row[0][index].
@@ -445,4 +445,3 @@ class BaseTable(object):
 
     def render_row(self, row=None):
         pass
-
