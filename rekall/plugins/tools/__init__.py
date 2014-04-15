@@ -26,3 +26,4 @@ __author__ = "Michael Cohen <scudette@google.com>"
 from rekall.plugins.tools import profile_tool
 from rekall.plugins.tools import ipython
 from rekall.plugins.tools import mspdb
+from rekall.plugins.tools import webconsole

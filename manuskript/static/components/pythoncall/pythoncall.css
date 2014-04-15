@@ -1,0 +1,25 @@
+.cell .pythoncall .source .CodeMirror-wrap .CodeMirror-code pre {
+    border-right: 1px solid #ccc; !important;
+}
+
+.cell .pythoncall .in {
+    font-family: monospace;
+    float: left;
+    padding-right: 1em;
+}
+
+.cell .pythoncall .out {
+    font-family: monospace;
+    overflow: hidden;
+}
+
+.pythoncall .readonly .CodeMirror {
+    background: none;
+    border: none;
+}
+
+.pythoncall .readonly .CodeMirror-lines {
+    background: none;
+    border: none;
+    cursor: default;
+}

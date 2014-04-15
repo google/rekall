@@ -1,0 +1,125 @@
+<html ng-app="manuskript.app">
+  <head>
+    <!-- third-party stylesheets -->
+    <link rel="stylesheet" href="static/bower_components/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="static/bower_components/codemirror/lib/codemirror.css">
+
+    <!-- internal stylesheets -->
+    <link rel="stylesheet" href="static/index.css">
+
+    <!-- third-party dependencies -->
+    <script src="static/bower_components/jquery/dist/jquery.js"></script>
+    <script src="static/bower_components/file-saver/FileSaver.js"></script>
+    <script src="static/bower_components/angular/angular.js"></script>
+    <script src="static/bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="static/bower_components/markdown/lib/markdown.js"></script>
+    <script src="static/bower_components/codemirror/lib/codemirror.js"></script>
+    <script src="static/bower_components/codemirror/mode/python/python.js"></script>
+    <script src="static/bower_components/codemirror/mode/markdown/markdown.js"></script>
+    <script src="static/bower_components/codemirror/mode/xml/xml.js"></script>
+    <script src="static/bower_components/angular-resource/angular-resource.js"></script>
+    <script src="static/bower_components/angular-animate/angular-animate.js"></script>
+    <script src="static/bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+
+    <!-- internal dependencies -->
+    <script src="static/components/core/nodepluginregistry-service.js"></script>
+    <script src="static/components/core/onaltenter-directive.js"></script>
+    <script src="static/components/core/splitlist-directive.js"></script>
+    <script src="static/components/core/codeeditor-directive.js"></script>
+    <script src="static/components/core/fileinput-directive.js"></script>
+    <script src="static/components/core/core.js"></script>
+
+    <!-- manuskript-plugins -->
+
+    <script src="static/load-controller.js"></script>
+    <script src="static/app-controller.js"></script>
+    <script src="static/app.js"></script>
+  </head>
+  <body ng-controller="ManuskriptAppController">
+
+    <!-- Navigation bar -->
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="navbar-header">
+        <a class="navbar-brand">{{pageTitle}}</a>
+      </div>
+      <div class="container-fluid">
+        <div class="btn-group">
+          <button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown">
+            <span class="glyphicon glyphicon-plus"></span> Add
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li ng-repeat="(typeKey, type) in listPlugins()">
+              <a href="#" ng-click="addNode(typeKey)">{{type.description}}</a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="btn-group navbar-right">
+          <button type="button" class="btn btn-default navbar-btn" ng-click="renderAll()">
+            <span class="glyphicon glyphicon-repeat"></span> Refresh
+          </button>
+          <button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown">
+            File
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a href="#" data-toggle="modal" data-target="#load-modal">Load</a></li>
+            <li><a href="#" data-toggle="modal" data-target="#save-modal">Save</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- "Load File" dialog -->
+    <div id="load-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Load File</h4>
+          </div>
+          <div class="modal-body">
+            <file-input file="fileToLoad"></file-input>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="loadFile()">Load</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <!-- "Save File" dialog -->
+    <div id="save-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Save File</h4>
+          </div>
+          <div class="modal-body">
+            <form role="form">
+              <div class="form-group">
+                <label for="saveFileName">Destination file name</label>
+                <input type="text" id="saveFileName" class="form-control" placeholder="Enter file name" ng-model="fileToSave"></input>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="saveFile()">Save</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <!-- List of all the nodes. -->
+    <div id="cells">
+      <div ng-repeat="node in nodes" class="cell">
+        <div ng-include="getIncludedFile(node)">
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
