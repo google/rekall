@@ -219,3 +219,38 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
 
         for rsds, guid in self.ScanVersions():
             renderer.table_row(rsds, guid, rsds.Filename)
+
+
+class UnloadedModules(common.WindowsCommandPlugin):
+    """Print a list of recently unloaded modules.
+
+    Ref:
+    http://volatility-labs.blogspot.de/2013/05/movp-ii-22-unloaded-windows-kernel_22.html
+    """
+
+    name = "unloaded_modules"
+
+    def render(self, renderer):
+        unloaded_table = self.profile.get_constant_object(
+            "MmUnloadedDrivers",
+            target="Pointer",
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    target="_UNLOADED_DRIVER",
+                    count=self.profile.get_constant_object(
+                        "MmLastUnloadedDriver", "unsigned int").v(),
+                    )
+                )
+            )
+
+        renderer.table_header([("Name", "name", "20"),
+                               ("Start", "start", "[addrpad]"),
+                               ("End", "end", "[addrpad]"),
+                               ("Time", "time", "")])
+
+        for driver in unloaded_table:
+            renderer.table_row(driver.Name,
+                               driver.StartAddress.v(),
+                               driver.EndAddress.v(),
+                               driver.CurrentTime)

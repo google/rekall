@@ -20,7 +20,7 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 
 # pylint: disable=protected-access
-
+from rekall import obj
 from rekall.plugins.windows import common
 
 
@@ -332,8 +332,10 @@ class Pools(common.WindowsCommandPlugin):
                 paged_pool_start = paged_pool_end = None
             else:
                 # Hard coded on Windows 7.
-                paged_pool_start = 0xFFFFA80000000000
-                paged_pool_end = 0xFFFFA81FFFFFFFFF
+                paged_pool_start = obj.Pointer.integer_to_address(
+                    0xFFFFA80000000000)
+                paged_pool_end = obj.Pointer.integer_to_address(
+                    0xFFFFA81FFFFFFFFF)
         else:
             paged_pool_end = (
                 paged_pool_start + self.profile.get_constant_object(
@@ -384,3 +386,95 @@ class Pools(common.WindowsCommandPlugin):
                 desc.PoolStart,
                 desc.PoolEnd,
                 getattr(desc, "Comment", None))
+
+
+class PoolTracker(common.WindowsCommandPlugin):
+    """Enumerate pool tag usage statistics."""
+
+    name = "pool_tracker"
+
+    def render(self, renderer):
+        table = self.profile.get_constant_object(
+            "PoolTrackTable",
+            target="Pointer",
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    count=self.profile.get_constant_object(
+                        "PoolTrackTableSize", "unsigned int").v(),
+                    target="_POOL_TRACKER_TABLE",
+                    )
+                )
+            )
+
+        renderer.table_header(
+            columns=[("Tag", "tag", "4"),
+                     ("NP Alloc", "nonpaged", ">20"),
+                     ("NP Bytes", "nonpaged_bytes", ">10"),
+                     ("P Alloc", "nonpaged", ">20"),
+                     ("P Bytes", "nonpaged_bytes", ">10"),
+                     ],
+            sort=("tag",)
+            )
+
+        for item in table:
+            if item.Key == 0:
+                continue
+
+            renderer.table_row(
+                # Show the pool tag as ascii.
+                item.Key.cast("String", length=4),
+                "%s (%s)" % (item.NonPagedAllocs,
+                             item.NonPagedAllocs - item.NonPagedFrees),
+                item.NonPagedBytes,
+                "%s (%s)" % (item.PagedAllocs,
+                           item.PagedAllocs - item.PagedFrees),
+                item.PagedBytes,
+                )
+
+
+class ObjectTree(common.WindowsCommandPlugin):
+    """Visualize the kernel object tree.
+
+    Ref:
+    http://msdn.microsoft.com/en-us/library/windows/hardware/ff557762(v=vs.85).aspx
+    """
+
+    name = "object_tree"
+
+    def _render_directory(self, directory, renderer, seen, depth=0):
+        for obj_header in directory.list():
+            if obj_header in seen:
+                continue
+            seen.add(obj_header)
+
+            name = obj_header.NameInfo.Name
+            name = "%s %s" % ("." * depth, name)
+            obj_type = obj_header.get_object_type()
+            if obj_type == "SymbolicLink":
+                name += "-> %s (%s)" % (obj_header.Object.LinkTarget,
+                                        obj_header.Object.CreationTime)
+
+            renderer.table_row(
+                obj_header.Body, obj_type, name)
+
+            if obj_type == "Directory":
+                self._render_directory(
+                    obj_header.Object, renderer, seen, depth=depth+1)
+
+    def render(self, renderer):
+        renderer.table_header([("Offset", "offset", "[addrpad]"),
+                               ("Type", "type", "20"),
+                               ("Name", "name", "20"),
+                               ])
+
+        root = self.profile.get_constant_object(
+            "ObpRootDirectoryObject",
+            target="Pointer",
+            target_args=dict(
+                target="_OBJECT_DIRECTORY"
+                )
+            )
+
+        seen = set()
+        self._render_directory(root, renderer, seen)

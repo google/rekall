@@ -28,27 +28,16 @@
 import re
 import os
 
-from rekall import config
+from rekall import addrspace
 from rekall import utils
 from rekall.plugins import core
-from rekall.plugins.windows import common
 from rekall.plugins.windows.registry import registry
+from rekall.plugins.overlays import basic
 
 
-class PrintKey(common.WindowsCommandPlugin):
-    "Print a registry key, and its subkeys and values"
-    # Declare meta information associated with this plugin
-
+class PrintKey(registry.RegistryPlugin):
+    """Print a registry key, and its subkeys and values"""
     __name = "printkey"
-
-    meta_info = {}
-    meta_info['author'] = 'Brendan Dolan-Gavitt'
-    meta_info['copyright'] = 'Copyright (c) 2007,2008 Brendan Dolan-Gavitt'
-    meta_info['contact'] = 'bdolangavitt@wesleyan.edu'
-    meta_info['license'] = 'GNU General Public License 2.0 or later'
-    meta_info['url'] = 'http://moyix.blogspot.com/'
-    meta_info['os'] = 'WIN_32_XP_SP2'
-    meta_info['version'] = '1.0'
 
     @classmethod
     def args(cls, parser):
@@ -58,61 +47,48 @@ class PrintKey(common.WindowsCommandPlugin):
         parser.add_argument("-k", "--key", default="",
                             help="Registry key to print.")
 
-        parser.add_argument("-o", "--hive_offsets", default=None,
-                            action=config.ArrayIntParser, nargs="+",
-                            help='Hive offsets to search (virtual)')
-
         parser.add_argument("-r", "--recursive", default=False,
                             action="store_true",
                             help='If set print the entire subtree.')
 
 
-    def __init__(self, hive_offsets=None, key="", recursive=False, **kwargs):
+    def __init__(self, key="", recursive=False, **kwargs):
         """Print all keys and values contained by a registry key.
 
         Args:
-          hive_offsets: A list of hive offsets as found by hivelist (virtual
-            address). If not provided we call hivescan ourselves and list the
-            key on all hives.
-
           key: The key name to list. If not provided we list the root key in the
             hive.
 
           recursive: If set print the entire subtree.
         """
         super(PrintKey, self).__init__(**kwargs)
-        self.profile = registry.RekallRegisteryImplementation(self.profile)
-        self.hive_offsets = hive_offsets
         self.key = key
         self.recursive = recursive
 
-    def _list_keys(self, reg, key=None):
-        yield reg, key
+    def _list_keys(self, key=None):
+        yield key
 
         if self.recursive:
             for subkey in key.subkeys():
-                for reg, subkey in self._list_keys(reg, subkey):
-                    yield reg, subkey
+                for subkey in self._list_keys(subkey):
+                    yield subkey
 
     def list_keys(self):
         """Return the keys that match."""
         seen = set()
-        if not self.hive_offsets:
-            self.hive_offsets = list(self.get_plugin("hivescan").list_hives())
-
         for hive_offset in self.hive_offsets:
-            if hive_offset in seen:
-                continue
-
-            seen.add(hive_offset)
-
             reg = registry.RegistryHive(
                 profile=self.profile, session=self.session,
                 kernel_address_space=self.kernel_address_space,
                 hive_offset=hive_offset)
 
             key = reg.open_key(self.key)
-            for reg, subkey in self._list_keys(reg, key):
+            for subkey in self._list_keys(key):
+                if subkey in seen:
+                    break
+
+                seen.add(subkey)
+
                 yield reg, subkey
 
     def voltext(self, key):
@@ -127,8 +103,8 @@ class PrintKey(common.WindowsCommandPlugin):
             if key:
                 renderer.format("----------------------------\n")
                 renderer.format("Registry: {0}\n", reg.Name)
-                renderer.format("Key name: {0} {1:3s}\n", key.Name,
-                                self.voltext(key))
+                renderer.format("Key name: {0} {1:3s} @ {2:#X}\n", key.Name,
+                                self.voltext(key), key.obj_vm.vtop(int(key)))
 
                 renderer.format("Last updated: {0}\n", key.LastWriteTime)
                 renderer.format("\n")
@@ -145,43 +121,25 @@ class PrintKey(common.WindowsCommandPlugin):
                 renderer.format("\n")
                 renderer.format("Values:\n")
                 for value in key.values():
+                    renderer.format("{0:#X} ", value.obj_vm.vtop(int(value)))
                     if value.Type == 'REG_BINARY':
                         data = value.DecodedData
                         if isinstance(data, basestring):
+                            renderer.format(
+                                u"{0:13} {1:15} : {2:3s}\n",
+                                value.Type, value.Name, self.voltext(value))
                             utils.WriteHexdump(renderer, value.DecodedData)
                     else:
                         renderer.format(
-                            u"{0:13} {1:15} : {3:3s} {2}\n",
-                            value.Type, value.Name, value.DecodedData,
-                            self.voltext(value))
+                            u"{0:13} {1:15} : {2:3s} {3}\n",
+                            value.Type, value.Name, self.voltext(value),
+                            utils.SmartUnicode(value.DecodedData).strip())
 
 
-class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
-    """Dump all registry hives into a dump directory."""
+class RegDump(core.DirectoryDumperMixin, registry.RegistryPlugin):
+    """Dump all registry hives from memory into a dump directory."""
 
     __name = 'regdump'
-
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(RegDump, cls).args(parser)
-        parser.add_argument(
-            "-o", "--hive_offsets", action=config.ArrayIntParser,
-            nargs="+", help='Hive offsets to search (virtual)')
-
-
-    def __init__(self, hive_offsets=None, **kwargs):
-        """Dump the registry from memory.
-
-        Args:
-          hive_offset: A list of hive offsets as found by hivelist (virtual
-            address). If not provided we call hivescan ourselves and dump all
-            hives found.
-
-          dump_dir: Directory in which to dump hive files.
-        """
-        super(RegDump, self).__init__(**kwargs)
-        self.hive_offsets = hive_offsets
 
     def dump_hive(self, hive_offset=None, reg=None, fd=None):
         """Write the hive into the fd.
@@ -207,14 +165,7 @@ class RegDump(core.DirectoryDumperMixin, common.WindowsCommandPlugin):
 
     def render(self, renderer):
         # Get all the offsets if needed.
-        if not self.hive_offsets:
-            self.hive_offsets = list(self.get_plugin("hivescan").list_hives())
-
-        seen = set()
         for hive_offset in self.hive_offsets:
-            if hive_offset in seen:
-                continue
-
             reg = registry.RegistryHive(
                 profile=self.profile, session=self.session,
                 kernel_address_space=self.kernel_address_space,
@@ -243,19 +194,20 @@ class HiveDump(registry.RegistryPlugin):
 
     __name = "hivedump"
 
-    def _key_iterator(self, key):
+    def _key_iterator(self, key, seen):
         for subkey in key.subkeys():
+            if subkey in seen:
+                break
+
+            seen.add(subkey)
             yield subkey
-            for subsubkey in self._key_iterator(subkey):
+            for subsubkey in self._key_iterator(subkey, seen):
                 yield subsubkey
 
     def render(self, renderer):
         seen = set()
 
         for hive_offset in self.hive_offsets:
-            if hive_offset in seen:
-                continue
-
             reg = registry.RegistryHive(
                 hive_offset=hive_offset, session=self.session,
                 kernel_address_space=self.kernel_address_space,
@@ -267,5 +219,135 @@ class HiveDump(registry.RegistryPlugin):
             renderer.table_header([("Last Written", "timestamp", "<24"),
                                    ("Key", "key", "")])
 
-            for key in self._key_iterator(reg.root):
+            for key in self._key_iterator(reg.root, seen):
                 renderer.table_row(key.LastWriteTime, key.Path)
+
+
+# Special types to parse the SAM data structures.
+sam_vtypes = {
+    "UNICODE_STRING": [12, {
+        "offset": [0, ["unsigned int"]],
+        "len": [4, ["unsigned int"]],
+        "Value": lambda x: x.obj_profile.UnicodeString(
+            offset=x.offset+0xCC,
+            length=x.len, vm=x.obj_vm),
+
+        }],
+
+    "Hash": [12, {
+        "offset": [0, ["unsigned int"]],
+        "len": [4, ["unsigned int"]],
+        "Value": lambda x: x.obj_vm.read(
+            x.offset+0xCC, x.len).encode("hex"),
+
+        }],
+
+    "V": [None, {
+        "Type": [4, ["Enumeration", dict(
+            choices={
+                0xBC: "Default Admin User",
+                0xd4: "Custom Limited Acct",
+                0xb0: "Default Guest Acct"
+                },
+            target="unsigned int"
+            )]],
+        "UserName": [12, ['UNICODE_STRING']],
+        "FullName": [24, ['UNICODE_STRING']],
+        "Comment": [36, ['UNICODE_STRING']],
+        "LanHash": [156, ['Hash']],
+        "NTHash": [168, ['Hash']],
+        }],
+
+    "F": [None, {
+        "LastLoginTime": [8, ['WinFileTime']],
+        "PwdResetDate": [24, ["WinFileTime"]],
+        "AccountExpiration": [32, ["WinFileTime"]],
+        "PasswordFailedTime": [40, ["WinFileTime"]],
+        "LoginCount": [66, ["unsigned short int"]],
+        "FailedLoginCount": [64, ["unsigned short int"]],
+        "Rid": [48, ["unsigned int"]],
+        "Flags": [56, ["Flags", dict(
+            maskmap=utils.Invert({
+                0x0001: "Account Disabled",
+                0x0002: "Home directory required",
+                0x0004: "Password not required",
+                0x0008: "Temporary duplicate account",
+                0x0010: "Normal user account",
+                0x0020: "MNS logon user account",
+                0x0040: "Interdomain trust account",
+                0x0080: "Workstation trust account",
+                0x0100: "Server trust account",
+                0x0200: "Password does not expire",
+                0x0400: "Account auto locked"
+                }),
+            target="unsigned short int"
+            )]],
+        }],
+    }
+
+
+
+class SAMProfile(basic.Profile32Bits, basic.BasicClasses):
+    """A profile to parse the SAM."""
+
+    @classmethod
+    def Initialize(cls, profile):
+        super(SAMProfile, cls).Initialize(profile)
+
+        profile.add_overlay(sam_vtypes)
+
+
+class Users(registry.RegistryPlugin):
+    """Enumerate all users of this system.
+
+    Ref:
+    samparse.pl from RegRipper.
+
+    # copyright 2012 Quantum Analytics Research, LLC
+    # Author: H. Carvey, keydet89@yahoo.com
+    """
+    name = "users"
+
+    def GenerateUsers(self):
+        """Generates User RID keys, V and F structs for all users."""
+        sam_profile = SAMProfile(session=self.session)
+
+        for hive_offset in self.hive_offsets:
+            reg = registry.RegistryHive(
+                hive_offset=hive_offset, session=self.session,
+                kernel_address_space=self.kernel_address_space,
+                profile=self.profile)
+
+            users = reg.open_key("SAM/Domains/Account/Users")
+            for user_rid in users.subkeys():
+                # The V value holds the information we are after.
+                v_data = user_rid.open_value("V")
+                if not v_data:
+                    continue
+
+                v = sam_profile.V(vm=addrspace.BufferAddressSpace(
+                    data=v_data.DecodedData, session=self.session))
+
+                f_data = user_rid.open_value("F")
+                f = sam_profile.F(vm=addrspace.BufferAddressSpace(
+                    data=f_data.DecodedData, session=self.session))
+
+                yield user_rid, v, f
+
+    def render(self, renderer):
+        for user_rid, v, f in self.GenerateUsers():
+            renderer.section()
+            renderer.format("Key {0} \n\n", user_rid.Path)
+            renderer.table_header(
+                columns=[("", "property", "20"),
+                         ("", "value", "")],
+                suppress_headers=True)
+
+            for field in v.members:
+                try:
+                    renderer.table_row(field, getattr(v, field).Value)
+                except AttributeError:
+                    renderer.table_row(field, getattr(v, field))
+
+            for field in f.members:
+                renderer.table_row(field, getattr(f, field))

@@ -572,6 +572,17 @@ class WinProcessFilter(WindowsCommandPlugin):
                     process = handle.dereference_as("_EPROCESS")
                     yield process
 
+    def list_from_handle_tables(self, seen=None):
+        _ = seen
+        handle_table_list_head = self.profile.get_constant_object(
+            "HandleTableListHead", "_LIST_ENTRY")
+
+        for table in handle_table_list_head.list_of_type(
+            "_HANDLE_TABLE", "HandleTableList"):
+            proc = table.QuotaProcess.deref()
+            if proc:
+                yield proc
+
     def list_from_pspcid(self, seen=None):
         """Enumerate processes by walking the PspCidTable"""
         _ = seen
@@ -636,4 +647,5 @@ class WinProcessFilter(WindowsCommandPlugin):
         ("CSRSS", list_from_csrss_handles),
         ("PspCidTable", list_from_pspcid),
         ("Sessions", list_from_sessions),
+        ("Handles", list_from_handle_tables),
         ]

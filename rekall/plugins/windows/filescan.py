@@ -28,7 +28,6 @@
 @organization: http://computer.forensikblog.de/en/
 """
 
-from rekall import obj
 from rekall.plugins.windows import common
 
 
@@ -87,14 +86,10 @@ class FileScan(common.PoolScannerPlugin):
                                ])
 
         for pool_obj, object_obj, file_obj in self.generate_hits():
-            # The Process member in the object_obj sometimes points at the
-            # _EPROCESS.
-            try:
-                # TODO: Currently this only works in Windows 7. Fix for XP.
-                owner_process = object_obj.HandleInfo.SingleEntry.Process.deref(
-                    vm=self.kernel_address_space)
-            except AttributeError:
-                owner_process = obj.NoneObject("HandleInfo not found")
+            # The Process member in the HandleInfo sometimes points at the
+            # _EPROCESS owning the handle.
+            owner_process = object_obj.HandleInfo.SingleEntry.Process.deref(
+                vm=self.kernel_address_space)
 
             renderer.table_row(
                 'F' if pool_obj.FreePool else "",

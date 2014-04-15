@@ -1,8 +1,8 @@
 # Module for memory analysis of the windows registry.
+# pylint: disable=unused-import
 from rekall.plugins.windows.registry import evtlogs
 from rekall.plugins.windows.registry import getsids
 from rekall.plugins.windows.registry import getservicesids
-from rekall.plugins.windows.registry import hivescan
 
 try:
     # This optional plugin requires pycrypto
