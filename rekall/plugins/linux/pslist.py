@@ -24,6 +24,7 @@
 """
 import os
 
+from rekall import plugin
 from rekall import testlib
 from rekall.plugins import core
 from rekall.plugins.linux import common
@@ -38,15 +39,15 @@ class LinuxPsList(common.LinProcessFilter):
     __name = "pslist"
 
     def render(self, renderer):
-    	renderer.table_header( [("Offset (V)", "offset_v", "[addrpad]"),
-                                ("Name", "file_name", "20s"),
-                                ("PID", "pid", ">6"),
-                                ("PPID", "ppid", ">6"),
-                                ("UID", "uid", ">6"),
-                                ("GID", "gid", ">6"),
-                                ("DTB", "dtb", "[addrpad]"),
-                                ("Start Time", "start_time", ">24"),
-                                ])
+        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
+                               ("Name", "file_name", "20s"),
+                               ("PID", "pid", ">6"),
+                               ("PPID", "ppid", ">6"),
+                               ("UID", "uid", ">6"),
+                               ("GID", "gid", ">6"),
+                               ("DTB", "dtb", "[addrpad]"),
+                               ("Start Time", "start_time", ">24"),
+                               ])
 
         for task in self.filter_processes():
             start_time = (task.start_time.as_timestamp()+
@@ -92,8 +93,8 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
 
         return result
 
-    def write_index(self, renderer, maps, fd):
-        old_file_addr = old_length = old_virtual = 0
+    def write_index(self, renderer, maps):
+        file_addr = old_file_addr = old_length = old_virtual = 0
         for file_addr, length, virtual in maps:
             # Merge the addresses as much as possible.
             if (old_virtual + old_length == virtual and
@@ -131,9 +132,9 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
                         ("Length", "length", "[addrpad]"),
                         ("Virtual Addr", "virtual", "[addrpad]")])
 
-                self.write_index(temp_renderer, maps, fd)
+                self.write_index(temp_renderer, maps)
 
-                temp_renderer.flush()
+                temp_renderer.end()
 
 
 class TestLinMemDump(testlib.HashChecker):

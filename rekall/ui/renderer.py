@@ -22,6 +22,7 @@
 A renderer is used by plugins to produce formatted output.
 """
 
+import time
 import re
 import os
 import string
@@ -182,6 +183,12 @@ class BaseRenderer(object):
     sort_key_func = None
     deferred_rows = None
     table_cls = None
+    spinner = r"/-\|"
+    last_spin_time = 0
+    last_spin = 0
+    last_message_len = 0
+    progress_fd = None
+    progress_interval = 0.2
 
     def __init__(self, session=None, fd=None, paging_limit=None):
         self.session = session
@@ -205,13 +212,25 @@ class BaseRenderer(object):
            plugin_name: The name of the plugin which is running.
            kwargs: The args for this plugin.
         """
-        pass
+        _ = plugin_name
+        _ = kwargs
+
+        # This handles the progress messages from rekall for the duration of
+        # the rendering.
+        if self.session:
+            self.session.progress = self.RenderProgress
 
     def end(self):
         """Tells the renderer that we finished using it for a while."""
         if self.deferred_rows is not None:
             # Table was sorted. Render deferred rows now.
             self.flush_table()
+
+        # Remove the progress handler from the session.
+        if self.session:
+            self.session.progress = None
+
+        self.flush()
 
     def write(self, data):
         """Renderer should write some data."""
@@ -253,7 +272,7 @@ class BaseRenderer(object):
         pass
 
     def table_header(self, columns=None, suppress_headers=None, name=None,
-                     sort=None, *args, **kwargs):
+                     sort=None, **kwargs):
         """Table header renders the title row of a table.
 
         This also stores the header types to ensure everything is formatted
@@ -274,6 +293,8 @@ class BaseRenderer(object):
           until next call to table_header (or section) or until the plugin
           render function ends.
         """
+        _ = name
+
         if self.deferred_rows is not None:
             # Previous table we rendered was sorted. Do deferred rendering now.
             self.flush_table()
@@ -348,6 +369,64 @@ class BaseRenderer(object):
 
     def color(self, target, **kwargs):
         return self.colorizer.Render(target, **kwargs)
+
+    def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
+        # Only write once per second.
+        now = time.time()
+        force = kwargs.get("force")
+
+        if force or now > self.last_spin_time + self.progress_interval:
+            self.last_spin_time = now
+            self.last_spin += 1
+
+            # Only expand variables when we need to.
+            if "%(" in message:
+                kwargs["spinner"] = self.spinner[
+                    self.last_spin % len(self.spinner)]
+
+                message = message % kwargs
+            elif args:
+                format_args = []
+                for arg in args:
+                    if callable(arg):
+                        format_args.append(arg())
+                    else:
+                        format_args.append(arg)
+
+                message = message % tuple(format_args)
+
+            self.ClearProgress()
+
+            message = " " + message + "\r"
+
+            # Truncate the message to the terminal width to avoid wrapping.
+            message = message[:self._GetColumns()]
+
+            self.last_message_len = len(message)
+
+            self._RenderProgress(message)
+
+    def _GetColumns(self):
+        return 80
+
+    def _RenderProgress(self, message):
+        """Actually write the progress message.
+
+        This can be overwritten by renderers to deliver the progress messages
+        elsewhere.
+        """
+        if self.progress_fd is not None:
+            self.progress_fd.write(message)
+            self.progress_fd.flush()
+
+    def ClearProgress(self):
+        """Delete the last progress message."""
+        if self.progress_fd is None:
+            return
+
+        # Wipe the last message.
+        self.progress_fd.write("\r" + " " * self.last_message_len + "\r")
+        self.progress_fd.flush()
 
 
 class BaseColumn(object):

@@ -22,8 +22,13 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 # pylint: disable=unused-import
+import logging
 
 from rekall.plugins.tools import profile_tool
 from rekall.plugins.tools import ipython
 from rekall.plugins.tools import mspdb
-from rekall.plugins.tools import webconsole
+
+try:
+    from rekall.plugins.tools import webconsole
+except ImportError as e:
+    logging.info("Webconsole disabled: %s", e)

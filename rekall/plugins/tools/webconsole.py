@@ -23,12 +23,15 @@
 __author__ = "Mikhail Bushkov <mbushkov@google.com>"
 
 import argparse
+import json
+import time
 import os
 import StringIO
 import sys
 
 from rekall import config
 from rekall import plugin
+from rekall import utils
 from rekall import testlib
 
 from flask import Blueprint
@@ -51,9 +54,7 @@ class RekallPythonCall(manuskript_plugins.PythonCall):
         super(RekallPythonCall, cls).UpdatePythonShell(app, shell)
 
         rekall_session = app.config["rekall_session"]
-        shell.local_context["session"] = rekall_session
-        for k, v in rekall_session._locals.iteritems():  # pylint: disable=protected-access
-            shell.local_context[k] = v
+        shell.local_context = rekall_session._locals # pylint: disable=protected-access
 
 
 class FakeParser(object):
@@ -147,8 +148,8 @@ class RekallWebConsole(manuskript_plugin.Plugin):
             for plugin_cls in plugins:
                 plugin_def = {}
 
-                plugin_def["name"] = getattr(
-                    plugin_cls, "_%s__name" % plugin_cls.__name__, None)
+                plugin_def["name"] = getattr(plugin_cls, "name", None)
+
                 if not plugin_def["name"]:
                     continue
 
@@ -243,3 +244,145 @@ class WebConsole(plugin.Command):
 class TestWebConsole(testlib.DisabledTest):
     """Disable the test for this command to avoid bringing up the notebook."""
     PARAMETERS = dict(commandline="webconsole")
+
+
+
+class DecodingError(KeyError):
+    """Raised if there is a decoding error."""
+
+
+class StructFormatter(object):
+    def __init__(self, state):
+        self.state = state
+
+    def __int__(self):
+        return self.state["offset"]
+
+
+class LiteralFormatter(StructFormatter):
+    def __unicode__(self):
+        return utils.SmartUnicode(self.state["value"])
+
+    def __int__(self):
+        return self.state["value"]
+
+
+class AddressSpaceFormatter(StructFormatter):
+    def __unicode__(self):
+        return self.state["name"]
+
+
+class NoneObjectFormatter(StructFormatter):
+    def __unicode__(self):
+        return "-"
+
+
+class DatetimeFormatter(StructFormatter):
+    def __unicode__(self):
+        return time.ctime(self.state["epoch"])
+
+
+class JSONParser(plugin.Command):
+    """Renders a json rendering file, as produced by the JsonRenderer.
+
+    The output of any plugin can be stored to a JSON file using:
+
+    rekall -f img.dd --renderer JsonRenderer plugin_name --output test.json
+
+    Then it can be rendered again using:
+
+    rekall json_render test.json
+
+    This plugin implements the proper decoding of the JSON encoded output.
+    """
+
+    name = "json_render"
+
+
+    # This is a mapping between the semantic name of the BaseObject
+    # serialization and a suitable Formatter. The idea is that the GUI framework
+    # can identify semantically similar objects and map them to a rendering
+    # class suitable for that specific type. For example, the same renderer
+    # should work for all "Struct" semantic types, while a different one should
+    # be applied to "DateTime" semantic types.
+    semantic_map = dict(
+        Literal=LiteralFormatter,
+        Struct=StructFormatter,
+        NativeType=LiteralFormatter,
+        Pointer=LiteralFormatter,
+        AddressSpace=AddressSpaceFormatter,
+        NoneObject=NoneObjectFormatter,
+        DateTime=DatetimeFormatter,
+        )
+
+    @classmethod
+    def args(cls, parser):
+        super(JSONParser, cls).args(parser)
+
+        parser.add_argument("file", default=None,
+                            help="The filename to parse.")
+
+    def __init__(self, file=None, **kwargs):
+        super(JSONParser, self).__init__(**kwargs)
+        self.file = file
+
+    def _decode_value(self, value):
+        if isinstance(value, dict):
+            return self._decode(value)
+
+        try:
+            return self.lexicon[str(value)]
+        except KeyError:
+            raise DecodingError("Lexicon corruption: Tag %s" % value)
+
+    def _decode(self, item):
+        if not isinstance(item, dict):
+            return self._decode_value(item)
+
+        state = {}
+        for k, v in item.items():
+            decoded_key = self._decode_value(k)
+            decoded_value = self._decode_value(v)
+            if isinstance(decoded_value, dict):
+                decoded_value = self._decode(decoded_value)
+
+            state[decoded_key] = decoded_value
+
+        semantic_type = state.get("type")
+        if semantic_type is None:
+            return state
+
+        item_renderer = self.semantic_map.get(semantic_type)
+        if item_renderer is None:
+            raise DecodingError("Unsupported Semantic type %s" % semantic_type)
+
+        # Instantiate the BaseObject this refers to.
+        return item_renderer(state)
+
+    def render(self, renderer):
+        """Renders the stored JSON file using the default renderer.
+
+        To decode the json file we replay the statements into the renderer after
+        decompressing them.
+        """
+        data = json.load(open(self.file))
+
+        self.lexicon = {}
+        for statement in data:
+            command = statement[0]
+            if command == "l":
+                self.lexicon = statement[1]
+
+            elif command == "s":
+                renderer.section(**self._decode(statement[1]))
+
+            elif command == "f":
+                args = [self._decode(x) for x in statement[1:]]
+                renderer.format(*args)
+
+            elif command == "t":
+                renderer.table_header(**statement[1])
+
+            elif command == "r":
+                renderer.table_row(
+                    *[self._decode(x) for x in statement[1]])

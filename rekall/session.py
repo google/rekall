@@ -168,7 +168,7 @@ class Configuration(Cache):
         self._lock = False
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, trace):
         self._lock = True
         if self.session:
             self.session.UpdateFromConfigObject()
@@ -362,8 +362,6 @@ class Session(object):
         try:
             kwargs['session'] = self
 
-            ui_renderer.start()
-
             # If we were passed an instance we do not instantiate it.
             if inspect.isclass(plugin_cls) or isinstance(plugin_cls, obj.Curry):
                 result = plugin_cls(*pos_args, **kwargs)
@@ -374,19 +372,20 @@ class Session(object):
 
             try:
                 result.render(ui_renderer)
+
+                # If there was too much data and a pager is specified, simply
+                # pass the data to the pager:
+                if (ui_renderer.isatty and pager and
+                    len(ui_renderer.data) >= ui_renderer.paging_limit):
+                    pager = text.Pager(self)
+                    for data in ui_renderer.data:
+                        pager.write(data)
+
+                    # Now wait for the user to exit the pager.
+                    pager.flush()
+
             finally:
                 ui_renderer.end()
-
-            # If there was too much data and a pager is specified, simply pass
-            # the data to the pager:
-            if (ui_renderer.isatty and pager and
-                len(ui_renderer.data) >= ui_renderer.paging_limit):
-                pager = text.Pager(self)
-                for data in ui_renderer.data:
-                    pager.write(data)
-
-                # Now wait for the user to exit the pager.
-                pager.flush()
 
             return result
 
@@ -399,7 +398,7 @@ class Session(object):
 
         except KeyboardInterrupt:
             if self.debug:
-                pdb.post_mortem()
+                pdb.post_mortem(sys.exc_info()[2])
 
             self.report_progress("Aborted!\r\n", force=True)
 
@@ -413,7 +412,7 @@ class Session(object):
                     "Detailed error:\n%s",
                     traceback.format_exc(),
                 )
-                pdb.post_mortem()
+                pdb.post_mortem(sys.exc_info()[2])
             else:
                 logging.error("Error: %s", e)
                 raise
@@ -455,13 +454,13 @@ class Session(object):
         # Traverse the profile path until one works.
         else:
             result = None
+
             # The profile path is specified in search order.
             profile_path = self.state.Get("profile_path")
 
             # Add the last supported repository as the last fallback path.
-            for path in profile_path + [
-                constants.SUPPORTED_PROFILE_REPOSITORY]:
-
+            for path in profile_path:
+                path = "%s/%s/" % (path, constants.PROFILE_REPOSITORY_VERSION)
                 try:
                     manager = io_manager.Factory(path)
                     try:

@@ -531,6 +531,12 @@ class UnixTimeStamp(obj.NativeType):
 
         return dt
 
+    def __getstate__(self):
+        state = super(UnixTimeStamp, self).__getstate__()
+        state["type"] = "DateTime"
+        state["epoch"] = self.v()
+        return state
+
 
 class timeval(UnixTimeStamp, obj.Struct):
 

@@ -23,14 +23,13 @@ SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
 PROFILE_REPOSITORY = "http://profiles.rekall.googlecode.com/git/"
 
-# This is the last supported version of the profile repository. When the user
-# specifies the profile repository above, we really use the below. This allows
-# us to fix the version of the repository which a Rekall release uses, so it
-# does not break when changes are made to the profile repository in future which
-# are incompatible with the released version.
-SUPPORTED_PROFILE_REPOSITORY = (
-    "http://profiles.rekall.googlecode.com/git-history/"
-    "b5614dacf6554ea95c4676a503acd4d38364b7d0/")
+# The supported profile repository version we will use. This version needs to be
+# consistent with the profile json file's data layout version. We automatically
+# prepend this to the profile name to ensure we receive the correct version. If
+# in future the json format will change in an incompatible way, we can still
+# access old profiles without upgrading.
+PROFILE_REPOSITORY_VERSION = "v1.0"
+
 
 BANNER = """
 ----------------------------------------------------------------------------

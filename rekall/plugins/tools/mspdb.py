@@ -815,6 +815,7 @@ class PDBParser(object):
         self.enums = {}
         self.rev_enums = {}
         self.constants = {}
+        self.functions = {}
         self.profile = self.session.LoadProfile("mspdb")
         self._TYPE_ENUM_e = self.profile.get_enum("_TYPE_ENUM_e")
         self._TYPE_ENUM_e = dict(
@@ -964,7 +965,11 @@ class PDBParser(object):
                     except ValueError:
                         pass
 
-            self.constants[name] = translated_offset
+            if symbol.pubsymflags.u1.fFunction:
+                self.functions[name] = translated_offset
+            else:
+                self.constants[name] = translated_offset
+
             self.session.report_progress(" Parsing Symbols %s", name)
 
     def ParseTPI(self):
@@ -1176,6 +1181,10 @@ class ParsePDB(plugin.Command):
         for name, value in self.tpi.constants.iteritems():
             constants[demangler.DemangleName(name)] = value
 
+        functions = {}
+        for name, value in self.tpi.functions.iteritems():
+            functions[demangler.DemangleName(name)] = value
+
         vtypes = self.PostProcessVTypes(vtypes)
 
         result = {
@@ -1187,6 +1196,7 @@ class ParsePDB(plugin.Command):
         if not self.concise:
             result["$REVENUMS"] = self.tpi.rev_enums
             result["$CONSTANTS"] = constants
+            result["$FUNCTIONS"] = functions
 
 
         renderer.write(utils.PPrint(result))
