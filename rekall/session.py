@@ -440,7 +440,14 @@ class Session(object):
 
         try:
             if use_cache:
-                return self.profile_cache[canonical_name].copy()
+                cached_profile = self.profile_cache[canonical_name]
+                if cached_profile:
+                    return cached_profile.copy()
+                else:
+                    raise ValueError(
+                        "Unable to load profile %s from any repository." %
+                        filename)
+
         except KeyError:
             pass
 
