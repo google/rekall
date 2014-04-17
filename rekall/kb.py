@@ -114,7 +114,10 @@ class AddressResolver(object):
 
     # The format of a symbol name. Used by get_address_by_name().
     ADDRESS_NAME_REGEX = re.compile(
-        r"(?P<deref>[*])?"                # Pointer dereference.
+        r"(?P<deref>[*])?"              # Pointer dereference.
+
+        r"((?P<address>0x[0-9A-Fa-f]+)|" # Alternative - Either an address, or,
+
         r"(?P<module>[A-Za-z_0-9\.]+)"  # Module name - can include extension
                                         # (.exe, .sys)
 
@@ -122,6 +125,8 @@ class AddressResolver(object):
                                         # name.
 
         r"(?P<symbol>[^ +-]+)?"         # Symbol name.
+        r")"                            # End alternative.
+
         r"(?P<op> *[+-] *)?"            # Possible arithmetic operator.
         r"(?P<offset>[0-9a-fA-Fx]+)?")  # Possible hex offset.
 
@@ -147,19 +152,21 @@ class AddressResolver(object):
         m = self.ADDRESS_NAME_REGEX.match(name)
         if m:
             capture = m.groupdict()
-            module = capture.get("module")
-            if not module:
-                raise TypeError("Module name not specified.")
+            if not capture.get("address"):
+                module = capture.get("module")
+                if not module:
+                    raise TypeError("Module name not specified.")
 
-            capture["module"] = self._NormalizeModuleName(module)
+                capture["module"] = self._NormalizeModuleName(module)
 
             if capture["op"] and not capture["offset"]:
                 raise TypeError("Operator %s must have an operand." %
                                 capture["op"])
 
-            if capture["op"] and not capture["symbol"]:
-                raise TypeError("Operator %s must operate on a symbol." %
-                                capture["op"])
+            if capture["op"] and not (capture["symbol"] or capture["address"]):
+                raise TypeError(
+                    "Operator %s must operate on a symbol or address." %
+                    capture["op"])
 
             return capture
 
@@ -316,22 +323,19 @@ class AddressResolver(object):
         if not isinstance(name, basestring):
             raise TypeError("Name should be a string.")
 
-        # Name can be represented as hex or integer.
-        try:
-            return int(name, 0)
-        except ValueError:
-            pass
-
         components = self._ParseAddress(name)
-        address = None
+        address = components["address"]
+        if address:
+            address = int(address, 0)
 
-        module = self.modules_by_name.get(components["module"])
-        if module is None:
-            return obj.NoneObject("No module %s" % name, log=True)
+        # User did not specify an address
+        if address is None:
+            module = self.modules_by_name.get(components["module"])
+            if module is None:
+                return obj.NoneObject("No module %s" % name, log=True)
 
-        # User is after just the module's base address.
-        if not components["symbol"]:
-            return module.base
+            # Found the module we use its base address
+            address = module.base
 
         # Search for a symbol in the module.
         if components["symbol"]:
@@ -340,24 +344,36 @@ class AddressResolver(object):
             if module_profile:
                 address = module_profile.get_constant(
                     components["symbol"], True)
+            else:
+                return obj.NoneObject(
+                    "No profile found for module", log=True)
 
-                # Support basic offset operations (+/-).
-                if components["op"]:
-                    offset = int(components["offset"], 0)
+        # Support basic offset operations (+/-).
+        if components["op"]:
+            # Parse the offset as hex or decimal.
+            offset = int(components["offset"], 0)
+            op = components["op"].strip()
+            if op == "+":
+                address += offset
+            elif op == "-":
+                address -= offset
+            else:
+                raise TypeError("Operator '%s' not supported" % op)
 
-                    if components["op"].strip() == "+":
-                        address += offset
-                    else:
-                        address -= offset
+        # If the symbol was a dereference, we need to read the address from
+        # this offset.
+        if components.get("deref"):
+            module_profile = None
+            containing_module = self._FindContainingModule(address)
+            if containing_module:
+                module_profile = self.LoadProfileForModule(containing_module)
 
-            # If the symbol was a dereference, we need to read the address from
-            # this offset.
-            if components.get("deref"):
-                address = module_profile.Pointer(address).v()
+            if not module_profile:
+                module_profile = self.session.profile
 
-            return address
+            address = module_profile.Pointer(address).v()
 
-        return obj.NoneObject("No profile found for module", log=True)
+        return address
 
     def format_address(self, address, max_distance=0x1000):
         address = obj.Pointer.integer_to_address(address)

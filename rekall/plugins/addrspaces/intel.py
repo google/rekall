@@ -227,6 +227,13 @@ class IA32PagedMemory(addrspace.PagedReader):
     def __str__(self):
         return "%s@0x%08X (%s)" % (self.__class__.__name__, self.dtb, self.name)
 
+    def __getstate__(self):
+        state = super(IA32PagedMemory, self).__getstate__()
+        state["dtb"] = self.dtb
+        state["name"] = self.name
+
+        return state
+
 
 class IA32PagedMemoryPae(IA32PagedMemory):
     """ Standard x86 32 bit PAE address space.

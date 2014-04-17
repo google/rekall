@@ -157,7 +157,7 @@ def main(argv=None):
             user_session.RunPlugin(flags.module, flags=flags, pager=None)
         except Exception as e:
             if getattr(flags, "debug", None):
-                pdb.post_mortem()
+                pdb.post_mortem(sys.exc_info()[2])
             else:
                 logging.error("%s. Try --debug for more information." % e)
 

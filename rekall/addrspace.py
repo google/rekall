@@ -218,6 +218,17 @@ class BaseAddressSpace(object):
     def GetPlugin(cls, name):
         return cls.classes.get(name)
 
+    def __getstate__(self):
+        result = dict(
+            type="AddressSpace",
+            type_name=self.__class__.__name__,
+            )
+
+        if self.base is not self:
+            result["base"] = self.base
+
+        return result
+
 
 ## This is a specialised AS for use internally - Its used to provide
 ## transparent support for a string buffer so types can be

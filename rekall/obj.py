@@ -264,6 +264,12 @@ class NoneObject(object):
     dereference_as = __call__
     __getitem__ = __call__
 
+    def __getstate__(self):
+        return dict(
+            type="NoneObject",
+            reason=self.reason
+            )
+
 
 class Error(Exception):
     """All object related exceptions come from this one."""
@@ -402,6 +408,15 @@ class BaseObject(object):
         self.obj_profile = profile
         self.obj_context = context or {}
         self.obj_session = session
+
+    def __getstate__(self):
+        return dict(
+            type="BaseObject",
+            offset=self.obj_offset,
+            name=self.obj_name,
+            type_name=self.obj_type,
+            vm=self.obj_vm,
+            )
 
     @property
     def obj_end(self):
@@ -636,6 +651,13 @@ class NativeType(BaseObject, NumericProxyMixIn):
             return " [{0}:{1}]: {2}".format(self.obj_type, self.obj_name,
                                             repr(self.v()))
 
+    def __getstate__(self):
+        state = super(NativeType, self).__getstate__()
+        state["type"] = "NativeType"
+        state["value"] = self.v()
+
+        return state
+
 
 class Bool(NativeType):
     def __unicode__(self):
@@ -861,6 +883,12 @@ class Pointer(NativeType):
 
         return 0xffffffffffff & int(value)
 
+    def __getstate__(self):
+        state = super(Pointer, self).__getstate__()
+        state["type"] = "Pointer"
+        state["target"] = self.target
+        return state
+
 
 class Void(Pointer):
     def __init__(self, **kwargs):
@@ -1022,6 +1050,15 @@ class Array(BaseObject):
 
     def __len__(self):
         return self.count
+
+    def __getstate__(self):
+        state = super(Array, self).__getstate__()
+        state["type"] = "Array"
+        state["target"] = self.target
+        state["count"] = self.count
+
+        return state
+
 
 
 class ListArray(Array):
@@ -1312,6 +1349,12 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
             seen.add(item.obj_offset)
             yield item
 
+    def __getstate__(self):
+        state = super(Struct, self).__getstate__()
+        state["type"] = "Struct"
+
+        return state
+
 
 ## Profiles are the interface for creating/interpreting
 ## objects
@@ -1401,11 +1444,13 @@ class Profile(object):
 
     def _SetupProfileFromData(self, data):
         """Sets up the current profile."""
-        # The constants
-        constants = data.get("$CONSTANTS")
-        if constants:
-            self.add_constants(
-                constants_are_addresses=True, **constants)
+        # The constants are stored both in the $CONSTANTS section and the
+        # $FUNCTIONS section. We treat them the same here.
+        for section in ["$CONSTANTS", "$FUNCTIONS"]:
+            constants = data.get(section)
+            if constants:
+                self.add_constants(
+                    constants_are_addresses=True, **constants)
 
         # The enums
         enums = data.get("$ENUMS")

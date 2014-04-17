@@ -122,6 +122,12 @@ class FileAddressSpace(FDAddressSpace):
         super(FileAddressSpace, self).__init__(
             fhandle=fhandle, session=session, base=base, **kwargs)
 
+    def __getstate__(self):
+        state = super(FileAddressSpace, self).__getstate__()
+        state["filename"] = self.name
+
+        return state
+
 
 class WriteableAddressSpaceMixIn(object):
     """This address space can be used to create new files.

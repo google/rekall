@@ -332,7 +332,7 @@ class VAD(common.WinProcessFilter):
 
         for vad in vad_root.traverse():
             renderer.table_row(
-                vad.obj_offset, vad.obj_context.get('depth', 0),
+                vad, vad.obj_context.get('depth', 0),
                 vad.Start >> self.PAGE_SIZE,
                 vad.End >> self.PAGE_SIZE,
                 vad.CommitCharge if vad.CommitCharge < 0x7fffffff else -1,

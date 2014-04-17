@@ -340,12 +340,7 @@ class TextRenderer(renderer.BaseRenderer):
     """
     tablesep = " "
     elide = False
-    spinner = r"/-\|"
-    last_spin_time = 0
-    last_spin = 0
-    last_message_len = 0
     isatty = False
-    progress_fd = None
     paging_limit = None
     table_cls = TextTable
 
@@ -368,26 +363,6 @@ class TextRenderer(renderer.BaseRenderer):
             self.fd,
             nocolor=(self.session and self.session.GetParameter("nocolors")),
         )
-
-    def start(self, plugin_name=None, kwargs=None):
-        """The method is called when new output is required.
-
-        Args:
-           plugin_name: The name of the plugin which is running.
-           kwargs: The args for this plugin.
-        """
-        super(TextRenderer, self).start(plugin_name, kwargs)
-        # This handles the progress messages from rekall for the duration of
-        # the rendering.
-        if self.session:
-            self.session.progress = self.RenderProgress
-
-    def end(self):
-        """Tells the renderer that we finished using it for a while."""
-        super(TextRenderer, self).end()
-        # Remove the progress handler from the session.
-        if self.session:
-            self.session.progress = None
 
     def format(self, formatstring, *data):
         # Only clear the progress if we share the same output stream as the
@@ -423,10 +398,10 @@ class TextRenderer(renderer.BaseRenderer):
         self.data = []
         self.ClearProgress()
         self.fd.flush()
-    
+
     def table_header(self, *args, **kwargs):
         """Text table header also takes elide and tablesep arguments.
-        
+
         The rest of this is the same as BaseRenderer.table_header."""
         return super(TextRenderer, self).table_header(
             *args,
@@ -444,58 +419,11 @@ class TextRenderer(renderer.BaseRenderer):
         """
         return super(TextRenderer, self).table_row(*args, **kwargs)
 
-    def ClearProgress(self):
-        """Delete the last progress message."""
-        if self.progress_fd is None:
-            return
-
-        # Wipe the last message.
-        self.progress_fd.write("\r" + " " * self.last_message_len + "\r")
-        self.progress_fd.flush()
-
     def _GetColumns(self):
         if curses:
             return curses.tigetnum('cols')
 
         return int(os.environ.get("COLUMNS", 80))
-
-    def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
-        if self.progress_fd is None:
-            return
-
-        # Only write once per second.
-        now = time.time()
-        force = kwargs.get("force")
-
-        if force or now > self.last_spin_time + 0.2:
-            self.last_spin_time = now
-            self.last_spin += 1
-
-            # Only expand variables when we need to.
-            if "%(" in message:
-                kwargs["spinner"] = self.spinner[
-                    self.last_spin % len(self.spinner)]
-
-                message = message % kwargs
-            elif args:
-                format_args = []
-                for arg in args:
-                    if callable(arg):
-                        format_args.append(arg())
-                    else:
-                        format_args.append(arg)
-
-                message = message % tuple(format_args)
-
-            self.ClearProgress()
-
-            message = " " + message + "\r"
-            # Truncate the message to the terminal width to avoid wrapping.
-            message = message[:self._GetColumns()]
-
-            self.progress_fd.write(message)
-            self.last_message_len = len(message)
-            self.progress_fd.flush()
 
 
 class TestRenderer(TextRenderer):
@@ -503,4 +431,3 @@ class TestRenderer(TextRenderer):
 
     def __init__(self, **kwargs):
         super(TestRenderer, self).__init__(tablesep="||", **kwargs)
-
