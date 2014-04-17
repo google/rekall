@@ -1,0 +1,36 @@
+<div ng-controller="PythonCallController" class="well pythoncall">
+  <div class="container-fluid">
+    <div class="row source">
+      <div class="in">
+        In [{{node.rendered.execution_count}}]:
+      </div>
+      <div>
+        <div ng-if="node.state != 'edit'" ng-dblclick="editNode(node)" class="readonly">
+          <code-editor readonly="true" language="python" ng-model="node.source" split-list></code-editor>
+        </div>
+        <div ng-if="node.state == 'edit'" on-alt-enter="saveNode(node)" class="edit">
+          <code-editor language="python" focus="node.state == 'edit'" ng-model="node.source" split-list></code-editor>
+        </div>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+  </div>
+
+
+  <div ng-if="node.rendered.stderr">
+    <code-editor language="plaintext" readonly="true" ng-model="node.rendered.stderr" split-list></code-editor>
+  </div>
+
+  <div ng-if="node.rendered.stdout">
+    <code-editor language="plaintext" readonly="true" ng-model="node.rendered.stdout" split-list></code-editor>
+  </div>
+
+  <div ng-if="node.rendered.result">
+    <code-editor language="python" readonly="true" ng-model="node.rendered.result" split-list></code-editor>
+  </div>
+
+  <div ng-if="node.rendered.error">
+    <code-editor language="python" readonly="true" ng-model="node.rendered.error" split-list></code-editor>
+  </div>
+
+</div>

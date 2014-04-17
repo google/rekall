@@ -76,7 +76,7 @@ class MetaclassRegistry(abc.ABCMeta):
 
         if not cls.__name__.startswith("Abstract"):
             cls.classes[cls.__name__] = cls
-            name = getattr(cls, "_%s__name" % cls.__name__, None)
+            name = getattr(cls, "name", None)
             cls.classes_by_name[name] = cls
             try:
                 if cls.top_level_class.include_plugins_as_attributes:
@@ -88,4 +88,3 @@ class MetaclassRegistry(abc.ABCMeta):
         cls_initializer = getattr(cls, "_class_init", None)
         if cls_initializer:
             cls_initializer()
-

@@ -407,7 +407,7 @@ class LoadAddressSpace(plugin.Command):
             raise plugin.PluginError("Unable to find physical address space.")
 
         self.profile = self.session.profile
-        if self.profile is None:
+        if self.profile == None:
             raise plugin.PluginError(
                 "Must specify a profile to load virtual AS.")
 

@@ -77,5 +77,7 @@ setup(
         "pyelftools >= 0.21",
         "distorm3 >= 0",
         "ahocorasick >= 0.9",
+        "codegen >= 1.0",
+        "Flask >= 0.10.1",
         ],
 )
