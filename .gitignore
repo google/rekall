@@ -11,6 +11,7 @@
 
 # Other
 *.sln
+*.swp
 buildchk_wnet_*
 objchk_wnet_*
 .scons*

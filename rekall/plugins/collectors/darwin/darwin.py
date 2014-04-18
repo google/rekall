@@ -1,6 +1,6 @@
 # Rekall Memory Forensics
 #
-# Copyright 2013 Google Inc. All Rights Reserved.
+# Copyright 2014 Google Inc. All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,112 +15,56 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
 
 """
-Darwin entity generators are all here.
+Common Darwin collectors.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from rekall.plugins.darwin import entities
+from rekall import components
+from rekall import identity
 
 
-def DarwinNetworkInterfaceGenerator(profile):
-    """Walks the global list of interfaces.
-
-    The head of the list of network interfaces is a kernel global [1].
-    The struct we use [2] is just the public part of the data [3]. Addresses
-    are related to an interface in a N:1 relationship [4]. AF-specific data
-    is a normal sockaddr struct.
-
-    Yields:
-      DarwinNetworkInterface entities.
-
-    References:
-      1:
-      https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/dlil.c#L254
-      2:
-      https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/if_var.h#L528
-      3:
-      https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/dlil.c#L188
-      4:
-      https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/if_var.h#L816
-
-    """
-    ifnet_head = profile.get_constant_object(
-        "_dlil_ifnet_head",
-        target="Pointer",
-        target_args=dict(
-            target="ifnet"
-        )
+def ParseProcess(proc):
+    process = components.Process(
+        pid=proc.pid,
+        command=proc.p_comm,
+        parent_identity=identity.ProcessIdentity(pid=proc.p_ppid),
+        user_identity=identity.UserIdentity(uid=proc.p_uid),
+        arguments=None,
     )
 
-    for interface in ifnet_head.walk_list("if_link.tqe_next"):
-        yield entities.DarwinNetworkInterface(key_obj=interface)
+    named = components.Named(
+        name="PID %d" % proc.pid,
+        kind="Process",
+    )
+
+    memory_obj = components.MemoryObject(
+        base_object=proc,
+        type="proc",
+    )
+
+    user = components.User(
+        uid=proc.p_uid,
+        username=None,
+        home_dir=None,
+        real_name=None,
+    )
+
+    user_named = components.Named(
+        name=None,
+        kind="User",
+    )
+
+    yield identity.ProcessIdentity(pid=proc.pid), [process, named, memory_obj]
+    yield identity.UserIdentity(uid=proc.p_uid), [user, user_named]
 
 
-def DarwinUnixSocketGenerator(profile):
-    """Walks the global unpcb lists and returns just the sockets.
-
-    Yields:
-      DarwinUnixSocket entities.
-
-    See here:
-      https://github.com/opensource-apple/xnu/blob/10.9/bsd/kern/uipc_usrreq.c#L121
-    """
-    for head_const in ["_unp_dhead", "_unp_shead"]:
-        lhead = profile.get_constant_object(
-            head_const,
-            target="unp_head")
-
-        for unp in lhead.lh_first.walk_list("unp_link.le_next"):
-            yield entities.DarwinUnixSocket(key_obj=unp.unp_socket)
-
-
-def DarwinFileprocMultiGenerator(profile):
-    """Generates multiple kinds of entities from walking over open handles.
-
-    Currently yields the following:
-        DarwinOpenHandle
-        DarwinOpenFile
-        DarwinUnixSocket
-        DarwinInetSocket
-        DarwinSocket
-    """
-    for proc in profile.session.entities.find(entities.DarwinProcess):
-        for fd, fileproc, flags in proc.key_obj.get_open_files():
-            # First we yield the handle.
-            yield entities.DarwinOpenHandle(
-                key_obj=fileproc,
-                meta=dict(
-                    fd=fd,
-                    flags=flags,
-                    proc=proc.key_obj))
-
-            # Yield the resource:
-            resource = fileproc.autocast_fg_data()
-            if fileproc.fg_type == "DTYPE_SOCKET":
-                if resource.addressing_family in ["AF_INET", "AF_INET6"]:
-                    cls = entities.DarwinInetSocket
-                elif resource.addressing_family == "AF_UNIX":
-                    cls = entities.DarwinUnixSocket
-                else:
-                    cls = entities.DarwinSocket
-            elif fileproc.fg_type == "DTYPE_VNODE":
-                cls = entities.DarwinOpenFile
-            else:
-                # TODO: This could still yield resource?
-                continue
-
-            yield cls(key_obj=resource, meta=dict(fileproc=fileproc))
-
-
-def DarwinPgrpHashProcessGenerator(profile):
+def DarwinPgrpHashProcessCollector(profile):
     """Generates Process entities using hash of process groups.
 
     Adapted from legacy pslist plugin's list_using_pgrp_hash.
-
-    Yields:
-      DarwinProcess entities.
 
     XNU Reference:
       xnu-1699.26.8/bsd/sys/proc_internal.h
@@ -155,10 +99,11 @@ def DarwinPgrpHashProcessGenerator(profile):
         for pgrp in slot.lh_first.walk_list("pg_hash.le_next"):
             for proc in pgrp.pg_members.lh_first.walk_list(
                 "p_pglist.le_next"):
-                yield entities.DarwinProcess(key_obj=proc)
+                for result in ParseProcess(proc):
+                    yield result
 
 
-def DarwinTaskProcessGenerator(profile):
+def DarwinTaskProcessCollector(profile):
     """List processes using the processor tasks queue.
 
     Adapted from legacy pslist plugin's list_using_task.
@@ -175,10 +120,11 @@ def DarwinTaskProcessGenerator(profile):
     for task in tasks.list_of_type("task", "tasks"):
         proc = task.bsd_info.deref()
         if proc:
-            yield entities.DarwinProcess(key_obj=proc)
+            for result in ParseProcess(proc):
+                yield result
 
 
-def DarwinAllprocProcessGenerator(profile):
+def DarwinAllprocProcessCollector(profile):
     """List all processes by following the _allproc list head.
 
     Adapted from legacy pslist plugin's list_using_allproc.
@@ -188,10 +134,11 @@ def DarwinAllprocProcessGenerator(profile):
     allproc = profile.get_constant_object(
         "_allproc", target="proclist")
     for proc in allproc.lh_first.p_list:
-        yield entities.DarwinProcess(key_obj=proc)
+        for result in ParseProcess(proc):
+            yield result
 
 
-def DarwinPidHashProcessGenerator(profile):
+def DarwinPidHashProcessCollector(profile):
     """List processes using pid hash tables.
 
     Adapted from legacy pslist plugin's list_using_pid_hash.
@@ -228,5 +175,6 @@ def DarwinPidHashProcessGenerator(profile):
     for plist in pid_hash_table.deref():
         for proc in plist.lh_first.walk_list("p_hash.le_next"):
             if proc:
-                yield entities.DarwinProcess(key_obj=proc)
+                for result in ParseProcess(proc):
+                    yield result
 

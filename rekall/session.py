@@ -191,7 +191,7 @@ class Session(object):
         # having to hit the profile repository all the time.
         self.profile_cache = {}
 
-        self.entities = entity.EntityCache(session=self)
+        self.entities = entity.EntityManager(session=self)
 
         # Store user configurable attributes here. These will be read/written to
         # the configuration file.
