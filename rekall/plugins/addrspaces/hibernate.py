@@ -31,7 +31,7 @@ from rekall.plugins.addrspaces import xpress
 import struct
 
 
-#pylint: disable-msg=C0111
+# pylint: disable=C0111
 
 PAGE_SIZE = 0x1000
 page_shift = 12
@@ -224,7 +224,7 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
     def __init__(self, **kwargs):
         super(WindowsHiberFileSpace, self).__init__(**kwargs)
 
-        self.as_assert(self.base, "No base Address Space")
+        self.as_assert(self.base != self, "No base Address Space")
         self.as_assert(self.base.read(0, 4).lower() in ["hibr", "wake"])
         self.runs = []
         self.PageDict = {}
@@ -534,4 +534,3 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
 
     def close(self):
         self.base.close()
-

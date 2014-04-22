@@ -28,21 +28,21 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import inspect
 import logging
-import pdb
-import traceback
 import os
+import pdb
 import sys
 import time
+import traceback
 
 from rekall import addrspace
 from rekall import config
 from rekall import constants
-from rekall import io_manager
-from rekall import plugin
-from rekall import obj
-from rekall import kb
-from rekall import utils
 from rekall import entity
+from rekall import io_manager
+from rekall import kb
+from rekall import obj
+from rekall import plugin
+from rekall import utils
 
 from rekall.ui import renderer
 from rekall.ui import text
@@ -467,7 +467,7 @@ class Session(object):
 
             # Add the last supported repository as the last fallback path.
             for path in profile_path:
-                path = "%s/%s/" % (path, constants.PROFILE_REPOSITORY_VERSION)
+                path = "%s/%s" % (path, constants.PROFILE_REPOSITORY_VERSION)
                 try:
                     manager = io_manager.Factory(path)
                     try:

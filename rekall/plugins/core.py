@@ -485,6 +485,10 @@ class LoadAddressSpace(plugin.Command):
                         pdb.post_mortem()
                     raise
 
+            # We found something.
+            if base_as:
+                break
+
             ## A full iteration through all the classes without anyone
             ## selecting us means we are done:
             if not found:
