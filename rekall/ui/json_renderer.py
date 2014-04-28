@@ -89,6 +89,25 @@ class JsonRenderer(renderer.BaseRenderer):
         if isinstance(value, dict):
             return self._encode(value)
 
+        if isinstance(value, str):
+
+            encoded_id = self.lexicon.get(value)
+            b64 = unicode(value.encode("base64")).rstrip("\n")
+
+            # The hash of the object is not in the lexicon.
+            if encoded_id is None:
+                # Create a new ID to encode the base64 encoded string itself.
+                encoded_b64_id = self._get_encoded_id(b64)
+                # Create a new ID to store the list encoded string.
+                encoded_id = self.lexicon_counter = self.lexicon_counter + 1
+                # Store the list encoded string under this new ID.
+                self.reverse_lexicon[encoded_id] = self._encode([b64, 1])
+
+                # Also add a shortcut reference original value -> encoded list.
+                self.lexicon[value] = encoded_id
+
+            return encoded_id
+
         # If value is a serializable object, we can store it by id in the
         # lexicon.
         if hasattr(value, "__getstate__"):
@@ -123,13 +142,16 @@ class JsonRenderer(renderer.BaseRenderer):
         if isinstance(item, dict):
             state = item
 
+        elif isinstance(item, list):
+            return [self._encode_value(x) for x in item]
+
         # If value is a serializable object, we can store it by id in the
         # lexicon.
         elif hasattr(item, "__getstate__"):
             state = item.__getstate__()
 
         # Encode json safe items literally.
-        elif isinstance(item, (unicode, int, long, float, basestring)):
+        elif isinstance(item, (unicode, int, long, float)):
             return self._get_encoded_id(item)
 
         else:

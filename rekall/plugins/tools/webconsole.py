@@ -322,16 +322,28 @@ class JSONParser(plugin.Command):
         parser.add_argument("file", default=None,
                             help="The filename to parse.")
 
-    def __init__(self, file=None, **kwargs):
+    def __init__(self, file=None, fd=None, **kwargs):
         super(JSONParser, self).__init__(**kwargs)
-        self.file = file
+        if file:
+          self.fd = open(file)
+        elif fd:
+          self.fd = fd
+        else:
+          raise ValueError("Need a filename or a file descriptor.")
 
     def _decode_value(self, value):
         if isinstance(value, dict):
             return self._decode(value)
 
         try:
-            return self.lexicon[str(value)]
+            result = self.lexicon[str(value)]
+            # Check if this is a string encoded as a list.
+            if (isinstance(result, list) and
+                len(result) == 2 and
+                self.lexicon[str(result[1])] == 1):
+                return self.lexicon[str(result[0])].decode("base64")
+
+            return result
         except KeyError:
             raise DecodingError("Lexicon corruption: Tag %s" % value)
 
@@ -365,7 +377,7 @@ class JSONParser(plugin.Command):
         To decode the json file we replay the statements into the renderer after
         decompressing them.
         """
-        data = json.load(open(self.file))
+        data = json.load(self.fd)
 
         self.lexicon = {}
         for statement in data:

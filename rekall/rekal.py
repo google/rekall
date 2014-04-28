@@ -177,6 +177,5 @@ def main(argv=None):
              IPython012Support(user_session) or
              NativePythonSupport(user_session))
 
-
 if __name__ == '__main__':
     main()

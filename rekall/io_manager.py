@@ -127,10 +127,10 @@ class IOManager(object):
 class DirectoryIOManager(IOManager):
     """An IOManager which stores everything in files."""
 
-    def __init__(self, output_directory=None, **kwargs):
+    def __init__(self, urn=None, **kwargs):
         super(DirectoryIOManager, self).__init__(**kwargs)
 
-        self.dump_dir = os.path.normpath(os.path.abspath(output_directory))
+        self.dump_dir = os.path.normpath(os.path.abspath(urn))
         self.check_dump_dir(self.dump_dir)
         self.canonical_name = os.path.basename(self.dump_dir)
 
@@ -210,20 +210,20 @@ class ZipFileManager(IOManager):
 
     order = 50
 
-    def __init__(self, file_name=None, fd=None, **kwargs):
+    def __init__(self, urn=None, fd=None, **kwargs):
         super(ZipFileManager, self).__init__(**kwargs)
-        if fd is None and not file_name.lower().endswith("zip"):
+        if fd is None and not urn.lower().endswith("zip"):
             if self.mode == "w":
                 raise IOManagerError(
                     "Zip files must have the .zip extensions.")
             else:
                 # For reading we assume the a name without the .zip extension
                 # should have it added.
-                file_name = "%s.zip" % file_name
+                urn = "%s.zip" % urn
 
         self.fd = fd
-        self.file_name = os.path.normpath(os.path.abspath(file_name))
-        self.canonical_name = os.path.splitext(os.path.basename(file_name))[0]
+        self.file_name = os.path.normpath(os.path.abspath(urn))
+        self.canonical_name = os.path.splitext(os.path.basename(urn))[0]
         self._OpenZipFile()
 
         # The set of outstanding writers. When all outstanding writers have been
@@ -387,7 +387,7 @@ def Factory(urn, mode="r", **kwargs):
     """Try to instantiate the IOManager class."""
     for cls in sorted(IOManager.classes.values(), key=lambda x: x.order):
         try:
-            return cls(urn, mode=mode, **kwargs)
+            return cls(urn=urn, mode=mode, **kwargs)
         except IOError:
             pass
 
