@@ -25,6 +25,7 @@ __author__ = "Mikhail Bushkov <mbushkov@google.com>"
 import argparse
 import json
 import time
+import sys
 import os
 import StringIO
 import sys
@@ -42,9 +43,10 @@ from manuskript import server as manuskript_server
 from manuskript import plugin as manuskript_plugin
 from manuskript import plugins as manuskript_plugins
 
-
-STATIC_PATH = os.path.join(os.path.dirname(__file__), "webconsole")
-
+try:
+    STATIC_PATH = os.path.join(sys._MEIPASS, "webconsole") # pylint: disable=protected-access
+except AttributeError:
+    STATIC_PATH = os.path.join(os.path.dirname(__file__), "webconsole")
 
 class RekallPythonCall(manuskript_plugins.PythonCall):
     """PythonCall extension that inserts Rekall session into local context."""
@@ -325,11 +327,11 @@ class JSONParser(plugin.Command):
     def __init__(self, file=None, fd=None, **kwargs):
         super(JSONParser, self).__init__(**kwargs)
         if file:
-          self.fd = open(file)
+            self.fd = open(file)
         elif fd:
-          self.fd = fd
+            self.fd = fd
         else:
-          raise ValueError("Need a filename or a file descriptor.")
+            raise ValueError("Need a filename or a file descriptor.")
 
     def _decode_value(self, value):
         if isinstance(value, dict):

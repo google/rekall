@@ -27,6 +27,7 @@
 """ A Hiber file Address Space """
 from rekall import addrspace
 from rekall import obj
+from rekall import utils
 from rekall.plugins.addrspaces import xpress
 import struct
 
@@ -222,9 +223,7 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
     order = 100
 
     def __init__(self, **kwargs):
-        super(WindowsHiberFileSpace, self).__init__(**kwargs)
-
-        self.as_assert(self.base != self, "No base Address Space")
+        self.as_assert(self.base == None, "No base Address Space")
         self.as_assert(self.base.read(0, 4).lower() in ["hibr", "wake"])
         self.runs = []
         self.PageDict = {}
@@ -255,7 +254,7 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
 
         # Extract processor state
         self.ProcState = self.profile.Object(
-            "_KPROCESSOR_STATE", offset=proc_page * 4096, vm=self.base)
+            "_KPROCESSOR_STATE", offset=proc_page * 4096, vm=base)
 
         ## This is a pointer to the page table - any ASs above us dont
         ## need to search for it.
@@ -264,6 +263,7 @@ class WindowsHiberFileSpace(addrspace.BaseAddressSpace):
         # This is a lengthy process, it was cached, but it may be best to delay this
         # until it's absolutely necessary and/or convert it into a generator...
         self.build_page_cache()
+        super(WindowsHiberFileSpace, self).__init__(**kwargs)
 
     def _get_first_table_page(self):
         if self.header:
