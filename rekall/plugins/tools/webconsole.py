@@ -25,6 +25,7 @@ __author__ = "Mikhail Bushkov <mbushkov@google.com>"
 import argparse
 import json
 import time
+import sys
 import os
 import StringIO
 import sys
@@ -42,9 +43,10 @@ from manuskript import server as manuskript_server
 from manuskript import plugin as manuskript_plugin
 from manuskript import plugins as manuskript_plugins
 
-
-STATIC_PATH = os.path.join(os.path.dirname(__file__), "webconsole")
-
+try:
+    STATIC_PATH = os.path.join(sys._MEIPASS, "webconsole") # pylint: disable=protected-access
+except AttributeError:
+    STATIC_PATH = os.path.join(os.path.dirname(__file__), "webconsole")
 
 class RekallPythonCall(manuskript_plugins.PythonCall):
     """PythonCall extension that inserts Rekall session into local context."""
@@ -322,16 +324,28 @@ class JSONParser(plugin.Command):
         parser.add_argument("file", default=None,
                             help="The filename to parse.")
 
-    def __init__(self, file=None, **kwargs):
+    def __init__(self, file=None, fd=None, **kwargs):
         super(JSONParser, self).__init__(**kwargs)
-        self.file = file
+        if file:
+            self.fd = open(file)
+        elif fd:
+            self.fd = fd
+        else:
+            raise ValueError("Need a filename or a file descriptor.")
 
     def _decode_value(self, value):
         if isinstance(value, dict):
             return self._decode(value)
 
         try:
-            return self.lexicon[str(value)]
+            result = self.lexicon[str(value)]
+            # Check if this is a string encoded as a list.
+            if (isinstance(result, list) and
+                len(result) == 2 and
+                self.lexicon[str(result[1])] == 1):
+                return self.lexicon[str(result[0])].decode("base64")
+
+            return result
         except KeyError:
             raise DecodingError("Lexicon corruption: Tag %s" % value)
 
@@ -365,7 +379,7 @@ class JSONParser(plugin.Command):
         To decode the json file we replay the statements into the renderer after
         decompressing them.
         """
-        data = json.load(open(self.file))
+        data = json.load(self.fd)
 
         self.lexicon = {}
         for statement in data:

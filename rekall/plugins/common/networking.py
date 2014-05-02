@@ -35,11 +35,12 @@ class EntityIFConfig(plugin.ProfileCommand):
                                ("Family", "af", "10"),
                                ("Address", "address", "20")])
 
-        for interface in self.session.entities.find(
-            entity_cls=entity.NetworkInterface):
-            for address in interface.addresses:
+        for interface in self.session.entities.find_by_component(
+            component="NetworkInterface",
+        ):
+            for address in interface.components.NetworkInterface.addresses:
                 renderer.table_row(
-                    interface.interface_name,
+                    interface.components.Named.name,
                     address[0],
                     address[1],
                 )
@@ -51,38 +52,65 @@ class EntityNetstat(plugin.ProfileCommand):
     __name = "enetstat"
 
     def render(self, renderer):
-        # Group connections by protocol and addressing family.
-        inet_by_proto = {}
+        entities = self.session.entities.find_by_component("Connection")
+        
+        inet_socks = []
         unix_socks = []
 
-        for connection in self.session.entities.find(
-            entity_cls=entity.Connection):
-            if connection.addressing_family in ["AF_INET", "AF_INET6"]:
-                proto = connection.protocol
-                for handle in connection.handles:
-                    row = (
-                        proto,
-                        connection.src_address,
-                        connection.src_port,
-                        connection.dst_address,
-                        connection.dst_port,
-                        connection.state,
-                        handle.process.pid,
-                        handle.process.command,
-                    )
-                    inet_by_proto.setdefault(proto, []).append(row)
+        def unix_row(connection, process):
+            if process:
+                pid, comm = process["Process.pid"], process["Process.command"]
+            else:
+                pid, comm = None, None
+
+            unix_socks.append((
+                connection.src_addr,
+                connection.dst_addr,
+                connection.protocols[1],
+                connection.src_bind,
+                pid,
+                comm,
+            ))
+
+        def inet_row(connection, process):
+            if process:
+                pid, comm = process["Process.pid"], process["Process.command"]
+            else:
+                pid, comm = None, None
+
+            inet_socks.append((
+                connection.protocols[1],
+                connection.src_addr,
+                connection.src_bind,
+                connection.dst_addr,
+                connection.dst_bind,
+                connection.state,
+                pid,
+                comm,
+            ))
+
+        for entity in entities:
+            connection = entity.components.Connection
+            if connection.addressing_family in ("AF_INET", "AF_INET6"):
+                row_func = inet_row
             elif connection.addressing_family == "AF_UNIX":
-                for handle in connection.handles:
-                    row = (
-                        connection.source,
-                        connection.destination,
-                        connection.entity_type,
-                        "0x%x" % int(connection.key_obj.vnode),
-                        connection.entity_name,
-                        handle.process.pid,
-                        handle.process.command,
-                    )
-                    unix_socks.append(row)
+                row_func = unix_row
+            else:
+                continue  # So not interested...
+
+            handles = list(entity.get_related_entities("Resource.handle"))
+
+            if not handles:
+                # No process has a handle on this socket. Print it anyway.
+                row_func(connection, None)
+                continue
+            
+            for handle in handles:
+                # At least one process has a handle on this.
+                for p in handle.get_related_entities("Handle.process"):
+                    process = p
+
+                row_func(connection, process)
 
         # First, render internet connections.
         renderer.section("Active Internet connections")
@@ -100,10 +128,8 @@ class EntityNetstat(plugin.ProfileCommand):
             sort=("pid", "proto", "saddr", "sport", "daddr", "dport", "state"),
         )
 
-        # Sort by inet protos, then PID.
-        for rows in inet_by_proto.itervalues():
-            for row in rows:
-                renderer.table_row(*row)
+        for row in inet_socks:
+            renderer.table_row(*row)
 
         # Render the UNIX sockets.
         renderer.section("Active UNIX domain sockets")
@@ -112,7 +138,6 @@ class EntityNetstat(plugin.ProfileCommand):
                 ("Address", "address", "14"),
                 ("Conn", "conn", "14"),
                 ("Type", "type", "10"),
-                ("Vnode", "vnode", "14"),
                 ("Path", "path", "60"),
                 ("Pid", "pid", "8"),
                 ("Comm", "comm", "20"),

@@ -166,43 +166,6 @@ class LinkedList(object):
         return "[" + ", ".join(s) + "]"
 
 
-class Superposition(object):
-    """Represents multiple possible values of a single variable."""
-    def __init__(self, old, new):
-        self.variants = set()
-
-        if isinstance(old, Superposition):
-            self.variants.update(old.variants)
-        else:
-            self.variants.add(old)
-
-        if isinstance(new, Superposition):
-            self.variants.update(new.variants)
-        else:
-            self.variants.add(new)
-
-
-def SuperpositionMerge(x, y):
-    """Merges x and y (dicts). Keeps all values of top-level conflicts.
-
-    In case x and y both contain a top level key that maps to different values
-    the new dictionary will contain, at that key, an instance of Superposition
-    that holds values from both x and y.
-
-    Apart from that distinction, this is the same as running:
-      dict(x.items() + y.items())
-    """
-    result = dict()
-
-    for key, val in itertools.chain(x.iteritems(), y.iteritems()):
-        if result.get(key, val) != val:
-            result[key] = Superposition(result[key], val)
-        else:
-            result[key] = val
-
-    return result
-
-
 class FastStore(object):
     """This is a cache which expires objects in oldest first manner.
 

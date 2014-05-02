@@ -37,8 +37,8 @@ import pdb
 import operator
 import os
 import struct
-
 import copy
+
 from rekall import addrspace
 from rekall import registry
 from rekall import utils
@@ -277,83 +277,6 @@ class Error(Exception):
 
 class ProfileError(Error):
     """Errors in setting the profile."""
-
-
-class BaseObjectIdentity(object):
-    """Stores the minimum amount of data required to uniquely identify objects.
-
-    This container will store:
-      obj_offset
-      obj_type
-      obj_vm, actually an AttributeDict with:
-        dtb (or 0 for physical address space)
-
-    The interface above is the same as what BaseObject would provide which
-    is useful when using the two interchangeably.
-
-    This class also supports pickling and, once unpickled, can rebuild the
-    original BaseObject instance using an active session.
-    """
-    def __init__(self, base_obj=None, obj_offset=None, obj_vm=None,
-                 obj_type=None, dtb=None):
-        if base_obj:
-            obj_offset = base_obj.obj_offset
-            obj_type = base_obj.obj_type
-            dtb = getattr(base_obj.obj_vm, "dtb", 0)
-
-        if obj_vm:
-            dtb = getattr(obj_vm, "dtb", 0)
-
-        if None in (obj_offset, obj_type, dtb):
-            raise AttributeError(
-                "Need at least obj_offset, obj_type and dtb."
-            )
-
-        self.obj_offset = obj_offset
-        self.obj_type = obj_type
-        self.dtb = dtb
-
-    @property
-    def obj_vm(self):
-        return utils.AttributeDict(dtb=self.dtb)
-
-    def restore(self, session):
-        """Rebuild the original BaseObject instance."""
-        if self.dtb == 0:
-            vm = session.physical_address_space
-        elif self.dtb == session.kernel_address_space.dtb:
-            vm = session.kernel_address_space
-        else:
-            raise AttributeError(
-                "DTB does't match the kernel virtual address space."
-            )
-
-        if session == None:
-            raise AttributeError(
-                "Cannot restore a base object without a valid session."
-            )
-
-        return session.profile.Object(
-            type_name=self.obj_type,
-            offset=self.obj_offset,
-            vm=vm,
-        )
-
-    def __getstate__(self):
-        return (self.obj_type, self.obj_offset, self.dtb)
-
-    def __setstate__(self, state):
-        self.obj_type, self.obj_offset, self.dtb = state
-
-    def __eq__(self, other):
-        return ((self.obj_type, self.obj_offset, self.dtb)
-                == (other.obj_type, other.obj_offset, other.dtb))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash((self.obj_type, self.obj_offset, self.dtb))
 
 
 class BaseObject(object):
@@ -878,9 +801,6 @@ class Pointer(NativeType):
     @staticmethod
     def integer_to_address(value):
         """Addresses only use 48 bits."""
-        if value == None:
-            return value
-
         return 0xffffffffffff & int(value)
 
     def __getstate__(self):
@@ -1377,9 +1297,9 @@ class Profile(object):
     # This hold the executable code compiled from the vtypes above.
     types = None
 
-    # This holds the entity generators indexed by the class of entity they
-    # generate.
-    generators = None
+    # This holds all the entity collectors indexed by names of components that
+    # they produce.
+    collectors = None
 
     # This is the base class for all profiles.
     __metaclass__ = registry.MetaclassRegistry
@@ -1506,7 +1426,7 @@ class Profile(object):
 
         self.overlays = []
         self.vtypes = {}
-        self.generators = {}
+        self.collectors = {}
         self.constants = {}
         self.constant_addresses = utils.SortedCollection(key=lambda x: x[0])
         self.enums = {}
@@ -1549,7 +1469,7 @@ class Profile(object):
         # pylint: disable=protected-access
         result = self.__class__(name=self.name, session=self.session)
         result.vtypes = self.vtypes.copy()
-        result.generators = self.generators.copy()
+        result.collectors = self.collectors.copy()
         result.overlays = self.overlays[:]
         result.enums = self.enums.copy()
         result.reverse_enums = self.reverse_enums.copy()
@@ -1574,7 +1494,7 @@ class Profile(object):
         other.EnsureInitialized()
 
         self.vtypes.update(other.vtypes)
-        self.generators.update(other.generators)
+        self.collectors.update(other.collectors)
         self.overlays += other.overlays
         self.constants.update(other.constants)
         self.object_classes.update(other.object_classes)
@@ -1914,32 +1834,24 @@ class Profile(object):
         self.overlays.append(copy.deepcopy(overlay))
         self.known_types.update(overlay)
 
-    def add_generator(self, entity_cls, generator):
-        """Add a generator for a particular entity class.
+    def add_collector(self, components, collector):
+        """Add a collector for a particular entity component.
 
         Arguments:
-          generator: A Callable that takes instance of Session as argument
-          and yields instances of entity_cls.
+          collector: A Callable that takes instance of Session as argument
+            and yields tuples of (identity, components)
 
-          entity_cls: A subclass of Entity.
+          components: Call the collector when this component is requested.
         """
-        self.generators.setdefault(entity_cls, []).append(generator)
+        for component in components:
+            self.collectors.setdefault(component, []).append(collector)
 
-    def entity_generators(self, entity_cls, subclasses=True):
-        """Get generators that return a particular entity class.
-
-        Arguments:
-          subclasses (default: True): Include generators for subclasses too.
-
-        Yields:
-          Callables that take session as argument and return instances of
-          entity_cls.
-        """
-        for cls, generators in self.generators.iteritems():
-            if (entity_cls == cls
-                or (subclasses and issubclass(cls, entity_cls))):
-                for generator in generators:
-                    yield generator
+    def get_collectors(self, component):
+        """Get collectors that yield a particular component."""
+        for name, collectors in self.collectors.iteritems():
+            if component == name:
+                for collector in collectors:
+                    yield collector
 
     def _apply_type_overlay(self, type_member, overlay):
         """Update the overlay with the missing information from type.

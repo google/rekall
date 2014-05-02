@@ -22,11 +22,12 @@ import logging
 
 from rekall import obj
 from rekall import utils
+
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.overlays import basic
-from rekall.plugins.darwin import entities
-from rekall.plugins.darwin import generators
 
+from rekall.plugins.collectors.darwin import darwin
+from rekall.plugins.collectors.darwin import networking
 
 darwin_overlay = {
     "proc": [None, {
@@ -637,8 +638,8 @@ class fileproc(obj.Struct):
         # elif dtype == "DTYPE_PSXSHM":
         #     return self.f_fglob.fg_data.dereference_as("vm_shared_region")
 
-        return obj.NoneObject(
-            "No struct associated with fg_type {}".format(dtype))
+        # That would be an unknown DTYPE.
+        return self.f_fglob.fg_data
 
     @property
     def human_name(self):
@@ -1156,31 +1157,46 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
         profile.add_overlay(darwin_overlay)
         profile.add_constants(default_text_encoding="utf8")
 
-        profile.add_generator(entities.DarwinUnixSocket,
-                              generators.DarwinUnixSocketGenerator)
+        profile.add_collector(
+            collector=networking.NetworkInterfaces,
+            components=["Named", "NetworkInterface"],
+        )
 
-        profile.add_generator(entities.DarwinProcess,
-                              generators.DarwinPgrpHashProcessGenerator)
-        profile.add_generator(entities.DarwinProcess,
-                              generators.DarwinTaskProcessGenerator)
-        profile.add_generator(entities.DarwinProcess,
-                              generators.DarwinAllprocProcessGenerator)
-        profile.add_generator(entities.DarwinProcess,
-                              generators.DarwinPidHashProcessGenerator)
+        profile.add_collector(
+            collector=networking.FileprocHandleCollector,
+            components=["Handle", "MemoryObject", "Resource"],
+        )
 
-        profile.add_generator(entities.DarwinSocket,
-                              generators.DarwinFileprocMultiGenerator)
-        profile.add_generator(entities.DarwinInetSocket,
-                              generators.DarwinFileprocMultiGenerator)
-        profile.add_generator(entities.DarwinUnixSocket,
-                              generators.DarwinFileprocMultiGenerator)
-        profile.add_generator(entities.DarwinOpenHandle,
-                              generators.DarwinFileprocMultiGenerator)
-        profile.add_generator(entities.DarwinOpenFile,
-                              generators.DarwinFileprocMultiGenerator)
+        profile.add_collector(
+            collector=networking.HandleSocketCollector,
+            components=["Connection", "Named"],
+        )
 
-        profile.add_generator(entities.DarwinNetworkInterface,
-                              generators.DarwinNetworkInterfaceGenerator)
+        profile.add_collector(
+            collector=darwin.DarwinPgrpHashProcessCollector,
+            components=["Named", "Process", "User", "MemoryObject"],
+        )
+
+        profile.add_collector(
+            collector=darwin.DarwinTaskProcessCollector,
+            components=["Named", "Process", "User", "MemoryObject"],
+        )
+
+        profile.add_collector(
+            collector=darwin.DarwinAllprocProcessCollector,
+            components=["Named", "Process", "User", "MemoryObject"],
+        )
+        
+        profile.add_collector(
+            collector = darwin.DarwinPidHashProcessCollector,
+            components=["Named", "Process", "User", "MemoryObject"],
+        )
+
+        profile.add_collector(
+            collector = networking.UnixSocketCollector,
+            components=["Connection", "Named"],
+        )
+
 
     def get_constant_cpp_object(self, constant, **kwargs):
         """A variant of get_constant_object which accounts for name mangling."""

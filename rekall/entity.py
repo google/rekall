@@ -22,371 +22,409 @@ The Rekall Memory Forensics entity layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-
+from rekall import components as comp
+from rekall import identity as id
 from rekall import obj
-from rekall import utils
-
-
-class EntityCache(object):
-    """Per-session register of entities."""
-
-    def __init__(self, session):
-        # Entity instances indexed by BaseObjIdentity.
-        self.entities_by_identity = {}
-
-        # BaseObjIdentity instances indexed by generator name, so we know which
-        # generators have run and what they returned.
-        self.identities_by_generator = {}
-        self.session = session
-
-    def register_entity(self, entity, generator):
-        """Associate entity with this register."""
-        entity.session = self.session
-        entity.generators = set([generator])
-
-        identity = entity.identity
-        if identity in self.entities_by_identity:
-            entity = Entity.merge(
-                entity,
-                self.entities_by_identity[identity]
-            )
-
-        self.entities_by_identity[identity] = entity
-        self.identities_by_generator.setdefault(
-            generator,
-            set()).add(identity)
-
-    def _generate_entities(self, entity_cls, include_subclasses=True,
-                           cache_only=False):
-        """Find distinct entities of a particular type.
-
-        Arguments:
-          include_subclasses (default: True): Also look for subclasses.
-
-          entity_cls: The desired class of entities.
-
-          cache_only: Only search the cache, don't run generators.
-
-        Yields:
-          Entities of class entity_cls (or subclass. Entities are merged
-          using Entity.merge if two or more are found to represent the
-          same key object.
-        """
-        generators = self.session.profile.entity_generators(
-            entity_cls=entity_cls,
-            subclasses=include_subclasses,
-        )
-
-        results = set()
-
-        for generator in generators:
-            # If we've already run this generator just get the cached output.
-            if generator.__name__ in self.identities_by_generator:
-                results.update(
-                    self.identities_by_generator[generator.__name__]
-                )
-                continue
-
-            # Skip ahead if we're only hitting cache.
-            if cache_only:
-                continue
-
-            # Otherwise register the entities from the generator.
-            for entity in generator(self.session.profile):
-                self.register_entity(entity, generator.__name__)
-                results.add(entity.identity)
-
-        # Generators can return more than one type of entity, which is why the
-        # filtering by isinstance is necessary to ensure we return correct
-        # results.
-        for identity in results:
-            entity = self.entities_by_identity[identity]
-            if isinstance(entity, entity_cls):
-                yield entity
-
-    def _retrieve_entities(self, entity_cls, key_obj, cache_only=False):
-        """Given a key object, find entities that represent it.
-
-        If the entity already exists in cache it will be retrieved. Otherwise,
-        it'll be creared using entity_cls as class and "Session" as generator
-        name.
-
-        If key_obj is a superposition (from merge) then more than one entity
-        will be yielded.
-
-        Yields:
-          An instance of Entity, most likely entity_cls. If the key object
-          is a superposition, more than one result will be yielded.
-
-        Arguments:
-          entity_cls: The expected class of the entity. Not guaranteed.
-
-          key_obj: The key object to look up. Can be any object that implements
-            obj_offset, obj_vm and obj_type, such as BaseObjectIdentity. Can
-            also be a superposition of more values.
-        """
-        if isinstance(key_obj, utils.Superposition):
-            key_objs = key_obj.variants
-        elif key_obj == None:
-            key_objs = []  # Handle None gracefully.
-        else:
-            key_objs = [key_obj]
-
-        for key_obj in key_objs:
-            # We coerce the key object into a type suitable for use as a
-            # dict key.
-            idx = obj.BaseObjectIdentity(base_obj=key_obj)
-
-            if idx in self.entities_by_identity:
-                yield self.entities_by_identity[idx]
-            elif not cache_only:
-                entity = entity_cls(key_obj=key_obj, session=self)
-                self.register_entity(entity, generator="Session")
-                yield entity
-
-    def find(self, entity_cls=None, key_obj=None,
-             include_subclasses=True, cache_only=False):
-        """Find and yield entities based on class or key object.
-
-        If key_obj is given, will yield entity to represent that object. If
-        one doesn't exist it will be created with "Session" as generator and
-        entity_cls as class.
-
-        If key_obj is a superposition all matches will be yielded as outlined
-        above.
-
-        If only entity_cls is given will yield all objects of that class,
-        running generators as appropriate.
-
-        Arguments:
-          key_obj: Key object to search for. Can also be any object that
-            implements obj_vm, obj_offset and obj_type, such as
-            BaseObjectIdentity. Superposition is supported (see
-            utils.Superposition).
-
-          entity_cls: Entity class to search for.
-
-          include_subclasses (default: True): If searching for all entities
-            of class, also include subclasses.
-
-          cache_only (default: False): Only search the cache, do not create
-            new entities or run generators.
-
-        Returns:
-          Iterable of instances of Entity, possibly of entity_cls.
-        """
-        if key_obj:
-            return self._retrieve_entities(
-                key_obj=key_obj,
-                entity_cls=entity_cls,
-                cache_only=cache_only,
-            )
-
-        if entity_cls:
-            return self._generate_entities(
-                entity_cls=entity_cls,
-                cache_only=cache_only,
-                include_subclasses=include_subclasses,
-            )
-
-        return []
+from rekall import superposition
 
 
 class Entity(object):
-    """Abstraction over high-level concepts like processes and connections.
+    """Entity is an abstraction of things like Process, User or Connection.
 
-    An entity is a wrapper around two pieces of information:
-        Key Object (key_obj) - a subclass of BaseObject (usually a Struct)
-        that provides the entity with its notion of identity (i.e. /what/ the
-        entity is about) and some basic data. Key objects are so named because
-        they serve as the primary key by which entities are indexed and looked
-        up.
+    Each entity consists of a an identity object, like PID, username or a memory
+    address, and a list of components, which are data about the entity.
 
-        Metadata (meta) - a dictionary of arbitrary data that provides
-        contextual information about the key object, such as other objects
-        it's related to (remember, we can look up other entities using those
-        objects as keys) and any other data that was deemed important at
-        time of discovery.
+    Immutability:
+    =============
 
-    Subclasses combine information from both sources of information and present
-    a clean interface, but they should not attach more state information.
+    Entities and components are copy-on-write. Components enforce immutability
+    while Entity and Identity are less strict for practical reasons.
+    Nevertheless, changing an instance of entity or identity after they've been
+    added to an entity manager will result in undefined behavior.
 
-    ### Behavior - Merging
+    Relational Model:
+    =================
 
-    Entities that are equal (their key objects are equal) can me merged into
-    a single entity that has both their data. See merge bellow.
+    Entites support relationships with other entities. For example, a resource
+    has a handle, a handle is owned by a process, and so on. These relationships
+    are implemented using Identity and lookups through an entity manager. See
+    documentation of 'get_related_entities' for details.
 
-    ### IMPORTANT note on relationships between entities and storing entities:
+    Merging:
+    ========
 
-    Some entities have logical relationships of either the 1:1 (e.g. socket
-    and open file) or N:1 sort (e.g. process and open files).
+    If more than one entity is added to an entity manager for the same thing,
+    they will be merged into a single entity with all the properties, as long as
+    the identity is decidable. For example, if we have a user with UID 15 and
+    another user with username "Alice" they will remain separate entities until
+    an entity is added with an identity that has the UID 15 and username
+    "Alice", at which point the identity becomes decidable and all three
+    entities will be merged into one.
 
-    These relationships should, without exception, be expressed through the key
-    objects. For example, a Process entity should store (or lookup) a list
-    of key objects used by OpenFile entity, instead of a list of OpenFile
-    entities.
+    If, during merging, a conflict arises then both versions are kept
+    encapsulated in an instance of superposition.Superposition. As long as you use
+    'get_' family of accessors on Entity this will be handled for you (as those
+    functions always return generators).
 
-    The key object is so named because it serves as the indexing key by which
-    entities are identified, hashed, compared and merged. The per-session
-    profile object will provide an API to lookup/create entity objects from
-    key objects, so there is no reason to ever store entity objects.
+    Superpositions:
+    ===============
+
+    Superpositions are technically merge conflicts, but they are not errors.
+    They occur in cases where there are legitimately multiple valid values of a
+    single attribute. Some examples:
+
+    Resource.handle can have multiple values, because a single file/socket can
+    be opened by multiple handles owned by multiple processes.
+
+    MemoryObject.type can be a superposition in case of unions, or things that
+    are stored as a void pointer and cast depending on contextual state.
+
+    User.real_name can often be a superposition because of variable formatting
+    rules applied by the OS.
+
+    Public state members:
+    =====================
+
+    identity: An instance of Identity, or subclass.
+
+    components: An instance of components.ComponentTuple - see that class for
+        details.
+
+    copies_count: The number of times this entity was discovered by different
+        collectors. Incremented with each merge.
+
+    collectors: A set of collector names that discovered this entity.
+
+    entity_manager: The manager this entity belongs to.
+
+    ### References:
+
+    http://en.wikipedia.org/wiki/Composition_over_inheritance
+    http://en.wikipedia.org/wiki/Entity_component_system
     """
 
-    def __init__(self, key_obj, meta=None, generators=frozenset(),
-                 session=None, copies_count=1):
-        if isinstance(key_obj, obj.BaseObjectIdentity):
-            key_obj = key_obj.restore(session=session)
-
-        # Always deref pointers so we can test for equivalency.
-        if isinstance(key_obj, obj.Pointer):
-            key_obj = key_obj.dereference()
-
-        # Store identity for comparisons and quick lookups.
-        self.identity = obj.BaseObjectIdentity(base_obj=key_obj)
-
-        if meta is None:
-            meta = dict()
-
-        self.key_obj = key_obj
-        self.meta = meta
-        self.generators = generators
-        self.session = session
+    def __init__(self, identity, components, collectors=frozenset(),
+                 copies_count=1, entity_manager=None):
+        self.identity = identity
+        self.components = components
+        self.collectors = frozenset(collectors)
         self.copies_count = copies_count
+        self.entity_manager = entity_manager
 
     def __hash__(self):
         return hash(self.identity)
 
     def __eq__(self, other):
+        if not isinstance(other, Entity):
+            return False
+
         return self.identity == other.identity
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    @classmethod
-    def merge(cls, x, y):
-        """Make a new entity with all the attributes of x and y.
-
-        Arguments:
-          x, y: Two entities with the same key object. x and y don't have
-          to be the exact same class as long as one is a subclass of the other.
-
-        Returns:
-          A new entity of the same class as x and y, with all the attributes
-          of both. If one entity is a subclass of the other then priority is
-          given to the subclass in both the type and the attributes of the
-          returned entity.
-        """
-        if x != y:
-            raise AttributeError(
-                "Cannot merge entities with different key objects.")
-
-        if isinstance(x, type(y)):
-            # Either x is more specific or they're the same.
-            e1 = x
-            e2 = y
-        elif isinstance(y, type(x)):
-            e1 = y
-            e2 = x
-        else:
-            raise AttributeError(
-                "Cannot merge entities of different types.")
-
-        cls = type(e1)
-        return cls(
-            key_obj=e1.key_obj,
-            generators=e1.generators | e2.generators,
-            meta=utils.SuperpositionMerge(e2.meta, e1.meta),
-            session=e1.session,
-            copies_count=e1.copies_count + e2.copies_count,
+    def __unicode__(self):
+        return "Entity(ID: %s; components: %s)" % (
+            str(self.identity),
+            ", ".join([
+                x
+                for x in comp.COMPONENTS
+                if getattr(self.components, x)
+            ])
         )
 
-    @property
-    def entity_name(self):
-        pass
+    def __str__(self):
+        return self.__unicode__()
+
+    def __repr__(self):
+        return self.__unicode__()
+
+    def get_related_entities(self, key):
+        """Retrieve entities this entity is related to.
+
+        If one of the components on this entity has an attribute that contains
+        an identity (such as process_identity on a Handle) then this convenience
+        function will find the entity(ies) represented by that identity.
+
+        Arguments:
+            key: The path to the attribute with identity, without the _identity
+                part (inferred). For example: "Handle.process"
+
+        Yields:
+            Instances of Entity. Note that more than one can be found if the
+                attribute is found to be a superposition (common with handles,
+                for example, as they can be owned by more than one process.)
+        """
+        if not key.endswith("_identity"):
+            key = "%s_identity" % key
+
+        for entity in self.get_attribute_variants(
+            key=key,
+            follow_identities=True):
+            yield entity
+
+    def get_attribute_variants(self, key, follow_identities=True):
+        """Yields all known values of key.
+
+        Arguments:
+            key: The path to the attribute we want. For example: "Process.pid".
+            follow_identities: If True, instances of Identity will automatically
+                be converted into the entities they represent.
+
+        Yields:
+            All known values of the key. This is usually exactly one value, but
+            can be more, if the key is a superposition.
+        """
+        values = self[key]
+        if not values:
+            return  # We don't yield None, we just return an empty generator.
+
+        if isinstance(values, superposition.Superposition):
+            values = values.variants
+        else:
+            values = (values,)
+
+        for value in values:
+            if follow_identities and isinstance(value, id.Identity):
+                for entity in self.entity_manager.find_by_identity(value):
+                    yield entity
+            else:
+                yield value
+
+    def __getitem__(self, key):
+        component_name, attribute = key.split(".")
+        component = getattr(self.components, component_name)
+        if not component:
+            return None
+
+        return getattr(component, attribute, None)
+
+    def update(self, other):
+        """Changes this entity to include information from other.
+
+        This is not a part of the API - only EntityManager should use this.
+        """
+        self.collectors = self.collectors | other.collectors
+        self.components = self.components | other.components
+        self.copies_count = self.copies_count + other.copies_count
+        self.identity = self.identity | other.identity
+
+        return self
 
     @property
-    def entity_type(self):
-        pass
+    def indices(self):
+        """Returns all the keys that the entity will be accessible at."""
+        return set(self.identity.indices)
+
+    def union(self, other):
+        """Returns a new entity that is a union of x and y.
+
+        Original entities remain immutable. If x and y have some of the same
+        components and those components report conflicting values in some fields
+        then those fields will be replaced with a superposition (see
+        superposition.Superposition) of all reported values.
+        """
+        if not self == other:  # self != other can return None.
+            raise AttributeError("Can't do union unless both are equal.")
+
+        return Entity(
+            identity=self.identity | other.identity,
+            components=self.components | other.components,
+            copies_count=self.copies_count + other.copies_count,
+            collectors=self.collectors | other.collectors,
+            entity_manager=self.entity_manager,
+        )
+
+    def __ior__(self, other):
+        return self.update(other)
+
+    def __or__(self, other):
+        return self.union(other)
 
 
-class Process(Entity):
-    @property
-    def pid(self):
-        pass
+class EntityLookupTable(object):
+    """Lookup table for entities."""
 
-    @property
-    def ppid(self):
-        pass
+    def __init__(self, key_name, key_func, entity_manager):
+        self.key_name = key_name
+        self.key_func = key_func
+        self.entity_manager = entity_manager
+        self.table = {}
 
-    @property
-    def command(self):
-        pass
+    def update_index(self, entities):
+        for entity in entities:
+            for key in self.key_func(entity):
+                if key:
+                    self.table.setdefault(key, set()).add(entity.identity)
 
+    def lookup(self, *keys):
+        unique_results = set()
 
-class NetworkInterface(Entity):
-    @property
-    def addresses(self):
-        """Tuples of (protocol, address)."""
-        pass
+        for key in keys:
+            for identity in self.table.get(key, []):
+                for entity in self.entity_manager.find_by_identity(identity):
+                    unique_results.add(entity)
 
-    @property
-    def interface_name(self):
-        pass
-
-    @property
-    def entity_name(self):
-        return self.interface_name
+        return unique_results
 
 
-class OpenResource(Entity):
-    @property
-    def handles(self):
-        pass
+class EntityManager(object):
+    """Database of entities."""
 
+    def __init__(self, session):
+        self.entities = {}
+        self.finished_collectors = set()
+        self.session = session
 
-class OpenFile(OpenResource):
-    @property
-    def full_path(self):
-        pass
+        # Lookup table on component name is such a common use case that we
+        # always have it on. This actually speeds up searches by attribute that
+        # don't have a specific lookup table too.
+        def _component_indexer(entity):
+            for component_name in comp.COMPONENTS:
+                if getattr(entity.components, component_name):
+                    yield component_name
 
+        self.lookup_tables = {
+            "components": EntityLookupTable(
+                key_name="components",
+                key_func=_component_indexer,
+                entity_manager=self,
+            )
+        }
 
-class Connection(OpenResource):
-    @property
-    def addressing_family(self):
-        pass
+    def register_components(self, identity, components, source_collector):
+        """Find or create an entity for identity and add components to it.
 
-    @property
-    def protocol(self):
-        pass
+        Arguments:
+            identity: What the components are about. Should be a subclass of
+                Identity. As a special case, we also accept BaseObjects.
 
-    @property
-    def source(self):
-        pass
+            components: An iterable of components about the identity.
 
-    @property
-    def destination(self):
-        pass
+            source_collector: Anything that responds to __unicode__ or __name__
+                and describes the source of this information (usually the
+                string name of the collector function).
+        """
+        if isinstance(identity, obj.BaseObject):
+            # Be nice and accept base objects.
+            identity = id.BaseObjectIdentity(identity)
 
-    @property
-    def state(self):
-        pass
+        entity = Entity(
+            identity=identity,
+            components=comp.MakeComponentTuple(components),
+            collectors=(source_collector,),
+            entity_manager=self,
+        )
 
+        indices = entity.indices
 
-class OpenHandle(Entity):
-    @property
-    def resource(self):
-        pass
+        for existing_entity in self.find_by_identity(identity):
+            # One or more entities represent the same thing. Lets merge all of
+            # them into the new entity and then replace all the resulting
+            # indices with a reference to the new entity.
+            entity |= existing_entity
+            indices |= existing_entity.indices
 
-    @property
-    def process(self):
-        pass
+        for index in indices:
+            self.entities[index] = entity
 
-    @property
-    def descriptor(self):
-        pass
+        for lookup_table in self.lookup_tables.itervalues():
+            lookup_table.update_index((entity,))
 
-    @property
-    def flags(self):
-        pass
+    def add_attribute_lookup(self, component, attribute):
+        """Adds a fast-lookup index for the component/attribute key path.
 
+        This also causes the newly-created lookup table to rebuild its index.
+        Depending on how many entities already exist, this could possibly even
+        take a few hundred miliseconds.
+        """
+        key_name = "%s.%s" % (component, attribute)
+
+        lookup_table = EntityLookupTable(
+            key_name=key_name,
+            key_func=lambda e: (e[key_name],),
+            entity_manager=self,
+        )
+
+        # Only use the entities that actually have the component to build the
+        # index.
+        lookup_table.update_index(
+            self.find_by_component(component, complete_results=False)
+        )
+
+        self.lookup_tables[key_name] = lookup_table
+
+    def find_by_identity(self, identity):
+        """Yields all entities that match the identity."""
+        for index in identity.indices:
+            entity = self.entities.get(index, None)
+            if entity:
+                yield entity
+
+    def find_by_component(self, component, complete_results=True):
+        """Yields all entities that have the component.
+
+        Arguments:
+            complete_results: If True, will run collect_component(component).
+        """
+        if complete_results:
+            self.collect_component(component)
+
+        return self.lookup_tables["components"].lookup(component)
+
+    def find_by_attribute(self, component, attribute, value,
+                          complete_results=True):
+        """Yields all entities where component.attribute == value.
+
+        Arguments:
+            component: Name of the component, such as "Process" or "User".
+            attribute: Name of the attribute, such as "pid" or "username".
+            value: Value, compared against using the == operator
+            complete_results: If False, will only hit cache. If True, will also
+                collect_component(component).
+
+        Yields:
+            Instances of entity that match the search criteria.
+        """
+
+        key_name = "%s.%s" % (component, attribute)
+        lookup_table = self.lookup_tables.get(key_name, None)
+
+        if lookup_table:
+            # Sweet, we have an index for this.
+            if complete_results:
+                self.collect_component(component)
+
+            for entity in lookup_table.lookup(value):
+                yield entity
+        else:
+            # No specific index. Let's hit the components index and then
+            # iterate.
+            for entity in self.find_by_component(
+                component=component, complete_results=complete_results):
+                if entity[key_name] == value:
+                    yield entity
+
+    def run_collector(self, collector):
+        """Will run the collector, which must be callable.
+
+        All entities yielded by the collector will be registered and collector
+        will be added to the list of collectors that have been executed.
+        """
+        if collector.__name__ in self.finished_collectors:
+            return
+
+        for identity, components in collector(self.session.profile):
+            self.register_components(
+                identity=identity,
+                components=components,
+                source_collector=collector.__name__,
+            )
+
+        self.finished_collectors.add(collector.__name__)
+
+    def collect_component(self, component_name):
+        """Will run all collectors that yield entities with this component."""
+        for collector in self.session.profile.get_collectors(component_name):
+            self.run_collector(collector)
 
