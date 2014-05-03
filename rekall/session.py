@@ -505,7 +505,7 @@ class Session(object):
         # Cache it for later. Note that this also caches failures so we do not
         # retry again.
         self.profile_cache[canonical_name] = result
-        if not result:
+        if result == None:
             raise ValueError("Unable to load profile %s from any repository." %
                              filename)
 

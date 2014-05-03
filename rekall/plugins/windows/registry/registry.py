@@ -219,7 +219,7 @@ class HiveAddressSpace(HiveBaseAddressSpace):
             yield "\0" * self.BLOCK_SIZE
 
         length = self.hive.Hive.Storage[0].Length.v()
-        for i in range(0, length, self.BLOCK_SIZE):
+        for i in xrange(0, length, self.BLOCK_SIZE):
             paddr = self.vtop(i)
             if not paddr:
                 logging.warn("No mapping found for index {0:x}, "
@@ -247,7 +247,7 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         total_blocks = length / self.BLOCK_SIZE
         bad_blocks_reg = 0
         bad_blocks_mem = 0
-        for i in range(0, length, self.BLOCK_SIZE):
+        for i in xrange(0, length, self.BLOCK_SIZE):
             i = ci(i)
             data = None
             paddr = self.vtop(i) - 4
@@ -390,13 +390,13 @@ class _CM_KEY_INDEX(obj.Struct):
             # not care about the hash at all, so we skip every other entry. See
             # http://www.sentinelchicken.com/data/TheWindowsNTRegistryFileFormat.pdf
             key_list = self.List
-            for i in range(self.Count * 2):
+            for i in xrange(self.Count * 2):
                 nk = key_list[i]
                 if nk.Signature == self.NK_SIG:
                     yield nk
 
         elif self.Signature == self.RI_SIG:
-            for i in range(self.Count):
+            for i in xrange(self.Count):
                 # This is a pointer to another _CM_KEY_INDEX
                 for subkey in self.obj_profile.Object(
                     "Pointer32", offset=self.List[i].v(),
@@ -407,7 +407,7 @@ class _CM_KEY_INDEX(obj.Struct):
 
         elif self.Signature == self.LI_SIG:
             key_list = self.List
-            for i in range(self.Count):
+            for i in xrange(self.Count):
                 nk = key_list[i]
                 if nk.Signature == self.NK_SIG:
                     yield nk

@@ -899,7 +899,7 @@ class Array(BaseObject):
     def __iter__(self):
         # If the array is invalid we do not iterate.
         if self.obj_vm.is_valid_address(self.obj_offset):
-            for position in range(0, self.count):
+            for position in xrange(0, self.count):
                 # Since we often calculate array counts it is possible to
                 # calculate huge arrays. This will then spin here
                 # uncontrollably. We use max_count as a safety to break out
@@ -940,7 +940,7 @@ class Array(BaseObject):
         if not other or self.count != len(other):
             return False
 
-        for i in range(self.count):
+        for i in xrange(self.count):
             if not self[i] == other[i]:
                 return False
 

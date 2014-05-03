@@ -5,7 +5,11 @@ from rekall import utils
 
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import crash
-from rekall.plugins.addrspaces import hibernate
+
+# Remove hibernation support as an address space - its too slow to
+# actually use. TODO: Convert into a plugin for being able to convert
+# from a hibernation file (like imagecopy).
+# from rekall.plugins.addrspaces import hibernate
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.addrspaces import macho
 from rekall.plugins.addrspaces import mmap_address_space

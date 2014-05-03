@@ -141,7 +141,8 @@ class ProfileHook(kb.ParameterHook):
         try:
             # Try to load this profile from the repository.
             profile = self.session.LoadProfile(profile_name)
-        except ValueError:
+        except ValueError as e:
+            logging.info("Error loading profile: %s" % e)
             return
 
         return self.ApplyFindDTB(win_common.WinFindDTB, profile)

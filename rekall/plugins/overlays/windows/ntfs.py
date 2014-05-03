@@ -388,7 +388,7 @@ class NTFS_ATTRIBUTE(obj.Struct):
             run_offset += relative_run_offset
             offset += run_offset_size
 
-            for i in range(run_offset, run_offset + run_length):
+            for i in xrange(run_offset, run_offset + run_length):
                 yield i
 
 
@@ -493,4 +493,3 @@ class FLS(plugin.Command):
                 decoded_attribute = attribute.DecodeAttribute()
                 if decoded_attribute:
                     print decoded_attribute
-

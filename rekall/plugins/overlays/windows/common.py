@@ -327,8 +327,9 @@ windows_overlay = {
 
     '_PHYSICAL_MEMORY_DESCRIPTOR' : [None, {
             'Run' : [None, ['Array', dict(
-                        count=lambda x: x.NumberOfRuns,
-                        target='_PHYSICAL_MEMORY_RUN')]],
+                count=lambda x: x.NumberOfRuns,
+                max_count=100,
+                target='_PHYSICAL_MEMORY_RUN')]],
             }],
 
     '_HEAP': [None, {
@@ -451,6 +452,13 @@ class _UNICODE_STRING(obj.Struct):
     def write(self, string):
         self.Buffer.dereference().write(string)
         self.Length = len(string) * 2
+
+    def __getstate__(self):
+        result = super(_UNICODE_STRING, self).__getstate__()
+        result["value"] = self.v()
+        result["type"] = "Literal"
+
+        return result
 
 
 class _SID(obj.Struct):

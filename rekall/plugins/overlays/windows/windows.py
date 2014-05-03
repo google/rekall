@@ -52,6 +52,7 @@ crash_overlays = {
     '_PHYSICAL_MEMORY_DESCRIPTOR' : [None, {
             'Run' : [None, ['Array', dict(
                         count=lambda x: x.NumberOfRuns,
+                        max_count=100,
                         target='_PHYSICAL_MEMORY_RUN')]],
             }],
     }

@@ -57,7 +57,7 @@ def get_lsa_key(sec_registry, bootkey):
     md5 = Hash.MD5.new()
     md5.update(bootkey)
 
-    for _i in range(1000):
+    for _i in xrange(1000):
         md5.update(obf_lsa_key[60:76])
     rc4key = md5.digest()
 
@@ -73,7 +73,7 @@ def decrypt_secret(secret, key):
     Note that key can be longer than 7 bytes."""
     decrypted_data = ''
     j = 0   # key index
-    for i in range(0, len(secret), 8):
+    for i in xrange(0, len(secret), 8):
         enc_block = secret[i:i + 8]
         block_key = key[j:j + 7]
         des_key = hashdump.str_to_key(block_key)

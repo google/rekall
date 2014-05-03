@@ -87,9 +87,9 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         self.cache = utils.FastStore(1000)
 
     FIELDS = (["CR3", "NtBuildNumber", "KernBase", "KDBG"] +
-              ["KPCR%02d" % i for i in range(32)] +
+              ["KPCR%02d" % i for i in xrange(32)] +
               ["PfnDataBase", "PsLoadedModuleList", "PsActiveProcessHead"] +
-              ["Padding%s" % i for i in range(0xff)] +
+              ["Padding%s" % i for i in xrange(0xff)] +
               ["NumberOfRuns"])
 
     def ParseMemoryRuns(self):
@@ -108,7 +108,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
         offset = struct.calcsize(fmt_string)
 
-        for x in range(self.memory_parameters["NumberOfRuns"]):
+        for x in xrange(self.memory_parameters["NumberOfRuns"]):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
             self.runs.insert((start, start, length))
 
