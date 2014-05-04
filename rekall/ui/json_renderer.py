@@ -79,8 +79,7 @@ class JsonRenderer(renderer.BaseRenderer):
                        tool_version=constants.VERSION,
                        )])
 
-        self.SendMessage(
-            ["l", self.reverse_lexicon])
+        return self
 
     def SendMessage(self, statement):
         self.data.append(statement)
@@ -98,6 +97,7 @@ class JsonRenderer(renderer.BaseRenderer):
             if encoded_id is None:
                 # Create a new ID to encode the base64 encoded string itself.
                 encoded_b64_id = self._get_encoded_id(b64)
+
                 # Create a new ID to store the list encoded string.
                 encoded_id = self.lexicon_counter = self.lexicon_counter + 1
                 # Store the list encoded string under this new ID.
@@ -200,6 +200,10 @@ class JsonRenderer(renderer.BaseRenderer):
 
         # We store the data here.
         self.data = []
+
+        # NOTE: The lexicon will continue to be modified, but will be sent as
+        # port of the first statement.
+        self.SendMessage(["l", self.reverse_lexicon])
 
     def _RenderProgress(self, message):
         self.SendMessage(["p", message])

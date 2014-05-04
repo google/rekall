@@ -36,6 +36,11 @@ from rekall import utils
 
 from rekall.plugins import core
 
+# Windows kernel pdb filenames.
+KERNEL_NAMES = set(
+    ["ntoskrnl.pdb", "ntkrnlmp.pdb", "ntkrnlpa.pdb", 
+     "ntkrpamp.pdb"])
+
 
 # We require both a physical AS set and a valid profile for
 # AbstractWindowsCommandPlugins.
@@ -360,7 +365,8 @@ class PsLoadedModuleList(kb.ParameterHook):
         if head.reflect():
             return head
 
-        # Failing this, we try to get PsActiveProcessHead using the KDBG.
+        # Failing this, we try to get PsLoadedModuleList using the
+        # KDBG.
         kdbg = self.session.GetParameter("kdbg")
         if kdbg:
             return kdbg.PsLoadedModuleList

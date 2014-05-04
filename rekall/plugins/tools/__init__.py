@@ -24,6 +24,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 # pylint: disable=unused-import
 import logging
 
+from rekall.plugins.tools import json_tools
 from rekall.plugins.tools import profile_tool
 from rekall.plugins.tools import ipython
 from rekall.plugins.tools import mspdb

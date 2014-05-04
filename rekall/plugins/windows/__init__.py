@@ -7,6 +7,7 @@ from rekall.plugins.windows import crashinfo
 from rekall.plugins.windows import disassembler
 from rekall.plugins.windows import dumpcerts
 from rekall.plugins.windows import filescan
+from rekall.plugins.windows import kernel
 from rekall.plugins.windows import gui
 from rekall.plugins.windows import handles
 from rekall.plugins.windows import index

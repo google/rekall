@@ -296,7 +296,7 @@ class _POOL_HEADER(common._POOL_HEADER):
         if not self.lookup:
             self._BuildLookupTable()
 
-        for i in range(0, allocation_size - info_mask_offset, pool_align):
+        for i in xrange(0, allocation_size - info_mask_offset, pool_align):
             if i + info_mask_offset > len(cached_data):
                 break
 

@@ -762,8 +762,8 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         for offset, _, instruction in self.Disassemble(instruction_limit):
             instructions.append((offset, instruction))
 
-        for i in range(len(instructions)):
-            for j in range(len(terms)):
+        for i in xrange(len(instructions)):
+            for j in xrange(len(terms)):
                 print expressions[j], instructions[i][1]
                 if not terms[j].match(instructions[i + j][1]):
                     break

@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 """This is a windows specific address space."""
+import pywintypes
 import struct
 import win32file
 
@@ -50,7 +51,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
     ## We should be the AS of last resort but in front of the non win32 version.
     order = 90
     PAGE_SIZE = 0x10000
-    _md_image = True
+    __image = True
 
     def __init__(self, base=None, filename=None, **kwargs):
         self.as_assert(base == None, 'Must be first Address Space')
@@ -63,14 +64,24 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
                        "session.GetParameter('filename', 'MyFile.raw').")
 
         self.fname = path
-        self.fhandle = win32file.CreateFile(
-            path,
-            win32file.GENERIC_READ | win32file.GENERIC_WRITE,
-            win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
-            None,
-            win32file.OPEN_EXISTING,
-            win32file.FILE_ATTRIBUTE_NORMAL,
-            None)
+        try:
+            self.fhandle = win32file.CreateFile(
+                path,
+                win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
+                None,
+                win32file.OPEN_EXISTING,
+                win32file.FILE_ATTRIBUTE_NORMAL,
+                None)
+        except pywintypes.error:
+            self.fhandle = win32file.CreateFile(
+                path,
+                win32file.GENERIC_READ,
+                win32file.FILE_SHARE_READ,
+                None,
+                win32file.OPEN_EXISTING,
+                win32file.FILE_ATTRIBUTE_NORMAL,
+                None)
 
         # Try to get the memory runs from the winpmem driver.
         try:
@@ -87,9 +98,9 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         self.cache = utils.FastStore(1000)
 
     FIELDS = (["CR3", "NtBuildNumber", "KernBase", "KDBG"] +
-              ["KPCR%02d" % i for i in range(32)] +
+              ["KPCR%02d" % i for i in xrange(32)] +
               ["PfnDataBase", "PsLoadedModuleList", "PsActiveProcessHead"] +
-              ["Padding%s" % i for i in range(0xff)] +
+              ["Padding%s" % i for i in xrange(0xff)] +
               ["NumberOfRuns"])
 
     def ParseMemoryRuns(self):
@@ -108,7 +119,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
         offset = struct.calcsize(fmt_string)
 
-        for x in range(self.memory_parameters["NumberOfRuns"]):
+        for x in xrange(self.memory_parameters["NumberOfRuns"]):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
             self.runs.insert((start, start, length))
 

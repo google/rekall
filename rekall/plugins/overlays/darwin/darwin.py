@@ -577,7 +577,7 @@ class queue_entry(LIST_ENTRY):
 class sockaddr_dl(obj.Struct):
     def __unicode__(self):
         result = []
-        for i in range(self.sdl_alen):
+        for i in xrange(self.sdl_alen):
             result.append(
                 "%.02X" % ord(self.sdl_data[self.sdl_nlen + i].v()))
 

@@ -22,7 +22,7 @@
 
 """ This is based on Jesse Kornblum's patch to clean up the standard AS's.
 """
-import logging
+
 import struct
 
 from rekall import config
@@ -53,9 +53,6 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
     """
     order = 60
-
-    _md_arch = "AMD64"
-
 
     def pml4e_index(self, vaddr):
         '''
@@ -207,7 +204,7 @@ class VTxPagedMemory(AMD64PagedMemory):
     """
 
     order = 20
-    _md_image = True
+    __image = True
 
     def __init__(self, ept=None, **kwargs):
         # A dummy DTB is passed to the base class so the DTB checks on
@@ -218,7 +215,7 @@ class VTxPagedMemory(AMD64PagedMemory):
         # Reset the DTB, in case a plugin or AS relies on us providing one.
         self.dtb = None
         ept_list = ept or self.session.GetParameter("ept")
-        self.as_assert(ept_list , "No EPT specified")
+        self.as_assert(ept_list, "No EPT specified")
 
         this_ept = None
         if isinstance(self.base, VTxPagedMemory):

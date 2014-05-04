@@ -4,7 +4,7 @@
 #include "Dump.h"
 
 // Executable version.
-static TCHAR version[] = TEXT("1.5.5 Built ") TEXT(__DATE__);
+static TCHAR version[] = TEXT("1.6.0 Built ") TEXT(__DATE__);
 #define PMEM_DEVICE_NAME "pmem"
 #define PMEM_SERVICE_NAME TEXT("pmem")
 

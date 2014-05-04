@@ -21,25 +21,21 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-""" An AS for processing crash dumps """
+"""An Address Space for processing crash dump files."""
 import logging
-from rekall import plugin
 
 from rekall import addrspace
-from rekall.plugins.windows import common
-from rekall.plugins.overlays.windows import windows
-
-PAGE_SHIFT = 12
-
+from rekall.plugins.overlays.windows import crashdump
 
 
 class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
-    """ This AS supports windows Crash Dump format """
+    """ This Address Space supports windows Crash Dump format """
     order = 30
 
     PAGE_SIZE = 0x1000
 
-    _md_image = True
+    # Participate in Address Space voting.
+    __image = True
 
     def __init__(self, **kwargs):
         super(WindowsCrashDumpSpace32, self).__init__(**kwargs)
@@ -74,7 +70,9 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
         self.as_assert((self.base.read(0, 8) == 'PAGEDUMP'),
                        "Header signature invalid")
 
-        self.profile = windows.CrashDump32Profile(session=self.session)
+        self.profile = crashdump.CrashDump32Profile(
+            session=self.session)
+
         self.header = self.profile.Object(
             "_DMP_HEADER", offset=self.offset, vm=self.base)
 
@@ -84,19 +82,27 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
 
     def write(self, vaddr, buf):
         # Support writes straddling page runs.
+        written = 0
         while len(buf):
             file_offset, available_length = self._get_available_buffer(
                 vaddr, len(buf))
             if file_offset is None:
                 raise IOError("Unable to write unmapped runs yet.")
 
-            self.base.write(vaddr, buf[:available_length])
+            written += self.base.write(
+                file_offset, buf[:available_length])
+
             buf = buf[available_length:]
+
+        return written
 
 
 class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
     """This AS supports windows Crash Dump format."""
     order = 30
+
+    # Participate in Address Space voting.
+    __image = True
 
     def check_file(self):
         """Check specifically for 64 bit crash dumps."""
@@ -105,7 +111,9 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
         self.as_assert((self.base.read(0, 8) == 'PAGEDU64'),
                        "Header signature invalid")
 
-        self.profile = windows.CrashDump64Profile(session=self.session)
+        self.profile = crashdump.CrashDump64Profile(
+            session=self.session)
+
         self.as_assert(self.profile.has_type("_DMP_HEADER64"),
                        "_DMP_HEADER64 not available in profile")
         self.header = self.profile.Object("_DMP_HEADER64",
@@ -113,37 +121,18 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
 
         # The following error is fatal - abort the voting mechanism.
 
-        # Unfortunately trunk rekall does not set this field correctly.
+        # Unfortunately trunk Volatility does not set this field correctly, so
+        # we do not make it a fatal error. It can lead to problems if we try to
+        # parse other crash dump formats, (Especially Win8 ones - see below) so
+        # we might consider making this a fatal error in future.
         if self.header.DumpType != "Full Dump":
             logging.warning("This is not a full memory crash dump. "
                             "Kernel crash dumps are not supported.")
 
-
-class CrashInfo(common.AbstractWindowsCommandPlugin):
-    """Dump crash-dump information"""
-
-    __name = "crashinfo"
-
-    @classmethod
-    def is_active(cls, session):
-        """We are only active if the profile is windows."""
-        return isinstance(
-            session.physical_address_space, WindowsCrashDumpSpace32)
-
-    def render(self, renderer):
-        """Renders the crashdump header as text"""
-        if not isinstance(
-            self.physical_address_space, WindowsCrashDumpSpace32):
-            raise plugin.PluginError("Image is not a windows crash dump.")
-
-        renderer.write(self.physical_address_space.header)
-
-        renderer.table_header(
-            [("FileOffset", "file_offset", "[addrpad]"),
-             ("Start Address", "file_start_address", "[addrpad]"),
-             ("Length", "file_length", "[addr]")])
-        page_size = self.physical_address_space.PAGE_SIZE
-        for start, file_offset, count in self.physical_address_space.runs:
-            renderer.table_row(file_offset,
-                               start * page_size,
-                               count * page_size)
+        # Catch this error early or we will hog all memory trying to parse a
+        # huge number of Runs. On Windows 8 we have observed the DumpType to be
+        # == 5 and these fields are padded with "PAGE" (i.e. 0x45474150).
+        if self.header.PhysicalMemoryBlockBuffer.NumberOfRuns > 100:
+            raise RuntimeError(
+                "This crashdump file format is not supported. Rekall does not "
+                "currently support crashdumps using the Win8 format.")

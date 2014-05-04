@@ -21,58 +21,250 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import os
+# pylint: disable=protected-access
 
 from rekall import plugin
 from rekall.plugins.windows import common
+from rekall.plugins.addrspaces import crash
 from rekall.plugins.addrspaces import standard
-from rekall.plugins.overlays.windows import windows
+from rekall.plugins.overlays.windows import crashdump
+
+
+class WritableCrashDump(crash.WindowsCrashDumpSpace64,
+                        standard.WriteableAddressSpace):
+    """A writable crash dump address space.
+
+    When creating a new crash dump, we need to moodify the image:
+    1) To rebuild the KDBG block.
+    2) To decrypt the KDBG block in images which obfuscate it.
+    """
 
 
 class Raw2Dump(common.WindowsCommandPlugin):
-    """Convert the physical address space to a crash dump."""
+    """Convert the physical address space to a crash dump.
+
+    The Windows debugger (Windbg) works only with memory dumps stored
+    in the proprietary 'crashdump' file format. This file format
+    contains the following features:
+
+    1) Physical memory ranges are stored in a sparse way - there is a
+       'Runs' table which specifies the mapping between the physical
+       offset and the file offset of each page. This allows the format
+       to omit unmapped regions (unlike raw format which must pad them
+       with zero to maintain alignment).
+
+    2) The crash dump header contains metadata about the
+       image. Specifically, the header contain a copy of the Kernel
+       Debugger Data Block (AKA the KDBG). This data is used to
+       bootstrap the windows debugger by providing critical initial
+       hints to the debugger.
+
+    Since the KDBG block is created at system boot and never used
+    (until the crash dump is written) it is trivial for malware to
+    overwrite it - making it really hard for responders since windbg
+    will not be able to read the file. In later versions of windows,
+    the kdbg is also obfuscated (See the function "nt!KdCopyDataBlock"
+    which decrypts it.).
+
+    Rekall itself does not use the KDBG block any more, although older
+    memory forensic tools still do use it. Rekall instead relies on
+    accurate debugging symbols to locate critical kernel data
+    structures, reducing the level of trust we place on the image
+    itself (so Rekall is more resilient to manipulation).
+
+    In order to ensure that the windows debugger is able to read the
+    produced crash dump, we recreate the kernel debugger block from
+    the symbol information we already have.
+
+    NOTE: The crashdump file format can be deduced by:
+
+    dis 'nt!IoFillDumpHeader'
+
+    This is the reference for this plugin.
+    """
 
     __name = "raw2dmp"
 
-    def __init__(self, destination=None, overwrite=False,
-                 buffer_size=10*1024*1024, **kwargs):
-        """Convert the physical address space to a crash dump.
+    @classmethod
+    def args(cls, parser):
+        super(Raw2Dump, cls).args(parser)
+        parser.add_argument(
+            "--destination", default=None,
+            help="The destination path to write the crash dump.")
 
-        Args:
-          destination: The destination path to write the crash dump.
-          overwrite: Should the output be overwritten?
-        """
+        parser.add_argument(
+            "--rebuild", default=False, action="store_true",
+            help="Rebuild the KDBG data block.")
+
+    def __init__(self, destination=None, rebuild=False, **kwargs):
         super(Raw2Dump, self).__init__(**kwargs)
-        self.profile = windows.CrashDump64Profile(session=self.session)
+        self.profile = crashdump.CrashDump64Profile.Initialize(self.profile)
 
-        self.buffer_size = buffer_size
+        self.buffer_size = 10*1024*1024
+        self.rebuild = rebuild
         self.destination = destination
         if not destination:
-            raise plugin.PluginError("A destination must be provided.")
-
-        if not overwrite and os.access(destination, os.F_OK):
             raise plugin.PluginError(
-                "Unable to overwrite the destination file '%s'" % destination)
+                "A destination filename must be provided.")
+
+    def _SetKDBG(self, kdbg, member, symbol=None):
+        if symbol is None:
+            symbol = "nt!%s" % member
+
+        symbol = self.session.address_resolver.get_address_by_name(symbol)
+
+        # If the symbol does not exist in the profile, we ignore it here.
+        if symbol == None:
+            return
+
+        kdbg.SetMember(member, symbol | 0xFFFFF00000000000)
+
+    def RebuildKDBG(self, out_fd):
+        """Modify the destination image to rebuild the KDBG."""
+        # Open the crash file for writing.
+        crash_as = crash.WindowsCrashDumpSpace64(
+            base=out_fd, session=self.session)
+
+        kdbg_virtual_address = self.session.GetParameter("kdbg")
+        kdbg_physical_address = self.kernel_address_space.vtop(
+            kdbg_virtual_address)
+
+        # Construct a _KDDEBUGGER_DATA64 over the old one.
+        kdbg = self.profile._KDDEBUGGER_DATA64(
+            offset=kdbg_physical_address,
+            vm=crash_as)
+
+        # Clear the old data just in case.
+        crash_as.write(kdbg_physical_address, "\x00" * kdbg.size())
+
+        # The KDBG header.
+        kdbg.Header.OwnerTag = "KDBG"
+        kdbg.Header.Size = kdbg.size()
+        kdbg.Header.List.Flink = kdbg.Header.List.Blink = (
+            kdbg_virtual_address | 0xFFFFF00000000000)
+
+        kdbg.MmPageSize = 0x1000
+
+        # _KTHREAD offsets.
+        kthread = self.profile._KTHREAD()
+        ethread = self.profile._ETHREAD()
+        kdbg.SizeEThread = ethread.size()
+        kdbg.OffsetKThreadNextProcessor = kthread.NextProcessor.obj_offset
+
+        kdbg.OffsetKThreadTeb = kthread.Teb.obj_offset
+        kdbg.OffsetKThreadKernelStack = kthread.KernelStack.obj_offset
+        kdbg.OffsetKThreadInitialStack = kthread.InitialStack.obj_offset
+
+        kdbg.OffsetKThreadState = kthread.State.obj_offset
+        kdbg.OffsetKThreadApcProcess = kthread.ApcState.Process.obj_offset
+
+        # _EPROCESS offsets.
+        eprocess = self.profile._EPROCESS()
+        kdbg.SizeEProcess = eprocess.size()
+        kdbg.OffsetEprocessPeb = eprocess.m("Peb").obj_offset
+        kdbg.OffsetEprocessParentCID = (
+            eprocess.InheritedFromUniqueProcessId.obj_offset)
+        kdbg.OffsetEprocessDirectoryTableBase = (
+            eprocess.Pcb.DirectoryTableBase.obj_offset)
+
+        # _KPRCB offsets.
+        prcb = self.profile._KPRCB()
+        kdbg.SizePrcb = prcb.size()
+        kdbg.OffsetPrcbDpcRoutine = prcb.DpcRoutineActive.obj_offset
+        kdbg.OffsetPrcbCurrentThread = prcb.CurrentThread.obj_offset
+        kdbg.OffsetPrcbMhz = prcb.MHz.obj_offset
+        kdbg.OffsetPrcbCpuType = prcb.CpuType.obj_offset
+        kdbg.OffsetPrcbVendorString = prcb.VendorString.obj_offset
+        kdbg.OffsetPrcbProcStateSpecialReg = (
+            prcb.ProcessorState.SpecialRegisters.obj_offset)
+
+        kdbg.OffsetPrcbProcStateContext = (
+            prcb.ProcessorState.ContextFrame.obj_offset)
+
+        kdbg.OffsetPrcbNumber = prcb.Number.obj_offset
+        kdbg.OffsetPrcbContext = prcb.Context.obj_offset
+
+        # _KPCR offsets.
+        pcr = self.profile._KPCR()
+        kdbg.SizePcr = pcr.size()
+        kdbg.OffsetPcrSelfPcr = pcr.Self.obj_offset
+        kdbg.OffsetPcrCurrentPrcb = pcr.CurrentPrcb.obj_offset
+        kdbg.OffsetPcrContainedPrcb = pcr.Prcb.obj_offset
+
+        # Global constants.
+        self._SetKDBG(kdbg, "CmNtCSDVersion")
+        self._SetKDBG(kdbg, "ExpNumberOfPagedPools")
+        self._SetKDBG(kdbg, "ExpPagedPoolDescriptor")
+        self._SetKDBG(kdbg, "ExpPagedPoolDescriptor")
+        self._SetKDBG(kdbg, "ExpSystemResourcesList")
+        self._SetKDBG(kdbg, "KdPrintBufferSize")
+        self._SetKDBG(kdbg, "KdPrintCircularBuffer")
+        self._SetKDBG(kdbg, "KdPrintCircularBufferEnd", "nt!KdpBreakpointTable")
+        self._SetKDBG(kdbg, "KdPrintRolloverCount")
+        self._SetKDBG(kdbg, "KdPrintWritePointer")
+        self._SetKDBG(kdbg, "KeLoaderBlock", "nt!KdpLoaderDebuggerBlock")
+        self._SetKDBG(kdbg, "KeTimeIncrement")
+        self._SetKDBG(kdbg, "KernBase", "nt")
+        self._SetKDBG(kdbg, "KiBugCheckData")
+        self._SetKDBG(kdbg, "KiCallUserMode")
+        self._SetKDBG(kdbg, "KiProcessorBlock")
+        self._SetKDBG(kdbg, "KiProcessorBlock")
+        self._SetKDBG(kdbg, "MmAvailablePages")
+        self._SetKDBG(kdbg, "MmFreePageListHead")
+        self._SetKDBG(kdbg, "MmHighestPhysicalPage")
+        self._SetKDBG(kdbg, "MmHighestUserAddress")
+        self._SetKDBG(kdbg, "MmLastUnloadedDriver")
+        self._SetKDBG(kdbg, "MmLoadedUserImageList")
+        self._SetKDBG(kdbg, "MmLowestPhysicalPage")
+        self._SetKDBG(kdbg, "MmMaximumNonPagedPoolInBytes")
+        self._SetKDBG(kdbg, "MmModifiedNoWritePageListHead")
+        self._SetKDBG(kdbg, "MmModifiedPageListHead")
+        self._SetKDBG(kdbg, "MmNonPagedPoolStart")
+        self._SetKDBG(kdbg, "MmNumberOfPagingFiles")
+        self._SetKDBG(kdbg, "MmNumberOfPhysicalPages")
+        self._SetKDBG(kdbg, "MmPagedPoolEnd")
+        self._SetKDBG(kdbg, "MmPagedPoolInformation", "nt!MmPagedPoolInfo")
+        self._SetKDBG(kdbg, "MmPfnDatabase")
+        self._SetKDBG(kdbg, "MmPhysicalMemoryBlock")
+        self._SetKDBG(kdbg, "MmResidentAvailablePages")
+        self._SetKDBG(kdbg, "MmSizeOfPagedPoolInBytes")
+        self._SetKDBG(kdbg, "MmStandbyPageListHead")
+        self._SetKDBG(kdbg, "MmSubsectionBase")
+        self._SetKDBG(kdbg, "MmSystemCacheWs")
+        self._SetKDBG(kdbg, "MmSystemRangeStart")
+        self._SetKDBG(kdbg, "MmUnloadedDrivers")
+        self._SetKDBG(kdbg, "MmUserProbeAddress")
+        self._SetKDBG(kdbg, "MmZeroedPageListHead")
+        self._SetKDBG(kdbg, "NonPagedPoolDescriptor")
+        self._SetKDBG(kdbg, "NtBuildLab")
+        self._SetKDBG(kdbg, "ObpRootDirectoryObject")
+        self._SetKDBG(kdbg, "ObpTypeObjectType")
+        self._SetKDBG(kdbg, "PoolTrackTable")
+        self._SetKDBG(kdbg, "PsActiveProcessHead")
+        self._SetKDBG(kdbg, "PsLoadedModuleList")
+        self._SetKDBG(kdbg, "PspCidTable")
+
+        # Clear the KdpDataBlockEncoded flag from the image.
+        flag = self.profile.get_constant_object(
+            "KdpDataBlockEncoded", "byte")
+        crash_as.write(self.kernel_address_space.vtop(flag.obj_offset), "\x01")
 
     def render(self, renderer):
         PAGE_SIZE = 0x1000
 
         # We write the image to the destination using the WriteableAddressSpace.
-        out_as = standard.WriteableAddressSpace(filename=self.destination)
+        out_as = standard.WriteableAddressSpace(
+            filename=self.destination, session=self.session,
+            mode="w+b")
 
+        # Pad the header area with PAGE pattern:
         if self.profile.metadata("arch") == "AMD64":
-            header = self.profile.Object('_DMP_HEADER64', offset=0, vm=out_as)
-
-            # Pad the header area with PAGE pattern:
+            header = self.profile._DMP_HEADER64(vm=out_as)
             out_as.write(0, "PAGE" * (header.size() / 4))
-
-            header.KdDebuggerDataBlock = int(self.kdbg) | 0xFFFF000000000000
             out_as.write(4, "DU64")
         else:
-            header = self.profile.Object('_DMP_HEADER64', offset=0, vm=out_as)
-            header.KdDebuggerDataBlock = int(self.kdbg)
-
-            # Pad the header area with PAGE pattern:
+            # 32 bit systems use a smaller structure.
+            header = self.profile._DMP_HEADER(vm=out_as)
             out_as.write(0, "PAGE" * (header.size() / 4))
             out_as.write(4, "DUMP")
 
@@ -80,15 +272,11 @@ class Raw2Dump(common.WindowsCommandPlugin):
             if getattr(self.kernel_address_space, "pae", None):
                 header.PaeEnabled = 1
 
-        # Scanning the memory region near KDDEBUGGER_DATA64 for
-        # DBGKD_GET_VERSION64
-        dbgkd = self.kdbg.dbgkd_version64()
-
         # Write the runs from our physical address space.
         number_of_pages = 0
         i = None
 
-        for i, (start, length) in enumerate(
+        for i, (start, _, length) in enumerate(
             self.physical_address_space.get_available_addresses()):
             # Convert to pages
             start = start / PAGE_SIZE
@@ -98,7 +286,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
             header.PhysicalMemoryBlockBuffer.Run[i].PageCount = length
             number_of_pages += length
 
-        # Must be at least one run.
+        # There must be at least one run.
         if i is None:
             raise plugin.PluginError(
                 "Physical address space has no available data.")
@@ -106,17 +294,39 @@ class Raw2Dump(common.WindowsCommandPlugin):
         header.PhysicalMemoryBlockBuffer.NumberOfRuns = i + 1
         header.PhysicalMemoryBlockBuffer.NumberOfPages = number_of_pages
 
+        resolver = self.session.address_resolver
+
         # Set members of the crash header
-        header.MajorVersion = dbgkd.MajorVersion.v()
-        header.MinorVersion = dbgkd.MinorVersion.v()
+        header.MajorVersion = 0xf
+        header.MinorVersion = 0x1db1
         header.DirectoryTableBase = self.session.GetParameter("dtb")
-        header.PfnDataBase = self.kdbg.MmPfnDatabase.v()
-        header.PsLoadedModuleList = self.kdbg.PsLoadedModuleList.v()
-        header.PsActiveProcessHead = self.kdbg.PsActiveProcessHead.v()
-        header.MachineImageType = dbgkd.MachineType.v()
+        header.PfnDataBase = resolver.get_address_by_name(
+            "nt!MmPfnDatabase") | 0xFFFFF00000000000
+
+        header.PsLoadedModuleList = resolver.get_address_by_name(
+            "nt!PsLoadedModuleList") | 0xFFFFF00000000000
+
+        header.PsActiveProcessHead = resolver.get_address_by_name(
+            "nt!PsActiveProcessHead") | 0xFFFFF00000000000
+
+        header.KdDebuggerDataBlock = resolver.get_address_by_name(
+            "nt!KdDebuggerDataBlock") | 0xFFFFF00000000000
+
+        header.MachineImageType = 0x8664
 
         # Find the number of processors
-        header.NumberProcessors = len(list(self.kdbg.kpcrs()))
+        header.NumberProcessors = self.profile.get_constant_object(
+            "KeNumberProcessors", "unsigned int")
+
+        # Copy some stuff from _KUSER_SHARED_DATA.
+        kuser_shared = self.profile._KUSER_SHARED_DATA(
+            self.profile.get_constant("KI_USER_SHARED_DATA"))
+        header.SystemTime = kuser_shared.SystemTime.as_windows_timestamp()
+        header.SystemUpTime = (
+            kuser_shared.InterruptTime.LowPart +
+            kuser_shared.InterruptTime.High1Time << 32) / 100000
+        header.ProductType = kuser_shared.NtProductType
+        header.SuiteMask = kuser_shared.SuiteMask
 
         # Zero out the BugCheck members
         header.BugCheckCode = 0x00000000
@@ -126,9 +336,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
         header.BugCheckCodeParameter[3] = 0x00000000
 
         # Set the sample run information
-
         header.RequiredDumpSpace = number_of_pages + header.size() / PAGE_SIZE
-        header.SystemTime = 0
         header.DumpType = 1
 
         # Zero out the remaining non-essential fields from ContextRecordOffset
@@ -139,12 +347,12 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
         # Set the "converted" comment
         out_as.write(header.Comment.obj_offset,
-                     "File was converted with Rekall Memory Forensics" + "\x00")
+                     "Created with Rekall Memory Forensics\x00")
 
         # Now copy the physical address space to the output file.
         output_offset = header.size()
-        for _ in self.physical_address_space.get_available_addresses():
-            start, length = _
+        for start, _, length in (
+            self.physical_address_space.get_available_addresses()):
 
             # Convert to pages
             start = start / PAGE_SIZE
@@ -167,3 +375,18 @@ class Raw2Dump(common.WindowsCommandPlugin):
                 data_length -= len(data)
                 renderer.RenderProgress(
                     "Wrote %sMB.", (start_offset + offset)/1024/1024)
+
+        # Rebuild the KDBG data block if needed. According to the
+        # disassembly of nt!KdCopyDataBlock the data block is
+        # encrypted when nt!KdpDataBlockEncoded is non zero:
+
+        # ------ nt!KdCopyDataBlock ------
+        # SUB RSP, 0x28
+        # CMP BYTE [RIP+0x10fac7], 0x0   0x0 nt!KdpDataBlockEncoded
+        # MOV RDX, RCX
+        # JZ 0xf8000291e6a7              nt!KdCopyDataBlock + 0x57
+
+        if self.rebuild or self.profile.get_constant_object(
+                "KdpDataBlockEncoded", "byte") > 0:
+            renderer.format("Rebuilding KDBG data block.\n")
+            self.RebuildKDBG(out_as)

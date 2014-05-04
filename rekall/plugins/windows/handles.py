@@ -52,17 +52,6 @@ class Handles(common.WinProcessFilter):
         self.object_list = object_types
         self.silent = silent
 
-    def full_key_name(self, handle):
-        """Returns the full name of a registry key based on its CM_KEY_BODY handle"""
-        output = []
-        kcb = handle.KeyControlBlock
-        while kcb.ParentKcb:
-            if kcb.NameBlock.Name == None:
-                break
-            output.append(str(kcb.NameBlock.Name))
-            kcb = kcb.ParentKcb
-        return "\\".join(reversed(output))
-
     def enumerate_handles(self, task):
         if task.ObjectTable.HandleTableList:
             for handle in task.ObjectTable.handles():
