@@ -8,6 +8,12 @@ import re
 from rekall import obj
 from rekall import registry
 
+class KernelModule(object):
+    def __init__(self, session):
+        self.session = session
+        self.name = "nt"
+        self.base = self.session.GetParameter("kernel_base")
+
 
 class SymbolContainer(object):
     """A container class for symbols."""
@@ -225,6 +231,9 @@ class AddressResolver(object):
                     if module_name in self.profiles:
                         self.profiles[module_name].image_base = module.base
 
+                self.profiles["nt"] = self.session.profile
+                self.modules_by_name["nt"] = KernelModule(self.session)
+
             except AttributeError:
                 self.modules = None
 
@@ -238,6 +247,10 @@ class AddressResolver(object):
         self._EnsureInitialized()
         try:
             module_name = self._NormalizeModuleName(module_name)
+            # Try to get the profile directly from the local cache.
+            if module_name in self.profiles:
+                return self.profiles[module_name]
+
             module = self.modules_by_name[module_name]
 
             module_profile = self.session.LoadProfile(profile)
@@ -307,7 +320,7 @@ class AddressResolver(object):
         if profile:
             return self._LoadProfile(module_name, profile)
 
-        # Try to detect the GUI from the module object.
+        # Try to detect the profile from the module object.
         module = self.modules_by_name.get(module_name)
         if module:
             return self.LoadProfileForModule(module)
@@ -455,12 +468,13 @@ class AddressResolver(object):
         result = []
 
         components = self._ParseAddress(pattern)
-        profile = self.LoadProfileForName(components["module"])
+        module_name = components["module"]
+        profile = self.LoadProfileForName(module_name)
 
         # Match all symbols.
         symbol_regex = re.compile(components["symbol"].replace("*", ".*"))
         for constant in profile.constants:
             if symbol_regex.match(constant):
-                result.append(constant)
+                result.append("%s!%s" % (module_name, constant))
 
         return result

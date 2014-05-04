@@ -174,6 +174,32 @@ class Configuration(Cache):
             self.session.UpdateFromConfigObject()
 
 
+class ProgressDispatcher(object):
+    """An object to manage progress calls.
+
+    Since Rekall must be usable as a library it can not block for too
+    long. Rekall makes continuous reports of its progress to the
+    ProgressDispatcher, which then further dispatches them to other
+    callbacks. This allows users of the Rekall library to be aware of how
+    analysis is progressing. (e.g. to report it in a GUI).
+
+    """
+
+    def __init__(self):
+        self.heap = []
+        self.callbacks = {}
+
+    def Register(self, key, callback):
+        self.callbacks[key] = callback
+
+    def UnRegister(self, key):
+        del self.callbacks[key]
+
+    def Broadcast(self, message, *args, **kwargs):
+        for handler in self.callbacks.values():
+            handler(message, *args, **kwargs)
+
+
 class Session(object):
     """Base session.
 
@@ -182,7 +208,7 @@ class Session(object):
 
     def __init__(self, **kwargs):
         self._parameter_hooks = {}
-
+        self.progress = ProgressDispatcher()
         self.profile = obj.NoneObject("Set this to a valid profile "
                                       "(e.g. type profiles. and tab).")
 
@@ -198,6 +224,14 @@ class Session(object):
         self.state = Configuration(self, cache=Cache(), **kwargs)
         self.inventories = {}
         self.UpdateFromConfigObject()
+
+    def __enter__(self):
+        # Allow us to update the context manager.
+        self.state.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.state.__exit__(exc_type, exc_value, trace)
 
     def Reset(self):
         self.physical_address_space = None
@@ -321,9 +355,6 @@ class Session(object):
         if pager == "-":
             pager = None
 
-        # If the args came from the command line parse them now:
-        flags = kwargs.get("flags")
-
         if isinstance(plugin_cls, basestring):
             plugin_name = plugin_cls
             plugin_cls = getattr(self.plugins, plugin_cls, None)
@@ -331,12 +362,17 @@ class Session(object):
                 logging.error("Plugin %s is not active. Is it supported with "
                               "this profile?", plugin_name)
                 return
+        else:
+            plugin_name = plugin_cls.__name__
 
+        # If the args came from the command line parse them now:
+        flags = kwargs.get("flags")
         if flags:
             from rekall import args
 
             kwargs = args.MockArgParser().build_args_dict(plugin_cls, flags)
 
+        # Allow the output to be sent to a file.
         output = kwargs.pop("output", None)
 
         # Select the renderer from the session or from the kwargs.
@@ -351,26 +387,21 @@ class Session(object):
                 fd = open(output, "w")
                 pager = None
 
-            # Allow per call overriding of the output file descriptor.
-            paging_limit = self.GetParameter("paging_limit")
-            if not pager:
-                paging_limit = None
-
-            ui_renderer = ui_renderer_cls(session=self, fd=fd,
-                                          paging_limit=paging_limit)
+            ui_renderer = ui_renderer_cls(session=self, fd=fd, pager=pager)
 
         try:
-            kwargs['session'] = self
+            # Start the renderer before instantiating the plugin to allow
+            # rendering of reported progress in the constructor.
+            with ui_renderer.start(plugin_name=plugin_name):
+                kwargs['session'] = self
 
-            # If we were passed an instance we do not instantiate it.
-            if inspect.isclass(plugin_cls) or isinstance(plugin_cls, obj.Curry):
-                result = plugin_cls(*pos_args, **kwargs)
-            else:
-                result = plugin_cls
+                # If we were passed an instance we do not instantiate it.
+                if (inspect.isclass(plugin_cls) or
+                    isinstance(plugin_cls, obj.Curry)):
+                    result = plugin_cls(*pos_args, **kwargs)
+                else:
+                    result = plugin_cls
 
-            ui_renderer.start(plugin_name=result.name, kwargs=kwargs)
-
-            try:
                 result.render(ui_renderer)
 
                 # If there was too much data and a pager is specified, simply
@@ -383,9 +414,6 @@ class Session(object):
 
                     # Now wait for the user to exit the pager.
                     pager.flush()
-
-            finally:
-                ui_renderer.end()
 
             return result
 
@@ -516,8 +544,7 @@ class Session(object):
 
     def report_progress(self, message=" %(spinner)s", *args, **kwargs):
         """Called by the library to report back on the progress."""
-        if callable(self.progress):
-            self.progress(message, *args, **kwargs)
+        self.progress.Broadcast(message, *args, **kwargs)
 
 
 class InteractiveSession(Session):

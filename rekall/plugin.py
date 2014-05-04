@@ -115,8 +115,9 @@ class Command(object):
         fd = StringIO.StringIO()
         ui_renderer = text_renderer.TextRenderer(
             session=self.session, fd=fd)
-        ui_renderer.start(plugin_name=self.name)
-        self.render(ui_renderer)
+
+        with ui_renderer.start(plugin_name=self.name):
+            self.render(ui_renderer)
 
         return fd.getvalue()
 

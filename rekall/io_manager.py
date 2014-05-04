@@ -295,51 +295,6 @@ class ZipFileManager(IOManager):
         return "ZipFile:%s" % self.file_name
 
 
-class BuiltInManager(IOManager):
-    """An IO manager which uses a python dict."""
-
-    order = 10
-
-    __abstract = True
-
-    # This should contain the data.
-    data = {}
-
-    def __init__(self, urn=None, data=None, **kwargs):
-        super(BuiltInManager, self).__init__(**kwargs)
-        if urn is not None:
-            raise IOManagerError("urn specified.")
-
-        if self.mode != "r":
-            raise IOManagerError(
-                "BuiltInManager can only be opened for reading.")
-
-        if data:
-            self.data = data
-
-    def ListFiles(self):
-        return self.data.keys()
-
-    def _Cancel(self, name):
-        pass
-
-    def _Write(self, name, value):
-        self.data[name] = value
-
-    def Create(self, name):
-        return SelfClosingFile(name, self)
-
-    def GetData(self, name):
-        result = self.data.get(name)
-        if not result:
-            raise IOManagerError("%s not found." % name)
-
-        return result
-
-    def __str__(self):
-        return "BuiltIn:%s" % self.__class__.__name__
-
-
 class URLManager(IOManager):
     """Supports openning containers from the web.
 

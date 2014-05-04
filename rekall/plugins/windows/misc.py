@@ -421,6 +421,7 @@ class PoolTracker(common.WindowsCommandPlugin):
             if item.Key == 0:
                 continue
 
+            self.session.report_progress()
             renderer.table_row(
                 # Show the pool tag as ascii.
                 item.Key.cast("String", length=4),

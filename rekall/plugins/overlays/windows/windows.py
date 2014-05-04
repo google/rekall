@@ -21,7 +21,6 @@
 
 # pylint: disable=protected-access
 
-import copy
 import re
 
 from rekall.plugins.overlays import basic
@@ -30,65 +29,8 @@ from rekall.plugins.overlays.windows import xp
 from rekall.plugins.overlays.windows import vista
 from rekall.plugins.overlays.windows import win7
 from rekall.plugins.overlays.windows import win8
-from rekall.plugins.overlays.windows import crash_vtypes
-from rekall.plugins.overlays.windows import kdbg_vtypes
+from rekall.plugins.overlays.windows import crashdump
 from rekall.plugins.overlays.windows import undocumented
-
-# Reference:
-# http://computer.forensikblog.de/en/2006/03/dmp-file-structure.html
-crash_overlays = {
-    "_DMP_HEADER": [None, {
-            'Signature': [None, ['String', dict(length=4)]],
-            'ValidDump': [None, ['String', dict(length=4)]],
-            'SystemTime': [None, ['WinFileTime']],
-            'DumpType': [None, ['Enumeration', {
-                        'choices': {
-                            1: "Full Dump",
-                            2: "Kernel Dump",
-                            },
-                        'target': 'unsigned int'}]],
-            }],
-
-    '_PHYSICAL_MEMORY_DESCRIPTOR' : [None, {
-            'Run' : [None, ['Array', dict(
-                        count=lambda x: x.NumberOfRuns,
-                        max_count=100,
-                        target='_PHYSICAL_MEMORY_RUN')]],
-            }],
-    }
-
-crash_overlays['_DMP_HEADER64'] = copy.deepcopy(crash_overlays['_DMP_HEADER'])
-
-
-class CrashDump32Profile(basic.Profile32Bits, basic.BasicClasses):
-    """A profile for crash dumps."""
-    def __init__(self, **kwargs):
-        super(CrashDump32Profile, self).__init__(**kwargs)
-        self.add_overlay(crash_vtypes.crash_vtypes)
-        self.add_overlay(crash_overlays)
-
-
-class CrashDump64Profile(basic.ProfileLLP64, basic.BasicClasses):
-    """A profile for crash dumps."""
-    def __init__(self, **kwargs):
-        super(CrashDump64Profile, self).__init__(**kwargs)
-        self.add_types(crash_vtypes.crash_vtypes)
-        self.add_types(crash_vtypes.crash_64_vtypes)
-        self.add_overlay(crash_overlays)
-
-
-def InstallKDDebuggerProfile(profile):
-    """Define the kernel debugger structures.
-
-    The kernel debugger strucutures do not vary with windows operating system
-    version very much. This is probably done to make it easier for Windbg to
-    support all the different windows versions.
-    """
-    profile.add_types(kdbg_vtypes.kdbg_vtypes)
-    profile.add_overlay(kdbg_vtypes.kdbg_overlay)
-    profile.add_classes({
-            "_KDDEBUGGER_DATA64": kdbg_vtypes._KDDEBUGGER_DATA64
-            })
 
 
 class RelativeOffsetMixin(object):
@@ -318,8 +260,7 @@ class Ntoskrnl(BasicPEProfile):
 
         # Install the base windows support.
         common.InitializeWindowsProfile(profile)
-
-        InstallKDDebuggerProfile(profile)
+        crashdump.InstallKDDebuggerProfile(profile)
 
         # Get the windows version of this profile.
         version = cls.GuessVersion(profile)

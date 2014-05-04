@@ -609,6 +609,10 @@ class RegistryPlugin(common.WindowsCommandPlugin):
             key on all hives.
         """
         super(RegistryPlugin, self).__init__(**kwargs)
+
+        # Install our specific implementation of registry support.
+        RekallRegisteryImplementation(self.profile)
+
         self.hive_offsets = hive_offsets
         if not self.hive_offsets:
             self.hive_offsets = list(self.list_hives())
@@ -621,9 +625,6 @@ class RegistryPlugin(common.WindowsCommandPlugin):
                     hive_offsets.append(hive)
 
             self.hive_offsets = hive_offsets
-
-        # Install our specific implementation of registry support.
-        RekallRegisteryImplementation(self.profile)
 
     def list_hives(self):
         hive_list = self.profile.get_constant_object(

@@ -381,6 +381,10 @@ windows_overlay = {
             target="unsigned char",
             )]],
         }],
+
+    '_CM_NAME_CONTROL_BLOCK' : [None, {
+        'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
+        }],
 }
 
 

@@ -35,7 +35,6 @@ import subprocess
 import sys
 import tempfile
 import textwrap
-import time
 
 from rekall import obj
 from rekall import utils
@@ -344,8 +343,7 @@ class TextRenderer(renderer.BaseRenderer):
     paging_limit = None
     table_cls = TextTable
 
-    def __init__(self, tablesep=" ", elide=False, max_data=1024*1024,
-                 **kwargs):
+    def __init__(self, tablesep=" ", elide=False, max_data=1024*1024, **kwargs):
         super(TextRenderer, self).__init__(**kwargs)
 
         self.tablesep = tablesep

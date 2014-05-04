@@ -28,7 +28,7 @@ class MACHOCoreDump(addrspace.RunBasedAddressSpace):
     """This AS supports MACH-O coredump files."""
 
     __name = "macho64"
-    _md_image = True
+    __image = True
 
     def __init__(self, **kwargs):
         super(MACHOCoreDump, self).__init__(**kwargs)
@@ -57,4 +57,3 @@ class MACHOCoreDump(addrspace.RunBasedAddressSpace):
         ## Must start with the magic for macho 64.
         self.as_assert((self.base.read(0, 4) == "\xcf\xfa\xed\xfe"),
                        "Header signature invalid")
-

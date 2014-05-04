@@ -535,7 +535,7 @@ class NativeType(BaseObject, NumericProxyMixIn):
 
     def write(self, data):
         """Writes the data back into the address space"""
-        output = struct.pack(self.format_string, data)
+        output = struct.pack(self.format_string, int(data))
         return self.obj_vm.write(self.obj_offset, output)
 
     def proxied(self):
@@ -1520,9 +1520,13 @@ class Profile(object):
         return tuple([self._metadata.get(x) for x in args])
 
     def has_type(self, type_name):
+        # Make sure we are initialized on demand.
+        self.EnsureInitialized()
         return type_name in self.vtypes
 
     def has_class(self, class_name):
+        # Make sure we are initialized on demand.
+        self.EnsureInitialized()
         return class_name in self.object_classes
 
     def add_classes(self, classes_dict=None, **kwargs):
@@ -1703,7 +1707,7 @@ class Profile(object):
             elif value:
                 # Specify both getters and setter for the field.
                 getter = lambda self, name=name: self.m(name)
-                setter = lambda self, value=value: self.SetMember(name, value)
+                setter = lambda self, v=value, n=name: self.SetMember(n, v)
 
             properties[name] = property(getter, setter, None, name)
 
