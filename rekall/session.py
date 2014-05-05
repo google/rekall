@@ -389,10 +389,10 @@ class Session(object):
 
             ui_renderer = ui_renderer_cls(session=self, fd=fd, pager=pager)
 
-        try:
-            # Start the renderer before instantiating the plugin to allow
-            # rendering of reported progress in the constructor.
-            with ui_renderer.start(plugin_name=plugin_name):
+        # Start the renderer before instantiating the plugin to allow
+        # rendering of reported progress in the constructor.
+        with ui_renderer.start(plugin_name=plugin_name):
+            try:
                 kwargs['session'] = self
 
                 # If we were passed an instance we do not instantiate it.
@@ -415,34 +415,27 @@ class Session(object):
                     # Now wait for the user to exit the pager.
                     pager.flush()
 
-            return result
+                return result
 
-        except plugin.InvalidArgs, e:
-            logging.error("Invalid Args (Try info plugins.%s): %s",
-                          plugin_cls.name, e)
+            except plugin.InvalidArgs, e:
+                logging.error("Invalid Args (Try info plugins.%s): %s",
+                              plugin_cls.name, e)
 
-        except plugin.Error, e:
-            self.error(plugin_cls, e)
+            except plugin.Error, e:
+                self.error(plugin_cls, e)
 
-        except KeyboardInterrupt:
-            if self.debug:
-                pdb.post_mortem(sys.exc_info()[2])
+            except KeyboardInterrupt:
+                if self.debug:
+                    pdb.post_mortem(sys.exc_info()[2])
 
-            self.report_progress("Aborted!\r\n", force=True)
+                self.report_progress("Aborted!\r\n", force=True)
 
-        except Exception, e:
-            # If anything goes wrong, we break into a debugger here.
-            if debug:
-                # With debug on, we use traceback to print detailed information
-                # about the error, because pdb can sometimes get it wrong.
-                _, _, trace = sys.exc_info()
-                logging.error(
-                    "Detailed error:\n%s",
-                    traceback.format_exc(),
-                )
-                pdb.post_mortem(sys.exc_info()[2])
-            else:
-                logging.error("Error: %s", e)
+            except Exception, e:
+                # If anything goes wrong, we break into a debugger here.
+                ui_renderer.report_error(traceback.format_exc())
+                if debug:
+                    pdb.post_mortem(sys.exc_info()[2])
+
                 raise
 
     def LoadProfile(self, filename, use_cache=True):

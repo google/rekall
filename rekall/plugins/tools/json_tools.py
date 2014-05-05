@@ -130,6 +130,9 @@ class JSONParser(plugin.Command):
         if not isinstance(item, dict):
             return self._decode_value(item)
 
+        elif isinstance(item, str):
+            return self._decode_value(item)
+
         state = {}
         for k, v in item.items():
             decoded_key = self._decode_value(k)
@@ -162,6 +165,9 @@ class JSONParser(plugin.Command):
         elif command == "s":
             renderer.section(**self._decode(statement[1]))
 
+        elif command == "e":
+            renderer.report_error(statement[1])
+
         elif command == "f":
             args = [self._decode(x) for x in statement[1:]]
             renderer.format(*args)
@@ -180,7 +186,7 @@ class JSONParser(plugin.Command):
         decompressing them.
         """
         if self.file:
-            self.fd = open(file)
+            self.fd = open(self.file)
 
         if self.fd is None:
             raise ValueError("Need a filename or a file descriptor.")

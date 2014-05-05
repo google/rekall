@@ -95,9 +95,6 @@ class JsonRenderer(renderer.BaseRenderer):
 
             # The hash of the object is not in the lexicon.
             if encoded_id is None:
-                # Create a new ID to encode the base64 encoded string itself.
-                encoded_b64_id = self._get_encoded_id(b64)
-
                 # Create a new ID to store the list encoded string.
                 encoded_id = self.lexicon_counter = self.lexicon_counter + 1
                 # Store the list encoded string under this new ID.
@@ -154,6 +151,9 @@ class JsonRenderer(renderer.BaseRenderer):
         elif isinstance(item, (unicode, int, long, float)):
             return self._get_encoded_id(item)
 
+        elif isinstance(item, str):
+            return self._encode_value(item)
+
         else:
             raise RuntimeError("Unable to encode objects of type %s" %
                                type(item))
@@ -165,7 +165,7 @@ class JsonRenderer(renderer.BaseRenderer):
         return result
 
     def format(self, formatstring, *args):
-        statement = [self._encode(formatstring)]
+        statement = ["f", self._encode(formatstring)]
         for arg in args:
             # Just store the statement in the output.
             statement.append(self._encode(arg))
@@ -175,6 +175,9 @@ class JsonRenderer(renderer.BaseRenderer):
     def section(self, name=None, **kwargs):
         kwargs["name"] = name
         self.SendMessage(["s", self._encode(kwargs)])
+
+    def report_error(self, message):
+        self.SendMessage(["e", message])
 
     def table_header(self, columns=None, **kwargs):
         # TODO: Remove this when all calls are done with kwargs.

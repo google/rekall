@@ -118,6 +118,12 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         # The length is really determined by the terminator here.
         return len(self.v())
 
+    def __getstate__(self):
+        result = super(String, self).__getstate__()
+        result["value"] = str(self)
+
+        return result
+
 
 class Signature(String):
     """A string forming a signature."""
