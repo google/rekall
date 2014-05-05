@@ -22,6 +22,7 @@
 A renderer is used by plugins to produce formatted output.
 """
 import gc
+import logging
 import time
 import re
 import os
@@ -393,6 +394,12 @@ class BaseRenderer(object):
 
     def color(self, target, **kwargs):
         return self.colorizer.Render(target, **kwargs)
+
+    def report_error(self, message):
+        """Render the error in an appropriate way."""
+        # By default just log the error. Visual renderers may choose to render
+        # errors in a distinctive way.
+        logging.error(message)
 
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
         # Only write once per second.

@@ -588,6 +588,8 @@ class RegistryPlugin(common.WindowsCommandPlugin):
 
     @classmethod
     def args(cls, parser):
+        super(RegistryPlugin, cls).args(parser)
+
         parser.add_argument(
             "-o", "--hive-offsets", default=None,
             action=config.ArrayIntParser, nargs="+",
