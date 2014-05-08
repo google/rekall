@@ -92,7 +92,7 @@
     </div>
   </div>
 
-  <div ng-if="node.state == 'show'" ng-dblclick="editNode(node)">
+  <div ng-if="node.state == 'show'">
     <div ng-if="node.rendered.stderr">
       <code-editor language="plaintext" readonly="true" ng-model="node.rendered.stderr" split-list></code-editor>
     </div>

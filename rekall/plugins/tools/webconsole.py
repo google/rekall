@@ -229,20 +229,20 @@ class WebConsole(plugin.Command):
                             "changes in the resources and reload them as "
                             "needed.")
 
-        parser.add_argument("--open_browser", default=False,
+        parser.add_argument("--no_browser", default=False,
                             action='store_true',
-                            help="Opens webconsole in the default browser.")
+                            help="Don't open webconsole in the default browser.")
 
     def __init__(self, host="localhost", port=5000, debug=False,
-                 open_browser=False, **kwargs):
+                 no_browser=False, **kwargs):
         super(WebConsole, self).__init__(**kwargs)
         self.host = host
         self.port = port
         self.debug = debug
-        self.open_browser = open_browser
+        self.no_browser = no_browser
 
     def server_post_activate_callback(self):
-        if self.open_browser:
+        if not self.no_browser:
             webbrowser.open("http://%s:%d" % (self.host, self.port))
 
     def render(self, renderer):
