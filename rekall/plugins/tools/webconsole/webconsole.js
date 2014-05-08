@@ -5,7 +5,7 @@
     manuskriptConfiguration.pageTitle = 'Rekall Web Console';
     manuskriptConfiguration.nodes = [{
       type: 'pythoncall',
-      source: ['session'],
+      source: ['rekall_session'],
       state: 'render',
       rendered: {
         stderr: [],

@@ -27,6 +27,7 @@ import sys
 import os
 import StringIO
 import sys
+import webbrowser
 
 from rekall import config
 from rekall import plugin
@@ -54,6 +55,7 @@ class RekallPythonCall(manuskript_plugins.PythonCall):
 
         rekall_session = app.config["rekall_session"]
         shell.local_context = rekall_session._locals # pylint: disable=protected-access
+        shell.global_context["rekall_session"] = rekall_session
 
 
 class FakeParser(object):
@@ -122,6 +124,10 @@ class RekallWebConsole(manuskript_plugin.Plugin):
         "/rekall-webconsole/runplugin-controller.js",
         "/rekall-webconsole/runplugin.js",
         "/rekall-webconsole/webconsole.js"
+        ]
+
+    CSS_FILES = [
+        "/rekall-webconsole/runplugin.css"
         ]
 
     @classmethod
@@ -215,19 +221,29 @@ class WebConsole(plugin.Command):
         parser.add_argument("--host", default="localhost",
                             help="Host for the web console to use.")
 
-        parser.add_argument("--port", default=5000,
+        parser.add_argument("--port", default=5000, type=int,
                             help="Port for the web console to use.")
 
-        parser.add_argument("--debug", default=False,
+        parser.add_argument("--debug", default=False, action='store_true',
                             help="Start in the debug mode (will monitor "
                             "changes in the resources and reload them as "
                             "needed.")
 
-    def __init__(self, host="localhost", port=5000, debug=False, **kwargs):
+        parser.add_argument("--open_browser", default=False,
+                            action='store_true',
+                            help="Opens webconsole in the default browser.")
+
+    def __init__(self, host="localhost", port=5000, debug=False,
+                 open_browser=False, **kwargs):
         super(WebConsole, self).__init__(**kwargs)
         self.host = host
         self.port = port
         self.debug = debug
+        self.open_browser = open_browser
+
+    def server_post_activate_callback(self):
+        if self.open_browser:
+            webbrowser.open("http://%s:%d" % (self.host, self.port))
 
     def render(self, renderer):
         renderer.format("Starting Manuskript web console.")
@@ -237,7 +253,8 @@ class WebConsole(plugin.Command):
             plugins=[manuskript_plugins.PlainText,
                      manuskript_plugins.Markdown,
                      RekallWebConsole, RekallPythonCall],
-            config=dict(rekall_session=self.session))
+            config=dict(rekall_session=self.session),
+            post_activate_callback=self.server_post_activate_callback)
 
 
 class TestWebConsole(testlib.DisabledTest):

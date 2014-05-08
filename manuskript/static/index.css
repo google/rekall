@@ -13,9 +13,13 @@ body {
     height: auto;
 }
 
-#cells {
-    padding-left: 1em;
+.right-padded {
     padding-right: 1em;
+}
+
+.vertically-padded-xl {
+    padding-top: 2em;
+    padding-bottom: 2em;
 }
 
 .cell {
@@ -26,4 +30,39 @@ body {
     border-color: #ddd;
     border-radius: 4px 4px 0 0;
     box-shadow: none;
+}
+
+.cell {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+.cell .well {
+    margin-bottom: 0;
+}
+
+.cell.selected {
+    background-color: #fcf8e3;
+}
+
+.cell .cell-toolbar {
+    opacity: 0.25;
+}
+
+.cell:hover .cell-toolbar {
+    opacity: 1;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.pre-line-whitespace {
+    white-space: pre-line;
+}
+
+button.btn.btn-default[disabled] {
+    opacity: 0.25;
 }
