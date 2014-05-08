@@ -1,0 +1,6 @@
+obj-m += ${MODULE_NAME}.o
+
+${MODULE_NAME}-objs := pmem.o pte_mmap.o pte_mmap_linux.o
+
+ccflags-y := -std=gnu99 -O2
+
