@@ -57,6 +57,10 @@ class Command(object):
     # will still be available from the Factory below.
     __name = ""
 
+    # Name of the category of this command. This is used when showing help and
+    # in the UI.
+    __category = ""
+
     # This class will not be registered (but extensions will).
     __abstract = True
     __metaclass__ = registry.MetaclassRegistry

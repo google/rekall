@@ -7,6 +7,8 @@ from flask import helpers
 
 from manuskript import plugins as manuskript_plugins
 
+from werkzeug import serving
+
 
 STATIC_PATH = os.path.join(os.path.dirname(__file__), "static")
 
@@ -15,8 +17,21 @@ DEFAULT_PLUGINS = [manuskript_plugins.PlainText,
                    manuskript_plugins.PythonCall]
 
 
+class WebconsoleWSGIServer(serving.BaseWSGIServer):
+    """Custom WSGI server that supports post-activate hook."""
+
+    def __init__(self, host, port, app, post_activate_callback=None):
+        self.post_activate_callback = post_activate_callback
+        super(WebconsoleWSGIServer, self).__init__(host, port, app)
+
+    def server_activate(self):
+        super(WebconsoleWSGIServer, self).server_activate()
+        if self.post_activate_callback:
+            self.post_activate_callback()
+
+
 def RunServer(host="localhost", port=5000, debug=False, plugins=None,
-              config=None):
+              config=None, post_activate_callback=None):
     if not plugins:
         plugins = DEFAULT_PLUGINS
 
@@ -54,4 +69,9 @@ def RunServer(host="localhost", port=5000, debug=False, plugins=None,
     for k, v in config.items():
         app.config[k] = v
 
-    app.run(host=host, port=port, debug=debug)
+    if debug:
+        app.run(host=host, port=port, debug=debug)
+    else:
+        WebconsoleWSGIServer(
+            host, port, app,
+            post_activate_callback=post_activate_callback).serve_forever()
