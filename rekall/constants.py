@@ -18,7 +18,7 @@
 #
 import time
 
-VERSION = "1.0rc9"
+VERSION = "1.0rc10"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
 PROFILE_REPOSITORY = "http://profiles.rekall.googlecode.com/git/"

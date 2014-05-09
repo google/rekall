@@ -71,7 +71,6 @@ setup(
         "argparse >= 0.9",
         "PyYAML>=2.10",
         "pytz >= 2012",
-        "yara >= 1.7.6",
         "ipython >= 2.0.0",
         "pycrypto >= 2.3.1",
         "pyelftools >= 0.21",
