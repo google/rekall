@@ -120,6 +120,9 @@ class JSONParser(plugin.Command):
         self.fd = fd
 
     def _decode_value(self, value):
+        if value == None:
+            return None
+
         if isinstance(value, dict):
             return self._decode(value)
 
