@@ -135,6 +135,9 @@ class JsonRenderer(renderer.BaseRenderer):
         return encoded_id
 
     def _encode(self, item):
+        if item == None:
+            return None
+
         # If it is a state dict we just use it as is.
         if isinstance(item, dict):
             state = item

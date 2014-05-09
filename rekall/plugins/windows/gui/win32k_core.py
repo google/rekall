@@ -74,13 +74,61 @@ win32k_overlay = {
             'h': [None, ['unsigned int']],
             }],
 
+    "tagTHREADINFO": [None, {
+        "pEThread": [None, ["Pointer", dict(
+            target="_ETHREAD")]],
+        }],
+
+    "tagHOOK": [None, {
+            "flags": [None, ["Flags", dict(
+                        bitmap=utils.MaskMapFromDefines(
+                            """
+// 9/18/2011
+// http://forum.sysinternals.com/enumerate-windows-hooks_topic23877.html#122641
+#define HF_GLOBAL   0x0001
+#define HF_ANSI   0x0002
+#define HF_NEEDHC_SKIP   0x0004
+#define HF_HUNG   0x0008
+#define HF_HOOKFAULTED   0x0010
+#define HF_NOPLAYBACKDELAY   0x0020
+#define HF_WX86KNOWINDOWLL   0x0040
+#define HF_DESTROYED   0x0080
+// mask for valid flags
+#define HF_VALID   0x00FF
+"""))
+                             ]],
+            }],
+
     "_HANDLEENTRY": [None, {
+        "pOwner": [None, ["Pointer", dict(
+            target="tagTHREADINFO")]],
+
+        "bFlags": [None, ["Flags", dict(
+            target="byte",
+            bitmap=utils.MaskMapFromDefines("""
+// 8/17/2011
+// http://www.reactos.org/wiki/Techwiki:Win32k/HANDLEENTRY
+// HANDLEENTRY.bFlags
+#define HANDLEF_DESTROY        0x01
+#define HANDLEF_INDESTROY      0x02
+#define HANDLEF_INWAITFORDEATH 0x04
+#define HANDLEF_FINALDESTROY   0x08
+#define HANDLEF_MARKED_OK      0x10
+#define HANDLEF_GRANTED        0x20
+// mask for valid flags
+#define HANDLEF_VALID   0x3F
+"""),
+            )]],
+
         'bType': [None, ['Enumeration', dict(
             target='unsigned char',
             choices=constants.HANDLE_TYPE_ENUM,
             )]],
+        }],
 
-            }],
+    '_THRDESKHEAD': [None, {
+        "h": [None, ["unsigned int"]],
+        }],
 }
 
 # Reference:
@@ -142,7 +190,6 @@ win32k_undocumented_AMD64 = {
                 'OCF_VARIABLESIZE': 7}
             )]],
         }],
-
 }
 
 win32k_undocumented_I386 = {

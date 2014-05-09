@@ -327,6 +327,14 @@ class Enumeration(obj.NativeType):
         return "%s (%s)" % (super(Enumeration, self).__repr__(),
                             self.__str__())
 
+    def __getstate__(self):
+        result = super(Enumeration, self).__getstate__()
+        result["repr"] = str(self)
+        result["type"] = "Enumeration"
+
+        return result
+
+
 
 class Ipv4Address(obj.NativeType):
     """Provides proper output for Ipv4Address objects"""

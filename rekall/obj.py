@@ -173,13 +173,20 @@ class NoneObject(object):
     def __unicode__(self):
         ## If we are strict we blow up here
         if self.strict:
-            reason = self.reason.format(*self.args)
+            if "%" in self.reason:
+                reason = self.reason % self.args
+            else:
+                reason = self.reason.format(*self.args)
             logging.error("{0}\n{1}".format(reason, self.bt))
 
         return "-"
 
     def __repr__(self):
-        reason = self.reason.format(*self.args)
+        if "%" in self.reason:
+            reason = self.reason % self.args
+        else:
+            reason = self.reason.format(*self.args)
+
         return "<%s>" % reason
 
     def __format__(self, _):

@@ -49,6 +49,14 @@ class LiteralFormatter(StructFormatter):
         return self.state["value"]
 
 
+class EnumFormatter(StructFormatter):
+    def __unicode__(self):
+        return utils.SmartUnicode(self.state["repr"])
+
+    def __int__(self):
+        return self.state["value"]
+
+
 class AddressSpaceFormatter(StructFormatter):
     def __unicode__(self):
         return self.state["name"]
@@ -89,6 +97,7 @@ class JSONParser(plugin.Command):
     # be applied to "DateTime" semantic types.
     semantic_map = dict(
         Literal=LiteralFormatter,
+        Enumeration=EnumFormatter,
         Struct=StructFormatter,
         NativeType=LiteralFormatter,
         Pointer=LiteralFormatter,

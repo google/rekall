@@ -363,7 +363,7 @@ class Session(object):
                               "this profile?", plugin_name)
                 return
         else:
-            plugin_name = plugin_cls.__name__
+            plugin_name = plugin_cls.name
 
         # If the args came from the command line parse them now:
         flags = kwargs.get("flags")
