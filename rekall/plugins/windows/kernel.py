@@ -31,7 +31,7 @@ import logging
 from rekall import obj
 from rekall import kb
 from rekall import scan
-from rekall.plugins import guess_profile
+from rekall.plugins.windows import common
 from rekall.plugins.overlays.windows import pe_vtypes
 
 
@@ -71,8 +71,7 @@ class KernelBaseHook(kb.ParameterHook):
                     helper = pe_vtypes.PE(
                         address_space=address_space,
                         session=self.session, image_base=page)
-                    if (str(helper.RSDS.Filename) in
-                        guess_profile.ProfileHook.KERNEL_NAMES):
+                    if (str(helper.RSDS.Filename) in common.KERNEL_NAMES):
 
                         logging.info("Detected kernel base at 0x%X", page)
                         return page

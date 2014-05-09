@@ -174,6 +174,32 @@ class Configuration(Cache):
             self.session.UpdateFromConfigObject()
 
 
+class ProgressDispatcher(object):
+    """An object to manage progress calls.
+
+    Since Rekall must be usable as a library it can not block for too
+    long. Rekall makes continuous reports of its progress to the
+    ProgressDispatcher, which then further dispatches them to other
+    callbacks. This allows users of the Rekall library to be aware of how
+    analysis is progressing. (e.g. to report it in a GUI).
+
+    """
+
+    def __init__(self):
+        self.heap = []
+        self.callbacks = {}
+
+    def Register(self, key, callback):
+        self.callbacks[key] = callback
+
+    def UnRegister(self, key):
+        del self.callbacks[key]
+
+    def Broadcast(self, message, *args, **kwargs):
+        for handler in self.callbacks.values():
+            handler(message, *args, **kwargs)
+
+
 class Session(object):
     """Base session.
 
@@ -182,7 +208,7 @@ class Session(object):
 
     def __init__(self, **kwargs):
         self._parameter_hooks = {}
-
+        self.progress = ProgressDispatcher()
         self.profile = obj.NoneObject("Set this to a valid profile "
                                       "(e.g. type profiles. and tab).")
 
@@ -198,6 +224,14 @@ class Session(object):
         self.state = Configuration(self, cache=Cache(), **kwargs)
         self.inventories = {}
         self.UpdateFromConfigObject()
+
+    def __enter__(self):
+        # Allow us to update the context manager.
+        self.state.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.state.__exit__(exc_type, exc_value, trace)
 
     def Reset(self):
         self.physical_address_space = None
@@ -321,9 +355,6 @@ class Session(object):
         if pager == "-":
             pager = None
 
-        # If the args came from the command line parse them now:
-        flags = kwargs.get("flags")
-
         if isinstance(plugin_cls, basestring):
             plugin_name = plugin_cls
             plugin_cls = getattr(self.plugins, plugin_cls, None)
@@ -331,12 +362,17 @@ class Session(object):
                 logging.error("Plugin %s is not active. Is it supported with "
                               "this profile?", plugin_name)
                 return
+        else:
+            plugin_name = plugin_cls.name
 
+        # If the args came from the command line parse them now:
+        flags = kwargs.get("flags")
         if flags:
             from rekall import args
 
             kwargs = args.MockArgParser().build_args_dict(plugin_cls, flags)
 
+        # Allow the output to be sent to a file.
         output = kwargs.pop("output", None)
 
         # Select the renderer from the session or from the kwargs.
@@ -351,26 +387,21 @@ class Session(object):
                 fd = open(output, "w")
                 pager = None
 
-            # Allow per call overriding of the output file descriptor.
-            paging_limit = self.GetParameter("paging_limit")
-            if not pager:
-                paging_limit = None
+            ui_renderer = ui_renderer_cls(session=self, fd=fd, pager=pager)
 
-            ui_renderer = ui_renderer_cls(session=self, fd=fd,
-                                          paging_limit=paging_limit)
-
-        try:
-            kwargs['session'] = self
-
-            # If we were passed an instance we do not instantiate it.
-            if inspect.isclass(plugin_cls) or isinstance(plugin_cls, obj.Curry):
-                result = plugin_cls(*pos_args, **kwargs)
-            else:
-                result = plugin_cls
-
-            ui_renderer.start(plugin_name=result.name, kwargs=kwargs)
-
+        # Start the renderer before instantiating the plugin to allow
+        # rendering of reported progress in the constructor.
+        with ui_renderer.start(plugin_name=plugin_name):
             try:
+                kwargs['session'] = self
+
+                # If we were passed an instance we do not instantiate it.
+                if (inspect.isclass(plugin_cls) or
+                    isinstance(plugin_cls, obj.Curry)):
+                    result = plugin_cls(*pos_args, **kwargs)
+                else:
+                    result = plugin_cls
+
                 result.render(ui_renderer)
 
                 # If there was too much data and a pager is specified, simply
@@ -384,37 +415,27 @@ class Session(object):
                     # Now wait for the user to exit the pager.
                     pager.flush()
 
-            finally:
-                ui_renderer.end()
+                return result
 
-            return result
+            except plugin.InvalidArgs, e:
+                logging.error("Invalid Args (Try info plugins.%s): %s",
+                              plugin_cls.name, e)
 
-        except plugin.InvalidArgs, e:
-            logging.error("Invalid Args (Try info plugins.%s): %s",
-                          plugin_cls.name, e)
+            except plugin.Error, e:
+                self.error(plugin_cls, e)
 
-        except plugin.Error, e:
-            self.error(plugin_cls, e)
+            except KeyboardInterrupt:
+                if self.debug:
+                    pdb.post_mortem(sys.exc_info()[2])
 
-        except KeyboardInterrupt:
-            if self.debug:
-                pdb.post_mortem(sys.exc_info()[2])
+                self.report_progress("Aborted!\r\n", force=True)
 
-            self.report_progress("Aborted!\r\n", force=True)
+            except Exception, e:
+                # If anything goes wrong, we break into a debugger here.
+                ui_renderer.report_error(traceback.format_exc())
+                if debug:
+                    pdb.post_mortem(sys.exc_info()[2])
 
-        except Exception, e:
-            # If anything goes wrong, we break into a debugger here.
-            if debug:
-                # With debug on, we use traceback to print detailed information
-                # about the error, because pdb can sometimes get it wrong.
-                _, _, trace = sys.exc_info()
-                logging.error(
-                    "Detailed error:\n%s",
-                    traceback.format_exc(),
-                )
-                pdb.post_mortem(sys.exc_info()[2])
-            else:
-                logging.error("Error: %s", e)
                 raise
 
     def LoadProfile(self, filename, use_cache=True):
@@ -505,7 +526,7 @@ class Session(object):
         # Cache it for later. Note that this also caches failures so we do not
         # retry again.
         self.profile_cache[canonical_name] = result
-        if not result:
+        if result == None:
             raise ValueError("Unable to load profile %s from any repository." %
                              filename)
 
@@ -516,8 +537,7 @@ class Session(object):
 
     def report_progress(self, message=" %(spinner)s", *args, **kwargs):
         """Called by the library to report back on the progress."""
-        if callable(self.progress):
-            self.progress(message, *args, **kwargs)
+        self.progress.Broadcast(message, *args, **kwargs)
 
 
 class InteractiveSession(Session):

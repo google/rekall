@@ -23,15 +23,14 @@
 __author__ = "Mikhail Bushkov <mbushkov@google.com>"
 
 import argparse
-import json
-import time
+import sys
 import os
 import StringIO
 import sys
+import webbrowser
 
 from rekall import config
 from rekall import plugin
-from rekall import utils
 from rekall import testlib
 
 from flask import Blueprint
@@ -42,9 +41,10 @@ from manuskript import server as manuskript_server
 from manuskript import plugin as manuskript_plugin
 from manuskript import plugins as manuskript_plugins
 
-
-STATIC_PATH = os.path.join(os.path.dirname(__file__), "webconsole")
-
+try:
+    STATIC_PATH = os.path.join(sys._MEIPASS, "webconsole") # pylint: disable=protected-access
+except AttributeError:
+    STATIC_PATH = os.path.join(os.path.dirname(__file__), "webconsole")
 
 class RekallPythonCall(manuskript_plugins.PythonCall):
     """PythonCall extension that inserts Rekall session into local context."""
@@ -55,6 +55,7 @@ class RekallPythonCall(manuskript_plugins.PythonCall):
 
         rekall_session = app.config["rekall_session"]
         shell.local_context = rekall_session._locals # pylint: disable=protected-access
+        shell.global_context["rekall_session"] = rekall_session
 
 
 class FakeParser(object):
@@ -123,6 +124,10 @@ class RekallWebConsole(manuskript_plugin.Plugin):
         "/rekall-webconsole/runplugin-controller.js",
         "/rekall-webconsole/runplugin.js",
         "/rekall-webconsole/webconsole.js"
+        ]
+
+    CSS_FILES = [
+        "/rekall-webconsole/runplugin.css"
         ]
 
     @classmethod
@@ -216,19 +221,29 @@ class WebConsole(plugin.Command):
         parser.add_argument("--host", default="localhost",
                             help="Host for the web console to use.")
 
-        parser.add_argument("--port", default=5000,
+        parser.add_argument("--port", default=5000, type=int,
                             help="Port for the web console to use.")
 
-        parser.add_argument("--debug", default=False,
+        parser.add_argument("--debug", default=False, action='store_true',
                             help="Start in the debug mode (will monitor "
                             "changes in the resources and reload them as "
                             "needed.")
 
-    def __init__(self, host="localhost", port=5000, debug=False, **kwargs):
+        parser.add_argument("--no_browser", default=False,
+                            action='store_true',
+                            help="Don't open webconsole in the default browser.")
+
+    def __init__(self, host="localhost", port=5000, debug=False,
+                 no_browser=False, **kwargs):
         super(WebConsole, self).__init__(**kwargs)
         self.host = host
         self.port = port
         self.debug = debug
+        self.no_browser = no_browser
+
+    def server_post_activate_callback(self):
+        if not self.no_browser:
+            webbrowser.open("http://%s:%d" % (self.host, self.port))
 
     def render(self, renderer):
         renderer.format("Starting Manuskript web console.")
@@ -238,163 +253,10 @@ class WebConsole(plugin.Command):
             plugins=[manuskript_plugins.PlainText,
                      manuskript_plugins.Markdown,
                      RekallWebConsole, RekallPythonCall],
-            config=dict(rekall_session=self.session))
+            config=dict(rekall_session=self.session),
+            post_activate_callback=self.server_post_activate_callback)
 
 
 class TestWebConsole(testlib.DisabledTest):
     """Disable the test for this command to avoid bringing up the notebook."""
     PARAMETERS = dict(commandline="webconsole")
-
-
-
-class DecodingError(KeyError):
-    """Raised if there is a decoding error."""
-
-
-class StructFormatter(object):
-    def __init__(self, state):
-        self.state = state
-
-    def __int__(self):
-        return self.state["offset"]
-
-
-class LiteralFormatter(StructFormatter):
-    def __unicode__(self):
-        return utils.SmartUnicode(self.state["value"])
-
-    def __int__(self):
-        return self.state["value"]
-
-
-class AddressSpaceFormatter(StructFormatter):
-    def __unicode__(self):
-        return self.state["name"]
-
-
-class NoneObjectFormatter(StructFormatter):
-    def __unicode__(self):
-        return "-"
-
-
-class DatetimeFormatter(StructFormatter):
-    def __unicode__(self):
-        return time.ctime(self.state["epoch"])
-
-
-class JSONParser(plugin.Command):
-    """Renders a json rendering file, as produced by the JsonRenderer.
-
-    The output of any plugin can be stored to a JSON file using:
-
-    rekall -f img.dd --renderer JsonRenderer plugin_name --output test.json
-
-    Then it can be rendered again using:
-
-    rekall json_render test.json
-
-    This plugin implements the proper decoding of the JSON encoded output.
-    """
-
-    name = "json_render"
-
-
-    # This is a mapping between the semantic name of the BaseObject
-    # serialization and a suitable Formatter. The idea is that the GUI framework
-    # can identify semantically similar objects and map them to a rendering
-    # class suitable for that specific type. For example, the same renderer
-    # should work for all "Struct" semantic types, while a different one should
-    # be applied to "DateTime" semantic types.
-    semantic_map = dict(
-        Literal=LiteralFormatter,
-        Struct=StructFormatter,
-        NativeType=LiteralFormatter,
-        Pointer=LiteralFormatter,
-        AddressSpace=AddressSpaceFormatter,
-        NoneObject=NoneObjectFormatter,
-        DateTime=DatetimeFormatter,
-        )
-
-    @classmethod
-    def args(cls, parser):
-        super(JSONParser, cls).args(parser)
-
-        parser.add_argument("file", default=None,
-                            help="The filename to parse.")
-
-    def __init__(self, file=None, fd=None, **kwargs):
-        super(JSONParser, self).__init__(**kwargs)
-        if file:
-          self.fd = open(file)
-        elif fd:
-          self.fd = fd
-        else:
-          raise ValueError("Need a filename or a file descriptor.")
-
-    def _decode_value(self, value):
-        if isinstance(value, dict):
-            return self._decode(value)
-
-        try:
-            result = self.lexicon[str(value)]
-            # Check if this is a string encoded as a list.
-            if (isinstance(result, list) and
-                len(result) == 2 and
-                self.lexicon[str(result[1])] == 1):
-                return self.lexicon[str(result[0])].decode("base64")
-
-            return result
-        except KeyError:
-            raise DecodingError("Lexicon corruption: Tag %s" % value)
-
-    def _decode(self, item):
-        if not isinstance(item, dict):
-            return self._decode_value(item)
-
-        state = {}
-        for k, v in item.items():
-            decoded_key = self._decode_value(k)
-            decoded_value = self._decode_value(v)
-            if isinstance(decoded_value, dict):
-                decoded_value = self._decode(decoded_value)
-
-            state[decoded_key] = decoded_value
-
-        semantic_type = state.get("type")
-        if semantic_type is None:
-            return state
-
-        item_renderer = self.semantic_map.get(semantic_type)
-        if item_renderer is None:
-            raise DecodingError("Unsupported Semantic type %s" % semantic_type)
-
-        # Instantiate the BaseObject this refers to.
-        return item_renderer(state)
-
-    def render(self, renderer):
-        """Renders the stored JSON file using the default renderer.
-
-        To decode the json file we replay the statements into the renderer after
-        decompressing them.
-        """
-        data = json.load(self.fd)
-
-        self.lexicon = {}
-        for statement in data:
-            command = statement[0]
-            if command == "l":
-                self.lexicon = statement[1]
-
-            elif command == "s":
-                renderer.section(**self._decode(statement[1]))
-
-            elif command == "f":
-                args = [self._decode(x) for x in statement[1:]]
-                renderer.format(*args)
-
-            elif command == "t":
-                renderer.table_header(**statement[1])
-
-            elif command == "r":
-                renderer.table_row(
-                    *[self._decode(x) for x in statement[1]])

@@ -39,15 +39,16 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
     ## We should be first.
     order = 0
 
-    def __init__(self, fhandle=None, **kwargs):
-        super(FDAddressSpace, self).__init__(**kwargs)
-        fhandle = (self.session and self.session.fhandle) or fhandle
+    def __init__(self, base=None, fhandle=None, **kwargs):
+        self.as_assert(base == None, "Base passed to FDAddressSpace.")
         self.as_assert(fhandle is not None, 'file handle must be provided')
 
         self.fhandle = fhandle
         self.fhandle.seek(0, 2)
         self.fsize = self.fhandle.tell()
         self.offset = 0
+
+        super(FDAddressSpace, self).__init__(**kwargs)
 
     def read(self, addr, length):
         try:
@@ -99,7 +100,7 @@ class FileAddressSpace(FDAddressSpace):
     order = 100
 
     # This address space handles images.
-    _md_image = True
+    __image = True
 
     def __init__(self, base=None, filename=None, session=None, **kwargs):
         self.as_assert(base == None, 'Must be first Address Space')
@@ -120,7 +121,7 @@ class FileAddressSpace(FDAddressSpace):
 
         fhandle = open(self.fname, self.mode)
         super(FileAddressSpace, self).__init__(
-            fhandle=fhandle, session=session, base=base, **kwargs)
+            fhandle=fhandle, session=session, **kwargs)
 
     def __getstate__(self):
         state = super(FileAddressSpace, self).__getstate__()
@@ -132,8 +133,8 @@ class FileAddressSpace(FDAddressSpace):
 class WriteableAddressSpaceMixIn(object):
     """This address space can be used to create new files.
 
-    NOTE: The does not participate in voting or gets automatically selected. It
-    can only be instantiated directly.
+    NOTE: This does not participate in voting or gets automatically
+    selected. It can only be instantiated directly.
     """
 
     def write(self, addr, data):
@@ -161,12 +162,9 @@ class WriteableAddressSpaceMixIn(object):
         return data
 
 class WriteableAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
-    # This prevents this class from being automatically registered.
-    __abstract = True
 
     def __init__(self, filename=None, mode="w+b", **kwargs):
         self.as_assert(filename, "Filename must be specified.")
-
         self.name = os.path.abspath(filename)
         self.fname = self.name
         self.mode = mode
@@ -174,10 +172,6 @@ class WriteableAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
 
         fhandle = open(self.fname, self.mode)
         super(WriteableAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
-        self.as_assert(self.base == None, 'Must be first Address Space')
-
-
-
 
 
 class DummyAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):

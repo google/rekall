@@ -8,6 +8,12 @@ import re
 from rekall import obj
 from rekall import registry
 
+class KernelModule(object):
+    def __init__(self, session):
+        self.session = session
+        self.name = "nt"
+        self.base = self.session.GetParameter("kernel_base")
+
 
 class SymbolContainer(object):
     """A container class for symbols."""
@@ -225,6 +231,9 @@ class AddressResolver(object):
                     if module_name in self.profiles:
                         self.profiles[module_name].image_base = module.base
 
+                self.profiles["nt"] = self.session.profile
+                self.modules_by_name["nt"] = KernelModule(self.session)
+
             except AttributeError:
                 self.modules = None
 
@@ -238,6 +247,10 @@ class AddressResolver(object):
         self._EnsureInitialized()
         try:
             module_name = self._NormalizeModuleName(module_name)
+            # Try to get the profile directly from the local cache.
+            if module_name in self.profiles:
+                return self.profiles[module_name]
+
             module = self.modules_by_name[module_name]
 
             module_profile = self.session.LoadProfile(profile)
@@ -254,6 +267,36 @@ class AddressResolver(object):
             self.profiles[module_name] = None
             logging.debug("Unable to resolve symbols in module %s",
                           module_name)
+
+    def LoadProfileForDll(self, module_base, module_name):
+        self._EnsureInitialized()
+
+        if module_name in self.profiles:
+            return self.profiles[module_name]
+
+        # Create a dummy profile.
+        result = obj.Profile.classes["BasicPEProfile"](
+            name=module_name,
+            session=self.session)
+
+        result.image_base = module_base
+
+        peinfo = self.session.plugins.peinfo(
+            image_base=module_base, address_space=self.session.GetParameter(
+                "default_address_space"))
+
+        constants = {}
+        for _, func, name, _ in peinfo.pe_helper.ExportDirectory():
+            self.session.report_progress("Merging export table: %s", name)
+            func_offset = func.v()
+            if not result.get_constant_by_address(func_offset):
+                constants[str(name or "")] = func_offset - module_base
+
+        result.add_constants(constants_are_addresses=True, **constants)
+
+        self.profiles[module_name] = result
+
+        return result
 
     def LoadProfileForModule(self, module):
         self._EnsureInitialized()
@@ -307,7 +350,7 @@ class AddressResolver(object):
         if profile:
             return self._LoadProfile(module_name, profile)
 
-        # Try to detect the GUI from the module object.
+        # Try to detect the profile from the module object.
         module = self.modules_by_name.get(module_name)
         if module:
             return self.LoadProfileForModule(module)
@@ -375,6 +418,19 @@ class AddressResolver(object):
 
         return address
 
+    def _format_address_from_profile(self, profile, address):
+        nearest_offset, name = profile.get_nearest_constant_by_address(
+            address)
+
+        if name:
+            difference = address - nearest_offset
+            if difference == 0:
+                return "%s!%s" % (profile.name, name)
+            else:
+                return "%s!%s+%#x" % (profile.name, name, difference)
+        else:
+            return "%s!+%#x" % (profile.name, address - profile.image_base)
+
     def format_address(self, address, max_distance=0x1000):
         address = obj.Pointer.integer_to_address(address)
 
@@ -388,10 +444,19 @@ class AddressResolver(object):
 
             # Ensure address falls within the current module.
             containing_module = self._FindContainingModule(address)
-            if (address < containing_module.end and
+            if (containing_module and address < containing_module.end and
                 0 < difference < max_distance):
-                return "%s + 0x%X" % (
+                return "%s + %#x" % (
                     name, address - offset)
+
+            else:
+                hit = self._FindProcessVad(address)
+                if hit:
+                    start, end, name = hit
+                    if start < address < end:
+                        profile = self.LoadProfileForDll(start, name)
+                        return self._format_address_from_profile(
+                            profile, address)
 
         return ""
 
@@ -412,7 +477,10 @@ class AddressResolver(object):
                 return module_name
 
         # Check the process context for process addresses.
-        return self._FindProcessVad(address)
+        hit = self._FindProcessVad(address)
+        if hit:
+            start, _, name = hit
+            return "%s + %#x" % (name, address-start)
 
     def get_nearest_constant_by_address(self, address):
         self._EnsureInitialized()
@@ -445,7 +513,21 @@ class AddressResolver(object):
         else:
             vad_desc = self._FindProcessVad(address)
             if vad_desc:
-                nearest_offset, _, full_name = vad_desc
+                start, _, full_name = vad_desc
+                nearest_offset = start
+                profile = self.LoadProfileForDll(start, full_name)
+
+                if profile:
+                    offset, name = profile.get_nearest_constant_by_address(
+                        address)
+
+                    # The profile's constant is closer than the module.
+                    if address - offset < address - nearest_offset:
+                        nearest_offset = offset
+                        symbol_name = name
+
+                if symbol_name:
+                    full_name = "%s!%s" % (module_name, symbol_name)
 
         return nearest_offset, full_name
 
@@ -455,12 +537,13 @@ class AddressResolver(object):
         result = []
 
         components = self._ParseAddress(pattern)
-        profile = self.LoadProfileForName(components["module"])
+        module_name = components["module"]
+        profile = self.LoadProfileForName(module_name)
 
         # Match all symbols.
         symbol_regex = re.compile(components["symbol"].replace("*", ".*"))
         for constant in profile.constants:
             if symbol_regex.match(constant):
-                result.append(constant)
+                result.append("%s!%s" % (module_name, constant))
 
         return result

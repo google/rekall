@@ -1,0 +1,21 @@
+.cell .runplugin .panel-plugin-selection {
+    margin-top: 5px;
+    height: 300px;
+    overflow: auto;
+    position: relative;
+}
+
+.cell .runplugin .panel-plugin-description {
+    max-height: 300px;
+    overflow:auto
+}
+
+.cell .runplugin .plugin-title {
+    padding-top: 0.4em;
+    padding-left: 0.1em;
+}
+
+.cell .runplugin .plugin-1line-description {
+    font-size: 70%;
+    color: #999;
+}

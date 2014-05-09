@@ -161,7 +161,7 @@ fi
 exit 0
 """
 
-    def __init__(self, argv=None):
+    def __init__(self, argv=None, renderer=None):
         self.FLAGS = self.ProcessCommandLineArgs(argv)
         self.threadpool = threadpool.ThreadPool(self.FLAGS.processes)
 
@@ -176,7 +176,8 @@ exit 0
 
         if self.FLAGS.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
-        self.renderer = text.TextRenderer()
+
+        self.renderer = renderer
 
         # Some stats.
         self.successes = []
@@ -480,8 +481,10 @@ exit 0
 
 def main(_):
     start = time.time()
-    with RekallTester() as tester:
-        tester.RunTests()
+    renderer = text.TextRenderer()
+    with renderer:
+        with RekallTester(renderer=renderer) as tester:
+            tester.RunTests()
 
     tester.renderer.write(
         "Completed %s tests (%s passed, %s failed, %s rebuild) in "

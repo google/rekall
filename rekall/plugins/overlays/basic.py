@@ -118,6 +118,12 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         # The length is really determined by the terminator here.
         return len(self.v())
 
+    def __getstate__(self):
+        result = super(String, self).__getstate__()
+        result["value"] = str(self)
+
+        return result
+
 
 class Signature(String):
     """A string forming a signature."""
@@ -320,6 +326,14 @@ class Enumeration(obj.NativeType):
     def __repr__(self):
         return "%s (%s)" % (super(Enumeration, self).__repr__(),
                             self.__str__())
+
+    def __getstate__(self):
+        result = super(Enumeration, self).__getstate__()
+        result["repr"] = str(self)
+        result["type"] = "Enumeration"
+
+        return result
+
 
 
 class Ipv4Address(obj.NativeType):
@@ -762,8 +776,8 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         for offset, _, instruction in self.Disassemble(instruction_limit):
             instructions.append((offset, instruction))
 
-        for i in range(len(instructions)):
-            for j in range(len(terms)):
+        for i in xrange(len(instructions)):
+            for j in xrange(len(terms)):
                 print expressions[j], instructions[i][1]
                 if not terms[j].match(instructions[i + j][1]):
                     break

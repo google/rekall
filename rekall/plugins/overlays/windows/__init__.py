@@ -3,7 +3,6 @@
 # startup times, especially when packed.
 # pylint: disable=unused-import
 
-from rekall.plugins.overlays.windows import kernel
 from rekall.plugins.overlays.windows import ntfs
 from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.overlays.windows import vista

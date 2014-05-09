@@ -124,7 +124,7 @@ class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
     CachingAddressSpaceMixIn to ensure we get reasonable performance here.
     """
     order = 20
-    _md_image = True
+    __image = True
 
     def __init__(self, base=None, filename=None, session=None, **kwargs):
         self.as_assert(base != None, "No base address space provided")
@@ -136,4 +136,4 @@ class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
         fhandle = ewf_open([path])
 
         super(EWFAddressSpace, self).__init__(
-            fhandle=fhandle, session=session, base=base, **kwargs)
+            fhandle=fhandle, session=session, **kwargs)

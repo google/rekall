@@ -20,7 +20,7 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import ahocorasick
+import acora
 import re
 
 from rekall import addrspace
@@ -289,37 +289,46 @@ class MultiStringFinderCheck(ScannerCheck):
         if not needles:
             needles = []
 
-        self.tree = ahocorasick.KeywordTree()
+        tree = acora.AcoraBuilder(*needles)
 
-        for needle in needles:
-            self.tree.add(needle)
+        self.engine = tree.build()
 
-        self.tree.make()
         self.base_offset = None
-        self.next_hit = None
+        self.hits = None
+        self.next_hit_index = 0
+        self.current_hit = None
 
     def check(self, buffer_as, offset):
-        data_offset = offset - buffer_as.base_offset
+        if buffer_as.base_offset != self.base_offset:
+            self.hits = self.engine.findall(buffer_as.data)
+            self.base_offset = buffer_as.base_offset
+            self.current_hit = 0
+            self.next_hit_index = 0
 
-        self.next_hit = self.tree.search(buffer_as.data, data_offset)
-        if self.next_hit and self.next_hit[0] == data_offset:
-            return True
+        data_offset = offset - buffer_as.base_offset
+        try:
+            string, offset = self.hits[self.next_hit_index]
+            if offset == data_offset:
+                self.next_hit_index += 1
+                self.current_hit = string
+
+                return True
+        except IndexError:
+            pass
 
         return False
 
     def skip(self, buffer_as, offset):
         # Normally the scanner calls the check method first, then the skip
-        # method immediately after. We are depending on this order so
-        # self.next_hit will be set by the check method which was called
-        # before us.
+        # method immediately after. We are depending on this order so self.hits
+        # will be set by the check method which was called before us.
         data_offset = offset - buffer_as.base_offset
-        if self.next_hit is None:
+        try:
+            _, offset = self.hits[self.next_hit_index]
+            return offset - data_offset
+        except IndexError:
             # Eliminate this buffer.
             return buffer_as.end() - offset
-
-        # Go to the next hit.
-        return self.next_hit[0] - data_offset
-
 
 class StringCheck(ScannerCheck):
     maxlen = 100
@@ -401,7 +410,7 @@ class DiscontigScannerGroup(ScannerGroup):
     def scan(self, offset=0, maxlen=None):
         maxlen = maxlen or self.profile.get_constant("MaxPointer")
 
-        for (start, pstart, length) in self.address_space.get_address_ranges(
+        for (start, _, length) in self.address_space.get_address_ranges(
             offset, offset + maxlen):
             for match in super(DiscontigScannerGroup, self).scan(
                 start, maxlen=length):

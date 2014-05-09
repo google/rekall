@@ -21,7 +21,8 @@
 
 A renderer is used by plugins to produce formatted output.
 """
-
+import gc
+import logging
 import time
 import re
 import os
@@ -190,17 +191,30 @@ class BaseRenderer(object):
     progress_fd = None
     progress_interval = 0.2
 
-    def __init__(self, session=None, fd=None, paging_limit=None):
-        self.session = session
+    # This is used to ensure that renderers are always called as context
+    # managers. This guarantees we call start() and end() automatically.
+    _started = False
 
+    def __init__(self, session=None, fd=None, pager=None):
+        self.session = session
+        self.pager = pager
         # Make sure that our output is unicode safe.
         self.fd = UnicodeWrapper(fd or sys.stdout)
 
-        if self.fd.isatty():
-            self.paging_limit = paging_limit
+        # Only pipe to the pager if we are attached to a tty and there is a
+        # pager.
+        if self.fd.isatty() and self.pager:
+            self.paging_limit = session.GetParameter("paging_limit")
             self.isatty = True
 
         self.formatter = Formatter()
+
+    def __enter__(self):
+        self._started = True
+        return self
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.end()
 
     def start(self, plugin_name=None, kwargs=None):
         """The method is called when new output is required.
@@ -218,17 +232,20 @@ class BaseRenderer(object):
         # This handles the progress messages from rekall for the duration of
         # the rendering.
         if self.session:
-            self.session.progress = self.RenderProgress
+            self.session.progress.Register(id(self), self.RenderProgress)
+
+        return self
 
     def end(self):
         """Tells the renderer that we finished using it for a while."""
+        self._started = False
         if self.deferred_rows is not None:
             # Table was sorted. Render deferred rows now.
             self.flush_table()
 
         # Remove the progress handler from the session.
         if self.session:
-            self.session.progress = None
+            self.session.progress.UnRegister(id(self))
 
         self.flush()
 
@@ -265,6 +282,9 @@ class BaseRenderer(object):
 
         By default we just call the format string directly.
         """
+        if not self._started:
+            raise RuntimeError("Writing to a renderer that is not started.")
+
         self.write(self.formatter.format(formatstring, *data))
 
     def flush(self):
@@ -294,6 +314,9 @@ class BaseRenderer(object):
           render function ends.
         """
         _ = name
+
+        if not self._started:
+            raise RuntimeError("Renderer is used without a context manager.")
 
         if self.deferred_rows is not None:
             # Previous table we rendered was sorted. Do deferred rendering now.
@@ -332,6 +355,8 @@ class BaseRenderer(object):
 
     def table_row(self, *args, **kwargs):
         """Outputs a single row of a table."""
+        self.RenderProgress(message=None)
+
         if self.deferred_rows is not None:
             # Table rendering is being deferred for sorting.
             self.deferred_rows.append((args, kwargs))
@@ -370,6 +395,12 @@ class BaseRenderer(object):
     def color(self, target, **kwargs):
         return self.colorizer.Render(target, **kwargs)
 
+    def report_error(self, message):
+        """Render the error in an appropriate way."""
+        # By default just log the error. Visual renderers may choose to render
+        # errors in a distinctive way.
+        logging.error(message)
+
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
         # Only write once per second.
         now = time.time()
@@ -378,6 +409,10 @@ class BaseRenderer(object):
         if force or now > self.last_spin_time + self.progress_interval:
             self.last_spin_time = now
             self.last_spin += 1
+            gc.collect()
+
+            if not message:
+                return
 
             # Only expand variables when we need to.
             if "%(" in message:

@@ -28,6 +28,7 @@
 @organization: http://computer.forensikblog.de/en/
 """
 
+from rekall import obj
 from rekall.plugins.windows import common
 
 
@@ -328,10 +329,14 @@ class MutantScan(FileScan):
 class PoolScanProcess(common.PoolScanner):
     """PoolScanner for File objects"""
 
+    # Kernel addresses are above this value.
     kernel = 0x80000000
 
     def __init__(self, **kwargs):
         super(PoolScanProcess, self).__init__(**kwargs)
+        self.kernel = self.profile.get_constant_object(
+            "MmSystemRangeStart", "Pointer").v() or 0x80000000
+
         self.checks = [
             # Must have the right pool tag.
             ('PoolTagCheck', dict(

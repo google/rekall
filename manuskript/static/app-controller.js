@@ -15,32 +15,137 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     'manuskript.configuration'].concat(manuskriptPluginsList));
 
   module.controller("ManuskriptAppController", function(
-      $scope,
+      $scope, $modal, $timeout,
       manuskriptCoreNodePluginRegistryService,
       manuskriptConfiguration) {
 
     $scope.pageTitle = manuskriptConfiguration.pageTitle || "Manuskript";
-    
+
     /**
      * List of nodes shown to the user.
      */
     $scope.nodes = manuskriptConfiguration.nodes || [];;
 
+    $scope.selection = {
+      node: null,
+      nodeIndex: -1
+    };
+
     /**
-     * Currently edited node, or null if no node is being edited.
-     * Only one node can be edited at any given moment.
+     * Returns CSS class of a cell corresponding to the given node.
+     * @param node - New node will be added before this node..
+     * @returns {string} CSS class name.
      */
-    $scope.currentlyEditedNode = null;
+    $scope.cellClass = function(node) {
+      if ($scope.selection.node === node) {
+	return ["cell", "selected"];
+      } else {
+	return ["cell"];
+      }
+    }
+
+    /**
+     * When selected node or index of the selected node changes (index changes
+     * when node is moved), scroll the screen to show the node, unless it's
+     * already visible.
+     */
+    var selectionChangeHandler = function(newValue, oldValue) {
+      if (newValue != null && newValue !== oldValue) {
+	var scrollIntoCell = function() {
+	  var selectedCell = angular.element("#cells .cell.selected");
+	  if (selectedCell.length > 0) {
+	    var cellTop = selectedCell.offset().top;
+	    var cellHeight = selectedCell.height();
+	    var windowScrollTop = angular.element(window).scrollTop();
+	    var windowHeight = window.innerHeight;
+
+	    var elementVisible = (cellTop > windowScrollTop &&
+		cellTop < (windowScrollTop + windowHeight) ||
+		(cellTop + cellHeight) > windowScrollTop &&
+		(cellTop + cellHeight) < (windowScrollTop + windowHeight));
+
+	    if (!elementVisible) {
+	      angular.element(window).scrollTop(Math.max(0, cellTop - 40));
+	    }
+	  } else {
+	    $timeout(scrollIntoCell);
+	  }
+	}
+	$timeout(scrollIntoCell);
+      }
+    };
+    $scope.$watch('selection.node', selectionChangeHandler);
+    $scope.$watch('selection.nodeIndex', selectionChangeHandler);
+
+    /**
+     * If selection changes, forced saving of the previous node.
+     */
+    $scope.$watch('selection.node', function(newValue, oldValue) {
+      $scope.saveNode(oldValue);
+    });
+
+    /**
+     * When selected node changes, update selected node index.
+     */
+    $scope.$watchCollection('nodes', function() {
+      $scope.selection.nodeIndex = $scope.nodes.indexOf($scope.selection.node);
+    });
 
     /**
      * Adds new node to the list.
      * @param {string} nodeType - Type of node to add.
+     * @param {int=} beforeNodeIndex - Optional, if defined, the node will be
+     *                                 inserted into the list of nodes before
+     *                                 the element with this index.
      */
-    $scope.addNode = function(nodeType) {
-      var node = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
-          nodeType);
-      $scope.nodes.push(node);
-      $scope.editNode(node);
+    $scope.addNode = function(nodeType, beforeNodeIndex) {
+      if (beforeNodeIndex === undefined) {
+	beforeNodeIndex = $scope.nodes.length;
+      }
+
+      var modalInstance = $modal.open({
+	templateUrl: 'static/components/core/addnode-dialog.html',
+	controller: 'AddNodeDialogController',
+	resolve: {
+	  items: function() {
+	    return $scope.listPlugins();
+	  }
+	}
+      });
+
+      modalInstance.result.then(function(typeKey) {
+	var node = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
+            typeKey);
+	$scope.nodes.splice(beforeNodeIndex, 0, node);
+	$scope.editNode(node);
+      });
+    };
+
+    /**
+     * Add new node before given node.
+     * @param node - New node will be added before this node..
+     */
+    $scope.addNodeBefore = function(node) {
+      $scope.addNode(node.type, $scope.nodes.indexOf(node));
+    };
+
+    /**
+     * Add new node after given node.
+     * @param node - New node will be added after this node..
+     */
+    $scope.addNodeAfter = function(node) {
+      $scope.addNode(node.type, $scope.nodes.indexOf(node) + 1);
+    };
+
+    /**
+     * Duplicate given node in a list.
+     * @param node - Node to be duplicated. Duplicate will be inserted right
+     *               after this node.
+     */
+    $scope.duplicateNode = function(node) {
+      var newNode = angular.copy(node);
+      var nodeIndex = $scope.nodes.indexOf(node);
+      $scope.nodes.splice(nodeIndex + 1, 0, newNode);
     };
 
     /**
@@ -48,26 +153,23 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      * @param node - Node to edit.
      */
     $scope.editNode = function(node) {
-      if ($scope.currentlyEditedNode) {
-        $scope.saveNode($scope.currentlyEditedNode);
-      }
+      $scope.selection.node = node;
       node.state = 'edit';
-      $scope.currentlyEditedNode = node;
     };
 
     /**
      * Finishes editing of the node that is currently being edited.
-     * @throws {IllegalStateError} If there's no node that's being edited.
+     * @param node - Node to be saved. If not specified, currently selected
+     *               node will be used.
      */
-    $scope.saveNode = function() {
-      if (!$scope.currentlyEditedNode) {
-        throw {
-          name: 'IllegalStateError',
-          message: 'No node is currently being edited'
-        };
+    $scope.saveNode = function(node) {
+      if (node === undefined) {
+	node = $scope.selection.node;
       }
 
-      $scope.renderNode($scope.currentlyEditedNode);
+      if (node != null && node.state == 'edit') {
+	$scope.renderNode(node);
+      }
     };
 
     /**
@@ -85,6 +187,62 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     $scope.isBeingEdited = function(node) {
       return node.state == 'edit';
     };
+
+    /**
+     * Checks if given node can be moved up in the list.
+     * @returns {boolean} True if node can be moved.
+     */
+    $scope.canMoveNodeUp = function(node) {
+      return $scope.nodes.indexOf(node) > 0;
+    }
+
+    /**
+     * Checks if given node can be moved down in the list.
+     * @returns {boolean} True if node can be moved.
+     */
+    $scope.canMoveNodeDown = function(node) {
+      return $scope.nodes.indexOf(node) < $scope.nodes.length - 1;
+    }
+
+    /**
+     * Moves node up in the list.
+     */
+    $scope.moveNodeUp = function(node) {
+      var nodeIndex = $scope.nodes.indexOf(node);
+      $scope.nodes.splice(nodeIndex, 1);
+      $scope.nodes.splice(nodeIndex - 1, 0, node);
+    }
+
+    /**
+     * Moves node down in the list.
+     */
+    $scope.moveNodeDown = function(node) {
+      var nodeIndex = $scope.nodes.indexOf(node);
+      $scope.nodes.splice(nodeIndex, 1);
+      $scope.nodes.splice(nodeIndex + 1, 0, node);
+    }
+
+    /**
+     * Removes node from the list.
+     */
+    $scope.removeNode = function(node) {
+      var nodeIndex = $scope.nodes.indexOf(node);
+      $scope.nodes.splice(nodeIndex, 1);
+
+      if ($scope.selection.node === node) {
+	$scope.selection.node = null;
+      }
+    }
+
+    /**
+     * Clears the list of nodes.
+     */
+    $scope.removeAllNodes = function() {
+      // It's better to modify the nodes array than to assign new array to the
+      // scope variable. Some details:
+      // https://github.com/angular/angular.js/wiki/Understanding-Scopes#ngRepeat:
+      $scope.nodes.splice(0, $scope.nodes.length);
+    }
 
     /**
      * @returns {string[]} Array of names of available Manuskript plugins.
@@ -112,7 +270,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     /**
      * Sets state of all the nodes to 'render'.
      */
-    $scope.renderAll = function() {
+    $scope.renderAllNodes = function() {
       for (var i = 0; i < $scope.nodes.length; ++i) {
         var node = $scope.nodes[i];
 	node.state = "render";

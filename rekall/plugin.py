@@ -57,6 +57,10 @@ class Command(object):
     # will still be available from the Factory below.
     __name = ""
 
+    # Name of the category of this command. This is used when showing help and
+    # in the UI.
+    __category = ""
+
     # This class will not be registered (but extensions will).
     __abstract = True
     __metaclass__ = registry.MetaclassRegistry
@@ -115,8 +119,9 @@ class Command(object):
         fd = StringIO.StringIO()
         ui_renderer = text_renderer.TextRenderer(
             session=self.session, fd=fd)
-        ui_renderer.start(plugin_name=self.name)
-        self.render(ui_renderer)
+
+        with ui_renderer.start(plugin_name=self.name):
+            self.render(ui_renderer)
 
         return fd.getvalue()
 

@@ -98,8 +98,7 @@ class ProfileHook(kb.ParameterHook):
     name = "profile"
 
     # Windows kernel pdb files.
-    KERNEL_NAMES = set(
-        ["ntoskrnl.pdb", "ntkrnlmp.pdb", "ntkrnlpa.pdb", "ntkrpamp.pdb"])
+    KERNEL_NAMES = win_common.KERNEL_NAMES
 
     # Darwin TEMPLATE from xnu-1699.26.8/libkern/libkern/version.h.template
     DARWIN_TEMPLATE = re.compile(
@@ -141,7 +140,8 @@ class ProfileHook(kb.ParameterHook):
         try:
             # Try to load this profile from the repository.
             profile = self.session.LoadProfile(profile_name)
-        except ValueError:
+        except ValueError as e:
+            logging.info("Error loading profile: %s" % e)
             return
 
         return self.ApplyFindDTB(win_common.WinFindDTB, profile)

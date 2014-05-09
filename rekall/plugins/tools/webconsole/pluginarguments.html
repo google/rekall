@@ -1,12 +1,12 @@
 <table class="table table-condensed">
   <tr ng-repeat="argument in arguments">
-    <td width="20%">
+    <td width="50%">
       <small>{{argument.name}} ({{argument.type}}{{argument.nargs}})</small>
       <div ng-if="argument.help">
         <h5><small>{{argument.help}}</small></h5>
       </div>
     </td>
-    <td width="80%"><input style="height: 23px; width: 50%"
+    <td width="50%"><input style="height: 23px; width: 80%"
                            type="text"
                            class="form-control input-sm"
                            ng-placeholder="argument.default"

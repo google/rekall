@@ -49,8 +49,9 @@ class BaseAddressSpace(object):
 
     # This signifies that this address space normally operates on memory
     # images. This flag controls if this address space will participate in
-    # address space autoselection for image detection.
-    _md_image = False
+    # address space autoselection for image detection. Note that it can not be
+    # inherited but must be explicitly set.
+    __image = False
 
     def __init__(self, base=None, session=None, write=False, profile=None,
                  **_):
@@ -145,6 +146,8 @@ class BaseAddressSpace(object):
             # Try to get this from the cache.
             for x in self.cache.Get("Ranges"):
                 yield x
+
+            return
         except KeyError:
             pass
 
@@ -204,8 +207,7 @@ class BaseAddressSpace(object):
     @classmethod
     def metadata(cls, name, default=None):
         """Obtain metadata about this address space."""
-        prefix = '_md_'
-        return getattr(cls, prefix + name, default)
+        return getattr(cls, "_%s__%s" % (cls.__name__, name), default)
 
     def __str__(self):
         return self.__class__.__name__

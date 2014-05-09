@@ -173,13 +173,20 @@ class NoneObject(object):
     def __unicode__(self):
         ## If we are strict we blow up here
         if self.strict:
-            reason = self.reason.format(*self.args)
+            if "%" in self.reason:
+                reason = self.reason % self.args
+            else:
+                reason = self.reason.format(*self.args)
             logging.error("{0}\n{1}".format(reason, self.bt))
 
         return "-"
 
     def __repr__(self):
-        reason = self.reason.format(*self.args)
+        if "%" in self.reason:
+            reason = self.reason % self.args
+        else:
+            reason = self.reason.format(*self.args)
+
         return "<%s>" % reason
 
     def __format__(self, _):
@@ -535,7 +542,7 @@ class NativeType(BaseObject, NumericProxyMixIn):
 
     def write(self, data):
         """Writes the data back into the address space"""
-        output = struct.pack(self.format_string, data)
+        output = struct.pack(self.format_string, int(data))
         return self.obj_vm.write(self.obj_offset, output)
 
     def proxied(self):
@@ -899,7 +906,7 @@ class Array(BaseObject):
     def __iter__(self):
         # If the array is invalid we do not iterate.
         if self.obj_vm.is_valid_address(self.obj_offset):
-            for position in range(0, self.count):
+            for position in xrange(0, self.count):
                 # Since we often calculate array counts it is possible to
                 # calculate huge arrays. This will then spin here
                 # uncontrollably. We use max_count as a safety to break out
@@ -940,7 +947,7 @@ class Array(BaseObject):
         if not other or self.count != len(other):
             return False
 
-        for i in range(self.count):
+        for i in xrange(self.count):
             if not self[i] == other[i]:
                 return False
 
@@ -1520,9 +1527,13 @@ class Profile(object):
         return tuple([self._metadata.get(x) for x in args])
 
     def has_type(self, type_name):
+        # Make sure we are initialized on demand.
+        self.EnsureInitialized()
         return type_name in self.vtypes
 
     def has_class(self, class_name):
+        # Make sure we are initialized on demand.
+        self.EnsureInitialized()
         return class_name in self.object_classes
 
     def add_classes(self, classes_dict=None, **kwargs):
@@ -1703,7 +1714,7 @@ class Profile(object):
             elif value:
                 # Specify both getters and setter for the field.
                 getter = lambda self, name=name: self.m(name)
-                setter = lambda self, value=value: self.SetMember(name, value)
+                setter = lambda self, v=value, n=name: self.SetMember(n, v)
 
             properties[name] = property(getter, setter, None, name)
 

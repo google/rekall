@@ -40,7 +40,7 @@ http://volatility-labs.blogspot.de/2012/09/movp-31-detecting-malware-hooks-in.ht
 """
 
 import re
-
+from rekall import obj
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import constants
 from rekall.plugins.windows.gui import win32k_core
@@ -120,21 +120,25 @@ class UserHandles(win32k_core.Win32kPluginMixin,
                     )
 
                 renderer.table_header(
-                    [("Object(V)", "object", "[addrpad]"),
+                    [("_HANDLEENTRY", "handle_entry", "[addrpad]"),
+                     ("_HEAD", "object", "[addrpad]"),
                      ("Handle", "handle", "[addr]"),
                      ("bType", "type", "20"),
                      ("Flags", "flags", "^8"),
                      ("Thread", "thread", "^8"),
-                     ("Process", "process", ""),
+                     ("Process", "process", "5"),
+                     ("Process Name", "process_name", ""),
                      ])
 
             renderer.table_row(
-                handle.phead,
+                handle,
+                handle.phead.deref(),
                 handle.phead.h or 0,
                 handle.bType,
                 handle.bFlags,
                 handle.Thread.Cid.UniqueThread,
-                handle.Process.UniqueProcessId)
+                handle.Process.pid,
+                handle.Process.name)
 
 
 class WinEventHooks(win32k_core.Win32kPluginMixin,
@@ -230,6 +234,11 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
 
     name = "messagehooks"
 
+    def __init__(self, **kwargs):
+        super(WinMessageHooks, self).__init__(**kwargs)
+        self.handles = {}
+        self.cc = self.session.plugins.cc()
+
     def atom_number_from_ihmod(self, session, ihmod):
         """Resolve the module name from the ihmod field.
 
@@ -248,9 +257,18 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
 
         return atom_list[ihmod]
 
-    def module_name_from_ihmod(self, global_atom_table, session, ihmod):
+    def module_name_from_hook(self, global_atom_table, session, hook):
+        ihmod = hook.ihmod
         if ihmod == -1:
-            return None
+            # Return the owner process.
+            process = self.get_owner(session, hook)
+            if process:
+                # We need to resolve the address using the process AS.
+                self.cc.SwitchProcessContext(process)
+                return self.session.address_resolver.format_address(
+                    hook.offPfn, max_distance=0)
+
+            return obj.NoneObject()
 
         atom_num = self.atom_number_from_ihmod(session, ihmod)
 
@@ -262,14 +280,37 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
 
         return module_name
 
+    def get_owner(self, session, hook):
+        session_id = session.SessionId.v()
+        self._build_handle_cache()
+        handle = hook.head.h.v()
+        handle_entry = self.handles.get(
+            (session_id, handle), obj.NoneObject(
+                "Unknown handle %s", handle))
+
+        return handle_entry.pOwner.ppi.Process
+
+    def get_owner_string(self, session, hook):
+        owner = self.get_owner(session, hook)
+        if owner:
+            return "%s (%s)" % (owner.name, owner.pid)
+
+    def _build_handle_cache(self):
+        """Builds a cache of user handles for hooks."""
+        if not self.handles:
+            userhandles = self.session.plugins.userhandles()
+            for s, _, handle in userhandles.handles():
+                key = (s.SessionId.v(), handle.phead.h.v())
+                self.handles[key] = handle
+
     def render(self, renderer):
         renderer.table_header(
-            [("Offset(V)", "offset", "[addrpad]"),
-             ("Sess", "session", "<6"),
-             ("Desktop", "desktop", "20"),
+            [("tagHOOK(V)", "offset", "[addrpad]"),
+             ("Sess", "session", "<3"),
+             ("Owner", "owner", "20"),
              ("Thread", "thread", "30"),
-             ("Filter", "filter", "20"),
-             ("Flags", "flags", "20"),
+             ("Filter", "filter", "15"),
+             ("Flags", "flags", "10"),
              ("Function", "function", "[addrpad]"),
              ("Module", "module", ""),
              ])
@@ -287,13 +328,13 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
 
                     # First report all global hooks in the desktop.
                     for hook_name, hook in desktop.hooks():
-                        module_name = self.module_name_from_ihmod(
-                            global_atom_table, session, hook.ihmod)
+                        module_name = self.module_name_from_hook(
+                            global_atom_table, session, hook)
 
                         renderer.table_row(
                             hook,
                             station.dwSessionId,
-                            "{0}\\{1}".format(station.Name, desktop.Name),
+                            self.get_owner_string(session, hook),
                             "<any>", hook_name,
                             hook.flags,
                             hook.offPfn,
@@ -309,13 +350,13 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
                             )
 
                         for name, hook in thrd.hooks():
-                            module_name = self.module_name_from_ihmod(
-                                global_atom_table, session, hook.ihmod)
+                            module_name = self.module_name_from_hook(
+                                global_atom_table, session, hook)
 
                             renderer.table_row(
                                 hook,
                                 session.SessionId,
-                                "{0}\\{1}".format(station.Name, desktop.Name),
+                                self.get_owner_string(session, hook),
                                 info, name,
                                 hook.flags,
                                 hook.offPfn,
