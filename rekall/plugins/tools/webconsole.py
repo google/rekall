@@ -23,7 +23,6 @@
 __author__ = "Mikhail Bushkov <mbushkov@google.com>"
 
 import argparse
-import sys
 import os
 import StringIO
 import sys
@@ -221,7 +220,7 @@ class WebConsole(plugin.Command):
         parser.add_argument("--host", default="localhost",
                             help="Host for the web console to use.")
 
-        parser.add_argument("--port", default=5000, type=int,
+        parser.add_argument("--port", default=0, type=int,
                             help="Port for the web console to use.")
 
         parser.add_argument("--debug", default=False, action='store_true',
@@ -233,7 +232,7 @@ class WebConsole(plugin.Command):
                             action='store_true',
                             help="Don't open webconsole in the default browser.")
 
-    def __init__(self, host="localhost", port=5000, debug=False,
+    def __init__(self, host="localhost", port=0, debug=False,
                  no_browser=False, **kwargs):
         super(WebConsole, self).__init__(**kwargs)
         self.host = host
@@ -241,9 +240,16 @@ class WebConsole(plugin.Command):
         self.debug = debug
         self.no_browser = no_browser
 
-    def server_post_activate_callback(self):
+    def server_post_activate_callback(self, server):
+        # Update the port number, because the server may have launched on a
+        # random port.
+        self.port = server.server_address[1]
         if not self.no_browser:
             webbrowser.open("http://%s:%d" % (self.host, self.port))
+        else:
+            sys.stderr.write(
+                "\nSupressing web browser (--no_browser flag). "
+                "Server running at http://%s:%d\n" % (self.host, self.port))
 
     def render(self, renderer):
         renderer.format("Starting Manuskript web console.")

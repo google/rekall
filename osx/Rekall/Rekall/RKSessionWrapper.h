@@ -8,9 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
+extern const NSInteger RKNullPortNumberSentinel;
+
 @interface RKSessionWrapper : NSObject
 
-@property (assign, readonly) NSInteger port;
+@property (assign, readonly, nonatomic) NSInteger port;
+@property (copy, nonatomic) void (^onLaunchCallback)(void);
 
 - (BOOL)startWebconsoleWithImage:(NSURL *)path error:(NSError **)errorBuf;
 - (void)stopRekallWebconsoleSession;
