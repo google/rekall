@@ -5,9 +5,15 @@
 *.pyo
 
 # Specific auto-generated build files
+/py27
 /build
 /dist
 /rekall.egg-info
+
+# Xcode & OS X-related stuff
+.DS_Store
+xcshareddata
+xcuserdata
 
 # Other
 *.sln

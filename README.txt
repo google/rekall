@@ -21,6 +21,7 @@ Rekall supports investigations of the following x86 bit memory images:
 
 * Microsoft Windows XP Service Pack 2 and 3
 * Microsoft Windows 7 Service Pack 0 and 1
+* Microsoft Windows 8 and 8.1
 * Linux Kernels 2.6.24 to 3.10.
 * OSX 10.6-10.8.
 
@@ -46,6 +47,9 @@ installed first.
 To be able to run the ipython notebook, the following are also required:
 
 pip install Jinja2 MarkupSafe Pygments astroid pyzmq tornado wsgiref
+
+If you want to use the yarascan plugin, install yara and yara-python
+(http://plusvic.github.io/yara/).
 
 For windows, Rekall is also available as a self contained installer
 package. Please check the download page for the most appropriate installer to

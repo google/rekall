@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="5056" systemVersion="13C64" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="5056"/>
+        <plugIn identifier="com.apple.WebKitIBPlugin" version="5056"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="RKDocument">
+            <connections>
+                <outlet property="spinner" destination="6vI-Fs-t5N" id="mdp-mn-zdG"/>
+                <outlet property="webView" destination="zaO-NW-tGg" id="xcu-rk-g8H"/>
+                <outlet property="window" destination="xOd-HO-29H" id="JIz-fz-R2o"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application"/>
+        <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="xOd-HO-29H" userLabel="Window">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="133" y="235" width="800" height="600"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1440" height="878"/>
+            <value key="minSize" type="size" width="400" height="200"/>
+            <view key="contentView" id="gIp-Ho-8D9">
+                <rect key="frame" x="0.0" y="0.0" width="800" height="600"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <webView misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zaO-NW-tGg">
+                        <rect key="frame" x="0.0" y="0.0" width="800" height="600"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <webPreferences key="preferences" defaultFontSize="12" defaultFixedFontSize="12">
+                            <nil key="identifier"/>
+                        </webPreferences>
+                    </webView>
+                    <progressIndicator horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" maxValue="100" bezeled="NO" indeterminate="YES" style="spinning" translatesAutoresizingMaskIntoConstraints="NO" id="6vI-Fs-t5N">
+                        <rect key="frame" x="384" y="284" width="32" height="32"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    </progressIndicator>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="zaO-NW-tGg" firstAttribute="leading" secondItem="gIp-Ho-8D9" secondAttribute="leading" id="Fsf-YA-ZVg"/>
+                    <constraint firstItem="6vI-Fs-t5N" firstAttribute="top" secondItem="gIp-Ho-8D9" secondAttribute="top" constant="292" id="GOy-au-rVL"/>
+                    <constraint firstAttribute="bottom" secondItem="6vI-Fs-t5N" secondAttribute="bottom" constant="292" id="H12-KN-zUQ"/>
+                    <constraint firstItem="6vI-Fs-t5N" firstAttribute="leading" secondItem="gIp-Ho-8D9" secondAttribute="leading" constant="392" id="TnE-H5-Tlm"/>
+                    <constraint firstAttribute="trailing" secondItem="6vI-Fs-t5N" secondAttribute="trailing" constant="392" id="bIT-gB-nBO"/>
+                    <constraint firstAttribute="trailing" secondItem="zaO-NW-tGg" secondAttribute="trailing" id="cab-em-e1u"/>
+                    <constraint firstItem="zaO-NW-tGg" firstAttribute="top" secondItem="gIp-Ho-8D9" secondAttribute="top" id="ceW-5I-RLA"/>
+                    <constraint firstAttribute="bottom" secondItem="zaO-NW-tGg" secondAttribute="bottom" id="gNZ-x8-FaC"/>
+                </constraints>
+            </view>
+            <connections>
+                <outlet property="delegate" destination="-2" id="0bl-1N-x8E"/>
+            </connections>
+        </window>
+    </objects>
+</document>

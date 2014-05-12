@@ -1,0 +1,525 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		66778381191B83B500A0A51B /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66778380191B83B500A0A51B /* Cocoa.framework */; };
+		6677838B191B83B500A0A51B /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 66778389191B83B500A0A51B /* InfoPlist.strings */; };
+		6677838D191B83B500A0A51B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6677838C191B83B500A0A51B /* main.m */; };
+		66778391191B83B500A0A51B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 6677838F191B83B500A0A51B /* Credits.rtf */; };
+		66778394191B83B500A0A51B /* RKDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 66778393191B83B500A0A51B /* RKDocument.m */; };
+		66778397191B83B500A0A51B /* RKDocument.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66778395191B83B500A0A51B /* RKDocument.xib */; };
+		6677839A191B83B500A0A51B /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 66778398191B83B500A0A51B /* MainMenu.xib */; };
+		6677839C191B83B500A0A51B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6677839B191B83B500A0A51B /* Images.xcassets */; };
+		667783A3191B83B500A0A51B /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 667783A2191B83B500A0A51B /* XCTest.framework */; };
+		667783A4191B83B500A0A51B /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66778380191B83B500A0A51B /* Cocoa.framework */; };
+		667783AC191B83B500A0A51B /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 667783AA191B83B500A0A51B /* InfoPlist.strings */; };
+		667783AE191B83B500A0A51B /* RekallTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 667783AD191B83B500A0A51B /* RekallTests.m */; };
+		667783B8191B84AA00A0A51B /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 667783B7191B84AA00A0A51B /* WebKit.framework */; };
+		667783C3191B8A6100A0A51B /* RKSessionWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 667783C2191B8A6100A0A51B /* RKSessionWrapper.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		667783A5191B83B500A0A51B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 66778375191B83B500A0A51B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6677837C191B83B500A0A51B;
+			remoteInfo = Rekall;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		6637896F191B905B002B32C1 /* rekal */ = {isa = PBXFileReference; lastKnownFileType = folder; name = rekal; path = ../../dist/rekal; sourceTree = "<group>"; };
+		6677837D191B83B500A0A51B /* Rekall.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rekall.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		66778380191B83B500A0A51B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		66778383191B83B500A0A51B /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		66778384191B83B500A0A51B /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		66778385191B83B500A0A51B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		66778388191B83B500A0A51B /* Rekall-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Rekall-Info.plist"; sourceTree = "<group>"; };
+		6677838A191B83B500A0A51B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		6677838C191B83B500A0A51B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6677838E191B83B500A0A51B /* Rekall-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Rekall-Prefix.pch"; sourceTree = "<group>"; };
+		66778390191B83B500A0A51B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		66778392191B83B500A0A51B /* RKDocument.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RKDocument.h; sourceTree = "<group>"; };
+		66778393191B83B500A0A51B /* RKDocument.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RKDocument.m; sourceTree = "<group>"; };
+		66778396191B83B500A0A51B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/RKDocument.xib; sourceTree = "<group>"; };
+		66778399191B83B500A0A51B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		6677839B191B83B500A0A51B /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		667783A1191B83B500A0A51B /* RekallTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RekallTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		667783A2191B83B500A0A51B /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		667783A9191B83B500A0A51B /* RekallTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "RekallTests-Info.plist"; sourceTree = "<group>"; };
+		667783AB191B83B500A0A51B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		667783AD191B83B500A0A51B /* RekallTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RekallTests.m; sourceTree = "<group>"; };
+		667783B7191B84AA00A0A51B /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		667783C1191B8A6100A0A51B /* RKSessionWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RKSessionWrapper.h; sourceTree = "<group>"; };
+		667783C2191B8A6100A0A51B /* RKSessionWrapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RKSessionWrapper.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6677837A191B83B500A0A51B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				667783B8191B84AA00A0A51B /* WebKit.framework in Frameworks */,
+				66778381191B83B500A0A51B /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6677839E191B83B500A0A51B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				667783A4191B83B500A0A51B /* Cocoa.framework in Frameworks */,
+				667783A3191B83B500A0A51B /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		66778374191B83B500A0A51B = {
+			isa = PBXGroup;
+			children = (
+				66778386191B83B500A0A51B /* Rekall */,
+				667783A7191B83B500A0A51B /* RekallTests */,
+				6677837F191B83B500A0A51B /* Frameworks */,
+				6677837E191B83B500A0A51B /* Products */,
+				6637896F191B905B002B32C1 /* rekal */,
+			);
+			sourceTree = "<group>";
+		};
+		6677837E191B83B500A0A51B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6677837D191B83B500A0A51B /* Rekall.app */,
+				667783A1191B83B500A0A51B /* RekallTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6677837F191B83B500A0A51B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				667783B7191B84AA00A0A51B /* WebKit.framework */,
+				66778380191B83B500A0A51B /* Cocoa.framework */,
+				667783A2191B83B500A0A51B /* XCTest.framework */,
+				66778382191B83B500A0A51B /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		66778382191B83B500A0A51B /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				66778383191B83B500A0A51B /* AppKit.framework */,
+				66778384191B83B500A0A51B /* CoreData.framework */,
+				66778385191B83B500A0A51B /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		66778386191B83B500A0A51B /* Rekall */ = {
+			isa = PBXGroup;
+			children = (
+				66778392191B83B500A0A51B /* RKDocument.h */,
+				66778393191B83B500A0A51B /* RKDocument.m */,
+				66778395191B83B500A0A51B /* RKDocument.xib */,
+				66778398191B83B500A0A51B /* MainMenu.xib */,
+				6677839B191B83B500A0A51B /* Images.xcassets */,
+				66778387191B83B500A0A51B /* Supporting Files */,
+				667783C1191B8A6100A0A51B /* RKSessionWrapper.h */,
+				667783C2191B8A6100A0A51B /* RKSessionWrapper.m */,
+			);
+			path = Rekall;
+			sourceTree = "<group>";
+		};
+		66778387191B83B500A0A51B /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				66778388191B83B500A0A51B /* Rekall-Info.plist */,
+				66778389191B83B500A0A51B /* InfoPlist.strings */,
+				6677838C191B83B500A0A51B /* main.m */,
+				6677838E191B83B500A0A51B /* Rekall-Prefix.pch */,
+				6677838F191B83B500A0A51B /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		667783A7191B83B500A0A51B /* RekallTests */ = {
+			isa = PBXGroup;
+			children = (
+				667783AD191B83B500A0A51B /* RekallTests.m */,
+				667783A8191B83B500A0A51B /* Supporting Files */,
+			);
+			path = RekallTests;
+			sourceTree = "<group>";
+		};
+		667783A8191B83B500A0A51B /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				667783A9191B83B500A0A51B /* RekallTests-Info.plist */,
+				667783AA191B83B500A0A51B /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6677837C191B83B500A0A51B /* Rekall */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 667783B1191B83B500A0A51B /* Build configuration list for PBXNativeTarget "Rekall" */;
+			buildPhases = (
+				66778379191B83B500A0A51B /* Sources */,
+				6677837A191B83B500A0A51B /* Frameworks */,
+				6677837B191B83B500A0A51B /* Resources */,
+				66F86074191CC51600F7041A /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Rekall;
+			productName = Rekall;
+			productReference = 6677837D191B83B500A0A51B /* Rekall.app */;
+			productType = "com.apple.product-type.application";
+		};
+		667783A0191B83B500A0A51B /* RekallTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 667783B4191B83B500A0A51B /* Build configuration list for PBXNativeTarget "RekallTests" */;
+			buildPhases = (
+				6677839D191B83B500A0A51B /* Sources */,
+				6677839E191B83B500A0A51B /* Frameworks */,
+				6677839F191B83B500A0A51B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				667783A6191B83B500A0A51B /* PBXTargetDependency */,
+			);
+			name = RekallTests;
+			productName = RekallTests;
+			productReference = 667783A1191B83B500A0A51B /* RekallTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		66778375191B83B500A0A51B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = RK;
+				LastUpgradeCheck = 0510;
+				ORGANIZATIONNAME = Rekall;
+				TargetAttributes = {
+					667783A0191B83B500A0A51B = {
+						TestTargetID = 6677837C191B83B500A0A51B;
+					};
+				};
+			};
+			buildConfigurationList = 66778378191B83B500A0A51B /* Build configuration list for PBXProject "Rekall" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 66778374191B83B500A0A51B;
+			productRefGroup = 6677837E191B83B500A0A51B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6677837C191B83B500A0A51B /* Rekall */,
+				667783A0191B83B500A0A51B /* RekallTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6677837B191B83B500A0A51B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6677838B191B83B500A0A51B /* InfoPlist.strings in Resources */,
+				6677839C191B83B500A0A51B /* Images.xcassets in Resources */,
+				66778391191B83B500A0A51B /* Credits.rtf in Resources */,
+				66778397191B83B500A0A51B /* RKDocument.xib in Resources */,
+				6677839A191B83B500A0A51B /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6677839F191B83B500A0A51B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				667783AC191B83B500A0A51B /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		66F86074191CC51600F7041A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "SRC=\"${SRCROOT}/../../dist/rekal\"\nDST=\"${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Resources/\"\n\necho \"Copying from ${SRC} to ${DST}\"\ncp -R \"${SRC}\" \"${DST}\"";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		66778379191B83B500A0A51B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6677838D191B83B500A0A51B /* main.m in Sources */,
+				667783C3191B8A6100A0A51B /* RKSessionWrapper.m in Sources */,
+				66778394191B83B500A0A51B /* RKDocument.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6677839D191B83B500A0A51B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				667783AE191B83B500A0A51B /* RekallTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		667783A6191B83B500A0A51B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6677837C191B83B500A0A51B /* Rekall */;
+			targetProxy = 667783A5191B83B500A0A51B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		66778389191B83B500A0A51B /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6677838A191B83B500A0A51B /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		6677838F191B83B500A0A51B /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				66778390191B83B500A0A51B /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		66778395191B83B500A0A51B /* RKDocument.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				66778396191B83B500A0A51B /* Base */,
+			);
+			name = RKDocument.xib;
+			sourceTree = "<group>";
+		};
+		66778398191B83B500A0A51B /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				66778399191B83B500A0A51B /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+		667783AA191B83B500A0A51B /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				667783AB191B83B500A0A51B /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		667783AF191B83B500A0A51B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		667783B0191B83B500A0A51B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		667783B2191B83B500A0A51B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Rekall/Rekall-Prefix.pch";
+				INFOPLIST_FILE = "Rekall/Rekall-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		667783B3191B83B500A0A51B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Rekall/Rekall-Prefix.pch";
+				INFOPLIST_FILE = "Rekall/Rekall-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		667783B5191B83B500A0A51B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Rekall.app/Contents/MacOS/Rekall";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Rekall/Rekall-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = "RekallTests/RekallTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Debug;
+		};
+		667783B6191B83B500A0A51B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/Rekall.app/Contents/MacOS/Rekall";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Rekall/Rekall-Prefix.pch";
+				INFOPLIST_FILE = "RekallTests/RekallTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		66778378191B83B500A0A51B /* Build configuration list for PBXProject "Rekall" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				667783AF191B83B500A0A51B /* Debug */,
+				667783B0191B83B500A0A51B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		667783B1191B83B500A0A51B /* Build configuration list for PBXNativeTarget "Rekall" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				667783B2191B83B500A0A51B /* Debug */,
+				667783B3191B83B500A0A51B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		667783B4191B83B500A0A51B /* Build configuration list for PBXNativeTarget "RekallTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				667783B5191B83B500A0A51B /* Debug */,
+				667783B6191B83B500A0A51B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 66778375191B83B500A0A51B /* Project object */;
+}

@@ -27,11 +27,12 @@ class WebconsoleWSGIServer(serving.BaseWSGIServer):
     def server_activate(self):
         super(WebconsoleWSGIServer, self).server_activate()
         if self.post_activate_callback:
-            self.post_activate_callback()
+            self.post_activate_callback(self)
 
 
-def RunServer(host="localhost", port=5000, debug=False, plugins=None,
+def RunServer(host="localhost", port=0, debug=False, plugins=None,
               config=None, post_activate_callback=None):
+    # Port number 0 will cause the system to bind a random port.
     if not plugins:
         plugins = DEFAULT_PLUGINS
 

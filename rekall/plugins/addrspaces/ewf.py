@@ -136,4 +136,4 @@ class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
         fhandle = ewf_open([path])
 
         super(EWFAddressSpace, self).__init__(
-            fhandle=fhandle, session=session, base=base, **kwargs)
+            fhandle=fhandle, session=session, **kwargs)

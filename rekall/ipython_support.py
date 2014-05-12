@@ -25,6 +25,7 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import logging
 import re
+import readline
 
 from rekall import config
 from rekall import constants
@@ -64,6 +65,8 @@ def RekallCompleter(self, text):
             result = session.address_resolver.search_symbol(m.group(1) + "*")
             if len(result) == 1:
                 result = [result[0] + "\""]
+
+            result = [x.split("!", 1)[1] for x in result]
 
             return result
 
@@ -122,6 +125,10 @@ def Shell(user_session):
     # Workaround for completer bug.
     import IPython.core.completerlib
     IPython.core.completerlib.get_ipython = lambda: shell
+
+    # Set known delimeters for the completer. This varies by OS so we need to
+    # set it to ensure consistency.
+    readline.set_completer_delims(' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?')
 
     shell(local_ns=user_session._locals)
 

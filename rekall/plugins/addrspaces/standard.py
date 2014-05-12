@@ -39,15 +39,16 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
     ## We should be first.
     order = 0
 
-    def __init__(self, fhandle=None, **kwargs):
-        super(FDAddressSpace, self).__init__(**kwargs)
-        fhandle = (self.session and self.session.fhandle) or fhandle
+    def __init__(self, base=None, fhandle=None, **kwargs):
+        self.as_assert(base == None, "Base passed to FDAddressSpace.")
         self.as_assert(fhandle is not None, 'file handle must be provided')
 
         self.fhandle = fhandle
         self.fhandle.seek(0, 2)
         self.fsize = self.fhandle.tell()
         self.offset = 0
+
+        super(FDAddressSpace, self).__init__(**kwargs)
 
     def read(self, addr, length):
         try:
@@ -120,7 +121,7 @@ class FileAddressSpace(FDAddressSpace):
 
         fhandle = open(self.fname, self.mode)
         super(FileAddressSpace, self).__init__(
-            fhandle=fhandle, session=session, base=base, **kwargs)
+            fhandle=fhandle, session=session, **kwargs)
 
     def __getstate__(self):
         state = super(FileAddressSpace, self).__getstate__()
