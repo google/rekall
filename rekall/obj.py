@@ -1433,7 +1433,9 @@ class Profile(object):
 
         self.overlays = []
         self.vtypes = {}
-        self.collectors = {}
+        self.collectors = {
+            "Entity": [],
+        }
         self.constants = {}
         self.constant_addresses = utils.SortedCollection(key=lambda x: x[0])
         self.enums = {}
@@ -1856,6 +1858,8 @@ class Profile(object):
         """
         for component in components:
             self.collectors.setdefault(component, []).append(collector)
+
+        self.collectors["Entity"].append(collector)
 
     def get_collectors(self, component):
         """Get collectors that yield a particular component."""

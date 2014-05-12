@@ -24,59 +24,77 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import itertools
 
+from rekall import obj
+
 
 class Superposition(object):
-    """Represents multiple possible values of a single variable."""
-    def __init__(self, old, new):
-        self.variants = set()
+    """Represents multiple possible values of a single variable.
 
-        if isinstance(old, Superposition):
-            self.variants.update(old.variants)
-        else:
-            self.variants.add(old)
+    Superpositions are used to represent merge conflicts and inconsistencies in
+    a memory image. Due to a variety of factors, such as smear in acquisition,
+    and differences in representation of certain objects, such inconsistencies
+    are fairly common and not considered errors in Rekall.
 
-        if isinstance(new, Superposition):
-            self.variants.update(new.variants)
-        else:
-            self.variants.add(new)
+    Superposition objects are used in two ways: they can either be created
+    explicitly out of any iterable object (using the constructor), or they can
+    be created implicitly as needed by one of the several merge_* class methods
+    on this class.
+
+    For example:
+
+    Superposition.merge_scalars("foo", "bar") # returns superposition
+    Superposition.merge_scalars("foo", "foo") # returns "foo"
+
+    Once created, superpositions can be further merged, returning unions. They
+    can also be used in place of the original objects in most situations - the
+    __unicode__ and __repr__ functions represent the inconsistency in a
+    human-readable way, and calls to __getitem__ are proxied to each of the
+    variants of the superposition, returning a new superposition of the results.
+    """
+    def __init__(self, variants):
+        self.variants = variants
+
+    @classmethod
+    def merge_scalars(cls, *scalars):
+        variants = set()
+        for scalar in scalars:
+            if isinstance(scalar, Superposition):
+                variants.update(scalar.variants)
+            elif scalar:
+                variants.add(scalar)
+
+        if len(variants) == 1:
+            return variants.pop()
+        elif not variants:
+            return obj.NoneObject(
+                "No non-null scalars in merge."
+            )
+
+        return cls(variants)
 
     def __unicode__(self):
-        return "superposition(%s)" % ", ".join([str(x) for x in self.variants])
-    
+        return "superposition(%s)" % ", ".join([repr(x) for x in self.variants])
+
     def __str__(self):
         return self.__unicode__()
 
     def __repr__(self):
         return self.__unicode__()
 
+    def union(self, other):
+        return Superposition(
+            set(self.variants) | set(other.variants)
+        )
 
-def ScalarSuperposition(x, y):
-    """Takes two scalars and returns a superposition of them."""
-    if None in (x, y) or x == y:
-        return x or y or None
+    def __or__(self, other):
+        return self.union(other)
 
-    return Superposition(x, y)
+    def __getitem__(self, key):
+        values = [variant[key] for variant in self.variants]
+        return Superposition(variants=values)
 
-
-def SuperpositionMerge(x, y):
-    """Merges x and y (dicts). Keeps all values of top-level conflicts.
-
-    In case x and y both contain a top level key that maps to different values
-    the new dictionary will contain, at that key, an instance of Superposition
-    that holds values from both x and y.
-
-    Apart from that distinction, this is the same as running:
-      dict(x.items() + y.items())
-    """
-    result = dict()
-
-    for key, val in itertools.chain(x.iteritems(), y.iteritems()):
-        if result.get(key, val) != val:
-            result[key] = Superposition(result[key], val)
-        else:
-            result[key] = val
-
-    return result
+    def __iter__(self):
+        return self.variants.__iter__()
 
 
 def SuperpositionMergeNamedTuples(x, y):
@@ -89,10 +107,10 @@ def SuperpositionMergeNamedTuples(x, y):
 
     tuple_cls = type(x)
     if tuple_cls != type(y):
-        raise AttributeError("Cannot merge namedtuples of different types.")
+        raise ValueError("Cannot merge namedtuples of different types.")
 
     return tuple_cls(
-        *[ScalarSuperposition(mx, my) for mx, my in itertools.izip(x, y)]
+        *[Superposition.merge_scalars(mx, my)
+            for mx, my in itertools.izip(x, y)]
     )
-
 

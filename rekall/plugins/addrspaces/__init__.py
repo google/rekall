@@ -5,7 +5,6 @@ from rekall import utils
 
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import crash
-
 # Remove hibernation support as an address space - its too slow to
 # actually use. TODO: Convert into a plugin for being able to convert
 # from a hibernation file (like imagecopy).
