@@ -20,11 +20,22 @@
 
 """An Address Space for processing ELF64 coredumps."""
 # References:
-# VirtualBox core format: http://www.virtualbox.org/manual/ch12.html#guestcoreformat
+# VirtualBox core format:
+# http://www.virtualbox.org/manual/ch12.html#guestcoreformat
 # ELF64 format: http://downloads.openwatcom.org/ftp/devel/docs/elf-64-gen.pdf
+
+# Note that as of version 1.6.0 WinPmem also uses ELF64 as the default imaging
+# format. Except that WinPmem stores image metadata in a YAML file stored in the
+# image. This address space supports both formats.
+
+import logging
+import yaml
 
 from rekall import addrspace
 from rekall.plugins.overlays.linux import elf
+
+PT_PMEM_METADATA = 0x6d656d70  # Spells 'pmem'
+
 
 
 class Elf64CoreDump(addrspace.RunBasedAddressSpace):
@@ -42,6 +53,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
 
         self.offset = 0
         self.fname = ''
+        self.metadata = {}
 
         # Now parse the ELF file.
         elf_profile = elf.ELFProfile(session=self.session)
@@ -63,6 +75,16 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
                                   int(section.p_offset), # File Addr
                                   int(section.p_memsz))) # Length
 
+            elif section.p_type == PT_PMEM_METADATA:
+                # Allow the file to be extended if users want to append
+                # metadata to the file.
+
+                to_read = max(1000000, int(section.p_filesz))
+                data = self.base.read(section.p_offset, to_read)
+                data = data.split("\x00")[0]
+
+                self.LoadMetadata(data)
+
     def check_file(self):
         """Checks the base file handle for sanity."""
 
@@ -72,3 +94,17 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         ## Must start with the magic for elf
         self.as_assert((self.base.read(0, 4) == "\177ELF"),
                        "Header signature invalid")
+
+    def LoadMetadata(self, data):
+        """Load the WinPmem metadata from the elf file."""
+        try:
+            self.metadata.update(yaml.safe_load(data))
+        except yaml.YAMLError as e:
+            logging.error("Invalid file metadata, skipping: %s" % e)
+            return
+
+        for session_param, metadata in (("dtb", "CR3"),
+                                        ("kernel_base", "KernBase")):
+            if metadata in self.metadata:
+                self.session.SetParameter(
+                    session_param, self.metadata[metadata])

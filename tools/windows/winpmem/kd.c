@@ -14,21 +14,6 @@
   limitations under the License.
 */
 
-/*
-  This module implements code to reliably locate certain kernel
-  structures which are useful in debugging.
-
-  Kernel Debugger Block:
-
-  Since windows 7 the SelfPcr->KdVersionBlock method does not work
-  since this is nulled out by the operating system, so we need to
-  implement a more complex algorithm.
-
-  The Kernel Debugger Block is a static struct allocated in kernel
-  space. Therefore, we find it by scanning the kernel's .data section
-  for the KDBG Owner tag.
-*/
-
 #include "kd.h"
 
 /*
@@ -169,55 +154,6 @@ IMAGE_SECTION_HEADER *GetSection(IMAGE_DOS_HEADER *image_base, char *name) {
   return NULL;
 };
 
-
-/*
-  In older versions of windows, it was possible to find the KdDebugBlock from a
-  reference in _KPCR.KdVersionBlock. As of windows 7 this field is nulled out so
-  we need to resort to scanning for the KDBG signature. This is basically the
-  same thing Rekall does from the image.
-
-  We notice that the debugger block is actually a static struct which is
-  therefore found in the ntoskrnl.exe executable's ".data" section. This section
-  is typically very small (about 64kb) and contains only statically allocated
-  kernel variables.
-
-  We therefore locate the kernel base and find the .data section. We search for
-  the KDBG in this small region. It is unlikely to have false positives since
-  the region that is searches is so small. This allows us to relax the search
-  conditions.
-*/
-
-KDDEBUGGER_DATA64 *KDBGScan(IMAGE_DOS_HEADER *image_base) {
-  IMAGE_SECTION_HEADER *data_section = GetSection(image_base, ".data");
-
-  if (data_section) {
-    char *buffer = (char *)(data_section->VirtualAddress +
-			    (uintptr_t)image_base);
-
-    int length = data_section->SizeOfRawData;
-    char *i;
-
-    for(i=buffer + 16; i < buffer + length - 4; i++) {
-      if (!memcmp(i, "KDBG", 4)) {
-        int offset_to_owner_tag = (int)
-          &(((KDDEBUGGER_DATA64 *)0)->Header.OwnerTag);
-
-        KDDEBUGGER_DATA64 *kdbg = (KDDEBUGGER_DATA64 *)
-          (i - offset_to_owner_tag);
-
-        // Check the Kernel Base for sanity.
-        if ((IMAGE_DOS_HEADER *)kdbg->KernBase != image_base)
-          continue;
-
-        WinDbgPrint("KDBG Found at %p\n", kdbg);
-        return kdbg;
-      };
-    };
-
-  };
-
-  return NULL;
-};
 
 /*
   Enumerate the KPCR blocks from all CPUs.

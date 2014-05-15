@@ -22,6 +22,7 @@
 
 *********************************************************************/
 #include "winpmem.h"
+#include <time.h>
 
 
 __int64 WinPmem::pad(__int64 length) {
@@ -86,7 +87,7 @@ __int64 WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
 
     if(!ReadFile(fd_, buffer_, to_write, &bytes_read, NULL) ||
        bytes_read != to_write) {
-      LogError(TEXT("Failed to Read memory."));
+      LogError(TEXT("Failed to Read memory.\n"));
       goto error;
     };
 
@@ -140,7 +141,7 @@ void WinPmem::print_mode_(unsigned __int32 mode) {
     break;
 
   case PMEM_MODE_PHYSICAL:
-    Log(TEXT("\\.\PhysicalMemory"));
+    Log(TEXT("\\\\.\\PhysicalMemory"));
     break;
 
   case PMEM_MODE_PTE:
@@ -258,7 +259,7 @@ __int64 WinPmem::create_output_file(TCHAR *output_filename) {
   return status;
 }
 
-__int64 WinPmem::write_crashdump() {
+__int64 WinPmem::write_coredump() {
   // Somewhere to store the info from the driver;
   struct PmemMemoryInfo info;
   DWORD size;
@@ -280,10 +281,10 @@ __int64 WinPmem::write_crashdump() {
     goto exit;
   };
 
-  Log(TEXT("Will write a crash dump file\n"));
+  Log(TEXT("Will write an elf coredump.\n"));
   print_memory_info();
 
-  if(!write_crashdump_header_(&info)) {
+  if(!write_coredump_header_(&info)) {
     goto exit;
   };
 
@@ -292,6 +293,10 @@ __int64 WinPmem::write_crashdump() {
     copy_memory(info.Run[i].start, info.Run[i].start + info.Run[i].length);
     offset = info.Run[i].start + info.Run[i].length;
   };
+
+  if(!WriteFile(out_fd_, metadata_, metadata_len_, &metadata_len_, NULL)) {
+    LogError(TEXT("Can not write metadata."));
+  }
 
  exit:
   CloseHandle(out_fd_);
@@ -358,6 +363,10 @@ WinPmem::WinPmem():
   max_physical_memory_ = 0;
   mode_ = PMEM_MODE_AUTO;
   default_mode_ = PMEM_MODE_AUTO;
+  metadata_ = NULL;
+  metadata_len_ = 0;
+  driver_filename_ = NULL;
+  driver_is_tempfile_ = false;
   }
 
 WinPmem::~WinPmem() {
@@ -367,6 +376,10 @@ WinPmem::~WinPmem() {
 
   if (buffer_) {
     delete [] buffer_;
+  }
+
+  if (driver_filename_ && driver_is_tempfile_) {
+    free(driver_filename_);
   }
 }
 
@@ -387,7 +400,21 @@ void WinPmem::Log(const TCHAR *message, ...) {
 };
 
 __int64 WinPmem::extract_file_(__int64 driver_id) {
-  TCHAR path[MAX_PATH + 1];
+  if (!driver_filename_) {
+    TCHAR path[MAX_PATH + 1];
+    TCHAR filename[MAX_PATH + 1];
+
+    // Gets the temp path env string (no guarantee it's a valid path).
+    if(!GetTempPath(MAX_PATH, path)) {
+      LogError(TEXT("Unable to determine temporary path."));
+      goto error;
+    }
+
+    GetTempFileName(path, service_name, 0, filename);
+    set_driver_filename(filename);
+
+    driver_is_tempfile_ = true;
+  };
 
   // Locate the driver resource in the .EXE file.
   HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(driver_id), L"FILE");
@@ -410,15 +437,12 @@ __int64 WinPmem::extract_file_(__int64 driver_id) {
 
   DWORD size = SizeofResource(NULL, hRes);
 
-  //  Gets the temp path env string (no guarantee it's a valid path).
-  if(!GetTempPath(MAX_PATH, path)) {
-    LogError(TEXT("Unable to determine temporary path."));
-    goto error_resource;
-  }
-
-  GetTempFileName(path, service_name, 0, driver_filename);
-  HANDLE out_fd = CreateFile(driver_filename, GENERIC_WRITE, 0, NULL,
+  // Now open the filename and write the driver image on it.
+  HANDLE out_fd = CreateFile(driver_filename_, GENERIC_WRITE, 0, NULL,
                              CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+  Log(L"Extracting driver to %s\n", driver_filename_);
+
   if(out_fd == INVALID_HANDLE_VALUE) {
     LogError(TEXT("Can not create temporary file."));
     goto error_resource;
@@ -430,6 +454,7 @@ __int64 WinPmem::extract_file_(__int64 driver_id) {
   }
 
   CloseHandle(out_fd);
+
   return 1;
 
  error_file:
@@ -440,12 +465,28 @@ __int64 WinPmem::extract_file_(__int64 driver_id) {
   return -1;
 };
 
+
+void WinPmem::set_driver_filename(TCHAR *driver_filename) {
+  DWORD res;
+
+  if(driver_filename_)
+    free(driver_filename_);
+
+  driver_filename_ = (TCHAR *)malloc(MAX_PATH * sizeof(TCHAR));
+  if (driver_filename_) {
+    res = GetFullPathName(driver_filename, MAX_PATH,
+                          driver_filename_, NULL);
+
+    driver_is_tempfile_ = false;
+  };
+}
+
 __int64 WinPmem::install_driver() {
   SC_HANDLE scm, service;
   __int64 status = -1;
 
   // Try to load the driver from the resource section.
-  if (load_driver_() < 0)
+  if (extract_driver() < 0)
     goto error;
 
   uninstall_driver();
@@ -463,7 +504,7 @@ __int64 WinPmem::install_driver() {
                           SERVICE_KERNEL_DRIVER,
                           SERVICE_DEMAND_START,
                           SERVICE_ERROR_NORMAL,
-                          driver_filename,
+                          driver_filename_,
                           NULL,
                           NULL,
                           NULL,
@@ -484,7 +525,7 @@ __int64 WinPmem::install_driver() {
     }
   }
 
-  Log(L"Loaded Driver %s.\n", driver_filename);
+  Log(L"Loaded Driver %s.\n", driver_filename_);
 
   fd_ = CreateFile(TEXT("\\\\.\\") TEXT(PMEM_DEVICE_NAME),
                    // Write is needed for IOCTL.
@@ -505,8 +546,12 @@ __int64 WinPmem::install_driver() {
  service_error:
   CloseServiceHandle(service);
   CloseServiceHandle(scm);
-  DeleteFile(driver_filename);
 
+  // Only remove the driver file if it was a temporary file.
+  if (driver_is_tempfile_) {
+    Log(L"Deleting %s %d\n", driver_filename_);
+    DeleteFile(driver_filename_);
+  };
  error:
   return status;
 }
@@ -535,52 +580,148 @@ __int64 WinPmem::uninstall_driver() {
   return 0;
 }
 
+/* Create a YAML file describing the image encoded into a null terminated
+   string. Caller will own the memory.
+ */
+char *store_metadata_(struct PmemMemoryInfo *info) {
+  SYSTEM_INFO sys_info;
+  struct tm newtime;
+  __time32_t aclock;
 
-// WinPmem64 - A 64 bit implementation of the imager.
-__int64 WinPmem64::write_crashdump_header_(struct PmemMemoryInfo *info) {
-  DUMP_HEADER64 header;
-  ULONG i;
-  __int32 *p = (__int32 *)&header;
-  DWORD header_size = 0x2000;
+  char time_buffer[32];
+  errno_t errNum;
+  char *arch = NULL;
 
-  // Pad with PAGE.
-  for(i=0; i<sizeof(header)/4; i++) {
-    p[i] = DUMP_SIGNATURE64;
+  _time32( &aclock );   // Get time in seconds.
+  _gmtime32_s( &newtime, &aclock );   // Convert time to struct tm form.
+
+  // Print local time as a string.
+  errNum = asctime_s(time_buffer, 32, &newtime);
+  if (errNum) {
+    time_buffer[0] = 0;
   }
 
-  header.Signature = DUMP_SIGNATURE64;
-  header.ValidDump = DUMP_VALID_DUMP64;
+  // Get basic architecture information (Note that we always write ELF64 core
+  // dumps - even on 32 bit platforms).
+  ZeroMemory(&sys_info, sizeof(sys_info));
+  GetNativeSystemInfo(&sys_info);
 
-  header.KdDebuggerDataBlock = info->KDBG.QuadPart;
-  header.PhysicalMemoryBlock.NumberOfRuns = 0;
-  header.PhysicalMemoryBlock.NumberOfPages = 0;
+  switch(sys_info.wProcessorArchitecture) {
+    case PROCESSOR_ARCHITECTURE_AMD64:
+      arch = "AMD64";
+      break;
 
-  for(i=0; i < info->NumberOfRuns.QuadPart; i++) {
-    header.PhysicalMemoryBlock.Run[i].BasePage = info->Run[i].start / PAGE_SIZE;
-    header.PhysicalMemoryBlock.Run[i].PageCount = info->Run[i].length / PAGE_SIZE;
-    header.PhysicalMemoryBlock.NumberOfRuns++;
-    header.PhysicalMemoryBlock.NumberOfPages += info->Run[i].length / PAGE_SIZE;
+    case PROCESSOR_ARCHITECTURE_INTEL:
+      arch = "I386";
+      break;
+
+    default:
+      arch = "Unknown";
+  }
+
+  return asprintf(// A YAML File describing metadata about this image.
+                  "# PMEM\n"
+                  "---\n"   // The start of the YAML file.
+                  "acquisition_tool: 'WinPMEM " PMEM_VERSION "'\n"
+                  "acquisition_timestamp: %s\n"
+                  "CR3: %#llx\n"
+                  "NtBuildNumber: %#llx\n"
+                  "NtBuildNumberAddr: %#llx\n"
+                  "KernBase: %#llx\n"
+                  "Arch: %s\n"
+                  "...\n",  // This is the end of a YAML file.
+                  time_buffer,
+                  info->CR3.QuadPart,
+                  info->NtBuildNumber.QuadPart,
+                  info->NtBuildNumberAddr.QuadPart,
+                  info->KernBase.QuadPart,
+                  arch
+                  );
+};
+
+
+// WinPmem64 - A 64 bit implementation of the imager.
+__int64 WinPmem::write_coredump_header_(struct PmemMemoryInfo *info) {
+  Elf64_Ehdr header;
+  DWORD header_size;
+  Elf64_Phdr pheader;
+  int i;
+
+  if(!metadata_) {
+    metadata_ = store_metadata_(info);
+    if (!metadata_) goto error;
+
+    metadata_len_ = strlen(metadata_);
   };
 
-  header.DirectoryTableBase = info->CR3.QuadPart;
-  header.MajorVersion = 0xf;
-  header.MinorVersion = info->NtBuildNumber.LowPart;
-  header.RequiredDumpSpace.QuadPart = (header.PhysicalMemoryBlock.NumberOfPages +
-                                       header_size / PAGE_SIZE);
-  header.DumpType = 1; // Full kernel dump.
-  header.BugCheckCode = 0x00;
-  header.Exception.ExceptionCode = 0;
-  header.MachineImageType = 0x8664;
+  // Where we start writing data.
+  uint64 file_offset = (
+      sizeof(Elf64_Ehdr) +
+      // One Phdr for each run and one for the metadata.
+      (info->NumberOfRuns.QuadPart + 1) * sizeof(Elf64_Phdr));
 
-  // Count how many processors we have.
-  for(i=0; info->KPCR[i].QuadPart; i++);
-  header.NumberProcessors = i;
+  // All values that are unset will be zero
+  RtlZeroMemory(&header, sizeof(Elf64_Ehdr));
 
-  header.PfnDataBase = info->PfnDataBase.QuadPart;
-  header.PsActiveProcessHead = info->PsActiveProcessHead.QuadPart;
-  header.PsLoadedModuleList = info->PsLoadedModuleList.QuadPart;
+  // We create a 64 bit core dump file with one section
+  // for each physical memory segment.
+  header.ident[0] = ELFMAG0;
+  header.ident[1] = ELFMAG1;
+  header.ident[2] = ELFMAG2;
+  header.ident[3] = ELFMAG3;
+  header.ident[4] = ELFCLASS64;
+  header.ident[5] = ELFDATA2LSB;
+  header.ident[6] = EV_CURRENT;
+  header.type     = ET_CORE;
+  header.machine  = EM_X86_64;
+  header.version  = EV_CURRENT;
+  header.phoff    = sizeof(Elf64_Ehdr);
+  header.ehsize   = sizeof(Elf64_Ehdr);
+  header.phentsize= sizeof(Elf64_Phdr);
 
+  // One more header for the metadata.
+  header.phnum    = (uint32)info->NumberOfRuns.QuadPart + 1;
+  header.shentsize= sizeof(Elf64_Shdr);
+  header.shnum    = 0;
+
+  header_size = sizeof(header);
   if(!WriteFile(out_fd_, &header, header_size, &header_size, NULL)) {
+    Log(TEXT("Failed to write header... Aborting.\n"));
+    goto error;
+  };
+
+  for(i=0; i<info->NumberOfRuns.QuadPart; i++) {
+    PHYSICAL_MEMORY_RANGE range = info->Run[i];
+
+    RtlZeroMemory(&pheader, sizeof(Elf64_Phdr));
+
+    pheader.type = PT_LOAD;
+    pheader.paddr = range.start;
+    pheader.memsz = range.length;
+    pheader.align = PAGE_SIZE;
+    pheader.flags = PF_R;
+    pheader.off = file_offset;
+    pheader.filesz = range.length;
+
+    // Move the file offset by the size of this run.
+    file_offset += range.length;
+
+    header_size = sizeof(pheader);
+    if(!WriteFile(out_fd_, &pheader, header_size, &header_size, NULL)) {
+      Log(TEXT("Failed to write header... Aborting.\n"));
+      goto error;
+    };
+
+  };
+
+  // Add a header for the metadata so it can be easily found in the file.
+  RtlZeroMemory(&pheader, sizeof(Elf64_Phdr));
+  pheader.type = PT_PMEM_METADATA;
+  pheader.off = file_offset;
+  pheader.filesz = metadata_len_;
+
+  header_size = sizeof(pheader);
+  if(!WriteFile(out_fd_, &pheader, header_size, &header_size, NULL)) {
     Log(TEXT("Failed to write header... Aborting.\n"));
     goto error;
   };
@@ -591,75 +732,63 @@ __int64 WinPmem64::write_crashdump_header_(struct PmemMemoryInfo *info) {
   return 0;
 };
 
+__int64 WinPmem::extract_driver(TCHAR *driver_filename) {
+  set_driver_filename(driver_filename);
+  return extract_driver();
+};
 
-
-__int64 WinPmem64::load_driver_() {
+__int64 WinPmem64::extract_driver() {
   // 64 bit drivers use PTE acquisition by default.
   default_mode_ = PMEM_MODE_PTE;
   return extract_file_(WINPMEM_64BIT_DRIVER);
 }
 
-// WinPmem32 - A 32 bit implementation of the imager.
-__int64 WinPmem32::write_crashdump_header_(struct PmemMemoryInfo *info) {
-  DUMP_HEADER header;
-  ULONG i;
-  __int32 *p = (__int32 *)&header;
-  DWORD header_size = 0x1000;
-
-  // Pad with PAGE.
-  for(i=0; i<sizeof(header)/4; i++) {
-    p[i] = DUMP_SIGNATURE32;
-  }
-
-  header.Signature = DUMP_SIGNATURE32;
-  header.ValidDump = DUMP_VALID_DUMP32;
-
-  header.KdDebuggerDataBlock = info->KDBG.LowPart;
-  header.PhysicalMemoryBlock.NumberOfRuns = 0;
-  header.PhysicalMemoryBlock.NumberOfPages = 0;
-
-  for(i=0; i < info->NumberOfRuns.QuadPart; i++) {
-    header.PhysicalMemoryBlock.Run[i].BasePage = (ULONG)info->Run[i].start /
-      PAGE_SIZE;
-    header.PhysicalMemoryBlock.Run[i].PageCount = (ULONG)info->Run[i].length /
-      PAGE_SIZE;
-    header.PhysicalMemoryBlock.NumberOfRuns++;
-    header.PhysicalMemoryBlock.NumberOfPages += (ULONG)info->Run[i].length /
-      PAGE_SIZE;
-  };
-
-  // Count how many processors we have.
-  for(i=0; info->KPCR[i].QuadPart; i++);
-  header.KeNumberOfProcessors = i;
-
-  header.DirectoryTableBase = info->CR3.LowPart;
-  header.MajorVersion = 0xf;
-  header.MinorVersion = info->NtBuildNumber.LowPart;
-  header.RequiredDumpSpace.QuadPart = (header.PhysicalMemoryBlock.NumberOfPages +
-                                       header_size / PAGE_SIZE);
-  header.DumpType = 1; // Full kernel dump.
-  header.BugCheckCode = 0x00;
-  // Ideally we check this from the kernel's image but the other types
-  // are kind of weird and we wont see windows running on them.
-  header.MachineImageType = 0x014c;  // See _IMAGE_FILE_HEADER.Machine
-
-  header.PfnDataBase = (PULONG)(info->PfnDataBase.QuadPart);
-  header.PsActiveProcessHead = (PLIST_ENTRY)(info->PsActiveProcessHead.QuadPart);
-  header.PsLoadedModuleList = (PLIST_ENTRY)(info->PsLoadedModuleList.QuadPart);
-
-  if(!WriteFile(out_fd_, &header, header_size, &header_size, NULL)) {
-    Log(TEXT("Failed to write header... Aborting.\n"));
-    goto error;
-  };
-
-  return 1;
-
- error:
-  return 0;
-}
-
-__int64 WinPmem32::load_driver_() {
+__int64 WinPmem32::extract_driver() {
   // 32 bit acquisition defaults to physical device.
   default_mode_ = PMEM_MODE_PHYSICAL;
   return extract_file_(WINPMEM_32BIT_DRIVER);
+}
+
+
+#ifdef _WIN32
+#define vsnprintf _vsnprintf
+#endif
+
+char *asprintf(const char *fmt, ...) {
+  /* Guess we need no more than 1000 bytes. */
+  int n, size = 1000;
+  char *p, *np;
+  va_list ap;
+
+  p = (char *)malloc (size);
+  if (!p)
+    return NULL;
+
+  while (1) {
+    /* Try to print in the allocated space. */
+    va_start(ap, fmt);
+    n = vsnprintf (p, size, fmt, ap);
+    va_end(ap);
+
+    /* If that worked, return the string. */
+    if (n > -1 && n < size)
+      return p;
+
+    /* Else try again with more space. */
+    if (n > -1)    /* glibc 2.1 */
+      size = n+1;  /* precisely what is needed */
+
+    else           /* glibc 2.0 */
+      size *= 2;   /* twice the old size */
+
+    np = (char *)realloc (p, size);
+    if (np == NULL) {
+      free(p);
+      return NULL;
+
+    } else {
+      p = np;
+    }
+
+  }
 }

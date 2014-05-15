@@ -50,34 +50,6 @@ config.DeclareOption(
 
 
 
-def IPython011Support(user_session):
-    """Launch the ipython session for pre 0.12 versions.
-
-    Returns:
-      False if we failed to use IPython. True if the session was run and exited.
-    """
-    try:
-        # Try to use the ipython shell.
-        from IPython import genutils
-        from IPython import Shell
-
-        # Fix a bug in IPython which prevents a custom __dir__ handler by
-        # polluting it with additional crap.
-        genutils.dir2 = dir
-
-        shell = Shell.IPShellEmbed(argv=[], user_ns=user_session._locals,
-                                   banner=constants.BANNER)
-
-        # This must be run here because the IPython shell messes with our user
-        # namespace above (by adding its own help function).
-        user_session._prepare_local_namespace()
-
-        shell(local_ns=user_session._locals)
-        return True
-
-    except ImportError:
-        return False
-
 def IPython012Support(user_session):
     """Launch the ipython session for post 0.12 versions.
 
@@ -173,8 +145,7 @@ def main(argv=None):
     if user_session.state.ipython_engine == "notebook":
         ipython_support.NotebookSupport(user_session)
     else:
-        _ = (IPython011Support(user_session) or
-             IPython012Support(user_session) or
+        _ = (IPython012Support(user_session) or
              NativePythonSupport(user_session))
 
 if __name__ == '__main__':

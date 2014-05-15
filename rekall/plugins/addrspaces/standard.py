@@ -51,6 +51,8 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
         super(FDAddressSpace, self).__init__(**kwargs)
 
     def read(self, addr, length):
+        length = int(length)
+        addr = int(addr)
         try:
             self.fhandle.seek(addr)
             data = self.fhandle.read(length)

@@ -71,8 +71,8 @@ class KernelBaseHook(kb.ParameterHook):
                     helper = pe_vtypes.PE(
                         address_space=address_space,
                         session=self.session, image_base=page)
-                    if (str(helper.RSDS.Filename) in common.KERNEL_NAMES):
 
+                    if str(helper.RSDS.Filename) in common.KERNEL_NAMES:
                         logging.info("Detected kernel base at 0x%X", page)
                         return page
                 else:

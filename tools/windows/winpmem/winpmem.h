@@ -22,7 +22,7 @@
  */
 #define SILENT_OPERATION 0
 #define PMEM_DEVICE_NAME L"pmem"
-#define PMEM_VERSION "v1.5.5"
+#define PMEM_VERSION "v1.6.0"
 #define PMEM_POOL_TAG 0x4d454d50
 
 // In order to enable writing this must be set to 1 and the
@@ -81,7 +81,11 @@ struct DeprecatedPmemMemoryInfo {
 struct PmemMemoryInfo {
   LARGE_INTEGER CR3;
   LARGE_INTEGER NtBuildNumber; // Version of this kernel.
+
   LARGE_INTEGER KernBase;  // The base of the kernel image.
+
+  // The following are deprecated and will not be set by the driver. It is safer
+  // to get these during analysis from NtBuildNumberAddr below.
   LARGE_INTEGER KDBG;  // The address of KDBG
 
   // Support up to 32 processors for KPCR.
@@ -90,6 +94,8 @@ struct PmemMemoryInfo {
   LARGE_INTEGER PfnDataBase;
   LARGE_INTEGER PsLoadedModuleList;
   LARGE_INTEGER PsActiveProcessHead;
+
+  // END DEPRECATED.
 
   // The address of the NtBuildNumber integer - this is used to find the kernel
   // base quickly.
