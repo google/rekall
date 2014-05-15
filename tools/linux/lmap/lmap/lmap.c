@@ -704,7 +704,7 @@ unsigned int dump_memory_elf(MEMORY_MAP *mm, int mem_dev, int dump_file) {
   Elf_Ehdr *elf_header = NULL;
   Elf_Phdr *program_header = NULL;
 
-  // Prepare an eld phdr for each memory range and 1 ehdr for the file
+  // Prepare an elf phdr for each memory range and 1 ehdr for the file
   headers_bufsize = (
       sizeof(Elf_Ehdr) + mm->size * sizeof(Elf_Phdr));
   if ((elf_headers_buf = (uint8_t *)malloc(headers_bufsize)) == NULL) {

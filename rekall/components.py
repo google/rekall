@@ -35,17 +35,23 @@ from rekall import superposition
 
 
 COMPONENTS = [
+    "Entity",  # Has to be first!
     "Named",
     "MemoryObject",
     "NetworkInterface",
     "Process",
     "Thread",
     "Connection",
-    "Resource",
     "Handle",
     "File",
     "User",
     "Group",
+#    "Timer",
+#    "Route",
+#    "LoginSession",
+#    "KernelModule",
+#    "Mount",
+#    "AllocationZone",
 ]
 
 
@@ -53,13 +59,24 @@ class ComponentTuple(collections.namedtuple("ComponentTuple", COMPONENTS)):
     """Has a property named after every component defined in this module."""
 
     def union(self, other):
-        return ComponentTuple(*[
+        components = [
             superposition.SuperpositionMergeNamedTuples(
                 getattr(self, component),
                 getattr(other, component),
             )
-            for component in COMPONENTS
-        ])
+            for component in COMPONENTS[1:]  # Skip Entity.
+        ]
+
+        # Entity is merged using slightly simpler rules.
+        entity = Entity(
+            identity=self.Entity.identity | other.Entity.identity,
+            collectors=self.Entity.collectors | other.Entity.collectors,
+        )
+
+        return ComponentTuple(
+            entity,
+            *components
+        )
 
     def __or__(self, other):
         return self.union(other)
@@ -68,13 +85,21 @@ class ComponentTuple(collections.namedtuple("ComponentTuple", COMPONENTS)):
 __EmptyComponentTuple = ComponentTuple(*[None for _ in COMPONENTS])
 
 
-def MakeComponentTuple(components):
+def MakeComponentTuple(*components):
     kwargs = {}
     for component in components:
         name = type(component).__name__
         kwargs[name] = component
 
     return __EmptyComponentTuple._replace(**kwargs)
+
+# Special component that the entity system uses to store identifying
+# information. This is kept in a component for ease of access, serialization and
+# consistency reasons.
+Entity = collections.namedtuple(
+    "Entity",
+    ["identity", "collectors"],
+)
 
 
 Named = collections.namedtuple(
@@ -97,7 +122,7 @@ NetworkInterface = collections.namedtuple(
 
 Process = collections.namedtuple(
     "Process",
-    ["pid", "parent_identity", "user_identity", "command", "arguments"],
+    ["pid", "parent", "user", "command", "arguments"],
 )
 
 
@@ -121,15 +146,9 @@ Connection = collections.namedtuple(
 )
 
 
-Resource = collections.namedtuple(
-    "Resource",
-    ["handle_identity"],
-)
-
-
 Handle = collections.namedtuple(
     "Handle",
-    ["resource_identity", "process_identity", "fd", "flags"],
+    ["resource", "process", "fd", "flags"],
 )
 
 
@@ -150,3 +169,39 @@ Group = collections.namedtuple(
     ["gid", "group_name"],
 )
 
+
+# Timer = collections.namedtuple(
+#     "Timer",
+#     [],
+# )
+#
+#
+# Route = collections.namedtuple(
+#     "Route",
+#     ["source", "destination", "interface"],
+# )
+#
+#
+# LoginSession = collections.namedtuple(
+#     "LoginSession",
+#     ["user", "timestamp"],
+# )
+#
+#
+# KernelModule = collections.namedtuple(
+#     "KernelModule",
+#     [],
+# )
+#
+#
+# Mount = collections.namedtuple(
+#     "Mount",
+#     [],
+# )
+#
+#
+# AllocationZone = collections.namedtuple(
+#     "AllocationZone",
+#     [],
+# )
+#

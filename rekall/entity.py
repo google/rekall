@@ -45,10 +45,11 @@ class Entity(object):
     Relational Model:
     =================
 
-    Entites support relationships with other entities. For example, a resource
-    has a handle, a handle is owned by a process, and so on. These relationships
+    Entites support associations with other entities. For example, a resource
+    has a handle, a handle is owned by a process, and so on. These associations
     are implemented using Identity and lookups through an entity manager. See
-    documentation of 'get_related_entities' for details.
+    documentation of 'find_referenced_entities' and 'find_referencing_entities'
+    for a discussion of associations.
 
     Merging:
     ========
@@ -62,9 +63,9 @@ class Entity(object):
     entities will be merged into one.
 
     If, during merging, a conflict arises then both versions are kept
-    encapsulated in an instance of superposition.Superposition. As long as you use
-    'get_' family of accessors on Entity this will be handled for you (as those
-    functions always return generators).
+    encapsulated in an instance of superposition.Superposition. As long as you
+    use 'get_' family of accessors on Entity this will be handled for you (as
+    those functions always return generators).
 
     Superpositions:
     ===============
@@ -103,13 +104,23 @@ class Entity(object):
     http://en.wikipedia.org/wiki/Entity_component_system
     """
 
-    def __init__(self, identity, components, collectors=frozenset(),
-                 copies_count=1, entity_manager=None):
-        self.identity = identity
+    def __init__(self, components, copies_count=1, entity_manager=None):
         self.components = components
-        self.collectors = frozenset(collectors)
         self.copies_count = copies_count
         self.entity_manager = entity_manager
+
+    @property
+    def identity(self):
+        return self.components.Entity.identity
+
+    @property
+    def collectors(self):
+        return self.components.Entity.collectors
+
+    @property
+    def indices(self):
+        """Returns all the keys that the entity will be accessible at."""
+        return set(self.identity.indices)
 
     def __hash__(self):
         return hash(self.identity)
@@ -139,45 +150,84 @@ class Entity(object):
     def __repr__(self):
         return self.__unicode__()
 
-    def get_related_entities(self, key):
-        """Retrieve entities this entity is related to.
+    def asdict(self):
+        result = {}
+        for component_name in comp.COMPONENTS:
+            component = getattr(self.components, component_name)
 
-        If one of the components on this entity has an attribute that contains
-        an identity (such as process_identity on a Handle) then this convenience
-        function will find the entity(ies) represented by that identity.
+            if component is None:
+                continue
+
+            for field in component._fields:
+                val = getattr(component, field)
+                if val:
+                    key = "%s.%s" % (component_name, field)
+                    result[key] = val
+
+        return result
+
+    def get_referencing_entities(self, key):
+        """Finds entities that reference this entity by its identity.
+
+        If other entities have an attribute that stores the identity of this
+        entity then this function will find those entities.
+
+        For example, calling this on a process, one can find all the handles
+        owned by the process by calling
+        process.get_referencing_entities("Handle.process").
 
         Arguments:
-            key: The path to the attribute with identity, without the _identity
-                part (inferred). For example: "Handle.process"
-
-        Yields:
-            Instances of Entity. Note that more than one can be found if the
-                attribute is found to be a superposition (common with handles,
-                for example, as they can be owned by more than one process.)
+            key: The property path to the attribute on the other entities.
+                As usual, form is Component.attribute.
         """
-        if not key.endswith("_identity"):
-            key = "%s_identity" % key
+        # Automatically ask the entity manager to add indexing for
+        # identity-based attributes. This is a good heuristic for optimal
+        # performance.
+        self.entity_manager.add_attribute_lookup(key)
 
-        for entity in self.get_attribute_variants(
-            key=key,
-            follow_identities=True):
+        for entity in self.entity_manager.find_by_attribute(
+            key, self.identity):
             yield entity
 
-    def get_attribute_variants(self, key, follow_identities=True):
+    def get_raw(self, key):
+        """Get raw value of the key, no funny bussiness.
+
+        Does not attempt to resolve superposition or identities, just returns
+        the raw value of the key.
+
+        Arguments:
+            key: Property path in form of Component.attribute.
+        """
+        try:
+            component_name, attribute = key.split(".")
+        except ValueError:
+            raise ValueError("%s is not a valid key." % key)
+
+        component = getattr(self.components, component_name, None)
+        return getattr(component, attribute, None)
+
+    def get_variants(self, key):
         """Yields all known values of key.
 
         Arguments:
             key: The path to the attribute we want. For example: "Process.pid".
-            follow_identities: If True, instances of Identity will automatically
-                be converted into the entities they represent.
 
         Yields:
             All known values of the key. This is usually exactly one value, but
             can be more, if the key is a superposition.
         """
-        values = self[key]
-        if not values:
-            return  # We don't yield None, we just return an empty generator.
+        # The & sigil denotes reverse lookup.
+        if key.startswith("&"):
+            for entity in self.get_referencing_entities(key[1:]):
+                yield entity
+
+            return
+
+        # The raw result could be None, a superposition or just a scalar.
+        values = self.get_raw(key)
+
+        if values is None:
+            return
 
         if isinstance(values, superposition.Superposition):
             values = values.variants
@@ -185,36 +235,93 @@ class Entity(object):
             values = (values,)
 
         for value in values:
-            if follow_identities and isinstance(value, id.Identity):
+            if isinstance(value, id.Identity):
                 for entity in self.entity_manager.find_by_identity(value):
                     yield entity
             else:
                 yield value
 
-    def __getitem__(self, key):
-        component_name, attribute = key.split(".")
-        component = getattr(self.components, component_name)
-        if not component:
-            return None
+    def get(self, key):
+        """Returns value of the key, or a superposition thereof.
 
-        return getattr(component, attribute, None)
+        Out of the get_ functions, this is almost always the one you want.
+
+        Getting a basic value:
+        ======================
+
+        Use key in form of Component.attribute. For example, "Process.pid" or
+        "User.username". Same as calling entity[key]:
+
+        entity["Process.pid"]  # PID of the process.
+
+        What if the value is an entity:
+        ===============================
+
+        This method automatically recognizes attributes that reference other
+        entities and automatically looks them up and returns them. For example:
+
+        entity["Process.parent"]  # Returns the parent process entity.
+        entity["Process.parent"]["Process.pid"]  # PID of the parent.
+
+        What if I want all the child processes (Inverse Lookup):
+        ========================================================
+
+        You can call entity.get_referencing_entities if you want to be explicit.
+
+        Alternatively, prepend the key with a '&' for inverse lookup of a N:1
+        assocation.
+
+        For example:
+
+        entity["&Process.parent"]  # Returns processes of which this process is
+                                   # (Child processes).
+
+        entity["&Handle.process"]  # Returns all handles this process has open.
+
+        When does this return more than one value:
+        ==========================================
+
+        1) When doing an inverse lookup.
+        2) When the value we find is a superposition.
+
+        In both cases, a superposition is returned. Remember that superpositions
+        proxy the [] operator, returning more superpositions. For example:
+
+        # To return the pids of all child processes:
+        entity["&Process.parent"]["Process.pid"]
+
+        You can request more than one key in a single call:
+        ===================================================
+
+        This is identical to the behavior of [] on python dictionaries:
+
+        entity["Process.pid", "Process.command"]  # is the same as calling:
+        (entity["Process.pid"], entity["Process.command"])
+        """
+        # If we get called with [x, y] python will pass us the keys as a tuple
+        # of (x, y). The following behaves identically to dict.
+        if isinstance(key, tuple):
+            return [self.get(_key) for _key in key]
+
+        results = list(self.get_variants(key))
+        if not results:
+            return obj.NoneObject(
+                "Entity '%s' has no results for key '%s'" % (self, key))
+
+        return superposition.Superposition.merge_scalars(*results)
+
+    def __getitem__(self, key):
+        return self.get(key)
 
     def update(self, other):
         """Changes this entity to include information from other.
 
         This is not a part of the API - only EntityManager should use this.
         """
-        self.collectors = self.collectors | other.collectors
         self.components = self.components | other.components
         self.copies_count = self.copies_count + other.copies_count
-        self.identity = self.identity | other.identity
 
         return self
-
-    @property
-    def indices(self):
-        """Returns all the keys that the entity will be accessible at."""
-        return set(self.identity.indices)
 
     def union(self, other):
         """Returns a new entity that is a union of x and y.
@@ -228,10 +335,8 @@ class Entity(object):
             raise AttributeError("Can't do union unless both are equal.")
 
         return Entity(
-            identity=self.identity | other.identity,
             components=self.components | other.components,
             copies_count=self.copies_count + other.copies_count,
-            collectors=self.collectors | other.collectors,
             entity_manager=self.entity_manager,
         )
 
@@ -310,10 +415,14 @@ class EntityManager(object):
             identity = id.BaseObjectIdentity(identity)
 
         entity = Entity(
-            identity=identity,
-            components=comp.MakeComponentTuple(components),
-            collectors=(source_collector,),
             entity_manager=self,
+            components=comp.MakeComponentTuple(
+                comp.Entity(
+                    identity=identity,
+                    collectors=frozenset((source_collector,)),
+                ),
+                *components
+            ),
         )
 
         indices = entity.indices
@@ -331,18 +440,22 @@ class EntityManager(object):
         for lookup_table in self.lookup_tables.itervalues():
             lookup_table.update_index((entity,))
 
-    def add_attribute_lookup(self, component, attribute):
+    def add_attribute_lookup(self, key):
         """Adds a fast-lookup index for the component/attribute key path.
 
         This also causes the newly-created lookup table to rebuild its index.
         Depending on how many entities already exist, this could possibly even
         take a few hundred miliseconds.
         """
-        key_name = "%s.%s" % (component, attribute)
+        # Don't add the same one twice.
+        if self.lookup_tables.get(key, None):
+            return
+
+        component, _ = key.split(".")
 
         lookup_table = EntityLookupTable(
-            key_name=key_name,
-            key_func=lambda e: (e[key_name],),
+            key_name=key,
+            key_func=lambda e: (e.get_raw(key),),
             entity_manager=self,
         )
 
@@ -352,10 +465,16 @@ class EntityManager(object):
             self.find_by_component(component, complete_results=False)
         )
 
-        self.lookup_tables[key_name] = lookup_table
+        self.lookup_tables[key] = lookup_table
 
     def find_by_identity(self, identity):
-        """Yields all entities that match the identity."""
+        """Yield the entities that matches the identity.
+
+        The number of entities yielded is almost always one or zero. The single
+        exception to that rule is when the identity parameter is both: (a) a
+        composite identity and (b) not yet present in this entity manager. In
+        that case, multiple entities may match.
+        """
         for index in identity.indices:
             entity = self.entities.get(index, None)
             if entity:
@@ -372,13 +491,12 @@ class EntityManager(object):
 
         return self.lookup_tables["components"].lookup(component)
 
-    def find_by_attribute(self, component, attribute, value,
-                          complete_results=True):
+    def find_by_attribute(self, key, value, complete_results=True):
         """Yields all entities where component.attribute == value.
 
         Arguments:
-            component: Name of the component, such as "Process" or "User".
-            attribute: Name of the attribute, such as "pid" or "username".
+            key: Path to the value formed of <component>.<attribute>. E.g:
+                Process.pid, or User.username.
             value: Value, compared against using the == operator
             complete_results: If False, will only hit cache. If True, will also
                 collect_component(component).
@@ -386,9 +504,8 @@ class EntityManager(object):
         Yields:
             Instances of entity that match the search criteria.
         """
-
-        key_name = "%s.%s" % (component, attribute)
-        lookup_table = self.lookup_tables.get(key_name, None)
+        component, _ = key.split(".")
+        lookup_table = self.lookup_tables.get(key, None)
 
         if lookup_table:
             # Sweet, we have an index for this.
@@ -402,7 +519,7 @@ class EntityManager(object):
             # iterate.
             for entity in self.find_by_component(
                 component=component, complete_results=complete_results):
-                if entity[key_name] == value:
+                if entity.get_raw(key) == value:
                     yield entity
 
     def run_collector(self, collector):

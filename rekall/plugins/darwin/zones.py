@@ -79,3 +79,4 @@ class DarwinDeadProcesses(common.DarwinPlugin):
             # Just delegate the rendering to the regular pslist plugin.
             pslist_plugin = self.session.plugins.pslist(proc=procs)
             pslist_plugin.render(renderer)
+

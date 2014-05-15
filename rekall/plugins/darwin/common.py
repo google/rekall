@@ -487,6 +487,15 @@ class DarwinProcessFilter(DarwinPlugin):
         self.filtering_requested = (self.pids or self.proc_regex or
                                     self.phys_proc or self.proc)
 
+    def list_using_dead_procs(self):
+        """List deallocated proc structs using the zone allocator."""
+        # Find the proc zone from the allocator.
+        proc_zone = self.session.plugins.list_zones().GetZone("proc")
+
+        # Walk over the free list and get all the proc objects.
+        obj_list = proc_zone.free_elements.walk_list("next")
+        return [object.cast("proc") for object in obj_list]
+
     def list_using_allproc(self):
         """List all processes by following the _allproc list head."""
         result = set(self.first.p_list)
@@ -664,10 +673,11 @@ class DarwinProcessFilter(DarwinPlugin):
 
     METHODS = {
         "allproc": list_using_allproc,
+        "deadprocs": list_using_dead_procs,
         "tasks": list_using_tasks,
         "pgrphash": list_using_pgrp_hash,
         "pidhash": list_using_pid_hash,
-        }
+    }
 
 
 class KernelAddressCheckerMixIn(object):
@@ -679,3 +689,4 @@ class KernelAddressCheckerMixIn(object):
         # We use the module plugin to help us local addresses inside kernel
         # modules.
         self.module_plugin = self.session.plugins.lsmod(session=self.session)
+

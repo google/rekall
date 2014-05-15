@@ -45,6 +45,7 @@ import traceback
 import multiprocessing
 
 from rekall import interactive
+from rekall import plugin
 from rekall import utils
 
 session = interactive.ImportEnvironment(verbose="debug")
@@ -57,6 +58,9 @@ PARSER.add_argument('path_to_guids',
 
 PARSER.add_argument('--rebuild', default=False, action='store_true',
                    help='Rebuild all profiles.')
+
+PARSER.add_argument('--generate_help', default=False, action='store_true',
+                    help='Regenerate the help profile')
 
 
 NUMBER_OF_CORES = multiprocessing.cpu_count()
@@ -147,6 +151,29 @@ def BuildAllProfiles(guidfile_path, rebuild=False):
     return changed_files
 
 
+def RebuildHelp():
+    """Rebuilds the plugin help profile."""
+    help_dict = {}
+    result = {"$METADATA": dict(Type="Profile",
+                                ProfileClass="PluginHelp"),
+              "$HELP": help_dict
+              }
+    for cls in plugin.Command.classes.values():
+        session.report_progress("Rebuilding profile help: %s.", cls.__name__)
+
+        # Use the info class to build docstrings for all plugins.
+        info_plugin = session.plugins.info(cls)
+
+        default_args = [
+            x for x, _ in info_plugin.get_default_args()]
+
+        doc = utils.SmartUnicode(info_plugin)
+        help_dict[cls.__name__] = [default_args, doc]
+
+    with gzip.GzipFile(filename="help_doc.gz", mode="wb") as outfd:
+        outfd.write(json.dumps(result))
+
+
 def RebuildInventory():
     inventory = {}
     metadata = dict(Type="Inventory",
@@ -159,7 +186,7 @@ def RebuildInventory():
         for filename in files:
             if filename.endswith(".gz"):
                 path = os.path.join(root, filename)
-                print "Adding %s to inventory" % path
+                session.report_progress("Adding %s to inventory", path)
                 with gzip.GzipFile(filename=path, mode="rb") as fd:
                     data = json.load(fd)
 
@@ -171,6 +198,10 @@ def RebuildInventory():
 
 
 if __name__ == "__main__":
+    # Get a renderer for our own output.
+    renderer = session.renderer(session=session)
+    renderer.start()
+
     FLAGS = PARSER.parse_args()
     changes = BuildAllProfiles(FLAGS.path_to_guids, rebuild=FLAGS.rebuild)
 
@@ -189,5 +220,7 @@ if __name__ == "__main__":
 
         os.unlink(output_filename)
 
+    if FLAGS.generate_help:
+        RebuildHelp()
 
     RebuildInventory()

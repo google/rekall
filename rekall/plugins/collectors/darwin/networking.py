@@ -119,15 +119,24 @@ def FileprocHandleCollector(profile):
 
         for fd, fileproc, flags in base_obj.get_open_files():
             data = fileproc.autocast_fg_data()
+
+            # If the above returns a None then that's a serious error. Fail
+            # early.
             assert data
+
+            # Yield both the handle and a stub of the resource. We don't want to
+            # parse the resource-specific components yet, because they're not
+            # really needed if we're just looking for handles, but at the same
+            # time, we don't want to have to go back and look for all the
+            # fg_data structs again.
             resource_id = id.BaseObjectIdentity(data)
             handle_id = id.BaseObjectIdentity(fileproc)
 
             handle = components.Handle(
-                process_identity=process.identity,
+                process=process.identity,
                 fd=fd,
                 flags=flags,
-                resource_identity=resource_id,
+                resource=resource_id,
             )
 
             handle_mem_obj = components.MemoryObject(
@@ -137,16 +146,14 @@ def FileprocHandleCollector(profile):
 
             yield handle_id, (handle, handle_mem_obj)
 
+            # All we need of the resource is the overlay struct, which we can
+            # parse later.
             resource_mem_obj = components.MemoryObject(
                 base_object=data,
                 type=type(data).__name__,
             )
 
-            resource = components.Resource(
-                handle_identity=handle_id,
-            )
-
-            yield resource_id, (resource_mem_obj, resource)
+            yield resource_id, (resource_mem_obj,)
 
 
 def HandleSocketCollector(profile):
@@ -161,7 +168,7 @@ def HandleSocketCollector(profile):
 
     # We just need the base objects for sockets.
     for entity in profile.session.entities.find_by_attribute(
-        "MemoryObject", "type", "socket"):
+        "MemoryObject.type", "socket"):
         connection, named = ParseSocket(entity["MemoryObject.base_object"])
 
         # The original entity /is/ the socket, so we just reuse the identity.
@@ -174,7 +181,7 @@ def HandleVnodeCollector(profile):
 
     # All we need are vnodes.
     for entity in profile.session.entities.find_by_attribute(
-        "MemoryObject", "type", "vnode"):
+        "MemoryObject.type", "vnode"):
         file, named = ParseVnode(entity["MemoryObject.base_object"])
 
         yield entity.identity, (file, named)

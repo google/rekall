@@ -891,7 +891,10 @@ class MemmapMixIn(object):
             help="Merge contiguous pages into larger ranges.")
 
     def __init__(self, coalesce=False, **kwargs):
-        """Calculates the memory regions mapped by a process.
+        """Calculates the memory regions mapped by a process or the kernel.
+
+        If no process filtering directives are provided, enumerates the kernel
+        address space.
 
         Args:
           coalesce: Merge pages which are contiguous in memory into larger
@@ -900,27 +903,49 @@ class MemmapMixIn(object):
         self.coalesce = coalesce
         super(MemmapMixIn, self).__init__(**kwargs)
 
+    def _render_map(self, task_space, renderer):
+        renderer.format(u"Dumping address space at DTB {0:#x}\n\n",
+                        task_space.dtb)
+
+        renderer.table_header([("Virtual", "offset_v", "[addrpad]"),
+                               ("Physical", "offset_p", "[addrpad]"),
+                               ("Size", "process_size", "[addr]")])
+
+        if self.coalesce:
+            ranges = task_space.get_address_ranges()
+        else:
+            ranges = task_space.get_available_addresses()
+
+        for virtual_address, phys_address, length in ranges:
+            renderer.table_row(virtual_address, phys_address, length)
+
     def render(self, renderer):
+        if not self.filtering_requested:
+            return self._render_map(self.kernel_address_space, renderer)
+
         for task in self.filter_processes():
             renderer.section()
             renderer.RenderProgress("Dumping pid {0}".format(task.pid))
 
             task_space = task.get_process_address_space()
-            renderer.format(u"Process: '{0}' pid: {1:6}\n",
+            renderer.format(u"Process: '{0}' pid: {1:6}\n\n",
                             task.name, task.pid)
 
             if not task_space:
                 renderer.write("Unable to read pages for task.\n")
                 continue
 
-            renderer.table_header([("Virtual", "offset_v", "[addrpad]"),
-                                   ("Physical", "offset_p", "[addrpad]"),
-                                   ("Size", "process_size", "[addr]")])
+            self._render_map(task_space, renderer)
 
-            if self.coalesce:
-                ranges = task_space.get_address_ranges()
-            else:
-                ranges = task_space.get_available_addresses()
 
-            for virtual_address, phys_address, length in ranges:
-                renderer.table_row(virtual_address, phys_address, length)
+class PluginHelp(obj.Profile):
+    """A profile containing all plugin help."""
+
+    def _SetupProfileFromData(self, data):
+        self.add_constants(**data["$HELP"])
+
+    def DocsForPlugin(self, name):
+        return self.get_constant(name)[1]
+
+    def ParametersForPlugin(self, name):
+        return self.get_constant(name)[0]

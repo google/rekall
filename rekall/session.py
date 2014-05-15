@@ -49,7 +49,7 @@ from rekall.ui import text
 
 
 # Top level args.
-config.DeclareOption("-p", "--profile",
+config.DeclareOption("-p", "--profile", group="Autodetection Overrides",
                      help="Name of the profile to load. This is the "
                      "filename of the profile found in the profiles "
                      "directory. Profiles are searched in the profile "
@@ -115,6 +115,11 @@ class Cache(utils.AttributeDict):
             self['base_filename'] = os.path.basename(filename)
 
             self.session.Reset()
+
+    def _set_profile_path(self, profile_path):
+        # Flush the profile cache if we change the profile path.
+        self['profile_path'] = profile_path
+        self.session.profile_cache = {}
 
     def _set_logging(self, value):
         level = value
@@ -484,7 +489,7 @@ class Session(object):
             result = None
 
             # The profile path is specified in search order.
-            profile_path = self.state.Get("profile_path")
+            profile_path = self.state.Get("profile_path") or []
 
             # Add the last supported repository as the last fallback path.
             for path in profile_path:
@@ -565,20 +570,25 @@ class InteractiveSession(Session):
     def _update_runners(self):
         super(InteractiveSession, self)._update_runners()
 
+        try:
+            help_profile = self.LoadProfile("help_doc")
+        except ValueError:
+            help_profile = None
+
         self._locals['plugins'] = Container()
         for cls in plugin.Command.GetActiveClasses(self):
+            default_args, doc = "", ""
+            if help_profile:
+                default_args = help_profile.ParametersForPlugin(cls.__name__)
+                doc = help_profile.DocsForPlugin(cls.__name__)
+
             name = cls.name
             if name:
-                # Use the info class to build docstrings for all plugins.
-                info_plugin = plugin.Command.classes['Info'](
-                    cls, session=self)
-
                 # Create a runner for this plugin and set its documentation.
                 runner = obj.Curry(
-                    self.RunPlugin, name, default_arguments=[
-                        x for x, _ in info_plugin.get_default_args()])
+                    self.RunPlugin, name, default_arguments=default_args)
 
-                runner.__doc__ = utils.SmartUnicode(info_plugin)
+                runner.__doc__ = doc
 
                 setattr(self._locals['plugins'], name, runner)
                 self._locals[name] = runner

@@ -165,7 +165,9 @@ class AddressResolver(object):
 
                 capture["module"] = self._NormalizeModuleName(module)
 
-            if capture["op"] and not capture["offset"]:
+            if capture["op"] and not (capture["symbol"] or
+                                      capture["address"] or
+                                      capture["module"]):
                 raise TypeError("Operator %s must have an operand." %
                                 capture["op"])
 

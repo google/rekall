@@ -162,8 +162,8 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
 
   switch ((IoControlCode & 0xFFFFFF0F)) {
 
-    // The old deprecated ioctrl interface for backwards
-    // compatibility. Do not use for new code.
+  // The old deprecated ioctrl interface for backwards
+  // compatibility. Do not use for new code.
   case IOCTL_GET_INFO_DEPRECATED: {
     char *buffer = ExAllocatePoolWithTag(PagedPool, 0x1000, PMEM_POOL_TAG);
 
@@ -208,8 +208,14 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     // Return information about memory layout etc through this ioctrl.
   case IOCTL_GET_INFO: {
     struct PmemMemoryInfo *info = (void *)IoBuffer;
-    IMAGE_DOS_HEADER *KernBase = NULL;
-    KDDEBUGGER_DATA64 *kdbg = NULL;
+
+    if (OutputLen < sizeof(struct PmemMemoryInfo)) {
+        status = STATUS_INFO_LENGTH_MISMATCH;
+        goto exit;
+    };
+
+    // Ensure we clear the buffer first.
+    RtlZeroMemory(IoBuffer, sizeof(struct PmemMemoryInfo));
 
     // Get the memory ranges according to the mode.
     if (ext->mode == ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE) {
@@ -223,31 +229,19 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
     };
 
     WinDbgPrint("Returning info on the system memory.\n");
-    KernBase = KernelGetModuleBaseByPtr(NtBuildNumber, "NtBuildNumber");
-    if (KernBase)
-      kdbg = KDBGScan(KernBase);
 
     // We are currently running in user context which means __readcr3() will
     // return the process CR3. So we return the kernel CR3 we found
-    // when loading. Alternatively we could get the kernel DTB from
-    // the KDBG but here we prefer to return the actual register
-    // contents.
+    // when loading.
     info->CR3.QuadPart = CR3.QuadPart;
 
     info->NtBuildNumber.QuadPart = *NtBuildNumber;
     info->NtBuildNumberAddr.QuadPart = (uintptr_t)NtBuildNumber;
+    info->KernBase.QuadPart = (uintptr_t)KernelGetModuleBaseByPtr(
+       NtBuildNumber, "NtBuildNumber");
 
     // Fill in KPCR.
     GetKPCR(info);
-
-    if (kdbg) {
-      // The kernel base.
-      info->KernBase.QuadPart = (uintptr_t)KernBase;
-      info->KDBG.QuadPart = (uintptr_t)kdbg;
-      info->PfnDataBase.QuadPart = kdbg->MmPfnDatabase;
-      info->PsLoadedModuleList.QuadPart = kdbg->PsLoadedModuleList;
-      info->PsActiveProcessHead.QuadPart = kdbg->PsActiveProcessHead;
-    };
 
     // This is the length of the response.
     Irp->IoStatus.Information =

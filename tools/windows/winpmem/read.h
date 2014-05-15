@@ -27,7 +27,7 @@ LONG PhysicalMemoryPartialRead(IN PDEVICE_EXTENSION extension,
 
 /* Read a large buffer by concatenating lots of small reads. */
 NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset,
-                    PCHAR buf, ULONG *count,
+                    PCHAR buf, ULONG count, OUT ULONG *total_read,
                     LONG (*handler)(IN PDEVICE_EXTENSION,
                                     LARGE_INTEGER, PCHAR, ULONG)
                     );

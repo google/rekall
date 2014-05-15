@@ -135,21 +135,22 @@ static LONG PTEMmapPartialRead(IN PDEVICE_EXTENSION extension,
 
 
 static NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset,
-                           PCHAR buf, ULONG *count,
+                           PCHAR buf, ULONG count, OUT ULONG *total_read,
                            LONG (*handler)(IN PDEVICE_EXTENSION, LARGE_INTEGER,
                                            PCHAR, ULONG)) {
-  int remaining = *count;
-  int result = STATUS_SUCCESS;
+  int result = 0;
+
+  *total_read = 0;
 
   // Ensure we only run on a single CPU.
   KeSetSystemAffinityThread((__int64)1);
 
-  while(remaining > 0) {
-    result = handler(extension, offset, buf, remaining);
+  while(*total_read < count) {
+    result = handler(extension, offset, buf, count - *total_read);
 
     /* Error Occured. */
     if(result < 0)
-      break;
+      goto error;
 
     /* No data available. */
     if(result==0) {
@@ -158,12 +159,15 @@ static NTSTATUS DeviceRead(IN PDEVICE_EXTENSION extension, LARGE_INTEGER offset,
 
     offset.QuadPart += result;
     buf += result;
-    remaining -= result;
+    *total_read += result;
   };
 
   KeRevertToUserAffinityThread();
+  return STATUS_SUCCESS;
 
-  return result;
+ error:
+  KeRevertToUserAffinityThread();
+  return STATUS_IO_DEVICE_ERROR;
 };
 
 
@@ -175,6 +179,7 @@ NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
   PIO_STACK_LOCATION pIoStackIrp;
   PDEVICE_EXTENSION extension;
   NTSTATUS status = STATUS_SUCCESS;
+  ULONG total_read = 0;
 
   // We must be running in PASSIVE_LEVEL or we bluescreen here. We
   // theoretically should always be running at PASSIVE_LEVEL here, but
@@ -196,22 +201,19 @@ NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
 
     // Read using the physical memory handle.
   case ACQUISITION_MODE_PHYSICAL_MEMORY:
-    status = DeviceRead(extension, BufOffset, Buf, &BufLen,
+    status = DeviceRead(extension, BufOffset, Buf, BufLen, &total_read,
                         PhysicalMemoryPartialRead);
-    Irp->IoStatus.Information = pIoStackIrp->Parameters.Read.Length;
     break;
 
   case ACQUISITION_MODE_MAP_IO_SPACE:
-    status = DeviceRead(extension, BufOffset, Buf, &BufLen,
+    status = DeviceRead(extension, BufOffset, Buf, BufLen, &total_read,
                         MapIOPagePartialRead);
-    Irp->IoStatus.Information = pIoStackIrp->Parameters.Read.Length;
     break;
 
   case ACQUISITION_MODE_PTE_MMAP_WITH_PCI_PROBE:
   case ACQUISITION_MODE_PTE_MMAP:
-    status = DeviceRead(extension, BufOffset, Buf, &BufLen,
+    status = DeviceRead(extension, BufOffset, Buf, BufLen, &total_read,
                         PTEMmapPartialRead);
-    Irp->IoStatus.Information = pIoStackIrp->Parameters.Read.Length;
     break;
 
   default:
@@ -222,6 +224,7 @@ NTSTATUS PmemRead(IN PDEVICE_OBJECT  DeviceObject, IN PIRP  Irp) {
 
  exit:
   Irp->IoStatus.Status = status;
+  Irp->IoStatus.Information = total_read;
   IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
   return status;

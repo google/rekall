@@ -153,6 +153,13 @@ class ProfileHook(kb.ParameterHook):
 
         find_dtb_plugin = find_dtb_cls(session=self.session)
 
+        # Allow the dtb to be specified on the command line.
+        dtb = self.session.GetParameter("dtb")
+        if dtb:
+            address_space = find_dtb_plugin.CreateAS(dtb)
+            self.session.SetParameter("default_address_space", address_space)
+            return profile
+
         for address_space in find_dtb_plugin.address_space_hits():
             # Might as well cache the results of this plugin so we dont need to
             # run it twice.

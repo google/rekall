@@ -54,63 +54,48 @@ class EntityNetstat(plugin.ProfileCommand):
     def render(self, renderer):
         entities = self.session.entities.find_by_component("Connection")
         
+        # Sort all the sockets into buckets based on whether they're network or
+        # UNIX connections.
         inet_socks = []
         unix_socks = []
 
-        def unix_row(connection, process):
-            if process:
-                pid, comm = process["Process.pid"], process["Process.command"]
-            else:
-                pid, comm = None, None
-
-            unix_socks.append((
-                connection.src_addr,
-                connection.dst_addr,
-                connection.protocols[1],
-                connection.src_bind,
-                pid,
-                comm,
-            ))
-
-        def inet_row(connection, process):
-            if process:
-                pid, comm = process["Process.pid"], process["Process.command"]
-            else:
-                pid, comm = None, None
-
-            inet_socks.append((
-                connection.protocols[1],
-                connection.src_addr,
-                connection.src_bind,
-                connection.dst_addr,
-                connection.dst_bind,
-                connection.state,
-                pid,
-                comm,
-            ))
-
         for entity in entities:
-            connection = entity.components.Connection
-            if connection.addressing_family in ("AF_INET", "AF_INET6"):
-                row_func = inet_row
-            elif connection.addressing_family == "AF_UNIX":
-                row_func = unix_row
-            else:
-                continue  # So not interested...
+            af = entity["Connection.addressing_family"]
+            if af in ("AF_INET", "AF_INET6"):
+                # Inet socket.
+                row = [
+                    entity["Connection.protocols"][1],
+                    entity["Connection.src_addr"],
+                    entity["Connection.src_bind"],
+                    entity["Connection.dst_addr"],
+                    entity["Connection.dst_bind"],
+                    entity["Connection.state"],
+                ]
 
-            handles = list(entity.get_related_entities("Resource.handle"))
+                bucket = inet_socks
+            elif af == "AF_UNIX":
+                # Unix socket
+                row = [
+                    entity["Connection.src_addr"],
+                    entity["Connection.dst_addr"],
+                    entity["Connection.protocols"][1],
+                    entity["Connection.src_bind"],
+                ]
+
+                bucket = unix_socks
+            else:
+                continue  # Don't care.
+
+            # A single socket can be open by 1 (most common), 0 or multiple
+            # handles (fds) owned by one or more processes.
+            handles = list(entity.get_referencing_entities("Handle.resource"))
+            for handle in handles:
+                proc = handle["Handle.process"]
+                bucket.append(row + proc["Process.pid", "Process.command"])
 
             if not handles:
-                # No process has a handle on this socket. Print it anyway.
-                row_func(connection, None)
-                continue
-            
-            for handle in handles:
-                # At least one process has a handle on this.
-                for p in handle.get_related_entities("Handle.process"):
-                    process = p
-
-                row_func(connection, process)
+                # No process has a handle on this.
+                bucket.append(row + [None, None])
 
         # First, render internet connections.
         renderer.section("Active Internet connections")

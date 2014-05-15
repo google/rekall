@@ -30,8 +30,8 @@ def ParseProcess(proc):
     process = components.Process(
         pid=proc.pid,
         command=proc.p_comm,
-        parent_identity=identity.ProcessIdentity(pid=proc.p_ppid),
-        user_identity=identity.UserIdentity(uid=proc.p_uid),
+        parent=identity.ProcessIdentity(pid=proc.p_ppid),
+        user=identity.UserIdentity(uid=proc.p_uid),
         arguments=None,
     )
 

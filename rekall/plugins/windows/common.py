@@ -38,7 +38,7 @@ from rekall.plugins import core
 
 # Windows kernel pdb filenames.
 KERNEL_NAMES = set(
-    ["ntoskrnl.pdb", "ntkrnlmp.pdb", "ntkrnlpa.pdb", 
+    ["ntoskrnl.pdb", "ntkrnlmp.pdb", "ntkrnlpa.pdb",
      "ntkrpamp.pdb"])
 
 
@@ -79,6 +79,7 @@ class WinDTBScanner(scan.BaseScanner):
             logging.debug("Found _EPROCESS @ 0x%X (DTB: 0x%X)",
                           self.eprocess.obj_offset,
                           self.eprocess.Pcb.DirectoryTableBase.v())
+
             yield self.eprocess
 
 
@@ -145,13 +146,16 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         list_head = eprocess.ThreadListHead.Flink
 
         if list_head == 0:
+            logging.debug("_EPROCESS.ThreadListHead not valid.")
             return
 
         me = list_head.dereference(vm=address_space).Blink.Flink
         if me.v() != list_head.v():
+            logging.debug("_EPROCESS.ThreadListHead does not reflect.")
             return
 
         self.session.SetParameter("idle_process", eprocess)
+
         return address_space
 
     def render(self, renderer):

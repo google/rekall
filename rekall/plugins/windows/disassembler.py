@@ -40,6 +40,7 @@ import re
 
 from rekall import config
 from rekall import plugin
+from rekall import obj
 from rekall import testlib
 
 
@@ -115,7 +116,7 @@ class Disassemble(plugin.Command):
         # Disassemble the data one page at the time.
         while 1:
             # The start of the disassembler buffer.
-            buffer_offset = offset
+            buffer_offset = obj.Pointer.integer_to_address(offset)
 
             # By default read 2 pages.
             data = self.address_space.read(buffer_offset, 0x2000)

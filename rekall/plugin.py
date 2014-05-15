@@ -209,6 +209,11 @@ class KernelASMixin(object):
         """
         super(KernelASMixin, self).__init__(**kwargs)
 
+        # If the dtb is specified use that as the kernel address space.
+        if dtb is not None:
+            kernel_address_space = self.session.kernel_address_space.__class__(
+                base=self.physical_address_space, dtb=dtb)
+
         # Try to load the AS from the session if possible.
         self.kernel_address_space = (kernel_address_space or
                                      self.session.kernel_address_space)
