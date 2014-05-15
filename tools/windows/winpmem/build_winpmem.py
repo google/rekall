@@ -26,7 +26,7 @@ import os
 import subprocess
 import shutil
 
-VERSION="1.5.5"
+VERSION="1.6.0"
 PATH_TO_DDK = r"C:\WinDDK\7600.16385.1"
 PATH_TO_VS = r"C:\Program Files\Microsoft SDKs\Windows\v7.1"
 

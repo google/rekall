@@ -193,10 +193,6 @@ def LoadProfileIntoSession(parser, argv, user_session):
         for arg, value in known_args.__dict__.items():
             state.Set(arg, value)
 
-    if user_session.profile is None:
-        guesser = user_session.plugins.guess_profile()
-        guesser.update_session()
-
     # Now load the third party user plugins. These may introduce additional
     # plugins with args.
     LoadPlugins(user_session.state.plugin)

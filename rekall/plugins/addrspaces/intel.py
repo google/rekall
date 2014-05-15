@@ -26,7 +26,13 @@
 import struct
 
 from rekall import addrspace
+from rekall import config
 from rekall import obj
+
+
+config.DeclareOption(name="dtb", group="Autodetection Overrides",
+                     action=config.IntParser,
+                     help="The DTB physical address.")
 
 
 class IA32PagedMemory(addrspace.PagedReader):
