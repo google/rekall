@@ -295,7 +295,7 @@ __int64 WinPmem::write_coredump() {
   };
 
   if(!WriteFile(out_fd_, metadata_, metadata_len_, &metadata_len_, NULL)) {
-    LogError(TEXT("Can not write metadata."));
+    LogError(TEXT("Can not write metadata.\n"));
   }
 
  exit:
@@ -469,15 +469,17 @@ __int64 WinPmem::extract_file_(__int64 driver_id) {
 void WinPmem::set_driver_filename(TCHAR *driver_filename) {
   DWORD res;
 
-  if(driver_filename_)
+  if(driver_filename_) {
     free(driver_filename_);
+    driver_filename_ = NULL;
+  };
 
-  driver_filename_ = (TCHAR *)malloc(MAX_PATH * sizeof(TCHAR));
-  if (driver_filename_) {
-    res = GetFullPathName(driver_filename, MAX_PATH,
-                          driver_filename_, NULL);
-
-    driver_is_tempfile_ = false;
+  if (driver_filename) {
+    driver_filename_ = (TCHAR *)malloc(MAX_PATH * sizeof(TCHAR));
+    if (driver_filename_) {
+      res = GetFullPathName(driver_filename, MAX_PATH,
+                            driver_filename_, NULL);
+    };
   };
 }
 
@@ -547,12 +549,13 @@ __int64 WinPmem::install_driver() {
   CloseServiceHandle(service);
   CloseServiceHandle(scm);
 
+ error:
   // Only remove the driver file if it was a temporary file.
   if (driver_is_tempfile_) {
-    Log(L"Deleting %s %d\n", driver_filename_);
+    Log(L"Deleting %s\n", driver_filename_);
     DeleteFile(driver_filename_);
   };
- error:
+
   return status;
 }
 
