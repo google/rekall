@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.ui.json_renderer</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.ui-module.html">Package&nbsp;ui</a> ::
+        Module&nbsp;json_renderer
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.ui.json_renderer-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.ui.json_renderer-module.html">Module rekall.ui.json_renderer</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># Copyright (C) 2012 Michael Cohen</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2014 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">"""This module implements a JSON render.</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring">A renderer is used by plugins to produce formatted output.</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">json</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.constants=rekall.constants-module.html,Variable rekall.obj.Profile.constants=rekall.obj.Profile-class.html#constants,Module rekall.plugins.windows.gui.constants=rekall.plugins.windows.gui.constants-module.html"><a title="rekall.constants
+rekall.obj.Profile.constants
+rekall.plugins.windows.gui.constants" class="py-name" href="#" onclick="return doclink('link-1', 'constants', 'link-1');">constants</a></tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-2', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.ui=rekall.ui-module.html"><a title="rekall.ui" class="py-name" href="#" onclick="return doclink('link-3', 'ui', 'link-3');">ui</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Module rekall.ui.renderer=rekall.ui.renderer-module.html"><a title="rekall.ui.renderer" class="py-name" href="#" onclick="return doclink('link-4', 'renderer', 'link-4');">renderer</a></tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer"></a><div id="JsonRenderer-def"><a name="L31"></a><tt class="py-lineno"> 31</tt> <a class="py-toggle" href="#" id="JsonRenderer-toggle" onclick="return toggle('JsonRenderer');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html">JsonRenderer</a><tt class="py-op">(</tt><tt class="py-base-class">renderer</tt><tt class="py-op">.</tt><tt class="py-base-class">BaseRenderer</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="JsonRenderer-expanded"><a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">    <tt class="py-docstring">"""Render the output as a json object.</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-docstring">    The JSON output is designed to be streamed to a remote end - that is results</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-docstring">    are sent incrementally as soon as they are available. The receiver can then</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-docstring">    process the results as they come, rendering them to screen or GUI.</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-docstring">    The data is essentially a list of commands.</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-docstring">    Each command is a list. The first parameter is the command name, further</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-docstring">    parameters are the args to the command.</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-docstring">    Currently the following commands are supported:</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-docstring">    l: Reset the lexicon. Followed by a lexicon dict. Following entries will be</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-docstring">       decoded with this lexicon.</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">    m: This is a metadata, followed by a dict of various metadata.</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring">    s: Start a new section. Followed by section name.</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring">    f: A free format text line. Followed by format string and a list of</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring">       parameters. Parameters are dicts encoded using the lexicon.</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-docstring">    t: Start a new table. Followed by Table headers. Followed by a list of lists</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt class="py-docstring">       (human_name, name, formatstring).</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt class="py-docstring">    r: A table row. Followed by a list of dicts for each row cell. Each row cell</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-docstring">       is encoded using the lexicon for both keys and values.</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt class="py-docstring">    p: A progress message. Followed by a single string which is the formatted</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"><tt class="py-docstring">       message.</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">    <tt id="link-5" class="py-name" targets="Variable rekall.ui.json_renderer.JsonRenderer.progress_interval=rekall.ui.json_renderer.JsonRenderer-class.html#progress_interval,Variable rekall.ui.renderer.BaseRenderer.progress_interval=rekall.ui.renderer.BaseRenderer-class.html#progress_interval"><a title="rekall.ui.json_renderer.JsonRenderer.progress_interval
+rekall.ui.renderer.BaseRenderer.progress_interval" class="py-name" href="#" onclick="return doclink('link-5', 'progress_interval', 'link-5');">progress_interval</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">    <tt class="py-comment"># This will hold a list of JSON commands to buffer them before they are</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">    <tt class="py-comment"># written to the json file.</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">    <tt id="link-6" class="py-name" targets="Variable rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data=rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE-class.html#data,Variable rekall.ui.json_renderer.JsonRenderer.data=rekall.ui.json_renderer.JsonRenderer-class.html#data,Variable rekall.utils.Node.data=rekall.utils.Node-class.html#data"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-6', 'data', 'link-6');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer.start"></a><div id="JsonRenderer.start-def"><a name="L71"></a><tt class="py-lineno"> 71</tt> <a class="py-toggle" href="#" id="JsonRenderer.start-toggle" onclick="return toggle('JsonRenderer.start');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#start">start</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">plugin_name</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">kwargs</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer.start-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer.start-expanded"><a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-7" class="py-name" targets="Class rekall.ui.json_renderer.JsonRenderer=rekall.ui.json_renderer.JsonRenderer-class.html"><a title="rekall.ui.json_renderer.JsonRenderer" class="py-name" href="#" onclick="return doclink('link-7', 'JsonRenderer', 'link-7');">JsonRenderer</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Method rekall.ui.json_renderer.JsonRenderer.start()=rekall.ui.json_renderer.JsonRenderer-class.html#start,Method rekall.ui.renderer.BaseRenderer.start()=rekall.ui.renderer.BaseRenderer-class.html#start"><a title="rekall.ui.json_renderer.JsonRenderer.start
+rekall.ui.renderer.BaseRenderer.start" class="py-name" href="#" onclick="return doclink('link-8', 'start', 'link-8');">start</a></tt><tt class="py-op">(</tt><tt class="py-name">plugin_name</tt><tt class="py-op">=</tt><tt class="py-name">plugin_name</tt><tt class="py-op">,</tt> <tt class="py-name">kwargs</tt><tt class="py-op">=</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Method rekall.ui.json_renderer.JsonRenderer.flush()=rekall.ui.json_renderer.JsonRenderer-class.html#flush,Method rekall.ui.renderer.BaseRenderer.flush()=rekall.ui.renderer.BaseRenderer-class.html#flush,Method rekall.ui.renderer.UnicodeWrapper.flush()=rekall.ui.renderer.UnicodeWrapper-class.html#flush,Method rekall.ui.text.Pager.flush()=rekall.ui.text.Pager-class.html#flush,Method rekall.ui.text.TextRenderer.flush()=rekall.ui.text.TextRenderer-class.html#flush"><a title="rekall.ui.json_renderer.JsonRenderer.flush
+rekall.ui.renderer.BaseRenderer.flush
+rekall.ui.renderer.UnicodeWrapper.flush
+rekall.ui.text.Pager.flush
+rekall.ui.text.TextRenderer.flush" class="py-name" href="#" onclick="return doclink('link-9', 'flush', 'link-9');">flush</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-comment"># Save some metadata.</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Method rekall.ui.json_renderer.JsonRenderer.SendMessage()=rekall.ui.json_renderer.JsonRenderer-class.html#SendMessage"><a title="rekall.ui.json_renderer.JsonRenderer.SendMessage" class="py-name" href="#" onclick="return doclink('link-10', 'SendMessage', 'link-10');">SendMessage</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">            <tt class="py-op">[</tt><tt class="py-string">"m"</tt><tt class="py-op">,</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">plugin_name</tt><tt class="py-op">=</tt><tt class="py-name">plugin_name</tt><tt class="py-op">,</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">                       <tt class="py-name">tool_name</tt><tt class="py-op">=</tt><tt class="py-string">"rekall"</tt><tt class="py-op">,</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">                       <tt class="py-name">tool_version</tt><tt class="py-op">=</tt><tt id="link-11" class="py-name"><a title="rekall.constants
+rekall.obj.Profile.constants
+rekall.plugins.windows.gui.constants" class="py-name" href="#" onclick="return doclink('link-11', 'constants', 'link-1');">constants</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Variable rekall.constants.VERSION=rekall.constants-module.html#VERSION"><a title="rekall.constants.VERSION" class="py-name" href="#" onclick="return doclink('link-12', 'VERSION', 'link-12');">VERSION</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">                       <tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt> </tt>
+</div><a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer.SendMessage"></a><div id="JsonRenderer.SendMessage-def"><a name="L84"></a><tt class="py-lineno"> 84</tt> <a class="py-toggle" href="#" id="JsonRenderer.SendMessage-toggle" onclick="return toggle('JsonRenderer.SendMessage');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#SendMessage">SendMessage</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">statement</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer.SendMessage-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer.SendMessage-expanded"><a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-13', 'data', 'link-6');">data</a></tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">statement</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer._encode_value"></a><div id="JsonRenderer._encode_value-def"><a name="L87"></a><tt class="py-lineno"> 87</tt> <a class="py-toggle" href="#" id="JsonRenderer._encode_value-toggle" onclick="return toggle('JsonRenderer._encode_value');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#_encode_value">_encode_value</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer._encode_value-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer._encode_value-expanded"><a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">,</tt> <tt class="py-name">dict</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">)</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">            <tt class="py-name">encoded_id</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Method rekall.entity.Entity.get()=rekall.entity.Entity-class.html#get"><a title="rekall.entity.Entity.get" class="py-name" href="#" onclick="return doclink('link-14', 'get', 'link-14');">get</a></tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">)</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">            <tt class="py-name">b64</tt> <tt class="py-op">=</tt> <tt class="py-name">unicode</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">.</tt><tt class="py-name">encode</tt><tt class="py-op">(</tt><tt class="py-string">"base64"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">rstrip</tt><tt class="py-op">(</tt><tt class="py-string">"\n"</tt><tt class="py-op">)</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">            <tt class="py-comment"># The hash of the object is not in the lexicon.</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">encoded_id</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">                <tt class="py-comment"># Create a new ID to store the list encoded string.</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">                <tt class="py-name">encoded_id</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon_counter</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon_counter</tt> <tt class="py-op">+</tt> <tt class="py-number">1</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">                <tt class="py-comment"># Store the list encoded string under this new ID.</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">reverse_lexicon</tt><tt class="py-op">[</tt><tt class="py-name">encoded_id</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">b64</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">                <tt class="py-comment"># Also add a shortcut reference original value -&gt; encoded list.</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon</tt><tt class="py-op">[</tt><tt class="py-name">value</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">encoded_id</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line"> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">encoded_id</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">        <tt class="py-comment"># If value is a serializable object, we can store it by id in the</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">        <tt class="py-comment"># lexicon.</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">hasattr</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">,</tt> <tt class="py-string">"__getstate__"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">            <tt class="py-name">value_id</tt> <tt class="py-op">=</tt> <tt class="py-name">id</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">)</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">            <tt class="py-name">encoded_value_id</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="rekall.entity.Entity.get" class="py-name" href="#" onclick="return doclink('link-15', 'get', 'link-14');">get</a></tt><tt class="py-op">(</tt><tt class="py-name">value_id</tt><tt class="py-op">)</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">            <tt class="py-comment"># The hash of the object is not in the lexicon.</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">encoded_value_id</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">                <tt class="py-comment"># Create a new ID to encode the new object under.</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">                <tt class="py-name">encoded_value_id</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_get_encoded_id</tt><tt class="py-op">(</tt><tt class="py-name">value_id</tt><tt class="py-op">)</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">                <tt class="py-name">encoded_value</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.__getstate__()=rekall.addrspace.BaseAddressSpace-class.html#__getstate__,Method rekall.obj.Array.__getstate__()=rekall.obj.Array-class.html#__getstate__,Method rekall.obj.BaseObject.__getstate__()=rekall.obj.BaseObject-class.html#__getstate__,Method rekall.obj.NativeType.__getstate__()=rekall.obj.NativeType-class.html#__getstate__,Method rekall.obj.NoneObject.__getstate__()=rekall.obj.NoneObject-class.html#__getstate__,Method rekall.obj.Pointer.__getstate__()=rekall.obj.Pointer-class.html#__getstate__,Method rekall.obj.Struct.__getstate__()=rekall.obj.Struct-class.html#__getstate__,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.__getstate__()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#__getstate__,Method rekall.plugins.addrspaces.standard.FileAddressSpace.__getstate__()=rekall.plugins.addrspaces.standard.FileAddressSpace-class.html#__getstate__,Method rekall.plugins.overlays.basic.Enumeration.__getstate__()=rekall.plugins.overlays.basic.Enumeration-class.html#__getstate__,Method rekall.plugins.overlays.basic.String.__getstate__()=rekall.plugins.overlays.basic.String-class.html#__getstate__,Method rekall.plugins.overlays.basic.UnixTimeStamp.__getstate__()=rekall.plugins.overlays.basic.UnixTimeStamp-class.html#__getstate__,Method rekall.utils.FastStore.__getstate__()=rekall.utils.FastStore-class.html#__getstate__"><a title="rekall.addrspace.BaseAddressSpace.__getstate__
+rekall.obj.Array.__getstate__
+rekall.obj.BaseObject.__getstate__
+rekall.obj.NativeType.__getstate__
+rekall.obj.NoneObject.__getstate__
+rekall.obj.Pointer.__getstate__
+rekall.obj.Struct.__getstate__
+rekall.plugins.addrspaces.intel.IA32PagedMemory.__getstate__
+rekall.plugins.addrspaces.standard.FileAddressSpace.__getstate__
+rekall.plugins.overlays.basic.Enumeration.__getstate__
+rekall.plugins.overlays.basic.String.__getstate__
+rekall.plugins.overlays.basic.UnixTimeStamp.__getstate__
+rekall.utils.FastStore.__getstate__" class="py-name" href="#" onclick="return doclink('link-16', '__getstate__', 'link-16');">__getstate__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">                <tt class="py-comment"># Store the object under this new ID.</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">reverse_lexicon</tt><tt class="py-op">[</tt><tt class="py-name">encoded_value_id</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">encoded_value</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line"> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">encoded_value_id</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_get_encoded_id</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer._get_encoded_id"></a><div id="JsonRenderer._get_encoded_id-def"><a name="L128"></a><tt class="py-lineno">128</tt> <a class="py-toggle" href="#" id="JsonRenderer._get_encoded_id-toggle" onclick="return toggle('JsonRenderer._get_encoded_id');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#_get_encoded_id">_get_encoded_id</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer._get_encoded_id-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer._get_encoded_id-expanded"><a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">        <tt class="py-name">encoded_id</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.entity.Entity.get" class="py-name" href="#" onclick="return doclink('link-17', 'get', 'link-14');">get</a></tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">)</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">encoded_id</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">            <tt class="py-name">encoded_id</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon_counter</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon_counter</tt> <tt class="py-op">+</tt> <tt class="py-number">1</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon</tt><tt class="py-op">[</tt><tt class="py-name">value</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">encoded_id</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">reverse_lexicon</tt><tt class="py-op">[</tt><tt class="py-name">encoded_id</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">value</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">encoded_id</tt> </tt>
+</div><a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer._encode"></a><div id="JsonRenderer._encode-def"><a name="L137"></a><tt class="py-lineno">137</tt> <a class="py-toggle" href="#" id="JsonRenderer._encode-toggle" onclick="return toggle('JsonRenderer._encode');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#_encode">_encode</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">item</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer._encode-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer._encode-expanded"><a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">item</tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">        <tt class="py-comment"># If it is a state dict we just use it as is.</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">item</tt><tt class="py-op">,</tt> <tt class="py-name">dict</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">            <tt id="link-18" class="py-name" targets="Variable rekall.components.Connection.state=rekall.components.Connection-class.html#state,Variable rekall.components.Thread.state=rekall.components.Thread-class.html#state"><a title="rekall.components.Connection.state
+rekall.components.Thread.state" class="py-name" href="#" onclick="return doclink('link-18', 'state', 'link-18');">state</a></tt> <tt class="py-op">=</tt> <tt class="py-name">item</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">item</tt><tt class="py-op">,</tt> <tt class="py-name">list</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode_value</tt><tt class="py-op">(</tt><tt id="link-19" class="py-name" targets="Variable rekall.ui.text.Colorizer.x=rekall.ui.text.Colorizer-class.html#x"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-19', 'x', 'link-19');">x</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt id="link-20" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-20', 'x', 'link-19');">x</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">item</tt><tt class="py-op">]</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line"> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">        <tt class="py-comment"># If value is a serializable object, we can store it by id in the</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">        <tt class="py-comment"># lexicon.</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">hasattr</tt><tt class="py-op">(</tt><tt class="py-name">item</tt><tt class="py-op">,</tt> <tt class="py-string">"__getstate__"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">            <tt id="link-21" class="py-name"><a title="rekall.components.Connection.state
+rekall.components.Thread.state" class="py-name" href="#" onclick="return doclink('link-21', 'state', 'link-18');">state</a></tt> <tt class="py-op">=</tt> <tt class="py-name">item</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.__getstate__
+rekall.obj.Array.__getstate__
+rekall.obj.BaseObject.__getstate__
+rekall.obj.NativeType.__getstate__
+rekall.obj.NoneObject.__getstate__
+rekall.obj.Pointer.__getstate__
+rekall.obj.Struct.__getstate__
+rekall.plugins.addrspaces.intel.IA32PagedMemory.__getstate__
+rekall.plugins.addrspaces.standard.FileAddressSpace.__getstate__
+rekall.plugins.overlays.basic.Enumeration.__getstate__
+rekall.plugins.overlays.basic.String.__getstate__
+rekall.plugins.overlays.basic.UnixTimeStamp.__getstate__
+rekall.utils.FastStore.__getstate__" class="py-name" href="#" onclick="return doclink('link-22', '__getstate__', 'link-16');">__getstate__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line"> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">        <tt class="py-comment"># Encode json safe items literally.</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">item</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-name">unicode</tt><tt class="py-op">,</tt> <tt class="py-name">int</tt><tt class="py-op">,</tt> <tt class="py-name">long</tt><tt class="py-op">,</tt> <tt class="py-name">float</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_get_encoded_id</tt><tt class="py-op">(</tt><tt class="py-name">item</tt><tt class="py-op">)</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line"> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">item</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode_value</tt><tt class="py-op">(</tt><tt class="py-name">item</tt><tt class="py-op">)</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line"> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">RuntimeError</tt><tt class="py-op">(</tt><tt class="py-string">"Unable to encode objects of type %s"</tt> <tt class="py-op">%</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">                               <tt id="link-23" class="py-name" targets="Variable rekall.components.MemoryObject.type=rekall.components.MemoryObject-class.html#type,Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#type"><a title="rekall.components.MemoryObject.type
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-23', 'type', 'link-23');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">item</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line"> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">        <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt> <tt id="link-24" class="py-name" targets="Method rekall.obj.BaseObject.v()=rekall.obj.BaseObject-class.html#v,Method rekall.obj.BitField.v()=rekall.obj.BitField-class.html#v,Method rekall.obj.NativeType.v()=rekall.obj.NativeType-class.html#v,Method rekall.obj.Pointer.v()=rekall.obj.Pointer-class.html#v,Method rekall.obj.Struct.v()=rekall.obj.Struct-class.html#v,Method rekall.obj.Void.v()=rekall.obj.Void-class.html#v,Method rekall.plugins.overlays.basic.Enumeration.v()=rekall.plugins.overlays.basic.Enumeration-class.html#v,Method rekall.plugins.overlays.basic.Flags.v()=rekall.plugins.overlays.basic.Flags-class.html#v,Method rekall.plugins.overlays.basic.Ipv4Address.v()=rekall.plugins.overlays.basic.Ipv4Address-class.html#v,Method rekall.plugins.overlays.basic.Ipv6Address.v()=rekall.plugins.overlays.basic.Ipv6Address-class.html#v,Method rekall.plugins.overlays.basic.MacAddress.v()=rekall.plugins.overlays.basic.MacAddress-class.html#v,Method rekall.plugins.overlays.basic.String.v()=rekall.plugins.overlays.basic.String-class.html#v,Method rekall.plugins.overlays.basic.UnicodeString.v()=rekall.plugins.overlays.basic.UnicodeString-class.html#v,Method rekall.plugins.overlays.basic.WinFileTime.v()=rekall.plugins.overlays.basic.WinFileTime-class.html#v,Method rekall.plugins.overlays.basic.timeval.v()=rekall.plugins.overlays.basic.timeval-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v()=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v()=rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer-class.html#v,Method rekall.plugins.windows.pfn.ValueEnumeration.v()=rekall.plugins.windows.pfn.ValueEnumeration-class.html#v,Method rekall.session.InteractiveSession.v()=rekall.session.InteractiveSession-class.html#v"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-24', 'v', 'link-24');">v</a></tt> <tt class="py-keyword">in</tt> <tt id="link-25" class="py-name"><a title="rekall.components.Connection.state
+rekall.components.Thread.state" class="py-name" href="#" onclick="return doclink('link-25', 'state', 'link-18');">state</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name" targets="Method rekall.plugins.overlays.darwin.darwin.OSDictionary.items()=rekall.plugins.overlays.darwin.darwin.OSDictionary-class.html#items"><a title="rekall.plugins.overlays.darwin.darwin.OSDictionary.items" class="py-name" href="#" onclick="return doclink('link-26', 'items', 'link-26');">items</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">            <tt class="py-name">result</tt><tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode_value</tt><tt class="py-op">(</tt><tt class="py-name">k</tt><tt class="py-op">)</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode_value</tt><tt class="py-op">(</tt><tt id="link-27" class="py-name"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-27', 'v', 'link-24');">v</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line"> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">result</tt> </tt>
+</div><a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer.format"></a><div id="JsonRenderer.format-def"><a name="L170"></a><tt class="py-lineno">170</tt> <a class="py-toggle" href="#" id="JsonRenderer.format-toggle" onclick="return toggle('JsonRenderer.format');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#format">format</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">formatstring</tt><tt class="py-op">,</tt> <tt class="py-op">*</tt><tt class="py-param">args</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer.format-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer.format-expanded"><a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">        <tt class="py-name">statement</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"f"</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode</tt><tt class="py-op">(</tt><tt class="py-name">formatstring</tt><tt class="py-op">)</tt><tt class="py-op">]</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-28" class="py-name" targets="Variable rekall.plugins.darwin.checks.OIDInfo.arg=rekall.plugins.darwin.checks.OIDInfo-class.html#arg"><a title="rekall.plugins.darwin.checks.OIDInfo.arg" class="py-name" href="#" onclick="return doclink('link-28', 'arg', 'link-28');">arg</a></tt> <tt class="py-keyword">in</tt> <tt id="link-29" class="py-name" targets="Module rekall.args=rekall.args-module.html,Class Method rekall.plugin.Command.args()=rekall.plugin.Command-class.html#args,Class Method rekall.plugin.KernelASMixin.args()=rekall.plugin.KernelASMixin-class.html#args,Class Method rekall.plugin.VerbosityMixIn.args()=rekall.plugin.VerbosityMixIn-class.html#args,Class Method rekall.plugins.core.DT.args()=rekall.plugins.core.DT-class.html#args,Class Method rekall.plugins.core.DirectoryDumperMixin.args()=rekall.plugins.core.DirectoryDumperMixin-class.html#args,Class Method rekall.plugins.core.Dump.args()=rekall.plugins.core.Dump-class.html#args,Class Method rekall.plugins.core.Grep.args()=rekall.plugins.core.Grep-class.html#args,Class Method rekall.plugins.core.MemmapMixIn.args()=rekall.plugins.core.MemmapMixIn-class.html#args,Class Method rekall.plugins.core.OutputFileMixin.args()=rekall.plugins.core.OutputFileMixin-class.html#args,Class Method rekall.plugins.darwin.common.DarwinKASLRMixin.args()=rekall.plugins.darwin.common.DarwinKASLRMixin-class.html#args,Class Method rekall.plugins.darwin.common.DarwinProcessFilter.args()=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#args,Class Method rekall.plugins.hypervisors.VmScan.args()=rekall.plugins.hypervisors.VmScan-class.html#args,Class Method rekall.plugins.imagecopy.ImageCopy.args()=rekall.plugins.imagecopy.ImageCopy-class.html#args,Class Method rekall.plugins.linux.bash.BashHistory.args()=rekall.plugins.linux.bash.BashHistory-class.html#args,Class Method rekall.plugins.linux.check_fops.CheckProcFops.args()=rekall.plugins.linux.check_fops.CheckProcFops-class.html#args,Class Method rekall.plugins.linux.common.LinProcessFilter.args()=rekall.plugins.linux.common.LinProcessFilter-class.html#args,Class Method rekall.plugins.linux.lsmod.Lsmod.args()=rekall.plugins.linux.lsmod.Lsmod-class.html#args,Class Method rekall.plugins.linux.pas2kas.LinPas2Vas.args()=rekall.plugins.linux.pas2kas.LinPas2Vas-class.html#args,Class Method rekall.plugins.overlays.linux.dwarfparser.DwarfParser.args()=rekall.plugins.overlays.linux.dwarfparser.DwarfParser-class.html#args,Class Method rekall.plugins.overlays.windows.ntfs.FLS.args()=rekall.plugins.overlays.windows.ntfs.FLS-class.html#args,Class Method rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.args()=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin-class.html#args,Class Method rekall.plugins.tools.ipython.Rekall.args()=rekall.plugins.tools.ipython.Rekall-class.html#args,Class Method rekall.plugins.tools.json_tools.JSONParser.args()=rekall.plugins.tools.json_tools.JSONParser-class.html#args,Class Method rekall.plugins.tools.mspdb.FetchPDB.args()=rekall.plugins.tools.mspdb.FetchPDB-class.html#args,Class Method rekall.plugins.tools.mspdb.ParsePDB.args()=rekall.plugins.tools.mspdb.ParsePDB-class.html#args,Class Method rekall.plugins.tools.profile_tool.BuildIndex.args()=rekall.plugins.tools.profile_tool.BuildIndex-class.html#args,Class Method rekall.plugins.tools.profile_tool.ConvertProfile.args()=rekall.plugins.tools.profile_tool.ConvertProfile-class.html#args,Class Method rekall.plugins.tools.webconsole.WebConsole.args()=rekall.plugins.tools.webconsole.WebConsole-class.html#args,Class Method rekall.plugins.windows.common.KDBGMixin.args()=rekall.plugins.windows.common.KDBGMixin-class.html#args,Class Method rekall.plugins.windows.common.PoolScannerPlugin.args()=rekall.plugins.windows.common.PoolScannerPlugin-class.html#args,Class Method rekall.plugins.windows.common.WinFindDTB.args()=rekall.plugins.windows.common.WinFindDTB-class.html#args,Class Method rekall.plugins.windows.common.WinProcessFilter.args()=rekall.plugins.windows.common.WinProcessFilter-class.html#args,Class Method rekall.plugins.windows.crashinfo.Raw2Dump.args()=rekall.plugins.windows.crashinfo.Raw2Dump-class.html#args,Class Method rekall.plugins.windows.disassembler.Disassemble.args()=rekall.plugins.windows.disassembler.Disassemble-class.html#args,Class Method rekall.plugins.windows.gui.atoms.AtomScan.args()=rekall.plugins.windows.gui.atoms.AtomScan-class.html#args,Class Method rekall.plugins.windows.gui.clipboard.Clipboard.args()=rekall.plugins.windows.gui.clipboard.Clipboard-class.html#args,Class Method rekall.plugins.windows.gui.userhandles.UserHandles.args()=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#args,Class Method rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.args()=rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin-class.html#args,Class Method rekall.plugins.windows.handles.Handles.args()=rekall.plugins.windows.handles.Handles-class.html#args,Class Method rekall.plugins.windows.index.GuessGUID.args()=rekall.plugins.windows.index.GuessGUID-class.html#args,Class Method rekall.plugins.windows.kdbgscan.KDBGScan.args()=rekall.plugins.windows.kdbgscan.KDBGScan-class.html#args,Class Method rekall.plugins.windows.malware.cmdhistory.CmdScan.args()=rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html#args,Class Method rekall.plugins.windows.malware.cmdhistory.Consoles.args()=rekall.plugins.windows.malware.cmdhistory.Consoles-class.html#args,Class Method rekall.plugins.windows.malware.devicetree.DriverIrp.args()=rekall.plugins.windows.malware.devicetree.DriverIrp-class.html#args,Class Method rekall.plugins.windows.malware.impscan.ImpScan.args()=rekall.plugins.windows.malware.impscan.ImpScan-class.html#args,Class Method rekall.plugins.windows.malware.malfind.LdrModules.args()=rekall.plugins.windows.malware.malfind.LdrModules-class.html#args,Class Method rekall.plugins.windows.malware.yarascan.YaraScan.args()=rekall.plugins.windows.malware.yarascan.YaraScan-class.html#args,Class Method rekall.plugins.windows.modules.Modules.args()=rekall.plugins.windows.modules.Modules-class.html#args,Class Method rekall.plugins.windows.modules.VersionScan.args()=rekall.plugins.windows.modules.VersionScan-class.html#args,Class Method rekall.plugins.windows.pas2kas.WinPas2Vas.args()=rekall.plugins.windows.pas2kas.WinPas2Vas-class.html#args,Class Method rekall.plugins.windows.pfn.DTBScan.args()=rekall.plugins.windows.pfn.DTBScan-class.html#args,Class Method rekall.plugins.windows.pfn.VtoP.args()=rekall.plugins.windows.pfn.VtoP-class.html#args,Class Method rekall.plugins.windows.procdump.DLLDump.args()=rekall.plugins.windows.procdump.DLLDump-class.html#args,Class Method rekall.plugins.windows.procdump.PEDump.args()=rekall.plugins.windows.procdump.PEDump-class.html#args,Class Method rekall.plugins.windows.procinfo.PEInfo.args()=rekall.plugins.windows.procinfo.PEInfo-class.html#args,Class Method rekall.plugins.windows.pstree.PSTree.args()=rekall.plugins.windows.pstree.PSTree-class.html#args,Class Method rekall.plugins.windows.registry.evtlogs.EvtLogs.args()=rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html#args,Class Method rekall.plugins.windows.registry.printkey.PrintKey.args()=rekall.plugins.windows.registry.printkey.PrintKey-class.html#args,Class Method rekall.plugins.windows.registry.registry.RegistryPlugin.args()=rekall.plugins.windows.registry.registry.RegistryPlugin-class.html#args"><a title="rekall.args
+rekall.plugin.Command.args
+rekall.plugin.KernelASMixin.args
+rekall.plugin.VerbosityMixIn.args
+rekall.plugins.core.DT.args
+rekall.plugins.core.DirectoryDumperMixin.args
+rekall.plugins.core.Dump.args
+rekall.plugins.core.Grep.args
+rekall.plugins.core.MemmapMixIn.args
+rekall.plugins.core.OutputFileMixin.args
+rekall.plugins.darwin.common.DarwinKASLRMixin.args
+rekall.plugins.darwin.common.DarwinProcessFilter.args
+rekall.plugins.hypervisors.VmScan.args
+rekall.plugins.imagecopy.ImageCopy.args
+rekall.plugins.linux.bash.BashHistory.args
+rekall.plugins.linux.check_fops.CheckProcFops.args
+rekall.plugins.linux.common.LinProcessFilter.args
+rekall.plugins.linux.lsmod.Lsmod.args
+rekall.plugins.linux.pas2kas.LinPas2Vas.args
+rekall.plugins.overlays.linux.dwarfparser.DwarfParser.args
+rekall.plugins.overlays.windows.ntfs.FLS.args
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.args
+rekall.plugins.tools.ipython.Rekall.args
+rekall.plugins.tools.json_tools.JSONParser.args
+rekall.plugins.tools.mspdb.FetchPDB.args
+rekall.plugins.tools.mspdb.ParsePDB.args
+rekall.plugins.tools.profile_tool.BuildIndex.args
+rekall.plugins.tools.profile_tool.ConvertProfile.args
+rekall.plugins.tools.webconsole.WebConsole.args
+rekall.plugins.windows.common.KDBGMixin.args
+rekall.plugins.windows.common.PoolScannerPlugin.args
+rekall.plugins.windows.common.WinFindDTB.args
+rekall.plugins.windows.common.WinProcessFilter.args
+rekall.plugins.windows.crashinfo.Raw2Dump.args
+rekall.plugins.windows.disassembler.Disassemble.args
+rekall.plugins.windows.gui.atoms.AtomScan.args
+rekall.plugins.windows.gui.clipboard.Clipboard.args
+rekall.plugins.windows.gui.userhandles.UserHandles.args
+rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.args
+rekall.plugins.windows.handles.Handles.args
+rekall.plugins.windows.index.GuessGUID.args
+rekall.plugins.windows.kdbgscan.KDBGScan.args
+rekall.plugins.windows.malware.cmdhistory.CmdScan.args
+rekall.plugins.windows.malware.cmdhistory.Consoles.args
+rekall.plugins.windows.malware.devicetree.DriverIrp.args
+rekall.plugins.windows.malware.impscan.ImpScan.args
+rekall.plugins.windows.malware.malfind.LdrModules.args
+rekall.plugins.windows.malware.yarascan.YaraScan.args
+rekall.plugins.windows.modules.Modules.args
+rekall.plugins.windows.modules.VersionScan.args
+rekall.plugins.windows.pas2kas.WinPas2Vas.args
+rekall.plugins.windows.pfn.DTBScan.args
+rekall.plugins.windows.pfn.VtoP.args
+rekall.plugins.windows.procdump.DLLDump.args
+rekall.plugins.windows.procdump.PEDump.args
+rekall.plugins.windows.procinfo.PEInfo.args
+rekall.plugins.windows.pstree.PSTree.args
+rekall.plugins.windows.registry.evtlogs.EvtLogs.args
+rekall.plugins.windows.registry.printkey.PrintKey.args
+rekall.plugins.windows.registry.registry.RegistryPlugin.args" class="py-name" href="#" onclick="return doclink('link-29', 'args', 'link-29');">args</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">            <tt class="py-comment"># Just store the statement in the output.</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">            <tt class="py-name">statement</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode</tt><tt class="py-op">(</tt><tt id="link-30" class="py-name"><a title="rekall.plugins.darwin.checks.OIDInfo.arg" class="py-name" href="#" onclick="return doclink('link-30', 'arg', 'link-28');">arg</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line"> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.SendMessage" class="py-name" href="#" onclick="return doclink('link-31', 'SendMessage', 'link-10');">SendMessage</a></tt><tt class="py-op">(</tt><tt class="py-name">statement</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer.section"></a><div id="JsonRenderer.section-def"><a name="L178"></a><tt class="py-lineno">178</tt> <a class="py-toggle" href="#" id="JsonRenderer.section-toggle" onclick="return toggle('JsonRenderer.section');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#section">section</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">name</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer.section-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer.section-expanded"><a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">        <tt class="py-name">kwargs</tt><tt class="py-op">[</tt><tt class="py-string">"name"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt id="link-32" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.components.Named.name=rekall.components.Named-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.addrspaces.ewf.name=rekall.plugins.addrspaces.ewf-module.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.linux.common.KASLRHook.name=rekall.plugins.linux.common.KASLRHook-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKASLR.name=rekall.plugins.linux.common.LinuxFindKASLR-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-32', 'name', 'link-32');">name</a></tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.SendMessage" class="py-name" href="#" onclick="return doclink('link-33', 'SendMessage', 'link-10');">SendMessage</a></tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-string">"s"</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode</tt><tt class="py-op">(</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer.report_error"></a><div id="JsonRenderer.report_error-def"><a name="L182"></a><tt class="py-lineno">182</tt> <a class="py-toggle" href="#" id="JsonRenderer.report_error-toggle" onclick="return toggle('JsonRenderer.report_error');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#report_error">report_error</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">message</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer.report_error-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer.report_error-expanded"><a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.SendMessage" class="py-name" href="#" onclick="return doclink('link-34', 'SendMessage', 'link-10');">SendMessage</a></tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-string">"e"</tt><tt class="py-op">,</tt> <tt class="py-name">message</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer.table_header"></a><div id="JsonRenderer.table_header-def"><a name="L185"></a><tt class="py-lineno">185</tt> <a class="py-toggle" href="#" id="JsonRenderer.table_header-toggle" onclick="return toggle('JsonRenderer.table_header');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#table_header">table_header</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">columns</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer.table_header-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer.table_header-expanded"><a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">        <tt class="py-comment"># TODO: Remove this when all calls are done with kwargs.</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">        <tt class="py-name">kwargs</tt><tt class="py-op">[</tt><tt class="py-string">"columns"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">columns</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line"> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.SendMessage" class="py-name" href="#" onclick="return doclink('link-35', 'SendMessage', 'link-10');">SendMessage</a></tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-string">"t"</tt><tt class="py-op">,</tt> <tt class="py-name">kwargs</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer.table_row"></a><div id="JsonRenderer.table_row-def"><a name="L191"></a><tt class="py-lineno">191</tt> <a class="py-toggle" href="#" id="JsonRenderer.table_row-toggle" onclick="return toggle('JsonRenderer.table_row');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#table_row">table_row</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-op">*</tt><tt class="py-param">args</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer.table_row-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer.table_row-expanded"><a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.SendMessage" class="py-name" href="#" onclick="return doclink('link-36', 'SendMessage', 'link-10');">SendMessage</a></tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-string">"r"</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_encode</tt><tt class="py-op">(</tt><tt id="link-37" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-37', 'x', 'link-19');">x</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt id="link-38" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-38', 'x', 'link-19');">x</a></tt> <tt class="py-keyword">in</tt> <tt id="link-39" class="py-name"><a title="rekall.args
+rekall.plugin.Command.args
+rekall.plugin.KernelASMixin.args
+rekall.plugin.VerbosityMixIn.args
+rekall.plugins.core.DT.args
+rekall.plugins.core.DirectoryDumperMixin.args
+rekall.plugins.core.Dump.args
+rekall.plugins.core.Grep.args
+rekall.plugins.core.MemmapMixIn.args
+rekall.plugins.core.OutputFileMixin.args
+rekall.plugins.darwin.common.DarwinKASLRMixin.args
+rekall.plugins.darwin.common.DarwinProcessFilter.args
+rekall.plugins.hypervisors.VmScan.args
+rekall.plugins.imagecopy.ImageCopy.args
+rekall.plugins.linux.bash.BashHistory.args
+rekall.plugins.linux.check_fops.CheckProcFops.args
+rekall.plugins.linux.common.LinProcessFilter.args
+rekall.plugins.linux.lsmod.Lsmod.args
+rekall.plugins.linux.pas2kas.LinPas2Vas.args
+rekall.plugins.overlays.linux.dwarfparser.DwarfParser.args
+rekall.plugins.overlays.windows.ntfs.FLS.args
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.args
+rekall.plugins.tools.ipython.Rekall.args
+rekall.plugins.tools.json_tools.JSONParser.args
+rekall.plugins.tools.mspdb.FetchPDB.args
+rekall.plugins.tools.mspdb.ParsePDB.args
+rekall.plugins.tools.profile_tool.BuildIndex.args
+rekall.plugins.tools.profile_tool.ConvertProfile.args
+rekall.plugins.tools.webconsole.WebConsole.args
+rekall.plugins.windows.common.KDBGMixin.args
+rekall.plugins.windows.common.PoolScannerPlugin.args
+rekall.plugins.windows.common.WinFindDTB.args
+rekall.plugins.windows.common.WinProcessFilter.args
+rekall.plugins.windows.crashinfo.Raw2Dump.args
+rekall.plugins.windows.disassembler.Disassemble.args
+rekall.plugins.windows.gui.atoms.AtomScan.args
+rekall.plugins.windows.gui.clipboard.Clipboard.args
+rekall.plugins.windows.gui.userhandles.UserHandles.args
+rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.args
+rekall.plugins.windows.handles.Handles.args
+rekall.plugins.windows.index.GuessGUID.args
+rekall.plugins.windows.kdbgscan.KDBGScan.args
+rekall.plugins.windows.malware.cmdhistory.CmdScan.args
+rekall.plugins.windows.malware.cmdhistory.Consoles.args
+rekall.plugins.windows.malware.devicetree.DriverIrp.args
+rekall.plugins.windows.malware.impscan.ImpScan.args
+rekall.plugins.windows.malware.malfind.LdrModules.args
+rekall.plugins.windows.malware.yarascan.YaraScan.args
+rekall.plugins.windows.modules.Modules.args
+rekall.plugins.windows.modules.VersionScan.args
+rekall.plugins.windows.pas2kas.WinPas2Vas.args
+rekall.plugins.windows.pfn.DTBScan.args
+rekall.plugins.windows.pfn.VtoP.args
+rekall.plugins.windows.procdump.DLLDump.args
+rekall.plugins.windows.procdump.PEDump.args
+rekall.plugins.windows.procinfo.PEInfo.args
+rekall.plugins.windows.pstree.PSTree.args
+rekall.plugins.windows.registry.evtlogs.EvtLogs.args
+rekall.plugins.windows.registry.printkey.PrintKey.args
+rekall.plugins.windows.registry.registry.RegistryPlugin.args" class="py-name" href="#" onclick="return doclink('link-39', 'args', 'link-29');">args</a></tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-name">kwargs</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer.write_data_stream"></a><div id="JsonRenderer.write_data_stream-def"><a name="L194"></a><tt class="py-lineno">194</tt> <a class="py-toggle" href="#" id="JsonRenderer.write_data_stream-toggle" onclick="return toggle('JsonRenderer.write_data_stream');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#write_data_stream">write_data_stream</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer.write_data_stream-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer.write_data_stream-expanded"><a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-40" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-40', 'data', 'link-6');">data</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line">            <tt class="py-comment"># Just dump out the json object.</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name" targets="Variable rekall.components.Handle.fd=rekall.components.Handle-class.html#fd"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-41', 'fd', 'link-41');">fd</a></tt><tt class="py-op">.</tt><tt id="link-42" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.write()=rekall.addrspace.BaseAddressSpace-class.html#write,Method rekall.addrspace.BufferAddressSpace.write()=rekall.addrspace.BufferAddressSpace-class.html#write,Method rekall.obj.BaseObject.write()=rekall.obj.BaseObject-class.html#write,Method rekall.obj.BitField.write()=rekall.obj.BitField-class.html#write,Method rekall.obj.NativeType.write()=rekall.obj.NativeType-class.html#write,Method rekall.obj.NoneObject.write()=rekall.obj.NoneObject-class.html#write,Method rekall.obj.Pointer.write()=rekall.obj.Pointer-class.html#write,Method rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.write()=rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32-class.html#write,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.write()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#write,Method rekall.plugins.addrspaces.standard.WriteableAddressSpaceMixIn.write()=rekall.plugins.addrspaces.standard.WriteableAddressSpaceMixIn-class.html#write,Method rekall.plugins.addrspaces.win32.Win32FileAddressSpace.write()=rekall.plugins.addrspaces.win32.Win32FileAddressSpace-class.html#write,Method rekall.plugins.overlays.basic.Enumeration.write()=rekall.plugins.overlays.basic.Enumeration-class.html#write,Method rekall.plugins.overlays.basic.String.write()=rekall.plugins.overlays.basic.String-class.html#write,Method rekall.plugins.overlays.basic.UnicodeString.write()=rekall.plugins.overlays.basic.UnicodeString-class.html#write,Method rekall.ui.renderer.BaseRenderer.write()=rekall.ui.renderer.BaseRenderer-class.html#write,Method rekall.ui.renderer.UnicodeWrapper.write()=rekall.ui.renderer.UnicodeWrapper-class.html#write,Method rekall.ui.text.Pager.write()=rekall.ui.text.Pager-class.html#write,Method rekall.ui.text.TextRenderer.write()=rekall.ui.text.TextRenderer-class.html#write"><a title="rekall.addrspace.BaseAddressSpace.write
+rekall.addrspace.BufferAddressSpace.write
+rekall.obj.BaseObject.write
+rekall.obj.BitField.write
+rekall.obj.NativeType.write
+rekall.obj.NoneObject.write
+rekall.obj.Pointer.write
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.write
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.write
+rekall.plugins.addrspaces.standard.WriteableAddressSpaceMixIn.write
+rekall.plugins.addrspaces.win32.Win32FileAddressSpace.write
+rekall.plugins.overlays.basic.Enumeration.write
+rekall.plugins.overlays.basic.String.write
+rekall.plugins.overlays.basic.UnicodeString.write
+rekall.ui.renderer.BaseRenderer.write
+rekall.ui.renderer.UnicodeWrapper.write
+rekall.ui.text.Pager.write
+rekall.ui.text.TextRenderer.write" class="py-name" href="#" onclick="return doclink('link-42', 'write', 'link-42');">write</a></tt><tt class="py-op">(</tt><tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-43', 'data', 'link-6');">data</a></tt><tt class="py-op">,</tt> <tt class="py-name">separators</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-string">','</tt><tt class="py-op">,</tt> <tt class="py-string">':'</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-44', 'fd', 'link-41');">fd</a></tt><tt class="py-op">.</tt><tt id="link-45" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.flush
+rekall.ui.renderer.BaseRenderer.flush
+rekall.ui.renderer.UnicodeWrapper.flush
+rekall.ui.text.Pager.flush
+rekall.ui.text.TextRenderer.flush" class="py-name" href="#" onclick="return doclink('link-45', 'flush', 'link-9');">flush</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer.flush"></a><div id="JsonRenderer.flush-def"><a name="L200"></a><tt class="py-lineno">200</tt> <a class="py-toggle" href="#" id="JsonRenderer.flush-toggle" onclick="return toggle('JsonRenderer.flush');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#flush">flush</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer.flush-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer.flush-expanded"><a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name" targets="Method rekall.ui.json_renderer.JsonRenderer.write_data_stream()=rekall.ui.json_renderer.JsonRenderer-class.html#write_data_stream"><a title="rekall.ui.json_renderer.JsonRenderer.write_data_stream" class="py-name" href="#" onclick="return doclink('link-46', 'write_data_stream', 'link-46');">write_data_stream</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line"> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">reverse_lexicon</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">lexicon_counter</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line"> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">        <tt class="py-comment"># We store the data here.</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-47', 'data', 'link-6');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line"> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">        <tt class="py-comment"># NOTE: The lexicon will continue to be modified, but will be sent as</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">        <tt class="py-comment"># port of the first statement.</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.SendMessage" class="py-name" href="#" onclick="return doclink('link-48', 'SendMessage', 'link-10');">SendMessage</a></tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-string">"l"</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">reverse_lexicon</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line"> </tt>
+<a name="JsonRenderer._RenderProgress"></a><div id="JsonRenderer._RenderProgress-def"><a name="L214"></a><tt class="py-lineno">214</tt> <a class="py-toggle" href="#" id="JsonRenderer._RenderProgress-toggle" onclick="return toggle('JsonRenderer._RenderProgress');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.json_renderer.JsonRenderer-class.html#_RenderProgress">_RenderProgress</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">message</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonRenderer._RenderProgress-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonRenderer._RenderProgress-expanded"><a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.SendMessage" class="py-name" href="#" onclick="return doclink('link-49', 'SendMessage', 'link-10');">SendMessage</a></tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-string">"p"</tt><tt class="py-op">,</tt> <tt class="py-name">message</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:22:22 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,1566 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.obj.Profile</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.obj-module.html">Module&nbsp;obj</a> ::
+        Class&nbsp;Profile
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.obj.Profile-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Profile</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.obj-pysrc.html#Profile">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="class_hierarchy_for_profile" name="class_hierarchy_for_profile">
+<area shape="rect" id="node1" href="rekall.obj.Profile-class.html" title="Profile" alt="" coords="7,512,57,539"/>
+<area shape="rect" id="node2" href="rekall.plugins.core.PluginHelp-class.html" title="plugins.core.PluginHelp" alt="" coords="116,107,249,133"/>
+<area shape="rect" id="node6" href="rekall.plugins.overlays.basic.BasicClasses-class.html" title="plugins.overlays.basic.BasicClasses" alt="" coords="88,512,277,539"/>
+<area shape="rect" id="node7" href="rekall.plugins.overlays.basic.Profile32Bits-class.html" title="plugins.overlays.basic.Profile32Bits" alt="" coords="89,436,276,463"/>
+<area shape="rect" id="node8" href="rekall.plugins.overlays.basic.ProfileLLP64-class.html" title="plugins.overlays.basic.ProfileLLP64" alt="" coords="89,765,276,792"/>
+<area shape="rect" id="node9" href="rekall.plugins.overlays.basic.ProfileLP64-class.html" title="plugins.overlays.basic.ProfileLP64" alt="" coords="92,157,273,184"/>
+<area shape="rect" id="node30" href="rekall.plugins.windows.index.Index-class.html" title="plugins.windows.index.Index" alt="" coords="105,816,260,843"/>
+<area shape="rect" id="node36" href="rekall.type_generator.DynamicProfile-class.html" title="type_generator.DynamicProfile" alt="" coords="99,867,267,893"/>
+<area shape="rect" id="node3" href="rekall.plugins.hypervisors.VMCSProfile-class.html" title="plugins.hypervisors.VMCSProfile" alt="" coords="369,5,545,32"/>
+<area shape="rect" id="node4" href="rekall.plugins.linux.bash.BashProfile32-class.html" title="plugins.linux.bash.BashProfile32" alt="" coords="371,309,544,336"/>
+<area shape="rect" id="node5" href="rekall.plugins.linux.bash.BashProfile64-class.html" title="plugins.linux.bash.BashProfile64" alt="" coords="371,107,544,133"/>
+<area shape="rect" id="node10" href="rekall.plugins.overlays.darwin.darwin.Darwin32-class.html" title="plugins.overlays.darwin.darwin.Darwin32" alt="" coords="349,360,565,387"/>
+<area shape="rect" id="node12" href="rekall.plugins.overlays.darwin.macho.MACHO64Profile-class.html" title="plugins.overlays.darwin.macho.MACHO64Profile" alt="" coords="332,157,583,184"/>
+<area shape="rect" id="node13" href="rekall.plugins.overlays.linux.elf.ELFProfile-class.html" title="plugins.overlays.linux.elf.ELFProfile" alt="" coords="364,208,551,235"/>
+<area shape="rect" id="node14" href="rekall.plugins.overlays.linux.linux.Linux-class.html" title="plugins.overlays.linux.linux.Linux" alt="" coords="371,613,544,640"/>
+<area shape="rect" id="node17" href="rekall.plugins.overlays.windows.crashdump.CrashDump32Profile-class.html" title="plugins.overlays.windows.crashdump.CrashDump32Profile" alt="" coords="308,411,607,437"/>
+<area shape="rect" id="node18" href="rekall.plugins.overlays.windows.crashdump.CrashDump64Profile-class.html" title="plugins.overlays.windows.crashdump.CrashDump64Profile" alt="" coords="308,917,607,944"/>
+<area shape="rect" id="node19" href="rekall.plugins.overlays.windows.ntfs.NTFSProfile-class.html" title="plugins.overlays.windows.ntfs.NTFSProfile" alt="" coords="347,765,568,792"/>
+<area shape="rect" id="node20" href="rekall.plugins.overlays.windows.pe_vtypes.PEProfile-class.html" title="plugins.overlays.windows.pe_vtypes.PEProfile" alt="" coords="339,664,576,691"/>
+<area shape="rect" id="node22" href="rekall.plugins.overlays.windows.windows.BasicPEProfile-class.html" title="plugins.overlays.windows.windows.BasicPEProfile" alt="" coords="329,715,585,741"/>
+<area shape="rect" id="node28" href="rekall.plugins.tools.mspdb.PDBProfile-class.html" title="plugins.tools.mspdb.PDBProfile" alt="" coords="372,461,543,488"/>
+<area shape="rect" id="node31" href="rekall.plugins.windows.malware.cmdhistory.ConHost64-class.html" title="plugins.windows.malware.cmdhistory.ConHost64" alt="" coords="331,816,584,843"/>
+<area shape="rect" id="node32" href="rekall.plugins.windows.malware.cmdhistory.ConHost86-class.html" title="plugins.windows.malware.cmdhistory.ConHost86" alt="" coords="331,512,584,539"/>
+<area shape="rect" id="node33" href="rekall.plugins.windows.malware.cmdhistory.WinSrv64-class.html" title="plugins.windows.malware.cmdhistory.WinSrv64" alt="" coords="335,867,580,893"/>
+<area shape="rect" id="node34" href="rekall.plugins.windows.malware.cmdhistory.WinSrv86-class.html" title="plugins.windows.malware.cmdhistory.WinSrv86" alt="" coords="335,563,580,589"/>
+<area shape="rect" id="node35" href="rekall.plugins.windows.registry.printkey.SAMProfile-class.html" title="plugins.windows.registry.printkey.SAMProfile" alt="" coords="341,259,573,285"/>
+<area shape="rect" id="node11" href="rekall.plugins.overlays.darwin.darwin.Darwin64-class.html" title="plugins.overlays.darwin.darwin.Darwin64" alt="" coords="645,208,861,235"/>
+<area shape="rect" id="node15" href="rekall.plugins.overlays.linux.linux.Linux32-class.html" title="plugins.overlays.linux.linux.Linux32" alt="" coords="661,613,845,640"/>
+<area shape="rect" id="node16" href="rekall.plugins.overlays.linux.linux.Linux64-class.html" title="plugins.overlays.linux.linux.Linux64" alt="" coords="661,563,845,589"/>
+<area shape="rect" id="node21" href="rekall.plugins.overlays.windows.tcpip_vtypes.Tcpip-class.html" title="plugins.overlays.windows.tcpip_vtypes.Tcpip" alt="" coords="639,715,868,741"/>
+<area shape="rect" id="node27" href="rekall.plugins.overlays.windows.windows.Ntoskrnl-class.html" title="plugins.overlays.windows.windows.Ntoskrnl" alt="" coords="640,765,867,792"/>
+<area shape="rect" id="node29" href="rekall.plugins.windows.gui.win32k_core.Win32k-class.html" title="plugins.windows.gui.win32k_core.Win32k" alt="" coords="645,664,861,691"/>
+<area shape="rect" id="node23" href="rekall.plugins.overlays.windows.windows.Nt-class.html" title="plugins.overlays.windows.windows.Nt" alt="" coords="917,689,1115,716"/>
+<area shape="rect" id="node24" href="rekall.plugins.overlays.windows.windows.Ntkrnlmp-class.html" title="plugins.overlays.windows.windows.Ntkrnlmp" alt="" coords="901,740,1131,767"/>
+<area shape="rect" id="node25" href="rekall.plugins.overlays.windows.windows.Ntkrnlpa-class.html" title="plugins.overlays.windows.windows.Ntkrnlpa" alt="" coords="903,791,1129,817"/>
+<area shape="rect" id="node26" href="rekall.plugins.overlays.windows.windows.Ntkrpamp-class.html" title="plugins.overlays.windows.windows.Ntkrpamp" alt="" coords="899,841,1133,868"/>
+</map>
+  <img src="class_hierarchy_for_profile.gif" alt='' usemap="#class_hierarchy_for_profile" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>A collection of types relating to a single compilation unit.</p>
+  <p>Profiles are usually not instantiated directly. Rather, the profiles 
+  are loaded from the profile repository using the session.LoadProfile() 
+  method.</p>
+
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Nested Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.registry.MetaclassRegistry-class.html" class="summary-name">__metaclass__</a><br />
+      Automatic Plugin Registration through metaclasses.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.obj.Profile-class.html" class="summary-name">top_level_class</a><br />
+      A collection of types relating to a single compilation unit.
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">metadata</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="EnsureInitialized"></a><span class="summary-sig-name">EnsureInitialized</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.EnsureInitialized">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="flush_cache"></a><span class="summary-sig-name">flush_cache</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.flush_cache">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="copy"></a><span class="summary-sig-name">copy</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Makes a copy of this profile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.copy">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#merge" class="summary-sig-name">merge</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      Merges another profile into this one.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.merge">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="metadata"></a><span class="summary-sig-name">metadata</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Obtain metadata about this profile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.metadata">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="set_metadata"></a><span class="summary-sig-name">set_metadata</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">value</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.set_metadata">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="metadatas"></a><span class="summary-sig-name">metadatas</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      Obtain metadata about this profile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.metadatas">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="has_type"></a><span class="summary-sig-name">has_type</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">type_name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.has_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="has_class"></a><span class="summary-sig-name">has_class</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">class_name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.has_class">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_classes"></a><span class="summary-sig-name">add_classes</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">classes_dict</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Add the classes in the dict to our object classes mapping.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_classes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_constants"></a><span class="summary-sig-name">add_constants</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">constants_are_addresses</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Add the kwargs as constants for this profile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_constants">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_reverse_enums"></a><span class="summary-sig-name">add_reverse_enums</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Add the kwargs as a reverse enum for this profile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_reverse_enums">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_enums"></a><span class="summary-sig-name">add_enums</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Add the kwargs as an enum for this profile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_enums">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_types"></a><span class="summary-sig-name">add_types</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">abstract_types</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_types">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#compile_type" class="summary-sig-name">compile_type</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">type_name</span>)</span><br />
+      Compile the specific type and ensure it exists in the type cache.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.compile_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#legacy_field_descriptor" class="summary-sig-name">legacy_field_descriptor</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">typeList</span>)</span><br />
+      Converts the list expression into a target, target_args notation.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.legacy_field_descriptor">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#list_to_type" class="summary-sig-name">list_to_type</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">typeList</span>)</span><br />
+      Parses a specification list and returns a VType object.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.list_to_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#get_obj_offset" class="summary-sig-name">get_obj_offset</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">member</span>)</span><br />
+      Returns a member's offset within the struct.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_obj_offset">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_obj_size"></a><span class="summary-sig-name">get_obj_size</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span><br />
+      Returns the size of a struct</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_obj_size">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="obj_has_member"></a><span class="summary-sig-name">obj_has_member</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">member</span>)</span><br />
+      Returns whether an object has a certain member</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.obj_has_member">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_overlay"></a><span class="summary-sig-name">add_overlay</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">overlay</span>)</span><br />
+      Add an overlay to the current overlay stack.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_overlay">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#add_generator" class="summary-sig-name">add_generator</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">entity_cls</span>,
+        <span class="summary-sig-arg">generator</span>)</span><br />
+      Add a generator for a particular entity class.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#entity_generators" class="summary-sig-name">entity_generators</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">entity_cls</span>,
+        <span class="summary-sig-arg">subclasses</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Get generators that return a particular entity class.</td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#get_constant" class="summary-sig-name">get_constant</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">constant</span>,
+        <span class="summary-sig-arg">is_address</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Retrieve a constant from the profile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_constant">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_constant_object"></a><span class="summary-sig-name">get_constant_object</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">constant</span>,
+        <span class="summary-sig-arg">target</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">target_args</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">vm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      A help function for retrieving pointers from the symbol table.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_constant_object">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_constant_by_address"></a><span class="summary-sig-name">get_constant_by_address</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_constant_by_address">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_nearest_constant_by_address"></a><span class="summary-sig-name">get_nearest_constant_by_address</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address</span>,
+        <span class="summary-sig-arg">below</span>=<span class="summary-sig-default">True</span>)</span><br />
+      Returns the closest constant below or equal to the address.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_nearest_constant_by_address">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_enum"></a><span class="summary-sig-name">get_enum</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">enum_name</span>,
+        <span class="summary-sig-arg">field</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_enum">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_reverse_enum"></a><span class="summary-sig-name">get_reverse_enum</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">enum_name</span>,
+        <span class="summary-sig-arg">field</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_reverse_enum">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__dir__"></a><span class="summary-sig-name">__dir__</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Support tab completion.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.__dir__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#__getattr__" class="summary-sig-name">__getattr__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attr</span>)</span><br />
+      Make it easier to instantiate individual members.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.__getattr__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#Object" class="summary-sig-name">Object</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">type_name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">offset</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">vm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">parent</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">context</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      A function which instantiates the object named in type_name (as
+a string) from the type in profile passing optional args of
+kwargs.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.Object">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__unicode__"></a><span class="summary-sig-name">__unicode__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.__unicode__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      repr(x)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.__repr__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#add_collector" class="summary-sig-name">add_collector</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">components</span>,
+        <span class="summary-sig-arg">collector</span>)</span><br />
+      Add a collector for a particular entity component.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_collector">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_collectors"></a><span class="summary-sig-name">get_collectors</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">component</span>)</span><br />
+      Get collectors that yield a particular component.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_collectors">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#LoadProfileFromData" class="summary-sig-name">LoadProfileFromData</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Creates a profile directly from a JSON object.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.LoadProfileFromData">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#Initialize" class="summary-sig-name">Initialize</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">profile</span>)</span><br />
+      Install required types, classes and constants.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.Initialize">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="overlays"></a><span class="summary-name">overlays</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="vtypes"></a><span class="summary-name">vtypes</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="types"></a><span class="summary-name">types</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="generators"></a><span class="summary-name">generators</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="constants"></a><span class="summary-name">constants</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="applied_modifications"></a><span class="summary-name">applied_modifications</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="EMPTY_DESCRIPTOR"></a><span class="summary-name">EMPTY_DESCRIPTOR</span> = <code title="[0, {}]"><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-group">}</code><code class="variable-group">]</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="METADATA"></a><span class="summary-name">METADATA</span> = <code title="{}"><code class="variable-group">{</code><code class="variable-group">}</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__abstractmethods__"></a><span class="summary-name">__abstractmethods__</span> = <code title="frozenset([])"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.obj.Profile-class.html#classes" class="summary-name">classes</a> = <code title="{'BasicClasses': &lt;class 'rekall.plugins.overlays.basic.BasicClasses'&gt;,
+ 'BasicPEProfile': &lt;class 'rekall.plugins.overlays.windows.windows.Bas\
+icPEProfile'&gt;,
+ 'ConHost64': &lt;class 'rekall.plugins.windows.malware.cmdhistory.ConHos\
+t64'&gt;,
+ 'ConHost86': &lt;class 'rekall.plugins.windows.malware.cmdhistory.ConHos\
+t86'&gt;,
+ 'CrashDump32Profile': &lt;class 'rekall.plugins.overlays.windows.crashdu\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BasicClasses</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.overlays.bas<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.obj.Profile-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.mspdb.PDBProfile'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.mspdb.PD<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="collectors"></a><span class="summary-name">collectors</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Profile'"><code class="variable-quote">'</code><code class="variable-string">Profile</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="LoadProfileFromData"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">LoadProfileFromData</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">data</span>,
+        <span class="sig-arg">session</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">name</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.LoadProfileFromData">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Creates a profile directly from a JSON object.
+
+Args:
+  data: A data structure of an encoded profile. Described:
+  http://docs.rekall.googlecode.com/git/development.html#_profile_serializations
+
+Returns:
+  a Profile() instance.
+
+Raises:
+  IOError if we can not load the profile.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="Initialize"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">Initialize</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">profile</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.Initialize">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Install required types, classes and constants.</p>
+  <p>This method should be extended by derived classes. It is a class 
+  method to allow other profiles to call this method and install the 
+  various components into their own profiles.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">session</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">metadata</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="merge"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">merge</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">other</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.merge">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Merges another profile into this one.</p>
+  <p>The result is that we are able to parse all the types that the other 
+  profile has.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="compile_type"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">compile_type</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">type_name</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.compile_type">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Compile the specific type and ensure it exists in the type cache.</p>
+  <p>The type_name here is a reference to the vtypes which are loaded into 
+  the profile.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="legacy_field_descriptor"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">legacy_field_descriptor</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">typeList</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.legacy_field_descriptor">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Converts the list expression into a target, target_args notation.
+
+Legacy vtypes use lists to specify the objects. This function is used to
+convert from the legacy format to the more accurate modern
+format. Hopefully the legacy format can be deprecated at some point.
+
+Args:
+   typeList: A list of types. e.g. ['pointer64', ['_HMAP_TABLE']]
+
+Returns:
+   A target, target_args tuple. Target is the class name which should be
+   instantiated, while target_args is a dict of args to be passed to
+   this class.
+   e.g. 'Pointer',  {target=&quot;_HMAP_TABLE&quot;}
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="list_to_type"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">list_to_type</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>,
+        <span class="sig-arg">typeList</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.list_to_type">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Parses a specification list and returns a VType object.</p>
+  <p>This function is a bit complex because we support lots of different 
+  list types for backwards compatibility.</p>
+  <p>This is the core function which effectively parses the VType 
+  language.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_obj_offset"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_obj_offset</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>,
+        <span class="sig-arg">member</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_obj_offset">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns a member's offset within the struct.</p>
+  <p>Note that this can be wrong if the offset is a callable.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="add_generator"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">add_generator</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">entity_cls</span>,
+        <span class="sig-arg">generator</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Add a generator for a particular entity class.
+
+Arguments:
+  generator: A Callable that takes instance of Session as argument
+  and yields instances of entity_cls.
+
+  entity_cls: A subclass of Entity.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="entity_generators"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">entity_generators</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">entity_cls</span>,
+        <span class="sig-arg">subclasses</span>=<span class="sig-default">True</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    >&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Get generators that return a particular entity class.
+
+Arguments:
+  subclasses (default: True): Include generators for subclasses too.
+
+Yields:
+  Callables that take session as argument and return instances of
+  entity_cls.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_constant"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_constant</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">constant</span>,
+        <span class="sig-arg">is_address</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_constant">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Retrieve a constant from the profile.
+
+Args:
+   constant: The name of the constant to retrieve.
+
+   is_address: If true the constant is converted to an address.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getattr__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getattr__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">attr</span>)</span>
+    <br /><em class="fname">(Qualification operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.__getattr__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Make it easier to instantiate individual members.</p>
+  <p>This method makes it possible to use the form:</p>
+  <p>self.profile._EPROCESS(vm=self.kernel_address_space, offset=X)</p>
+  <p>Which is easier to type and works well with attribute completion 
+  (provided by __dir__).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="Object"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">Object</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">type_name</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">offset</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">vm</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">name</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">parent</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">context</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">session</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.Object">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+A function which instantiates the object named in type_name (as
+a string) from the type in profile passing optional args of
+kwargs.
+
+Args:
+  type_name: The name of the Struct to instantiate (e.g. _EPROCESS).
+
+  vm: The address space to instantiate the object onto. If not provided
+    we use a dummy null padded address space.
+
+  offset: The location in the address space where the object is
+    instantiated.
+
+  name: An optional name for the object.
+
+  context: An opaque dict which is passed to all objects created from
+    this object.
+
+  parent: The object can maintain a reference to its parent object.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__repr__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__repr__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.__repr__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>repr(x)</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__repr__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="add_collector"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">add_collector</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">components</span>,
+        <span class="sig-arg">collector</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_collector">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Add a collector for a particular entity component.
+
+Arguments:
+  collector: A Callable that takes instance of Session as argument
+    and yields tuples of (identity, components)
+
+  components: Call the collector when this component is requested.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="classes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">classes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BasicClasses</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.overlays.basic.BasicClasses'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">BasicPEProfile</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.overlays.windows.windows.Bas<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+icPEProfile'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">ConHost64</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.malware.cmdhistory.ConHos<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+t64'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">ConHost86</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.malware.cmdhistory.ConHos<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+t86'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">CrashDump32Profile</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.overlays.windows.crashdu<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="classes_by_name"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">classes_by_name</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.mspdb.PDBProfile'&gt;<code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:21:22 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

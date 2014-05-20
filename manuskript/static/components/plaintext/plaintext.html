@@ -1,9 +1,0 @@
-<div ng-controller="PlainTextController" class="well plaintext">
-  <div ng-if="node.state == 'edit'" class="edit" on-alt-enter="saveNode(node)">
-    <code-editor language="plaintext"  ng-model="node.source" split-list focus="node.state == 'edit'"></code-editor>
-  </div>
-
-  <div ng-if="node.state != 'edit'" class="readonly" ng-dblclick="editNode(node)">
-    <code-editor language="plaintext" readonly="true" ng-model="node.rendered" split-list></code-editor>
-  </div>
-</div>

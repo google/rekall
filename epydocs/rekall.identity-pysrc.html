@@ -1,0 +1,1284 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.identity</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        Module&nbsp;identity
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.identity-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.identity-module.html">Module rekall.identity</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2014 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">The Rekall Memory Forensics entity layer.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">"Adam Sindelar &lt;adamsh@google.com&gt;"</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.obj=rekall.obj-module.html"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-1', 'obj', 'link-1');">obj</a></tt> </tt>
+<a name="Identity"></a><div id="Identity-def"><a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt> <a class="py-toggle" href="#" id="Identity-toggle" onclick="return toggle('Identity');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html">Identity</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Identity-expanded"><a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">    <tt class="py-docstring">"""Uniquely identifies something like a process or a user.</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-docstring">    When collecting information about a system, data that relates to the same</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-docstring">    conceptual entity, such as a user or a network connection, can come from</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-docstring">    multiple sources. In such cases, this class provides a way of uniquelly</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-docstring">    identifying the conceptual entities (such as users, processes, connections,</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-docstring">    etc.) to make it easier to view information about them in one place, even</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-docstring">    when it was collected using different algorithms.</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-docstring">    Identities can be either scalar or vector. Scalar identities wrap around a</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-docstring">    single piece of information, typically a numeric ID or a memory offset and</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-docstring">    use that for comparisons and hashing. Vector identities have more than one</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-docstring">    way of identifying the object. For example, a user may be identified by</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-docstring">    either their UID or their username, with each being equally valid and</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-docstring">    unique (within the scope of one system).</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="Identity.__init__"></a><div id="Identity.__init__-def"><a name="L44"></a><tt class="py-lineno"> 44</tt> <a class="py-toggle" href="#" id="Identity.__init__-toggle" onclick="return toggle('Identity.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Identity.__init__-expanded"><a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">        <tt class="py-keyword">pass</tt> </tt>
+</div><a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"> </tt>
+<a name="Identity.__eq__"></a><div id="Identity.__eq__-def"><a name="L47"></a><tt class="py-lineno"> 47</tt> <a class="py-toggle" href="#" id="Identity.__eq__-toggle" onclick="return toggle('Identity.__eq__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html#__eq__">__eq__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity.__eq__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Identity.__eq__-expanded"><a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">        <tt class="py-docstring">"""Is this identity equivalent to the other identity?</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring">        Returns:</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring">            Scalar identities should return True or False (never None).</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring">            Vector identities may return None when the question is</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-docstring">            undecidable right now, but may be decidable at a later time.</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt class="py-docstring">            Example - let x be a user identified by the UID 37 and y be a user</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"><tt class="py-docstring">            identified by the username "Alice". X and y both posses valid</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt class="py-docstring">            identifiers of a user, but they are not comparable until we set</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-docstring">            username on x or UID on y.</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">        <tt class="py-keyword">pass</tt> </tt>
+</div><a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"> </tt>
+<a name="Identity.__ne__"></a><div id="Identity.__ne__-def"><a name="L63"></a><tt class="py-lineno"> 63</tt> <a class="py-toggle" href="#" id="Identity.__ne__-toggle" onclick="return toggle('Identity.__ne__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html#__ne__">__ne__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity.__ne__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Identity.__ne__-expanded"><a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-docstring">"""Three-valued not equal predicate."""</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-name">eq</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Method rekall.entity.Entity.__eq__()=rekall.entity.Entity-class.html#__eq__,Method rekall.identity.BaseObjectIdentity.__eq__()=rekall.identity.BaseObjectIdentity-class.html#__eq__,Method rekall.identity.Identity.__eq__()=rekall.identity.Identity-class.html#__eq__,Method rekall.identity.ProcessIdentity.__eq__()=rekall.identity.ProcessIdentity-class.html#__eq__,Method rekall.identity.UserIdentity.__eq__()=rekall.identity.UserIdentity-class.html#__eq__,Method rekall.obj.Array.__eq__()=rekall.obj.Array-class.html#__eq__,Method rekall.obj.BaseAddressComparisonMixIn.__eq__()=rekall.obj.BaseAddressComparisonMixIn-class.html#__eq__,Method rekall.obj.BaseObject.__eq__()=rekall.obj.BaseObject-class.html#__eq__,Method rekall.obj.NoneObject.__eq__()=rekall.obj.NoneObject-class.html#__eq__,Method rekall.obj.NumericProxyMixIn.__eq__()=rekall.obj.NumericProxyMixIn-class.html#__eq__,Method rekall.obj.Pointer.__eq__()=rekall.obj.Pointer-class.html#__eq__,Method rekall.obj.StringProxyMixIn.__eq__()=rekall.obj.StringProxyMixIn-class.html#__eq__,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__eq__()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#__eq__,Method rekall.plugins.addrspaces.standard.FDAddressSpace.__eq__()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#__eq__,Method rekall.plugins.overlays.basic.Enumeration.__eq__()=rekall.plugins.overlays.basic.Enumeration-class.html#__eq__,Method rekall.plugins.overlays.basic.String.__eq__()=rekall.plugins.overlays.basic.String-class.html#__eq__"><a title="rekall.entity.Entity.__eq__
+rekall.identity.BaseObjectIdentity.__eq__
+rekall.identity.Identity.__eq__
+rekall.identity.ProcessIdentity.__eq__
+rekall.identity.UserIdentity.__eq__
+rekall.obj.Array.__eq__
+rekall.obj.BaseAddressComparisonMixIn.__eq__
+rekall.obj.BaseObject.__eq__
+rekall.obj.NoneObject.__eq__
+rekall.obj.NumericProxyMixIn.__eq__
+rekall.obj.Pointer.__eq__
+rekall.obj.StringProxyMixIn.__eq__
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__eq__
+rekall.plugins.addrspaces.standard.FDAddressSpace.__eq__
+rekall.plugins.overlays.basic.Enumeration.__eq__
+rekall.plugins.overlays.basic.String.__eq__" class="py-name" href="#" onclick="return doclink('link-2', '__eq__', 'link-2');">__eq__</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">eq</tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt>  <tt class="py-comment"># Three-valued logic sentinel for unknown.</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-keyword">not</tt> <tt class="py-name">eq</tt> </tt>
+</div><a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"> </tt>
+<a name="Identity.union"></a><div id="Identity.union-def"><a name="L72"></a><tt class="py-lineno"> 72</tt> <a class="py-toggle" href="#" id="Identity.union-toggle" onclick="return toggle('Identity.union');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html#union">union</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity.union-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Identity.union-expanded"><a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-docstring">"""Return a new identity that's a union of self and other.</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line"><tt class="py-docstring">        Self and other should be equivalent (self.__eq__(other) returns True).</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"><tt class="py-docstring">        Returns:</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"><tt class="py-docstring">            Scalar identities should return self.</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"><tt class="py-docstring">            Vector identities should return a new identity instance,</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"><tt class="py-docstring">            combining the known keys from self and other in a union of both.</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"><tt class="py-docstring">        Note on immutability:</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"><tt class="py-docstring">            Identities are immmutable. If you override this method you MUST</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-docstring">            return a new identity and you MUST NOT modify self or other.</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">        <tt id="link-3" class="py-name" targets="Variable rekall.components._=rekall.components-module.html#_"><a title="rekall.components._" class="py-name" href="#" onclick="return doclink('link-3', '_', 'link-3');">_</a></tt> <tt class="py-op">=</tt> <tt class="py-name">other</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt> </tt>
+</div><a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="Identity.indices"></a><div id="Identity.indices-def"><a name="L91"></a><tt class="py-lineno"> 91</tt> <a class="py-toggle" href="#" id="Identity.indices-toggle" onclick="return toggle('Identity.indices');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html#indices">indices</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity.indices-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Identity.indices-expanded"><a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt class="py-docstring">"""Set of hashable keys that can be used to index this identity.</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-docstring">        Returns:</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"><tt class="py-docstring">            Scalar identities should implement this same as __hash__, with one</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"><tt class="py-docstring">            difference: instead of the value itself, return the value wrapped</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"><tt class="py-docstring">            in a tuple like so: (value,)</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"><tt class="py-docstring">            Vector identities should return a set (or other iterable) of</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"><tt class="py-docstring">            valid key values. Usually, this is one per non-null member of the</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"><tt class="py-docstring">            identity vector/tuple.</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Method rekall.entity.Entity.__unicode__()=rekall.entity.Entity-class.html#__unicode__,Method rekall.identity.BaseObjectIdentity.__unicode__()=rekall.identity.BaseObjectIdentity-class.html#__unicode__,Method rekall.identity.Identity.__unicode__()=rekall.identity.Identity-class.html#__unicode__,Method rekall.identity.ProcessIdentity.__unicode__()=rekall.identity.ProcessIdentity-class.html#__unicode__,Method rekall.identity.UserIdentity.__unicode__()=rekall.identity.UserIdentity-class.html#__unicode__,Method rekall.obj.Array.__unicode__()=rekall.obj.Array-class.html#__unicode__,Method rekall.obj.BaseObject.__unicode__()=rekall.obj.BaseObject-class.html#__unicode__,Method rekall.obj.Bool.__unicode__()=rekall.obj.Bool-class.html#__unicode__,Method rekall.obj.NoneObject.__unicode__()=rekall.obj.NoneObject-class.html#__unicode__,Method rekall.obj.Pointer.__unicode__()=rekall.obj.Pointer-class.html#__unicode__,Method rekall.obj.Profile.__unicode__()=rekall.obj.Profile-class.html#__unicode__,Method rekall.obj.Struct.__unicode__()=rekall.obj.Struct-class.html#__unicode__,Method rekall.plugins.overlays.basic.Enumeration.__unicode__()=rekall.plugins.overlays.basic.Enumeration-class.html#__unicode__,Method rekall.plugins.overlays.basic.Flags.__unicode__()=rekall.plugins.overlays.basic.Flags-class.html#__unicode__,Method rekall.plugins.overlays.basic.Function.__unicode__()=rekall.plugins.overlays.basic.Function-class.html#__unicode__,Method rekall.plugins.overlays.basic.String.__unicode__()=rekall.plugins.overlays.basic.String-class.html#__unicode__,Method rekall.plugins.overlays.basic.UnicodeString.__unicode__()=rekall.plugins.overlays.basic.UnicodeString-class.html#__unicode__,Method rekall.plugins.overlays.basic.UnixTimeStamp.__unicode__()=rekall.plugins.overlays.basic.UnixTimeStamp-class.html#__unicode__,Method rekall.plugins.overlays.darwin.darwin.sockaddr.__unicode__()=rekall.plugins.overlays.darwin.darwin.sockaddr-class.html#__unicode__,Method rekall.plugins.overlays.darwin.darwin.sockaddr_dl.__unicode__()=rekall.plugins.overlays.darwin.darwin.sockaddr_dl-class.html#__unicode__,Method rekall.plugins.overlays.linux.linux.PermissionFlags.__unicode__()=rekall.plugins.overlays.linux.linux.PermissionFlags-class.html#__unicode__,Method rekall.plugins.overlays.linux.vfs.FileName.__unicode__()=rekall.plugins.overlays.linux.vfs.FileName-class.html#__unicode__,Method rekall.plugins.tools.json_tools.AddressSpaceFormatter.__unicode__()=rekall.plugins.tools.json_tools.AddressSpaceFormatter-class.html#__unicode__,Method rekall.plugins.tools.json_tools.DatetimeFormatter.__unicode__()=rekall.plugins.tools.json_tools.DatetimeFormatter-class.html#__unicode__,Method rekall.plugins.tools.json_tools.EnumFormatter.__unicode__()=rekall.plugins.tools.json_tools.EnumFormatter-class.html#__unicode__,Method rekall.plugins.tools.json_tools.LiteralFormatter.__unicode__()=rekall.plugins.tools.json_tools.LiteralFormatter-class.html#__unicode__,Method rekall.plugins.tools.json_tools.NoneObjectFormatter.__unicode__()=rekall.plugins.tools.json_tools.NoneObjectFormatter-class.html#__unicode__,Method rekall.session.Session.__unicode__()=rekall.session.Session-class.html#__unicode__,Method rekall.superposition.Superposition.__unicode__()=rekall.superposition.Superposition-class.html#__unicode__"><a title="rekall.entity.Entity.__unicode__
+rekall.identity.BaseObjectIdentity.__unicode__
+rekall.identity.Identity.__unicode__
+rekall.identity.ProcessIdentity.__unicode__
+rekall.identity.UserIdentity.__unicode__
+rekall.obj.Array.__unicode__
+rekall.obj.BaseObject.__unicode__
+rekall.obj.Bool.__unicode__
+rekall.obj.NoneObject.__unicode__
+rekall.obj.Pointer.__unicode__
+rekall.obj.Profile.__unicode__
+rekall.obj.Struct.__unicode__
+rekall.plugins.overlays.basic.Enumeration.__unicode__
+rekall.plugins.overlays.basic.Flags.__unicode__
+rekall.plugins.overlays.basic.Function.__unicode__
+rekall.plugins.overlays.basic.String.__unicode__
+rekall.plugins.overlays.basic.UnicodeString.__unicode__
+rekall.plugins.overlays.basic.UnixTimeStamp.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr_dl.__unicode__
+rekall.plugins.overlays.linux.linux.PermissionFlags.__unicode__
+rekall.plugins.overlays.linux.vfs.FileName.__unicode__
+rekall.plugins.tools.json_tools.AddressSpaceFormatter.__unicode__
+rekall.plugins.tools.json_tools.DatetimeFormatter.__unicode__
+rekall.plugins.tools.json_tools.EnumFormatter.__unicode__
+rekall.plugins.tools.json_tools.LiteralFormatter.__unicode__
+rekall.plugins.tools.json_tools.NoneObjectFormatter.__unicode__
+rekall.session.Session.__unicode__
+rekall.superposition.Superposition.__unicode__" class="py-name" href="#" onclick="return doclink('link-4', '__unicode__', 'link-4');">__unicode__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"> </tt>
+<a name="Identity.__hash__"></a><div id="Identity.__hash__-def"><a name="L105"></a><tt class="py-lineno">105</tt> <a class="py-toggle" href="#" id="Identity.__hash__-toggle" onclick="return toggle('Identity.__hash__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html#__hash__">__hash__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity.__hash__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Identity.__hash__-expanded"><a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-docstring">"""Hashes the identity with a caveat. Don't use, unless you know how.</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"><tt class="py-docstring">        WARNING: This has an unexpected property, which is that composite</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"><tt class="py-docstring">        entities may be equal to each other and yet have different hashes. This</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line"><tt class="py-docstring">        probably breaks whatever scheme you had in mind that used entities as</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"><tt class="py-docstring">        keys. My advice to you is to just use EntityManager and not worry about</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"><tt class="py-docstring">        it. The only reason __hash__ is implemented on identity is because it</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"><tt class="py-docstring">        allows for some optimizations with sets in EntityLookupTable.</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">hash</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-5" class="py-name"><a title="rekall.entity.Entity.__unicode__
+rekall.identity.BaseObjectIdentity.__unicode__
+rekall.identity.Identity.__unicode__
+rekall.identity.ProcessIdentity.__unicode__
+rekall.identity.UserIdentity.__unicode__
+rekall.obj.Array.__unicode__
+rekall.obj.BaseObject.__unicode__
+rekall.obj.Bool.__unicode__
+rekall.obj.NoneObject.__unicode__
+rekall.obj.Pointer.__unicode__
+rekall.obj.Profile.__unicode__
+rekall.obj.Struct.__unicode__
+rekall.plugins.overlays.basic.Enumeration.__unicode__
+rekall.plugins.overlays.basic.Flags.__unicode__
+rekall.plugins.overlays.basic.Function.__unicode__
+rekall.plugins.overlays.basic.String.__unicode__
+rekall.plugins.overlays.basic.UnicodeString.__unicode__
+rekall.plugins.overlays.basic.UnixTimeStamp.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr_dl.__unicode__
+rekall.plugins.overlays.linux.linux.PermissionFlags.__unicode__
+rekall.plugins.overlays.linux.vfs.FileName.__unicode__
+rekall.plugins.tools.json_tools.AddressSpaceFormatter.__unicode__
+rekall.plugins.tools.json_tools.DatetimeFormatter.__unicode__
+rekall.plugins.tools.json_tools.EnumFormatter.__unicode__
+rekall.plugins.tools.json_tools.LiteralFormatter.__unicode__
+rekall.plugins.tools.json_tools.NoneObjectFormatter.__unicode__
+rekall.session.Session.__unicode__
+rekall.superposition.Superposition.__unicode__" class="py-name" href="#" onclick="return doclink('link-5', '__unicode__', 'link-4');">__unicode__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"> </tt>
+<a name="Identity.__unicode__"></a><div id="Identity.__unicode__-def"><a name="L117"></a><tt class="py-lineno">117</tt> <a class="py-toggle" href="#" id="Identity.__unicode__-toggle" onclick="return toggle('Identity.__unicode__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html#__unicode__">__unicode__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity.__unicode__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Identity.__unicode__-expanded"><a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">        <tt class="py-keyword">pass</tt> </tt>
+</div><a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line"> </tt>
+<a name="Identity.__str__"></a><div id="Identity.__str__-def"><a name="L120"></a><tt class="py-lineno">120</tt> <a class="py-toggle" href="#" id="Identity.__str__-toggle" onclick="return toggle('Identity.__str__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html#__str__">__str__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity.__str__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Identity.__str__-expanded"><a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="rekall.entity.Entity.__unicode__
+rekall.identity.BaseObjectIdentity.__unicode__
+rekall.identity.Identity.__unicode__
+rekall.identity.ProcessIdentity.__unicode__
+rekall.identity.UserIdentity.__unicode__
+rekall.obj.Array.__unicode__
+rekall.obj.BaseObject.__unicode__
+rekall.obj.Bool.__unicode__
+rekall.obj.NoneObject.__unicode__
+rekall.obj.Pointer.__unicode__
+rekall.obj.Profile.__unicode__
+rekall.obj.Struct.__unicode__
+rekall.plugins.overlays.basic.Enumeration.__unicode__
+rekall.plugins.overlays.basic.Flags.__unicode__
+rekall.plugins.overlays.basic.Function.__unicode__
+rekall.plugins.overlays.basic.String.__unicode__
+rekall.plugins.overlays.basic.UnicodeString.__unicode__
+rekall.plugins.overlays.basic.UnixTimeStamp.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr_dl.__unicode__
+rekall.plugins.overlays.linux.linux.PermissionFlags.__unicode__
+rekall.plugins.overlays.linux.vfs.FileName.__unicode__
+rekall.plugins.tools.json_tools.AddressSpaceFormatter.__unicode__
+rekall.plugins.tools.json_tools.DatetimeFormatter.__unicode__
+rekall.plugins.tools.json_tools.EnumFormatter.__unicode__
+rekall.plugins.tools.json_tools.LiteralFormatter.__unicode__
+rekall.plugins.tools.json_tools.NoneObjectFormatter.__unicode__
+rekall.session.Session.__unicode__
+rekall.superposition.Superposition.__unicode__" class="py-name" href="#" onclick="return doclink('link-6', '__unicode__', 'link-4');">__unicode__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line"> </tt>
+<a name="Identity.__repr__"></a><div id="Identity.__repr__-def"><a name="L123"></a><tt class="py-lineno">123</tt> <a class="py-toggle" href="#" id="Identity.__repr__-toggle" onclick="return toggle('Identity.__repr__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html#__repr__">__repr__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity.__repr__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Identity.__repr__-expanded"><a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="rekall.entity.Entity.__unicode__
+rekall.identity.BaseObjectIdentity.__unicode__
+rekall.identity.Identity.__unicode__
+rekall.identity.ProcessIdentity.__unicode__
+rekall.identity.UserIdentity.__unicode__
+rekall.obj.Array.__unicode__
+rekall.obj.BaseObject.__unicode__
+rekall.obj.Bool.__unicode__
+rekall.obj.NoneObject.__unicode__
+rekall.obj.Pointer.__unicode__
+rekall.obj.Profile.__unicode__
+rekall.obj.Struct.__unicode__
+rekall.plugins.overlays.basic.Enumeration.__unicode__
+rekall.plugins.overlays.basic.Flags.__unicode__
+rekall.plugins.overlays.basic.Function.__unicode__
+rekall.plugins.overlays.basic.String.__unicode__
+rekall.plugins.overlays.basic.UnicodeString.__unicode__
+rekall.plugins.overlays.basic.UnixTimeStamp.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr_dl.__unicode__
+rekall.plugins.overlays.linux.linux.PermissionFlags.__unicode__
+rekall.plugins.overlays.linux.vfs.FileName.__unicode__
+rekall.plugins.tools.json_tools.AddressSpaceFormatter.__unicode__
+rekall.plugins.tools.json_tools.DatetimeFormatter.__unicode__
+rekall.plugins.tools.json_tools.EnumFormatter.__unicode__
+rekall.plugins.tools.json_tools.LiteralFormatter.__unicode__
+rekall.plugins.tools.json_tools.NoneObjectFormatter.__unicode__
+rekall.session.Session.__unicode__
+rekall.superposition.Superposition.__unicode__" class="py-name" href="#" onclick="return doclink('link-7', '__unicode__', 'link-4');">__unicode__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"> </tt>
+<a name="Identity.__or__"></a><div id="Identity.__or__-def"><a name="L126"></a><tt class="py-lineno">126</tt> <a class="py-toggle" href="#" id="Identity.__or__-toggle" onclick="return toggle('Identity.__or__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.Identity-class.html#__or__">__or__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Identity.__or__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Identity.__or__-expanded"><a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Method rekall.components.ComponentTuple.union()=rekall.components.ComponentTuple-class.html#union,Method rekall.entity.Entity.union()=rekall.entity.Entity-class.html#union,Method rekall.identity.Identity.union()=rekall.identity.Identity-class.html#union,Method rekall.identity.UserIdentity.union()=rekall.identity.UserIdentity-class.html#union,Method rekall.superposition.Superposition.union()=rekall.superposition.Superposition-class.html#union"><a title="rekall.components.ComponentTuple.union
+rekall.entity.Entity.union
+rekall.identity.Identity.union
+rekall.identity.UserIdentity.union
+rekall.superposition.Superposition.union" class="py-name" href="#" onclick="return doclink('link-8', 'union', 'link-8');">union</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line"> </tt>
+<a name="BaseObjectIdentity"></a><div id="BaseObjectIdentity-def"><a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line"> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt> <a class="py-toggle" href="#" id="BaseObjectIdentity-toggle" onclick="return toggle('BaseObjectIdentity');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.identity.BaseObjectIdentity-class.html">BaseObjectIdentity</a><tt class="py-op">(</tt><tt class="py-base-class">Identity</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BaseObjectIdentity-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="BaseObjectIdentity-expanded"><a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">    <tt class="py-docstring">"""Implements Identity using BaseObject memory locations.</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"><tt class="py-docstring">    This container will store:</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"><tt class="py-docstring">      obj_offset</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line"><tt class="py-docstring">      obj_type</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"><tt class="py-docstring">      obj_vm, actually an AttributeDict with:</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"><tt class="py-docstring">        dtb (or 0 for physical address space)</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"><tt class="py-docstring">    The interface above is the same as what BaseObject would provide which</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"><tt class="py-docstring">    is useful when using the two interchangeably.</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"><tt class="py-docstring">    This class also supports pickling and, once unpickled, can rebuild the</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"><tt class="py-docstring">    original BaseObject instance using an active session.</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line"><tt class="py-docstring">    TODO: This class is going to be drastically simplified.</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="BaseObjectIdentity.__init__"></a><div id="BaseObjectIdentity.__init__-def"><a name="L147"></a><tt class="py-lineno">147</tt> <a class="py-toggle" href="#" id="BaseObjectIdentity.__init__-toggle" onclick="return toggle('BaseObjectIdentity.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.BaseObjectIdentity-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">base_obj</tt><tt class="py-op">,</tt> <tt class="py-param">follow_pointers</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BaseObjectIdentity.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BaseObjectIdentity.__init__-expanded"><a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">        <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-9" class="py-name" targets="Class rekall.identity.BaseObjectIdentity=rekall.identity.BaseObjectIdentity-class.html"><a title="rekall.identity.BaseObjectIdentity" class="py-name" href="#" onclick="return doclink('link-9', 'BaseObjectIdentity', 'link-9');">BaseObjectIdentity</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Method rekall.addrspace.AddrSpaceError.__init__()=rekall.addrspace.AddrSpaceError-class.html#__init__,Method rekall.addrspace.BaseAddressSpace.__init__()=rekall.addrspace.BaseAddressSpace-class.html#__init__,Method rekall.addrspace.BufferAddressSpace.__init__()=rekall.addrspace.BufferAddressSpace-class.html#__init__,Method rekall.addrspace.CachingAddressSpaceMixIn.__init__()=rekall.addrspace.CachingAddressSpaceMixIn-class.html#__init__,Method rekall.addrspace.RunBasedAddressSpace.__init__()=rekall.addrspace.RunBasedAddressSpace-class.html#__init__,Method rekall.addrspace_test.CustomRunsAddressSpace.__init__()=rekall.addrspace_test.CustomRunsAddressSpace-class.html#__init__,Method rekall.entity.Entity.__init__()=rekall.entity.Entity-class.html#__init__,Method rekall.entity.EntityLookupTable.__init__()=rekall.entity.EntityLookupTable-class.html#__init__,Method rekall.entity.EntityManager.__init__()=rekall.entity.EntityManager-class.html#__init__,Method rekall.identity.BaseObjectIdentity.__init__()=rekall.identity.BaseObjectIdentity-class.html#__init__,Method rekall.identity.Identity.__init__()=rekall.identity.Identity-class.html#__init__,Method rekall.identity.ProcessIdentity.__init__()=rekall.identity.ProcessIdentity-class.html#__init__,Method rekall.identity.UserIdentity.__init__()=rekall.identity.UserIdentity-class.html#__init__,Method rekall.io_manager.DirectoryIOManager.__init__()=rekall.io_manager.DirectoryIOManager-class.html#__init__,Method rekall.io_manager.IOManager.__init__()=rekall.io_manager.IOManager-class.html#__init__,Method rekall.io_manager.SelfClosingFile.__init__()=rekall.io_manager.SelfClosingFile-class.html#__init__,Method rekall.io_manager.URLManager.__init__()=rekall.io_manager.URLManager-class.html#__init__,Method rekall.io_manager.ZipFileManager.__init__()=rekall.io_manager.ZipFileManager-class.html#__init__,Method rekall.kb.AddressResolver.__init__()=rekall.kb.AddressResolver-class.html#__init__,Method rekall.kb.KernelModule.__init__()=rekall.kb.KernelModule-class.html#__init__,Method rekall.kb.ParameterHook.__init__()=rekall.kb.ParameterHook-class.html#__init__,Method rekall.kb.SortedAddresses.__init__()=rekall.kb.SortedAddresses-class.html#__init__,Method rekall.kb.SymbolAddresses.__init__()=rekall.kb.SymbolAddresses-class.html#__init__,Method rekall.obj.Array.__init__()=rekall.obj.Array-class.html#__init__,Method rekall.obj.BaseObject.__init__()=rekall.obj.BaseObject-class.html#__init__,Method rekall.obj.BitField.__init__()=rekall.obj.BitField-class.html#__init__,Method rekall.obj.Curry.__init__()=rekall.obj.Curry-class.html#__init__,Method rekall.obj.ListArray.__init__()=rekall.obj.ListArray-class.html#__init__,Method rekall.obj.NativeType.__init__()=rekall.obj.NativeType-class.html#__init__,Method rekall.obj.NoneObject.__init__()=rekall.obj.NoneObject-class.html#__init__,Method rekall.obj.Pointer.__init__()=rekall.obj.Pointer-class.html#__init__,Method rekall.obj.Profile.__init__()=rekall.obj.Profile-class.html#__init__,Method rekall.obj.ProfileLog.__init__()=rekall.obj.ProfileLog-class.html#__init__,Method rekall.obj.Struct.__init__()=rekall.obj.Struct-class.html#__init__,Method rekall.obj.Void.__init__()=rekall.obj.Void-class.html#__init__,Method rekall.plugin.Command.__init__()=rekall.plugin.Command-class.html#__init__,Method rekall.plugin.KernelASMixin.__init__()=rekall.plugin.KernelASMixin-class.html#__init__,Method rekall.plugin.PhysicalASMixin.__init__()=rekall.plugin.PhysicalASMixin-class.html#__init__,Method rekall.plugin.ProfileCommand.__init__()=rekall.plugin.ProfileCommand-class.html#__init__,Method rekall.plugin.VerbosityMixIn.__init__()=rekall.plugin.VerbosityMixIn-class.html#__init__,Method rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.__init__()=rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.amd64.VTxPagedMemory.__init__()=rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.__init__()=rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32-class.html#__init__,Method rekall.plugins.addrspaces.ewf.EWFAddressSpace.__init__()=rekall.plugins.addrspaces.ewf.EWFAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.ewf.ewffile.__init__()=rekall.plugins.addrspaces.ewf.ewffile-class.html#__init__,Method rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.__init__()=rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace-class.html#__init__,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.__init__()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.macho.MACHOCoreDump.__init__()=rekall.plugins.addrspaces.macho.MACHOCoreDump-class.html#__init__,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__init__()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.DummyAddressSpace.__init__()=rekall.plugins.addrspaces.standard.DummyAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.FDAddressSpace.__init__()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.FileAddressSpace.__init__()=rekall.plugins.addrspaces.standard.FileAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.WriteableAddressSpace.__init__()=rekall.plugins.addrspaces.standard.WriteableAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.__init__()=rekall.plugins.addrspaces.vboxelf.Elf64CoreDump-class.html#__init__,Method rekall.plugins.addrspaces.win32.Win32FileAddressSpace.__init__()=rekall.plugins.addrspaces.win32.Win32FileAddressSpace-class.html#__init__,Method rekall.plugins.core.DT.__init__()=rekall.plugins.core.DT-class.html#__init__,Method rekall.plugins.core.DirectoryDumperMixin.__init__()=rekall.plugins.core.DirectoryDumperMixin-class.html#__init__,Method rekall.plugins.core.DummyParser.__init__()=rekall.plugins.core.DummyParser-class.html#__init__,Method rekall.plugins.core.Dump.__init__()=rekall.plugins.core.Dump-class.html#__init__,Method rekall.plugins.core.Grep.__init__()=rekall.plugins.core.Grep-class.html#__init__,Method rekall.plugins.core.Info.__init__()=rekall.plugins.core.Info-class.html#__init__,Method rekall.plugins.core.LoadAddressSpace.__init__()=rekall.plugins.core.LoadAddressSpace-class.html#__init__,Method rekall.plugins.core.LoadPlugins.__init__()=rekall.plugins.core.LoadPlugins-class.html#__init__,Method rekall.plugins.core.MemmapMixIn.__init__()=rekall.plugins.core.MemmapMixIn-class.html#__init__,Method rekall.plugins.core.OutputFileMixin.__init__()=rekall.plugins.core.OutputFileMixin-class.html#__init__,Method rekall.plugins.core.Printer.__init__()=rekall.plugins.core.Printer-class.html#__init__,Method rekall.plugins.darwin.checks.CheckTrapTable.__init__()=rekall.plugins.darwin.checks.CheckTrapTable-class.html#__init__,Method rekall.plugins.darwin.checks.OIDInfo.__init__()=rekall.plugins.darwin.checks.OIDInfo-class.html#__init__,Method rekall.plugins.darwin.common.DarwinKASLRMixin.__init__()=rekall.plugins.darwin.common.DarwinKASLRMixin-class.html#__init__,Method rekall.plugins.darwin.common.DarwinProcessFilter.__init__()=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#__init__,Method rekall.plugins.darwin.common.KernelAddressCheckerMixIn.__init__()=rekall.plugins.darwin.common.KernelAddressCheckerMixIn-class.html#__init__,Method rekall.plugins.hypervisors.VMCSScanner.__init__()=rekall.plugins.hypervisors.VMCSScanner-class.html#__init__,Method rekall.plugins.hypervisors.VirtualMachine.__init__()=rekall.plugins.hypervisors.VirtualMachine-class.html#__init__,Method rekall.plugins.hypervisors.VmScan.__init__()=rekall.plugins.hypervisors.VmScan-class.html#__init__,Method rekall.plugins.imagecopy.ImageCopy.__init__()=rekall.plugins.imagecopy.ImageCopy-class.html#__init__,Method rekall.plugins.linux.arp.Arp.__init__()=rekall.plugins.linux.arp.Arp-class.html#__init__,Method rekall.plugins.linux.bash.BashHistory.__init__()=rekall.plugins.linux.bash.BashHistory-class.html#__init__,Method rekall.plugins.linux.bash.BashProfile32.__init__()=rekall.plugins.linux.bash.BashProfile32-class.html#__init__,Method rekall.plugins.linux.bash.BashProfile64.__init__()=rekall.plugins.linux.bash.BashProfile64-class.html#__init__,Method rekall.plugins.linux.check_afinfo.CheckAFInfo.__init__()=rekall.plugins.linux.check_afinfo.CheckAFInfo-class.html#__init__,Method rekall.plugins.linux.check_fops.CheckProcFops.__init__()=rekall.plugins.linux.check_fops.CheckProcFops-class.html#__init__,Method rekall.plugins.linux.common.HeapScannerMixIn.__init__()=rekall.plugins.linux.common.HeapScannerMixIn-class.html#__init__,Method rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__()=rekall.plugins.linux.common.KernelAddressCheckerMixIn-class.html#__init__,Method rekall.plugins.linux.common.LinProcessFilter.__init__()=rekall.plugins.linux.common.LinProcessFilter-class.html#__init__,Method rekall.plugins.linux.lsmod.KernelModule.__init__()=rekall.plugins.linux.lsmod.KernelModule-class.html#__init__,Method rekall.plugins.linux.lsmod.Lsmod.__init__()=rekall.plugins.linux.lsmod.Lsmod-class.html#__init__,Method rekall.plugins.linux.pas2kas.LinPas2Vas.__init__()=rekall.plugins.linux.pas2kas.LinPas2Vas-class.html#__init__,Method rekall.plugins.overlays.basic.Enumeration.__init__()=rekall.plugins.overlays.basic.Enumeration-class.html#__init__,Method rekall.plugins.overlays.basic.Flags.__init__()=rekall.plugins.overlays.basic.Flags-class.html#__init__,Method rekall.plugins.overlays.basic.Function.__init__()=rekall.plugins.overlays.basic.Function-class.html#__init__,Method rekall.plugins.overlays.basic.IndexedArray.__init__()=rekall.plugins.overlays.basic.IndexedArray-class.html#__init__,Method rekall.plugins.overlays.basic.Ipv4Address.__init__()=rekall.plugins.overlays.basic.Ipv4Address-class.html#__init__,Method rekall.plugins.overlays.basic.Ipv6Address.__init__()=rekall.plugins.overlays.basic.Ipv6Address-class.html#__init__,Method rekall.plugins.overlays.basic.MacAddress.__init__()=rekall.plugins.overlays.basic.MacAddress-class.html#__init__,Method rekall.plugins.overlays.basic.Signature.__init__()=rekall.plugins.overlays.basic.Signature-class.html#__init__,Method rekall.plugins.overlays.basic.String.__init__()=rekall.plugins.overlays.basic.String-class.html#__init__,Method rekall.plugins.overlays.basic.UnicodeString.__init__()=rekall.plugins.overlays.basic.UnicodeString-class.html#__init__,Method rekall.plugins.overlays.basic.UnixTimeStamp.__init__()=rekall.plugins.overlays.basic.UnixTimeStamp-class.html#__init__,Method rekall.plugins.overlays.basic.WinFileTime.__init__()=rekall.plugins.overlays.basic.WinFileTime-class.html#__init__,Method rekall.plugins.overlays.darwin.macho.MACHO64Profile.__init__()=rekall.plugins.overlays.darwin.macho.MACHO64Profile-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfdump.DWARFParser.__init__()=rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DIETag.__init__()=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DWARFParser.__init__()=rekall.plugins.overlays.linux.dwarfparser.DWARFParser-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__()=rekall.plugins.overlays.linux.dwarfparser.DwarfParser-class.html#__init__,Method rekall.plugins.overlays.linux.elf.ELFProfile.__init__()=rekall.plugins.overlays.linux.elf.ELFProfile-class.html#__init__,Method rekall.plugins.overlays.linux.vfs.FileName.__init__()=rekall.plugins.overlays.linux.vfs.FileName-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.FLS.__init__()=rekall.plugins.overlays.windows.ntfs.FLS-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__()=rekall.plugins.overlays.windows.ntfs.FixupAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__()=rekall.plugins.overlays.windows.ntfs.MFT_ENTRY-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFS.__init__()=rekall.plugins.overlays.windows.ntfs.NTFS-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFSProfile.__init__()=rekall.plugins.overlays.windows.ntfs.NTFSProfile-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR.__init__()=rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.RunListAddressSpace.__init__()=rekall.plugins.overlays.windows.ntfs.RunListAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.PE.__init__()=rekall.plugins.overlays.windows.pe_vtypes.PE-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.__init__()=rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.__init__()=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.__init__()=rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.SentinelArray.__init__()=rekall.plugins.overlays.windows.pe_vtypes.SentinelArray-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.ThunkArray.__init__()=rekall.plugins.overlays.windows.pe_vtypes.ThunkArray-class.html#__init__,Method rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.__init__()=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin-class.html#__init__,Method rekall.plugins.overlays.windows.windows.Demangler.__init__()=rekall.plugins.overlays.windows.windows.Demangler-class.html#__init__,Method rekall.plugins.tools.ipython.Rekall.__init__()=rekall.plugins.tools.ipython.Rekall-class.html#__init__,Method rekall.plugins.tools.json_tools.JSONParser.__init__()=rekall.plugins.tools.json_tools.JSONParser-class.html#__init__,Method rekall.plugins.tools.json_tools.StructFormatter.__init__()=rekall.plugins.tools.json_tools.StructFormatter-class.html#__init__,Method rekall.plugins.tools.mspdb.FetchPDB.__init__()=rekall.plugins.tools.mspdb.FetchPDB-class.html#__init__,Method rekall.plugins.tools.mspdb.PDBParser.__init__()=rekall.plugins.tools.mspdb.PDBParser-class.html#__init__,Method rekall.plugins.tools.mspdb.PDBProfile.__init__()=rekall.plugins.tools.mspdb.PDBProfile-class.html#__init__,Method rekall.plugins.tools.mspdb.ParsePDB.__init__()=rekall.plugins.tools.mspdb.ParsePDB-class.html#__init__,Method rekall.plugins.tools.mspdb.StreamBasedAddressSpace.__init__()=rekall.plugins.tools.mspdb.StreamBasedAddressSpace-class.html#__init__,Method rekall.plugins.tools.mspdb.lfClass.__init__()=rekall.plugins.tools.mspdb.lfClass-class.html#__init__,Method rekall.plugins.tools.mspdb.lfNestType.__init__()=rekall.plugins.tools.mspdb.lfNestType-class.html#__init__,Method rekall.plugins.tools.profile_tool.BuildIndex.__init__()=rekall.plugins.tools.profile_tool.BuildIndex-class.html#__init__,Method rekall.plugins.tools.profile_tool.ConvertProfile.__init__()=rekall.plugins.tools.profile_tool.ConvertProfile-class.html#__init__,Method rekall.plugins.tools.profile_tool.ProfileConverter.__init__()=rekall.plugins.tools.profile_tool.ProfileConverter-class.html#__init__,Method rekall.plugins.tools.webconsole.FakeParser.__init__()=rekall.plugins.tools.webconsole.FakeParser-class.html#__init__,Method rekall.plugins.tools.webconsole.WebConsole.__init__()=rekall.plugins.tools.webconsole.WebConsole-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolIndex.__init__()=rekall.plugins.windows.common.CheckPoolIndex-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolSize.__init__()=rekall.plugins.windows.common.CheckPoolSize-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolType.__init__()=rekall.plugins.windows.common.CheckPoolType-class.html#__init__,Method rekall.plugins.windows.common.KDBGMixin.__init__()=rekall.plugins.windows.common.KDBGMixin-class.html#__init__,Method rekall.plugins.windows.common.MultiPoolTagCheck.__init__()=rekall.plugins.windows.common.MultiPoolTagCheck-class.html#__init__,Method rekall.plugins.windows.common.PoolScannerPlugin.__init__()=rekall.plugins.windows.common.PoolScannerPlugin-class.html#__init__,Method rekall.plugins.windows.common.PoolTagCheck.__init__()=rekall.plugins.windows.common.PoolTagCheck-class.html#__init__,Method rekall.plugins.windows.common.WinDTBScanner.__init__()=rekall.plugins.windows.common.WinDTBScanner-class.html#__init__,Method rekall.plugins.windows.common.WinFindDTB.__init__()=rekall.plugins.windows.common.WinFindDTB-class.html#__init__,Method rekall.plugins.windows.common.WinProcessFilter.__init__()=rekall.plugins.windows.common.WinProcessFilter-class.html#__init__,Method rekall.plugins.windows.crashinfo.Raw2Dump.__init__()=rekall.plugins.windows.crashinfo.Raw2Dump-class.html#__init__,Method rekall.plugins.windows.disassembler.Disassemble.__init__()=rekall.plugins.windows.disassembler.Disassemble-class.html#__init__,Method rekall.plugins.windows.filescan.MutantScan.__init__()=rekall.plugins.windows.filescan.MutantScan-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanDriver.__init__()=rekall.plugins.windows.filescan.PoolScanDriver-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanFile.__init__()=rekall.plugins.windows.filescan.PoolScanFile-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanMutant.__init__()=rekall.plugins.windows.filescan.PoolScanMutant-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanProcess.__init__()=rekall.plugins.windows.filescan.PoolScanProcess-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanSymlink.__init__()=rekall.plugins.windows.filescan.PoolScanSymlink-class.html#__init__,Method rekall.plugins.windows.gui.atoms.AtomScan.__init__()=rekall.plugins.windows.gui.atoms.AtomScan-class.html#__init__,Method rekall.plugins.windows.gui.atoms.PoolScanAtom.__init__()=rekall.plugins.windows.gui.atoms.PoolScanAtom-class.html#__init__,Method rekall.plugins.windows.gui.clipboard.Clipboard.__init__()=rekall.plugins.windows.gui.clipboard.Clipboard-class.html#__init__,Method rekall.plugins.windows.gui.constants.FakeAtom.__init__()=rekall.plugins.windows.gui.constants.FakeAtom-class.html#__init__,Method rekall.plugins.windows.gui.userhandles.UserHandles.__init__()=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#__init__,Method rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__()=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#__init__,Method rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__()=rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin-class.html#__init__,Method rekall.plugins.windows.handles.Handles.__init__()=rekall.plugins.windows.handles.Handles-class.html#__init__,Method rekall.plugins.windows.index.GuessGUID.__init__()=rekall.plugins.windows.index.GuessGUID-class.html#__init__,Method rekall.plugins.windows.kdbgscan.KDBGScan.__init__()=rekall.plugins.windows.kdbgscan.KDBGScan-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.Callbacks.__init__()=rekall.plugins.windows.malware.callbacks.Callbacks-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__()=rekall.plugins.windows.malware.callbacks.PoolScanPnp9-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback.__init__()=rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.CmdScan.__init__()=rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConHost64.__init__()=rekall.plugins.windows.malware.cmdhistory.ConHost64-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConHost86.__init__()=rekall.plugins.windows.malware.cmdhistory.ConHost86-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConsoleScanner.__init__()=rekall.plugins.windows.malware.cmdhistory.ConsoleScanner-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.Consoles.__init__()=rekall.plugins.windows.malware.cmdhistory.Consoles-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.HistoryScanner.__init__()=rekall.plugins.windows.malware.cmdhistory.HistoryScanner-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__()=rekall.plugins.windows.malware.cmdhistory.WinSrv64-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__()=rekall.plugins.windows.malware.cmdhistory.WinSrv86-class.html#__init__,Method rekall.plugins.windows.malware.devicetree.DeviceTree.__init__()=rekall.plugins.windows.malware.devicetree.DeviceTree-class.html#__init__,Method rekall.plugins.windows.malware.devicetree.DriverIrp.__init__()=rekall.plugins.windows.malware.devicetree.DriverIrp-class.html#__init__,Method rekall.plugins.windows.malware.impscan.IDCRenderer.__init__()=rekall.plugins.windows.malware.impscan.IDCRenderer-class.html#__init__,Method rekall.plugins.windows.malware.impscan.ImpScan.__init__()=rekall.plugins.windows.malware.impscan.ImpScan-class.html#__init__,Method rekall.plugins.windows.malware.malfind.LdrModules.__init__()=rekall.plugins.windows.malware.malfind.LdrModules-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__()=rekall.plugins.windows.malware.svcscan.SvcHeaderScanner-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__()=rekall.plugins.windows.malware.svcscan.SvcRecordScanner-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcScan.__init__()=rekall.plugins.windows.malware.svcscan.SvcScan-class.html#__init__,Method rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__()=rekall.plugins.windows.malware.yarascan.BaseYaraASScanner-class.html#__init__,Method rekall.plugins.windows.malware.yarascan.YaraScan.__init__()=rekall.plugins.windows.malware.yarascan.YaraScan-class.html#__init__,Method rekall.plugins.windows.modscan.PoolScanModuleFast.__init__()=rekall.plugins.windows.modscan.PoolScanModuleFast-class.html#__init__,Method rekall.plugins.windows.modscan.PoolScanThreadFast.__init__()=rekall.plugins.windows.modscan.PoolScanThreadFast-class.html#__init__,Method rekall.plugins.windows.modules.Modules.__init__()=rekall.plugins.windows.modules.Modules-class.html#__init__,Method rekall.plugins.windows.modules.VersionScan.__init__()=rekall.plugins.windows.modules.VersionScan-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanTcpEndpoint.__init__()=rekall.plugins.windows.netscan.PoolScanTcpEndpoint-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanTcpListener.__init__()=rekall.plugins.windows.netscan.PoolScanTcpListener-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanUdpEndpoint.__init__()=rekall.plugins.windows.netscan.PoolScanUdpEndpoint-class.html#__init__,Method rekall.plugins.windows.pas2kas.WinPas2Vas.__init__()=rekall.plugins.windows.pas2kas.WinPas2Vas-class.html#__init__,Method rekall.plugins.windows.pfn.DTBScan.__init__()=rekall.plugins.windows.pfn.DTBScan-class.html#__init__,Method rekall.plugins.windows.pfn.PFNInfo.__init__()=rekall.plugins.windows.pfn.PFNInfo-class.html#__init__,Method rekall.plugins.windows.pfn.PTE.__init__()=rekall.plugins.windows.pfn.PTE-class.html#__init__,Method rekall.plugins.windows.pfn.PtoV.__init__()=rekall.plugins.windows.pfn.PtoV-class.html#__init__,Method rekall.plugins.windows.pfn.ValueEnumeration.__init__()=rekall.plugins.windows.pfn.ValueEnumeration-class.html#__init__,Method rekall.plugins.windows.pfn.VtoP.__init__()=rekall.plugins.windows.pfn.VtoP-class.html#__init__,Method rekall.plugins.windows.procdump.DLLDump.__init__()=rekall.plugins.windows.procdump.DLLDump-class.html#__init__,Method rekall.plugins.windows.procdump.PEDump.__init__()=rekall.plugins.windows.procdump.PEDump-class.html#__init__,Method rekall.plugins.windows.procdump.ProcExeDump.__init__()=rekall.plugins.windows.procdump.ProcExeDump-class.html#__init__,Method rekall.plugins.windows.procinfo.PEInfo.__init__()=rekall.plugins.windows.procinfo.PEInfo-class.html#__init__,Method rekall.plugins.windows.pstree.PSTree.__init__()=rekall.plugins.windows.pstree.PSTree-class.html#__init__,Method rekall.plugins.windows.registry.evtlogs.EvtLogs.__init__()=rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html#__init__,Method rekall.plugins.windows.registry.lsadump.HashDump.__init__()=rekall.plugins.windows.registry.lsadump.HashDump-class.html#__init__,Method rekall.plugins.windows.registry.lsadump.LSADump.__init__()=rekall.plugins.windows.registry.lsadump.LSADump-class.html#__init__,Method rekall.plugins.windows.registry.printkey.PrintKey.__init__()=rekall.plugins.windows.registry.printkey.PrintKey-class.html#__init__,Method rekall.plugins.windows.registry.registry.HiveAddressSpace.__init__()=rekall.plugins.windows.registry.registry.HiveAddressSpace-class.html#__init__,Method rekall.plugins.windows.registry.registry.HiveFileAddressSpace.__init__()=rekall.plugins.windows.registry.registry.HiveFileAddressSpace-class.html#__init__,Method rekall.plugins.windows.registry.registry.Pointer32.__init__()=rekall.plugins.windows.registry.registry.Pointer32-class.html#__init__,Method rekall.plugins.windows.registry.registry.Registry.__init__()=rekall.plugins.windows.registry.registry.Registry-class.html#__init__,Method rekall.plugins.windows.registry.registry.RegistryHive.__init__()=rekall.plugins.windows.registry.registry.RegistryHive-class.html#__init__,Method rekall.plugins.windows.registry.registry.RegistryPlugin.__init__()=rekall.plugins.windows.registry.registry.RegistryPlugin-class.html#__init__,Method rekall.plugins.windows.registry.userassist.UserAssist.__init__()=rekall.plugins.windows.registry.userassist.UserAssist-class.html#__init__,Method rekall.plugins.windows.taskmods.WinPsList.__init__()=rekall.plugins.windows.taskmods.WinPsList-class.html#__init__,Method rekall.plugins.windows.vadinfo.VAD.__init__()=rekall.plugins.windows.vadinfo.VAD-class.html#__init__,Method rekall.plugins.windows.vadinfo.VADDump.__init__()=rekall.plugins.windows.vadinfo.VADDump-class.html#__init__,Method rekall.plugins.windows.vadinfo.VadScanner.__init__()=rekall.plugins.windows.vadinfo.VadScanner-class.html#__init__,Method rekall.registry.MetaclassRegistry.__init__()=rekall.registry.MetaclassRegistry-class.html#__init__,Method rekall.scan.BaseScanner.__init__()=rekall.scan.BaseScanner-class.html#__init__,Method rekall.scan.MultiStringFinderCheck.__init__()=rekall.scan.MultiStringFinderCheck-class.html#__init__,Method rekall.scan.PointerScanner.__init__()=rekall.scan.PointerScanner-class.html#__init__,Method rekall.scan.RegexCheck.__init__()=rekall.scan.RegexCheck-class.html#__init__,Method rekall.scan.ScannerCheck.__init__()=rekall.scan.ScannerCheck-class.html#__init__,Method rekall.scan.ScannerGroup.__init__()=rekall.scan.ScannerGroup-class.html#__init__,Method rekall.scan.StringCheck.__init__()=rekall.scan.StringCheck-class.html#__init__,Method rekall.session.Configuration.__init__()=rekall.session.Configuration-class.html#__init__,Method rekall.session.InteractiveSession.__init__()=rekall.session.InteractiveSession-class.html#__init__,Method rekall.session.ProgressDispatcher.__init__()=rekall.session.ProgressDispatcher-class.html#__init__,Method rekall.session.Session.__init__()=rekall.session.Session-class.html#__init__,Method rekall.superposition.Superposition.__init__()=rekall.superposition.Superposition-class.html#__init__,Method rekall.testlib.RekallBaseUnitTestCase.__init__()=rekall.testlib.RekallBaseUnitTestCase-class.html#__init__,Method rekall.threadpool.ThreadPool.__init__()=rekall.threadpool.ThreadPool-class.html#__init__,Method rekall.threadpool.Worker.__init__()=rekall.threadpool.Worker-class.html#__init__,Method rekall.type_generator.Disassembler.__init__()=rekall.type_generator.Disassembler-class.html#__init__,Method rekall.ui.renderer.BaseColumn.__init__()=rekall.ui.renderer.BaseColumn-class.html#__init__,Method rekall.ui.renderer.BaseRenderer.__init__()=rekall.ui.renderer.BaseRenderer-class.html#__init__,Method rekall.ui.renderer.BaseTable.__init__()=rekall.ui.renderer.BaseTable-class.html#__init__,Method rekall.ui.renderer.UnicodeWrapper.__init__()=rekall.ui.renderer.UnicodeWrapper-class.html#__init__,Method rekall.ui.text.Colorizer.__init__()=rekall.ui.text.Colorizer-class.html#__init__,Method rekall.ui.text.Pager.__init__()=rekall.ui.text.Pager-class.html#__init__,Method rekall.ui.text.TestRenderer.__init__()=rekall.ui.text.TestRenderer-class.html#__init__,Method rekall.ui.text.TextColumn.__init__()=rekall.ui.text.TextColumn-class.html#__init__,Method rekall.ui.text.TextRenderer.__init__()=rekall.ui.text.TextRenderer-class.html#__init__,Method rekall.ui.text.TextTable.__init__()=rekall.ui.text.TextTable-class.html#__init__,Method rekall.utils.AgeBasedCache.__init__()=rekall.utils.AgeBasedCache-class.html#__init__,Method rekall.utils.FastStore.__init__()=rekall.utils.FastStore-class.html#__init__,Method rekall.utils.FileLock.__init__()=rekall.utils.FileLock-class.html#__init__,Method rekall.utils.LinkedList.__init__()=rekall.utils.LinkedList-class.html#__init__,Method rekall.utils.Node.__init__()=rekall.utils.Node-class.html#__init__,Method rekall.utils.SortedCollection.__init__()=rekall.utils.SortedCollection-class.html#__init__"><a title="rekall.addrspace.AddrSpaceError.__init__
+rekall.addrspace.BaseAddressSpace.__init__
+rekall.addrspace.BufferAddressSpace.__init__
+rekall.addrspace.CachingAddressSpaceMixIn.__init__
+rekall.addrspace.RunBasedAddressSpace.__init__
+rekall.addrspace_test.CustomRunsAddressSpace.__init__
+rekall.entity.Entity.__init__
+rekall.entity.EntityLookupTable.__init__
+rekall.entity.EntityManager.__init__
+rekall.identity.BaseObjectIdentity.__init__
+rekall.identity.Identity.__init__
+rekall.identity.ProcessIdentity.__init__
+rekall.identity.UserIdentity.__init__
+rekall.io_manager.DirectoryIOManager.__init__
+rekall.io_manager.IOManager.__init__
+rekall.io_manager.SelfClosingFile.__init__
+rekall.io_manager.URLManager.__init__
+rekall.io_manager.ZipFileManager.__init__
+rekall.kb.AddressResolver.__init__
+rekall.kb.KernelModule.__init__
+rekall.kb.ParameterHook.__init__
+rekall.kb.SortedAddresses.__init__
+rekall.kb.SymbolAddresses.__init__
+rekall.obj.Array.__init__
+rekall.obj.BaseObject.__init__
+rekall.obj.BitField.__init__
+rekall.obj.Curry.__init__
+rekall.obj.ListArray.__init__
+rekall.obj.NativeType.__init__
+rekall.obj.NoneObject.__init__
+rekall.obj.Pointer.__init__
+rekall.obj.Profile.__init__
+rekall.obj.ProfileLog.__init__
+rekall.obj.Struct.__init__
+rekall.obj.Void.__init__
+rekall.plugin.Command.__init__
+rekall.plugin.KernelASMixin.__init__
+rekall.plugin.PhysicalASMixin.__init__
+rekall.plugin.ProfileCommand.__init__
+rekall.plugin.VerbosityMixIn.__init__
+rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.__init__
+rekall.plugins.addrspaces.amd64.VTxPagedMemory.__init__
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.__init__
+rekall.plugins.addrspaces.ewf.EWFAddressSpace.__init__
+rekall.plugins.addrspaces.ewf.ewffile.__init__
+rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.__init__
+rekall.plugins.addrspaces.intel.IA32PagedMemory.__init__
+rekall.plugins.addrspaces.macho.MACHOCoreDump.__init__
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__init__
+rekall.plugins.addrspaces.standard.DummyAddressSpace.__init__
+rekall.plugins.addrspaces.standard.FDAddressSpace.__init__
+rekall.plugins.addrspaces.standard.FileAddressSpace.__init__
+rekall.plugins.addrspaces.standard.WriteableAddressSpace.__init__
+rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.__init__
+rekall.plugins.addrspaces.win32.Win32FileAddressSpace.__init__
+rekall.plugins.core.DT.__init__
+rekall.plugins.core.DirectoryDumperMixin.__init__
+rekall.plugins.core.DummyParser.__init__
+rekall.plugins.core.Dump.__init__
+rekall.plugins.core.Grep.__init__
+rekall.plugins.core.Info.__init__
+rekall.plugins.core.LoadAddressSpace.__init__
+rekall.plugins.core.LoadPlugins.__init__
+rekall.plugins.core.MemmapMixIn.__init__
+rekall.plugins.core.OutputFileMixin.__init__
+rekall.plugins.core.Printer.__init__
+rekall.plugins.darwin.checks.CheckTrapTable.__init__
+rekall.plugins.darwin.checks.OIDInfo.__init__
+rekall.plugins.darwin.common.DarwinKASLRMixin.__init__
+rekall.plugins.darwin.common.DarwinProcessFilter.__init__
+rekall.plugins.darwin.common.KernelAddressCheckerMixIn.__init__
+rekall.plugins.hypervisors.VMCSScanner.__init__
+rekall.plugins.hypervisors.VirtualMachine.__init__
+rekall.plugins.hypervisors.VmScan.__init__
+rekall.plugins.imagecopy.ImageCopy.__init__
+rekall.plugins.linux.arp.Arp.__init__
+rekall.plugins.linux.bash.BashHistory.__init__
+rekall.plugins.linux.bash.BashProfile32.__init__
+rekall.plugins.linux.bash.BashProfile64.__init__
+rekall.plugins.linux.check_afinfo.CheckAFInfo.__init__
+rekall.plugins.linux.check_fops.CheckProcFops.__init__
+rekall.plugins.linux.common.HeapScannerMixIn.__init__
+rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__
+rekall.plugins.linux.common.LinProcessFilter.__init__
+rekall.plugins.linux.lsmod.KernelModule.__init__
+rekall.plugins.linux.lsmod.Lsmod.__init__
+rekall.plugins.linux.pas2kas.LinPas2Vas.__init__
+rekall.plugins.overlays.basic.Enumeration.__init__
+rekall.plugins.overlays.basic.Flags.__init__
+rekall.plugins.overlays.basic.Function.__init__
+rekall.plugins.overlays.basic.IndexedArray.__init__
+rekall.plugins.overlays.basic.Ipv4Address.__init__
+rekall.plugins.overlays.basic.Ipv6Address.__init__
+rekall.plugins.overlays.basic.MacAddress.__init__
+rekall.plugins.overlays.basic.Signature.__init__
+rekall.plugins.overlays.basic.String.__init__
+rekall.plugins.overlays.basic.UnicodeString.__init__
+rekall.plugins.overlays.basic.UnixTimeStamp.__init__
+rekall.plugins.overlays.basic.WinFileTime.__init__
+rekall.plugins.overlays.darwin.macho.MACHO64Profile.__init__
+rekall.plugins.overlays.linux.dwarfdump.DWARFParser.__init__
+rekall.plugins.overlays.linux.dwarfparser.DIETag.__init__
+rekall.plugins.overlays.linux.dwarfparser.DWARFParser.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__
+rekall.plugins.overlays.linux.elf.ELFProfile.__init__
+rekall.plugins.overlays.linux.vfs.FileName.__init__
+rekall.plugins.overlays.windows.ntfs.FLS.__init__
+rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__
+rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__
+rekall.plugins.overlays.windows.ntfs.NTFS.__init__
+rekall.plugins.overlays.windows.ntfs.NTFSProfile.__init__
+rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR.__init__
+rekall.plugins.overlays.windows.ntfs.RunListAddressSpace.__init__
+rekall.plugins.overlays.windows.pe_vtypes.PE.__init__
+rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.__init__
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.__init__
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.__init__
+rekall.plugins.overlays.windows.pe_vtypes.SentinelArray.__init__
+rekall.plugins.overlays.windows.pe_vtypes.ThunkArray.__init__
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.__init__
+rekall.plugins.overlays.windows.windows.Demangler.__init__
+rekall.plugins.tools.ipython.Rekall.__init__
+rekall.plugins.tools.json_tools.JSONParser.__init__
+rekall.plugins.tools.json_tools.StructFormatter.__init__
+rekall.plugins.tools.mspdb.FetchPDB.__init__
+rekall.plugins.tools.mspdb.PDBParser.__init__
+rekall.plugins.tools.mspdb.PDBProfile.__init__
+rekall.plugins.tools.mspdb.ParsePDB.__init__
+rekall.plugins.tools.mspdb.StreamBasedAddressSpace.__init__
+rekall.plugins.tools.mspdb.lfClass.__init__
+rekall.plugins.tools.mspdb.lfNestType.__init__
+rekall.plugins.tools.profile_tool.BuildIndex.__init__
+rekall.plugins.tools.profile_tool.ConvertProfile.__init__
+rekall.plugins.tools.profile_tool.ProfileConverter.__init__
+rekall.plugins.tools.webconsole.FakeParser.__init__
+rekall.plugins.tools.webconsole.WebConsole.__init__
+rekall.plugins.windows.common.CheckPoolIndex.__init__
+rekall.plugins.windows.common.CheckPoolSize.__init__
+rekall.plugins.windows.common.CheckPoolType.__init__
+rekall.plugins.windows.common.KDBGMixin.__init__
+rekall.plugins.windows.common.MultiPoolTagCheck.__init__
+rekall.plugins.windows.common.PoolScannerPlugin.__init__
+rekall.plugins.windows.common.PoolTagCheck.__init__
+rekall.plugins.windows.common.WinDTBScanner.__init__
+rekall.plugins.windows.common.WinFindDTB.__init__
+rekall.plugins.windows.common.WinProcessFilter.__init__
+rekall.plugins.windows.crashinfo.Raw2Dump.__init__
+rekall.plugins.windows.disassembler.Disassemble.__init__
+rekall.plugins.windows.filescan.MutantScan.__init__
+rekall.plugins.windows.filescan.PoolScanDriver.__init__
+rekall.plugins.windows.filescan.PoolScanFile.__init__
+rekall.plugins.windows.filescan.PoolScanMutant.__init__
+rekall.plugins.windows.filescan.PoolScanProcess.__init__
+rekall.plugins.windows.filescan.PoolScanSymlink.__init__
+rekall.plugins.windows.gui.atoms.AtomScan.__init__
+rekall.plugins.windows.gui.atoms.PoolScanAtom.__init__
+rekall.plugins.windows.gui.clipboard.Clipboard.__init__
+rekall.plugins.windows.gui.constants.FakeAtom.__init__
+rekall.plugins.windows.gui.userhandles.UserHandles.__init__
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__
+rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__
+rekall.plugins.windows.handles.Handles.__init__
+rekall.plugins.windows.index.GuessGUID.__init__
+rekall.plugins.windows.kdbgscan.KDBGScan.__init__
+rekall.plugins.windows.malware.callbacks.Callbacks.__init__
+rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__
+rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback.__init__
+rekall.plugins.windows.malware.cmdhistory.CmdScan.__init__
+rekall.plugins.windows.malware.cmdhistory.ConHost64.__init__
+rekall.plugins.windows.malware.cmdhistory.ConHost86.__init__
+rekall.plugins.windows.malware.cmdhistory.ConsoleScanner.__init__
+rekall.plugins.windows.malware.cmdhistory.Consoles.__init__
+rekall.plugins.windows.malware.cmdhistory.HistoryScanner.__init__
+rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__
+rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__
+rekall.plugins.windows.malware.devicetree.DeviceTree.__init__
+rekall.plugins.windows.malware.devicetree.DriverIrp.__init__
+rekall.plugins.windows.malware.impscan.IDCRenderer.__init__
+rekall.plugins.windows.malware.impscan.ImpScan.__init__
+rekall.plugins.windows.malware.malfind.LdrModules.__init__
+rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__
+rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__
+rekall.plugins.windows.malware.svcscan.SvcScan.__init__
+rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__
+rekall.plugins.windows.malware.yarascan.YaraScan.__init__
+rekall.plugins.windows.modscan.PoolScanModuleFast.__init__
+rekall.plugins.windows.modscan.PoolScanThreadFast.__init__
+rekall.plugins.windows.modules.Modules.__init__
+rekall.plugins.windows.modules.VersionScan.__init__
+rekall.plugins.windows.netscan.PoolScanTcpEndpoint.__init__
+rekall.plugins.windows.netscan.PoolScanTcpListener.__init__
+rekall.plugins.windows.netscan.PoolScanUdpEndpoint.__init__
+rekall.plugins.windows.pas2kas.WinPas2Vas.__init__
+rekall.plugins.windows.pfn.DTBScan.__init__
+rekall.plugins.windows.pfn.PFNInfo.__init__
+rekall.plugins.windows.pfn.PTE.__init__
+rekall.plugins.windows.pfn.PtoV.__init__
+rekall.plugins.windows.pfn.ValueEnumeration.__init__
+rekall.plugins.windows.pfn.VtoP.__init__
+rekall.plugins.windows.procdump.DLLDump.__init__
+rekall.plugins.windows.procdump.PEDump.__init__
+rekall.plugins.windows.procdump.ProcExeDump.__init__
+rekall.plugins.windows.procinfo.PEInfo.__init__
+rekall.plugins.windows.pstree.PSTree.__init__
+rekall.plugins.windows.registry.evtlogs.EvtLogs.__init__
+rekall.plugins.windows.registry.lsadump.HashDump.__init__
+rekall.plugins.windows.registry.lsadump.LSADump.__init__
+rekall.plugins.windows.registry.printkey.PrintKey.__init__
+rekall.plugins.windows.registry.registry.HiveAddressSpace.__init__
+rekall.plugins.windows.registry.registry.HiveFileAddressSpace.__init__
+rekall.plugins.windows.registry.registry.Pointer32.__init__
+rekall.plugins.windows.registry.registry.Registry.__init__
+rekall.plugins.windows.registry.registry.RegistryHive.__init__
+rekall.plugins.windows.registry.registry.RegistryPlugin.__init__
+rekall.plugins.windows.registry.userassist.UserAssist.__init__
+rekall.plugins.windows.taskmods.WinPsList.__init__
+rekall.plugins.windows.vadinfo.VAD.__init__
+rekall.plugins.windows.vadinfo.VADDump.__init__
+rekall.plugins.windows.vadinfo.VadScanner.__init__
+rekall.registry.MetaclassRegistry.__init__
+rekall.scan.BaseScanner.__init__
+rekall.scan.MultiStringFinderCheck.__init__
+rekall.scan.PointerScanner.__init__
+rekall.scan.RegexCheck.__init__
+rekall.scan.ScannerCheck.__init__
+rekall.scan.ScannerGroup.__init__
+rekall.scan.StringCheck.__init__
+rekall.session.Configuration.__init__
+rekall.session.InteractiveSession.__init__
+rekall.session.ProgressDispatcher.__init__
+rekall.session.Session.__init__
+rekall.superposition.Superposition.__init__
+rekall.testlib.RekallBaseUnitTestCase.__init__
+rekall.threadpool.ThreadPool.__init__
+rekall.threadpool.Worker.__init__
+rekall.type_generator.Disassembler.__init__
+rekall.ui.renderer.BaseColumn.__init__
+rekall.ui.renderer.BaseRenderer.__init__
+rekall.ui.renderer.BaseTable.__init__
+rekall.ui.renderer.UnicodeWrapper.__init__
+rekall.ui.text.Colorizer.__init__
+rekall.ui.text.Pager.__init__
+rekall.ui.text.TestRenderer.__init__
+rekall.ui.text.TextColumn.__init__
+rekall.ui.text.TextRenderer.__init__
+rekall.ui.text.TextTable.__init__
+rekall.utils.AgeBasedCache.__init__
+rekall.utils.FastStore.__init__
+rekall.utils.FileLock.__init__
+rekall.utils.LinkedList.__init__
+rekall.utils.Node.__init__
+rekall.utils.SortedCollection.__init__" class="py-name" href="#" onclick="return doclink('link-10', '__init__', 'link-10');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line"> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-comment"># Dereference pointers by default so we don't have the same thing</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-comment"># appear more than one time. One exception is void pointers.</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-op">(</tt><tt class="py-name">follow_pointers</tt> <tt class="py-keyword">and</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">            <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">base_obj</tt><tt class="py-op">,</tt> <tt id="link-11" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-11', 'obj', 'link-1');">obj</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Class rekall.obj.Pointer=rekall.obj.Pointer-class.html"><a title="rekall.obj.Pointer" class="py-name" href="#" onclick="return doclink('link-12', 'Pointer', 'link-12');">Pointer</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">            <tt class="py-name">base_obj</tt><tt class="py-op">.</tt><tt class="py-name">target</tt> <tt class="py-op">!=</tt> <tt class="py-string">"void"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">            <tt class="py-name">base_obj</tt> <tt class="py-op">=</tt> <tt class="py-name">base_obj</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Method rekall.obj.BaseObject.dereference()=rekall.obj.BaseObject-class.html#dereference,Method rekall.obj.Pointer.dereference()=rekall.obj.Pointer-class.html#dereference,Method rekall.obj.Void.dereference()=rekall.obj.Void-class.html#dereference"><a title="rekall.obj.BaseObject.dereference
+rekall.obj.Pointer.dereference
+rekall.obj.Void.dereference" class="py-name" href="#" onclick="return doclink('link-13', 'dereference', 'link-13');">dereference</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line"> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt> <tt class="py-op">=</tt> <tt class="py-name">base_obj</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_type</tt> <tt class="py-op">=</tt> <tt class="py-name">base_obj</tt><tt class="py-op">.</tt><tt class="py-name">obj_type</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dtb</tt> <tt class="py-op">=</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt class="py-name">base_obj</tt><tt class="py-op">.</tt><tt class="py-name">obj_vm</tt><tt class="py-op">,</tt> <tt class="py-string">"dtb"</tt><tt class="py-op">,</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line"> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">base_obj</tt><tt class="py-op">,</tt> <tt id="link-14" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-14', 'obj', 'link-1');">obj</a></tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="rekall.obj.Pointer" class="py-name" href="#" onclick="return doclink('link-15', 'Pointer', 'link-12');">Pointer</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-name">follow_pointers</tt><tt class="py-op">:</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">            <tt class="py-name">_base_obj</tt> <tt class="py-op">=</tt> <tt class="py-name">base_obj</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="rekall.obj.BaseObject.dereference
+rekall.obj.Pointer.dereference
+rekall.obj.Void.dereference" class="py-name" href="#" onclick="return doclink('link-16', 'dereference', 'link-13');">dereference</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">_base_obj</tt><tt class="py-op">:</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">                <tt class="py-name">base_obj</tt> <tt class="py-op">=</tt> <tt class="py-name">base_obj</tt> </tt>
+</div><a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line"> </tt>
+<a name="BaseObjectIdentity.restore_base_obj"></a><div id="BaseObjectIdentity.restore_base_obj-def"><a name="L166"></a><tt class="py-lineno">166</tt> <a class="py-toggle" href="#" id="BaseObjectIdentity.restore_base_obj-toggle" onclick="return toggle('BaseObjectIdentity.restore_base_obj');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.BaseObjectIdentity-class.html#restore_base_obj">restore_base_obj</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">session</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BaseObjectIdentity.restore_base_obj-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BaseObjectIdentity.restore_base_obj-expanded"><a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">        <tt class="py-docstring">"""Rebuild the original BaseObject instance."""</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dtb</tt> <tt class="py-op">==</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">            <tt class="py-name">vm</tt> <tt class="py-op">=</tt> <tt id="link-17" class="py-name" targets="Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-17', 'session', 'link-17');">session</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Variable rekall.plugins.hypervisors.VirtualMachine.physical_address_space=rekall.plugins.hypervisors.VirtualMachine-class.html#physical_address_space"><a title="rekall.plugins.hypervisors.VirtualMachine.physical_address_space" class="py-name" href="#" onclick="return doclink('link-18', 'physical_address_space', 'link-18');">physical_address_space</a></tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dtb</tt> <tt class="py-op">==</tt> <tt id="link-19" class="py-name"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-19', 'session', 'link-17');">session</a></tt><tt class="py-op">.</tt><tt class="py-name">kernel_address_space</tt><tt class="py-op">.</tt><tt class="py-name">dtb</tt><tt class="py-op">:</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">            <tt class="py-name">vm</tt> <tt class="py-op">=</tt> <tt id="link-20" class="py-name"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-20', 'session', 'link-17');">session</a></tt><tt class="py-op">.</tt><tt class="py-name">kernel_address_space</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">AttributeError</tt><tt class="py-op">(</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">                <tt class="py-string">"DTB does't match the kernel virtual address space."</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">            <tt class="py-op">)</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line"> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt id="link-21" class="py-name"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-21', 'session', 'link-17');">session</a></tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">AttributeError</tt><tt class="py-op">(</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">                <tt class="py-string">"Cannot restore a base object without a valid session."</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">            <tt class="py-op">)</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line"> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-22" class="py-name"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-22', 'session', 'link-17');">session</a></tt><tt class="py-op">.</tt><tt class="py-name">profile</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Method rekall.obj.Profile.Object()=rekall.obj.Profile-class.html#Object"><a title="rekall.obj.Profile.Object" class="py-name" href="#" onclick="return doclink('link-23', 'Object', 'link-23');">Object</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">            <tt class="py-name">type_name</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_type</tt><tt class="py-op">,</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">            <tt id="link-24" class="py-name" targets="Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#offset"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-24', 'offset', 'link-24');">offset</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">,</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">            <tt class="py-name">vm</tt><tt class="py-op">=</tt><tt class="py-name">vm</tt><tt class="py-op">,</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">        <tt class="py-op">)</tt> </tt>
+</div><a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"> </tt>
+<a name="BaseObjectIdentity.__eq__"></a><div id="BaseObjectIdentity.__eq__-def"><a name="L188"></a><tt class="py-lineno">188</tt> <a class="py-toggle" href="#" id="BaseObjectIdentity.__eq__-toggle" onclick="return toggle('BaseObjectIdentity.__eq__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.BaseObjectIdentity-class.html#__eq__">__eq__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BaseObjectIdentity.__eq__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BaseObjectIdentity.__eq__-expanded"><a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">,</tt> <tt id="link-25" class="py-name"><a title="rekall.identity.BaseObjectIdentity" class="py-name" href="#" onclick="return doclink('link-25', 'BaseObjectIdentity', 'link-9');">BaseObjectIdentity</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">False</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_type</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dtb</tt><tt class="py-op">)</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line">                <tt class="py-op">==</tt> <tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">.</tt><tt class="py-name">obj_type</tt><tt class="py-op">,</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">,</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt class="py-name">dtb</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"> </tt>
+<a name="BaseObjectIdentity.__unicode__"></a><div id="BaseObjectIdentity.__unicode__-def"><a name="L195"></a><tt class="py-lineno">195</tt> <a class="py-toggle" href="#" id="BaseObjectIdentity.__unicode__-toggle" onclick="return toggle('BaseObjectIdentity.__unicode__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.BaseObjectIdentity-class.html#__unicode__">__unicode__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BaseObjectIdentity.__unicode__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BaseObjectIdentity.__unicode__-expanded"><a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"&lt;%s 0x%x; dtb:0x%x&gt;"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_type</tt><tt class="py-op">,</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">,</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dtb</tt><tt class="py-op">,</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line">        <tt class="py-op">)</tt> </tt>
+</div><a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line"> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="BaseObjectIdentity.indices"></a><div id="BaseObjectIdentity.indices-def"><a name="L203"></a><tt class="py-lineno">203</tt> <a class="py-toggle" href="#" id="BaseObjectIdentity.indices-toggle" onclick="return toggle('BaseObjectIdentity.indices');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.BaseObjectIdentity-class.html#indices">indices</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BaseObjectIdentity.indices-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="BaseObjectIdentity.indices-expanded"><a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_type</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dtb</tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line"> </tt>
+<a name="UserIdentity"></a><div id="UserIdentity-def"><a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line"> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt> <a class="py-toggle" href="#" id="UserIdentity-toggle" onclick="return toggle('UserIdentity');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.identity.UserIdentity-class.html">UserIdentity</a><tt class="py-op">(</tt><tt class="py-base-class">Identity</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="UserIdentity-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="UserIdentity-expanded"><a name="UserIdentity.__init__"></a><div id="UserIdentity.__init__-def"><a name="L208"></a><tt class="py-lineno">208</tt> <a class="py-toggle" href="#" id="UserIdentity.__init__-toggle" onclick="return toggle('UserIdentity.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.UserIdentity-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">uid</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">username</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="UserIdentity.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="UserIdentity.__init__-expanded"><a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">        <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-26" class="py-name" targets="Class rekall.identity.UserIdentity=rekall.identity.UserIdentity-class.html"><a title="rekall.identity.UserIdentity" class="py-name" href="#" onclick="return doclink('link-26', 'UserIdentity', 'link-26');">UserIdentity</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="rekall.addrspace.AddrSpaceError.__init__
+rekall.addrspace.BaseAddressSpace.__init__
+rekall.addrspace.BufferAddressSpace.__init__
+rekall.addrspace.CachingAddressSpaceMixIn.__init__
+rekall.addrspace.RunBasedAddressSpace.__init__
+rekall.addrspace_test.CustomRunsAddressSpace.__init__
+rekall.entity.Entity.__init__
+rekall.entity.EntityLookupTable.__init__
+rekall.entity.EntityManager.__init__
+rekall.identity.BaseObjectIdentity.__init__
+rekall.identity.Identity.__init__
+rekall.identity.ProcessIdentity.__init__
+rekall.identity.UserIdentity.__init__
+rekall.io_manager.DirectoryIOManager.__init__
+rekall.io_manager.IOManager.__init__
+rekall.io_manager.SelfClosingFile.__init__
+rekall.io_manager.URLManager.__init__
+rekall.io_manager.ZipFileManager.__init__
+rekall.kb.AddressResolver.__init__
+rekall.kb.KernelModule.__init__
+rekall.kb.ParameterHook.__init__
+rekall.kb.SortedAddresses.__init__
+rekall.kb.SymbolAddresses.__init__
+rekall.obj.Array.__init__
+rekall.obj.BaseObject.__init__
+rekall.obj.BitField.__init__
+rekall.obj.Curry.__init__
+rekall.obj.ListArray.__init__
+rekall.obj.NativeType.__init__
+rekall.obj.NoneObject.__init__
+rekall.obj.Pointer.__init__
+rekall.obj.Profile.__init__
+rekall.obj.ProfileLog.__init__
+rekall.obj.Struct.__init__
+rekall.obj.Void.__init__
+rekall.plugin.Command.__init__
+rekall.plugin.KernelASMixin.__init__
+rekall.plugin.PhysicalASMixin.__init__
+rekall.plugin.ProfileCommand.__init__
+rekall.plugin.VerbosityMixIn.__init__
+rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.__init__
+rekall.plugins.addrspaces.amd64.VTxPagedMemory.__init__
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.__init__
+rekall.plugins.addrspaces.ewf.EWFAddressSpace.__init__
+rekall.plugins.addrspaces.ewf.ewffile.__init__
+rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.__init__
+rekall.plugins.addrspaces.intel.IA32PagedMemory.__init__
+rekall.plugins.addrspaces.macho.MACHOCoreDump.__init__
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__init__
+rekall.plugins.addrspaces.standard.DummyAddressSpace.__init__
+rekall.plugins.addrspaces.standard.FDAddressSpace.__init__
+rekall.plugins.addrspaces.standard.FileAddressSpace.__init__
+rekall.plugins.addrspaces.standard.WriteableAddressSpace.__init__
+rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.__init__
+rekall.plugins.addrspaces.win32.Win32FileAddressSpace.__init__
+rekall.plugins.core.DT.__init__
+rekall.plugins.core.DirectoryDumperMixin.__init__
+rekall.plugins.core.DummyParser.__init__
+rekall.plugins.core.Dump.__init__
+rekall.plugins.core.Grep.__init__
+rekall.plugins.core.Info.__init__
+rekall.plugins.core.LoadAddressSpace.__init__
+rekall.plugins.core.LoadPlugins.__init__
+rekall.plugins.core.MemmapMixIn.__init__
+rekall.plugins.core.OutputFileMixin.__init__
+rekall.plugins.core.Printer.__init__
+rekall.plugins.darwin.checks.CheckTrapTable.__init__
+rekall.plugins.darwin.checks.OIDInfo.__init__
+rekall.plugins.darwin.common.DarwinKASLRMixin.__init__
+rekall.plugins.darwin.common.DarwinProcessFilter.__init__
+rekall.plugins.darwin.common.KernelAddressCheckerMixIn.__init__
+rekall.plugins.hypervisors.VMCSScanner.__init__
+rekall.plugins.hypervisors.VirtualMachine.__init__
+rekall.plugins.hypervisors.VmScan.__init__
+rekall.plugins.imagecopy.ImageCopy.__init__
+rekall.plugins.linux.arp.Arp.__init__
+rekall.plugins.linux.bash.BashHistory.__init__
+rekall.plugins.linux.bash.BashProfile32.__init__
+rekall.plugins.linux.bash.BashProfile64.__init__
+rekall.plugins.linux.check_afinfo.CheckAFInfo.__init__
+rekall.plugins.linux.check_fops.CheckProcFops.__init__
+rekall.plugins.linux.common.HeapScannerMixIn.__init__
+rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__
+rekall.plugins.linux.common.LinProcessFilter.__init__
+rekall.plugins.linux.lsmod.KernelModule.__init__
+rekall.plugins.linux.lsmod.Lsmod.__init__
+rekall.plugins.linux.pas2kas.LinPas2Vas.__init__
+rekall.plugins.overlays.basic.Enumeration.__init__
+rekall.plugins.overlays.basic.Flags.__init__
+rekall.plugins.overlays.basic.Function.__init__
+rekall.plugins.overlays.basic.IndexedArray.__init__
+rekall.plugins.overlays.basic.Ipv4Address.__init__
+rekall.plugins.overlays.basic.Ipv6Address.__init__
+rekall.plugins.overlays.basic.MacAddress.__init__
+rekall.plugins.overlays.basic.Signature.__init__
+rekall.plugins.overlays.basic.String.__init__
+rekall.plugins.overlays.basic.UnicodeString.__init__
+rekall.plugins.overlays.basic.UnixTimeStamp.__init__
+rekall.plugins.overlays.basic.WinFileTime.__init__
+rekall.plugins.overlays.darwin.macho.MACHO64Profile.__init__
+rekall.plugins.overlays.linux.dwarfdump.DWARFParser.__init__
+rekall.plugins.overlays.linux.dwarfparser.DIETag.__init__
+rekall.plugins.overlays.linux.dwarfparser.DWARFParser.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__
+rekall.plugins.overlays.linux.elf.ELFProfile.__init__
+rekall.plugins.overlays.linux.vfs.FileName.__init__
+rekall.plugins.overlays.windows.ntfs.FLS.__init__
+rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__
+rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__
+rekall.plugins.overlays.windows.ntfs.NTFS.__init__
+rekall.plugins.overlays.windows.ntfs.NTFSProfile.__init__
+rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR.__init__
+rekall.plugins.overlays.windows.ntfs.RunListAddressSpace.__init__
+rekall.plugins.overlays.windows.pe_vtypes.PE.__init__
+rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.__init__
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.__init__
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.__init__
+rekall.plugins.overlays.windows.pe_vtypes.SentinelArray.__init__
+rekall.plugins.overlays.windows.pe_vtypes.ThunkArray.__init__
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.__init__
+rekall.plugins.overlays.windows.windows.Demangler.__init__
+rekall.plugins.tools.ipython.Rekall.__init__
+rekall.plugins.tools.json_tools.JSONParser.__init__
+rekall.plugins.tools.json_tools.StructFormatter.__init__
+rekall.plugins.tools.mspdb.FetchPDB.__init__
+rekall.plugins.tools.mspdb.PDBParser.__init__
+rekall.plugins.tools.mspdb.PDBProfile.__init__
+rekall.plugins.tools.mspdb.ParsePDB.__init__
+rekall.plugins.tools.mspdb.StreamBasedAddressSpace.__init__
+rekall.plugins.tools.mspdb.lfClass.__init__
+rekall.plugins.tools.mspdb.lfNestType.__init__
+rekall.plugins.tools.profile_tool.BuildIndex.__init__
+rekall.plugins.tools.profile_tool.ConvertProfile.__init__
+rekall.plugins.tools.profile_tool.ProfileConverter.__init__
+rekall.plugins.tools.webconsole.FakeParser.__init__
+rekall.plugins.tools.webconsole.WebConsole.__init__
+rekall.plugins.windows.common.CheckPoolIndex.__init__
+rekall.plugins.windows.common.CheckPoolSize.__init__
+rekall.plugins.windows.common.CheckPoolType.__init__
+rekall.plugins.windows.common.KDBGMixin.__init__
+rekall.plugins.windows.common.MultiPoolTagCheck.__init__
+rekall.plugins.windows.common.PoolScannerPlugin.__init__
+rekall.plugins.windows.common.PoolTagCheck.__init__
+rekall.plugins.windows.common.WinDTBScanner.__init__
+rekall.plugins.windows.common.WinFindDTB.__init__
+rekall.plugins.windows.common.WinProcessFilter.__init__
+rekall.plugins.windows.crashinfo.Raw2Dump.__init__
+rekall.plugins.windows.disassembler.Disassemble.__init__
+rekall.plugins.windows.filescan.MutantScan.__init__
+rekall.plugins.windows.filescan.PoolScanDriver.__init__
+rekall.plugins.windows.filescan.PoolScanFile.__init__
+rekall.plugins.windows.filescan.PoolScanMutant.__init__
+rekall.plugins.windows.filescan.PoolScanProcess.__init__
+rekall.plugins.windows.filescan.PoolScanSymlink.__init__
+rekall.plugins.windows.gui.atoms.AtomScan.__init__
+rekall.plugins.windows.gui.atoms.PoolScanAtom.__init__
+rekall.plugins.windows.gui.clipboard.Clipboard.__init__
+rekall.plugins.windows.gui.constants.FakeAtom.__init__
+rekall.plugins.windows.gui.userhandles.UserHandles.__init__
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__
+rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__
+rekall.plugins.windows.handles.Handles.__init__
+rekall.plugins.windows.index.GuessGUID.__init__
+rekall.plugins.windows.kdbgscan.KDBGScan.__init__
+rekall.plugins.windows.malware.callbacks.Callbacks.__init__
+rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__
+rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback.__init__
+rekall.plugins.windows.malware.cmdhistory.CmdScan.__init__
+rekall.plugins.windows.malware.cmdhistory.ConHost64.__init__
+rekall.plugins.windows.malware.cmdhistory.ConHost86.__init__
+rekall.plugins.windows.malware.cmdhistory.ConsoleScanner.__init__
+rekall.plugins.windows.malware.cmdhistory.Consoles.__init__
+rekall.plugins.windows.malware.cmdhistory.HistoryScanner.__init__
+rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__
+rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__
+rekall.plugins.windows.malware.devicetree.DeviceTree.__init__
+rekall.plugins.windows.malware.devicetree.DriverIrp.__init__
+rekall.plugins.windows.malware.impscan.IDCRenderer.__init__
+rekall.plugins.windows.malware.impscan.ImpScan.__init__
+rekall.plugins.windows.malware.malfind.LdrModules.__init__
+rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__
+rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__
+rekall.plugins.windows.malware.svcscan.SvcScan.__init__
+rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__
+rekall.plugins.windows.malware.yarascan.YaraScan.__init__
+rekall.plugins.windows.modscan.PoolScanModuleFast.__init__
+rekall.plugins.windows.modscan.PoolScanThreadFast.__init__
+rekall.plugins.windows.modules.Modules.__init__
+rekall.plugins.windows.modules.VersionScan.__init__
+rekall.plugins.windows.netscan.PoolScanTcpEndpoint.__init__
+rekall.plugins.windows.netscan.PoolScanTcpListener.__init__
+rekall.plugins.windows.netscan.PoolScanUdpEndpoint.__init__
+rekall.plugins.windows.pas2kas.WinPas2Vas.__init__
+rekall.plugins.windows.pfn.DTBScan.__init__
+rekall.plugins.windows.pfn.PFNInfo.__init__
+rekall.plugins.windows.pfn.PTE.__init__
+rekall.plugins.windows.pfn.PtoV.__init__
+rekall.plugins.windows.pfn.ValueEnumeration.__init__
+rekall.plugins.windows.pfn.VtoP.__init__
+rekall.plugins.windows.procdump.DLLDump.__init__
+rekall.plugins.windows.procdump.PEDump.__init__
+rekall.plugins.windows.procdump.ProcExeDump.__init__
+rekall.plugins.windows.procinfo.PEInfo.__init__
+rekall.plugins.windows.pstree.PSTree.__init__
+rekall.plugins.windows.registry.evtlogs.EvtLogs.__init__
+rekall.plugins.windows.registry.lsadump.HashDump.__init__
+rekall.plugins.windows.registry.lsadump.LSADump.__init__
+rekall.plugins.windows.registry.printkey.PrintKey.__init__
+rekall.plugins.windows.registry.registry.HiveAddressSpace.__init__
+rekall.plugins.windows.registry.registry.HiveFileAddressSpace.__init__
+rekall.plugins.windows.registry.registry.Pointer32.__init__
+rekall.plugins.windows.registry.registry.Registry.__init__
+rekall.plugins.windows.registry.registry.RegistryHive.__init__
+rekall.plugins.windows.registry.registry.RegistryPlugin.__init__
+rekall.plugins.windows.registry.userassist.UserAssist.__init__
+rekall.plugins.windows.taskmods.WinPsList.__init__
+rekall.plugins.windows.vadinfo.VAD.__init__
+rekall.plugins.windows.vadinfo.VADDump.__init__
+rekall.plugins.windows.vadinfo.VadScanner.__init__
+rekall.registry.MetaclassRegistry.__init__
+rekall.scan.BaseScanner.__init__
+rekall.scan.MultiStringFinderCheck.__init__
+rekall.scan.PointerScanner.__init__
+rekall.scan.RegexCheck.__init__
+rekall.scan.ScannerCheck.__init__
+rekall.scan.ScannerGroup.__init__
+rekall.scan.StringCheck.__init__
+rekall.session.Configuration.__init__
+rekall.session.InteractiveSession.__init__
+rekall.session.ProgressDispatcher.__init__
+rekall.session.Session.__init__
+rekall.superposition.Superposition.__init__
+rekall.testlib.RekallBaseUnitTestCase.__init__
+rekall.threadpool.ThreadPool.__init__
+rekall.threadpool.Worker.__init__
+rekall.type_generator.Disassembler.__init__
+rekall.ui.renderer.BaseColumn.__init__
+rekall.ui.renderer.BaseRenderer.__init__
+rekall.ui.renderer.BaseTable.__init__
+rekall.ui.renderer.UnicodeWrapper.__init__
+rekall.ui.text.Colorizer.__init__
+rekall.ui.text.Pager.__init__
+rekall.ui.text.TestRenderer.__init__
+rekall.ui.text.TextColumn.__init__
+rekall.ui.text.TextRenderer.__init__
+rekall.ui.text.TextTable.__init__
+rekall.utils.AgeBasedCache.__init__
+rekall.utils.FastStore.__init__
+rekall.utils.FileLock.__init__
+rekall.utils.LinkedList.__init__
+rekall.utils.Node.__init__
+rekall.utils.SortedCollection.__init__" class="py-name" href="#" onclick="return doclink('link-27', '__init__', 'link-10');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name" targets="Variable rekall.components.User.uid=rekall.components.User-class.html#uid"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-28', 'uid', 'link-28');">uid</a></tt> <tt class="py-op">=</tt> <tt id="link-29" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-29', 'uid', 'link-28');">uid</a></tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Variable rekall.components.User.username=rekall.components.User-class.html#username"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-30', 'username', 'link-30');">username</a></tt> <tt class="py-op">=</tt> <tt id="link-31" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-31', 'username', 'link-30');">username</a></tt> </tt>
+</div><a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line"> </tt>
+<a name="UserIdentity.__eq__"></a><div id="UserIdentity.__eq__-def"><a name="L213"></a><tt class="py-lineno">213</tt> <a class="py-toggle" href="#" id="UserIdentity.__eq__-toggle" onclick="return toggle('UserIdentity.__eq__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.UserIdentity-class.html#__eq__">__eq__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="UserIdentity.__eq__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="UserIdentity.__eq__-expanded"><a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">other</tt><tt class="py-op">:</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">False</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line"> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-32', 'uid', 'link-28');">uid</a></tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-33', 'username', 'link-30');">username</a></tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-34', 'username', 'link-30');">username</a></tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt> <tt class="py-keyword">and</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-35', 'uid', 'link-28');">uid</a></tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line"> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-op">(</tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-36', 'uid', 'link-28');">uid</a></tt> <tt class="py-op">==</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-37', 'uid', 'link-28');">uid</a></tt> <tt class="py-op">!=</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-38', 'username', 'link-30');">username</a></tt> <tt class="py-op">==</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-39', 'username', 'link-30');">username</a></tt> <tt class="py-op">!=</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">        <tt class="py-op">)</tt> </tt>
+</div><a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line"> </tt>
+<a name="UserIdentity.union"></a><div id="UserIdentity.union-def"><a name="L226"></a><tt class="py-lineno">226</tt> <a class="py-toggle" href="#" id="UserIdentity.union-toggle" onclick="return toggle('UserIdentity.union');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.UserIdentity-class.html#union">union</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="UserIdentity.union-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="UserIdentity.union-expanded"><a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-40" class="py-name"><a title="rekall.identity.UserIdentity" class="py-name" href="#" onclick="return doclink('link-40', 'UserIdentity', 'link-26');">UserIdentity</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line">            <tt id="link-41" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-41', 'uid', 'link-28');">uid</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-42', 'uid', 'link-28');">uid</a></tt> <tt class="py-keyword">or</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-43', 'uid', 'link-28');">uid</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">            <tt id="link-44" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-44', 'username', 'link-30');">username</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-45" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-45', 'username', 'link-30');">username</a></tt> <tt class="py-keyword">or</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-46', 'username', 'link-30');">username</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">        <tt class="py-op">)</tt> </tt>
+</div><a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line"> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="UserIdentity.indices"></a><div id="UserIdentity.indices-def"><a name="L233"></a><tt class="py-lineno">233</tt> <a class="py-toggle" href="#" id="UserIdentity.indices-toggle" onclick="return toggle('UserIdentity.indices');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.UserIdentity-class.html#indices">indices</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="UserIdentity.indices-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="UserIdentity.indices-expanded"><a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-47', 'uid', 'link-28');">uid</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-string">"uid/%d"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-48', 'uid', 'link-28');">uid</a></tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line"> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-49', 'username', 'link-30');">username</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-string">"username/%s"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-50" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-50', 'username', 'link-30');">username</a></tt> </tt>
+</div><a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line"> </tt>
+<a name="UserIdentity.__unicode__"></a><div id="UserIdentity.__unicode__-def"><a name="L240"></a><tt class="py-lineno">240</tt> <a class="py-toggle" href="#" id="UserIdentity.__unicode__-toggle" onclick="return toggle('UserIdentity.__unicode__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.UserIdentity-class.html#__unicode__">__unicode__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="UserIdentity.__unicode__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="UserIdentity.__unicode__-expanded"><a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"User %s:%d"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name"><a title="rekall.components.User.username" class="py-name" href="#" onclick="return doclink('link-51', 'username', 'link-30');">username</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="rekall.components.User.uid" class="py-name" href="#" onclick="return doclink('link-52', 'uid', 'link-28');">uid</a></tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line"> </tt>
+<a name="ProcessIdentity"></a><div id="ProcessIdentity-def"><a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line"> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt> <a class="py-toggle" href="#" id="ProcessIdentity-toggle" onclick="return toggle('ProcessIdentity');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.identity.ProcessIdentity-class.html">ProcessIdentity</a><tt class="py-op">(</tt><tt class="py-base-class">Identity</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ProcessIdentity-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ProcessIdentity-expanded"><a name="ProcessIdentity.__init__"></a><div id="ProcessIdentity.__init__-def"><a name="L245"></a><tt class="py-lineno">245</tt> <a class="py-toggle" href="#" id="ProcessIdentity.__init__-toggle" onclick="return toggle('ProcessIdentity.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.ProcessIdentity-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">pid</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ProcessIdentity.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ProcessIdentity.__init__-expanded"><a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line">        <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-53" class="py-name" targets="Class rekall.identity.ProcessIdentity=rekall.identity.ProcessIdentity-class.html"><a title="rekall.identity.ProcessIdentity" class="py-name" href="#" onclick="return doclink('link-53', 'ProcessIdentity', 'link-53');">ProcessIdentity</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="rekall.addrspace.AddrSpaceError.__init__
+rekall.addrspace.BaseAddressSpace.__init__
+rekall.addrspace.BufferAddressSpace.__init__
+rekall.addrspace.CachingAddressSpaceMixIn.__init__
+rekall.addrspace.RunBasedAddressSpace.__init__
+rekall.addrspace_test.CustomRunsAddressSpace.__init__
+rekall.entity.Entity.__init__
+rekall.entity.EntityLookupTable.__init__
+rekall.entity.EntityManager.__init__
+rekall.identity.BaseObjectIdentity.__init__
+rekall.identity.Identity.__init__
+rekall.identity.ProcessIdentity.__init__
+rekall.identity.UserIdentity.__init__
+rekall.io_manager.DirectoryIOManager.__init__
+rekall.io_manager.IOManager.__init__
+rekall.io_manager.SelfClosingFile.__init__
+rekall.io_manager.URLManager.__init__
+rekall.io_manager.ZipFileManager.__init__
+rekall.kb.AddressResolver.__init__
+rekall.kb.KernelModule.__init__
+rekall.kb.ParameterHook.__init__
+rekall.kb.SortedAddresses.__init__
+rekall.kb.SymbolAddresses.__init__
+rekall.obj.Array.__init__
+rekall.obj.BaseObject.__init__
+rekall.obj.BitField.__init__
+rekall.obj.Curry.__init__
+rekall.obj.ListArray.__init__
+rekall.obj.NativeType.__init__
+rekall.obj.NoneObject.__init__
+rekall.obj.Pointer.__init__
+rekall.obj.Profile.__init__
+rekall.obj.ProfileLog.__init__
+rekall.obj.Struct.__init__
+rekall.obj.Void.__init__
+rekall.plugin.Command.__init__
+rekall.plugin.KernelASMixin.__init__
+rekall.plugin.PhysicalASMixin.__init__
+rekall.plugin.ProfileCommand.__init__
+rekall.plugin.VerbosityMixIn.__init__
+rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.__init__
+rekall.plugins.addrspaces.amd64.VTxPagedMemory.__init__
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.__init__
+rekall.plugins.addrspaces.ewf.EWFAddressSpace.__init__
+rekall.plugins.addrspaces.ewf.ewffile.__init__
+rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.__init__
+rekall.plugins.addrspaces.intel.IA32PagedMemory.__init__
+rekall.plugins.addrspaces.macho.MACHOCoreDump.__init__
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__init__
+rekall.plugins.addrspaces.standard.DummyAddressSpace.__init__
+rekall.plugins.addrspaces.standard.FDAddressSpace.__init__
+rekall.plugins.addrspaces.standard.FileAddressSpace.__init__
+rekall.plugins.addrspaces.standard.WriteableAddressSpace.__init__
+rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.__init__
+rekall.plugins.addrspaces.win32.Win32FileAddressSpace.__init__
+rekall.plugins.core.DT.__init__
+rekall.plugins.core.DirectoryDumperMixin.__init__
+rekall.plugins.core.DummyParser.__init__
+rekall.plugins.core.Dump.__init__
+rekall.plugins.core.Grep.__init__
+rekall.plugins.core.Info.__init__
+rekall.plugins.core.LoadAddressSpace.__init__
+rekall.plugins.core.LoadPlugins.__init__
+rekall.plugins.core.MemmapMixIn.__init__
+rekall.plugins.core.OutputFileMixin.__init__
+rekall.plugins.core.Printer.__init__
+rekall.plugins.darwin.checks.CheckTrapTable.__init__
+rekall.plugins.darwin.checks.OIDInfo.__init__
+rekall.plugins.darwin.common.DarwinKASLRMixin.__init__
+rekall.plugins.darwin.common.DarwinProcessFilter.__init__
+rekall.plugins.darwin.common.KernelAddressCheckerMixIn.__init__
+rekall.plugins.hypervisors.VMCSScanner.__init__
+rekall.plugins.hypervisors.VirtualMachine.__init__
+rekall.plugins.hypervisors.VmScan.__init__
+rekall.plugins.imagecopy.ImageCopy.__init__
+rekall.plugins.linux.arp.Arp.__init__
+rekall.plugins.linux.bash.BashHistory.__init__
+rekall.plugins.linux.bash.BashProfile32.__init__
+rekall.plugins.linux.bash.BashProfile64.__init__
+rekall.plugins.linux.check_afinfo.CheckAFInfo.__init__
+rekall.plugins.linux.check_fops.CheckProcFops.__init__
+rekall.plugins.linux.common.HeapScannerMixIn.__init__
+rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__
+rekall.plugins.linux.common.LinProcessFilter.__init__
+rekall.plugins.linux.lsmod.KernelModule.__init__
+rekall.plugins.linux.lsmod.Lsmod.__init__
+rekall.plugins.linux.pas2kas.LinPas2Vas.__init__
+rekall.plugins.overlays.basic.Enumeration.__init__
+rekall.plugins.overlays.basic.Flags.__init__
+rekall.plugins.overlays.basic.Function.__init__
+rekall.plugins.overlays.basic.IndexedArray.__init__
+rekall.plugins.overlays.basic.Ipv4Address.__init__
+rekall.plugins.overlays.basic.Ipv6Address.__init__
+rekall.plugins.overlays.basic.MacAddress.__init__
+rekall.plugins.overlays.basic.Signature.__init__
+rekall.plugins.overlays.basic.String.__init__
+rekall.plugins.overlays.basic.UnicodeString.__init__
+rekall.plugins.overlays.basic.UnixTimeStamp.__init__
+rekall.plugins.overlays.basic.WinFileTime.__init__
+rekall.plugins.overlays.darwin.macho.MACHO64Profile.__init__
+rekall.plugins.overlays.linux.dwarfdump.DWARFParser.__init__
+rekall.plugins.overlays.linux.dwarfparser.DIETag.__init__
+rekall.plugins.overlays.linux.dwarfparser.DWARFParser.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__
+rekall.plugins.overlays.linux.elf.ELFProfile.__init__
+rekall.plugins.overlays.linux.vfs.FileName.__init__
+rekall.plugins.overlays.windows.ntfs.FLS.__init__
+rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__
+rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__
+rekall.plugins.overlays.windows.ntfs.NTFS.__init__
+rekall.plugins.overlays.windows.ntfs.NTFSProfile.__init__
+rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR.__init__
+rekall.plugins.overlays.windows.ntfs.RunListAddressSpace.__init__
+rekall.plugins.overlays.windows.pe_vtypes.PE.__init__
+rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.__init__
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.__init__
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.__init__
+rekall.plugins.overlays.windows.pe_vtypes.SentinelArray.__init__
+rekall.plugins.overlays.windows.pe_vtypes.ThunkArray.__init__
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.__init__
+rekall.plugins.overlays.windows.windows.Demangler.__init__
+rekall.plugins.tools.ipython.Rekall.__init__
+rekall.plugins.tools.json_tools.JSONParser.__init__
+rekall.plugins.tools.json_tools.StructFormatter.__init__
+rekall.plugins.tools.mspdb.FetchPDB.__init__
+rekall.plugins.tools.mspdb.PDBParser.__init__
+rekall.plugins.tools.mspdb.PDBProfile.__init__
+rekall.plugins.tools.mspdb.ParsePDB.__init__
+rekall.plugins.tools.mspdb.StreamBasedAddressSpace.__init__
+rekall.plugins.tools.mspdb.lfClass.__init__
+rekall.plugins.tools.mspdb.lfNestType.__init__
+rekall.plugins.tools.profile_tool.BuildIndex.__init__
+rekall.plugins.tools.profile_tool.ConvertProfile.__init__
+rekall.plugins.tools.profile_tool.ProfileConverter.__init__
+rekall.plugins.tools.webconsole.FakeParser.__init__
+rekall.plugins.tools.webconsole.WebConsole.__init__
+rekall.plugins.windows.common.CheckPoolIndex.__init__
+rekall.plugins.windows.common.CheckPoolSize.__init__
+rekall.plugins.windows.common.CheckPoolType.__init__
+rekall.plugins.windows.common.KDBGMixin.__init__
+rekall.plugins.windows.common.MultiPoolTagCheck.__init__
+rekall.plugins.windows.common.PoolScannerPlugin.__init__
+rekall.plugins.windows.common.PoolTagCheck.__init__
+rekall.plugins.windows.common.WinDTBScanner.__init__
+rekall.plugins.windows.common.WinFindDTB.__init__
+rekall.plugins.windows.common.WinProcessFilter.__init__
+rekall.plugins.windows.crashinfo.Raw2Dump.__init__
+rekall.plugins.windows.disassembler.Disassemble.__init__
+rekall.plugins.windows.filescan.MutantScan.__init__
+rekall.plugins.windows.filescan.PoolScanDriver.__init__
+rekall.plugins.windows.filescan.PoolScanFile.__init__
+rekall.plugins.windows.filescan.PoolScanMutant.__init__
+rekall.plugins.windows.filescan.PoolScanProcess.__init__
+rekall.plugins.windows.filescan.PoolScanSymlink.__init__
+rekall.plugins.windows.gui.atoms.AtomScan.__init__
+rekall.plugins.windows.gui.atoms.PoolScanAtom.__init__
+rekall.plugins.windows.gui.clipboard.Clipboard.__init__
+rekall.plugins.windows.gui.constants.FakeAtom.__init__
+rekall.plugins.windows.gui.userhandles.UserHandles.__init__
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__
+rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__
+rekall.plugins.windows.handles.Handles.__init__
+rekall.plugins.windows.index.GuessGUID.__init__
+rekall.plugins.windows.kdbgscan.KDBGScan.__init__
+rekall.plugins.windows.malware.callbacks.Callbacks.__init__
+rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__
+rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback.__init__
+rekall.plugins.windows.malware.cmdhistory.CmdScan.__init__
+rekall.plugins.windows.malware.cmdhistory.ConHost64.__init__
+rekall.plugins.windows.malware.cmdhistory.ConHost86.__init__
+rekall.plugins.windows.malware.cmdhistory.ConsoleScanner.__init__
+rekall.plugins.windows.malware.cmdhistory.Consoles.__init__
+rekall.plugins.windows.malware.cmdhistory.HistoryScanner.__init__
+rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__
+rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__
+rekall.plugins.windows.malware.devicetree.DeviceTree.__init__
+rekall.plugins.windows.malware.devicetree.DriverIrp.__init__
+rekall.plugins.windows.malware.impscan.IDCRenderer.__init__
+rekall.plugins.windows.malware.impscan.ImpScan.__init__
+rekall.plugins.windows.malware.malfind.LdrModules.__init__
+rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__
+rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__
+rekall.plugins.windows.malware.svcscan.SvcScan.__init__
+rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__
+rekall.plugins.windows.malware.yarascan.YaraScan.__init__
+rekall.plugins.windows.modscan.PoolScanModuleFast.__init__
+rekall.plugins.windows.modscan.PoolScanThreadFast.__init__
+rekall.plugins.windows.modules.Modules.__init__
+rekall.plugins.windows.modules.VersionScan.__init__
+rekall.plugins.windows.netscan.PoolScanTcpEndpoint.__init__
+rekall.plugins.windows.netscan.PoolScanTcpListener.__init__
+rekall.plugins.windows.netscan.PoolScanUdpEndpoint.__init__
+rekall.plugins.windows.pas2kas.WinPas2Vas.__init__
+rekall.plugins.windows.pfn.DTBScan.__init__
+rekall.plugins.windows.pfn.PFNInfo.__init__
+rekall.plugins.windows.pfn.PTE.__init__
+rekall.plugins.windows.pfn.PtoV.__init__
+rekall.plugins.windows.pfn.ValueEnumeration.__init__
+rekall.plugins.windows.pfn.VtoP.__init__
+rekall.plugins.windows.procdump.DLLDump.__init__
+rekall.plugins.windows.procdump.PEDump.__init__
+rekall.plugins.windows.procdump.ProcExeDump.__init__
+rekall.plugins.windows.procinfo.PEInfo.__init__
+rekall.plugins.windows.pstree.PSTree.__init__
+rekall.plugins.windows.registry.evtlogs.EvtLogs.__init__
+rekall.plugins.windows.registry.lsadump.HashDump.__init__
+rekall.plugins.windows.registry.lsadump.LSADump.__init__
+rekall.plugins.windows.registry.printkey.PrintKey.__init__
+rekall.plugins.windows.registry.registry.HiveAddressSpace.__init__
+rekall.plugins.windows.registry.registry.HiveFileAddressSpace.__init__
+rekall.plugins.windows.registry.registry.Pointer32.__init__
+rekall.plugins.windows.registry.registry.Registry.__init__
+rekall.plugins.windows.registry.registry.RegistryHive.__init__
+rekall.plugins.windows.registry.registry.RegistryPlugin.__init__
+rekall.plugins.windows.registry.userassist.UserAssist.__init__
+rekall.plugins.windows.taskmods.WinPsList.__init__
+rekall.plugins.windows.vadinfo.VAD.__init__
+rekall.plugins.windows.vadinfo.VADDump.__init__
+rekall.plugins.windows.vadinfo.VadScanner.__init__
+rekall.registry.MetaclassRegistry.__init__
+rekall.scan.BaseScanner.__init__
+rekall.scan.MultiStringFinderCheck.__init__
+rekall.scan.PointerScanner.__init__
+rekall.scan.RegexCheck.__init__
+rekall.scan.ScannerCheck.__init__
+rekall.scan.ScannerGroup.__init__
+rekall.scan.StringCheck.__init__
+rekall.session.Configuration.__init__
+rekall.session.InteractiveSession.__init__
+rekall.session.ProgressDispatcher.__init__
+rekall.session.Session.__init__
+rekall.superposition.Superposition.__init__
+rekall.testlib.RekallBaseUnitTestCase.__init__
+rekall.threadpool.ThreadPool.__init__
+rekall.threadpool.Worker.__init__
+rekall.type_generator.Disassembler.__init__
+rekall.ui.renderer.BaseColumn.__init__
+rekall.ui.renderer.BaseRenderer.__init__
+rekall.ui.renderer.BaseTable.__init__
+rekall.ui.renderer.UnicodeWrapper.__init__
+rekall.ui.text.Colorizer.__init__
+rekall.ui.text.Pager.__init__
+rekall.ui.text.TestRenderer.__init__
+rekall.ui.text.TextColumn.__init__
+rekall.ui.text.TextRenderer.__init__
+rekall.ui.text.TextTable.__init__
+rekall.utils.AgeBasedCache.__init__
+rekall.utils.FastStore.__init__
+rekall.utils.FileLock.__init__
+rekall.utils.LinkedList.__init__
+rekall.utils.Node.__init__
+rekall.utils.SortedCollection.__init__" class="py-name" href="#" onclick="return doclink('link-54', '__init__', 'link-10');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-55" class="py-name" targets="Variable rekall.components.Process.pid=rekall.components.Process-class.html#pid"><a title="rekall.components.Process.pid" class="py-name" href="#" onclick="return doclink('link-55', 'pid', 'link-55');">pid</a></tt> <tt class="py-op">=</tt> <tt id="link-56" class="py-name"><a title="rekall.components.Process.pid" class="py-name" href="#" onclick="return doclink('link-56', 'pid', 'link-55');">pid</a></tt> </tt>
+</div><a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line"> </tt>
+<a name="ProcessIdentity.__eq__"></a><div id="ProcessIdentity.__eq__-def"><a name="L249"></a><tt class="py-lineno">249</tt> <a class="py-toggle" href="#" id="ProcessIdentity.__eq__-toggle" onclick="return toggle('ProcessIdentity.__eq__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.ProcessIdentity-class.html#__eq__">__eq__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ProcessIdentity.__eq__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ProcessIdentity.__eq__-expanded"><a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">other</tt> <tt class="py-keyword">and</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="rekall.components.Process.pid" class="py-name" href="#" onclick="return doclink('link-57', 'pid', 'link-55');">pid</a></tt> <tt class="py-op">==</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="rekall.components.Process.pid" class="py-name" href="#" onclick="return doclink('link-58', 'pid', 'link-55');">pid</a></tt> </tt>
+</div><a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line"> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="ProcessIdentity.indices"></a><div id="ProcessIdentity.indices-def"><a name="L253"></a><tt class="py-lineno">253</tt> <a class="py-toggle" href="#" id="ProcessIdentity.indices-toggle" onclick="return toggle('ProcessIdentity.indices');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.ProcessIdentity-class.html#indices">indices</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ProcessIdentity.indices-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ProcessIdentity.indices-expanded"><a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-string">"pid/%d"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name"><a title="rekall.components.Process.pid" class="py-name" href="#" onclick="return doclink('link-59', 'pid', 'link-55');">pid</a></tt><tt class="py-op">,</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line"> </tt>
+<a name="ProcessIdentity.__unicode__"></a><div id="ProcessIdentity.__unicode__-def"><a name="L256"></a><tt class="py-lineno">256</tt> <a class="py-toggle" href="#" id="ProcessIdentity.__unicode__-toggle" onclick="return toggle('ProcessIdentity.__unicode__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.identity.ProcessIdentity-class.html#__unicode__">__unicode__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ProcessIdentity.__unicode__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ProcessIdentity.__unicode__-expanded"><a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"Process %d"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-60" class="py-name"><a title="rekall.components.Process.pid" class="py-name" href="#" onclick="return doclink('link-60', 'pid', 'link-55');">pid</a></tt> </tt>
+</div></div><a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:22:37 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

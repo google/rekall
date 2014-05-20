@@ -1,0 +1,186 @@
+Anti-forensics and memory analysis.
+===================================
+:author: Michael Cohen <scudette@gmail.com>
+
+
+Recently there have been a number of talks around the place about anti-forensic
+techniques. The most recent example is the Shmoocon talk by Jake Williams and
+Alissa Torres:
+http://www.mediafire.com/view/h7bmcscbtyaeb6r/ADD_Shmoocon.pdf[ADD --
+Complicating Memory Forensics Through Memory Disarray] with the tool published
+here, https://code.google.com/p/attention-deficit-disorder/[Attention Deficit
+Disorder (ADD)], which is a proof-of-concept "evidence planting" tool.
+
+Before that there was a black hat talk
+https://media.blackhat.com/bh-eu-12/Haruyama/bh-eu-12-Haruyama-Memory_Forensic-Slides.pdf[One-byte
+Modification for Breaking Memory Forensic Analysis], and even we have published
+a paper on anti-forensics titled
+http://www.dfrws.org/2013/proceedings/DFRWS2013-13.pdf[Anti-Forensic Resilient
+Memory Acquisition]
+
+
+In response to the ADD work, Brent Muir wrote the blog post
+http://blog.handlerdiaries.com/?p=363[Forensic Analysis of Anti-Forensic
+Activities] where he analyzes the artifacts that ADD leaves behind, and the
+Volatility Blog published a rather confident piece Titled
+http://volatility-labs.blogspot.ch/2014/02/add-next-big-threat-to-memory.html[ADD:
+The Next Big Threat To Memory Forensics....Or Not] claiming that anti-forensics
+is dead, and the author reassures us that "There is a significant amount of work
+that needs to be done for this to change, so while the attackers are spending
+their weeks and months trying to build things up to spec, rest assured that with
+proper training and the right tools, you won't need to worry about future
+versions.". So all we need is training and tools apparently.
+
+
+In my opinion, the reality is slightly less bright than the Volatility blog post
+would like us to believe. Anti-forensics can be very effective and being
+overconfident is really setting an investigator up for a fall. I think the topic
+of anti-forensics is one that needs wider discussion in the forensic community
+and to be taken seriously.
+
+There are two goals that anti-forensic techniques can implement:
+
+1. Prevent the analyst from analyzing the image in the first place.
+
+2. Plant evidence to decoy or confuse the investigation (or even to present
+   doubt to the whole thing in a court proceeding).
+
+We really do need to consider both goals, as currently these are both very
+effective. It does not pay to just "shoot the messenger" without considering the
+message itself. `ADD` is not a perfect tool - it is merely a proof of concept, but
+it can easily be changed to defeat Volatility or any other memory analysis tool.
+
+
+Goal 1: Disable memory analysis tools.
+--------------------------------------
+
+To achieve this goal the anti-forensic tool simply needs to prevent the initial
+acquisition, or the subsequent analysis. We have already published how a tool
+can interfere with memory acquisition by manipulating the data structure that
+back the
+http://msdn.microsoft.com/en-us/library/windows/hardware/ff554435(v=vs.85).aspx[MmGetPhysicalMemoryRanges()]
+function. Virtually all memory acquisition tools use this function to work out
+where they should be reading. But since this function is undocumented and is not
+normally used, it is quite safe to patch it without affecting system stability.
+
+Memory acquisition tools also typically use a couple of well known APIs such as
+`MmMapIoSpace()` and `ZwMapViewOfSection()` which have previously been patched
+as far back as 2006 in
+http://www.security-assessment.com/files/presentations/darrenbilby_ruxcon06_v0_5.pdf[Darren
+Bilby's `ddfy` work].
+
+So anti-forensics is definitely not dead in the memory acquisition world.
+
+How about the analysis world? It is easy to disable a memory analysis framework,
+such as `Volatility` or `Rekall` since the tool makes many assumptions which may
+not be true. For example, we have run a hands on memory forensic workshop during
+the 2013 Open Source Digital Forensic Conference (OSDFC) workshop, titled
+https://drive.google.com/?tab=mo&authuser=0#folders/0B9hc84IflFGbc2FPWHV6TVoyd1k[Memory
+Forensics With Volatility]. In that workshop, we have used the `WinPmem` driver
+(now part of the https://code.google.com/p/rekall/[Rekall framework]) to
+actively manipulate physical memory to examine how good the analysis tool
+was. (You can still view the workshop on
+http://www.youtube.com/watch?v=9aC7yIYwvAY[You-tube]).
+
+At first we corrupted the `"KDBG"` owner tag from the `KdDebuggerDataBlock`
+structure. The first thing that Volatility does is to recover the `KDBG`
+structure from memory (Rekall no longer uses the KDBG but that is the topic for
+another post). Without a valid `KDBG` it is very hard to use Volatility since it
+uses it to locate the `PsActiveProcessHead` data structure so it can list
+processes etc. In fact the Volatility blog post
+http://volatility-labs.blogspot.ch/2014/01/the-secret-to-64-bit-windows-8-and-2012.html[The
+Secret to 64-bit Windows 8 and 2012 Raw Memory Dump Forensics] stresses the
+importance of finding the correct KDBG structure. The important thing, however,
+is that the KDBG structure is not really used in Windows under normal
+circumstances (its used by the kernel debugger and to produce a crash dump). So
+removing it does not affect system stability.
+
+It is quite trivial to remove the KDBG signature, in which case Volatility is
+unable to proceed without a lot of hand holding. It is also possible to add
+false positive (since `kdbgscan` is just a simple scan for a known signature),
+which can force Volatility to present whatever results one wishes when
+traversing lists such as the process list or the module list (i.e. one can
+create entire `fake` lists which are not even used by the kernel at all).
+
+In fact quoting from the Volatility blog post "In other words, tools that use
+object carving (i.e. pattern matching, scanning) as an analysis technique are
+implicitly susceptible to attacks that create objects that look like the ones
+being carved.". One wonders what that statement means to the analysis process,
+since the entire Volatility analysis process begins with a fuzzy signature
+matching carve for the `KDBG` structure.
+
+Goal 2: Plant or change evidence.
+---------------------------------
+
+This goal for an anti-forensic tool is to confuse the analysis process. It is
+actually much easier than it sounds since the analysis process is usually
+focused around the output of the tool. So all one needs to do is find data that
+the tool presents (but is not essential for system stability) and change it to
+say whatever they want. Without prior knowledge most investigators will simply
+trust the output of their tool.
+
+For example, in our `OSDFC` workshop, we illustrated how one can simply
+overwrite the filename strings presented in the `vad` plugin output to whatever
+you want (One can similarly change protection flags). Since the filename itself
+is not used to read from the file once the handle is created, it does not matter
+what is written there. This can be used to influence the output of the `vadinfo`
+plugin (either to hide or plant evidence). Similarly one can alter process
+names, pid-ppid relations, driver names etc, and even remove entire VAD nodes.
+
+In fact, during that workshop we used the actual Volatility tool to tell us
+where the offset of the strings were in physical memory. This way we knew
+exactly which bytes to change in the physical memory, so that the tool output
+said what we wanted. The only caveat was that whatever we changed was not
+critical for stable system operation. Since memory forensic tools are designed
+to find the evidence and tell you where it is, they can all be easily misused to
+tell you which bytes in memory you should alter to reflect in the tool output.
+
+Many Volatility plugins rely on pool scans which use fixed signatures. A good
+anti-forensic technique is to simply overwrite the pool tags (which are just
+known strings used for debugging) - this renders all the volatility pool
+scanning plugins worthless. Most other scanning plugins also use artifacts which
+can easily be changed to avoid signatures matching.
+
+Conclusions
+-----------
+
+As much as I would love to live in a world where anti-forensics is not
+effective, the real world is less perfect. As investigators we need to
+acknowledge the fact that we are not perfect and can easily be fooled by
+anti-forensic techniques. It is an arms race after all. A little bit of training
+can improve your ability to detect these techniques, but you can never be sure.
+
+Just a quick word on Brent Muir's blog post. It is important to realize that
+Brent went about his analysis with 20/20 vision knowing exactly what he was
+looking for. If you re-read he analysis without the knowledge that ADD was at
+play you would see:
+
+- A process in `psscan` which does not appear in any of the other lists. (This is
+  perfectly plausible for existed processes).
+
+- Some command line output extracted with strings that mention the suspicious
+  process (OK Maybe the authors of ADD did not have great opsec, they could have
+  scripted the tool better.).
+
+- `Netscan` output which does not agree with the output of the apparently
+  unpublished `tcpscan` plugin. This is still consistent with the theory that
+  the process has existed or closed all of its connections, but we don't really
+  know since the `tcpscan` module is not published so we don't know how it works.
+
+- The file paths start with "\private\" instead of
+  "\Device\HarddiskVolume0\". Maybe an oversight on behalf of the ADD authors -
+  I am sure the string can say whatever you want.
+
+Finally Brent finds the string "ADD" in various forms in the strings output
+(e.g. `add.exe` and the bat script which runs the add binary with all the
+parameters). Had he not known in advance the tool was called `add.exe` I don't
+think this would have been that suspicious. (We still resort to memory analysis
+using strings in 2014?)
+
+It is not constructive to pick the faults in a specific implementation of an
+anti-forensic POC, ignoring the overall lesson - which is that anti-forensics is
+actually very effective, especially when you don't know it is there. If one
+re-reads Brent Muir's blog post without the knowledge that there is
+anti-forensics employed, one can see that most investigators will probably fall
+for the story that the tool is trying to sell: "There was an existed process
+which had these sensitive files open and also had network connections.".

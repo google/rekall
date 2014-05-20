@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.tools.profile_tool.LinuxConverter</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.tools-module.html">Package&nbsp;tools</a> ::
+        <a href="rekall.plugins.tools.profile_tool-module.html">Module&nbsp;profile_tool</a> ::
+        Class&nbsp;LinuxConverter
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.tools.profile_tool.LinuxConverter-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class LinuxConverter</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#LinuxConverter">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="class_hierarchy_for_linuxconve" name="class_hierarchy_for_linuxconve">
+<area shape="rect" id="node1" href="rekall.plugins.tools.profile_tool.LinuxConverter-class.html" title="LinuxConverter" alt="" coords="137,5,231,32"/>
+<area shape="rect" id="node2" href="rekall.plugins.tools.profile_tool.OSXConverter-class.html" title="OSXConverter" alt="" coords="263,5,353,32"/>
+<area shape="rect" id="node3" href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html" title="ProfileConverter" alt="" coords="7,5,105,32"/>
+</map>
+  <img src="class_hierarchy_for_linuxconve.gif" alt='' usemap="#class_hierarchy_for_linuxconve" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<pre class="literalblock">
+Convert an existing Linux profile zip file.
+
+Since building the linux profile often happens on the target system, where
+Rekall is not normall running, we just convert the result of running Make in
+the tools/linux/ directory. See tools/linux/README for details.
+
+In short:
+
+- Run make in tools/linux/ directory. This will build module_dwarf.ko with
+  debugging symbols.
+
+- If you have zip installed, the above step will create the required zip
+  file. Otherwise Create a zip file manually with module_dwarf.ko and
+  /boot/System.map-`uname -r` (Sometimes when running make not as the root
+  user, its not possible to read the System.map file).
+
+Finally use this tool to convert the profile to a Rekall compatible profile.
+
+</pre>
+
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Nested Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.registry.MetaclassRegistry-class.html" class="summary-name">__metaclass__</a><br />
+      Automatic Plugin Registration through metaclasses.
+      <em>(Inherited from <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html">rekall.plugins.tools.profile_tool.ProfileConverter</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html" class="summary-name">top_level_class</a><br />
+      Base class for converters.
+      <em>(Inherited from <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html">rekall.plugins.tools.profile_tool.ProfileConverter</a>)</em>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ParseSystemMap"></a><span class="summary-sig-name">ParseSystemMap</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">system_map</span>)</span><br />
+      Parse the system map and return a list of offset, symbol_name.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#LinuxConverter.ParseSystemMap">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ParseConfigFile"></a><span class="summary-sig-name">ParseConfigFile</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">config_file</span>)</span><br />
+      Parse the kernel .config file returning it as a dictionary.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#LinuxConverter.ParseConfigFile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.tools.profile_tool.LinuxConverter-class.html#BuildProfile" class="summary-sig-name">BuildProfile</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">system_map</span>,
+        <span class="summary-sig-arg">vtypes</span>,
+        <span class="summary-sig-arg">config</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Write all the components needed for the output profile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#LinuxConverter.BuildProfile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.tools.profile_tool.LinuxConverter-class.html#Convert" class="summary-sig-name">Convert</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#LinuxConverter.Convert">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="SelectFile"></a><span class="summary-sig-name">SelectFile</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">regex</span>)</span><br />
+      Reads the content of the first file which matches regex.
+      <em>(Inherited from <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html">rekall.plugins.tools.profile_tool.ProfileConverter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#ProfileConverter.SelectFile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="WriteProfile"></a><span class="summary-sig-name">WriteProfile</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">profile_file</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html">rekall.plugins.tools.profile_tool.ProfileConverter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#ProfileConverter.WriteProfile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">input</span>,
+        <span class="summary-sig-arg">output</span>,
+        <span class="summary-sig-arg">profile_class</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature
+      <em>(Inherited from <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html">rekall.plugins.tools.profile_tool.ProfileConverter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#ProfileConverter.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="BASE_PROFILE_CLASS"></a><span class="summary-name">BASE_PROFILE_CLASS</span> = <code title="'Linux'"><code class="variable-quote">'</code><code class="variable-string">Linux</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__abstractmethods__"></a><span class="summary-name">__abstractmethods__</span> = <code title="frozenset([])"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></code>
+      <em>(Inherited from <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html">rekall.plugins.tools.profile_tool.ProfileConverter</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html#classes" class="summary-name">classes</a> = <code title="{'LinuxConverter': &lt;class 'rekall.plugins.tools.profile_tool.LinuxConv\
+erter'&gt;,
+ 'OSXConverter': &lt;class 'rekall.plugins.tools.profile_tool.OSXConverte\
+r'&gt;,
+ 'WindowsConverter': &lt;class 'rekall.plugins.tools.profile_tool.Windows\
+Converter'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">LinuxConverter</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.prof<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html">rekall.plugins.tools.profile_tool.ProfileConverter</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.profile_tool.WindowsConverter'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.profile_<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html">rekall.plugins.tools.profile_tool.ProfileConverter</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'ProfileConverter'"><code class="variable-quote">'</code><code class="variable-string">ProfileConverter</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html">rekall.plugins.tools.profile_tool.ProfileConverter</a>)</em>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="BuildProfile"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">BuildProfile</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">system_map</span>,
+        <span class="sig-arg">vtypes</span>,
+        <span class="sig-arg">config</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#LinuxConverter.BuildProfile">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Write all the components needed for the output profile.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html#BuildProfile">ProfileConverter.BuildProfile</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="Convert"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">Convert</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#LinuxConverter.Convert">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.plugins.tools.profile_tool.ProfileConverter-class.html#Convert">ProfileConverter.Convert</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:21:53 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,589 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.windows.registry.printkey.RegDump</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.windows-module.html">Package&nbsp;windows</a> ::
+        <a href="rekall.plugins.windows.registry-module.html">Package&nbsp;registry</a> ::
+        <a href="rekall.plugins.windows.registry.printkey-module.html">Module&nbsp;printkey</a> ::
+        Class&nbsp;RegDump
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.windows.registry.printkey.RegDump-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class RegDump</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.registry.printkey-pysrc.html#RegDump">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="class_hierarchy_for_regdump" name="class_hierarchy_for_regdump">
+<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="7,5,108,32"/>
+<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="139,5,272,32"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="144,107,267,133"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.common.KDBGMixin-class.html" title="common.KDBGMixin" alt="" coords="355,107,475,133"/>
+<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="141,56,269,83"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="301,56,528,83"/>
+<area shape="rect" id="node5" href="rekall.plugins.core.DirectoryDumperMixin-class.html" title="core.DirectoryDumperMixin" alt="" coords="776,132,928,159"/>
+<area shape="rect" id="node9" href="rekall.plugins.windows.registry.printkey.RegDump-class.html" title="RegDump" alt="" coords="959,107,1028,133"/>
+<area shape="rect" id="node8" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="559,81,745,108"/>
+<area shape="rect" id="node10" href="rekall.plugins.windows.registry.registry.RegistryPlugin-class.html" title="registry.RegistryPlugin" alt="" coords="788,81,916,108"/>
+</map>
+  <img src="class_hierarchy_for_regdump.gif" alt='' usemap="#class_hierarchy_for_regdump" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>Dump all registry hives from memory into a dump directory.</p>
+
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Nested Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.registry.MetaclassRegistry-class.html" class="summary-name">__metaclass__</a><br />
+      Automatic Plugin Registration through metaclasses.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugin.Command-class.html" class="summary-name">top_level_class</a><br />
+      A command can be run from the rekall command line.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.registry.printkey.RegDump-class.html#dump_hive" class="summary-sig-name">dump_hive</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">hive_offset</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">reg</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">fd</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Write the hive into the fd.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.registry.printkey-pysrc.html#RegDump.dump_hive">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.registry.printkey.RegDump-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>)</span><br />
+      Produce results on the renderer given.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.registry.printkey-pysrc.html#RegDump.render">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.core.DirectoryDumperMixin-class.html#CopyToFile" class="summary-sig-name">CopyToFile</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address_space</span>,
+        <span class="summary-sig-arg">start</span>,
+        <span class="summary-sig-arg">end</span>,
+        <span class="summary-sig-arg">outfd</span>)</span><br />
+      Copy a part of the address space to the output file.
+      <em>(Inherited from <a href="rekall.plugins.core.DirectoryDumperMixin-class.html">rekall.plugins.core.DirectoryDumperMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#DirectoryDumperMixin.CopyToFile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.core.DirectoryDumperMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dump_dir</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Dump to a directory.
+      <em>(Inherited from <a href="rekall.plugins.core.DirectoryDumperMixin-class.html">rekall.plugins.core.DirectoryDumperMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#DirectoryDumperMixin.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Render into a string using the text renderer.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__str__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="check_dump_dir"></a><span class="summary-sig-name">check_dump_dir</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dump_dir</span>=<span class="summary-sig-default">None</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.core.DirectoryDumperMixin-class.html">rekall.plugins.core.DirectoryDumperMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#DirectoryDumperMixin.check_dump_dir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#get_plugin" class="summary-sig-name">get_plugin</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Returns an instance of the named plugin.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.get_plugin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="list_hives"></a><span class="summary-sig-name">list_hives</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.windows.registry.registry.RegistryPlugin-class.html">rekall.plugins.windows.registry.registry.RegistryPlugin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.registry.registry-pysrc.html#RegistryPlugin.list_hives">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GetActiveClasses"></a><span class="summary-sig-name">GetActiveClasses</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
+      Return only the active commands based on config.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">parser</span>)</span><br />
+      Declare the command line args we need.
+      <em>(Inherited from <a href="rekall.plugins.core.DirectoryDumperMixin-class.html">rekall.plugins.core.DirectoryDumperMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#DirectoryDumperMixin.args">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
+      We are only active if the profile is windows.
+      <em>(Inherited from <a href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html">rekall.plugins.windows.common.AbstractWindowsCommandPlugin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsCommandPlugin.is_active">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__abstractmethods__"></a><span class="summary-name">__abstractmethods__</span> = <code title="frozenset([])"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
+ 'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
+ 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
+ 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
+ 'BashHistory': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
+ 'BuildIndex': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;,
+ 'Callbacks': &lt;class 'rekall.plugins.windows.malware.callbacks.Callbac\
+ks'&gt;,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Arp</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.arp.Arp'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Ato</code><code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
+ 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
+ 'atomscan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
+ 'banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
+ 'bash': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
+ 'boot_cmdline': &lt;class 'rekall.plugins.darwin.misc.DarwinBootParamete\
+rs'&gt;,
+ 'build_index': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">arp</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.arp.Arp<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="dump_dir_optional"></a><span class="summary-name">dump_dir_optional</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.plugins.core.DirectoryDumperMixin-class.html">rekall.plugins.core.DirectoryDumperMixin</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="interactive"></a><span class="summary-name">interactive</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Command'"><code class="variable-quote">'</code><code class="variable-string">Command</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.common.KDBGMixin-class.html#kdbg" class="summary-name">kdbg</a>
+      <em>(Inherited from <a href="rekall.plugins.windows.common.KDBGMixin-class.html">rekall.plugins.windows.common.KDBGMixin</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugin.Command-class.html#name" class="summary-name">name</a>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="dump_hive"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">dump_hive</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">hive_offset</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">reg</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">fd</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.registry.printkey-pysrc.html#RegDump.dump_hive">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Write the hive into the fd.
+
+Args:
+  hive_offset: The virtual offset where the hive is located.
+  reg: Optionally an instance of registry.Registry helper. If provided
+    hive_offset is ignored.
+  fd: The file like object we write to.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="render"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">render</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">renderer</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.registry.printkey-pysrc.html#RegDump.render">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Produce results on the renderer given.
+
+Each plugin should implement this method to produce output on the
+renderer. The framework will initialize the plugin and provide it with
+some kind of renderer to write output on. The plugin should not assume
+that the renderer is actually TextRenderer, only that the methods
+defined in the BaseRenderer exist.
+
+Args:
+  renderer: A renderer based at rekall.ui.renderer.BaseRenderer.
+
+</pre>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.plugin.Command-class.html#render">plugin.Command.render</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:22:12 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

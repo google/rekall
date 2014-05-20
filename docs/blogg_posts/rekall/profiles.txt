@@ -1,0 +1,285 @@
+Rekall Profiles
+===============
+:author: Michael Cohen <scudette@google.com>
+:date: Feb 19 2014
+
+Rekall started life as a fork from the Volatility project. Volatility uses
+profiles to control the parsing of memory. For example, in Volatility one must
+specify the profile before analysis begins:
+
+--------------------------------------------------------------------------
+$ vol.py -f myimage.dd --profile Win7SP1x86 pslist
+--------------------------------------------------------------------------
+
+What is a profile?
+------------------
+
+So what is this profile? A profile provides the application with specialized
+support for precisely the operating system version which is running inside the
+image. Why do we need specialized support? In order to make sense of the memory
+image.
+
+Lets take a step back and examine how memory is used by a running computer. The
+physical memory itself is simply a series of zeros and ones, without any
+semantic context at all. The processor is free to read/write from arbitrary
+locations (sans alignment restrictions). However, computer programs need to
+organize this memory so they can store meaningful data. For example, in the C
+programming language one can define a `struct` which specifies how variables are
+laid out in memory (For all the details see
+https://docs.google.com/presentation/d/1KsZGF6cQ-N8ngABFGCZf8pTQQ5CZ19VoAHq5cO5ZPdE[this
+workshop]):
+
+--------------------------------------------------------------------------
+typedef unsigned char uchar;
+enum {
+  OPT1,
+  OPT2
+} options;
+
+struct foobar {
+    enum options flags;
+    short int bar;
+    uchar *foo;
+}
+--------------------------------------------------------------------------
+
+Using this information, the compiler can devise a layout of how to store each
+variable in memory. Since Rekall only receives the memory as a contiguous block
+of ones and zeros, we need to know where each parameter is laid out in memory.
+
+This problem is actually common to a debugger. The debugger needs to also
+retrieve the struct members so it can display them to the user. It turns out
+that to make debugging easier, compilers generate exact layout information for
+every data type they have. This way the debugger can see where in memory
+(relative to the struct offset) is each parameter.
+
+Rekall (and Volatility) use this debugging information to know how to extract
+each struct member from memory. We construct a python data structure which
+specifies exactly how to extract each field by parsing the debugging symbols.
+
+For example, the above `struct foo` might by described by:
+
+--------------------------------------------------------------------------
+vtypes = {
+  'foobar': [12, {
+     'flags': [0, ['Enumeration', dict(
+        target="unsigned int",
+        choices={
+          1: "OPT1",
+          2: "OPT2",
+          },
+        )]],
+     'bar: [4, ['unsigned short int']],
+     'foo: [8, ['Pointer', dict(target="unsigned char")]],
+}
+--------------------------------------------------------------------------
+
+Note that:
+
+* The description is purely data. It consists of field names, offsets and type names.
+
+* The precise offset of each field is provided explicitly. This is different
+  from many other parsing libraries (e.g. `Construct`) which require all fields
+  to be specified (or padding fields to be inserted). This special feature allows:
+
+  * To write sparse struct definitions - i.e. definitions where not all the
+    fields are known.
+
+  * Alias fields (e.g. implement a union) where different types are all located
+    in the same memory address.
+
+A profile is actually a collection of such vtype definitions (among other
+things) which provides the rest of the code with the specific memory layout of
+the struct members. You can think of it as a template which is overlayed on top
+of the memory to select the individual field members.
+
+Typically to analyze an operating system, the profile is generated from
+debugging symbols for the kernel binary itself.
+
+How do we deal with versions?
+-----------------------------
+
+As operating systems evolve over time, the source code changes in very subtle
+ways. For example, assume the above struct definition is altered to add an
+additional field:
+
+--------------------------------------------------------------------------
+struct foobar {
+    unsigned int new_field;
+    enum options flags;
+    short int bar;
+    uchar *foo;
+}
+--------------------------------------------------------------------------
+
+Now to make space for the new field, all subsequent fields are pushed up by 4
+bytes. This means the vtype definition we have above is wrong, since the offsets
+for all the fields have changed. If we tried to use the old template on the
+memory image from the new operating system, we will think that the `new_field`
+is actually `flags`, the `flags` field is actually `bar` etc.
+
+So generally a profile must match the exact version of the operating system
+kernel we are analyzing. Slight version mismatches might still work but not
+reliably (Struct definitions which have not changed between versions will
+continue to work, but if some of the types were slightly modified our analysis
+will break).
+
+So how does Volatility solve this problem?
+
+* Volatility has many windows profiles embedded into its source code. For
+  example there is a profile for Windows XP Service Pack 3, one for Windows
+  Vista Service Pack 2 etc. Also included are profiles for the different
+  architectures (x86 and x64).
+
+* For OSX, one has to download the profile pack from the Volatility site. These
+  are Zip files containing the textual output of dwarfdump (the dump of
+  debugging symbols). When running on an OSX image, Volatility opens the zip
+  file, parses the output of dwarfdump into an in memory python data structure
+  before proceeding with the analysis. Each OSX profile is approximately 1mb,
+  making the entire profile pack around 50mb big.
+
+* For Linux there are so many versions, that users must build their own by
+  compiling a kernel module in debug mode, and dumping the output of
+  dwarfdump. Again the profile is a zip file containing the output of the linux
+  dwarfdump (which is actually slightly different from the OSX one). Again this
+  must be parsed by the program before any analysis can begin.
+
+
+There are a number of problems with this approach:
+
+1. Windows profiles are included in the code base, which means that all windows
+   profiles are always loaded into memory all the time (even when analyzing a
+   different version of windows).
+
+2. There are about 20-30 different windows profiles. In practice there are
+   hundreds of released builds of the windows kernel. So the profiles that are
+   included in Volatility are only representative to the precise version. As
+   discussed above, one need to have the exact profile version for reliable
+   memory analysis. Hence there is bound to be some variability between the
+   profile version provided by Volatility and the one needed for the actual
+   image.
+
+3. This is simply not scalable - there is a limit of how many profiles one can
+   include with the code. For OSX the profiles must be downloaded separately,
+   and for linux they must be built. You cant really use it as a library
+   included into a third party with such a huge memory footprint.
+
+4. It is also very slow. Due to the plugin model in Volatility, profiles are
+   placed inside one of the plugins directory. When Volatility starts up it
+   tries to load all files inside its plugin directory. This means you cant just
+   point Volatility into your profiles directory because it will always try to
+   open *every single profile* you have in there.
+
+5. The profile format is not consistent between operating systems. The OSX
+   profiles are parsed using OSX specific parsers, Linux is parsed using a
+   textual based dwarf parser, while windows profiles must be inserted into the
+   code manually.
+
+6. The profiles are very slow to parse. The dwarfparsers used for Linux and OSX
+   profiles are actually parsing the textual output of the `dwarfdump` program -
+   this is quite slow and not really needed.
+
+
+Since it is important to the Rekall project to minimize memory footprint (so it
+can be used as a library) and also to improve performance, we had to redesign
+how profiles work:
+
+- We observed that the profile contains the vtype definitions for the specific
+  operating system involved. The vtype definitions are just a static data
+  structure consisting of lists, dicts, strings and numbers. This means we can
+  store the profile in a data file, instead of embed it as python code.
+
+- In python, textual parsing is pretty expensive. Especially parsing the output
+  of dwarfdump is pretty slow. We observed that profiles are written only once
+  (when dumping the output of dwarfdump) but are read every single time the tool
+  runs. It therefore makes sense to write the profile in a format which is
+  optimized for loading very fast with minimal parsing. Since the vtype
+  definition is just a data structure, we know that in Python, JSON is the
+  fastest serialization for simple data structures there is. (Maybe cPickle is
+  faster but we wanted to stay away from pickles to enable the safe interchange
+  of profiles).
+
+- Finally we observed that for Linux and OSX (and actually for windows too, as
+  explained in a future blog post), the zip file contains a number of different
+  types of data. The Zip file contains the vtype description of all the structs
+  using in the kernel, but also it contains the offsets of global symbols (e.g
+  the kernel system map).  For analysing these we need both symbols and
+  constants to represent the kernel version.
+
+
+In Rekall, the profile is a simple data structure (using strings, dict, lists
+and numbers) which represents a specific version of the kernel. Rather than
+separate the different types of information (e.g. vtypes and constants) into
+different members of a zip file, we combine them all into a single dict. Here is
+an example of a Linux Ubuntu 3.8.0-27 kernel:
+
+
+--------------------------------------------------------------------------
+{
+ "$CONSTANTS": {
+  ".brk.dmi_alloc": 18446744071598981120,
+  ".brk.m2p_overrides": 18446744071598964736,
+  ".brk.p2m_identity": 18446744071594827776,
+  ".brk.p2m_mid": 18446744071594831872,
+  ".brk.p2m_mid_identity": 18446744071598927872,
+  ".brk.p2m_mid_mfn": 18446744071596879872,
+  ".brk.p2m_mid_missing": 18446744071594807296,
+  ".brk.p2m_mid_missing_mfn": 18446744071594811392,
+  ".brk.p2m_missing": 18446744071594803200,
+  ".brk.p2m_populated": 18446744071598952448,
+....
+
+"$METADATA": {
+  "ProfileClass": "Linux64",
+  "Type": "Profile"
+  },
+ "$STRUCTS": {
+  "__raw_tickets": [4, {
+   "head": [0, ["short unsigned int"]],
+   "tail": [2, ["short unsigned int"]]
+   }],
+....
+
+--------------------------------------------------------------------------
+
+We can see that the top level object is a dict, with keys like "$CONSTANTS",
+"$METADATA", "$STRUCTS". These are called profile `sections`. For example, the
+most common sections are:
+
+`$CONSTANTS`: A dict of constants and their offsets in memory.
+
+`$STRUCTS`: The vtype description of all structs in this kernel version.
+
+`$METADATA`: This describes the kernel, it contains the name of the python class
+  that implements this profile, the kernel's build version, architecture etc.
+
+
+The whole data structure is serialized using JSON into a file and is loaded at
+once using pythons json.load() function (This function is actually implemented
+in C and is extremely fast).
+
+An interesting optimization is the realization that if dictionaries are sorted
+in the json file, then gzip will work much more effectively (since the data will
+naturally contain a lot of repeated common prefixes - especially with the very
+large system map). This makes the JSON files much smaller on disk than the
+Volatility profiles. For example, the Volatility profile for OSX
+Lion_10.7_AMD.zip is about 1.2mb while the Rekall profile for the same version
+is 336kb. Both profiles contain the same information and are both compressed.
+
+The Rekall profile format is standard across all supported operating
+systems. Even though generating the profiles uses different mechanism for
+different operating systems (i.e. parsing PDB files for windows, parsing dwarf
+files for Linux, parsing debug kernels for OSX), the final output is exactly the
+same. This makes the profile loading code in Rekall much simpler.
+
+It is possible to convert existing Volatility profiles into the Rekall format by
+using the convert_profile plugin (This might be useful when migrating old
+profiles from Volatility to Rekall):
+
+--------------------------------------------------------------------------
+$ rekall convert_profile ./profiles/Volatility/SnowLeopard_10.6.6_AMD.zip ./OSX_10.6.6_AMD.json
+$ rekall -f OSX_image.dd --profile ./OSX_10.6.6_AMD.json
+--------------------------------------------------------------------------
+
+In a future post we discuss how Rekall profiles are organized into a public
+profile repository.

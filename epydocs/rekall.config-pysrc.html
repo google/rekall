@@ -1,0 +1,956 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.config</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        Module&nbsp;config
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.config-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.config-module.html">Module rekall.config</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment">#!/usr/bin/python</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># Rekall</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment"># Copyright (C) 2012 Michael Cohen &lt;scudette@gmail.com&gt;</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2013 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring">"""This is the Rekall configuration system.</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-docstring">Rekall maintains a persistent file with global settings in the user's home</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-docstring">directory. This makes it easy for users to retain commonly used Rekall</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-docstring">parameters.</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-docstring">Note that the configuration file is only used in interactive mode. When used as</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-docstring">a library the configuration file has no effect.</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">"Michael Cohen &lt;scudette@gmail.com&gt;"</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">argparse</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">re</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">yaml</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.constants=rekall.constants-module.html,Variable rekall.obj.Profile.constants=rekall.obj.Profile-class.html#constants,Module rekall.plugins.windows.gui.constants=rekall.plugins.windows.gui.constants-module.html"><a title="rekall.constants
+rekall.obj.Profile.constants
+rekall.plugins.windows.gui.constants" class="py-name" href="#" onclick="return doclink('link-1', 'constants', 'link-1');">constants</a></tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"> </tt>
+<a name="GetHomeDir"></a><div id="GetHomeDir-def"><a name="L42"></a><tt class="py-lineno"> 42</tt> <a class="py-toggle" href="#" id="GetHomeDir-toggle" onclick="return toggle('GetHomeDir');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.config-module.html#GetHomeDir">GetHomeDir</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GetHomeDir-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="GetHomeDir-expanded"><a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">environ</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Method rekall.entity.Entity.get()=rekall.entity.Entity-class.html#get"><a title="rekall.entity.Entity.get" class="py-name" href="#" onclick="return doclink('link-2', 'get', 'link-2');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">"HOME"</tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt>      <tt class="py-comment"># Unix</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">            <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">environ</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name"><a title="rekall.entity.Entity.get" class="py-name" href="#" onclick="return doclink('link-3', 'get', 'link-2');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">"USERPROFILE"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> <tt class="py-comment"># Windows</tt> </tt>
+</div><a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-comment"># This is the configuration file template which will be created if the user does</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-comment"># not have an existing file. The aim is not to exhaustively list all possible</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-comment"># options, rather to ensure that reasonable defaults are specified initially.</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt id="link-4" class="py-name" targets="Variable rekall.config.DEFAULT_CONFIGURATION=rekall.config-module.html#DEFAULT_CONFIGURATION"><a title="rekall.config.DEFAULT_CONFIGURATION" class="py-name" href="#" onclick="return doclink('link-4', 'DEFAULT_CONFIGURATION', 'link-4');">DEFAULT_CONFIGURATION</a></tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">    <tt class="py-name">profile_path</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt id="link-5" class="py-name"><a title="rekall.constants
+rekall.obj.Profile.constants
+rekall.plugins.windows.gui.constants" class="py-name" href="#" onclick="return doclink('link-5', 'constants', 'link-1');">constants</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Variable rekall.constants.PROFILE_REPOSITORY=rekall.constants-module.html#PROFILE_REPOSITORY"><a title="rekall.constants.PROFILE_REPOSITORY" class="py-name" href="#" onclick="return doclink('link-6', 'PROFILE_REPOSITORY', 'link-6');">PROFILE_REPOSITORY</a></tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">    <tt class="py-comment"># By default we just drop the notebooks at the home directory.</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">    <tt class="py-name">notebook_dir</tt><tt class="py-op">=</tt><tt id="link-7" class="py-name" targets="Function rekall.config.GetHomeDir()=rekall.config-module.html#GetHomeDir"><a title="rekall.config.GetHomeDir" class="py-name" href="#" onclick="return doclink('link-7', 'GetHomeDir', 'link-7');">GetHomeDir</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">    <tt class="py-op">)</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt id="link-8" class="py-name" targets="Variable rekall.config.OPTIONS=rekall.config-module.html#OPTIONS"><a title="rekall.config.OPTIONS" class="py-name" href="#" onclick="return doclink('link-8', 'OPTIONS', 'link-8');">OPTIONS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"> </tt>
+<a name="GetConfigFile"></a><div id="GetConfigFile-def"><a name="L61"></a><tt class="py-lineno"> 61</tt> <a class="py-toggle" href="#" id="GetConfigFile-toggle" onclick="return toggle('GetConfigFile');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.config-module.html#GetConfigFile">GetConfigFile</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GetConfigFile-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="GetConfigFile-expanded"><a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">    <tt class="py-docstring">"""Gets the configuration stored in the config file.</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"><tt class="py-docstring">    Searches for the config file in reasonable locations.</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">    Return:</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-docstring">      configuration stored in the config file. If the file is not found, returns</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-docstring">      an empty configuration.</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">    <tt class="py-name">search_path</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">".rekallrc"</tt><tt class="py-op">]</tt>  <tt class="py-comment"># Current directory.</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">    <tt class="py-name">homedir</tt> <tt class="py-op">=</tt> <tt id="link-9" class="py-name"><a title="rekall.config.GetHomeDir" class="py-name" href="#" onclick="return doclink('link-9', 'GetHomeDir', 'link-7');">GetHomeDir</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">homedir</tt><tt class="py-op">:</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-name">search_path</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">"%s/.rekallrc"</tt> <tt class="py-op">%</tt> <tt class="py-name">homedir</tt><tt class="py-op">)</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">    <tt class="py-name">search_path</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">"/etc/rekallrc"</tt><tt class="py-op">)</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt id="link-10" class="py-name" targets="Variable rekall.plugins.overlays.linux.linux.dentry.path=rekall.plugins.overlays.linux.linux.dentry-class.html#path"><a title="rekall.plugins.overlays.linux.linux.dentry.path" class="py-name" href="#" onclick="return doclink('link-10', 'path', 'link-10');">path</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">search_path</tt><tt class="py-op">:</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt id="link-11" class="py-name"><a title="rekall.plugins.overlays.linux.linux.dentry.path" class="py-name" href="#" onclick="return doclink('link-11', 'path', 'link-10');">path</a></tt><tt class="py-op">,</tt> <tt class="py-string">"rb"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt id="link-12" class="py-name" targets="Variable rekall.components.Handle.fd=rekall.components.Handle-class.html#fd"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-12', 'fd', 'link-12');">fd</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">yaml</tt><tt class="py-op">.</tt><tt class="py-name">safe_load</tt><tt class="py-op">(</tt><tt id="link-13" class="py-name"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-13', 'fd', 'link-12');">fd</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-op">(</tt><tt class="py-name">IOError</tt><tt class="py-op">,</tt> <tt class="py-name">ValueError</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">            <tt class="py-keyword">pass</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+</div><a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"> </tt>
+<a name="MergeConfigOptions"></a><div id="MergeConfigOptions-def"><a name="L87"></a><tt class="py-lineno"> 87</tt> <a class="py-toggle" href="#" id="MergeConfigOptions-toggle" onclick="return toggle('MergeConfigOptions');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.config-module.html#MergeConfigOptions">MergeConfigOptions</a><tt class="py-op">(</tt><tt class="py-param">state</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MergeConfigOptions-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="MergeConfigOptions-expanded"><a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">    <tt class="py-docstring">"""Read the config file and apply the config options to the session."""</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">    <tt class="py-comment"># First apply the defaults:</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt id="link-14" class="py-name" targets="Variable rekall.components._=rekall.components-module.html#_"><a title="rekall.components._" class="py-name" href="#" onclick="return doclink('link-14', '_', 'link-14');">_</a></tt><tt class="py-op">,</tt> <tt id="link-15" class="py-name"><a title="rekall.components._" class="py-name" href="#" onclick="return doclink('link-15', '_', 'link-14');">_</a></tt><tt class="py-op">,</tt> <tt id="link-16" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.components.Named.name=rekall.components.Named-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.addrspaces.ewf.name=rekall.plugins.addrspaces.ewf-module.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.linux.common.KASLRHook.name=rekall.plugins.linux.common.KASLRHook-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKASLR.name=rekall.plugins.linux.common.LinuxFindKASLR-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-16', 'name', 'link-16');">name</a></tt><tt class="py-op">,</tt> <tt id="link-17" class="py-name" targets="Method rekall.obj.ProfileLog.JSONEncoder.default()=rekall.obj.ProfileLog.JSONEncoder-class.html#default"><a title="rekall.obj.ProfileLog.JSONEncoder.default" class="py-name" href="#" onclick="return doclink('link-17', 'default', 'link-17');">default</a></tt><tt class="py-op">,</tt> <tt id="link-18" class="py-name"><a title="rekall.components._" class="py-name" href="#" onclick="return doclink('link-18', '_', 'link-14');">_</a></tt> <tt class="py-keyword">in</tt> <tt id="link-19" class="py-name"><a title="rekall.config.OPTIONS" class="py-name" href="#" onclick="return doclink('link-19', 'OPTIONS', 'link-8');">OPTIONS</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">        <tt id="link-20" class="py-name" targets="Variable rekall.components.Connection.state=rekall.components.Connection-class.html#state,Variable rekall.components.Thread.state=rekall.components.Thread-class.html#state"><a title="rekall.components.Connection.state
+rekall.components.Thread.state" class="py-name" href="#" onclick="return doclink('link-20', 'state', 'link-20');">state</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name" targets="Method rekall.session.Cache.Set()=rekall.session.Cache-class.html#Set,Method rekall.session.Configuration.Set()=rekall.session.Configuration-class.html#Set,Method rekall.utils.AttributeDict.Set()=rekall.utils.AttributeDict-class.html#Set"><a title="rekall.session.Cache.Set
+rekall.session.Configuration.Set
+rekall.utils.AttributeDict.Set" class="py-name" href="#" onclick="return doclink('link-21', 'Set', 'link-21');">Set</a></tt><tt class="py-op">(</tt><tt id="link-22" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-22', 'name', 'link-16');">name</a></tt><tt class="py-op">,</tt> <tt id="link-23" class="py-name"><a title="rekall.obj.ProfileLog.JSONEncoder.default" class="py-name" href="#" onclick="return doclink('link-23', 'default', 'link-17');">default</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">    <tt class="py-name">config_data</tt> <tt class="py-op">=</tt> <tt id="link-24" class="py-name" targets="Function rekall.config.GetConfigFile()=rekall.config-module.html#GetConfigFile"><a title="rekall.config.GetConfigFile" class="py-name" href="#" onclick="return doclink('link-24', 'GetConfigFile', 'link-24');">GetConfigFile</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">    <tt class="py-comment"># An empty configuration file - we try to initialize a new one.</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">config_data</tt><tt class="py-op">:</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-name">homedir</tt> <tt class="py-op">=</tt> <tt id="link-25" class="py-name"><a title="rekall.config.GetHomeDir" class="py-name" href="#" onclick="return doclink('link-25', 'GetHomeDir', 'link-7');">GetHomeDir</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">homedir</tt><tt class="py-op">:</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">                <tt class="py-name">filename</tt> <tt class="py-op">=</tt> <tt class="py-string">"%s/.rekallrc"</tt> <tt class="py-op">%</tt> <tt class="py-name">homedir</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">                <tt class="py-keyword">with</tt> <tt class="py-name">open</tt><tt class="py-op">(</tt><tt class="py-name">filename</tt><tt class="py-op">,</tt> <tt class="py-string">"wb"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt id="link-26" class="py-name"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-26', 'fd', 'link-12');">fd</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">                    <tt class="py-name">yaml</tt><tt class="py-op">.</tt><tt class="py-name">dump</tt><tt class="py-op">(</tt><tt id="link-27" class="py-name"><a title="rekall.config.DEFAULT_CONFIGURATION" class="py-name" href="#" onclick="return doclink('link-27', 'DEFAULT_CONFIGURATION', 'link-4');">DEFAULT_CONFIGURATION</a></tt><tt class="py-op">,</tt> <tt id="link-28" class="py-name"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-28', 'fd', 'link-12');">fd</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">                <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"Created new configuration file %s"</tt><tt class="py-op">,</tt> <tt class="py-name">filename</tt><tt class="py-op">)</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">                <tt class="py-name">config_data</tt> <tt class="py-op">=</tt> <tt id="link-29" class="py-name"><a title="rekall.config.DEFAULT_CONFIGURATION" class="py-name" href="#" onclick="return doclink('link-29', 'DEFAULT_CONFIGURATION', 'link-4');">DEFAULT_CONFIGURATION</a></tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">IOError</tt><tt class="py-op">:</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">                <tt class="py-keyword">pass</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">    <tt class="py-comment"># Can not write it anywhere but at least we start with something sensible.</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">config_data</tt><tt class="py-op">:</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-name">config_data</tt> <tt class="py-op">=</tt> <tt id="link-30" class="py-name"><a title="rekall.config.DEFAULT_CONFIGURATION" class="py-name" href="#" onclick="return doclink('link-30', 'DEFAULT_CONFIGURATION', 'link-4');">DEFAULT_CONFIGURATION</a></tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt> <tt id="link-31" class="py-name" targets="Method rekall.obj.BaseObject.v()=rekall.obj.BaseObject-class.html#v,Method rekall.obj.BitField.v()=rekall.obj.BitField-class.html#v,Method rekall.obj.NativeType.v()=rekall.obj.NativeType-class.html#v,Method rekall.obj.Pointer.v()=rekall.obj.Pointer-class.html#v,Method rekall.obj.Struct.v()=rekall.obj.Struct-class.html#v,Method rekall.obj.Void.v()=rekall.obj.Void-class.html#v,Method rekall.plugins.overlays.basic.Enumeration.v()=rekall.plugins.overlays.basic.Enumeration-class.html#v,Method rekall.plugins.overlays.basic.Flags.v()=rekall.plugins.overlays.basic.Flags-class.html#v,Method rekall.plugins.overlays.basic.Ipv4Address.v()=rekall.plugins.overlays.basic.Ipv4Address-class.html#v,Method rekall.plugins.overlays.basic.Ipv6Address.v()=rekall.plugins.overlays.basic.Ipv6Address-class.html#v,Method rekall.plugins.overlays.basic.MacAddress.v()=rekall.plugins.overlays.basic.MacAddress-class.html#v,Method rekall.plugins.overlays.basic.String.v()=rekall.plugins.overlays.basic.String-class.html#v,Method rekall.plugins.overlays.basic.UnicodeString.v()=rekall.plugins.overlays.basic.UnicodeString-class.html#v,Method rekall.plugins.overlays.basic.WinFileTime.v()=rekall.plugins.overlays.basic.WinFileTime-class.html#v,Method rekall.plugins.overlays.basic.timeval.v()=rekall.plugins.overlays.basic.timeval-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v()=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v()=rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer-class.html#v,Method rekall.plugins.windows.pfn.ValueEnumeration.v()=rekall.plugins.windows.pfn.ValueEnumeration-class.html#v,Method rekall.session.InteractiveSession.v()=rekall.session.InteractiveSession-class.html#v"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-31', 'v', 'link-31');">v</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">config_data</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name" targets="Method rekall.plugins.overlays.darwin.darwin.OSDictionary.items()=rekall.plugins.overlays.darwin.darwin.OSDictionary-class.html#items"><a title="rekall.plugins.overlays.darwin.darwin.OSDictionary.items" class="py-name" href="#" onclick="return doclink('link-32', 'items', 'link-32');">items</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">        <tt id="link-33" class="py-name"><a title="rekall.components.Connection.state
+rekall.components.Thread.state" class="py-name" href="#" onclick="return doclink('link-33', 'state', 'link-20');">state</a></tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.session.Cache.Set
+rekall.session.Configuration.Set
+rekall.utils.AttributeDict.Set" class="py-name" href="#" onclick="return doclink('link-34', 'Set', 'link-21');">Set</a></tt><tt class="py-op">(</tt><tt class="py-name">k</tt><tt class="py-op">,</tt> <tt id="link-35" class="py-name"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-35', 'v', 'link-31');">v</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"> </tt>
+<a name="DeclareOption"></a><div id="DeclareOption-def"><a name="L116"></a><tt class="py-lineno">116</tt> <a class="py-toggle" href="#" id="DeclareOption-toggle" onclick="return toggle('DeclareOption');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.config-module.html#DeclareOption">DeclareOption</a><tt class="py-op">(</tt><tt class="py-param">short_name</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">name</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">default</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-param">group</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">                  <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="DeclareOption-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="DeclareOption-expanded"><a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">    <tt class="py-docstring">"""Record the options."""</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-36" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-36', 'name', 'link-16');">name</a></tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">        <tt id="link-37" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-37', 'name', 'link-16');">name</a></tt> <tt class="py-op">=</tt> <tt class="py-name">short_name</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">        <tt class="py-name">short_name</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line"> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">    <tt id="link-38" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-38', 'name', 'link-16');">name</a></tt> <tt class="py-op">=</tt> <tt id="link-39" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-39', 'name', 'link-16');">name</a></tt><tt class="py-op">.</tt><tt class="py-name">strip</tt><tt class="py-op">(</tt><tt class="py-string">"-"</tt><tt class="py-op">)</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">short_name</tt><tt class="py-op">:</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">        <tt class="py-name">short_name</tt> <tt class="py-op">=</tt> <tt class="py-name">short_name</tt><tt class="py-op">.</tt><tt class="py-name">strip</tt><tt class="py-op">(</tt><tt class="py-string">"-"</tt><tt class="py-op">)</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line"> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">    <tt id="link-40" class="py-name"><a title="rekall.config.OPTIONS" class="py-name" href="#" onclick="return doclink('link-40', 'OPTIONS', 'link-8');">OPTIONS</a></tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">group</tt><tt class="py-op">,</tt> <tt class="py-name">short_name</tt><tt class="py-op">,</tt> <tt id="link-41" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-41', 'name', 'link-16');">name</a></tt><tt class="py-op">,</tt> <tt id="link-42" class="py-name"><a title="rekall.obj.ProfileLog.JSONEncoder.default" class="py-name" href="#" onclick="return doclink('link-42', 'default', 'link-17');">default</a></tt><tt class="py-op">,</tt> <tt class="py-name">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line"> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line"> </tt>
+<a name="RegisterArgParser"></a><div id="RegisterArgParser-def"><a name="L130"></a><tt class="py-lineno">130</tt> <a class="py-toggle" href="#" id="RegisterArgParser-toggle" onclick="return toggle('RegisterArgParser');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.config-module.html#RegisterArgParser">RegisterArgParser</a><tt class="py-op">(</tt><tt class="py-param">parser</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RegisterArgParser-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="RegisterArgParser-expanded"><a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">    <tt class="py-docstring">"""Register the options into the parser."""</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">    <tt class="py-name">groups</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">group</tt><tt class="py-op">,</tt> <tt class="py-name">short_name</tt><tt class="py-op">,</tt> <tt id="link-43" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-43', 'name', 'link-16');">name</a></tt><tt class="py-op">,</tt> <tt id="link-44" class="py-name"><a title="rekall.components._" class="py-name" href="#" onclick="return doclink('link-44', '_', 'link-14');">_</a></tt><tt class="py-op">,</tt> <tt class="py-name">kwargs</tt> <tt class="py-keyword">in</tt> <tt class="py-name">sorted</tt><tt class="py-op">(</tt><tt id="link-45" class="py-name"><a title="rekall.config.OPTIONS" class="py-name" href="#" onclick="return doclink('link-45', 'OPTIONS', 'link-8');">OPTIONS</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-46" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-46', 'name', 'link-16');">name</a></tt><tt class="py-op">.</tt><tt id="link-47" class="py-name" targets="Method rekall.plugins.overlays.basic.String.startswith()=rekall.plugins.overlays.basic.String-class.html#startswith"><a title="rekall.plugins.overlays.basic.String.startswith" class="py-name" href="#" onclick="return doclink('link-47', 'startswith', 'link-47');">startswith</a></tt><tt class="py-op">(</tt><tt class="py-string">"--"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">            <tt id="link-48" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-48', 'name', 'link-16');">name</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"--"</tt> <tt class="py-op">+</tt> <tt id="link-49" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-49', 'name', 'link-16');">name</a></tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">short_name</tt> <tt class="py-keyword">and</tt> <tt class="py-keyword">not</tt> <tt class="py-name">short_name</tt><tt class="py-op">.</tt><tt id="link-50" class="py-name"><a title="rekall.plugins.overlays.basic.String.startswith" class="py-name" href="#" onclick="return doclink('link-50', 'startswith', 'link-47');">startswith</a></tt><tt class="py-op">(</tt><tt class="py-string">"-"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">            <tt class="py-name">short_name</tt> <tt class="py-op">=</tt> <tt class="py-string">"-"</tt> <tt class="py-op">+</tt> <tt class="py-name">short_name</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">        <tt class="py-name">kwargs</tt><tt class="py-op">[</tt><tt class="py-string">"default"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">argparse</tt><tt class="py-op">.</tt><tt class="py-name">SUPPRESS</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">group</tt><tt class="py-op">:</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">                <tt class="py-name">arg_group</tt> <tt class="py-op">=</tt> <tt class="py-name">groups</tt><tt class="py-op">[</tt><tt class="py-name">group</tt><tt class="py-op">]</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">KeyError</tt><tt class="py-op">:</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">                <tt class="py-name">groups</tt><tt class="py-op">[</tt><tt class="py-name">group</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">arg_group</tt> <tt class="py-op">=</tt> <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_argument_group</tt><tt class="py-op">(</tt><tt class="py-name">group</tt><tt class="py-op">)</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line"> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">short_name</tt><tt class="py-op">:</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">                <tt class="py-name">arg_group</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name" targets="Method rekall.args.MockArgParser.add_argument()=rekall.args.MockArgParser-class.html#add_argument,Method rekall.plugins.core.DummyParser.add_argument()=rekall.plugins.core.DummyParser-class.html#add_argument,Method rekall.plugins.tools.webconsole.FakeParser.add_argument()=rekall.plugins.tools.webconsole.FakeParser-class.html#add_argument"><a title="rekall.args.MockArgParser.add_argument
+rekall.plugins.core.DummyParser.add_argument
+rekall.plugins.tools.webconsole.FakeParser.add_argument" class="py-name" href="#" onclick="return doclink('link-51', 'add_argument', 'link-51');">add_argument</a></tt><tt class="py-op">(</tt><tt class="py-name">short_name</tt><tt class="py-op">,</tt> <tt id="link-52" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-52', 'name', 'link-16');">name</a></tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">                <tt class="py-name">arg_group</tt><tt class="py-op">.</tt><tt id="link-53" class="py-name"><a title="rekall.args.MockArgParser.add_argument
+rekall.plugins.core.DummyParser.add_argument
+rekall.plugins.tools.webconsole.FakeParser.add_argument" class="py-name" href="#" onclick="return doclink('link-53', 'add_argument', 'link-51');">add_argument</a></tt><tt class="py-op">(</tt><tt id="link-54" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-54', 'name', 'link-16');">name</a></tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line"> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">short_name</tt><tt class="py-op">:</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">                <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt id="link-55" class="py-name"><a title="rekall.args.MockArgParser.add_argument
+rekall.plugins.core.DummyParser.add_argument
+rekall.plugins.tools.webconsole.FakeParser.add_argument" class="py-name" href="#" onclick="return doclink('link-55', 'add_argument', 'link-51');">add_argument</a></tt><tt class="py-op">(</tt><tt class="py-name">short_name</tt><tt class="py-op">,</tt> <tt id="link-56" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-56', 'name', 'link-16');">name</a></tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">                <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="rekall.args.MockArgParser.add_argument
+rekall.plugins.core.DummyParser.add_argument
+rekall.plugins.tools.webconsole.FakeParser.add_argument" class="py-name" href="#" onclick="return doclink('link-57', 'add_argument', 'link-51');">add_argument</a></tt><tt class="py-op">(</tt><tt id="link-58" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-58', 'name', 'link-16');">name</a></tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line"> </tt>
+<a name="IntParser"></a><div id="IntParser-def"><a name="L160"></a><tt class="py-lineno">160</tt> <a class="py-toggle" href="#" id="IntParser-toggle" onclick="return toggle('IntParser');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.config.IntParser-class.html">IntParser</a><tt class="py-op">(</tt><tt class="py-base-class">argparse</tt><tt class="py-op">.</tt><tt class="py-base-class">Action</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IntParser-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="IntParser-expanded"><a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">    <tt class="py-docstring">"""Class to parse ints either in hex or as ints."""</tt> </tt>
+<a name="IntParser.parse_int"></a><div id="IntParser.parse_int-def"><a name="L162"></a><tt class="py-lineno">162</tt> <a class="py-toggle" href="#" id="IntParser.parse_int-toggle" onclick="return toggle('IntParser.parse_int');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.config.IntParser-class.html#parse_int">parse_int</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IntParser.parse_int-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IntParser.parse_int-expanded"><a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">        <tt class="py-comment"># Support suffixes</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">        <tt class="py-name">multiplier</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">        <tt id="link-59" class="py-name" targets="Method rekall.obj.BaseObject.m()=rekall.obj.BaseObject-class.html#m,Method rekall.obj.Pointer.m()=rekall.obj.Pointer-class.html#m,Method rekall.obj.Struct.m()=rekall.obj.Struct-class.html#m"><a title="rekall.obj.BaseObject.m
+rekall.obj.Pointer.m
+rekall.obj.Struct.m" class="py-name" href="#" onclick="return doclink('link-59', 'm', 'link-59');">m</a></tt> <tt class="py-op">=</tt> <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">search</tt><tt class="py-op">(</tt><tt class="py-string">"(.*)(mb|kb|m|k)"</tt><tt class="py-op">,</tt> <tt class="py-name">value</tt><tt class="py-op">)</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt id="link-60" class="py-name"><a title="rekall.obj.BaseObject.m
+rekall.obj.Pointer.m
+rekall.obj.Struct.m" class="py-name" href="#" onclick="return doclink('link-60', 'm', 'link-59');">m</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">            <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt id="link-61" class="py-name"><a title="rekall.obj.BaseObject.m
+rekall.obj.Pointer.m
+rekall.obj.Struct.m" class="py-name" href="#" onclick="return doclink('link-61', 'm', 'link-59');">m</a></tt><tt class="py-op">.</tt><tt class="py-name">group</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">            <tt class="py-name">suffix</tt> <tt class="py-op">=</tt> <tt id="link-62" class="py-name"><a title="rekall.obj.BaseObject.m
+rekall.obj.Pointer.m
+rekall.obj.Struct.m" class="py-name" href="#" onclick="return doclink('link-62', 'm', 'link-59');">m</a></tt><tt class="py-op">.</tt><tt class="py-name">group</tt><tt class="py-op">(</tt><tt class="py-number">2</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">lower</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">suffix</tt> <tt class="py-keyword">in</tt> <tt class="py-op">(</tt><tt class="py-string">"mb"</tt><tt class="py-op">,</tt> <tt class="py-string">"m"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">                <tt class="py-name">multiplier</tt> <tt class="py-op">=</tt> <tt class="py-number">1024</tt> <tt class="py-op">*</tt> <tt class="py-number">1024</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt class="py-name">suffix</tt> <tt class="py-keyword">in</tt> <tt class="py-op">(</tt><tt class="py-string">"kb"</tt><tt class="py-op">,</tt> <tt class="py-string">"k"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">                <tt class="py-name">multiplier</tt> <tt class="py-op">=</tt> <tt class="py-number">1024</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line"> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">value</tt><tt class="py-op">.</tt><tt id="link-63" class="py-name"><a title="rekall.plugins.overlays.basic.String.startswith" class="py-name" href="#" onclick="return doclink('link-63', 'startswith', 'link-47');">startswith</a></tt><tt class="py-op">(</tt><tt class="py-string">"0x"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">                <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">,</tt> <tt class="py-number">16</tt><tt class="py-op">)</tt> <tt class="py-op">*</tt> <tt class="py-name">multiplier</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">                <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">)</tt> <tt class="py-op">*</tt> <tt class="py-name">multiplier</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">ValueError</tt><tt class="py-op">:</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">argparse</tt><tt class="py-op">.</tt><tt class="py-name">ArgumentError</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-string">"Invalid integer value"</tt><tt class="py-op">)</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line"> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">value</tt> </tt>
+</div><a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line"> </tt>
+<a name="IntParser.__call__"></a><div id="IntParser.__call__-def"><a name="L184"></a><tt class="py-lineno">184</tt> <a class="py-toggle" href="#" id="IntParser.__call__-toggle" onclick="return toggle('IntParser.__call__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.config.IntParser-class.html#__call__">__call__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">parser</tt><tt class="py-op">,</tt> <tt class="py-param">namespace</tt><tt class="py-op">,</tt> <tt class="py-param">values</tt><tt class="py-op">,</tt> <tt class="py-param">option_string</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IntParser.__call__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IntParser.__call__-expanded"><a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">        <tt class="py-name">setattr</tt><tt class="py-op">(</tt><tt class="py-name">namespace</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dest</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-64" class="py-name" targets="Method rekall.config.IntParser.parse_int()=rekall.config.IntParser-class.html#parse_int"><a title="rekall.config.IntParser.parse_int" class="py-name" href="#" onclick="return doclink('link-64', 'parse_int', 'link-64');">parse_int</a></tt><tt class="py-op">(</tt><tt class="py-name">values</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line"> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"> </tt>
+<a name="ArrayIntParser"></a><div id="ArrayIntParser-def"><a name="L188"></a><tt class="py-lineno">188</tt> <a class="py-toggle" href="#" id="ArrayIntParser-toggle" onclick="return toggle('ArrayIntParser');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.config.ArrayIntParser-class.html">ArrayIntParser</a><tt class="py-op">(</tt><tt class="py-base-class">IntParser</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ArrayIntParser-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ArrayIntParser-expanded"><a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">    <tt class="py-docstring">"""Parse input as a comma separated list of integers.</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"><tt class="py-docstring">    We support input in the following forms:</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"><tt class="py-docstring">    --pid 1,2,3,4,5</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"><tt class="py-docstring">    --pid 1 2 3 4 5</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line"><tt class="py-docstring">    --pid 0x1 0x2 0x3</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"> </tt>
+<a name="ArrayIntParser.__call__"></a><div id="ArrayIntParser.__call__-def"><a name="L200"></a><tt class="py-lineno">200</tt> <a class="py-toggle" href="#" id="ArrayIntParser.__call__-toggle" onclick="return toggle('ArrayIntParser.__call__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.config.ArrayIntParser-class.html#__call__">__call__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">parser</tt><tt class="py-op">,</tt> <tt class="py-param">namespace</tt><tt class="py-op">,</tt> <tt class="py-param">values</tt><tt class="py-op">,</tt> <tt class="py-param">option_string</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ArrayIntParser.__call__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ArrayIntParser.__call__-expanded"><a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">        <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">values</tt><tt class="py-op">,</tt> <tt class="py-name">basestring</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">            <tt class="py-name">values</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">values</tt><tt class="py-op">]</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line"> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">value</tt> <tt class="py-keyword">in</tt> <tt class="py-name">values</tt><tt class="py-op">:</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">            <tt class="py-name">result</tt><tt class="py-op">.</tt><tt class="py-name">extend</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-65" class="py-name"><a title="rekall.config.IntParser.parse_int" class="py-name" href="#" onclick="return doclink('link-65', 'parse_int', 'link-64');">parse_int</a></tt><tt class="py-op">(</tt><tt id="link-66" class="py-name" targets="Variable rekall.ui.text.Colorizer.x=rekall.ui.text.Colorizer-class.html#x"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-66', 'x', 'link-66');">x</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt id="link-67" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-67', 'x', 'link-66');">x</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">value</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-string">","</tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line"> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">        <tt class="py-name">setattr</tt><tt class="py-op">(</tt><tt class="py-name">namespace</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dest</tt><tt class="py-op">,</tt> <tt class="py-name">result</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line"> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line"> </tt>
+<a name="ArrayStringParser"></a><div id="ArrayStringParser-def"><a name="L211"></a><tt class="py-lineno">211</tt> <a class="py-toggle" href="#" id="ArrayStringParser-toggle" onclick="return toggle('ArrayStringParser');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.config.ArrayStringParser-class.html">ArrayStringParser</a><tt class="py-op">(</tt><tt class="py-base-class">argparse</tt><tt class="py-op">.</tt><tt class="py-base-class">Action</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ArrayStringParser-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ArrayStringParser-expanded"><a name="ArrayStringParser.__call__"></a><div id="ArrayStringParser.__call__-def"><a name="L212"></a><tt class="py-lineno">212</tt> <a class="py-toggle" href="#" id="ArrayStringParser.__call__-toggle" onclick="return toggle('ArrayStringParser.__call__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.config.ArrayStringParser-class.html#__call__">__call__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">parser</tt><tt class="py-op">,</tt> <tt class="py-param">namespace</tt><tt class="py-op">,</tt> <tt class="py-param">values</tt><tt class="py-op">,</tt> <tt class="py-param">option_string</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ArrayStringParser.__call__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="ArrayStringParser.__call__-expanded"><a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">        <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">values</tt><tt class="py-op">,</tt> <tt class="py-name">basestring</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">            <tt class="py-name">values</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">values</tt><tt class="py-op">]</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line"> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">value</tt> <tt class="py-keyword">in</tt> <tt class="py-name">values</tt><tt class="py-op">:</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">            <tt class="py-name">result</tt><tt class="py-op">.</tt><tt class="py-name">extend</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt id="link-68" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-68', 'x', 'link-66');">x</a></tt> <tt class="py-keyword">for</tt> <tt id="link-69" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-69', 'x', 'link-66');">x</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">value</tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-string">","</tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line"> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line">        <tt class="py-name">setattr</tt><tt class="py-op">(</tt><tt class="py-name">namespace</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dest</tt><tt class="py-op">,</tt> <tt class="py-name">result</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:22:30 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

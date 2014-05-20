@@ -1,0 +1,330 @@
+The Rekall Profile Repository and Profile Auto-selection
+========================================================
+:author: Michael Cohen <scudette@google.com>
+
+The previous blog post discussed how Rekall redesigned the profile format into a
+simple JSON data structure. The profile JSON file now becomes the complete
+information source about a specific kernel version - including global constants,
+struct definitions (via vtype definitions) and metadata (such as architecture,
+version etc).
+
+One important difference from the Volatility profiles, is that in Rekall, the
+profile is the actual json file itself, while in Volatility a profile name
+represents a specific class defined within the code base. So for example, with
+Rekall one can specify the profile as a path to a file (which may be
+compressed):
+
+--------------------------------------------------------------------------
+$ rekall -f OSX_image.dd --profile ./OSX_10.6.6_AMD.json.gz
+--------------------------------------------------------------------------
+
+The Rekall public repository.
+-----------------------------
+
+Since the profile file is just data, it can be hosted in a public repository.
+Rekall can simply download the required profile from the repository when
+required. This makes it much easier to distribute the code since we do not need
+to include vast quantities of unnecessary information embedded inside the
+program.
+
+Rekall provides a public repository located at
+http://profiles.rekall.googlecode.com/git/ . The Rekall team collects profiles
+for the most common operating system versions, and we try to increase our
+coverage as much as possible.
+
+For example, we can see what Rekall is doing when loading an OSX profile:
+
+--------------------------------------------------------------------------
+$ rekall -f memory_vm_10_7.dd.E01 --profile OSX/10.7.4_AMD -v pslist
+DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//OSX/10.7.4_AMD.gz
+INFO:root:Loaded profile OSX/10.7.4_AMD from URL:http://profiles.rekall.googlecode.com/git/
+DEBUG:root:Voting round
+DEBUG:root:Trying <class 'rekall.plugins.addrspaces.macho.MACHOCoreDump'>
+DEBUG:root:Failed instantiating MACHOCoreDump: Must stack on another address space
+....
+--------------------------------------------------------------------------
+
+Rekall contacts the default public profile repository to load the specified
+profile and continues running.
+
+Alternate Repositories
+----------------------
+
+Although it is very convenient to use the public repository, sometimes we can
+not or do not want to. For example, if we do not have adequate Internet access
+on the analysis system we might not be able to use the public repository.
+
+Since the profile repository is just a git repository, its easy to mirror it
+locally. The following will create a directory called rekall.profiles containing
+the most up to date version of the public repository:
+
+--------------------------------------------------------------------------
+$ git clone https://code.google.com/p/rekall.profiles
+
+# It is possible to update the local mirror with the latest public profiles.
+$ cd rekall.profiles
+rekall.profiles$ git pull
+
+# Now we can tell Rekall to use the local repository
+$ rekall -f memory_vm_10_7.dd.E01 --profile_path full_path_to_rekall.profiles \
+   --profile OSX/10.7.4_AMD -v pslist
+--------------------------------------------------------------------------
+
+To save typing, it is possible to just change the local rekall configuration to
+point at the profile repository by default. Simply edit the `~/.rekallrc` file
+(Which is a configuration file in YAML format):
+
+--------------------------------------------------------------------------
+profile_path:
+  - /home/scudette/projects/rekall.profiles
+  - http://profiles.rekall.googlecode.com/git/
+
+--------------------------------------------------------------------------
+
+The `profile_path` parameter specifies a list of paths to search for the
+specified profile in order. If we place the public repository in the second
+position, rekall will only attempt to contact the public repository if the
+required profile does not exist in the local mirror.
+
+This is useful if you are doing a lot of analysis for unusual Linux systems
+(i.e. ones with uncommon or custom compiled kernels). In that case you can put
+your private profiles in a local directory, but still fall back to the public
+repository for common profiles.
+
+Windows profiles.
+-----------------
+
+Putting the profile data in the public repository helps to reduce code
+footprint. While removing the embedded volatility profiles from the code base it
+became obvious that Volatility does not actually contain enough windows kernel
+vtypes to cover all the different windows releases out there.
+
+As described in the previous blog post, the profile contains information
+specific to a single build of the windows kernel. Each time the windows kernel
+source code is modified and rebuilt, a new profile should be generated. In
+reality, Microsoft rebuilds and redistributes the windows kernel multiple times
+during a single marketed release, and even multiple times for different release
+markets. We know this because each time an executable is built, it contains a
+new GUID embedded in it.
+
+[NOTE]
+================================================================================
+How does the Microsoft compiler generate debugging symbols?
+
+When an executable is built, the compiler places the debugging symbols in a
+separate file (with a '.pdb' extension). The final executable contains a special
+structure called an `RSDS` signature (This is not the official name since this
+is not exactly documented, but the string "RSDS" actually appears in the
+executable).
+
+The RSDS structure contains three critical pieces of information:
+
+- The GUID - a random number unique to each built binary.
+- The filename of the pdb file which goes with the binary.
+- An `age`. This is a number usually single digit like 2 or 3.
+
+Microsoft typically does not ship the debugging information in order to save
+space on distribution media. Instead, they provide a public symbols server. One
+can access the debugging symbols for each built binary (if they are released of
+course), by simply providing the GUID, age and the filename of the pdb file.
+
+Of course the infrastructure that Microsoft provides is there to serve the
+windows kernel debugger, but we can leverage this same infrastructure in
+Rekall. In a sense Rekall is emulating the windows debugger to some extent when
+analyzing a windows memory dump.
+
+================================================================================
+
+You can check the exact kernel version running in a memory image using Rekall's
+RSDS scanner:
+
+--------------------------------------------------------------------------
+$ rekall -f win7.elf version_scan --name_regex krnl
+  Offset (P)   GUID/Version                     PDB
+-------------- -------------------------------- ------------------------------
+0x0000027bb5fc F8E2A8B5C9B74BF4A6E4A48F180099942 ntkrnlmp.pdb
+--------------------------------------------------------------------------
+
+Here we see that this image contains a specific version with the GUID
+F8E2A8B5C9B74BF4A6E4A48F180099942. We actually can check the GUIDs from the
+binary on disk for the windows kernel.
+
+I was curious as to how many different kernel binaries exist in the wild? I
+began to collect GUIDs for various versions of Windows, generate profiles for
+these and put them in the profile repository. I have found approximately 200
+profiles of the windows kernel (ntoskrnl.exe and its variants) with different
+architectures (AMD64 and I386), versions and build numbers. For example Windows
+XP Service Pack 2 has a build number of 2600 but we found over 30 different
+versions in the wild.
+
+Repository Symlinks
+~~~~~~~~~~~~~~~~~~~
+The profile repository contains a special type of profile definition
+which is a Symlink. For example, we define a profile called `Win7SP1x64` which
+contains:
+
+--------------------------------------------------------------------------
+{
+  "$METADATA": {
+    "Type": "Symlink",
+    "Target": "ntoskrnl.exe/AMD64/6.1.7601.17514/3844DBB920174967BE7AA4A2C20430FA2"
+  }
+}
+--------------------------------------------------------------------------
+
+This just selects a representative profile from the many Windows 7 Service Pack
+1 profiles we have. This allows Rekall to be used in backwards compatibility mode:
+
+--------------------------------------------------------------------------
+$ rekall -f ~/images/win7.elf -v --profile Win7SP1x64 pslist
+DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//Win7SP1x64.gz
+DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//ntoskrnl.exe/AMD64/6.1.7601.17514/3844DBB920174967BE7AA4A2C20430FA2.gz
+INFO:root:Loaded profile ntoskrnl.exe/AMD64/6.1.7601.17514/3844DBB920174967BE7AA4A2C20430FA2 from URL:http://profiles.rekall.googlecode.com/git/
+INFO:root:Loaded profile Win7SP1x64 from URL:http://profiles.rekall.googlecode.com/git/
+....
+--------------------------------------------------------------------------
+
+We can see that first the Symlink profile is opened, followed by the real profile.
+
+
+What profile do I need?
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Have you even been given an image of a windows version, but you don't know
+exactly which one it is supposed to be? Is it a 64 bit system or a 32 bit
+system? Is it Windows 7 or Windows XP? Is it Service Pack 1 or 2?
+
+Volatility has the `imageident` plugin which load all the windows profiles it
+knows about (about 20 different ones) and tries to fit them to the image. Its
+very slow and often does not work.
+
+The easier way is simply check the RSDS signature of the windows kernel:
+
+--------------------------------------------------------------------------
+$ rekall -f win7.elf version_scan --name_regex krnl
+  Offset (P)   GUID/Version                     PDB
+-------------- -------------------------------- ------------------------------
+0x0000027bb5fc F8E2A8B5C9B74BF4A6E4A48F180099942 ntkrnlmp.pdb
+--------------------------------------------------------------------------
+
+The Rekall public repository organizes windows profiles using two hierarchies,
+the first is by binary name, architecture and build version, for example:
+
+ntoskrnl.exe/I386/5.1.2600.1151/04FB9A156FF44ECCA6EBCAE9617D8DB73.gz
+
+However a more useful organization is by GUID (since the GUID is universally
+unique). If we know the GUID we can automatically access the correct profile
+without needing to know if it is Windows 7, WinXP or whatever:
+
+--------------------------------------------------------------------------
+$ rekall -f ~/images/win7.elf -v --profile GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 pslist
+DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//GUID/F8E2A8B5C9B74BF4A6E4A48F180099942.gz
+DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//ntoskrnl.exe/AMD64/6.1.7600.16385/F8E2A8B5C9B74BF4A6E4A48F180099942.gz
+INFO:root:Loaded profile ntoskrnl.exe/AMD64/6.1.7600.16385/F8E2A8B5C9B74BF4A6E4A48F180099942 from URL:http://profiles.rekall.googlecode.com/git/
+INFO:root:Loaded profile GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 from URL:http://profiles.rekall.googlecode.com/git/
+....
+--------------------------------------------------------------------------
+
+This method is actually extremely reliable since it will retrieve exactly the
+correct profile according to the RSDS header we find. Rekall uses this method by
+default to guess the required profile to use. Therefore normally users do not
+really need to provide the profile explicitly to Rekall:
+
+--------------------------------------------------------------------------
+$ rekall -f ~/images/win7.elf -v pslist
+DEBUG:root:Voting round
+DEBUG:root:Trying <class 'rekall.plugins.addrspaces.macho.MACHOCoreDump'>
+.....
+INFO:root:Autodetected physical address space Elf64CoreDump
+DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//pe.gz
+INFO:root:Loaded profile pe from URL:http://profiles.rekall.googlecode.com/git/
+DEBUG:root:Verifying profile GUID/F8E2A8B5C9B74BF4A6E4A48F180099942
+DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//GUID/F8E2A8B5C9B74BF4A6E4A48F180099942.gz
+DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//ntoskrnl.exe/AMD64/6.1.7600.16385/F8E2A8B5C9B74BF4A6E4A48F180099942.gz
+INFO:root:Loaded profile ntoskrnl.exe/AMD64/6.1.7600.16385/F8E2A8B5C9B74BF4A6E4A48F180099942 from URL:http://profiles.rekall.googlecode.com/git/
+INFO:root:Loaded profile GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 from URL:http://profiles.rekall.googlecode.com/git/
+DEBUG:root:Found _EPROCESS @ 0x2818140 (DTB: 0x187000)
+--------------------------------------------------------------------------
+
+We can see that Rekall initially fetches the `pe` profile (so it can parse the
+`RSDS` header), when a hit is found, the profile repository is search by the
+GUID. This is found as a symlink to an actual profile from a Windows 7 version.
+
+What if the profile repository does not have my exact version?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As mentioned above we are still building the repository up as a public service,
+and it may be that we do not have the profile for the exact version in your
+memory image. You will typically see something like this:
+
+--------------------------------------------------------------------------
+$ rekall -f ~/images/win7.elf -v pslist
+DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//GUID/F8E1A8B5C9B74BF4A6E4A48F180099942
+DEBUG:root:Could not find profile GUID/F8E1A8B5C9B74BF4A6E4A48F180099942 in http://profiles.rekall.googlecode.com/git/
+DEBUG:root:Could not find profile GUID/F8E1A8B5C9B74BF4A6E4A48F180099942 in None
+Traceback (most recent call last):
+  File "/home/scudette/VirtualEnvs/Dev/bin/rekall", line 9, in <module>
+    load_entry_point('rekall==1.0rc3', 'console_scripts', 'rekall')()
+  File "/home/scudette/rekall/rekall/rekal.py", line 145, in main
+    flags = args.parse_args(argv=argv, user_session=user_session)
+  File "/home/scudette/rekall/rekall/args.py", line 218, in parse_args
+    LoadProfileIntoSession(parser, argv, user_session)
+  File "/home/scudette/rekall/rekall/args.py", line 194, in LoadProfileIntoSession
+    state.Set(arg, value)
+  File "/home/scudette/rekall/rekall/session.py", line 169, in __exit__
+    self.session.UpdateFromConfigObject()
+  File "/home/scudette/rekall/rekall/session.py", line 210, in UpdateFromConfigObject
+    self.profile = self.LoadProfile(profile_parameter)
+  File "/home/scudette/rekall/rekall/session.py", line 464, in LoadProfile
+    filename)
+ValueError: Unable to load profile GUID/F8E1A8B5C9B74BF4A6E4A48F180099942 from any repository.
+--------------------------------------------------------------------------
+
+Although you could maybe substitute a generic profile (like `Win7SP1x64` as
+described above). This is really not recommended and will probably stop working
+at some point in the future (as Rekall uses more advanced analysis methods which
+depend on accurate profiles).
+
+The correct solution is to generate your own profile like this:
+
+--------------------------------------------------------------------------
+# First find the GUID of the kernel in your image
+$ rekall -f win7.elf version_scan --name_regex krnl
+  Offset (P)   GUID/Version                     PDB
+-------------- -------------------------------- ------------------------------
+0x0000027bb5fc F8E2A8B5C9B74BF4A6E4A48F180099942 ntkrnlmp.pdb
+
+# Then fetch the GUID from Microsoft's symbol server.
+$ rekall fetch_pdb -D. --guid F8E2A8B5C9B74BF4A6E4A48F180099942 --filename ntkrnlmp.pdb
+Trying to fetch http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/F8E2A8B5C9B74BF4A6E4A48F180099942/ntkrnlmp.pd_
+Received 2675077 bytes
+Extracting cabinet: ntkrnlmp.pd_
+  extracting ntkrnlmp.pdb
+
+All done, no errors.
+
+# Now Generate the profile from the pdb file. You will need to provide the
+# approximate windows version.
+$ rekall parse_pdb -f ntkrnlmp.pdb --output F8E2A8B5C9B74BF4A6E4A48F180099942.json \
+   --win 6.1
+  Extracting OMAP Information 62%
+--------------------------------------------------------------------------
+
+Please send us that GUID so we can add it to our repository. If you have a local
+repository you can just add it to your own repository (under the GUID/
+directory).
+
+Summary
+-------
+
+* Rekall has moved the profiles out of the code base
+
+* Profiles are now stored in their own unique repository.
+
+* Profiles are now much more accurate since they are exactly tailored to the
+  specific version of the kernel in the memory image, rather than guessing
+  approximate representative profiles by commercial release names (e.g. Win7).
+
+* Rekall also implements a robust profile auto-detection method. The user rarely
+  needs to explicitly provide the profile on the command line, and detection is
+  extremely fast and reliable.

@@ -1,0 +1,742 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.addrspaces.amd64</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.addrspaces-module.html">Package&nbsp;addrspaces</a> ::
+        Module&nbsp;amd64
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.addrspaces.amd64-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.addrspaces.amd64-module.html">Module rekall.plugins.addrspaces.amd64</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2013 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment"># Authors:</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># Mike Auty</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># Michael Cohen</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-docstring">""" This is based on Jesse Kornblum's patch to clean up the standard AS's.</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">struct</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.config=rekall.config-module.html"><a title="rekall.config" class="py-name" href="#" onclick="return doclink('link-1', 'config', 'link-1');">config</a></tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-2', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-3', 'plugins', 'link-3');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Package rekall.plugins.addrspaces=rekall.plugins.addrspaces-module.html"><a title="rekall.plugins.addrspaces" class="py-name" href="#" onclick="return doclink('link-4', 'addrspaces', 'link-4');">addrspaces</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Module rekall.plugins.addrspaces.intel=rekall.plugins.addrspaces.intel-module.html"><a title="rekall.plugins.addrspaces.intel" class="py-name" href="#" onclick="return doclink('link-5', 'intel', 'link-5');">intel</a></tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt id="link-6" class="py-name"><a title="rekall.config" class="py-name" href="#" onclick="return doclink('link-6', 'config', 'link-1');">config</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Function rekall.config.DeclareOption()=rekall.config-module.html#DeclareOption"><a title="rekall.config.DeclareOption" class="py-name" href="#" onclick="return doclink('link-7', 'DeclareOption', 'link-7');">DeclareOption</a></tt><tt class="py-op">(</tt><tt id="link-8" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.components.Named.name=rekall.components.Named-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.addrspaces.ewf.name=rekall.plugins.addrspaces.ewf-module.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.linux.common.KASLRHook.name=rekall.plugins.linux.common.KASLRHook-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKASLR.name=rekall.plugins.linux.common.LinuxFindKASLR-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.components.Named.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.ewf.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.linux.common.KASLRHook.name
+rekall.plugins.linux.common.LinuxFindKASLR.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-8', 'name', 'link-8');">name</a></tt><tt class="py-op">=</tt><tt class="py-string">"ept"</tt><tt class="py-op">,</tt> <tt class="py-name">group</tt><tt class="py-op">=</tt><tt class="py-string">"Virtualization support"</tt><tt class="py-op">,</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">                     <tt class="py-name">action</tt><tt class="py-op">=</tt><tt id="link-9" class="py-name"><a title="rekall.config" class="py-name" href="#" onclick="return doclink('link-9', 'config', 'link-1');">config</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Class rekall.config.ArrayIntParser=rekall.config.ArrayIntParser-class.html"><a title="rekall.config.ArrayIntParser" class="py-name" href="#" onclick="return doclink('link-10', 'ArrayIntParser', 'link-10');">ArrayIntParser</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">                     <tt class="py-name">help</tt><tt class="py-op">=</tt><tt class="py-string">"The EPT physical address."</tt><tt class="py-op">)</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"> </tt>
+<a name="AMD64PagedMemory"></a><div id="AMD64PagedMemory-def"><a name="L37"></a><tt class="py-lineno"> 37</tt> <a class="py-toggle" href="#" id="AMD64PagedMemory-toggle" onclick="return toggle('AMD64PagedMemory');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html">AMD64PagedMemory</a><tt class="py-op">(</tt><tt class="py-base-class">intel</tt><tt class="py-op">.</tt><tt class="py-base-class">IA32PagedMemoryPae</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="AMD64PagedMemory-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="AMD64PagedMemory-expanded"><a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">    <tt class="py-docstring">"""Standard AMD 64-bit address space.</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-docstring">    Provides an address space for AMD64 paged memory, aka the x86_64</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-docstring">    architecture, which is laid out similarly to Physical Address</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-docstring">    Extensions (PAE). Allows callers to map virtual address to</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-docstring">    offsets in physical memory.</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-docstring">    Create a new AMD64 address space to sit on top of the base address</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-docstring">    space and a Directory Table Base (CR3 value) of 'dtb'.</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">    Comments in this class mostly come from the Intel(R) 64 and IA-32</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">    Architectures Software Developer's Manual Volume 3A: System Programming</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring">    Guide, Part 1, revision 031, pages 4-8 to 4-15. This book is available</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring">    for free at http://www.intel.com/products/processor/manuals/index.htm.</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring">    Similar information is also available from Advanced Micro Devices (AMD)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring">    at http://support.amd.com/us/Processor_TechDocs/24593.pdf.</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">    <tt id="link-11" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.order=rekall.addrspace.BaseAddressSpace-class.html#order,Variable rekall.io_manager.IOManager.order=rekall.io_manager.IOManager-class.html#order,Variable rekall.io_manager.ZipFileManager.order=rekall.io_manager.ZipFileManager-class.html#order,Variable rekall.plugins.addrspaces.amd64.AMD64PagedMemory.order=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#order,Variable rekall.plugins.addrspaces.amd64.VTxPagedMemory.order=rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#order,Variable rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.order=rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32-class.html#order,Variable rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace64.order=rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace64-class.html#order,Variable rekall.plugins.addrspaces.ewf.EWFAddressSpace.order=rekall.plugins.addrspaces.ewf.EWFAddressSpace-class.html#order,Variable rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.order=rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace-class.html#order,Variable rekall.plugins.addrspaces.intel.IA32PagedMemory.order=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#order,Variable rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.order=rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html#order,Variable rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.order=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#order,Variable rekall.plugins.addrspaces.standard.FDAddressSpace.order=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#order,Variable rekall.plugins.addrspaces.standard.FileAddressSpace.order=rekall.plugins.addrspaces.standard.FileAddressSpace-class.html#order,Variable rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.order=rekall.plugins.addrspaces.vboxelf.Elf64CoreDump-class.html#order,Variable rekall.plugins.addrspaces.win32.Win32FileAddressSpace.order=rekall.plugins.addrspaces.win32.Win32FileAddressSpace-class.html#order"><a title="rekall.addrspace.BaseAddressSpace.order
+rekall.io_manager.IOManager.order
+rekall.io_manager.ZipFileManager.order
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.order
+rekall.plugins.addrspaces.amd64.VTxPagedMemory.order
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.order
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace64.order
+rekall.plugins.addrspaces.ewf.EWFAddressSpace.order
+rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.order
+rekall.plugins.addrspaces.intel.IA32PagedMemory.order
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.order
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.order
+rekall.plugins.addrspaces.standard.FDAddressSpace.order
+rekall.plugins.addrspaces.standard.FileAddressSpace.order
+rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.order
+rekall.plugins.addrspaces.win32.Win32FileAddressSpace.order" class="py-name" href="#" onclick="return doclink('link-11', 'order', 'link-11');">order</a></tt> <tt class="py-op">=</tt> <tt class="py-number">60</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"> </tt>
+<a name="AMD64PagedMemory.pml4e_index"></a><div id="AMD64PagedMemory.pml4e_index-def"><a name="L57"></a><tt class="py-lineno"> 57</tt> <a class="py-toggle" href="#" id="AMD64PagedMemory.pml4e_index-toggle" onclick="return toggle('AMD64PagedMemory.pml4e_index');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#pml4e_index">pml4e_index</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">vaddr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="AMD64PagedMemory.pml4e_index-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="AMD64PagedMemory.pml4e_index-expanded"><a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-docstring">        Returns the Page Map Level 4 Entry Index number from the given</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-docstring">        virtual address. The index number is in bits 47:39.</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-name">vaddr</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0xff8000000000</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;&gt;</tt> <tt class="py-number">39</tt> </tt>
+</div><a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"> </tt>
+<a name="AMD64PagedMemory.get_pml4e"></a><div id="AMD64PagedMemory.get_pml4e-def"><a name="L64"></a><tt class="py-lineno"> 64</tt> <a class="py-toggle" href="#" id="AMD64PagedMemory.get_pml4e-toggle" onclick="return toggle('AMD64PagedMemory.get_pml4e');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_pml4e">get_pml4e</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">vaddr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="AMD64PagedMemory.get_pml4e-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="AMD64PagedMemory.get_pml4e-expanded"><a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">        Return the Page Map Level 4 Entry for the given virtual address.</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-docstring">        If caching</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-docstring">        Bits 51:12 are from CR3</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt class="py-docstring">        Bits 11:3 are bits 47:39 of the linear address</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"><tt class="py-docstring">        Bits 2:0 are 0.</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-name">pml4e_addr</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dtb</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0xffffffffff000</tt><tt class="py-op">)</tt> <tt class="py-op">|</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0xff8000000000</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;&gt;</tt> <tt class="py-number">36</tt><tt class="py-op">)</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_read_long_long_phys</tt><tt class="py-op">(</tt><tt class="py-name">pml4e_addr</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"> </tt>
+<a name="AMD64PagedMemory.get_pdpte"></a><div id="AMD64PagedMemory.get_pdpte-def"><a name="L77"></a><tt class="py-lineno"> 77</tt> <a class="py-toggle" href="#" id="AMD64PagedMemory.get_pdpte-toggle" onclick="return toggle('AMD64PagedMemory.get_pdpte');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_pdpte">get_pdpte</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">vaddr</tt><tt class="py-op">,</tt> <tt class="py-param">pml4e</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="AMD64PagedMemory.get_pdpte-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="AMD64PagedMemory.get_pdpte-expanded"><a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"><tt class="py-docstring">        Return the Page Directory Pointer Table Entry for the virtual address.</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"><tt class="py-docstring">        Bits 51:12 are from the PML4E</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"><tt class="py-docstring">        Bits 11:3 are bits 38:30 of the linear address</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"><tt class="py-docstring">        Bits 2:0 are all 0</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt class="py-name">pdpte_addr</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">pml4e</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0xffffffffff000</tt><tt class="py-op">)</tt> <tt class="py-op">|</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0x7FC0000000</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;&gt;</tt> <tt class="py-number">27</tt><tt class="py-op">)</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_read_long_long_phys</tt><tt class="py-op">(</tt><tt class="py-name">pdpte_addr</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"> </tt>
+<a name="AMD64PagedMemory.get_one_gig_paddr"></a><div id="AMD64PagedMemory.get_one_gig_paddr-def"><a name="L88"></a><tt class="py-lineno"> 88</tt> <a class="py-toggle" href="#" id="AMD64PagedMemory.get_one_gig_paddr-toggle" onclick="return toggle('AMD64PagedMemory.get_one_gig_paddr');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_one_gig_paddr">get_one_gig_paddr</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">vaddr</tt><tt class="py-op">,</tt> <tt class="py-param">pdpte</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="AMD64PagedMemory.get_one_gig_paddr-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="AMD64PagedMemory.get_one_gig_paddr-expanded"><a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-docstring">        Return the offset in a 1GB memory page from the given virtual</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">        address and Page Directory Pointer Table Entry.</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-docstring">        Bits 51:30 are from the PDE</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-docstring">        Bits 29:0 are from the original linear address</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-name">pdpte</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0xfffffc0000000</tt><tt class="py-op">)</tt> <tt class="py-op">|</tt> <tt class="py-op">(</tt><tt class="py-name">vaddr</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0x3fffffff</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"> </tt>
+<a name="AMD64PagedMemory.vtop"></a><div id="AMD64PagedMemory.vtop-def"><a name="L98"></a><tt class="py-lineno"> 98</tt> <a class="py-toggle" href="#" id="AMD64PagedMemory.vtop-toggle" onclick="return toggle('AMD64PagedMemory.vtop');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#vtop">vtop</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">vaddr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="AMD64PagedMemory.vtop-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="AMD64PagedMemory.vtop-expanded"><a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"><tt class="py-docstring">        Translates virtual addresses into physical offsets.</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"><tt class="py-docstring">        The function returns either None (no valid mapping)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"><tt class="py-docstring">        or the offset in physical memory where the address maps.</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">        <tt class="py-name">vaddr</tt> <tt class="py-op">=</tt> <tt class="py-name">long</tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">)</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">        <tt class="py-name">pml4e</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Method rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pml4e()=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_pml4e,Method rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pml4e()=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_pml4e,Method rekall.plugins.addrspaces.amd64.VTxPagedMemory.get_pml4e()=rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#get_pml4e"><a title="rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pml4e
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pml4e
+rekall.plugins.addrspaces.amd64.VTxPagedMemory.get_pml4e" class="py-name" href="#" onclick="return doclink('link-12', 'get_pml4e', 'link-12');">get_pml4e</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">)</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Method rekall.plugins.addrspaces.amd64.VTxPagedMemory.entry_present()=rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#entry_present,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.entry_present()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#entry_present"><a title="rekall.plugins.addrspaces.amd64.VTxPagedMemory.entry_present
+rekall.plugins.addrspaces.intel.IA32PagedMemory.entry_present" class="py-name" href="#" onclick="return doclink('link-13', 'entry_present', 'link-13');">entry_present</a></tt><tt class="py-op">(</tt><tt class="py-name">pml4e</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">            <tt class="py-comment"># Add support for paged out PML4E</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-name">pdpte</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Method rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pdpte()=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_pdpte,Method rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pdpte()=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_pdpte,Method rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_pdpte()=rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html#get_pdpte"><a title="rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pdpte
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pdpte
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_pdpte" class="py-name" href="#" onclick="return doclink('link-14', 'get_pdpte', 'link-14');">get_pdpte</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pml4e</tt><tt class="py-op">)</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="rekall.plugins.addrspaces.amd64.VTxPagedMemory.entry_present
+rekall.plugins.addrspaces.intel.IA32PagedMemory.entry_present" class="py-name" href="#" onclick="return doclink('link-15', 'entry_present', 'link-13');">entry_present</a></tt><tt class="py-op">(</tt><tt class="py-name">pdpte</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">            <tt class="py-comment"># Add support for paged out PDPTE</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">            <tt class="py-comment"># Insert buffalo here!</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method rekall.plugins.addrspaces.intel.IA32PagedMemory.page_size_flag()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#page_size_flag"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemory.page_size_flag" class="py-name" href="#" onclick="return doclink('link-16', 'page_size_flag', 'link-16');">page_size_flag</a></tt><tt class="py-op">(</tt><tt class="py-name">pdpte</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Method rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_one_gig_paddr()=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_one_gig_paddr,Method rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_one_gig_paddr()=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_one_gig_paddr"><a title="rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_one_gig_paddr
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_one_gig_paddr" class="py-name" href="#" onclick="return doclink('link-17', 'get_one_gig_paddr', 'link-17');">get_one_gig_paddr</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pdpte</tt><tt class="py-op">)</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">        <tt class="py-name">pde</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Method rekall.plugins.addrspaces.intel.IA32PagedMemory.get_pde()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#get_pde,Method rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_pde()=rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html#get_pde"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemory.get_pde
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_pde" class="py-name" href="#" onclick="return doclink('link-18', 'get_pde', 'link-18');">get_pde</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pdpte</tt><tt class="py-op">)</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="rekall.plugins.addrspaces.amd64.VTxPagedMemory.entry_present
+rekall.plugins.addrspaces.intel.IA32PagedMemory.entry_present" class="py-name" href="#" onclick="return doclink('link-19', 'entry_present', 'link-13');">entry_present</a></tt><tt class="py-op">(</tt><tt class="py-name">pde</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">            <tt class="py-comment"># Add support for paged out PDE</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line"> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemory.page_size_flag" class="py-name" href="#" onclick="return doclink('link-20', 'page_size_flag', 'link-16');">page_size_flag</a></tt><tt class="py-op">(</tt><tt class="py-name">pde</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name" targets="Method rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_two_meg_paddr()=rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html#get_two_meg_paddr"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_two_meg_paddr" class="py-name" href="#" onclick="return doclink('link-21', 'get_two_meg_paddr', 'link-21');">get_two_meg_paddr</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pde</tt><tt class="py-op">)</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line"> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">        <tt class="py-name">pte</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name" targets="Method rekall.plugins.addrspaces.intel.IA32PagedMemory.get_pte()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#get_pte,Method rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_pte()=rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html#get_pte"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemory.get_pte
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_pte" class="py-name" href="#" onclick="return doclink('link-22', 'get_pte', 'link-22');">get_pte</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pde</tt><tt class="py-op">)</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="rekall.plugins.addrspaces.amd64.VTxPagedMemory.entry_present
+rekall.plugins.addrspaces.intel.IA32PagedMemory.entry_present" class="py-name" href="#" onclick="return doclink('link-23', 'entry_present', 'link-13');">entry_present</a></tt><tt class="py-op">(</tt><tt class="py-name">pte</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">            <tt class="py-comment"># Add support for paged out PTE</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name" targets="Method rekall.plugins.addrspaces.intel.IA32PagedMemory.get_phys_addr()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#get_phys_addr,Method rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_phys_addr()=rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html#get_phys_addr"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemory.get_phys_addr
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_phys_addr" class="py-name" href="#" onclick="return doclink('link-24', 'get_phys_addr', 'link-24');">get_phys_addr</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pte</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"> </tt>
+<a name="AMD64PagedMemory.get_available_addresses"></a><div id="AMD64PagedMemory.get_available_addresses-def"><a name="L134"></a><tt class="py-lineno">134</tt> <a class="py-toggle" href="#" id="AMD64PagedMemory.get_available_addresses-toggle" onclick="return toggle('AMD64PagedMemory.get_available_addresses');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_available_addresses">get_available_addresses</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="AMD64PagedMemory.get_available_addresses-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="AMD64PagedMemory.get_available_addresses-expanded"><a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        <tt class="py-docstring">'''</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"><tt class="py-docstring">        Return a list of lists of available memory pages.</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"><tt class="py-docstring">        Each entry in the list is the starting virtual address</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line"><tt class="py-docstring">        and the size of the memory page.</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"><tt class="py-docstring">        '''</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">        <tt class="py-comment"># Pages that hold PDEs and PTEs are 0x1000 bytes each.</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">        <tt class="py-comment"># Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">        <tt class="py-comment"># PDEs and PTEs we must test.</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">pml4e</tt> <tt class="py-keyword">in</tt> <tt class="py-name">range</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-number">0x200</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">            <tt class="py-name">vaddr</tt> <tt class="py-op">=</tt> <tt class="py-name">pml4e</tt> <tt class="py-op">&lt;&lt;</tt> <tt class="py-number">39</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">            <tt class="py-name">pml4e_value</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pml4e
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pml4e
+rekall.plugins.addrspaces.amd64.VTxPagedMemory.get_pml4e" class="py-name" href="#" onclick="return doclink('link-25', 'get_pml4e', 'link-12');">get_pml4e</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">)</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="rekall.plugins.addrspaces.amd64.VTxPagedMemory.entry_present
+rekall.plugins.addrspaces.intel.IA32PagedMemory.entry_present" class="py-name" href="#" onclick="return doclink('link-26', 'entry_present', 'link-13');">entry_present</a></tt><tt class="py-op">(</tt><tt class="py-name">pml4e_value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">                <tt class="py-keyword">continue</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">pdpte</tt> <tt class="py-keyword">in</tt> <tt class="py-name">range</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-number">0x200</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">                <tt class="py-name">vaddr</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">pml4e</tt> <tt class="py-op">&lt;&lt;</tt> <tt class="py-number">39</tt><tt class="py-op">)</tt> <tt class="py-op">|</tt> <tt class="py-op">(</tt><tt class="py-name">pdpte</tt> <tt class="py-op">&lt;&lt;</tt> <tt class="py-number">30</tt><tt class="py-op">)</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">                <tt class="py-name">pdpte_value</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pdpte
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_pdpte
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_pdpte" class="py-name" href="#" onclick="return doclink('link-27', 'get_pdpte', 'link-14');">get_pdpte</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pml4e_value</tt><tt class="py-op">)</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="rekall.plugins.addrspaces.amd64.VTxPagedMemory.entry_present
+rekall.plugins.addrspaces.intel.IA32PagedMemory.entry_present" class="py-name" href="#" onclick="return doclink('link-28', 'entry_present', 'link-13');">entry_present</a></tt><tt class="py-op">(</tt><tt class="py-name">pdpte_value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">                    <tt class="py-keyword">continue</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemory.page_size_flag" class="py-name" href="#" onclick="return doclink('link-29', 'page_size_flag', 'link-16');">page_size_flag</a></tt><tt class="py-op">(</tt><tt class="py-name">pdpte_value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">                    <tt class="py-keyword">yield</tt> <tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">                           <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_one_gig_paddr
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.get_one_gig_paddr" class="py-name" href="#" onclick="return doclink('link-30', 'get_one_gig_paddr', 'link-17');">get_one_gig_paddr</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pdpte_value</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">                           <tt class="py-number">0x40000000</tt><tt class="py-op">)</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">                    <tt class="py-keyword">continue</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">                <tt class="py-name">tmp2</tt> <tt class="py-op">=</tt> <tt class="py-name">vaddr</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">                <tt class="py-keyword">for</tt> <tt class="py-name">pde</tt> <tt class="py-keyword">in</tt> <tt class="py-name">range</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-number">0x200</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">                    <tt class="py-name">vaddr</tt> <tt class="py-op">=</tt> <tt class="py-name">tmp2</tt> <tt class="py-op">|</tt> <tt class="py-op">(</tt><tt class="py-name">pde</tt> <tt class="py-op">&lt;&lt;</tt> <tt class="py-number">21</tt><tt class="py-op">)</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">                    <tt class="py-name">pde_value</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemory.get_pde
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_pde" class="py-name" href="#" onclick="return doclink('link-31', 'get_pde', 'link-18');">get_pde</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pdpte_value</tt><tt class="py-op">)</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">                    <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="rekall.plugins.addrspaces.amd64.VTxPagedMemory.entry_present
+rekall.plugins.addrspaces.intel.IA32PagedMemory.entry_present" class="py-name" href="#" onclick="return doclink('link-32', 'entry_present', 'link-13');">entry_present</a></tt><tt class="py-op">(</tt><tt class="py-name">pde_value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">                        <tt class="py-keyword">continue</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">                    <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemory.page_size_flag" class="py-name" href="#" onclick="return doclink('link-33', 'page_size_flag', 'link-16');">page_size_flag</a></tt><tt class="py-op">(</tt><tt class="py-name">pde_value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">                        <tt class="py-keyword">yield</tt> <tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">                               <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_two_meg_paddr" class="py-name" href="#" onclick="return doclink('link-34', 'get_two_meg_paddr', 'link-21');">get_two_meg_paddr</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pde_value</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">                               <tt class="py-number">0x200000</tt><tt class="py-op">)</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">                        <tt class="py-keyword">continue</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line"> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">                    <tt class="py-comment"># This reads the entire PTE table at once - On</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">                    <tt class="py-comment"># windows where IO is extremely expensive, its</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">                    <tt class="py-comment"># about 10 times more efficient than reading it</tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">                    <tt class="py-comment"># one value at the time - and this loop is HOT!</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">                    <tt class="py-name">pte_table_addr</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">pde_value</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0xffffffffff000</tt><tt class="py-op">)</tt> <tt class="py-op">|</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">                                      <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0x1ff000</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;&gt;</tt> <tt class="py-number">9</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line"> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">                    <tt id="link-35" class="py-name" targets="Variable rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data=rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE-class.html#data,Variable rekall.ui.json_renderer.JsonRenderer.data=rekall.ui.json_renderer.JsonRenderer-class.html#data,Variable rekall.utils.Node.data=rekall.utils.Node-class.html#data"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-35', 'data', 'link-35');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">base</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.read()=rekall.addrspace.BaseAddressSpace-class.html#read,Method rekall.addrspace.BufferAddressSpace.read()=rekall.addrspace.BufferAddressSpace-class.html#read,Method rekall.addrspace.CachingAddressSpaceMixIn.read()=rekall.addrspace.CachingAddressSpaceMixIn-class.html#read,Method rekall.addrspace.PagedReader.read()=rekall.addrspace.PagedReader-class.html#read,Method rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read()=rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory-class.html#read,Method rekall.plugins.addrspaces.ewf.ewffile.read()=rekall.plugins.addrspaces.ewf.ewffile-class.html#read,Method rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read()=rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace-class.html#read,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.read()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#read,Method rekall.plugins.addrspaces.standard.FDAddressSpace.read()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#read,Method rekall.plugins.addrspaces.standard.WriteableAddressSpaceMixIn.read()=rekall.plugins.addrspaces.standard.WriteableAddressSpaceMixIn-class.html#read,Method rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.read()=rekall.plugins.overlays.windows.ntfs.FixupAddressSpace-class.html#read,Method rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.read()=rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace-class.html#read"><a title="rekall.addrspace.BaseAddressSpace.read
+rekall.addrspace.BufferAddressSpace.read
+rekall.addrspace.CachingAddressSpaceMixIn.read
+rekall.addrspace.PagedReader.read
+rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read
+rekall.plugins.addrspaces.ewf.ewffile.read
+rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.read
+rekall.plugins.addrspaces.standard.FDAddressSpace.read
+rekall.plugins.addrspaces.standard.WriteableAddressSpaceMixIn.read
+rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.read
+rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.read" class="py-name" href="#" onclick="return doclink('link-36', 'read', 'link-36');">read</a></tt><tt class="py-op">(</tt><tt class="py-name">pte_table_addr</tt><tt class="py-op">,</tt> <tt class="py-number">8</tt> <tt class="py-op">*</tt> <tt class="py-number">0x200</tt><tt class="py-op">)</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">                    <tt class="py-name">pte_table</tt> <tt class="py-op">=</tt> <tt class="py-name">struct</tt><tt class="py-op">.</tt><tt class="py-name">unpack</tt><tt class="py-op">(</tt><tt class="py-string">"&lt;"</tt> <tt class="py-op">+</tt> <tt class="py-string">"Q"</tt> <tt class="py-op">*</tt> <tt class="py-number">0x200</tt><tt class="py-op">,</tt> <tt id="link-37" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-37', 'data', 'link-35');">data</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line"> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">                    <tt class="py-keyword">for</tt> <tt id="link-38" class="py-name" targets="Variable rekall.ui.text.Colorizer.i=rekall.ui.text.Colorizer-class.html#i"><a title="rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-38', 'i', 'link-38');">i</a></tt><tt class="py-op">,</tt> <tt class="py-name">pte_value</tt> <tt class="py-keyword">in</tt> <tt class="py-name">enumerate</tt><tt class="py-op">(</tt><tt class="py-name">pte_table</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">                        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="rekall.plugins.addrspaces.amd64.VTxPagedMemory.entry_present
+rekall.plugins.addrspaces.intel.IA32PagedMemory.entry_present" class="py-name" href="#" onclick="return doclink('link-39', 'entry_present', 'link-13');">entry_present</a></tt><tt class="py-op">(</tt><tt class="py-name">pte_value</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">                            <tt class="py-name">out_vaddr</tt> <tt class="py-op">=</tt> <tt class="py-name">vaddr</tt> <tt class="py-op">|</tt> <tt id="link-40" class="py-name"><a title="rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-40', 'i', 'link-38');">i</a></tt> <tt class="py-op">&lt;&lt;</tt> <tt class="py-number">12</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">                            <tt class="py-keyword">yield</tt> <tt class="py-op">(</tt><tt class="py-name">out_vaddr</tt><tt class="py-op">,</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">                                   <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="rekall.plugins.addrspaces.intel.IA32PagedMemory.get_phys_addr
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.get_phys_addr" class="py-name" href="#" onclick="return doclink('link-41', 'get_phys_addr', 'link-24');">get_phys_addr</a></tt><tt class="py-op">(</tt><tt class="py-name">out_vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">pte_value</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">                                   <tt class="py-number">0x1000</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line"> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"> </tt>
+<a name="VTxPagedMemory"></a><div id="VTxPagedMemory-def"><a name="L188"></a><tt class="py-lineno">188</tt> <a class="py-toggle" href="#" id="VTxPagedMemory-toggle" onclick="return toggle('VTxPagedMemory');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html">VTxPagedMemory</a><tt class="py-op">(</tt><tt class="py-base-class">AMD64PagedMemory</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="VTxPagedMemory-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="VTxPagedMemory-expanded"><a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">    <tt class="py-docstring">"""Intel VT-x address space.</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"><tt class="py-docstring">    Provides an address space that does EPT page translation to provide access</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"><tt class="py-docstring">    to the guest physical address space, thus allowing volatility plugins to</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"><tt class="py-docstring">    operate on a virtual machine running on a host operating system.</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"><tt class="py-docstring">    This is described in the Intel(R) 64 and IA-32 Architectures Software</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"><tt class="py-docstring">    Developer's Manual Volume 3C: System Programming Guide, Part 3, pages 28-1</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line"><tt class="py-docstring">    to 28-12. This book is available for free at</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line"><tt class="py-docstring">    http://www.intel.com/products/processor/manuals/index.htm.</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line"><tt class="py-docstring">    This address space depends on the "ept" parameter. You can use the vmscan</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line"><tt class="py-docstring">    plugin to find valid ept values on a physical memory image.</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line"><tt class="py-docstring">    Note that support for AMD's AMD-V address space is untested at the moment.</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line"> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line">    <tt id="link-42" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.order
+rekall.io_manager.IOManager.order
+rekall.io_manager.ZipFileManager.order
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.order
+rekall.plugins.addrspaces.amd64.VTxPagedMemory.order
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.order
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace64.order
+rekall.plugins.addrspaces.ewf.EWFAddressSpace.order
+rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.order
+rekall.plugins.addrspaces.intel.IA32PagedMemory.order
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.order
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.order
+rekall.plugins.addrspaces.standard.FDAddressSpace.order
+rekall.plugins.addrspaces.standard.FileAddressSpace.order
+rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.order
+rekall.plugins.addrspaces.win32.Win32FileAddressSpace.order" class="py-name" href="#" onclick="return doclink('link-42', 'order', 'link-11');">order</a></tt> <tt class="py-op">=</tt> <tt class="py-number">20</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">    <tt id="link-43" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.__image=rekall.addrspace.BaseAddressSpace-class.html#__image,Variable rekall.plugins.addrspaces.amd64.VTxPagedMemory.__image=rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#__image,Variable rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.__image=rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32-class.html#__image,Variable rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace64.__image=rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace64-class.html#__image,Variable rekall.plugins.addrspaces.ewf.EWFAddressSpace.__image=rekall.plugins.addrspaces.ewf.EWFAddressSpace-class.html#__image,Variable rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.__image=rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace-class.html#__image,Variable rekall.plugins.addrspaces.macho.MACHOCoreDump.__image=rekall.plugins.addrspaces.macho.MACHOCoreDump-class.html#__image,Variable rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__image=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#__image,Variable rekall.plugins.addrspaces.standard.FileAddressSpace.__image=rekall.plugins.addrspaces.standard.FileAddressSpace-class.html#__image,Variable rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.__image=rekall.plugins.addrspaces.vboxelf.Elf64CoreDump-class.html#__image,Variable rekall.plugins.addrspaces.win32.Win32FileAddressSpace.__image=rekall.plugins.addrspaces.win32.Win32FileAddressSpace-class.html#__image"><a title="rekall.addrspace.BaseAddressSpace.__image
+rekall.plugins.addrspaces.amd64.VTxPagedMemory.__image
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.__image
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace64.__image
+rekall.plugins.addrspaces.ewf.EWFAddressSpace.__image
+rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.__image
+rekall.plugins.addrspaces.macho.MACHOCoreDump.__image
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__image
+rekall.plugins.addrspaces.standard.FileAddressSpace.__image
+rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.__image
+rekall.plugins.addrspaces.win32.Win32FileAddressSpace.__image" class="py-name" href="#" onclick="return doclink('link-43', '__image', 'link-43');">__image</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line"> </tt>
+<a name="VTxPagedMemory.__init__"></a><div id="VTxPagedMemory.__init__-def"><a name="L209"></a><tt class="py-lineno">209</tt> <a class="py-toggle" href="#" id="VTxPagedMemory.__init__-toggle" onclick="return toggle('VTxPagedMemory.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">ept</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="VTxPagedMemory.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="VTxPagedMemory.__init__-expanded"><a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">        <tt class="py-comment"># A dummy DTB is passed to the base class so the DTB checks on</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">        <tt class="py-comment"># IA32PagedMemory don't bail out. We require the DTB to never be used</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line">        <tt class="py-comment"># for page translation outside of get_pml4e.</tt> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">        <tt id="link-44" class="py-name" targets="Class rekall.plugins.addrspaces.amd64.AMD64PagedMemory=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html"><a title="rekall.plugins.addrspaces.amd64.AMD64PagedMemory" class="py-name" href="#" onclick="return doclink('link-44', 'AMD64PagedMemory', 'link-44');">AMD64PagedMemory</a></tt><tt class="py-op">.</tt><tt id="link-45" class="py-name" targets="Method rekall.addrspace.AddrSpaceError.__init__()=rekall.addrspace.AddrSpaceError-class.html#__init__,Method rekall.addrspace.BaseAddressSpace.__init__()=rekall.addrspace.BaseAddressSpace-class.html#__init__,Method rekall.addrspace.BufferAddressSpace.__init__()=rekall.addrspace.BufferAddressSpace-class.html#__init__,Method rekall.addrspace.CachingAddressSpaceMixIn.__init__()=rekall.addrspace.CachingAddressSpaceMixIn-class.html#__init__,Method rekall.addrspace.RunBasedAddressSpace.__init__()=rekall.addrspace.RunBasedAddressSpace-class.html#__init__,Method rekall.addrspace_test.CustomRunsAddressSpace.__init__()=rekall.addrspace_test.CustomRunsAddressSpace-class.html#__init__,Method rekall.entity.Entity.__init__()=rekall.entity.Entity-class.html#__init__,Method rekall.entity.EntityLookupTable.__init__()=rekall.entity.EntityLookupTable-class.html#__init__,Method rekall.entity.EntityManager.__init__()=rekall.entity.EntityManager-class.html#__init__,Method rekall.identity.BaseObjectIdentity.__init__()=rekall.identity.BaseObjectIdentity-class.html#__init__,Method rekall.identity.Identity.__init__()=rekall.identity.Identity-class.html#__init__,Method rekall.identity.ProcessIdentity.__init__()=rekall.identity.ProcessIdentity-class.html#__init__,Method rekall.identity.UserIdentity.__init__()=rekall.identity.UserIdentity-class.html#__init__,Method rekall.io_manager.DirectoryIOManager.__init__()=rekall.io_manager.DirectoryIOManager-class.html#__init__,Method rekall.io_manager.IOManager.__init__()=rekall.io_manager.IOManager-class.html#__init__,Method rekall.io_manager.SelfClosingFile.__init__()=rekall.io_manager.SelfClosingFile-class.html#__init__,Method rekall.io_manager.URLManager.__init__()=rekall.io_manager.URLManager-class.html#__init__,Method rekall.io_manager.ZipFileManager.__init__()=rekall.io_manager.ZipFileManager-class.html#__init__,Method rekall.kb.AddressResolver.__init__()=rekall.kb.AddressResolver-class.html#__init__,Method rekall.kb.KernelModule.__init__()=rekall.kb.KernelModule-class.html#__init__,Method rekall.kb.ParameterHook.__init__()=rekall.kb.ParameterHook-class.html#__init__,Method rekall.kb.SortedAddresses.__init__()=rekall.kb.SortedAddresses-class.html#__init__,Method rekall.kb.SymbolAddresses.__init__()=rekall.kb.SymbolAddresses-class.html#__init__,Method rekall.obj.Array.__init__()=rekall.obj.Array-class.html#__init__,Method rekall.obj.BaseObject.__init__()=rekall.obj.BaseObject-class.html#__init__,Method rekall.obj.BitField.__init__()=rekall.obj.BitField-class.html#__init__,Method rekall.obj.Curry.__init__()=rekall.obj.Curry-class.html#__init__,Method rekall.obj.ListArray.__init__()=rekall.obj.ListArray-class.html#__init__,Method rekall.obj.NativeType.__init__()=rekall.obj.NativeType-class.html#__init__,Method rekall.obj.NoneObject.__init__()=rekall.obj.NoneObject-class.html#__init__,Method rekall.obj.Pointer.__init__()=rekall.obj.Pointer-class.html#__init__,Method rekall.obj.Profile.__init__()=rekall.obj.Profile-class.html#__init__,Method rekall.obj.ProfileLog.__init__()=rekall.obj.ProfileLog-class.html#__init__,Method rekall.obj.Struct.__init__()=rekall.obj.Struct-class.html#__init__,Method rekall.obj.Void.__init__()=rekall.obj.Void-class.html#__init__,Method rekall.plugin.Command.__init__()=rekall.plugin.Command-class.html#__init__,Method rekall.plugin.KernelASMixin.__init__()=rekall.plugin.KernelASMixin-class.html#__init__,Method rekall.plugin.PhysicalASMixin.__init__()=rekall.plugin.PhysicalASMixin-class.html#__init__,Method rekall.plugin.ProfileCommand.__init__()=rekall.plugin.ProfileCommand-class.html#__init__,Method rekall.plugin.VerbosityMixIn.__init__()=rekall.plugin.VerbosityMixIn-class.html#__init__,Method rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.__init__()=rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.amd64.VTxPagedMemory.__init__()=rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.__init__()=rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32-class.html#__init__,Method rekall.plugins.addrspaces.ewf.EWFAddressSpace.__init__()=rekall.plugins.addrspaces.ewf.EWFAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.ewf.ewffile.__init__()=rekall.plugins.addrspaces.ewf.ewffile-class.html#__init__,Method rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.__init__()=rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace-class.html#__init__,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.__init__()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.macho.MACHOCoreDump.__init__()=rekall.plugins.addrspaces.macho.MACHOCoreDump-class.html#__init__,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__init__()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.DummyAddressSpace.__init__()=rekall.plugins.addrspaces.standard.DummyAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.FDAddressSpace.__init__()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.FileAddressSpace.__init__()=rekall.plugins.addrspaces.standard.FileAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.WriteableAddressSpace.__init__()=rekall.plugins.addrspaces.standard.WriteableAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.__init__()=rekall.plugins.addrspaces.vboxelf.Elf64CoreDump-class.html#__init__,Method rekall.plugins.addrspaces.win32.Win32FileAddressSpace.__init__()=rekall.plugins.addrspaces.win32.Win32FileAddressSpace-class.html#__init__,Method rekall.plugins.core.DT.__init__()=rekall.plugins.core.DT-class.html#__init__,Method rekall.plugins.core.DirectoryDumperMixin.__init__()=rekall.plugins.core.DirectoryDumperMixin-class.html#__init__,Method rekall.plugins.core.DummyParser.__init__()=rekall.plugins.core.DummyParser-class.html#__init__,Method rekall.plugins.core.Dump.__init__()=rekall.plugins.core.Dump-class.html#__init__,Method rekall.plugins.core.Grep.__init__()=rekall.plugins.core.Grep-class.html#__init__,Method rekall.plugins.core.Info.__init__()=rekall.plugins.core.Info-class.html#__init__,Method rekall.plugins.core.LoadAddressSpace.__init__()=rekall.plugins.core.LoadAddressSpace-class.html#__init__,Method rekall.plugins.core.LoadPlugins.__init__()=rekall.plugins.core.LoadPlugins-class.html#__init__,Method rekall.plugins.core.MemmapMixIn.__init__()=rekall.plugins.core.MemmapMixIn-class.html#__init__,Method rekall.plugins.core.OutputFileMixin.__init__()=rekall.plugins.core.OutputFileMixin-class.html#__init__,Method rekall.plugins.core.Printer.__init__()=rekall.plugins.core.Printer-class.html#__init__,Method rekall.plugins.darwin.checks.CheckTrapTable.__init__()=rekall.plugins.darwin.checks.CheckTrapTable-class.html#__init__,Method rekall.plugins.darwin.checks.OIDInfo.__init__()=rekall.plugins.darwin.checks.OIDInfo-class.html#__init__,Method rekall.plugins.darwin.common.DarwinKASLRMixin.__init__()=rekall.plugins.darwin.common.DarwinKASLRMixin-class.html#__init__,Method rekall.plugins.darwin.common.DarwinProcessFilter.__init__()=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#__init__,Method rekall.plugins.darwin.common.KernelAddressCheckerMixIn.__init__()=rekall.plugins.darwin.common.KernelAddressCheckerMixIn-class.html#__init__,Method rekall.plugins.hypervisors.VMCSScanner.__init__()=rekall.plugins.hypervisors.VMCSScanner-class.html#__init__,Method rekall.plugins.hypervisors.VirtualMachine.__init__()=rekall.plugins.hypervisors.VirtualMachine-class.html#__init__,Method rekall.plugins.hypervisors.VmScan.__init__()=rekall.plugins.hypervisors.VmScan-class.html#__init__,Method rekall.plugins.imagecopy.ImageCopy.__init__()=rekall.plugins.imagecopy.ImageCopy-class.html#__init__,Method rekall.plugins.linux.arp.Arp.__init__()=rekall.plugins.linux.arp.Arp-class.html#__init__,Method rekall.plugins.linux.bash.BashHistory.__init__()=rekall.plugins.linux.bash.BashHistory-class.html#__init__,Method rekall.plugins.linux.bash.BashProfile32.__init__()=rekall.plugins.linux.bash.BashProfile32-class.html#__init__,Method rekall.plugins.linux.bash.BashProfile64.__init__()=rekall.plugins.linux.bash.BashProfile64-class.html#__init__,Method rekall.plugins.linux.check_afinfo.CheckAFInfo.__init__()=rekall.plugins.linux.check_afinfo.CheckAFInfo-class.html#__init__,Method rekall.plugins.linux.check_fops.CheckProcFops.__init__()=rekall.plugins.linux.check_fops.CheckProcFops-class.html#__init__,Method rekall.plugins.linux.common.HeapScannerMixIn.__init__()=rekall.plugins.linux.common.HeapScannerMixIn-class.html#__init__,Method rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__()=rekall.plugins.linux.common.KernelAddressCheckerMixIn-class.html#__init__,Method rekall.plugins.linux.common.LinProcessFilter.__init__()=rekall.plugins.linux.common.LinProcessFilter-class.html#__init__,Method rekall.plugins.linux.lsmod.KernelModule.__init__()=rekall.plugins.linux.lsmod.KernelModule-class.html#__init__,Method rekall.plugins.linux.lsmod.Lsmod.__init__()=rekall.plugins.linux.lsmod.Lsmod-class.html#__init__,Method rekall.plugins.linux.pas2kas.LinPas2Vas.__init__()=rekall.plugins.linux.pas2kas.LinPas2Vas-class.html#__init__,Method rekall.plugins.overlays.basic.Enumeration.__init__()=rekall.plugins.overlays.basic.Enumeration-class.html#__init__,Method rekall.plugins.overlays.basic.Flags.__init__()=rekall.plugins.overlays.basic.Flags-class.html#__init__,Method rekall.plugins.overlays.basic.Function.__init__()=rekall.plugins.overlays.basic.Function-class.html#__init__,Method rekall.plugins.overlays.basic.IndexedArray.__init__()=rekall.plugins.overlays.basic.IndexedArray-class.html#__init__,Method rekall.plugins.overlays.basic.Ipv4Address.__init__()=rekall.plugins.overlays.basic.Ipv4Address-class.html#__init__,Method rekall.plugins.overlays.basic.Ipv6Address.__init__()=rekall.plugins.overlays.basic.Ipv6Address-class.html#__init__,Method rekall.plugins.overlays.basic.MacAddress.__init__()=rekall.plugins.overlays.basic.MacAddress-class.html#__init__,Method rekall.plugins.overlays.basic.Signature.__init__()=rekall.plugins.overlays.basic.Signature-class.html#__init__,Method rekall.plugins.overlays.basic.String.__init__()=rekall.plugins.overlays.basic.String-class.html#__init__,Method rekall.plugins.overlays.basic.UnicodeString.__init__()=rekall.plugins.overlays.basic.UnicodeString-class.html#__init__,Method rekall.plugins.overlays.basic.UnixTimeStamp.__init__()=rekall.plugins.overlays.basic.UnixTimeStamp-class.html#__init__,Method rekall.plugins.overlays.basic.WinFileTime.__init__()=rekall.plugins.overlays.basic.WinFileTime-class.html#__init__,Method rekall.plugins.overlays.darwin.macho.MACHO64Profile.__init__()=rekall.plugins.overlays.darwin.macho.MACHO64Profile-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfdump.DWARFParser.__init__()=rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DIETag.__init__()=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DWARFParser.__init__()=rekall.plugins.overlays.linux.dwarfparser.DWARFParser-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__()=rekall.plugins.overlays.linux.dwarfparser.DwarfParser-class.html#__init__,Method rekall.plugins.overlays.linux.elf.ELFProfile.__init__()=rekall.plugins.overlays.linux.elf.ELFProfile-class.html#__init__,Method rekall.plugins.overlays.linux.vfs.FileName.__init__()=rekall.plugins.overlays.linux.vfs.FileName-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.FLS.__init__()=rekall.plugins.overlays.windows.ntfs.FLS-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__()=rekall.plugins.overlays.windows.ntfs.FixupAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__()=rekall.plugins.overlays.windows.ntfs.MFT_ENTRY-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFS.__init__()=rekall.plugins.overlays.windows.ntfs.NTFS-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFSProfile.__init__()=rekall.plugins.overlays.windows.ntfs.NTFSProfile-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR.__init__()=rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.RunListAddressSpace.__init__()=rekall.plugins.overlays.windows.ntfs.RunListAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.PE.__init__()=rekall.plugins.overlays.windows.pe_vtypes.PE-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.__init__()=rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.__init__()=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.__init__()=rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.SentinelArray.__init__()=rekall.plugins.overlays.windows.pe_vtypes.SentinelArray-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.ThunkArray.__init__()=rekall.plugins.overlays.windows.pe_vtypes.ThunkArray-class.html#__init__,Method rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.__init__()=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin-class.html#__init__,Method rekall.plugins.overlays.windows.windows.Demangler.__init__()=rekall.plugins.overlays.windows.windows.Demangler-class.html#__init__,Method rekall.plugins.tools.ipython.Rekall.__init__()=rekall.plugins.tools.ipython.Rekall-class.html#__init__,Method rekall.plugins.tools.json_tools.JSONParser.__init__()=rekall.plugins.tools.json_tools.JSONParser-class.html#__init__,Method rekall.plugins.tools.json_tools.StructFormatter.__init__()=rekall.plugins.tools.json_tools.StructFormatter-class.html#__init__,Method rekall.plugins.tools.mspdb.FetchPDB.__init__()=rekall.plugins.tools.mspdb.FetchPDB-class.html#__init__,Method rekall.plugins.tools.mspdb.PDBParser.__init__()=rekall.plugins.tools.mspdb.PDBParser-class.html#__init__,Method rekall.plugins.tools.mspdb.PDBProfile.__init__()=rekall.plugins.tools.mspdb.PDBProfile-class.html#__init__,Method rekall.plugins.tools.mspdb.ParsePDB.__init__()=rekall.plugins.tools.mspdb.ParsePDB-class.html#__init__,Method rekall.plugins.tools.mspdb.StreamBasedAddressSpace.__init__()=rekall.plugins.tools.mspdb.StreamBasedAddressSpace-class.html#__init__,Method rekall.plugins.tools.mspdb.lfClass.__init__()=rekall.plugins.tools.mspdb.lfClass-class.html#__init__,Method rekall.plugins.tools.mspdb.lfNestType.__init__()=rekall.plugins.tools.mspdb.lfNestType-class.html#__init__,Method rekall.plugins.tools.profile_tool.BuildIndex.__init__()=rekall.plugins.tools.profile_tool.BuildIndex-class.html#__init__,Method rekall.plugins.tools.profile_tool.ConvertProfile.__init__()=rekall.plugins.tools.profile_tool.ConvertProfile-class.html#__init__,Method rekall.plugins.tools.profile_tool.ProfileConverter.__init__()=rekall.plugins.tools.profile_tool.ProfileConverter-class.html#__init__,Method rekall.plugins.tools.webconsole.FakeParser.__init__()=rekall.plugins.tools.webconsole.FakeParser-class.html#__init__,Method rekall.plugins.tools.webconsole.WebConsole.__init__()=rekall.plugins.tools.webconsole.WebConsole-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolIndex.__init__()=rekall.plugins.windows.common.CheckPoolIndex-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolSize.__init__()=rekall.plugins.windows.common.CheckPoolSize-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolType.__init__()=rekall.plugins.windows.common.CheckPoolType-class.html#__init__,Method rekall.plugins.windows.common.KDBGMixin.__init__()=rekall.plugins.windows.common.KDBGMixin-class.html#__init__,Method rekall.plugins.windows.common.MultiPoolTagCheck.__init__()=rekall.plugins.windows.common.MultiPoolTagCheck-class.html#__init__,Method rekall.plugins.windows.common.PoolScannerPlugin.__init__()=rekall.plugins.windows.common.PoolScannerPlugin-class.html#__init__,Method rekall.plugins.windows.common.PoolTagCheck.__init__()=rekall.plugins.windows.common.PoolTagCheck-class.html#__init__,Method rekall.plugins.windows.common.WinDTBScanner.__init__()=rekall.plugins.windows.common.WinDTBScanner-class.html#__init__,Method rekall.plugins.windows.common.WinFindDTB.__init__()=rekall.plugins.windows.common.WinFindDTB-class.html#__init__,Method rekall.plugins.windows.common.WinProcessFilter.__init__()=rekall.plugins.windows.common.WinProcessFilter-class.html#__init__,Method rekall.plugins.windows.crashinfo.Raw2Dump.__init__()=rekall.plugins.windows.crashinfo.Raw2Dump-class.html#__init__,Method rekall.plugins.windows.disassembler.Disassemble.__init__()=rekall.plugins.windows.disassembler.Disassemble-class.html#__init__,Method rekall.plugins.windows.filescan.MutantScan.__init__()=rekall.plugins.windows.filescan.MutantScan-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanDriver.__init__()=rekall.plugins.windows.filescan.PoolScanDriver-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanFile.__init__()=rekall.plugins.windows.filescan.PoolScanFile-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanMutant.__init__()=rekall.plugins.windows.filescan.PoolScanMutant-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanProcess.__init__()=rekall.plugins.windows.filescan.PoolScanProcess-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanSymlink.__init__()=rekall.plugins.windows.filescan.PoolScanSymlink-class.html#__init__,Method rekall.plugins.windows.gui.atoms.AtomScan.__init__()=rekall.plugins.windows.gui.atoms.AtomScan-class.html#__init__,Method rekall.plugins.windows.gui.atoms.PoolScanAtom.__init__()=rekall.plugins.windows.gui.atoms.PoolScanAtom-class.html#__init__,Method rekall.plugins.windows.gui.clipboard.Clipboard.__init__()=rekall.plugins.windows.gui.clipboard.Clipboard-class.html#__init__,Method rekall.plugins.windows.gui.constants.FakeAtom.__init__()=rekall.plugins.windows.gui.constants.FakeAtom-class.html#__init__,Method rekall.plugins.windows.gui.userhandles.UserHandles.__init__()=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#__init__,Method rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__()=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#__init__,Method rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__()=rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin-class.html#__init__,Method rekall.plugins.windows.handles.Handles.__init__()=rekall.plugins.windows.handles.Handles-class.html#__init__,Method rekall.plugins.windows.index.GuessGUID.__init__()=rekall.plugins.windows.index.GuessGUID-class.html#__init__,Method rekall.plugins.windows.kdbgscan.KDBGScan.__init__()=rekall.plugins.windows.kdbgscan.KDBGScan-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.Callbacks.__init__()=rekall.plugins.windows.malware.callbacks.Callbacks-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__()=rekall.plugins.windows.malware.callbacks.PoolScanPnp9-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback.__init__()=rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.CmdScan.__init__()=rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConHost64.__init__()=rekall.plugins.windows.malware.cmdhistory.ConHost64-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConHost86.__init__()=rekall.plugins.windows.malware.cmdhistory.ConHost86-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConsoleScanner.__init__()=rekall.plugins.windows.malware.cmdhistory.ConsoleScanner-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.Consoles.__init__()=rekall.plugins.windows.malware.cmdhistory.Consoles-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.HistoryScanner.__init__()=rekall.plugins.windows.malware.cmdhistory.HistoryScanner-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__()=rekall.plugins.windows.malware.cmdhistory.WinSrv64-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__()=rekall.plugins.windows.malware.cmdhistory.WinSrv86-class.html#__init__,Method rekall.plugins.windows.malware.devicetree.DeviceTree.__init__()=rekall.plugins.windows.malware.devicetree.DeviceTree-class.html#__init__,Method rekall.plugins.windows.malware.devicetree.DriverIrp.__init__()=rekall.plugins.windows.malware.devicetree.DriverIrp-class.html#__init__,Method rekall.plugins.windows.malware.impscan.IDCRenderer.__init__()=rekall.plugins.windows.malware.impscan.IDCRenderer-class.html#__init__,Method rekall.plugins.windows.malware.impscan.ImpScan.__init__()=rekall.plugins.windows.malware.impscan.ImpScan-class.html#__init__,Method rekall.plugins.windows.malware.malfind.LdrModules.__init__()=rekall.plugins.windows.malware.malfind.LdrModules-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__()=rekall.plugins.windows.malware.svcscan.SvcHeaderScanner-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__()=rekall.plugins.windows.malware.svcscan.SvcRecordScanner-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcScan.__init__()=rekall.plugins.windows.malware.svcscan.SvcScan-class.html#__init__,Method rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__()=rekall.plugins.windows.malware.yarascan.BaseYaraASScanner-class.html#__init__,Method rekall.plugins.windows.malware.yarascan.YaraScan.__init__()=rekall.plugins.windows.malware.yarascan.YaraScan-class.html#__init__,Method rekall.plugins.windows.modscan.PoolScanModuleFast.__init__()=rekall.plugins.windows.modscan.PoolScanModuleFast-class.html#__init__,Method rekall.plugins.windows.modscan.PoolScanThreadFast.__init__()=rekall.plugins.windows.modscan.PoolScanThreadFast-class.html#__init__,Method rekall.plugins.windows.modules.Modules.__init__()=rekall.plugins.windows.modules.Modules-class.html#__init__,Method rekall.plugins.windows.modules.VersionScan.__init__()=rekall.plugins.windows.modules.VersionScan-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanTcpEndpoint.__init__()=rekall.plugins.windows.netscan.PoolScanTcpEndpoint-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanTcpListener.__init__()=rekall.plugins.windows.netscan.PoolScanTcpListener-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanUdpEndpoint.__init__()=rekall.plugins.windows.netscan.PoolScanUdpEndpoint-class.html#__init__,Method rekall.plugins.windows.pas2kas.WinPas2Vas.__init__()=rekall.plugins.windows.pas2kas.WinPas2Vas-class.html#__init__,Method rekall.plugins.windows.pfn.DTBScan.__init__()=rekall.plugins.windows.pfn.DTBScan-class.html#__init__,Method rekall.plugins.windows.pfn.PFNInfo.__init__()=rekall.plugins.windows.pfn.PFNInfo-class.html#__init__,Method rekall.plugins.windows.pfn.PTE.__init__()=rekall.plugins.windows.pfn.PTE-class.html#__init__,Method rekall.plugins.windows.pfn.PtoV.__init__()=rekall.plugins.windows.pfn.PtoV-class.html#__init__,Method rekall.plugins.windows.pfn.ValueEnumeration.__init__()=rekall.plugins.windows.pfn.ValueEnumeration-class.html#__init__,Method rekall.plugins.windows.pfn.VtoP.__init__()=rekall.plugins.windows.pfn.VtoP-class.html#__init__,Method rekall.plugins.windows.procdump.DLLDump.__init__()=rekall.plugins.windows.procdump.DLLDump-class.html#__init__,Method rekall.plugins.windows.procdump.PEDump.__init__()=rekall.plugins.windows.procdump.PEDump-class.html#__init__,Method rekall.plugins.windows.procdump.ProcExeDump.__init__()=rekall.plugins.windows.procdump.ProcExeDump-class.html#__init__,Method rekall.plugins.windows.procinfo.PEInfo.__init__()=rekall.plugins.windows.procinfo.PEInfo-class.html#__init__,Method rekall.plugins.windows.pstree.PSTree.__init__()=rekall.plugins.windows.pstree.PSTree-class.html#__init__,Method rekall.plugins.windows.registry.evtlogs.EvtLogs.__init__()=rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html#__init__,Method rekall.plugins.windows.registry.lsadump.HashDump.__init__()=rekall.plugins.windows.registry.lsadump.HashDump-class.html#__init__,Method rekall.plugins.windows.registry.lsadump.LSADump.__init__()=rekall.plugins.windows.registry.lsadump.LSADump-class.html#__init__,Method rekall.plugins.windows.registry.printkey.PrintKey.__init__()=rekall.plugins.windows.registry.printkey.PrintKey-class.html#__init__,Method rekall.plugins.windows.registry.registry.HiveAddressSpace.__init__()=rekall.plugins.windows.registry.registry.HiveAddressSpace-class.html#__init__,Method rekall.plugins.windows.registry.registry.HiveFileAddressSpace.__init__()=rekall.plugins.windows.registry.registry.HiveFileAddressSpace-class.html#__init__,Method rekall.plugins.windows.registry.registry.Pointer32.__init__()=rekall.plugins.windows.registry.registry.Pointer32-class.html#__init__,Method rekall.plugins.windows.registry.registry.Registry.__init__()=rekall.plugins.windows.registry.registry.Registry-class.html#__init__,Method rekall.plugins.windows.registry.registry.RegistryHive.__init__()=rekall.plugins.windows.registry.registry.RegistryHive-class.html#__init__,Method rekall.plugins.windows.registry.registry.RegistryPlugin.__init__()=rekall.plugins.windows.registry.registry.RegistryPlugin-class.html#__init__,Method rekall.plugins.windows.registry.userassist.UserAssist.__init__()=rekall.plugins.windows.registry.userassist.UserAssist-class.html#__init__,Method rekall.plugins.windows.taskmods.WinPsList.__init__()=rekall.plugins.windows.taskmods.WinPsList-class.html#__init__,Method rekall.plugins.windows.vadinfo.VAD.__init__()=rekall.plugins.windows.vadinfo.VAD-class.html#__init__,Method rekall.plugins.windows.vadinfo.VADDump.__init__()=rekall.plugins.windows.vadinfo.VADDump-class.html#__init__,Method rekall.plugins.windows.vadinfo.VadScanner.__init__()=rekall.plugins.windows.vadinfo.VadScanner-class.html#__init__,Method rekall.registry.MetaclassRegistry.__init__()=rekall.registry.MetaclassRegistry-class.html#__init__,Method rekall.scan.BaseScanner.__init__()=rekall.scan.BaseScanner-class.html#__init__,Method rekall.scan.MultiStringFinderCheck.__init__()=rekall.scan.MultiStringFinderCheck-class.html#__init__,Method rekall.scan.PointerScanner.__init__()=rekall.scan.PointerScanner-class.html#__init__,Method rekall.scan.RegexCheck.__init__()=rekall.scan.RegexCheck-class.html#__init__,Method rekall.scan.ScannerCheck.__init__()=rekall.scan.ScannerCheck-class.html#__init__,Method rekall.scan.ScannerGroup.__init__()=rekall.scan.ScannerGroup-class.html#__init__,Method rekall.scan.StringCheck.__init__()=rekall.scan.StringCheck-class.html#__init__,Method rekall.session.Configuration.__init__()=rekall.session.Configuration-class.html#__init__,Method rekall.session.InteractiveSession.__init__()=rekall.session.InteractiveSession-class.html#__init__,Method rekall.session.ProgressDispatcher.__init__()=rekall.session.ProgressDispatcher-class.html#__init__,Method rekall.session.Session.__init__()=rekall.session.Session-class.html#__init__,Method rekall.superposition.Superposition.__init__()=rekall.superposition.Superposition-class.html#__init__,Method rekall.testlib.RekallBaseUnitTestCase.__init__()=rekall.testlib.RekallBaseUnitTestCase-class.html#__init__,Method rekall.threadpool.ThreadPool.__init__()=rekall.threadpool.ThreadPool-class.html#__init__,Method rekall.threadpool.Worker.__init__()=rekall.threadpool.Worker-class.html#__init__,Method rekall.type_generator.Disassembler.__init__()=rekall.type_generator.Disassembler-class.html#__init__,Method rekall.ui.renderer.BaseColumn.__init__()=rekall.ui.renderer.BaseColumn-class.html#__init__,Method rekall.ui.renderer.BaseRenderer.__init__()=rekall.ui.renderer.BaseRenderer-class.html#__init__,Method rekall.ui.renderer.BaseTable.__init__()=rekall.ui.renderer.BaseTable-class.html#__init__,Method rekall.ui.renderer.UnicodeWrapper.__init__()=rekall.ui.renderer.UnicodeWrapper-class.html#__init__,Method rekall.ui.text.Colorizer.__init__()=rekall.ui.text.Colorizer-class.html#__init__,Method rekall.ui.text.Pager.__init__()=rekall.ui.text.Pager-class.html#__init__,Method rekall.ui.text.TestRenderer.__init__()=rekall.ui.text.TestRenderer-class.html#__init__,Method rekall.ui.text.TextColumn.__init__()=rekall.ui.text.TextColumn-class.html#__init__,Method rekall.ui.text.TextRenderer.__init__()=rekall.ui.text.TextRenderer-class.html#__init__,Method rekall.ui.text.TextTable.__init__()=rekall.ui.text.TextTable-class.html#__init__,Method rekall.utils.AgeBasedCache.__init__()=rekall.utils.AgeBasedCache-class.html#__init__,Method rekall.utils.FastStore.__init__()=rekall.utils.FastStore-class.html#__init__,Method rekall.utils.FileLock.__init__()=rekall.utils.FileLock-class.html#__init__,Method rekall.utils.LinkedList.__init__()=rekall.utils.LinkedList-class.html#__init__,Method rekall.utils.Node.__init__()=rekall.utils.Node-class.html#__init__,Method rekall.utils.SortedCollection.__init__()=rekall.utils.SortedCollection-class.html#__init__"><a title="rekall.addrspace.AddrSpaceError.__init__
+rekall.addrspace.BaseAddressSpace.__init__
+rekall.addrspace.BufferAddressSpace.__init__
+rekall.addrspace.CachingAddressSpaceMixIn.__init__
+rekall.addrspace.RunBasedAddressSpace.__init__
+rekall.addrspace_test.CustomRunsAddressSpace.__init__
+rekall.entity.Entity.__init__
+rekall.entity.EntityLookupTable.__init__
+rekall.entity.EntityManager.__init__
+rekall.identity.BaseObjectIdentity.__init__
+rekall.identity.Identity.__init__
+rekall.identity.ProcessIdentity.__init__
+rekall.identity.UserIdentity.__init__
+rekall.io_manager.DirectoryIOManager.__init__
+rekall.io_manager.IOManager.__init__
+rekall.io_manager.SelfClosingFile.__init__
+rekall.io_manager.URLManager.__init__
+rekall.io_manager.ZipFileManager.__init__
+rekall.kb.AddressResolver.__init__
+rekall.kb.KernelModule.__init__
+rekall.kb.ParameterHook.__init__
+rekall.kb.SortedAddresses.__init__
+rekall.kb.SymbolAddresses.__init__
+rekall.obj.Array.__init__
+rekall.obj.BaseObject.__init__
+rekall.obj.BitField.__init__
+rekall.obj.Curry.__init__
+rekall.obj.ListArray.__init__
+rekall.obj.NativeType.__init__
+rekall.obj.NoneObject.__init__
+rekall.obj.Pointer.__init__
+rekall.obj.Profile.__init__
+rekall.obj.ProfileLog.__init__
+rekall.obj.Struct.__init__
+rekall.obj.Void.__init__
+rekall.plugin.Command.__init__
+rekall.plugin.KernelASMixin.__init__
+rekall.plugin.PhysicalASMixin.__init__
+rekall.plugin.ProfileCommand.__init__
+rekall.plugin.VerbosityMixIn.__init__
+rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.__init__
+rekall.plugins.addrspaces.amd64.VTxPagedMemory.__init__
+rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.__init__
+rekall.plugins.addrspaces.ewf.EWFAddressSpace.__init__
+rekall.plugins.addrspaces.ewf.ewffile.__init__
+rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.__init__
+rekall.plugins.addrspaces.intel.IA32PagedMemory.__init__
+rekall.plugins.addrspaces.macho.MACHOCoreDump.__init__
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__init__
+rekall.plugins.addrspaces.standard.DummyAddressSpace.__init__
+rekall.plugins.addrspaces.standard.FDAddressSpace.__init__
+rekall.plugins.addrspaces.standard.FileAddressSpace.__init__
+rekall.plugins.addrspaces.standard.WriteableAddressSpace.__init__
+rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.__init__
+rekall.plugins.addrspaces.win32.Win32FileAddressSpace.__init__
+rekall.plugins.core.DT.__init__
+rekall.plugins.core.DirectoryDumperMixin.__init__
+rekall.plugins.core.DummyParser.__init__
+rekall.plugins.core.Dump.__init__
+rekall.plugins.core.Grep.__init__
+rekall.plugins.core.Info.__init__
+rekall.plugins.core.LoadAddressSpace.__init__
+rekall.plugins.core.LoadPlugins.__init__
+rekall.plugins.core.MemmapMixIn.__init__
+rekall.plugins.core.OutputFileMixin.__init__
+rekall.plugins.core.Printer.__init__
+rekall.plugins.darwin.checks.CheckTrapTable.__init__
+rekall.plugins.darwin.checks.OIDInfo.__init__
+rekall.plugins.darwin.common.DarwinKASLRMixin.__init__
+rekall.plugins.darwin.common.DarwinProcessFilter.__init__
+rekall.plugins.darwin.common.KernelAddressCheckerMixIn.__init__
+rekall.plugins.hypervisors.VMCSScanner.__init__
+rekall.plugins.hypervisors.VirtualMachine.__init__
+rekall.plugins.hypervisors.VmScan.__init__
+rekall.plugins.imagecopy.ImageCopy.__init__
+rekall.plugins.linux.arp.Arp.__init__
+rekall.plugins.linux.bash.BashHistory.__init__
+rekall.plugins.linux.bash.BashProfile32.__init__
+rekall.plugins.linux.bash.BashProfile64.__init__
+rekall.plugins.linux.check_afinfo.CheckAFInfo.__init__
+rekall.plugins.linux.check_fops.CheckProcFops.__init__
+rekall.plugins.linux.common.HeapScannerMixIn.__init__
+rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__
+rekall.plugins.linux.common.LinProcessFilter.__init__
+rekall.plugins.linux.lsmod.KernelModule.__init__
+rekall.plugins.linux.lsmod.Lsmod.__init__
+rekall.plugins.linux.pas2kas.LinPas2Vas.__init__
+rekall.plugins.overlays.basic.Enumeration.__init__
+rekall.plugins.overlays.basic.Flags.__init__
+rekall.plugins.overlays.basic.Function.__init__
+rekall.plugins.overlays.basic.IndexedArray.__init__
+rekall.plugins.overlays.basic.Ipv4Address.__init__
+rekall.plugins.overlays.basic.Ipv6Address.__init__
+rekall.plugins.overlays.basic.MacAddress.__init__
+rekall.plugins.overlays.basic.Signature.__init__
+rekall.plugins.overlays.basic.String.__init__
+rekall.plugins.overlays.basic.UnicodeString.__init__
+rekall.plugins.overlays.basic.UnixTimeStamp.__init__
+rekall.plugins.overlays.basic.WinFileTime.__init__
+rekall.plugins.overlays.darwin.macho.MACHO64Profile.__init__
+rekall.plugins.overlays.linux.dwarfdump.DWARFParser.__init__
+rekall.plugins.overlays.linux.dwarfparser.DIETag.__init__
+rekall.plugins.overlays.linux.dwarfparser.DWARFParser.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__
+rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__
+rekall.plugins.overlays.linux.elf.ELFProfile.__init__
+rekall.plugins.overlays.linux.vfs.FileName.__init__
+rekall.plugins.overlays.windows.ntfs.FLS.__init__
+rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__
+rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__
+rekall.plugins.overlays.windows.ntfs.NTFS.__init__
+rekall.plugins.overlays.windows.ntfs.NTFSProfile.__init__
+rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR.__init__
+rekall.plugins.overlays.windows.ntfs.RunListAddressSpace.__init__
+rekall.plugins.overlays.windows.pe_vtypes.PE.__init__
+rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.__init__
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.__init__
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.__init__
+rekall.plugins.overlays.windows.pe_vtypes.SentinelArray.__init__
+rekall.plugins.overlays.windows.pe_vtypes.ThunkArray.__init__
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.__init__
+rekall.plugins.overlays.windows.windows.Demangler.__init__
+rekall.plugins.tools.ipython.Rekall.__init__
+rekall.plugins.tools.json_tools.JSONParser.__init__
+rekall.plugins.tools.json_tools.StructFormatter.__init__
+rekall.plugins.tools.mspdb.FetchPDB.__init__
+rekall.plugins.tools.mspdb.PDBParser.__init__
+rekall.plugins.tools.mspdb.PDBProfile.__init__
+rekall.plugins.tools.mspdb.ParsePDB.__init__
+rekall.plugins.tools.mspdb.StreamBasedAddressSpace.__init__
+rekall.plugins.tools.mspdb.lfClass.__init__
+rekall.plugins.tools.mspdb.lfNestType.__init__
+rekall.plugins.tools.profile_tool.BuildIndex.__init__
+rekall.plugins.tools.profile_tool.ConvertProfile.__init__
+rekall.plugins.tools.profile_tool.ProfileConverter.__init__
+rekall.plugins.tools.webconsole.FakeParser.__init__
+rekall.plugins.tools.webconsole.WebConsole.__init__
+rekall.plugins.windows.common.CheckPoolIndex.__init__
+rekall.plugins.windows.common.CheckPoolSize.__init__
+rekall.plugins.windows.common.CheckPoolType.__init__
+rekall.plugins.windows.common.KDBGMixin.__init__
+rekall.plugins.windows.common.MultiPoolTagCheck.__init__
+rekall.plugins.windows.common.PoolScannerPlugin.__init__
+rekall.plugins.windows.common.PoolTagCheck.__init__
+rekall.plugins.windows.common.WinDTBScanner.__init__
+rekall.plugins.windows.common.WinFindDTB.__init__
+rekall.plugins.windows.common.WinProcessFilter.__init__
+rekall.plugins.windows.crashinfo.Raw2Dump.__init__
+rekall.plugins.windows.disassembler.Disassemble.__init__
+rekall.plugins.windows.filescan.MutantScan.__init__
+rekall.plugins.windows.filescan.PoolScanDriver.__init__
+rekall.plugins.windows.filescan.PoolScanFile.__init__
+rekall.plugins.windows.filescan.PoolScanMutant.__init__
+rekall.plugins.windows.filescan.PoolScanProcess.__init__
+rekall.plugins.windows.filescan.PoolScanSymlink.__init__
+rekall.plugins.windows.gui.atoms.AtomScan.__init__
+rekall.plugins.windows.gui.atoms.PoolScanAtom.__init__
+rekall.plugins.windows.gui.clipboard.Clipboard.__init__
+rekall.plugins.windows.gui.constants.FakeAtom.__init__
+rekall.plugins.windows.gui.userhandles.UserHandles.__init__
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__
+rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__
+rekall.plugins.windows.handles.Handles.__init__
+rekall.plugins.windows.index.GuessGUID.__init__
+rekall.plugins.windows.kdbgscan.KDBGScan.__init__
+rekall.plugins.windows.malware.callbacks.Callbacks.__init__
+rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__
+rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback.__init__
+rekall.plugins.windows.malware.cmdhistory.CmdScan.__init__
+rekall.plugins.windows.malware.cmdhistory.ConHost64.__init__
+rekall.plugins.windows.malware.cmdhistory.ConHost86.__init__
+rekall.plugins.windows.malware.cmdhistory.ConsoleScanner.__init__
+rekall.plugins.windows.malware.cmdhistory.Consoles.__init__
+rekall.plugins.windows.malware.cmdhistory.HistoryScanner.__init__
+rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__
+rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__
+rekall.plugins.windows.malware.devicetree.DeviceTree.__init__
+rekall.plugins.windows.malware.devicetree.DriverIrp.__init__
+rekall.plugins.windows.malware.impscan.IDCRenderer.__init__
+rekall.plugins.windows.malware.impscan.ImpScan.__init__
+rekall.plugins.windows.malware.malfind.LdrModules.__init__
+rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__
+rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__
+rekall.plugins.windows.malware.svcscan.SvcScan.__init__
+rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__
+rekall.plugins.windows.malware.yarascan.YaraScan.__init__
+rekall.plugins.windows.modscan.PoolScanModuleFast.__init__
+rekall.plugins.windows.modscan.PoolScanThreadFast.__init__
+rekall.plugins.windows.modules.Modules.__init__
+rekall.plugins.windows.modules.VersionScan.__init__
+rekall.plugins.windows.netscan.PoolScanTcpEndpoint.__init__
+rekall.plugins.windows.netscan.PoolScanTcpListener.__init__
+rekall.plugins.windows.netscan.PoolScanUdpEndpoint.__init__
+rekall.plugins.windows.pas2kas.WinPas2Vas.__init__
+rekall.plugins.windows.pfn.DTBScan.__init__
+rekall.plugins.windows.pfn.PFNInfo.__init__
+rekall.plugins.windows.pfn.PTE.__init__
+rekall.plugins.windows.pfn.PtoV.__init__
+rekall.plugins.windows.pfn.ValueEnumeration.__init__
+rekall.plugins.windows.pfn.VtoP.__init__
+rekall.plugins.windows.procdump.DLLDump.__init__
+rekall.plugins.windows.procdump.PEDump.__init__
+rekall.plugins.windows.procdump.ProcExeDump.__init__
+rekall.plugins.windows.procinfo.PEInfo.__init__
+rekall.plugins.windows.pstree.PSTree.__init__
+rekall.plugins.windows.registry.evtlogs.EvtLogs.__init__
+rekall.plugins.windows.registry.lsadump.HashDump.__init__
+rekall.plugins.windows.registry.lsadump.LSADump.__init__
+rekall.plugins.windows.registry.printkey.PrintKey.__init__
+rekall.plugins.windows.registry.registry.HiveAddressSpace.__init__
+rekall.plugins.windows.registry.registry.HiveFileAddressSpace.__init__
+rekall.plugins.windows.registry.registry.Pointer32.__init__
+rekall.plugins.windows.registry.registry.Registry.__init__
+rekall.plugins.windows.registry.registry.RegistryHive.__init__
+rekall.plugins.windows.registry.registry.RegistryPlugin.__init__
+rekall.plugins.windows.registry.userassist.UserAssist.__init__
+rekall.plugins.windows.taskmods.WinPsList.__init__
+rekall.plugins.windows.vadinfo.VAD.__init__
+rekall.plugins.windows.vadinfo.VADDump.__init__
+rekall.plugins.windows.vadinfo.VadScanner.__init__
+rekall.registry.MetaclassRegistry.__init__
+rekall.scan.BaseScanner.__init__
+rekall.scan.MultiStringFinderCheck.__init__
+rekall.scan.PointerScanner.__init__
+rekall.scan.RegexCheck.__init__
+rekall.scan.ScannerCheck.__init__
+rekall.scan.ScannerGroup.__init__
+rekall.scan.StringCheck.__init__
+rekall.session.Configuration.__init__
+rekall.session.InteractiveSession.__init__
+rekall.session.ProgressDispatcher.__init__
+rekall.session.Session.__init__
+rekall.superposition.Superposition.__init__
+rekall.testlib.RekallBaseUnitTestCase.__init__
+rekall.threadpool.ThreadPool.__init__
+rekall.threadpool.Worker.__init__
+rekall.type_generator.Disassembler.__init__
+rekall.ui.renderer.BaseColumn.__init__
+rekall.ui.renderer.BaseRenderer.__init__
+rekall.ui.renderer.BaseTable.__init__
+rekall.ui.renderer.UnicodeWrapper.__init__
+rekall.ui.text.Colorizer.__init__
+rekall.ui.text.Pager.__init__
+rekall.ui.text.TestRenderer.__init__
+rekall.ui.text.TextColumn.__init__
+rekall.ui.text.TextRenderer.__init__
+rekall.ui.text.TextTable.__init__
+rekall.utils.AgeBasedCache.__init__
+rekall.utils.FastStore.__init__
+rekall.utils.FileLock.__init__
+rekall.utils.LinkedList.__init__
+rekall.utils.Node.__init__
+rekall.utils.SortedCollection.__init__" class="py-name" href="#" onclick="return doclink('link-45', '__init__', 'link-45');">__init__</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-name">dtb</tt><tt class="py-op">=</tt><tt class="py-number">0xFFFFFFFF</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line"> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">        <tt class="py-comment"># Reset the DTB, in case a plugin or AS relies on us providing one.</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dtb</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">        <tt id="link-46" class="py-name" targets="Variable rekall.plugins.hypervisors.VirtualMachine.ept_list=rekall.plugins.hypervisors.VirtualMachine-class.html#ept_list"><a title="rekall.plugins.hypervisors.VirtualMachine.ept_list" class="py-name" href="#" onclick="return doclink('link-46', 'ept_list', 'link-46');">ept_list</a></tt> <tt class="py-op">=</tt> <tt class="py-name">ept</tt> <tt class="py-keyword">or</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name" targets="Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-47', 'session', 'link-47');">session</a></tt><tt class="py-op">.</tt><tt id="link-48" class="py-name" targets="Method rekall.session.Session.GetParameter()=rekall.session.Session-class.html#GetParameter"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-48', 'GetParameter', 'link-48');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"ept"</tt><tt class="py-op">)</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.as_assert()=rekall.addrspace.BaseAddressSpace-class.html#as_assert"><a title="rekall.addrspace.BaseAddressSpace.as_assert" class="py-name" href="#" onclick="return doclink('link-49', 'as_assert', 'link-49');">as_assert</a></tt><tt class="py-op">(</tt><tt id="link-50" class="py-name"><a title="rekall.plugins.hypervisors.VirtualMachine.ept_list" class="py-name" href="#" onclick="return doclink('link-50', 'ept_list', 'link-46');">ept_list</a></tt><tt class="py-op">,</tt> <tt class="py-string">"No EPT specified"</tt><tt class="py-op">)</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line"> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line">        <tt class="py-name">this_ept</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">base</tt><tt class="py-op">,</tt> <tt id="link-51" class="py-name" targets="Class rekall.plugins.addrspaces.amd64.VTxPagedMemory=rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html"><a title="rekall.plugins.addrspaces.amd64.VTxPagedMemory" class="py-name" href="#" onclick="return doclink('link-51', 'VTxPagedMemory', 'link-51');">VTxPagedMemory</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">            <tt class="py-comment"># Find our EPT, which will be the next one after the base one.</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line">            <tt class="py-name">base_idx</tt> <tt class="py-op">=</tt> <tt id="link-52" class="py-name"><a title="rekall.plugins.hypervisors.VirtualMachine.ept_list" class="py-name" href="#" onclick="return doclink('link-52', 'ept_list', 'link-46');">ept_list</a></tt><tt class="py-op">.</tt><tt id="link-53" class="py-name" targets="Module rekall.plugins.windows.index=rekall.plugins.windows.index-module.html,Variable rekall.plugins.windows.index.Index.index=rekall.plugins.windows.index.Index-class.html#index,Method rekall.utils.SortedCollection.index()=rekall.utils.SortedCollection-class.html#index"><a title="rekall.plugins.windows.index
+rekall.plugins.windows.index.Index.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-53', 'index', 'link-53');">index</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">base</tt><tt class="py-op">.</tt><tt class="py-name">ept</tt><tt class="py-op">)</tt> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line">                <tt class="py-name">this_ept</tt> <tt class="py-op">=</tt> <tt id="link-54" class="py-name"><a title="rekall.plugins.hypervisors.VirtualMachine.ept_list" class="py-name" href="#" onclick="return doclink('link-54', 'ept_list', 'link-46');">ept_list</a></tt><tt class="py-op">[</tt><tt class="py-name">base_idx</tt> <tt class="py-op">+</tt> <tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt class="py-name">IndexError</tt><tt class="py-op">:</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line">                <tt class="py-keyword">pass</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">            <tt class="py-name">this_ept</tt> <tt class="py-op">=</tt> <tt id="link-55" class="py-name"><a title="rekall.plugins.hypervisors.VirtualMachine.ept_list" class="py-name" href="#" onclick="return doclink('link-55', 'ept_list', 'link-46');">ept_list</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line"> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.as_assert" class="py-name" href="#" onclick="return doclink('link-56', 'as_assert', 'link-49');">as_assert</a></tt><tt class="py-op">(</tt><tt class="py-name">this_ept</tt> <tt class="py-op">!=</tt> <tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-string">"No more EPTs specified"</tt><tt class="py-op">)</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">ept</tt> <tt class="py-op">=</tt> <tt class="py-name">this_ept</tt> </tt>
+</div><a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line"> </tt>
+<a name="VTxPagedMemory.entry_present"></a><div id="VTxPagedMemory.entry_present-def"><a name="L234"></a><tt class="py-lineno">234</tt> <a class="py-toggle" href="#" id="VTxPagedMemory.entry_present-toggle" onclick="return toggle('VTxPagedMemory.entry_present');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#entry_present">entry_present</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">entry</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="VTxPagedMemory.entry_present-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="VTxPagedMemory.entry_present-expanded"><a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">        <tt class="py-comment"># A page entry being present depends only on bits 2:0 for EPT</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line">        <tt class="py-comment"># translation.</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">entry</tt> <tt class="py-keyword">and</tt> <tt class="py-op">(</tt><tt class="py-name">entry</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0x7</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line"> </tt>
+<a name="VTxPagedMemory.get_pml4e"></a><div id="VTxPagedMemory.get_pml4e-def"><a name="L239"></a><tt class="py-lineno">239</tt> <a class="py-toggle" href="#" id="VTxPagedMemory.get_pml4e-toggle" onclick="return toggle('VTxPagedMemory.get_pml4e');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#get_pml4e">get_pml4e</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">vaddr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="VTxPagedMemory.get_pml4e-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="VTxPagedMemory.get_pml4e-expanded"><a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">        <tt class="py-comment"># PML4 for VT-x is in the EPT, not the DTB as AMD64PagedMemory does.</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line">        <tt class="py-name">ept_pml4e_paddr</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">ept</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0xffffffffff000</tt><tt class="py-op">)</tt> <tt class="py-op">|</tt> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">                           <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">0xff8000000000</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;&gt;</tt> <tt class="py-number">36</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_read_long_long_phys</tt><tt class="py-op">(</tt><tt class="py-name">ept_pml4e_paddr</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line"> </tt>
+<a name="VTxPagedMemory.__str__"></a><div id="VTxPagedMemory.__str__-def"><a name="L245"></a><tt class="py-lineno">245</tt> <a class="py-toggle" href="#" id="VTxPagedMemory.__str__-toggle" onclick="return toggle('VTxPagedMemory.__str__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#__str__">__str__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="VTxPagedMemory.__str__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="VTxPagedMemory.__str__-expanded"><a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"%s@0x%08X"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">__class__</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">ept</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:22:24 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

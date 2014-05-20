@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.windows.registry.evtlogs</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.windows-module.html">Package&nbsp;windows</a> ::
+        <a href="rekall.plugins.windows.registry-module.html">Package&nbsp;registry</a> ::
+        Module&nbsp;evtlogs
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.windows.registry.evtlogs-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module evtlogs</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.registry.evtlogs-pysrc.html">source&nbsp;code</a></span></p>
+<hr />
+<div class="fields">      <p><strong>Author:</strong>
+        Jamie Levy (gleeda)
+      </p>
+      <p><strong>License:</strong>
+        GNU General Public License 2.0 or later
+      </p>
+      <p><strong>Contact:</strong>
+        jamie.levy@gmail.com
+      </p>
+      <p><strong>Organization:</strong>
+        Volatile Systems
+      </p>
+</div><!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.registry.evtlogs.EVTObjectTypes-class.html" class="summary-name">EVTObjectTypes</a><br />
+      An implementation for parsing event logs.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.registry.evtlogs.EVTScanner-class.html" class="summary-name">EVTScanner</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html" class="summary-name">EvtLogs</a><br />
+      Extract Windows Event Logs (XP/2003 only)
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.registry.evtlogs-module.html#evt_log_types" class="summary-name">evt_log_types</a> = <code title="{'EVTLogHeader': [48,
+                  {'HeaderSize': [0, ['unsigned int']],
+                   'Magic': [4, ['String', {'length': 4}]],
+                   'MaxSize': [32, ['int']],
+                   'NextID': [24, ['int']],
+                   'OffsetNextToWrite': [20, ['int']],
+                   'OffsetOldest': [16, ['int']],
+                   'OldestID': [28, ['int']],
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">EVTLogHeader</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>48<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">HeaderSize</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">uns</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rekall.plugins.windows.registry'"><code class="variable-quote">'</code><code class="variable-string">rekall.plugins.windows.registry</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables Details</span></td>
+</tr>
+</table>
+<a name="evt_log_types"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">evt_log_types</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">EVTLogHeader</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>48<code class="variable-op">,</code>
+                  <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">HeaderSize</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                   <code class="variable-quote">'</code><code class="variable-string">Magic</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>4<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">String</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">length</code><code class="variable-quote">'</code><code class="variable-op">: </code>4<code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                   <code class="variable-quote">'</code><code class="variable-string">MaxSize</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>32<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                   <code class="variable-quote">'</code><code class="variable-string">NextID</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>24<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                   <code class="variable-quote">'</code><code class="variable-string">OffsetNextToWrite</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>20<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                   <code class="variable-quote">'</code><code class="variable-string">OffsetOldest</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>16<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                   <code class="variable-quote">'</code><code class="variable-string">OldestID</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>28<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:21:14 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

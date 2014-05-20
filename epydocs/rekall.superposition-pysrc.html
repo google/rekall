@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.superposition</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        Module&nbsp;superposition
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.superposition-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.superposition-module.html">Module rekall.superposition</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2014 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">Provides facilities for non-destructive merging of collections.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">"Adam Sindelar &lt;adamsh@google.com&gt;"</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">itertools</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.obj=rekall.obj-module.html"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-1', 'obj', 'link-1');">obj</a></tt> </tt>
+<a name="Superposition"></a><div id="Superposition-def"><a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt> <a class="py-toggle" href="#" id="Superposition-toggle" onclick="return toggle('Superposition');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.superposition.Superposition-class.html">Superposition</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Superposition-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Superposition-expanded"><a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">    <tt class="py-docstring">"""Represents multiple possible values of a single variable.</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-docstring">    Superpositions are used to represent merge conflicts and inconsistencies in</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-docstring">    a memory image. Due to a variety of factors, such as smear in acquisition,</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-docstring">    and differences in representation of certain objects, such inconsistencies</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-docstring">    are fairly common and not considered errors in Rekall.</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-docstring">    Superposition objects are used in two ways: they can either be created</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-docstring">    explicitly out of any iterable object (using the constructor), or they can</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-docstring">    be created implicitly as needed by one of the several merge_* class methods</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-docstring">    on this class.</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-docstring">    For example:</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-docstring">    Superposition.merge_scalars("foo", "bar") # returns superposition</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-docstring">    Superposition.merge_scalars("foo", "foo") # returns "foo"</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-docstring">    Once created, superpositions can be further merged, returning unions. They</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-docstring">    can also be used in place of the original objects in most situations - the</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-docstring">    __unicode__ and __repr__ functions represent the inconsistency in a</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"><tt class="py-docstring">    human-readable way, and calls to __getitem__ are proxied to each of the</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring">    variants of the superposition, returning a new superposition of the results.</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="Superposition.__init__"></a><div id="Superposition.__init__-def"><a name="L54"></a><tt class="py-lineno"> 54</tt> <a class="py-toggle" href="#" id="Superposition.__init__-toggle" onclick="return toggle('Superposition.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.superposition.Superposition-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">variants</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Superposition.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Superposition.__init__-expanded"><a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">variants</tt> <tt class="py-op">=</tt> <tt class="py-name">variants</tt> </tt>
+</div><a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">classmethod</tt> </tt>
+<a name="Superposition.merge_scalars"></a><div id="Superposition.merge_scalars-def"><a name="L58"></a><tt class="py-lineno"> 58</tt> <a class="py-toggle" href="#" id="Superposition.merge_scalars-toggle" onclick="return toggle('Superposition.merge_scalars');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.superposition.Superposition-class.html#merge_scalars">merge_scalars</a><tt class="py-op">(</tt><tt class="py-param">cls</tt><tt class="py-op">,</tt> <tt class="py-op">*</tt><tt class="py-param">scalars</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Superposition.merge_scalars-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Superposition.merge_scalars-expanded"><a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt class="py-name">variants</tt> <tt class="py-op">=</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">scalar</tt> <tt class="py-keyword">in</tt> <tt class="py-name">scalars</tt><tt class="py-op">:</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">scalar</tt><tt class="py-op">,</tt> <tt id="link-2" class="py-name" targets="Class rekall.superposition.Superposition=rekall.superposition.Superposition-class.html"><a title="rekall.superposition.Superposition" class="py-name" href="#" onclick="return doclink('link-2', 'Superposition', 'link-2');">Superposition</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">                <tt class="py-name">variants</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Method rekall.entity.Entity.update()=rekall.entity.Entity-class.html#update"><a title="rekall.entity.Entity.update" class="py-name" href="#" onclick="return doclink('link-3', 'update', 'link-3');">update</a></tt><tt class="py-op">(</tt><tt class="py-name">scalar</tt><tt class="py-op">.</tt><tt class="py-name">variants</tt><tt class="py-op">)</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt class="py-name">scalar</tt><tt class="py-op">:</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">                <tt class="py-name">variants</tt><tt class="py-op">.</tt><tt class="py-name">add</tt><tt class="py-op">(</tt><tt class="py-name">scalar</tt><tt class="py-op">)</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">variants</tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">variants</tt><tt class="py-op">.</tt><tt class="py-name">pop</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-keyword">not</tt> <tt class="py-name">variants</tt><tt class="py-op">:</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt id="link-4" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-4', 'obj', 'link-1');">obj</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Class rekall.obj.NoneObject=rekall.obj.NoneObject-class.html"><a title="rekall.obj.NoneObject" class="py-name" href="#" onclick="return doclink('link-5', 'NoneObject', 'link-5');">NoneObject</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">                <tt class="py-string">"No non-null scalars in merge."</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">            <tt class="py-op">)</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">cls</tt><tt class="py-op">(</tt><tt class="py-name">variants</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"> </tt>
+<a name="Superposition.__unicode__"></a><div id="Superposition.__unicode__-def"><a name="L75"></a><tt class="py-lineno"> 75</tt> <a class="py-toggle" href="#" id="Superposition.__unicode__-toggle" onclick="return toggle('Superposition.__unicode__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.superposition.Superposition-class.html#__unicode__">__unicode__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Superposition.__unicode__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Superposition.__unicode__-expanded"><a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"superposition(%s)"</tt> <tt class="py-op">%</tt> <tt class="py-string">", "</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">repr</tt><tt class="py-op">(</tt><tt id="link-6" class="py-name" targets="Variable rekall.ui.text.Colorizer.x=rekall.ui.text.Colorizer-class.html#x"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-6', 'x', 'link-6');">x</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt id="link-7" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-7', 'x', 'link-6');">x</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">variants</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"> </tt>
+<a name="Superposition.__str__"></a><div id="Superposition.__str__-def"><a name="L78"></a><tt class="py-lineno"> 78</tt> <a class="py-toggle" href="#" id="Superposition.__str__-toggle" onclick="return toggle('Superposition.__str__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.superposition.Superposition-class.html#__str__">__str__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Superposition.__str__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Superposition.__str__-expanded"><a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Method rekall.entity.Entity.__unicode__()=rekall.entity.Entity-class.html#__unicode__,Method rekall.identity.BaseObjectIdentity.__unicode__()=rekall.identity.BaseObjectIdentity-class.html#__unicode__,Method rekall.identity.Identity.__unicode__()=rekall.identity.Identity-class.html#__unicode__,Method rekall.identity.ProcessIdentity.__unicode__()=rekall.identity.ProcessIdentity-class.html#__unicode__,Method rekall.identity.UserIdentity.__unicode__()=rekall.identity.UserIdentity-class.html#__unicode__,Method rekall.obj.Array.__unicode__()=rekall.obj.Array-class.html#__unicode__,Method rekall.obj.BaseObject.__unicode__()=rekall.obj.BaseObject-class.html#__unicode__,Method rekall.obj.Bool.__unicode__()=rekall.obj.Bool-class.html#__unicode__,Method rekall.obj.NoneObject.__unicode__()=rekall.obj.NoneObject-class.html#__unicode__,Method rekall.obj.Pointer.__unicode__()=rekall.obj.Pointer-class.html#__unicode__,Method rekall.obj.Profile.__unicode__()=rekall.obj.Profile-class.html#__unicode__,Method rekall.obj.Struct.__unicode__()=rekall.obj.Struct-class.html#__unicode__,Method rekall.plugins.overlays.basic.Enumeration.__unicode__()=rekall.plugins.overlays.basic.Enumeration-class.html#__unicode__,Method rekall.plugins.overlays.basic.Flags.__unicode__()=rekall.plugins.overlays.basic.Flags-class.html#__unicode__,Method rekall.plugins.overlays.basic.Function.__unicode__()=rekall.plugins.overlays.basic.Function-class.html#__unicode__,Method rekall.plugins.overlays.basic.String.__unicode__()=rekall.plugins.overlays.basic.String-class.html#__unicode__,Method rekall.plugins.overlays.basic.UnicodeString.__unicode__()=rekall.plugins.overlays.basic.UnicodeString-class.html#__unicode__,Method rekall.plugins.overlays.basic.UnixTimeStamp.__unicode__()=rekall.plugins.overlays.basic.UnixTimeStamp-class.html#__unicode__,Method rekall.plugins.overlays.darwin.darwin.sockaddr.__unicode__()=rekall.plugins.overlays.darwin.darwin.sockaddr-class.html#__unicode__,Method rekall.plugins.overlays.darwin.darwin.sockaddr_dl.__unicode__()=rekall.plugins.overlays.darwin.darwin.sockaddr_dl-class.html#__unicode__,Method rekall.plugins.overlays.linux.linux.PermissionFlags.__unicode__()=rekall.plugins.overlays.linux.linux.PermissionFlags-class.html#__unicode__,Method rekall.plugins.overlays.linux.vfs.FileName.__unicode__()=rekall.plugins.overlays.linux.vfs.FileName-class.html#__unicode__,Method rekall.plugins.tools.json_tools.AddressSpaceFormatter.__unicode__()=rekall.plugins.tools.json_tools.AddressSpaceFormatter-class.html#__unicode__,Method rekall.plugins.tools.json_tools.DatetimeFormatter.__unicode__()=rekall.plugins.tools.json_tools.DatetimeFormatter-class.html#__unicode__,Method rekall.plugins.tools.json_tools.EnumFormatter.__unicode__()=rekall.plugins.tools.json_tools.EnumFormatter-class.html#__unicode__,Method rekall.plugins.tools.json_tools.LiteralFormatter.__unicode__()=rekall.plugins.tools.json_tools.LiteralFormatter-class.html#__unicode__,Method rekall.plugins.tools.json_tools.NoneObjectFormatter.__unicode__()=rekall.plugins.tools.json_tools.NoneObjectFormatter-class.html#__unicode__,Method rekall.session.Session.__unicode__()=rekall.session.Session-class.html#__unicode__,Method rekall.superposition.Superposition.__unicode__()=rekall.superposition.Superposition-class.html#__unicode__"><a title="rekall.entity.Entity.__unicode__
+rekall.identity.BaseObjectIdentity.__unicode__
+rekall.identity.Identity.__unicode__
+rekall.identity.ProcessIdentity.__unicode__
+rekall.identity.UserIdentity.__unicode__
+rekall.obj.Array.__unicode__
+rekall.obj.BaseObject.__unicode__
+rekall.obj.Bool.__unicode__
+rekall.obj.NoneObject.__unicode__
+rekall.obj.Pointer.__unicode__
+rekall.obj.Profile.__unicode__
+rekall.obj.Struct.__unicode__
+rekall.plugins.overlays.basic.Enumeration.__unicode__
+rekall.plugins.overlays.basic.Flags.__unicode__
+rekall.plugins.overlays.basic.Function.__unicode__
+rekall.plugins.overlays.basic.String.__unicode__
+rekall.plugins.overlays.basic.UnicodeString.__unicode__
+rekall.plugins.overlays.basic.UnixTimeStamp.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr_dl.__unicode__
+rekall.plugins.overlays.linux.linux.PermissionFlags.__unicode__
+rekall.plugins.overlays.linux.vfs.FileName.__unicode__
+rekall.plugins.tools.json_tools.AddressSpaceFormatter.__unicode__
+rekall.plugins.tools.json_tools.DatetimeFormatter.__unicode__
+rekall.plugins.tools.json_tools.EnumFormatter.__unicode__
+rekall.plugins.tools.json_tools.LiteralFormatter.__unicode__
+rekall.plugins.tools.json_tools.NoneObjectFormatter.__unicode__
+rekall.session.Session.__unicode__
+rekall.superposition.Superposition.__unicode__" class="py-name" href="#" onclick="return doclink('link-8', '__unicode__', 'link-8');">__unicode__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"> </tt>
+<a name="Superposition.__repr__"></a><div id="Superposition.__repr__-def"><a name="L81"></a><tt class="py-lineno"> 81</tt> <a class="py-toggle" href="#" id="Superposition.__repr__-toggle" onclick="return toggle('Superposition.__repr__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.superposition.Superposition-class.html#__repr__">__repr__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Superposition.__repr__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Superposition.__repr__-expanded"><a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="rekall.entity.Entity.__unicode__
+rekall.identity.BaseObjectIdentity.__unicode__
+rekall.identity.Identity.__unicode__
+rekall.identity.ProcessIdentity.__unicode__
+rekall.identity.UserIdentity.__unicode__
+rekall.obj.Array.__unicode__
+rekall.obj.BaseObject.__unicode__
+rekall.obj.Bool.__unicode__
+rekall.obj.NoneObject.__unicode__
+rekall.obj.Pointer.__unicode__
+rekall.obj.Profile.__unicode__
+rekall.obj.Struct.__unicode__
+rekall.plugins.overlays.basic.Enumeration.__unicode__
+rekall.plugins.overlays.basic.Flags.__unicode__
+rekall.plugins.overlays.basic.Function.__unicode__
+rekall.plugins.overlays.basic.String.__unicode__
+rekall.plugins.overlays.basic.UnicodeString.__unicode__
+rekall.plugins.overlays.basic.UnixTimeStamp.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr.__unicode__
+rekall.plugins.overlays.darwin.darwin.sockaddr_dl.__unicode__
+rekall.plugins.overlays.linux.linux.PermissionFlags.__unicode__
+rekall.plugins.overlays.linux.vfs.FileName.__unicode__
+rekall.plugins.tools.json_tools.AddressSpaceFormatter.__unicode__
+rekall.plugins.tools.json_tools.DatetimeFormatter.__unicode__
+rekall.plugins.tools.json_tools.EnumFormatter.__unicode__
+rekall.plugins.tools.json_tools.LiteralFormatter.__unicode__
+rekall.plugins.tools.json_tools.NoneObjectFormatter.__unicode__
+rekall.session.Session.__unicode__
+rekall.superposition.Superposition.__unicode__" class="py-name" href="#" onclick="return doclink('link-9', '__unicode__', 'link-8');">__unicode__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"> </tt>
+<a name="Superposition.union"></a><div id="Superposition.union-def"><a name="L84"></a><tt class="py-lineno"> 84</tt> <a class="py-toggle" href="#" id="Superposition.union-toggle" onclick="return toggle('Superposition.union');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.superposition.Superposition-class.html#union">union</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Superposition.union-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Superposition.union-expanded"><a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-10" class="py-name"><a title="rekall.superposition.Superposition" class="py-name" href="#" onclick="return doclink('link-10', 'Superposition', 'link-2');">Superposition</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">            <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">variants</tt><tt class="py-op">)</tt> <tt class="py-op">|</tt> <tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">.</tt><tt class="py-name">variants</tt><tt class="py-op">)</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">        <tt class="py-op">)</tt> </tt>
+</div><a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"> </tt>
+<a name="Superposition.__or__"></a><div id="Superposition.__or__-def"><a name="L89"></a><tt class="py-lineno"> 89</tt> <a class="py-toggle" href="#" id="Superposition.__or__-toggle" onclick="return toggle('Superposition.__or__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.superposition.Superposition-class.html#__or__">__or__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Superposition.__or__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Superposition.__or__-expanded"><a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Method rekall.components.ComponentTuple.union()=rekall.components.ComponentTuple-class.html#union,Method rekall.entity.Entity.union()=rekall.entity.Entity-class.html#union,Method rekall.identity.Identity.union()=rekall.identity.Identity-class.html#union,Method rekall.identity.UserIdentity.union()=rekall.identity.UserIdentity-class.html#union,Method rekall.superposition.Superposition.union()=rekall.superposition.Superposition-class.html#union"><a title="rekall.components.ComponentTuple.union
+rekall.entity.Entity.union
+rekall.identity.Identity.union
+rekall.identity.UserIdentity.union
+rekall.superposition.Superposition.union" class="py-name" href="#" onclick="return doclink('link-11', 'union', 'link-11');">union</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"> </tt>
+<a name="Superposition.__getitem__"></a><div id="Superposition.__getitem__-def"><a name="L92"></a><tt class="py-lineno"> 92</tt> <a class="py-toggle" href="#" id="Superposition.__getitem__-toggle" onclick="return toggle('Superposition.__getitem__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.superposition.Superposition-class.html#__getitem__">__getitem__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">key</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Superposition.__getitem__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Superposition.__getitem__-expanded"><a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-name">values</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">variant</tt><tt class="py-op">[</tt><tt id="link-12" class="py-name" targets="Variable rekall.utils.SortedCollection.key=rekall.utils.SortedCollection-class.html#key"><a title="rekall.utils.SortedCollection.key" class="py-name" href="#" onclick="return doclink('link-12', 'key', 'link-12');">key</a></tt><tt class="py-op">]</tt> <tt class="py-keyword">for</tt> <tt class="py-name">variant</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">variants</tt><tt class="py-op">]</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-13" class="py-name"><a title="rekall.superposition.Superposition" class="py-name" href="#" onclick="return doclink('link-13', 'Superposition', 'link-2');">Superposition</a></tt><tt class="py-op">(</tt><tt class="py-name">variants</tt><tt class="py-op">=</tt><tt class="py-name">values</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"> </tt>
+<a name="Superposition.__iter__"></a><div id="Superposition.__iter__-def"><a name="L96"></a><tt class="py-lineno"> 96</tt> <a class="py-toggle" href="#" id="Superposition.__iter__-toggle" onclick="return toggle('Superposition.__iter__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.superposition.Superposition-class.html#__iter__">__iter__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Superposition.__iter__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Superposition.__iter__-expanded"><a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">variants</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Method rekall.obj.Array.__iter__()=rekall.obj.Array-class.html#__iter__,Method rekall.obj.ListArray.__iter__()=rekall.obj.ListArray-class.html#__iter__,Method rekall.obj.NoneObject.__iter__()=rekall.obj.NoneObject-class.html#__iter__,Method rekall.obj.Pointer.__iter__()=rekall.obj.Pointer-class.html#__iter__,Method rekall.plugins.darwin.checks.OIDInfo.__iter__()=rekall.plugins.darwin.checks.OIDInfo-class.html#__iter__,Method rekall.plugins.overlays.basic.ListMixIn.__iter__()=rekall.plugins.overlays.basic.ListMixIn-class.html#__iter__,Method rekall.plugins.overlays.darwin.darwin.LIST_ENTRY.__iter__()=rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html#__iter__,Method rekall.plugins.overlays.windows.pe_vtypes.SentinelArray.__iter__()=rekall.plugins.overlays.windows.pe_vtypes.SentinelArray-class.html#__iter__,Method rekall.superposition.Superposition.__iter__()=rekall.superposition.Superposition-class.html#__iter__,Method rekall.utils.LinkedList.__iter__()=rekall.utils.LinkedList-class.html#__iter__,Method rekall.utils.SortedCollection.__iter__()=rekall.utils.SortedCollection-class.html#__iter__"><a title="rekall.obj.Array.__iter__
+rekall.obj.ListArray.__iter__
+rekall.obj.NoneObject.__iter__
+rekall.obj.Pointer.__iter__
+rekall.plugins.darwin.checks.OIDInfo.__iter__
+rekall.plugins.overlays.basic.ListMixIn.__iter__
+rekall.plugins.overlays.darwin.darwin.LIST_ENTRY.__iter__
+rekall.plugins.overlays.windows.pe_vtypes.SentinelArray.__iter__
+rekall.superposition.Superposition.__iter__
+rekall.utils.LinkedList.__iter__
+rekall.utils.SortedCollection.__iter__" class="py-name" href="#" onclick="return doclink('link-14', '__iter__', 'link-14');">__iter__</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"> </tt>
+<a name="SuperpositionMergeNamedTuples"></a><div id="SuperpositionMergeNamedTuples-def"><a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt> <a class="py-toggle" href="#" id="SuperpositionMergeNamedTuples-toggle" onclick="return toggle('SuperpositionMergeNamedTuples');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.superposition-module.html#SuperpositionMergeNamedTuples">SuperpositionMergeNamedTuples</a><tt class="py-op">(</tt><tt class="py-param">x</tt><tt class="py-op">,</tt> <tt class="py-param">y</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SuperpositionMergeNamedTuples-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="SuperpositionMergeNamedTuples-expanded"><a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">    <tt class="py-docstring">"""Merges namedtuples x and y using superpositions.</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"><tt class="py-docstring">    Both arguments must be of the same type.</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">None</tt> <tt class="py-keyword">in</tt> <tt class="py-op">(</tt><tt id="link-15" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-15', 'x', 'link-6');">x</a></tt><tt class="py-op">,</tt> <tt class="py-name">y</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-16" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-16', 'x', 'link-6');">x</a></tt> <tt class="py-keyword">or</tt> <tt class="py-name">y</tt> <tt class="py-keyword">or</tt> <tt class="py-name">None</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">    <tt class="py-name">tuple_cls</tt> <tt class="py-op">=</tt> <tt id="link-17" class="py-name" targets="Variable rekall.components.MemoryObject.type=rekall.components.MemoryObject-class.html#type,Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#type"><a title="rekall.components.MemoryObject.type
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-17', 'type', 'link-17');">type</a></tt><tt class="py-op">(</tt><tt id="link-18" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-18', 'x', 'link-6');">x</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">tuple_cls</tt> <tt class="py-op">!=</tt> <tt id="link-19" class="py-name"><a title="rekall.components.MemoryObject.type
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-19', 'type', 'link-17');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">y</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt class="py-string">"Cannot merge namedtuples of different types."</tt><tt class="py-op">)</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">tuple_cls</tt><tt class="py-op">(</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">        <tt class="py-op">*</tt><tt class="py-op">[</tt><tt id="link-20" class="py-name"><a title="rekall.superposition.Superposition" class="py-name" href="#" onclick="return doclink('link-20', 'Superposition', 'link-2');">Superposition</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name" targets="Class Method rekall.superposition.Superposition.merge_scalars()=rekall.superposition.Superposition-class.html#merge_scalars"><a title="rekall.superposition.Superposition.merge_scalars" class="py-name" href="#" onclick="return doclink('link-21', 'merge_scalars', 'link-21');">merge_scalars</a></tt><tt class="py-op">(</tt><tt class="py-name">mx</tt><tt class="py-op">,</tt> <tt class="py-name">my</tt><tt class="py-op">)</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">mx</tt><tt class="py-op">,</tt> <tt class="py-name">my</tt> <tt class="py-keyword">in</tt> <tt class="py-name">itertools</tt><tt class="py-op">.</tt><tt class="py-name">izip</tt><tt class="py-op">(</tt><tt id="link-22" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-22', 'x', 'link-6');">x</a></tt><tt class="py-op">,</tt> <tt class="py-name">y</tt><tt class="py-op">)</tt><tt class="py-op">]</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">    <tt class="py-op">)</tt> </tt>
+</div><a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:22:49 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

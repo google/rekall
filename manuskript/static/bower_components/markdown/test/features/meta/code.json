@@ -1,8 +1,0 @@
-["html",
-  ["pre",
-    { "foo" : "bar" },
-    ["code",
-      "A pre with an\narbitrary attribute."
-    ]
-  ]
-]

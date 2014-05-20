@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.overlays.windows.common</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.overlays-module.html">Package&nbsp;overlays</a> ::
+        <a href="rekall.plugins.overlays.windows-module.html">Package&nbsp;windows</a> ::
+        Module&nbsp;common
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.overlays.windows.common-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module common</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.windows.common-pysrc.html">source&nbsp;code</a></span></p>
+<p>Common windows overlays and classes.</p>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.common.ObjectMixin-class.html" class="summary-name">ObjectMixin</a><br />
+      A mixin to be applied on Object Manager Objects.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.common.VadTraverser-class.html" class="summary-name">VadTraverser</a><br />
+      The windows Vad tree is basically the same in all versions of 
+        windows, but the exact name of the stucts vary with version.
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Functions</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="InitializeWindowsProfile"></a><span class="summary-sig-name">InitializeWindowsProfile</span>(<span class="summary-sig-arg">profile</span>)</span><br />
+      Install the basic windows overlays.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.windows.common-pysrc.html#InitializeWindowsProfile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.common-module.html#windows_overlay" class="summary-name">windows_overlay</a> = <code title="{'PO_MEMORY_IMAGE': [None,
+                     {'Signature': [None, ['String', {'length': 4}]],
+                      'SystemTime': [None, ['WinFileTime', {}]]}],
+ '_CLIENT_ID': [None,
+                {'UniqueProcess': [None, ['unsigned int']],
+                 'UniqueThread': [None, ['unsigned int']]}],
+ '_CM_NAME_CONTROL_BLOCK': [None,
+                            {'Name': [None, ['String', {'length': &lt;fun\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">PO_MEMORY_IMAGE</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Signature</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>No<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rekall.plugins.overlays.windows'"><code class="variable-quote">'</code><code class="variable-string">rekall.plugins.overlays.windows</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables Details</span></td>
+</tr>
+</table>
+<a name="windows_overlay"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">windows_overlay</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">PO_MEMORY_IMAGE</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+                     <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Signature</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">String</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">length</code><code class="variable-quote">'</code><code class="variable-op">: </code>4<code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">SystemTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">WinFileTime</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">_CLIENT_ID</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+                <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">UniqueProcess</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                 <code class="variable-quote">'</code><code class="variable-string">UniqueThread</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">_CM_NAME_CONTROL_BLOCK</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+                            <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">String</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">length</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;fun<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:21:13 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

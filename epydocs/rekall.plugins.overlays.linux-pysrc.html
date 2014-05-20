@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.overlays.linux</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.overlays-module.html">Package&nbsp;overlays</a> ::
+        Package&nbsp;linux
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.overlays.linux-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.overlays.linux-module.html">Package rekall.plugins.overlays.linux</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">1</tt>  <tt class="py-line"><tt class="py-docstring">"""Linux support for DWARF profiles."""</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">2</tt>  <tt class="py-line"> </tt>
+<a name="L3"></a><tt class="py-lineno">3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Variable rekall.obj.Profile.overlays=rekall.obj.Profile-class.html#overlays,Package rekall.plugins.overlays=rekall.plugins.overlays-module.html,Variable rekall.plugins.overlays.windows.crashdump.overlays=rekall.plugins.overlays.windows.crashdump-module.html#overlays,Variable rekall.plugins.overlays.windows.tcpip_vtypes.overlays=rekall.plugins.overlays.windows.tcpip_vtypes-module.html#overlays"><a title="rekall.obj.Profile.overlays
+rekall.plugins.overlays
+rekall.plugins.overlays.windows.crashdump.overlays
+rekall.plugins.overlays.windows.tcpip_vtypes.overlays" class="py-name" href="#" onclick="return doclink('link-2', 'overlays', 'link-2');">overlays</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.plugins.linux=rekall.plugins.linux-module.html,Package rekall.plugins.overlays.linux=rekall.plugins.overlays.linux-module.html,Module rekall.plugins.overlays.linux.linux=rekall.plugins.overlays.linux.linux-module.html"><a title="rekall.plugins.linux
+rekall.plugins.overlays.linux
+rekall.plugins.overlays.linux.linux" class="py-name" href="#" onclick="return doclink('link-3', 'linux', 'link-3');">linux</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Module rekall.plugins.overlays.linux.elf=rekall.plugins.overlays.linux.elf-module.html"><a title="rekall.plugins.overlays.linux.elf" class="py-name" href="#" onclick="return doclink('link-4', 'elf', 'link-4');">elf</a></tt> </tt>
+<a name="L4"></a><tt class="py-lineno">4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-5" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-5', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-6', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="rekall.obj.Profile.overlays
+rekall.plugins.overlays
+rekall.plugins.overlays.windows.crashdump.overlays
+rekall.plugins.overlays.windows.tcpip_vtypes.overlays" class="py-name" href="#" onclick="return doclink('link-7', 'overlays', 'link-2');">overlays</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="rekall.plugins.linux
+rekall.plugins.overlays.linux
+rekall.plugins.overlays.linux.linux" class="py-name" href="#" onclick="return doclink('link-8', 'linux', 'link-3');">linux</a></tt> <tt class="py-keyword">import</tt> <tt id="link-9" class="py-name"><a title="rekall.plugins.linux
+rekall.plugins.overlays.linux
+rekall.plugins.overlays.linux.linux" class="py-name" href="#" onclick="return doclink('link-9', 'linux', 'link-3');">linux</a></tt> </tt>
+<a name="L5"></a><tt class="py-lineno">5</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:22:24 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

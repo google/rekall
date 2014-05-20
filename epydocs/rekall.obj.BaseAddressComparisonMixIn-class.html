@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.obj.BaseAddressComparisonMixIn</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.obj-module.html">Module&nbsp;obj</a> ::
+        Class&nbsp;BaseAddressComparisonMixIn
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.obj.BaseAddressComparisonMixIn-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class BaseAddressComparisonMixIn</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.obj-pysrc.html#BaseAddressComparisonMixIn">source&nbsp;code</a></span></p>
+<center>
+  <div class="private"><center>  <map id="class_hierarchy_for_baseaddres_2" name="class_hierarchy_for_baseaddres_2">
+<area shape="rect" id="node1" href="rekall.obj.BaseAddressComparisonMixIn-class.html" title="BaseAddressComparisonMixIn" alt="" coords="5,2007,173,2033"/>
+<area shape="rect" id="node2" href="rekall.obj.Struct-class.html" title="Struct" alt="" coords="261,1981,312,2008"/>
+<area shape="rect" id="node3" href="rekall.plugins.overlays.basic.Function-class.html" title="plugins.overlays.basic.Function" alt="" coords="203,2032,371,2059"/>
+<area shape="rect" id="node4" href="javascript:void(0);" title="plugins.overlays.basic._LIST_ENTRY" alt="" coords="509,5,707,32"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.basic.timeval-class.html" title="plugins.overlays.basic.timeval" alt="" coords="528,56,688,83"/>
+<area shape="rect" id="node6" href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html" title="plugins.overlays.darwin.darwin.LIST_ENTRY" alt="" coords="491,107,725,133"/>
+<area shape="rect" id="node7" href="rekall.plugins.overlays.darwin.darwin.OSDictionary-class.html" title="plugins.overlays.darwin.darwin.OSDictionary" alt="" coords="492,157,724,184"/>
+<area shape="rect" id="node8" href="rekall.plugins.overlays.darwin.darwin.OSOrderedSet-class.html" title="plugins.overlays.darwin.darwin.OSOrderedSet" alt="" coords="488,208,728,235"/>
+<area shape="rect" id="node9" href="rekall.plugins.overlays.darwin.darwin.fileproc-class.html" title="plugins.overlays.darwin.darwin.fileproc" alt="" coords="507,259,709,285"/>
+<area shape="rect" id="node10" href="rekall.plugins.overlays.darwin.darwin.proc-class.html" title="plugins.overlays.darwin.darwin.proc" alt="" coords="513,309,703,336"/>
+<area shape="rect" id="node12" href="rekall.plugins.overlays.darwin.darwin.sockaddr-class.html" title="plugins.overlays.darwin.darwin.sockaddr" alt="" coords="501,360,715,387"/>
+<area shape="rect" id="node13" href="rekall.plugins.overlays.darwin.darwin.sockaddr_dl-class.html" title="plugins.overlays.darwin.darwin.sockaddr_dl" alt="" coords="495,411,721,437"/>
+<area shape="rect" id="node14" href="rekall.plugins.overlays.darwin.darwin.socket-class.html" title="plugins.overlays.darwin.darwin.socket" alt="" coords="508,461,708,488"/>
+<area shape="rect" id="node15" href="rekall.plugins.overlays.darwin.darwin.vm_map_entry-class.html" title="plugins.overlays.darwin.darwin.vm_map_entry" alt="" coords="488,512,728,539"/>
+<area shape="rect" id="node16" href="rekall.plugins.overlays.darwin.darwin.vnode-class.html" title="plugins.overlays.darwin.darwin.vnode" alt="" coords="509,563,707,589"/>
+<area shape="rect" id="node17" href="rekall.plugins.overlays.linux.linux.dentry-class.html" title="plugins.overlays.linux.linux.dentry" alt="" coords="519,613,697,640"/>
+<area shape="rect" id="node18" href="rekall.plugins.overlays.linux.linux.files_struct-class.html" title="plugins.overlays.linux.linux.files_struct" alt="" coords="509,664,707,691"/>
+<area shape="rect" id="node19" href="rekall.plugins.overlays.linux.linux.hlist_head-class.html" title="plugins.overlays.linux.linux.hlist_head" alt="" coords="511,715,705,741"/>
+<area shape="rect" id="node20" href="rekall.plugins.overlays.linux.linux.inet_sock-class.html" title="plugins.overlays.linux.linux.inet_sock" alt="" coords="512,765,704,792"/>
+<area shape="rect" id="node21" href="rekall.plugins.overlays.linux.linux.list_head-class.html" title="plugins.overlays.linux.linux.list_head" alt="" coords="513,816,703,843"/>
+<area shape="rect" id="node22" href="rekall.plugins.overlays.linux.linux.task_struct-class.html" title="plugins.overlays.linux.linux.task_struct" alt="" coords="509,867,707,893"/>
+<area shape="rect" id="node23" href="rekall.plugins.overlays.linux.linux.timespec-class.html" title="plugins.overlays.linux.linux.timespec" alt="" coords="513,917,703,944"/>
+<area shape="rect" id="node24" href="rekall.plugins.overlays.windows.common.VadTraverser-class.html" title="plugins.overlays.windows.common.VadTraverser" alt="" coords="481,968,735,995"/>
+<area shape="rect" id="node25" href="javascript:void(0);" title="plugins.overlays.windows.common._CM_KEY_BODY" alt="" coords="471,1019,745,1045"/>
+<area shape="rect" id="node26" href="javascript:void(0);" title="plugins.overlays.windows.common._EPROCESS" alt="" coords="481,1069,735,1096"/>
+<area shape="rect" id="node27" href="javascript:void(0);" title="plugins.overlays.windows.common._ETHREAD" alt="" coords="485,1120,731,1147"/>
+<area shape="rect" id="node28" href="javascript:void(0);" title="plugins.overlays.windows.common._EX_FAST_REF" alt="" coords="473,1171,743,1197"/>
+<area shape="rect" id="node29" href="javascript:void(0);" title="plugins.overlays.windows.common._FILE_OBJECT" alt="" coords="476,1221,740,1248"/>
+<area shape="rect" id="node30" href="javascript:void(0);" title="plugins.overlays.windows.common._HANDLE_TABLE" alt="" coords="469,1272,747,1299"/>
+<area shape="rect" id="node31" href="javascript:void(0);" title="plugins.overlays.windows.common._HEAP" alt="" coords="497,1323,719,1349"/>
+<area shape="rect" id="node32" href="javascript:void(0);" title="plugins.overlays.windows.common._KTIMER" alt="" coords="491,1373,725,1400"/>
+<area shape="rect" id="node33" href="javascript:void(0);" title="plugins.overlays.windows.common._LDR_DATA_TABLE_ENTRY" alt="" coords="441,1424,775,1451"/>
+<area shape="rect" id="node35" href="javascript:void(0);" title="plugins.overlays.windows.common._MMVAD_FLAGS" alt="" coords="471,1475,745,1501"/>
+<area shape="rect" id="node37" href="javascript:void(0);" title="plugins.overlays.windows.common._MM_SESSION_SPACE" alt="" coords="455,1525,761,1552"/>
+<area shape="rect" id="node38" href="javascript:void(0);" title="plugins.overlays.windows.common._OBJECT_DIRECTORY" alt="" coords="455,1576,761,1603"/>
+<area shape="rect" id="node39" href="javascript:void(0);" title="plugins.overlays.windows.common._OBJECT_HEADER" alt="" coords="465,1627,751,1653"/>
+<area shape="rect" id="node40" href="javascript:void(0);" title="plugins.overlays.windows.common._POOL_HEADER" alt="" coords="471,1677,745,1704"/>
+<area shape="rect" id="node42" href="javascript:void(0);" title="plugins.overlays.windows.common._SID" alt="" coords="503,1728,713,1755"/>
+<area shape="rect" id="node43" href="javascript:void(0);" title="plugins.overlays.windows.common._TOKEN" alt="" coords="493,1779,723,1805"/>
+<area shape="rect" id="node44" href="javascript:void(0);" title="plugins.overlays.windows.common._UNICODE_STRING" alt="" coords="463,1829,753,1856"/>
+<area shape="rect" id="node45" href="javascript:void(0);" title="plugins.overlays.windows.crashdump._KDDEBUGGER_DATA64" alt="" coords="444,1880,772,1907"/>
+<area shape="rect" id="node46" href="rekall.plugins.overlays.windows.ntfs.MFT_ENTRY-class.html" title="plugins.overlays.windows.ntfs.MFT_ENTRY" alt="" coords="493,1931,723,1957"/>
+<area shape="rect" id="node47" href="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE-class.html" title="plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE" alt="" coords="479,1981,737,2008"/>
+<area shape="rect" id="node48" href="rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR-class.html" title="plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR" alt="" coords="468,2032,748,2059"/>
+<area shape="rect" id="node49" href="rekall.plugins.overlays.windows.pe_vtypes.VS_VERSIONINFO-class.html" title="plugins.overlays.windows.pe_vtypes.VS_VERSIONINFO" alt="" coords="464,2083,752,2109"/>
+<area shape="rect" id="node50" href="javascript:void(0);" title="plugins.overlays.windows.pe_vtypes._IMAGE_DATA_DIRECTORY" alt="" coords="439,2133,777,2160"/>
+<area shape="rect" id="node51" href="javascript:void(0);" title="plugins.overlays.windows.pe_vtypes._IMAGE_DOS_HEADER" alt="" coords="451,2184,765,2211"/>
+<area shape="rect" id="node52" href="javascript:void(0);" title="plugins.overlays.windows.pe_vtypes._IMAGE_NT_HEADERS" alt="" coords="451,2235,765,2261"/>
+<area shape="rect" id="node53" href="javascript:void(0);" title="plugins.overlays.windows.pe_vtypes._IMAGE_RESOURCE_DIRECTORY" alt="" coords="423,2285,793,2312"/>
+<area shape="rect" id="node54" href="javascript:void(0);" title="plugins.overlays.windows.pe_vtypes._IMAGE_RESOURCE_DIRECTORY_ENTRY" alt="" coords="401,2336,815,2363"/>
+<area shape="rect" id="node55" href="javascript:void(0);" title="plugins.overlays.windows.pe_vtypes._IMAGE_SECTION_HEADER" alt="" coords="439,2387,777,2413"/>
+<area shape="rect" id="node56" href="javascript:void(0);" title="plugins.overlays.windows.pe_vtypes._LDR_DATA_TABLE_ENTRY" alt="" coords="437,2437,779,2464"/>
+<area shape="rect" id="node58" href="javascript:void(0);" title="plugins.overlays.windows.tcpip_vtypes._TCP_LISTENER" alt="" coords="463,2488,753,2515"/>
+<area shape="rect" id="node69" href="rekall.plugins.tools.mspdb.DBI-class.html" title="plugins.tools.mspdb.DBI" alt="" coords="540,2539,676,2565"/>
+<area shape="rect" id="node70" href="rekall.plugins.tools.mspdb.DBIExHeaders-class.html" title="plugins.tools.mspdb.DBIExHeaders" alt="" coords="513,2589,703,2616"/>
+<area shape="rect" id="node71" href="javascript:void(0);" title="plugins.tools.mspdb._PDB_HEADER_700" alt="" coords="497,2640,719,2667"/>
+<area shape="rect" id="node72" href="javascript:void(0);" title="plugins.tools.mspdb._PDB_ROOT_700" alt="" coords="505,2691,711,2717"/>
+<area shape="rect" id="node74" href="rekall.plugins.tools.mspdb.lfBitfield-class.html" title="plugins.tools.mspdb.lfBitfield" alt="" coords="531,2741,685,2768"/>
+<area shape="rect" id="node75" href="rekall.plugins.tools.mspdb.lfClass-class.html" title="plugins.tools.mspdb.lfClass" alt="" coords="533,2792,683,2819"/>
+<area shape="rect" id="node76" href="rekall.plugins.tools.mspdb.lfEnum-class.html" title="plugins.tools.mspdb.lfEnum" alt="" coords="533,2843,683,2869"/>
+<area shape="rect" id="node80" href="rekall.plugins.tools.mspdb.lfNestType-class.html" title="plugins.tools.mspdb.lfNestType" alt="" coords="524,2893,692,2920"/>
+<area shape="rect" id="node84" href="javascript:void(0);" title="plugins.windows.gui.win32k_core._HANDLEENTRY" alt="" coords="473,2944,743,2971"/>
+<area shape="rect" id="node85" href="javascript:void(0);" title="plugins.windows.gui.win32k_core._MM_SESSION_SPACE" alt="" coords="457,2995,759,3021"/>
+<area shape="rect" id="node86" href="javascript:void(0);" title="plugins.windows.gui.win32k_core._RTL_ATOM_TABLE" alt="" coords="465,3045,751,3072"/>
+<area shape="rect" id="node87" href="javascript:void(0);" title="plugins.windows.gui.win32k_core._RTL_ATOM_TABLE_ENTRY" alt="" coords="444,3096,772,3123"/>
+<area shape="rect" id="node88" href="rekall.plugins.windows.gui.win32k_core.tagCLIPDATA-class.html" title="plugins.windows.gui.win32k_core.tagCLIPDATA" alt="" coords="483,3147,733,3173"/>
+<area shape="rect" id="node90" href="rekall.plugins.windows.gui.win32k_core.tagEVENTHOOK-class.html" title="plugins.windows.gui.win32k_core.tagEVENTHOOK" alt="" coords="476,3197,740,3224"/>
+<area shape="rect" id="node91" href="rekall.plugins.windows.gui.win32k_core.tagRECT-class.html" title="plugins.windows.gui.win32k_core.tagRECT" alt="" coords="495,3248,721,3275"/>
+<area shape="rect" id="node92" href="rekall.plugins.windows.gui.win32k_core.tagTHREADINFO-class.html" title="plugins.windows.gui.win32k_core.tagTHREADINFO" alt="" coords="475,3299,741,3325"/>
+<area shape="rect" id="node93" href="rekall.plugins.windows.gui.win32k_core.tagWINDOWSTATION-class.html" title="plugins.windows.gui.win32k_core.tagWINDOWSTATION" alt="" coords="463,3349,753,3376"/>
+<area shape="rect" id="node94" href="rekall.plugins.windows.gui.win32k_core.tagWND-class.html" title="plugins.windows.gui.win32k_core.tagWND" alt="" coords="497,3400,719,3427"/>
+<area shape="rect" id="node95" href="javascript:void(0);" title="plugins.windows.malware.callbacks._SHUTDOWN_PACKET" alt="" coords="453,3451,763,3477"/>
+<area shape="rect" id="node96" href="javascript:void(0);" title="plugins.windows.malware.cmdhistory._CONSOLE_INFORMATION" alt="" coords="439,3501,777,3528"/>
+<area shape="rect" id="node97" href="javascript:void(0);" title="plugins.windows.malware.cmdhistory._SCREEN_INFORMATION" alt="" coords="441,3552,775,3579"/>
+<area shape="rect" id="node98" href="javascript:void(0);" title="plugins.windows.malware.devicetree._DEVICE_OBJECT" alt="" coords="463,3603,753,3629"/>
+<area shape="rect" id="node99" href="javascript:void(0);" title="plugins.windows.malware.svcscan._SERVICE_HEADER" alt="" coords="463,3653,753,3680"/>
+<area shape="rect" id="node100" href="javascript:void(0);" title="plugins.windows.malware.svcscan._SERVICE_RECORD_LEGACY" alt="" coords="437,3704,779,3731"/>
+<area shape="rect" id="node102" href="javascript:void(0);" title="plugins.windows.registry.evtlogs._SID" alt="" coords="508,3755,708,3781"/>
+<area shape="rect" id="node103" href="javascript:void(0);" title="plugins.windows.registry.registry._CMHIVE" alt="" coords="495,3805,721,3832"/>
+<area shape="rect" id="node104" href="javascript:void(0);" title="plugins.windows.registry.registry._CM_KEY_INDEX" alt="" coords="475,3856,741,3883"/>
+<area shape="rect" id="node105" href="javascript:void(0);" title="plugins.windows.registry.registry._CM_KEY_NODE" alt="" coords="476,3907,740,3933"/>
+<area shape="rect" id="node106" href="javascript:void(0);" title="plugins.windows.registry.registry._CM_KEY_VALUE" alt="" coords="473,3957,743,3984"/>
+<area shape="rect" id="node11" href="rekall.plugins.overlays.darwin.darwin.queue_entry-class.html" title="plugins.overlays.darwin.darwin.queue_entry" alt="" coords="903,107,1132,133"/>
+<area shape="rect" id="node61" href="javascript:void(0);" title="plugins.overlays.windows.vista._MMADDRESS_NODE" alt="" coords="877,892,1157,919"/>
+<area shape="rect" id="node62" href="javascript:void(0);" title="plugins.overlays.windows.win7._MMADDRESS_NODE" alt="" coords="876,943,1159,969"/>
+<area shape="rect" id="node65" href="javascript:void(0);" title="plugins.overlays.windows.win8._MM_AVL_NODE" alt="" coords="889,993,1145,1020"/>
+<area shape="rect" id="node68" href="javascript:void(0);" title="plugins.overlays.windows.xp._MMVAD" alt="" coords="916,1044,1119,1071"/>
+<area shape="rect" id="node60" href="javascript:void(0);" title="plugins.overlays.windows.vista._ETHREAD" alt="" coords="904,1120,1131,1147"/>
+<area shape="rect" id="node41" href="javascript:void(0);" title="plugins.overlays.windows.common._PSP_CID_TABLE" alt="" coords="877,1247,1157,1273"/>
+<area shape="rect" id="node66" href="javascript:void(0);" title="plugins.overlays.windows.win8._PSP_CID_TABLE" alt="" coords="887,1297,1148,1324"/>
+<area shape="rect" id="node34" href="javascript:void(0);" title="plugins.overlays.windows.common._MMSECTION_FLAGS" alt="" coords="867,1449,1168,1476"/>
+<area shape="rect" id="node36" href="javascript:void(0);" title="plugins.overlays.windows.common._MMVAD_FLAGS2" alt="" coords="877,1500,1157,1527"/>
+<area shape="rect" id="node63" href="javascript:void(0);" title="plugins.overlays.windows.win7._OBJECT_HEADER" alt="" coords="884,1627,1151,1653"/>
+<area shape="rect" id="node64" href="javascript:void(0);" title="plugins.overlays.windows.win7._POOL_HEADER" alt="" coords="891,1677,1144,1704"/>
+<area shape="rect" id="node57" href="javascript:void(0);" title="plugins.overlays.windows.tcpip_vtypes._TCP_ENDPOINT" alt="" coords="871,2463,1164,2489"/>
+<area shape="rect" id="node59" href="javascript:void(0);" title="plugins.overlays.windows.tcpip_vtypes._UDP_ENDPOINT" alt="" coords="869,2513,1165,2540"/>
+<area shape="rect" id="node67" href="javascript:void(0);" title="plugins.overlays.windows.win8._RTL_BALANCED_NODE" alt="" coords="1220,993,1516,1020"/>
+<area shape="rect" id="node73" href="rekall.plugins.tools.mspdb.lfArray-class.html" title="plugins.tools.mspdb.lfArray" alt="" coords="943,2640,1092,2667"/>
+<area shape="rect" id="node77" href="rekall.plugins.tools.mspdb.lfEnumerate-class.html" title="plugins.tools.mspdb.lfEnumerate" alt="" coords="929,2691,1105,2717"/>
+<area shape="rect" id="node78" href="rekall.plugins.tools.mspdb.lfMember-class.html" title="plugins.tools.mspdb.lfMember" alt="" coords="936,2741,1099,2768"/>
+<area shape="rect" id="node79" href="rekall.plugins.tools.mspdb.lfModifier-class.html" title="plugins.tools.mspdb.lfModifier" alt="" coords="937,2792,1097,2819"/>
+<area shape="rect" id="node81" href="rekall.plugins.tools.mspdb.lfPointer-class.html" title="plugins.tools.mspdb.lfPointer" alt="" coords="939,2843,1096,2869"/>
+<area shape="rect" id="node82" href="rekall.plugins.tools.mspdb.lfProc-class.html" title="plugins.tools.mspdb.lfProc" alt="" coords="945,2893,1089,2920"/>
+<area shape="rect" id="node83" href="rekall.plugins.tools.mspdb.lfUnion-class.html" title="plugins.tools.mspdb.lfUnion" alt="" coords="943,2944,1092,2971"/>
+<area shape="rect" id="node89" href="rekall.plugins.windows.gui.win32k_core.tagDESKTOP-class.html" title="plugins.windows.gui.win32k_core.tagDESKTOP" alt="" coords="893,3349,1141,3376"/>
+<area shape="rect" id="node101" href="javascript:void(0);" title="plugins.windows.malware.svcscan._SERVICE_RECORD_RECENT" alt="" coords="847,3704,1188,3731"/>
+</map>
+  <img src="class_hierarchy_for_baseaddres_2.gif" alt='' usemap="#class_hierarchy_for_baseaddres_2" ismap="ismap" class="graph-without-title" />
+</center></div>
+  <div class="public" style="display:none"><center>  <map id="class_hierarchy_for_baseaddres_3" name="class_hierarchy_for_baseaddres_3">
+<area shape="rect" id="node1" href="rekall.obj.BaseAddressComparisonMixIn-class.html" title="BaseAddressComparisonMixIn" alt="" coords="5,892,173,919"/>
+<area shape="rect" id="node2" href="rekall.obj.Struct-class.html" title="Struct" alt="" coords="261,867,312,893"/>
+<area shape="rect" id="node3" href="rekall.plugins.overlays.basic.Function-class.html" title="plugins.overlays.basic.Function" alt="" coords="203,917,371,944"/>
+<area shape="rect" id="node4" href="rekall.plugins.overlays.basic.timeval-class.html" title="plugins.overlays.basic.timeval" alt="" coords="465,5,625,32"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html" title="plugins.overlays.darwin.darwin.LIST_ENTRY" alt="" coords="428,56,663,83"/>
+<area shape="rect" id="node6" href="rekall.plugins.overlays.darwin.darwin.OSDictionary-class.html" title="plugins.overlays.darwin.darwin.OSDictionary" alt="" coords="429,107,661,133"/>
+<area shape="rect" id="node7" href="rekall.plugins.overlays.darwin.darwin.OSOrderedSet-class.html" title="plugins.overlays.darwin.darwin.OSOrderedSet" alt="" coords="425,157,665,184"/>
+<area shape="rect" id="node8" href="rekall.plugins.overlays.darwin.darwin.fileproc-class.html" title="plugins.overlays.darwin.darwin.fileproc" alt="" coords="444,208,647,235"/>
+<area shape="rect" id="node9" href="rekall.plugins.overlays.darwin.darwin.proc-class.html" title="plugins.overlays.darwin.darwin.proc" alt="" coords="451,259,640,285"/>
+<area shape="rect" id="node11" href="rekall.plugins.overlays.darwin.darwin.sockaddr-class.html" title="plugins.overlays.darwin.darwin.sockaddr" alt="" coords="439,309,652,336"/>
+<area shape="rect" id="node12" href="rekall.plugins.overlays.darwin.darwin.sockaddr_dl-class.html" title="plugins.overlays.darwin.darwin.sockaddr_dl" alt="" coords="432,360,659,387"/>
+<area shape="rect" id="node13" href="rekall.plugins.overlays.darwin.darwin.socket-class.html" title="plugins.overlays.darwin.darwin.socket" alt="" coords="445,411,645,437"/>
+<area shape="rect" id="node14" href="rekall.plugins.overlays.darwin.darwin.vm_map_entry-class.html" title="plugins.overlays.darwin.darwin.vm_map_entry" alt="" coords="425,461,665,488"/>
+<area shape="rect" id="node15" href="rekall.plugins.overlays.darwin.darwin.vnode-class.html" title="plugins.overlays.darwin.darwin.vnode" alt="" coords="447,512,644,539"/>
+<area shape="rect" id="node16" href="rekall.plugins.overlays.linux.linux.dentry-class.html" title="plugins.overlays.linux.linux.dentry" alt="" coords="456,563,635,589"/>
+<area shape="rect" id="node17" href="rekall.plugins.overlays.linux.linux.files_struct-class.html" title="plugins.overlays.linux.linux.files_struct" alt="" coords="447,613,644,640"/>
+<area shape="rect" id="node18" href="rekall.plugins.overlays.linux.linux.hlist_head-class.html" title="plugins.overlays.linux.linux.hlist_head" alt="" coords="448,664,643,691"/>
+<area shape="rect" id="node19" href="rekall.plugins.overlays.linux.linux.inet_sock-class.html" title="plugins.overlays.linux.linux.inet_sock" alt="" coords="449,715,641,741"/>
+<area shape="rect" id="node20" href="rekall.plugins.overlays.linux.linux.list_head-class.html" title="plugins.overlays.linux.linux.list_head" alt="" coords="451,765,640,792"/>
+<area shape="rect" id="node21" href="rekall.plugins.overlays.linux.linux.task_struct-class.html" title="plugins.overlays.linux.linux.task_struct" alt="" coords="447,816,644,843"/>
+<area shape="rect" id="node22" href="rekall.plugins.overlays.linux.linux.timespec-class.html" title="plugins.overlays.linux.linux.timespec" alt="" coords="451,867,640,893"/>
+<area shape="rect" id="node23" href="rekall.plugins.overlays.windows.common.VadTraverser-class.html" title="plugins.overlays.windows.common.VadTraverser" alt="" coords="419,917,672,944"/>
+<area shape="rect" id="node24" href="rekall.plugins.overlays.windows.ntfs.MFT_ENTRY-class.html" title="plugins.overlays.windows.ntfs.MFT_ENTRY" alt="" coords="431,968,660,995"/>
+<area shape="rect" id="node25" href="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE-class.html" title="plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE" alt="" coords="416,1019,675,1045"/>
+<area shape="rect" id="node26" href="rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR-class.html" title="plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR" alt="" coords="405,1069,685,1096"/>
+<area shape="rect" id="node27" href="rekall.plugins.overlays.windows.pe_vtypes.VS_VERSIONINFO-class.html" title="plugins.overlays.windows.pe_vtypes.VS_VERSIONINFO" alt="" coords="401,1120,689,1147"/>
+<area shape="rect" id="node28" href="rekall.plugins.tools.mspdb.DBI-class.html" title="plugins.tools.mspdb.DBI" alt="" coords="477,1171,613,1197"/>
+<area shape="rect" id="node29" href="rekall.plugins.tools.mspdb.DBIExHeaders-class.html" title="plugins.tools.mspdb.DBIExHeaders" alt="" coords="451,1221,640,1248"/>
+<area shape="rect" id="node31" href="rekall.plugins.tools.mspdb.lfBitfield-class.html" title="plugins.tools.mspdb.lfBitfield" alt="" coords="468,1272,623,1299"/>
+<area shape="rect" id="node32" href="rekall.plugins.tools.mspdb.lfClass-class.html" title="plugins.tools.mspdb.lfClass" alt="" coords="471,1323,620,1349"/>
+<area shape="rect" id="node33" href="rekall.plugins.tools.mspdb.lfEnum-class.html" title="plugins.tools.mspdb.lfEnum" alt="" coords="471,1373,620,1400"/>
+<area shape="rect" id="node37" href="rekall.plugins.tools.mspdb.lfNestType-class.html" title="plugins.tools.mspdb.lfNestType" alt="" coords="461,1424,629,1451"/>
+<area shape="rect" id="node41" href="rekall.plugins.windows.gui.win32k_core.tagCLIPDATA-class.html" title="plugins.windows.gui.win32k_core.tagCLIPDATA" alt="" coords="420,1475,671,1501"/>
+<area shape="rect" id="node43" href="rekall.plugins.windows.gui.win32k_core.tagEVENTHOOK-class.html" title="plugins.windows.gui.win32k_core.tagEVENTHOOK" alt="" coords="413,1525,677,1552"/>
+<area shape="rect" id="node44" href="rekall.plugins.windows.gui.win32k_core.tagRECT-class.html" title="plugins.windows.gui.win32k_core.tagRECT" alt="" coords="432,1576,659,1603"/>
+<area shape="rect" id="node45" href="rekall.plugins.windows.gui.win32k_core.tagTHREADINFO-class.html" title="plugins.windows.gui.win32k_core.tagTHREADINFO" alt="" coords="412,1627,679,1653"/>
+<area shape="rect" id="node46" href="rekall.plugins.windows.gui.win32k_core.tagWINDOWSTATION-class.html" title="plugins.windows.gui.win32k_core.tagWINDOWSTATION" alt="" coords="400,1677,691,1704"/>
+<area shape="rect" id="node47" href="rekall.plugins.windows.gui.win32k_core.tagWND-class.html" title="plugins.windows.gui.win32k_core.tagWND" alt="" coords="435,1728,656,1755"/>
+<area shape="rect" id="node10" href="rekall.plugins.overlays.darwin.darwin.queue_entry-class.html" title="plugins.overlays.darwin.darwin.queue_entry" alt="" coords="729,56,959,83"/>
+<area shape="rect" id="node30" href="rekall.plugins.tools.mspdb.lfArray-class.html" title="plugins.tools.mspdb.lfArray" alt="" coords="769,1171,919,1197"/>
+<area shape="rect" id="node34" href="rekall.plugins.tools.mspdb.lfEnumerate-class.html" title="plugins.tools.mspdb.lfEnumerate" alt="" coords="756,1221,932,1248"/>
+<area shape="rect" id="node35" href="rekall.plugins.tools.mspdb.lfMember-class.html" title="plugins.tools.mspdb.lfMember" alt="" coords="763,1272,925,1299"/>
+<area shape="rect" id="node36" href="rekall.plugins.tools.mspdb.lfModifier-class.html" title="plugins.tools.mspdb.lfModifier" alt="" coords="764,1323,924,1349"/>
+<area shape="rect" id="node38" href="rekall.plugins.tools.mspdb.lfPointer-class.html" title="plugins.tools.mspdb.lfPointer" alt="" coords="765,1373,923,1400"/>
+<area shape="rect" id="node39" href="rekall.plugins.tools.mspdb.lfProc-class.html" title="plugins.tools.mspdb.lfProc" alt="" coords="772,1424,916,1451"/>
+<area shape="rect" id="node40" href="rekall.plugins.tools.mspdb.lfUnion-class.html" title="plugins.tools.mspdb.lfUnion" alt="" coords="769,1475,919,1501"/>
+<area shape="rect" id="node42" href="rekall.plugins.windows.gui.win32k_core.tagDESKTOP-class.html" title="plugins.windows.gui.win32k_core.tagDESKTOP" alt="" coords="720,1677,968,1704"/>
+</map>
+  <img src="class_hierarchy_for_baseaddres_3.gif" alt='' usemap="#class_hierarchy_for_baseaddres_3" ismap="ismap" class="graph-without-title" />
+</center></div>
+</center>
+<hr />
+<p>A mixin providing comparison operators for its base offset.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__comparator__"></a><span class="summary-sig-name">__comparator__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>,
+        <span class="summary-sig-arg">method</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseAddressComparisonMixIn.__comparator__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__eq__"></a><span class="summary-sig-name">__eq__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseAddressComparisonMixIn.__eq__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__lt__"></a><span class="summary-sig-name">__lt__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseAddressComparisonMixIn.__lt__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__gt__"></a><span class="summary-sig-name">__gt__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseAddressComparisonMixIn.__gt__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__le__"></a><span class="summary-sig-name">__le__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseAddressComparisonMixIn.__le__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__ge__"></a><span class="summary-sig-name">__ge__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseAddressComparisonMixIn.__ge__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__ne__"></a><span class="summary-sig-name">__ne__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseAddressComparisonMixIn.__ne__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__init__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:21:19 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

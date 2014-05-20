@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.tools.mspdb</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.tools-module.html">Package&nbsp;tools</a> ::
+        Module&nbsp;mspdb
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.tools.mspdb-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module mspdb</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.tools.mspdb-pysrc.html">source&nbsp;code</a></span></p>
+<pre class="literalblock">
+These plugins are for manipulating Microsoft PDB file.
+
+References:
+https://code.google.com/p/pdbparse/
+http://moyix.blogspot.de/2007/10/types-stream.html
+http://undocumented.rawol.com/win_pdbx.zip
+
+Our goal here is not to be a complete parser for PDB files. Rather, we are
+trying to extract only the important information we need in order to build a
+Rekall profile. This means that we dont necessarily care about modifiers like
+&quot;const&quot; &quot;volatile&quot; etc, but mostly care about struct, enums, bitfields etc.
+
+If you are comparing the code here with the code in the pdbparse project, be
+aware that due to the crazy way the construct library (which is used by
+pdbparse) splits up bits, the ordering in the pdbparse code does not follow the
+correct bit number (bits are defined in the order they appear in the bit stream,
+which for a little endian number is non intuitive). e.g.
+
+CV_property = BitStruct(&quot;prop&quot;,
+    Flag(&quot;fwdref&quot;),
+    Flag(&quot;opcast&quot;),
+    Flag(&quot;opassign&quot;),
+    Flag(&quot;cnested&quot;),
+    Flag(&quot;isnested&quot;),
+    Flag(&quot;ovlops&quot;),
+    Flag(&quot;ctor&quot;),
+    Flag(&quot;packed&quot;),
+
+    BitField(&quot;reserved&quot;, 7, swapped=True),
+    Flag(&quot;scoped&quot;),
+)
+
+Actually is this struct (i.e. above the first field is bit 7, then 6 etc until
+bit 0 the bit 15 down to 8):
+
+typedef struct _CV_prop_t
+        {
+/*000.0*/ WORD packed   : 1;
+/*000.1*/ WORD ctor     : 1;
+/*000.2*/ WORD ovlops   : 1;
+/*000.3*/ WORD isnested : 1;
+/*000.4*/ WORD cnested  : 1;
+/*000.5*/ WORD opassign : 1;
+/*000.6*/ WORD opcast   : 1;
+/*000.7*/ WORD fwdref   : 1;
+/*001.0*/ WORD scoped   : 1;
+/*001.1*/ WORD reserved : 7;
+/*002*/ }
+        CV_prop_t, *PCV_prop_t, **PPCV_prop_t;
+
+Since we are lazy and do not want to hand code all the structure definitions, we
+simply build a profile from the C implementation, and then use it here directly
+using the &quot;mspdb&quot; profile (which is available in the profile repository).
+
+http://undocumented.rawol.com/win_pdbx.zip: ./sbs_sdk/include/pdb_info.h
+
+Other known implementations of PDB parsing:
+https://chromium.googlesource.com/syzygy/+/master/pdb
+
+The closest thing to official documentation can be found here:
+http://pierrelib.pagesperso-orange.fr/exec_formats/MS_Symbol_Type_v1.0.pdf
+
+</pre>
+
+<hr />
+<div class="fields">      <p><strong>Author:</strong>
+        Michael Cohen &lt;scudette@gmail.com&gt;
+      </p>
+</div><!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.FetchPDB-class.html" class="summary-name">FetchPDB</a><br />
+      Fetch the PDB file for an executable from the Microsoft PDB server.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.TestFetchPDB-class.html" class="summary-name">TestFetchPDB</a><br />
+      Disable this test.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.StreamBasedAddressSpace-class.html" class="summary-name">StreamBasedAddressSpace</a><br />
+      An address space which combines together the page lists.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfClass-class.html" class="summary-name">lfClass</a><br />
+      Represents a class or struct.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfEnumerate-class.html" class="summary-name">lfEnumerate</a><br />
+      A SubRecord describing a single enumeration definition.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfBitfield-class.html" class="summary-name">lfBitfield</a><br />
+      A range of bits.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfNestType-class.html" class="summary-name">lfNestType</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfUnion-class.html" class="summary-name">lfUnion</a><br />
+      A Union is basically the same as a struct, except members may 
+        overlap.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfModifier-class.html" class="summary-name">lfModifier</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfEnum-class.html" class="summary-name">lfEnum</a><br />
+      Represents an enumeration definition.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfPointer-class.html" class="summary-name">lfPointer</a><br />
+      A Pointer object.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfProc-class.html" class="summary-name">lfProc</a><br />
+      A Function object.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfArray-class.html" class="summary-name">lfArray</a><br />
+      An array of the same object.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.lfMember-class.html" class="summary-name">lfMember</a><br />
+      A member in a struct (or class).
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.DBIExHeaders-class.html" class="summary-name">DBIExHeaders</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.DBI-class.html" class="summary-name">DBI</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.PDBProfile-class.html" class="summary-name">PDBProfile</a><br />
+      A profile to parse Microsoft PDB files.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.PDBParser-class.html" class="summary-name">PDBParser</a><br />
+      Parses a Microsoft PDB file.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb.ParsePDB-class.html" class="summary-name">ParsePDB</a><br />
+      Parse the PDB streams.
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Functions</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="Pages"></a><span class="summary-sig-name">Pages</span>(<span class="summary-sig-arg">length</span>,
+        <span class="summary-sig-arg">page_size</span>)</span><br />
+      Calculate the number of pages required to store a stream.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.mspdb-pysrc.html#Pages">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb-module.html#LEAF_ENUM_TO_TYPE" class="summary-name">LEAF_ENUM_TO_TYPE</a> = <code title="{'LF_ARGLIST': '_lfArgList',
+ 'LF_ARRAY': '_lfArray',
+ 'LF_BITFIELD': '_lfBitfield',
+ 'LF_CHAR': 'byte',
+ 'LF_ENUM': '_lfEnum',
+ 'LF_FIELDLIST': '_lfFieldList',
+ 'LF_LONG': 'long',
+ 'LF_MODIFIER': '_lfModifier',
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">LF_ARGLIST</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_lfArgList</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">LF_ARRAY</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb-module.html#LEAF_ENUM_TO_SUBRECORD" class="summary-name">LEAF_ENUM_TO_SUBRECORD</a> = <code title="{'LF_ENUMERATE': 'Enumerate',
+ 'LF_MEMBER': 'Member',
+ 'LF_NESTTYPE': 'NestType'}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">LF_ENUMERATE</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Enumerate</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">LF_MEM</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="SYM_ENUM_TO_SYM"></a><span class="summary-name">SYM_ENUM_TO_SYM</span> = <code title="{'S_PUB32': '_PUBSYM32'}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">S_PUB32</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_PUBSYM32</code><code class="variable-quote">'</code><code class="variable-group">}</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.mspdb-module.html#mspdb_overlays" class="summary-name">mspdb_overlays</a> = <code title="{'DBI': [None,
+         {'DBIHdr': [0, ['_NewDBIHdr']],
+          'ExHeaders': [64,
+                        ['ListArray',
+                         {'maximum_size': &lt;function &lt;lambda&gt; at 0x2dfc\
+f50&gt;,
+                          'target': 'DBIExHeaders'}]]}],
+ 'DBIExHeaders': [None, {'modName': [64, ['String']], 'objName': [&lt;fun\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DBI</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DBIHdr</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_NewDBIHdr</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rekall.plugins.tools'"><code class="variable-quote">'</code><code class="variable-string">rekall.plugins.tools</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables Details</span></td>
+</tr>
+</table>
+<a name="LEAF_ENUM_TO_TYPE"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">LEAF_ENUM_TO_TYPE</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">LF_ARGLIST</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_lfArgList</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LF_ARRAY</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_lfArray</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LF_BITFIELD</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_lfBitfield</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LF_CHAR</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">byte</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LF_ENUM</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_lfEnum</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LF_FIELDLIST</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_lfFieldList</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LF_LONG</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">long</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LF_MODIFIER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_lfModifier</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="LEAF_ENUM_TO_SUBRECORD"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">LEAF_ENUM_TO_SUBRECORD</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">LF_ENUMERATE</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Enumerate</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LF_MEMBER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Member</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LF_NESTTYPE</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">NestType</code><code class="variable-quote">'</code><code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="mspdb_overlays"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">mspdb_overlays</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DBI</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+         <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DBIHdr</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_NewDBIHdr</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+          <code class="variable-quote">'</code><code class="variable-string">ExHeaders</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>64<code class="variable-op">,</code>
+                        <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">ListArray</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                         <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">maximum_size</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;function &lt;lambda&gt; at 0x2dfc<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+f50&gt;<code class="variable-op">,</code>
+                          <code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">DBIExHeaders</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">DBIExHeaders</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">modName</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>64<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">String</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">objName</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;fun<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:21:13 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

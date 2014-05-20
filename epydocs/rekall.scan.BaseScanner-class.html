@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.scan.BaseScanner</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.scan-module.html">Module&nbsp;scan</a> ::
+        Class&nbsp;BaseScanner
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.scan.BaseScanner-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class BaseScanner</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="class_hierarchy_for_basescanne" name="class_hierarchy_for_basescanne">
+<area shape="rect" id="node1" href="rekall.plugins.darwin.common.CatfishScanner-class.html" title="plugins.darwin.common.CatfishScanner" alt="" coords="164,157,375,184"/>
+<area shape="rect" id="node2" href="rekall.plugins.guess_profile.ProfileScanner-class.html" title="plugins.guess_profile.ProfileScanner" alt="" coords="172,208,367,235"/>
+<area shape="rect" id="node3" href="rekall.plugins.hypervisors.VMCSScanner-class.html" title="plugins.hypervisors.VMCSScanner" alt="" coords="176,259,363,285"/>
+<area shape="rect" id="node4" href="rekall.plugins.linux.bash.HeapHistoryScanner-class.html" title="plugins.linux.bash.HeapHistoryScanner" alt="" coords="847,892,1052,919"/>
+<area shape="rect" id="node5" href="rekall.plugins.linux.bash.HeapTimestampScanner-class.html" title="plugins.linux.bash.HeapTimestampScanner" alt="" coords="488,5,715,32"/>
+<area shape="rect" id="node6" href="rekall.plugins.linux.bash.HistoryScanner-class.html" title="plugins.linux.bash.HistoryScanner" alt="" coords="511,892,692,919"/>
+<area shape="rect" id="node7" href="rekall.plugins.linux.bash.TimestampScanner-class.html" title="plugins.linux.bash.TimestampScanner" alt="" coords="169,309,369,336"/>
+<area shape="rect" id="node8" href="rekall.plugins.linux.common.SlideScanner-class.html" title="plugins.linux.common.SlideScanner" alt="" coords="175,360,364,387"/>
+<area shape="rect" id="node9" href="rekall.plugins.windows.common.PoolScanner-class.html" title="plugins.windows.common.PoolScanner" alt="" coords="167,411,372,437"/>
+<area shape="rect" id="node11" href="rekall.plugins.windows.connscan.PoolScanConnFast-class.html" title="plugins.windows.connscan.PoolScanConnFast" alt="" coords="480,56,723,83"/>
+<area shape="rect" id="node15" href="rekall.plugins.windows.filescan.PoolScanFile-class.html" title="plugins.windows.filescan.PoolScanFile" alt="" coords="500,107,703,133"/>
+<area shape="rect" id="node17" href="rekall.plugins.windows.filescan.PoolScanProcess-class.html" title="plugins.windows.filescan.PoolScanProcess" alt="" coords="491,157,712,184"/>
+<area shape="rect" id="node19" href="rekall.plugins.windows.gui.atoms.PoolScanAtom-class.html" title="plugins.windows.gui.atoms.PoolScanAtom" alt="" coords="491,208,712,235"/>
+<area shape="rect" id="node22" href="rekall.plugins.windows.malware.callbacks.AbstractCallbackScanner-class.html" title="plugins.windows.malware.callbacks.AbstractCallbackScanner" alt="" coords="447,259,756,285"/>
+<area shape="rect" id="node35" href="rekall.plugins.windows.modscan.PoolScanModuleFast-class.html" title="plugins.windows.modscan.PoolScanModuleFast" alt="" coords="477,309,725,336"/>
+<area shape="rect" id="node36" href="rekall.plugins.windows.modscan.PoolScanThreadFast-class.html" title="plugins.windows.modscan.PoolScanThreadFast" alt="" coords="477,360,725,387"/>
+<area shape="rect" id="node38" href="rekall.plugins.windows.netscan.PoolScanTcpEndpoint-class.html" title="plugins.windows.netscan.PoolScanTcpEndpoint" alt="" coords="479,411,724,437"/>
+<area shape="rect" id="node39" href="rekall.plugins.windows.netscan.PoolScanTcpListener-class.html" title="plugins.windows.netscan.PoolScanTcpListener" alt="" coords="480,461,723,488"/>
+<area shape="rect" id="node40" href="rekall.plugins.windows.netscan.PoolScanUdpEndpoint-class.html" title="plugins.windows.netscan.PoolScanUdpEndpoint" alt="" coords="477,512,725,539"/>
+<area shape="rect" id="node10" href="rekall.plugins.windows.common.WinDTBScanner-class.html" title="plugins.windows.common.WinDTBScanner" alt="" coords="156,487,383,513"/>
+<area shape="rect" id="node12" href="rekall.plugins.windows.dumpcerts.CertScanner-class.html" title="plugins.windows.dumpcerts.CertScanner" alt="" coords="161,537,377,564"/>
+<area shape="rect" id="node13" href="rekall.plugins.windows.dumpcerts.VadCertScanner-class.html" title="plugins.windows.dumpcerts.VadCertScanner" alt="" coords="484,563,719,589"/>
+<area shape="rect" id="node14" href="rekall.plugins.windows.filescan.PoolScanDriver-class.html" title="plugins.windows.filescan.PoolScanDriver" alt="" coords="843,56,1056,83"/>
+<area shape="rect" id="node16" href="rekall.plugins.windows.filescan.PoolScanMutant-class.html" title="plugins.windows.filescan.PoolScanMutant" alt="" coords="1141,56,1360,83"/>
+<area shape="rect" id="node18" href="rekall.plugins.windows.filescan.PoolScanSymlink-class.html" title="plugins.windows.filescan.PoolScanSymlink" alt="" coords="839,107,1060,133"/>
+<area shape="rect" id="node20" href="rekall.plugins.windows.kdbgscan.KDBGScanner-class.html" title="plugins.windows.kdbgscan.KDBGScanner" alt="" coords="160,689,379,716"/>
+<area shape="rect" id="node21" href="rekall.plugins.windows.kernel.ExportScanner-class.html" title="plugins.windows.kernel.ExportScanner" alt="" coords="167,740,372,767"/>
+<area shape="rect" id="node23" href="rekall.plugins.windows.malware.callbacks.PoolScanDbgPrintCallback-class.html" title="plugins.windows.malware.callbacks.PoolScanDbgPrintCallback" alt="" coords="791,157,1108,184"/>
+<area shape="rect" id="node24" href="rekall.plugins.windows.malware.callbacks.PoolScanFSCallback-class.html" title="plugins.windows.malware.callbacks.PoolScanFSCallback" alt="" coords="804,208,1095,235"/>
+<area shape="rect" id="node25" href="rekall.plugins.windows.malware.callbacks.PoolScanGenericCallback-class.html" title="plugins.windows.malware.callbacks.PoolScanGenericCallback" alt="" coords="793,259,1105,285"/>
+<area shape="rect" id="node26" href="rekall.plugins.windows.malware.callbacks.PoolScanPnp9-class.html" title="plugins.windows.malware.callbacks.PoolScanPnp9" alt="" coords="819,309,1080,336"/>
+<area shape="rect" id="node27" href="rekall.plugins.windows.malware.callbacks.PoolScanRegistryCallback-class.html" title="plugins.windows.malware.callbacks.PoolScanRegistryCallback" alt="" coords="792,360,1107,387"/>
+<area shape="rect" id="node28" href="rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback-class.html" title="plugins.windows.malware.callbacks.PoolScanShutdownCallback" alt="" coords="788,411,1111,437"/>
+<area shape="rect" id="node29" href="rekall.plugins.windows.malware.cmdhistory.ConsoleScanner-class.html" title="plugins.windows.malware.cmdhistory.ConsoleScanner" alt="" coords="463,613,740,640"/>
+<area shape="rect" id="node30" href="rekall.plugins.windows.malware.cmdhistory.HistoryScanner-class.html" title="plugins.windows.malware.cmdhistory.HistoryScanner" alt="" coords="465,664,737,691"/>
+<area shape="rect" id="node31" href="rekall.plugins.windows.malware.svcscan.SvcHeaderScanner-class.html" title="plugins.windows.malware.svcscan.SvcHeaderScanner" alt="" coords="463,715,740,741"/>
+<area shape="rect" id="node32" href="rekall.plugins.windows.malware.svcscan.SvcRecordScanner-class.html" title="plugins.windows.malware.svcscan.SvcRecordScanner" alt="" coords="463,765,740,792"/>
+<area shape="rect" id="node33" href="rekall.plugins.windows.malware.yarascan.BaseYaraASScanner-class.html" title="plugins.windows.malware.yarascan.BaseYaraASScanner" alt="" coords="123,639,416,665"/>
+<area shape="rect" id="node34" href="rekall.plugins.windows.malware.yarascan.VadYarraScanner-class.html" title="plugins.windows.malware.yarascan.VadYarraScanner" alt="" coords="463,816,740,843"/>
+<area shape="rect" id="node37" href="rekall.plugins.windows.modules.RSDSScanner-class.html" title="plugins.windows.modules.RSDSScanner" alt="" coords="163,791,376,817"/>
+<area shape="rect" id="node41" href="rekall.plugins.windows.registry.evtlogs.EVTScanner-class.html" title="plugins.windows.registry.evtlogs.EVTScanner" alt="" coords="151,841,388,868"/>
+<area shape="rect" id="node42" href="rekall.plugins.windows.vadinfo.VadScanner-class.html" title="plugins.windows.vadinfo.VadScanner" alt="" coords="171,588,368,615"/>
+<area shape="rect" id="node43" href="rekall.scan.BaseScanner-class.html" title="BaseScanner" alt="" coords="7,563,92,589"/>
+<area shape="rect" id="node45" href="rekall.scan.PointerScanner-class.html" title="PointerScanner" alt="" coords="221,892,317,919"/>
+<area shape="rect" id="node46" href="rekall.scan.ScannerGroup-class.html" title="ScannerGroup" alt="" coords="224,943,315,969"/>
+<area shape="rect" id="node44" href="rekall.scan.DiscontigScannerGroup-class.html" title="DiscontigScannerGroup" alt="" coords="535,943,668,969"/>
+</map>
+  <img src="class_hierarchy_for_basescanne.gif" alt='' usemap="#class_hierarchy_for_basescanne" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>A more thorough scanner which checks every byte</p>
+
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Nested Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.registry.MetaclassRegistry-class.html" class="summary-name">__metaclass__</a><br />
+      Automatic Plugin Registration through metaclasses.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.scan.BaseScanner-class.html" class="summary-name">top_level_class</a><br />
+      A more thorough scanner which checks every byte
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.scan.BaseScanner-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">profile</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">address_space</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">window_size</span>=<span class="summary-sig-default">8</span>,
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>)</span><br />
+      The base scanner.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="build_constraints"></a><span class="summary-sig-name">build_constraints</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.build_constraints">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.scan.BaseScanner-class.html#check_addr" class="summary-sig-name">check_addr</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">offset</span>,
+        <span class="summary-sig-arg">buffer_as</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Calls our constraints on the offset and returns if any contraints did
+not match.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.check_addr">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.scan.BaseScanner-class.html#skip" class="summary-sig-name">skip</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">buffer_as</span>,
+        <span class="summary-sig-arg">offset</span>)</span><br />
+      Skip uninteresting regions.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.skip">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.scan.BaseScanner-class.html#scan" class="summary-sig-name">scan</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">offset</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">maxlen</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Scan the region from offset for maxlen.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.scan">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="checks"></a><span class="summary-name">checks</span> = <code title="[]"><code class="variable-group">[</code><code class="variable-group">]</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="overlap"></a><span class="summary-name">overlap</span> = <code title="1024">1024</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__abstractmethods__"></a><span class="summary-name">__abstractmethods__</span> = <code title="frozenset([])"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.scan.BaseScanner-class.html#classes" class="summary-name">classes</a> = <code title="{'BaseScanner': &lt;class 'rekall.scan.BaseScanner'&gt;,
+ 'BaseYaraASScanner': &lt;class 'rekall.plugins.windows.malware.yarascan.\
+BaseYaraASScanner'&gt;,
+ 'CatfishScanner': &lt;class 'rekall.plugins.darwin.common.CatfishScanner\
+'&gt;,
+ 'CertScanner': &lt;class 'rekall.plugins.windows.dumpcerts.CertScanner'&gt;\
+,
+ 'ConsoleScanner': &lt;class 'rekall.plugins.windows.malware.cmdhistory.C\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.scan.BaseScanner'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.scan.BaseScanner-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.hypervisors.VMCSScanner'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.hypervisors.VM<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'BaseScanner'"><code class="variable-quote">'</code><code class="variable-string">BaseScanner</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">profile</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">address_space</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">window_size</span>=<span class="sig-default">8</span>,
+        <span class="sig-arg">session</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+The base scanner.
+
+Args:
+   profile: The kernel profile to use for this scan.
+   address_space: The address space we use for scanning.
+   window_size: The size of the overlap window between each buffer read.
+
+</pre>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="check_addr"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">check_addr</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">offset</span>,
+        <span class="sig-arg">buffer_as</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.check_addr">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Calls our constraints on the offset and returns if any contraints did
+not match.
+
+Args:
+   offset: The offset to test (in self.address_space).
+
+Returns:
+   None if the offset is not a hit, the hit if the hit is correct.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="skip"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">skip</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">buffer_as</span>,
+        <span class="sig-arg">offset</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.skip">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Skip uninteresting regions.</p>
+  <p>Where should we go next? By default we go 1 byte ahead, but if some of
+  the checkers have skippers, we may actually go much farther. Checkers 
+  with skippers basically tell us that there is no way they can match 
+  anything before the skipped result, so there is no point in trying them 
+  on all the data in between. This optimization is useful to really speed 
+  things up.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="scan"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">scan</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">offset</span>=<span class="sig-default">0</span>,
+        <span class="sig-arg">maxlen</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.scan">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Scan the region from offset for maxlen.
+
+Args:
+  offset: The starting offset in our current address space to scan.
+
+  maxlen: The maximum length to scan. If no provided we just scan until
+    there is no data.
+
+Yields:
+  offsets where all the constrainst are satisfied.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="classes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">classes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.scan.BaseScanner'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">BaseYaraASScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.malware.yarascan.<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+BaseYaraASScanner'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">CatfishScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.darwin.common.CatfishScanner<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">CertScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.dumpcerts.CertScanner'&gt;<code class="variable-op"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">ConsoleScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.malware.cmdhistory.C<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="classes_by_name"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">classes_by_name</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.hypervisors.VMCSScanner'&gt;<code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:22:16 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

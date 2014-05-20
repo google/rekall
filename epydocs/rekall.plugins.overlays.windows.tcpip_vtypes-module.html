@@ -1,0 +1,640 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.overlays.windows.tcpip_vtypes</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.overlays-module.html">Package&nbsp;overlays</a> ::
+        <a href="rekall.plugins.overlays.windows-module.html">Package&nbsp;windows</a> ::
+        Module&nbsp;tcpip_vtypes
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module tcpip_vtypes</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.windows.tcpip_vtypes-pysrc.html">source&nbsp;code</a></span></p>
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin-class.html" class="summary-name">TcpipPluginMixin</a><br />
+      A mixin for plugins that want to use tcpip.sys profiles.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes.Tcpip-class.html" class="summary-name">Tcpip</a><br />
+      A profile for the TCPIP driver.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html" class="summary-name">TcpipHook</a>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="AF_INET"></a><span class="summary-name">AF_INET</span> = <code title="2">2</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="AF_INET6"></a><span class="summary-name">AF_INET6</span> = <code title="23">23</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="inaddr_any"></a><span class="summary-name">inaddr_any</span> = <code title="'0.0.0.0'"><code class="variable-quote">'</code><code class="variable-string">0.0.0.0</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="inaddr6_any"></a><span class="summary-name">inaddr6_any</span> = <code title="'::'"><code class="variable-quote">'</code><code class="variable-string">::</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#protos" class="summary-name">protos</a> = <code title="{0: 'HOPOPT',
+ 1: 'ICMP',
+ 2: 'IGMP',
+ 3: 'GGP',
+ 4: 'IPv4',
+ 5: 'ST',
+ 6: 'TCP',
+ 7: 'CBT',
+..."><code class="variable-group">{</code>0<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">HOPOPT</code><code class="variable-quote">'</code><code class="variable-op">, </code>1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">ICMP</code><code class="variable-quote">'</code><code class="variable-op">, </code>2<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">IGMP</code><code class="variable-quote">'</code><code class="variable-op">, </code>3<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">GGP</code><code class="variable-quote">'</code><code class="variable-op">, </code>4<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">IPv</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#tcpip_vtypes" class="summary-name">tcpip_vtypes</a> = <code title="{'_ADDRESS_OBJECT': [104,
+                     {'CreateTime': [344, ['WinFileTime', {}]],
+                      'LocalIpAddress': [44, ['Ipv4Address']],
+                      'LocalPort': [48, ['unsigned be short']],
+                      'Next': [0, ['pointer', ['_ADDRESS_OBJECT']]],
+                      'Pid': [328, ['unsigned long']],
+                      'Protocol': [50, ['unsigned short']]}],
+ '_TCPT_OBJECT': [32, {'LocalIpAddress': [16, ['Ipv4Address']], 'Local\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>104<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>344<code class="variable-op">, </code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#tcpip_vtypes_2003_x64" class="summary-name">tcpip_vtypes_2003_x64</a> = <code title="{'_ADDRESS_OBJECT': [592,
+                     {'CreateTime': [584, ['WinFileTime', {}]],
+                      'LocalIpAddress': [88, ['Ipv4Address']],
+                      'LocalPort': [92, ['unsigned be short']],
+                      'Next': [0, ['pointer', ['_ADDRESS_OBJECT']]],
+                      'Pid': [568, ['unsigned long']],
+                      'Protocol': [94, ['unsigned short']]}],
+ '_TCPT_OBJECT': [40, {'LocalIpAddress': [24, ['Ipv4Address']], 'Local\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>592<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateTime</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#tcpip_vtypes_2003_sp1_sp2" class="summary-name">tcpip_vtypes_2003_sp1_sp2</a> = <code title="{'_ADDRESS_OBJECT': [104,
+                     {'CreateTime': [344, ['WinFileTime', {}]],
+                      'LocalIpAddress': [48, ['Ipv4Address']],
+                      'LocalPort': [52, ['unsigned be short']],
+                      'Next': [0, ['pointer', ['_ADDRESS_OBJECT']]],
+                      'Pid': [332, ['unsigned long']],
+                      'Protocol': [54, ['unsigned short']]}]}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>104<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Create</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#TCP_STATE_ENUM" class="summary-name">TCP_STATE_ENUM</a> = <code title="{0: 'CLOSED',
+ 1: 'LISTENING',
+ 2: 'SYN_SENT',
+ 3: 'SYN_RCVD',
+ 4: 'ESTABLISHED',
+ 5: 'FIN_WAIT1',
+ 6: 'FIN_WAIT2',
+ 7: 'CLOSE_WAIT',
+..."><code class="variable-group">{</code>0<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">CLOSED</code><code class="variable-quote">'</code><code class="variable-op">, </code>1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">LISTENING</code><code class="variable-quote">'</code><code class="variable-op">, </code>2<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">SYN_SENT</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#tcpip_vtypes_vista" class="summary-name">tcpip_vtypes_vista</a> = <code title="{'_ADDRINFO': [None,
+               {'Local': [0, ['pointer', ['_LOCAL_ADDRESS']]],
+                'Remote': [8, ['pointer', ['_IN_ADDR']]]}],
+ '_INETAF': [None, {'AddressFamily': [12, ['unsigned short']]}],
+ '_IN_ADDR': [None,
+              {'addr4': [0, ['Ipv4Address']],
+               'addr6': [0, ['Ipv6Address']]}],
+ '_LOCAL_ADDRESS': [None, {'pData': [12, ['pointer', ['pointer', ['_IN\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRINFO</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Local</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">poin</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#tcpip_vtypes_7" class="summary-name">tcpip_vtypes_7</a> = <code title="{'_TCP_ENDPOINT': [528,
+                   {'AddrInfo': [16, ['pointer', ['_ADDRINFO']]],
+                    'CreateTime': [0, ['WinFileTime', {}]],
+                    'InetAF': [12, ['pointer', ['_INETAF']]],
+                    'ListEntry': [20, ['_LIST_ENTRY']],
+                    'LocalPort': [56, ['unsigned be short']],
+                    'Owner': [372, ['pointer', ['_EPROCESS']]],
+                    'RemotePort': [58, ['unsigned be short']],
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_TCP_ENDPOINT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>528<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AddrInfo</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>16<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">p</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#tcpip_vtypes_vista_64" class="summary-name">tcpip_vtypes_vista_64</a> = <code title="{'_ADDRINFO': [None,
+               {'Local': [0, ['pointer', ['_LOCAL_ADDRESS']]],
+                'Remote': [16, ['pointer', ['_IN_ADDR']]]}],
+ '_INETAF': [None, {'AddressFamily': [20, ['unsigned short']]}],
+ '_IN_ADDR': [None,
+              {'addr4': [0, ['Ipv4Address']],
+               'addr6': [0, ['Ipv6Address']]}],
+ '_LOCAL_ADDRESS': [None, {'pData': [16, ['pointer', ['pointer', ['_IN\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRINFO</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Local</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">p</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#tcpip_vtypes_win7_64" class="summary-name">tcpip_vtypes_win7_64</a> = <code title="{'_TCP_ENDPOINT': [800,
+                   {'LocalPort': [108, ['unsigned be short']],
+                    'Owner': [568, ['pointer', ['_EPROCESS']]],
+                    'RemotePort': [110, ['unsigned be short']],
+                    'State': [104,
+                              ['Enumeration',
+                               {'choices': {0: 'CLOSED',
+                                            1: 'LISTENING',
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_TCP_ENDPOINT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>800<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">LocalPort</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#overlays" class="summary-name">overlays</a> = <code title="{'_ADDRESS_OBJECT': [None,
+                     {'Protocol': [None,
+                                   ['Enumeration',
+                                    {'choices': {0: 'HOPOPT',
+                                                 1: 'ICMP',
+                                                 2: 'IGMP',
+                                                 3: 'GGP',
+                                                 4: 'IPv4',
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Protocol</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">En</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#win7_x86_dynamic_overlays" class="summary-name">win7_x86_dynamic_overlays</a> = <code title="{'_TCP_LISTENER': [None,
+                   {'CreateTime': [&lt;function offset_cb at 0x2952f50&gt;,
+                                   ['WinFileTime', {}]],
+                    'Owner': [&lt;function offset_cb at 0x2952ed8&gt;,
+                              ['Pointer', {'target': '_EPROCESS'}]]}]}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_TCP_LISTENER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateT</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rekall.plugins.overlays.windows'"><code class="variable-quote">'</code><code class="variable-string">rekall.plugins.overlays.windows</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables Details</span></td>
+</tr>
+</table>
+<a name="protos"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">protos</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code>0<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">HOPOPT</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">ICMP</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 2<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">IGMP</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 3<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">GGP</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 4<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">IPv4</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 5<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">ST</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 6<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">TCP</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 7<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">CBT</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="tcpip_vtypes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">tcpip_vtypes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>104<code class="variable-op">,</code>
+                     <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>344<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">WinFileTime</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">LocalIpAddress</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>44<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Ipv4Address</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">LocalPort</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>48<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned be short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">Next</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">Pid</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>328<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned long</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">Protocol</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>50<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">_TCPT_OBJECT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>32<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">LocalIpAddress</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>16<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Ipv4Address</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Local</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="tcpip_vtypes_2003_x64"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">tcpip_vtypes_2003_x64</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>592<code class="variable-op">,</code>
+                     <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>584<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">WinFileTime</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">LocalIpAddress</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>88<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Ipv4Address</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">LocalPort</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>92<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned be short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">Next</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">Pid</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>568<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned long</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">Protocol</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>94<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">_TCPT_OBJECT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>40<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">LocalIpAddress</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>24<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Ipv4Address</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Local</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="tcpip_vtypes_2003_sp1_sp2"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">tcpip_vtypes_2003_sp1_sp2</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>104<code class="variable-op">,</code>
+                     <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>344<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">WinFileTime</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">LocalIpAddress</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>48<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Ipv4Address</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">LocalPort</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>52<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned be short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">Next</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">Pid</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>332<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned long</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                      <code class="variable-quote">'</code><code class="variable-string">Protocol</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>54<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="TCP_STATE_ENUM"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">TCP_STATE_ENUM</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code>0<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">CLOSED</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">LISTENING</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 2<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">SYN_SENT</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 3<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">SYN_RCVD</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 4<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">ESTABLISHED</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 5<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">FIN_WAIT1</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 6<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">FIN_WAIT2</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ 7<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">CLOSE_WAIT</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="tcpip_vtypes_vista"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">tcpip_vtypes_vista</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRINFO</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+               <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Local</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_LOCAL_ADDRESS</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                <code class="variable-quote">'</code><code class="variable-string">Remote</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_IN_ADDR</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">_INETAF</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AddressFamily</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>12<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">_IN_ADDR</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+              <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">addr4</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Ipv4Address</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+               <code class="variable-quote">'</code><code class="variable-string">addr6</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Ipv6Address</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">_LOCAL_ADDRESS</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">pData</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>12<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_IN</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="tcpip_vtypes_7"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">tcpip_vtypes_7</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_TCP_ENDPOINT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>528<code class="variable-op">,</code>
+                   <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AddrInfo</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>16<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_ADDRINFO</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                    <code class="variable-quote">'</code><code class="variable-string">CreateTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">WinFileTime</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                    <code class="variable-quote">'</code><code class="variable-string">InetAF</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>12<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_INETAF</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                    <code class="variable-quote">'</code><code class="variable-string">ListEntry</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>20<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_LIST_ENTRY</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                    <code class="variable-quote">'</code><code class="variable-string">LocalPort</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>56<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned be short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                    <code class="variable-quote">'</code><code class="variable-string">Owner</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>372<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_EPROCESS</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                    <code class="variable-quote">'</code><code class="variable-string">RemotePort</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>58<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned be short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="tcpip_vtypes_vista_64"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">tcpip_vtypes_vista_64</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRINFO</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+               <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Local</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_LOCAL_ADDRESS</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                <code class="variable-quote">'</code><code class="variable-string">Remote</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>16<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_IN_ADDR</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">_INETAF</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AddressFamily</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>20<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">_IN_ADDR</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+              <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">addr4</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Ipv4Address</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+               <code class="variable-quote">'</code><code class="variable-string">addr6</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Ipv6Address</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">_LOCAL_ADDRESS</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">pData</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>16<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_IN</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="tcpip_vtypes_win7_64"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">tcpip_vtypes_win7_64</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_TCP_ENDPOINT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>800<code class="variable-op">,</code>
+                   <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">LocalPort</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>108<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned be short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                    <code class="variable-quote">'</code><code class="variable-string">Owner</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>568<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_EPROCESS</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                    <code class="variable-quote">'</code><code class="variable-string">RemotePort</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>110<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned be short</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                    <code class="variable-quote">'</code><code class="variable-string">State</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>104<code class="variable-op">,</code>
+                              <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Enumeration</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                               <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">choices</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code>0<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">CLOSED</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                            1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">LISTENING</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="overlays"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">overlays</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_ADDRESS_OBJECT</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+                     <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Protocol</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+                                   <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Enumeration</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                    <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">choices</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code>0<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">HOPOPT</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                                 1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">ICMP</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                                 2<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">IGMP</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                                 3<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">GGP</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                                 4<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">IPv4</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="win7_x86_dynamic_overlays"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">win7_x86_dynamic_overlays</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_TCP_LISTENER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+                   <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;function offset_cb at 0x2952f50&gt;<code class="variable-op">,</code>
+                                   <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">WinFileTime</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                    <code class="variable-quote">'</code><code class="variable-string">Owner</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;function offset_cb at 0x2952ed8&gt;<code class="variable-op">,</code>
+                              <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_EPROCESS</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:21:13 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.darwin.common.DarwinKASLRMixin</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.darwin-module.html">Package&nbsp;darwin</a> ::
+        <a href="rekall.plugins.darwin.common-module.html">Module&nbsp;common</a> ::
+        Class&nbsp;DarwinKASLRMixin
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class DarwinKASLRMixin</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinKASLRMixin">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="class_hierarchy_for_darwinkasl" name="class_hierarchy_for_darwinkasl">
+<area shape="rect" id="node1" href="rekall.plugins.darwin.checks.CheckTrapTable-class.html" title="checks.CheckTrapTable" alt="" coords="291,5,427,32"/>
+<area shape="rect" id="node2" href="rekall.plugins.darwin.checks.DarwinCheckSysCalls-class.html" title="checks.DarwinCheckSysCalls" alt="" coords="279,56,439,83"/>
+<area shape="rect" id="node3" href="rekall.plugins.darwin.checks.DarwinSysctl-class.html" title="checks.DarwinSysctl" alt="" coords="300,107,417,133"/>
+<area shape="rect" id="node4" href="rekall.plugins.darwin.common.DarwinFindDTB-class.html" title="DarwinFindDTB" alt="" coords="149,411,248,437"/>
+<area shape="rect" id="node5" href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html" title="DarwinKASLRMixin" alt="" coords="5,436,120,463"/>
+<area shape="rect" id="node6" href="rekall.plugins.darwin.common.DarwinPlugin-class.html" title="DarwinPlugin" alt="" coords="156,461,241,488"/>
+<area shape="rect" id="node7" href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html" title="DarwinProcessFilter" alt="" coords="300,157,417,184"/>
+<area shape="rect" id="node8" href="rekall.plugins.darwin.hooks.DarwinNotifiers-class.html" title="hooks.DarwinNotifiers" alt="" coords="296,208,421,235"/>
+<area shape="rect" id="node9" href="rekall.plugins.darwin.lsmod.DarwinLsmod-class.html" title="lsmod.DarwinLsmod" alt="" coords="300,259,417,285"/>
+<area shape="rect" id="node11" href="rekall.plugins.darwin.misc.DarwinBootParameters-class.html" title="misc.DarwinBootParameters" alt="" coords="280,309,437,336"/>
+<area shape="rect" id="node12" href="rekall.plugins.darwin.misc.DarwinDMSG-class.html" title="misc.DarwinDMSG" alt="" coords="303,360,415,387"/>
+<area shape="rect" id="node13" href="rekall.plugins.darwin.misc.DarwinMachineInfo-class.html" title="misc.DarwinMachineInfo" alt="" coords="289,411,428,437"/>
+<area shape="rect" id="node14" href="rekall.plugins.darwin.misc.DarwinMount-class.html" title="misc.DarwinMount" alt="" coords="304,461,413,488"/>
+<area shape="rect" id="node15" href="rekall.plugins.darwin.misc.DarwinPhysicalMap-class.html" title="misc.DarwinPhysicalMap" alt="" coords="289,512,428,539"/>
+<area shape="rect" id="node16" href="rekall.plugins.darwin.networking.DarwinArp-class.html" title="networking.DarwinArp" alt="" coords="295,563,423,589"/>
+<area shape="rect" id="node17" href="rekall.plugins.darwin.networking.DarwinIFConfig-class.html" title="networking.DarwinIFConfig" alt="" coords="283,613,435,640"/>
+<area shape="rect" id="node18" href="rekall.plugins.darwin.networking.DarwinIPFilters-class.html" title="networking.DarwinIPFilters" alt="" coords="284,664,433,691"/>
+<area shape="rect" id="node20" href="rekall.plugins.darwin.networking.DarwinRoute-class.html" title="networking.DarwinRoute" alt="" coords="289,715,428,741"/>
+<area shape="rect" id="node21" href="rekall.plugins.darwin.pslist.DarwinListSessions-class.html" title="pslist.DarwinListSessions" alt="" coords="289,765,428,792"/>
+<area shape="rect" id="node27" href="rekall.plugins.darwin.pslist.DawrinPSTree-class.html" title="pslist.DawrinPSTree" alt="" coords="300,816,417,843"/>
+<area shape="rect" id="node28" href="rekall.plugins.darwin.zones.DarwinDeadProcesses-class.html" title="zones.DarwinDeadProcesses" alt="" coords="277,867,440,893"/>
+<area shape="rect" id="node29" href="rekall.plugins.darwin.zones.DarwinListZones-class.html" title="zones.DarwinListZones" alt="" coords="292,917,425,944"/>
+<area shape="rect" id="node10" href="rekall.plugins.darwin.lsof.DarwinLsof-class.html" title="lsof.DarwinLsof" alt="" coords="488,31,581,57"/>
+<area shape="rect" id="node22" href="rekall.plugins.darwin.pslist.DarwinMaps-class.html" title="pslist.DarwinMaps" alt="" coords="481,81,588,108"/>
+<area shape="rect" id="node23" href="rekall.plugins.darwin.pslist.DarwinPSAUX-class.html" title="pslist.DarwinPSAUX" alt="" coords="476,132,593,159"/>
+<area shape="rect" id="node24" href="rekall.plugins.darwin.pslist.DarwinPsList-class.html" title="pslist.DarwinPsList" alt="" coords="480,183,589,209"/>
+<area shape="rect" id="node25" href="rekall.plugins.darwin.pslist.DarwinPsxView-class.html" title="pslist.DarwinPsxView" alt="" coords="473,233,596,260"/>
+<area shape="rect" id="node26" href="rekall.plugins.darwin.pslist.DarwinVadDump-class.html" title="pslist.DarwinVadDump" alt="" coords="469,284,600,311"/>
+<area shape="rect" id="node19" href="rekall.plugins.darwin.networking.DarwinNetstat-class.html" title="networking.DarwinNetstat" alt="" coords="631,31,775,57"/>
+</map>
+  <img src="class_hierarchy_for_darwinkasl.gif" alt='' usemap="#class_hierarchy_for_darwinkasl" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>Ensures that KASLR slide is computed and stored in the session.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">vm_kernel_slide</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      A mixin for Darwin plugins that require a valid KASLR slide.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinKASLRMixin.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">parser</span>)</span></td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">vm_kernel_slide</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinKASLRMixin.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+A mixin for Darwin plugins that require a valid KASLR slide.
+
+Args:
+  vm_kernel_slide: The integer KASLR slide used in this image. If not
+  given it will be computed.
+
+</pre>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:21:32 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

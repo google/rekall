@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.windows.registry.userassist</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.windows-module.html">Package&nbsp;windows</a> ::
+        <a href="rekall.plugins.windows.registry-module.html">Package&nbsp;registry</a> ::
+        Module&nbsp;userassist
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.windows.registry.userassist-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module userassist</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.registry.userassist-pysrc.html">source&nbsp;code</a></span></p>
+<hr />
+<div class="fields">      <p><strong>Author:</strong>
+        Jamie Levy (gleeda)
+      </p>
+      <p><strong>License:</strong>
+        GNU General Public License 2.0 or later
+      </p>
+      <p><strong>Contact:</strong>
+        jamie.levy@gmail.com
+      </p>
+      <p><strong>Organization:</strong>
+        Volatile Systems
+      </p>
+</div><!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.registry.userassist.UserAssistModification-class.html" class="summary-name">UserAssistModification</a><br />
+      Add special types to the profile to deal with user assist records.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.registry.userassist.UserAssist-class.html" class="summary-name">UserAssist</a><br />
+      Print userassist registry keys and information
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.registry.userassist-module.html#ua_win7_vtypes" class="summary-name">ua_win7_vtypes</a> = <code title="{'_VOLUSER_ASSIST_TYPES': [72,
+                           {'Count': [4, ['unsigned int']],
+                            'FocusCount': [8, ['unsigned int']],
+                            'FocusTime': [12, ['unsigned int']],
+                            'LastUpdated': [60, ['WinFileTime']]}]}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_VOLUSER_ASSIST_TYPES</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>72<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Count</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>4<code class="variable-op">, </code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.registry.userassist-module.html#ua_vtypes" class="summary-name">ua_vtypes</a> = <code title="{'_VOLUSER_ASSIST_TYPES': [16,
+                           {'CountStartingAtFive': [4,
+                                                    ['unsigned int']],
+                            'ID': [0, ['unsigned int']],
+                            'LastUpdated': [8, ['WinFileTime']]}]}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_VOLUSER_ASSIST_TYPES</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>16<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CountStartingAtFi</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.registry.userassist-module.html#FOLDER_GUIDS" class="summary-name">FOLDER_GUIDS</a> = <code title="{'{0139D44E-6AFE-49F2-8690-3DAFCAE6FFB8}': '%ALLUSERSPROFILE%\\Microso\
+ft\\Windows\\Start Menu\\Programs',
+ '{054FAE61-4DD8-4787-80B6-090220C4B700}': 'GameExplorer',
+ '{0762D272-C50A-4BB0-A382-697DCD729B80}': '%SystemDrive%\\Users',
+ '{0AC0837C-BBF8-452A-850D-79D08E667CA7}': '(My) Computer',
+ '{0F214138-B1D3-4a90-BBA9-27CBC0C5389A}': 'Sync Setup',
+ '{15CA69B3-30EE-49C1-ACE1-6B5EC372AFB5}': '%PUBLIC%\\Music\\Sample Pl\
+aylists',
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">{0139D44E-6AFE-49F2-8690-3DAFCAE6FFB8}</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">%AL</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rekall.plugins.windows.registry'"><code class="variable-quote">'</code><code class="variable-string">rekall.plugins.windows.registry</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables Details</span></td>
+</tr>
+</table>
+<a name="ua_win7_vtypes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">ua_win7_vtypes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_VOLUSER_ASSIST_TYPES</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>72<code class="variable-op">,</code>
+                           <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Count</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>4<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                            <code class="variable-quote">'</code><code class="variable-string">FocusCount</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                            <code class="variable-quote">'</code><code class="variable-string">FocusTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>12<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                            <code class="variable-quote">'</code><code class="variable-string">LastUpdated</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>60<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">WinFileTime</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="ua_vtypes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">ua_vtypes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_VOLUSER_ASSIST_TYPES</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>16<code class="variable-op">,</code>
+                           <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CountStartingAtFive</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>4<code class="variable-op">,</code>
+                                                    <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                            <code class="variable-quote">'</code><code class="variable-string">ID</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                            <code class="variable-quote">'</code><code class="variable-string">LastUpdated</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">WinFileTime</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="FOLDER_GUIDS"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">FOLDER_GUIDS</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">{0139D44E-6AFE-49F2-8690-3DAFCAE6FFB8}</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">%ALLUSERSPROFILE%\\Microso</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">ft\\Windows\\Start Menu\\Programs</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">{054FAE61-4DD8-4787-80B6-090220C4B700}</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">GameExplorer</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">{0762D272-C50A-4BB0-A382-697DCD729B80}</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">%SystemDrive%\\Users</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">{0AC0837C-BBF8-452A-850D-79D08E667CA7}</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">(My) Computer</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">{0F214138-B1D3-4a90-BBA9-27CBC0C5389A}</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Sync Setup</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">{15CA69B3-30EE-49C1-ACE1-6B5EC372AFB5}</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">%PUBLIC%\\Music\\Sample Pl</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">aylists</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon May 19 16:21:14 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
