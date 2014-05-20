@@ -230,6 +230,8 @@ extern uint8_t MINPMEM_SIZE;
 static ELF_OBJ parasite;
 // This is a prefix string appended to sections to avoid collisions
 static char *parasite_name = ".pmem";
+// This is the name the module will appear as when loaded
+static char *module_name = "pmem";
 // And this the host module
 static ELF_OBJ host_module;
 // Search this path for suitable host modules
@@ -899,6 +901,15 @@ int main (int argc, char **argv) {
   if (elf_clean_dependencies(&host_module) != ELF_SUCCESS) {
     log_print(LL_ERR, "Could not remove module dependencies, refusing to load");
     return EXIT_FAILURE;
+  }
+  if (elf_rename_module(&host_module, args.host_name, module_name)
+      != ELF_SUCCESS) {
+    log_print(LL_ERR, "Could not rename host module %s to %s, "
+        "loading could fail due to the original still being loaded.\n"
+        "If it fails try removing it first with 'rmmod %s'",
+        args.host_name, module_name, args.host_name);
+    // We don't fail here as it might still work.
+    // Worst case is module won't load due to host already being loaded.
   }
   log_print(LL_DBG, "Sucessfully removed all module dependencies");
   switch (args.mode) {
