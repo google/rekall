@@ -4,9 +4,14 @@
   <div class="span2">
     {% include nav.html %}
   </div>
-
-  <iframe class="span8" src="{{ page.target }}">
-  </iframe>
+  <div class="span8" >
+    {{ content }}
+    {% if page.download %}
+      <a href='{{ page.download }}' >Download</a>
+    {% endif %}
+    <iframe src="{{ page.target }}" width="100%">
+    </iframe>
+  </div>
   <div class="span2 sidebar">
     {% include plugin_nav.html %}
   </div>

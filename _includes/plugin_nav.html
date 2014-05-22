@@ -45,3 +45,15 @@
   </ul>
 </li>
 </ul>
+
+<ul>
+<li>References
+  <ul>
+{% for p in site.pages | sort: 'title' %}
+  {% if p.category == "references"%}
+ <li><a href='{{p.url}}'>{{p.title}}</a></li>
+  {% endif %}
+{% endfor %}
+  </ul>
+</li>
+</ul>
