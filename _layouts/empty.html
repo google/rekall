@@ -1,0 +1,25 @@
+{% include head.html %}
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    {% include nav.html %}
+  </div>
+
+  <iframe class="span8" src="{{ page.target }}">
+  </iframe>
+  <div class="span2 sidebar">
+    {% include plugin_nav.html %}
+  </div>
+</div>
+</div>
+<script>
+  $(window).resize(function(){
+    var height = $(window).height() - 100;
+    $('iframe').height(height);
+  });
+
+  $(window).resize();
+</script>
+
+{% include foot.html %}
+

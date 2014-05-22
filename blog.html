@@ -1,0 +1,19 @@
+---
+layout: default
+menuitem: Blog
+order: 3
+---
+
+{% for post in site.posts limit: 5 %}
+  <ul>
+    <div class="row-fluid">
+      <div class="span12">
+        <h2>{{ post.title | truncatewords: 10 | capitalize  }}</h2>
+        <h4>{{ post.date | date: "%m-%d-%Y" }} {{ post.author }}</h4>
+        <p>
+          <a href="{{ post.url }}">Read Post</a>
+        </p>
+      </div>
+    </div>
+  </ul>
+{% endfor %}

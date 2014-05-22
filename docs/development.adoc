@@ -1,0 +1,1320 @@
+---
+layout: docs
+category: developers
+title: The Rekall Memory Forensic Framework API.
+author: Michael Cohen <scudette@gmail.com>
+---
+
+The Rekall Memory Forensic Framework API
+========================================
+
+Rekall is a powerful framework with many components. It is not necessary to be
+intimately familiar with all components to be able to contribute. This document
+attempts to cover as much internal API information as possible, but if you
+already have a good idea of what you wish to accomplish, the
+<<overview,Overview>> section will direct new users to the most relevant
+section.
+
+[[overview]]
+Overview
+--------
+
+The following usage examples are typical areas where people would like to
+contribute:
+
+Adding support to a new image format::
+ You will probably want to add a new address space by reading
+ <<as,Address Spaces>>.
+
+Using rekall as a library::
+ You will want to read the section <<library,Using Rekall as a Libarary>>.
+
+I want to add new functionality::
+ If your code will be useful to all Rekall users and you would like to
+ contribute it upstream you might want to read <<commands,Command Plugins>>, else
+ you might want to write a standalone script and read <<library,Using Rekall
+ as a Library>>.
+
+[[commands]]
+Plugins and Commands.
+---------------------
+
+Rekall is a modular framework. This means that most of the functionality of
+the framework is implemented by plugins, enabling the framework to support
+multiple operating systems. Even when using rekall as a library it is easy
+to extend the library from within your own code (i.e. plugins do not need to be
+embedded in the library itself).
+
+A plugin is simply a piece of python code which declares a class extending one
+of the special classes providing some kind of functionality. For example to
+create a new address space, one simply defines a class extending
+BaseAddressSpace. Once that happens, the framework automatically knows about
+this new class and can use it e.g. in address space voting (there is no need to
+call any initialization functions).
+
+Plugins auto-register to the baseclass by means of a python metaclass. This
+places a reference to all plugins of the same class in a class variable called
+'classes'. This mechanism provides a simple way for one plugin to access another
+plugin without needing to explicitly import its module.
+
+
+Command Plugin
+~~~~~~~~~~~~~~
+
+A command is a reusable plugin which implements a user runnable command. For
+example, when the user issues the 'pslist' command, the WinPSList plugin is
+run. Therefore in order to be accessible to the user, a command plugin must
+extend the plugin.Command class.
+
+However it is not sufficient to simply extend the plugin.Command class, the
+class must also declare what the name of the command it implements is. For
+example the WinPSList class implements the 'pslist' command.
+
+At any given moment there can be a number of command plugins which define a
+particular user command. For example, LinPSList, WinPSList and MacPSList all
+define a command called 'pslist'. The correct class to run is chosen based on
+the profile.
+
+Here is the base minimum that should be defined for a new command plugin:
+
+`args(cls, parser)`::
+  This is a classmethod called in order to construct the command line
+  options. See below.
+
+`__init__(**args)`::
+  This is the constructor which should take any parameters you wish to
+  accept. If you also want the user to be able to provide these parameters
+  through the command line you will need to add them to the parser provided in
+  args() above.
+
+`is_active(cls, session)`::
+  This method will be called with the session to check if this specific class is
+  active. This mechanism allows multiple implementations to all share the same
+  name, as long as only one is actually active. For example, we can have a
+  linux, windows and mac version of plugins with the same "pslist" name.
+
+`render(renderer)`::
+  This is the main entry point for the command when called from the Rekall
+  UI. The plugin should render any output using the renderer (see
+  <<renderer,Rendering Output>>).
+
+
+In addition to these methods the plugin should define any other methods that can
+be reusable by other components.
+
+Many of the existing command plugins implement some of these methods via
+inheritance. For example, plugins which can only operate on a Linux image may
+extend the `rekall.plugins.linux.common.LinuxPlugin` class which already
+implements the correct `is_active()` method.
+
+Similarly plugins which operate on processes may extend the
+`rekall.plugins.linux.common.LinuxProcessFilter` plugin. This will give the new
+plugin the `args()` method defining all the commandline options which allow the
+user to select processes (i.e. by pid, by task address etc). In this way the
+commands which operate on processes can present a consistent user interface
+easily with the same filtering options.
+
+
+Command line Invocation
+~~~~~~~~~~~~~~~~~~~~~~~
+
+So what happens when a user invokes rekall from the command line? Assume the
+following command is issued:
+------------------------------------------------------------------------
+    <1>        <2>                                                 <3>       <4>
+$ rekal --profile Win7SP0x64 --filename win7_trial_64bit.raw pslist --proc_reg DumpIt
+  Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+-------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -
+------------------------------------------------------------------------
+
+<1> The rekall program name (rekal).
+
+<2> These are global options which are processed by the main rekall
+executable (in this case --profile, --filename).
+
+<3> The name of the command plugin to run. This will actually run the first
+class to extend plugin.Command() which is also active (in this case
+pslist. Since the profile is a windows profile, the WinPSList class will be
+invoked).
+
+<4> These options are specific to the plugin - i.e. they have been defined in
+the args() classmethod (in this case the process name regex selector).
+
+Rekall is strict with the order in which commands are supplied. For example it
+is not valid to provide the --proc_reg parameter before the pslist keyword
+(since it is a module level parameter). Similarly it is not legal to provide the
+--filename parameter after the command name (pslist). This strictness allows
+different modules to define the same command line option for their own needs and
+avoids any command line option clashes between different plugins.
+
+This strictness can easily be observed when requesting help. Without a module
+name, the help output simply lists those options processed by the main program
+(i.e. global options). It also provides a list of available modules:
+
+------------------------------------------------------------------------
+$ rekal --help
+usage: rekal [-h] [--pager PAGER]
+             [--logging {debug,info,warning,critical,error}] [--debug]
+             [-p PROFILE] [-f FILENAME] [--renderer RENDERER]
+             [--plugin PLUGIN [PLUGIN ...]] [--output OUTPUT] [--overwrite]
+             Plugin ...
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --pager PAGER         The pager to use when output is larger than a screen
+                        full.
+  --logging {debug,info,warning,critical,error}
+                        Logging level to show messages.
+  --debug               If set we break into the debugger on error conditions.
+  -p PROFILE, --profile PROFILE
+                        Name of the profile to load.
+  -f FILENAME, --filename FILENAME
+                        The raw image to load.
+  --renderer RENDERER   The renderer to use. e.g. (TextRenderer,
+                        JsonRenderer).
+  --plugin PLUGIN [PLUGIN ...]
+                        Load user provided plugin bundle.
+  --output OUTPUT       Write to this output file.
+  --overwrite           Allow overwriting of output files.
+
+subcommands:
+  The following plugins can be selected.
+
+  Plugin
+    modscan             Scan Physical memory for _LDR_DATA_TABLE_ENTRY
+                        objects.
+    driverscan          Scan for driver objects _DRIVER_OBJECT
+    memmap              Calculates the memory regions mapped by a process.
+    load_as             Load address spaces into the session if its not
+                        already loaded.
+------------------------------------------------------------------------
+
+Once the module is provided, we see a per-module help output:
+------------------------------------------------------------------------
+$ rekal pslist --help
+usage: rekal pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
+                     [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
+                     [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
+
+List processes for windows.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --kdbg KDBG           Location of the KDBG structure.
+  --eprocess EPROCESS [EPROCESS ...]
+                        Kernel addresses of eprocess structs.
+  --phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]
+                        Physical addresses of eprocess structs.
+  --pid PID [PID ...]   One or more pids of processes to select.
+  --proc_regex PROC_REGEX
+                        A regex to select a profile by name.
+------------------------------------------------------------------------
+
+
+Interactive Session Invocation.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When invoked without a command name, Rekall drops into the interactive
+shell. This mode of operation is more efficient as many commands can be run
+without needing to reinitialize the framework each time.
+
+This is what happens during initialization:
+------------------------------------------------------------------------
+$ rekal --profile Win7SP0x64 --filename win7_trial_64bit.raw
+Python 2.6.5 (r265:79063, Apr 16 2010, 13:57:41)
+Type "copyright", "credits" or "license" for more information.
+
+The Rekall Memory Forensic Framework
+
+"We can remember it for you wholesale!"
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
+
+Win7SP0x64:win7_trial_64bit.raw 01:32:55> print session               <1>
+Rekall session Started on Sun Sep 23 01:32:57 2012.
+
+Config:
+ base_filename:  'win7_trial_64bit.raw'
+ filename:  'win7_trial_64bit.raw'                                    <2>
+ logging:  'INFO'
+ overwrite:  False
+ pager:  <Set this to your favourite pager.>
+ paging_limit:  50
+...
+
+Win7SP0x64:win7_trial_64bit.raw 01:33:07> plugins.[tab][tab]          <3>
+plugins.atoms           plugins.dlldump         plugins.handles
+plugins.atomscan        plugins.dlllist         plugins.hivedump
+plugins.callbacks       plugins.driverirp       plugins.hivescan
+plugins.clipboard       plugins.driverscan      plugins.imagecopy
+....
+
+Win7SP0x64:win7_trial_64bit.raw 01:34:57> pslist proc_regex="DumpIt"  <4>
+----------------------------------------> pslist(proc_regex="DumpIt")
+  Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+-------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
+0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -
+
+------------------------------------------------------------------------
+
+<1> A new session.Session() object is created. This holds all information about
+the current running session.
+
+<2> Global command line args are parsed into the session - so for example, the
+--filename argument is parsed into session.filename.
+
+<3> The is_active() method for all command plugins is called, and the names of
+all active plugins are collected. For example, if we have a windows based
+profile, WinPSList will return True for is_active() and will be considered
+active.
+
+<4> For all active commands, we create wrapper functions in the session object
+and the namespace of the interactive shell. The wrapper will automatically set
+up a TextRenderer, instantiate the plugin and call its render method with the
+text renderer. For example, when the user types pslist() in the interactive UI,
+we create a new TextRenderer, instantiate the WinPSList class and call its
+render method.
+
+
+
+[[as]]
+Address Spaces.
+---------------
+
+Rekall uses an address space to abstract the handling of different images
+and formats and therefore allow plugins to support multiple kind of input images
+(or indeed live memory) easiy.
+
+An 'address space' is an object which can satisfy a read request for data at a
+certain offset. Exactly how this read request is satisfied is not important to
+the rest of the code, so long as the read request is satisfied.
+
+There are a number of simple address spaces which simply provide access to a
+specific data source:
+
+1. FileAddressSpace - Simply opens a file and satisfies read requests from it.
+2. WindowsHiberFileSpace - Supports windows hibernation files.
+
+However, many other address spaces satisfy their read requests by translating
+these to an underlying 'base' address space which does the actual reading. This
+is called 'Address Space Stacking' since address spaces are stacked over one
+another.
+
+For example, the WindowsCrashDumpSpace32 address space usually stacks over a
+FileAddressSpace - which does the actual reading. All the
+WindowsCrashDumpSpace32 does it translate the read request from a the provided
+offset to another read request at a different offset. Commonly address space
+stacking occurs when rekall emulates the hardware page translation by
+creating a 'Virtual Address Space' with the IA32PagedMemory and Amd64 paged
+address spaces stacked over the 'Physical Address Space'.
+
+.A sample address space stacking.
+image::img/address_space.jpg[align="center"]
+
+The figure above shows an IA32PagedMemory Virtual address space stacked over a
+FileAddressSpace physical address space. A read request to the virtual address
+space get translated through the page tables into a read in the physical memory
+address space. The other interesting point is that the Virtual Address space is
+sparse - i.e. there are regions where a read request is meaningless because
+there is no valid mapping. This happens in the IA32PagedMemory address space
+whenever there is no corresponding page translation.
+
+New address spaces, should extend the BaseAddressSpace class and implement at
+least:
+
+`__init__(base, **kwargs)`::
+ You will receive the address space you need to stack over. The constructor is
+ supposed to implement the required sanity checks. If it is not possible to
+ stack over the base address for some reason, you must raise an
+ ASAssertionError(). Its best to use self.as_assert() to test for various
+ conditions.
+
+`read(address, length)`::
+ This function should return a buffer read at the specified address. If the
+ address is invalid it should return a null padded buffer instead. Note that in
+ general memory forensics should expect a read to fail since any page can be
+ invalid at any time. To determine if the page is really invalid callers can use
+ the vrop() method below.
+
+`vtop(address)`::
+ This function returns the physical translation for the virtual address. I.e. it
+ returns the offset that this AS will be reading into its base. If the address
+ is invalid returns None. This is a quick way to check if a certain address is
+ valid.
+
+`get_address_ranges()`::
+ Many address spaces are sparse and quite large (e.g. AMD64PagedMemory). When
+ scanning these address spaces we need to know which regions are valid so we can
+ skip unmapped regions. This function basically returns a list of ranges which
+ are valid.
+
+
+Many image file formats implement essentially a sparse file (i.e. the image
+consists of sections which are stored back to back but which refer to sparse
+memory regions.). To make it easier to support these there is a generic
+RunBasedAddressSpace. Extending this class and populating the self.runs array
+with the mappings from virtual space to physical space is all that is required
+to support these image file formats. Currently the address spaces which are
+supported in this way are WindowsCrashDumpSpace, Elf64CoreDump (for virtual
+box), MACHOCoreDump (for osx).
+
+
+Automatic Address Space Selection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most rekall plugins expect to have valid address spaces set in the session
+object before they run. There are two main session parameters which are commonly
+required, the 'session.physical_address_space' and
+'session.kernel_address_space'. Usually if these parameters are not provided in
+the session, the plugins will automatically invoke the 'load_as()' plugin.
+
+
+The load_as plugin is just a regular command plugin, which means that it can be
+implemented by different plugin.Command() classes (autoselected via the
+is_active() class method - see <<commands,Command Plugin>>). This means we can
+have one implementation for windows, one for linux etc.
+
+The load_as plugin is responsible for loading two different address spaces. The
+physical address space refers to loading the image in whatever format it might
+be into a direct linear address space. The kernel virtual address space is the
+view of the virtual memory as seen by the kernel.
+
+The physical address space is derived by an automatic voting algorithm to
+auto-detect the memory image format:
+
+1. Start with the None address space and pass it to all address spaces in their
+requested order (classes are sorted by their 'order' attribute). Address spaces
+which are incompatible with the base address space will raise ASAssertionError
+and will be skipped.
+
+2. The first address space which instantiates successfully, will be accepted as
+the next base address space.
+
+3. The process is repeated until all address spaces failed to instantiate. We
+then return the last successfully instantiated address space.
+
+For example, suppose we have a Windows Crash dump image which we compressed
+using the EWF format. In the first voting round, the EWF address space will
+detect that this is a valid EWF format, and will be selected. Then all the other
+image address spaces will be tried on the decompressed EWF image, and the crash
+dump address space will detect it as a valid crash dump.
+
+[NOTE]
+================================================================================
+For an address space to be eligible to participate in physical address space
+voting, it must have the `_md_image` attribute set. This indicate that this
+address space applies to a memory image.
+================================================================================
+
+In the windows `load_as()` plugin, the virtual address space is created from the
+kernel's Directory Table Base (DTB). If the DTB is not directly provided, the
+`load_as()` plugin employs the `find_dtb()` plugin to detect the dtb. On
+Windows, the `find_dtb()` plugin scans the image for the Idle process. In other
+implementations, the kernel DTB is calculated using some other way
+(e.g. directly from debug symbols). The correct `find_dtb()` plugin for the
+selected profile will be used, allowing a different algorithm to be used for
+windows or linux.
+
+[NOTE]
+================================================================================
+Finding the kernel's DTB is required before we can construct the kernel's
+address space. Without a valid DTB there is very little analysis Rekall can do. Furthermore, in many operating system's finding the kernel DTB is a slow and error prone process. For this reason its always better for the acquisition tool to provide us with the correct DTB value in advance. Some imaging tools print the value to the console, while some store it in the image (e.g. in Crash dumps).
+
+Rekall's Pmem imaging tools store the value of the DTB (found from the CR3
+register during imaging) when writing to the following image formats: Crash
+Dump, ELF, MACHO. When writing to a raw image, image metadata can optionally be
+appended to the end of the raw file.
+================================================================================
+
+
+The object parsing system.
+--------------------------
+
+Computers use volatile memory in order to organize data and for program
+control. Memory analysis is ultimately all about trying to make sense of a
+memory image, and deducing higher level constructs from the low level "ones and
+zeros" in memory.
+
+For example, if a C program defines the following struct:
+
+[source,c]
+------------------------------------------------------------------------
+typedef unsigned char uchar;
+enum {
+  OPT1,
+  OPT2
+} options;
+
+struct foobar {
+    enum options flags;
+    short int bar;
+    uchar *foo;
+}
+------------------------------------------------------------------------
+
+What should the memory layout be? The answer is not so simple - it depends on
+many things such as the compiler used, architecture etc. For example, the
+compiler might enforce an alignment on the struct members by inserting padding
+between elements. The compiler may use 32 bits to store integers, or maybe 64
+bits.
+
+In practice it is impossible to predict from source code alone what the memory
+layout should be. We therefore need the compiler itself to inform us about how
+it is planning to lay out the memory in practice. This information is available
+through debug symbol.
+
+[NOTE]
+================================================================================
+Rekall is in many ways emulating a native debugger. Just like a debugger,
+rekall is making sense from the memory image, using debugging symbols.
+================================================================================
+
+There are basically two types of debugging systems - the Microsoft PDB system
+and the DWARF standard.
+
+DWARF::
+  This standard is used mostly on Unix like operating systems (e.g. Linux or
+  OSX). It consists of a DWARF section attached to the binary object (e.g. ELF
+  file) with a specially encoded stream providing information about symbols,
+  structures and offsets. In order to obtain debugging information, the binary
+  must be rebuilt with the appropriate flags.
+
+Microsoft PDB::
+ This standard keeps debugging information outside the final binary. The pdb
+ file contains the debugging information, and is stored on a server (may be
+ private or public). The advantage of this system is that debugging symbols may
+ be obtained for release binaries as well (i.e. you do not need to build with
+ debugging turned on before hand).
+
+
+Another important concept to understand is that of a 'Compilation Unit'. A
+compilation unit is a self consistent unit of compiled code which uses the same
+memory layout for structs. For example a DLL or an object file is a compilation
+unit. It is important to note that the same struct may be defined with the same
+name but different layout in different compilation units without any problem.
+
+In Rekall we want to derive high level semantic information from the low level
+memory layout. We use the object system to instantiate high level classes (with
+behaviours at specified memory addresses). The Rekall `object system` is built
+on top of the base class found in `rekall.obj.BaseObject()`:
+
+[source,python]
+------------------------------------------------------------------------
+class BaseObject(object):
+    def __init__(self, theType=None, offset=0, vm=None, profile=None,
+                 parent=None, name='', context=None, **kwargs):
+        """Constructor for Base object.
+
+        Args:
+
+          theType: The name of the type of this object. This different
+             from the class name, since the same class may implement many types
+             (e.g. Struct implements every instance in the vtype definition).
+
+          offset: The offset within the address space to this object exists.
+
+          vm: The address space this object uses to read itself from.
+
+          profile: The profile this object may use to dereference other
+           types.
+
+          parent: The object which created this object.
+
+          name: The name of this object.
+
+          context: An opaque dict which is passed to all objects created from
+            this object. This dict may contain context specific information
+            which each derived instance can use.
+
+          kwargs: Arbitrary args this object may accept - these can be passed in
+             the vtype language definition.
+        """
+....
+------------------------------------------------------------------------
+
+So in order to instantiate a Rekall object, we need to provide at a minimum an
+address space to read and an offset of where in the address space to read. More
+complex objects may require more parameters. For example, to define a `Struct`
+class we also need to provide the list of members and the total size of the
+struct:
+
+[source,python]
+------------------------------------------------------------------------
+class Struct(BaseAddressComparisonMixIn, BaseObject):
+    """ A Struct is an object which represents a c struct
+
+    Structs have members at various fixed relative offsets from our own base
+    offset.
+    """
+    def __init__(self, members = None, struct_size = 0, **kwargs):
+       ....
+
+class String(obj.StringProxyMixIn, obj.NativeType):
+    """Class for dealing with Null terminated C Strings.
+    """
+    def __init__(self, length = 1024, term="\x00", **kwargs):
+        ....
+
+class Pointer(NativeType):
+    """A pointer reads an 'address' object from the address space."""
+
+    def __init__(self, target=None, target_args=None, value=None, **kwargs):
+        """Constructor.
+
+        Args:
+           target: The name of the target object (A string). We use the profile
+             to instantiate it.
+           target_args: The target will receive these as kwargs.
+        """
+        ....
+------------------------------------------------------------------------
+
+In the above examples of Rekall objects, new keyword args are introduced which
+are specific for each new type. Note in particular the use the keyword arg
+`target` and `target_args` which by convention are used for any class which will
+instantiate some other class. For example, the pointer is told which class will
+be instantiated upon de-referencing the pointer (i.e. which object it is
+pointing to). Similarly the Array() object is told which object will be
+constructed at each slot of the array. We try to be consistent with the keyword
+naming to make remembering of these keywords easier.
+
+The object system allows us to instantiate high level objects at specified
+offsets in the address space. However, this is not very convenient to do by hand
+since we would need to know where in the address space we should instantiate
+each object ourselves. What we need is a way to control the creation of Rekall
+object automatically by using debug symbol information. This is done through the
+`profile` object, and its `vtype language` definitions.
+
+
+The VTypes language.
+~~~~~~~~~~~~~~~~~~~~
+
+In order to control object creation automatically, we need to describe how they
+are to be created. This description is termed the `vtypes language`. It is
+really a data driven description of how to create instances of the `Struct()`
+class.
+
+The precise format of a `vtype language` struct definition is as follows:
+
+[source,python]
+------------------------------------------------------------------------
+#     <1>            <2>
+"Struct Name": [Struct Size: {
+#        <3>             <4>            <5>             <6>
+    "Member name": [Member Offset, ["Class Name", Keyword Args]],
+   }]
+------------------------------------------------------------------------
+
+<1> This is the name of the struct we are describing.
+
+<2> This is the total size of the struct. This is used for example, when
+    constructing an array of objects.
+
+<3> The name of the field in the struct.
+
+<4> The field's offset relative to the beginning of the Struct.
+
+<5> When this field is accessed, this class will be instantiated at the
+    specified offset (The struct's start address plus the relative offset into
+    the struct specified in <4>).
+
+<6> When instantiating this class, we also pass these keyword args to the class
+    constructor.
+
+
+The VTypes language was designed to allow:
+
+- Partial definition of struct members - not all members in the struct must be
+  defined. The offset of the member in the struct is explicitly given. This
+  allows us to create aliases (i.e. many fields which access the same memory
+  location) as well as sparse structs (i.e. structs with only a few fields
+  known).
+
+- Struct members are simply names of object classes (inherited from
+  obj.BaseObject). These classes take care of actually parsing the data. This
+  allows us to interpret the memory offset in arbitrary ways.  These classes are
+  instantiated at the required offset.
+
+The following is an example of a vtype definition generated from debugging symbols:
+
+[source,python]
+------------------------------------------------------------------------
+  '_EPROCESS' : [ 0x270, {                                          #<1>
+    'Pcb' : [ 0x0, ['_KPROCESS']],                                  #<2>
+    'ProcessLock' : [ 0x80, ['_EX_PUSH_LOCK']],
+    'CreateTime' : [ 0x88, ['_LARGE_INTEGER']],
+    'ExitTime' : [ 0x90, ['_LARGE_INTEGER']],
+    'RundownProtect' : [ 0x98, ['_EX_RUNDOWN_REF']],
+    'UniqueProcessId' : [ 0x9c, ['Pointer', dict(target="Void")]],  #<3>
+    'ActiveProcessLinks' : [ 0xa0, ['_LIST_ENTRY']],
+    'QuotaUsage' : [ 0xa8, ['Array', dict(                          #<4>
+                   target='unsigned long',
+                   count=3
+                   )]],
+    'QuotaPeak' : [ 0xb4, ['Array',  dict(
+                   target='unsigned long',
+                   count=3
+                   )]],
+    'CommitCharge' : [ 0xc0, ['unsigned long']],
+    'PeakVirtualSize' : [ 0xc4, ['unsigned long']],
+    'VirtualSize' : [ 0xc8, ['unsigned long']],
+    'SessionProcessLinks' : [ 0xcc, ['_LIST_ENTRY']],
+------------------------------------------------------------------------
+
+<1> This defines the '_EPROCESS' struct as having a size of 0x270 bytes.
+
+<2> The 'Pcb' member of this struct is found at offset 0 and it is of type
+'_KPROCESS'.
+
+<3> The 'UniqueProcessId' member is a pointer to void and is found at offset 0x9c.
+
+<4> The 'QuotaUsage' member is an array which will be instantiated at offset
+0xa8 from the start of the _EPROCESS struct. The array will have 3 members each
+of type 'unsigned long'.
+
+Overlaying
+~~~~~~~~~~
+
+Rekall aims to specify semantic information about each field type. That means that we are really looking for the meaning behind each field, not just the mechanics of how to parse it. For example, the following struct may be defined in C:
+
+[source,c]
+------------------------------------------------------------------------
+struct module
+{
+...
+         /* Unique handle for this module */
+         char name[MODULE_NAME_LEN];
+...
+}
+------------------------------------------------------------------------
+
+The debugging symbols will generate for this field an array of char objects:
+
+[source,python]
+------------------------------------------------------------------------
+"module": [0x2FF, {
+  'name': [0x4F, ['Array', dict(
+          target='char',
+          count=60
+         )]]
+}]
+------------------------------------------------------------------------
+
+However, while technically correct, this is not semantically correct. We know
+that the array of char objects should really be interpreted as a null terminated
+unicode string in UTF8. We know that the offset of this field is correct though,
+just that its meaning according to the debug symbols is inaccurate.
+
+The `vtype language` allows specification of `Overlays` to "correct" or adjust
+the values of lower layers. In this case we load the debug generated vtype
+first, then we load an overlay like:
+
+[source,python]
+------------------------------------------------------------------------
+    'module' : [None, {
+            'name': [None , ['UnicodeString', dict(length = 60)]],
+            }],
+------------------------------------------------------------------------
+
+Over the top. The overlay may specify a value of None for the offset, or the
+struct size positions. This will allow these values to "bubble up" from the
+lower level description. However, specifying a new class name will override the
+values in the lower vtype description.
+
+In practice this is used to provide higher level semantic information to
+existing fields in a version independent manner. The exact offsets of fields is
+obtained from the debugging symbols, but semantic meaning is obtained from the
+overlay.
+
+
+The `vtype language` allows recursive definition of field types. This is
+encouraged since it leads to semantically readable code which exactly describes
+the nature of the memory objects. For example:
+
+[source,python]
+------------------------------------------------------------------------
+    'module' : [None, {
+            'name': [None , ['UnicodeString', dict(length = 60)]],
+            'kp': [None, ['Pointer', dict(
+                        target='Array',
+                        target_args=dict(
+                            target='kernel_param',
+                            count=lambda x: x.num_kp))]],
+            }],
+------------------------------------------------------------------------
+
+Specifies the `name` member to be a unicode string of length 60, while the `kp`
+field is a pointer to an array of `kernel_param` objects. The array size is
+specified in the module's `num_kp` member.
+
+Note that `None` is specified for some fields in this vtype description. This
+means that the value in this position will be `overlayed` (or taken from a
+previous layer).
+
+
+In order to simplify the description within the vtypes languages, we can replace
+many of the fields with python callables (usually `lambda` ). In the above
+example, we specified the `count` parameter of the Array constructor as a
+callable fetching the value from the `module` object's `num_kp` field:
+
+- Specifying a callable in place of the struct's size can determine the size
+  from the actual struct itself (e.g. if the size is stored in a member).
+
+- Callables in the field offset position specify the offset of the field. Note
+  that this is evaluated to the absolute offset.
+
+- Callables in the keyword args field are evaluated when the field is accessed.
+
+By convention, Rekall specifies pure data in the lowest vtype description layer
+(usually extracted from debugging symbols), while callables are only specified
+in overlays (possibly leaving gaps for the debugging information to bubble
+through them). This means that the lowest layer vtype descriptions are purely
+data, and can therefore be encoded in a safe format, such as JSON.
+
+
+.How to generate a windows profile.
+*******************************************************************************
+
+To generate a vtypes file for a windows executable, simple use the `fetch_pdb`
+and `parse_pdb` plugins. For example, suppose you have a memory image which you
+are not quite sure what exact version of Windows it is.
+
+1. The first step is to figure out the precise version of the windows kernel this
+image has. We do this by scanning for the GUID of the `ntoskrnl.exe` process
+from the image itself.
+
+2. We then fetch the debugging symbols (pdb file) for this kernel from
+Microsoft's debug symbols.
+
+3. Finally we convert the pdb file into Rekall's own json format.
+
+------------------------------------------------------------------------
+$ rekal -f ~/images/win7.elf version_scan | grep ntkrnl
+0x0000027bb5fc f8e2a8b5c9b74bf4a6e4a48f180099942 ntkrnlmp.pdb
+
+$ rekal fetch_pdb --dump-dir . --filename ntkrnlmp.pdb --guid f8e2a8b5c9b74bf4a6e4a48f180099942
+Trying to fetch http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/F8E2A8B5C9B74BF4A6E4A48F180099942/ntkrnlmp.pd_
+Received 2675077 bytes
+Extracting cabinet: ./ntkrnlmp.pd_
+ extracting ntkrnlmp.pdb
+
+All done, no errors.
+
+$ rekal parse_pdb -f ntkrnlmp.pdb --output ntkrnlmp.json --profile_class Win7x64
+$ rekal --profile ./ntkrnlmp.json -f ~/images/win7.elf pslist
+ Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                    Exit
+-------------- -------------------- ------ ------ ------ -------- ------ ------ ------------------------ ------------------------
+0xfa80008959e0 System                    4      0     84      511 ------  False 2012-10-01 21:39:51+0000 -
+0xfa8001994310 smss.exe                272      4      2       29 ------  False 2012-10-01 21:39:51+0000 -
+0xfa8002259060 csrss.exe               348    340      9      436      0  False 2012-10-01 21:39:57+0000 -
+0xfa8000901060 wininit.exe             384    340      3       75      0  False 2012-10-01 21:39:57+0000 -
+0xfa8000900420 csrss.exe               396    376      8      192      1  False 2012-10-01 21:39:57+0000 -
+....
+------------------------------------------------------------------------
+
+*******************************************************************************
+
+The Profile.
+~~~~~~~~~~~~
+
+The profile is essentially the factory class for all Rekall objects. A profile
+is where a number of sources of information are combined in order to produce
+information consistant with a single uniform `compilation unit`:
+
+- The vtype descriptions are added to the profile.
+
+- The overlays specific for an operating system are added (these bring semantic
+  information).
+
+- Constants from debugging symbols are introduced.
+
+The profile is built by applying all relevant overlays and classes to parse the
+compilation unit it cares about. For example the following is a base profile for
+parsing the Windows kernel:
+
+------------------------------------------------------------------------
+class BaseWindowsProfile(basic.BasicClasses):
+    """Common symbols for all of windows kernel profiles."""
+    _md_os = "windows"
+
+    def __init__(self, **kwargs):
+        super(BaseWindowsProfile, self).__init__(**kwargs)
+
+        self.add_classes({
+            '_UNICODE_STRING': _UNICODE_STRING,
+            '_EPROCESS': _EPROCESS,
+            '_MMVAD_FLAGS2': _MMVAD_FLAGS2,
+            '_MMSECTION_FLAGS': _MMSECTION_FLAGS,
+            })
+
+        self.add_overlay(windows_overlay)
+
+        # Pooltags for common objects.
+        self.add_constants(DRIVER_POOLTAG="Dri\xf6",
+                           EPROCESS_POOLTAG="Pro\xe3",
+                           THREAD_POOLTAG='\x54\x68\x72\xe5',
+                           )
+------------------------------------------------------------------------
+
+We can see this profile is applying classes, overlays and constants to the
+profile. Viewed as a whole, the profile can be said to implement a parsing
+system for the windows kernel.  When a user selects the profile with the
+--profile command line arg, they are really selecting which profile should be
+created for parsing the kernel.
+
+Profile Serializations
+~~~~~~~~~~~~~~~~~~~~~~
+
+In the code, the profile is an instance of the obj.Profile command. Generally
+however, the profile contains large data structures such as the VType dictionary
+and constant lists. It is much better to be able to serialize the profile to a
+standard form (for example for storage in the profile repository as described
+below).
+
+The *Profile File* is the serialization of a profile into a single JSON encoded
+object. The file represents all the data required in order to instantiate the
+profile instance. Among all the data serialization methods available in python,
+JSON is perhaps the fastest since it is natively implemented in C, and so makes
+sense for a permanent storage format.
+
+The JSON file is essentially a dictionary with the following keys:
+
+* `$METADATA`: This is a dictionary representing the metadata of this profile:
+
+  ** `Type`: Currently can be `Profile` or `Symlink`.
+
+  ** `Version`: (Code version) if present (otherwise assumes version 1).
+
+  ** `ProfileClass`: The name of the class to instantiate as the base for this
+     profile.
+
+* `$ENUM`: These represent dictionary of enum value->name mappings.
+
+* `$CONSTANTS`: These represent all constant addresses applicable for this
+  profile (i.e. addresses of global symbols).
+
+* `$STRUCTS`: This is a dict with the descriptions of the structs using the vtypes
+  language.
+
+In order to load the profile, the code parses the json serialized data:
+. Examine the type of the blob (`$METADATA.Type`).
+. If it is a profile, we search for the implementation specified in the ProfileClass and instantiate it.
+. Call its add_constants() method with the constants found in the `$CONSTANTS` section.
+. Call its add_types() method with the `$STRUCTS` section.
+. Call its add_enums() method with `$ENUMS` section.
+
+A special case is when the `$METADATA.Type == "Symlink"`. In that case, the
+object actually refers to a different named profile (Stored in
+`$METADATA.Target`) , and that profile is opened instead. This mechanism allows
+us to store a specific profiles by build numbers (e.g. for windows
+`5.1.2600.6165_I386`) but still have those accessible via a human readable name
+like `WinXPSP1x86`.
+
+[TIP]
+================================================================================
+In Rekall terminology we refer to a "profile" as the actual file which contains
+the vtype information, as well as the instance of the `Profile()` class which is
+created from this file. These are mostly distinct concepts and it may be
+slightly confusing to refer to both using the same name.
+================================================================================
+
+[NOTE]
+================================================================================
+The Rekall profile file contains pure data in json format. Rekall does not
+support python code in profile files and will not evaluate any code. The profile
+file is purely data. This allows users to open potentially untrusted profile
+files without fear of giving arbitrary code execution to the repository owners.
+================================================================================
+
+Profile Repositories.
+~~~~~~~~~~~~~~~~~~~~~
+
+Most of the information in a profile is extracted from debugging symbols
+specific for the executable of interest. In the case of operating systems,
+debugging information is extracted from the operating system kernels (via DWARF
+or PDB symbols).
+
+In practice Rekall supports so many different operating systems and versions
+that it is impractical to ship Rekall with all the profiles it natively
+supports. For example, each OSX version has a unique set of vtypes extracted for
+each kernel version (currently over 40 OSX Darwin releases are supported with an
+average profile size of around 400kb). Additionally each Linux kernel version
+must use a different profile file for each linux build and kernel version (even
+the standard distributions like Ubuntu ship many kernels each year). Similarly
+if Rekall is used as a library in another application, adding these profiles
+directly into the Rekall source code will needlessly bloat the application.
+
+In order to solve this problem, the Rekall project provides for `Profile
+Repositories`. When a profile is specified (using the `--profile` command line,
+or when passed to the `session.LoadProfile()` function), Rekall will search for
+this profile using the profile path configuration parameter. By adding the
+public profile repository to the search path, it is possible to automatically
+use the public repository for profiles that are widely known. It is also
+possible to add a secondary profile repository for local or less commonly seen
+profiles.
+
+The following sections give examples of generating new profiles for various operating systems.
+
+Generating Linux Profiles
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To generate a linux profile, one must compile a linux module against the target
+kernel with debugging symbols enabled. The target system must also have the
+Linux kernel headers for the currently running kernel as well as compilers
+installed.
+
+1. Download the linux pmem build directory
+(e.g. http://downloads.rekall.googlecode.com/git/Linux/linux_pmem_1.0RC1.tgz)
+
+2. Unpack somewhere and build:
+------------------------------------------------------------------------
+/tmp$ wget http://downloads.rekall.googlecode.com/git/Linux/linux_pmem_1.0RC1.tgz
+--2014-01-17 10:57:19--  http://downloads.rekall.googlecode.com/git/Linux/linux_pmem_1.0RC1.tgz
+Resolving downloads.rekall.googlecode.com (downloads.rekall.googlecode.com)... 2a00:1450:4001:c02::52, 173.194.70.82
+Connecting to downloads.rekall.googlecode.com (downloads.rekall.googlecode.com)|2a00:1450:4001:c02::52|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 10854 (11K) [application/octet-stream]
+Saving to: `linux_pmem_1.0RC1.tgz'
+
+100%[=============================================>] 10,854      --.-K/s   in 0.005s
+
+2014-01-17 10:57:20 (2.08 MB/s) - `linux_pmem_1.0RC1.tgz' saved [10854/10854]
+
+/tmp$ tar -xvzf linux_pmem_1.0RC1.tgz
+linux/
+linux/ko_patcher.py
+linux/module.c
+linux/pmem.c
+linux/README
+linux/.gitignore
+linux/Makefile
+/tmp$ cd linux/
+
+/tmp/linux$ sudo make profile
+make -C /usr/src/linux-headers-3.8.0-35-generic CONFIG_DEBUG_INFO=y M=`pwd` modules
+make[1]: Entering directory `/usr/src/linux-headers-3.8.0-35-generic'
+  CC [M]  /tmp/linux/module.o
+  CC [M]  /tmp/linux/pmem.o
+  Building modules, stage 2.
+  MODPOST 2 modules
+  CC      /tmp/linux/module.mod.o
+  LD [M]  /tmp/linux/module.ko
+  CC      /tmp/linux/pmem.mod.o
+  LD [M]  /tmp/linux/pmem.ko
+make[1]: Leaving directory `/usr/src/linux-headers-3.8.0-35-generic'
+cp module.ko module_dwarf.ko
+zip "`uname -r`.zip" module_dwarf.ko /boot/System.map-`uname -r`
+  adding: module_dwarf.ko (deflated 66%)
+  adding: boot/System.map-3.8.0-35-generic (deflated 79%)
+
+/tmp/linux$ unzip -l 3.8.0-35-generic.zip
+Archive:  3.8.0-35-generic.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+   371919  2014-01-17 10:57   module_dwarf.ko
+  3192757  2013-12-04 18:49   boot/System.map-3.8.0-35-generic
+---------                     -------
+  3564676                     2 files
+------------------------------------------------------------------------
+
+The zip file contains both the kernel module compiled with symbols and the
+system map. We now get rekal to convert this into a proper linux profile.
+
+------------------------------------------------------------------------
+11:01:17> convert_profile "3.8.0-35-generic.zip", "3.8.0-35-generic"
+------------------------------------------------------------------------
+
+This new profile can now simply be added to the repository (i.e. dropped into
+the repository directory). It can also be compressed to save space.
+
+Generating Windows Profiles
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Although windows releases are less frequent than Linux releases, the number of
+distinct windows kernels in existance can be quite large. Usually the user will
+simply select a profile like `Win7SP1x64`, however, even for Service Pack 1
+there are many different kernel variants. For most purposes it can be close
+enough, but users might need to build a profile for the exact version of their
+windows kernel.
+
+The first step is to copy the windows kernel from the target system (this is
+usually found in `C:\Windows\ntoskrnl.exe`. The binary contains a special GUID
+which can be used to retrieve the debugging symbols from Microsoft's debugging
+server.
+
+------------------------------------------------------------------------
+$ rekall peinfo --filename ntoskrnl.exe
+
+Attribute            Value
+-------------------- -----
+Machine              IMAGE_FILE_MACHINE_AMD64
+TimeDateStamp        2013-03-19 03:32:06+0000
+Characteristics      IMAGE_FILE_EXECUTABLE_IMAGE, IMAGE_FILE_LARGE_ADDRESS_AWARE
+GUID                 2c39f687423840e793308f28c4fde0cd
+
+.......
+Version Information:
+key                  value
+-------------------- -----
+CompanyName          Microsoft Corporation
+FileDescription      NT Kernel & System
+FileVersion          6.1.7600.17273 (win7_gdr.130318-1532)
+InternalName         ntkrnlmp.exe
+LegalCopyright       Microsoft Corporation. All rights reserved.
+OriginalFilename     ntkrnlmp.exe
+ProductName          Microsoft Windows Operating System
+ProductVersion       6.1.7600.17273
+------------------------------------------------------------------------
+
+Note the exact product version and GUID for this kernel. We now use rekall to
+fetch the pdb file which contains debugging symbols:
+
+------------------------------------------------------------------------
+$ rekal fetch_pdb --filename ntoskrnl.exe -D .
+Trying to fetch http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/2C39F687423840E793308F28C4FDE0CD2/ntkrnlmp.pd_
+Received 2654299 bytes
+Extracting cabinet: /tmp/ntkrnlmp.pd_
+  extracting ntkrnlmp.pdb
+
+All done, no errors.
+------------------------------------------------------------------------
+
+Now we simply parse the pdb into a rekall profiles
+------------------------------------------------------------------------
+$ rekal parse_pdb -f /tmp/ntkrnlmp.pdb --output 2C39F687423840E793308F28C4FDE0CD2 \
+  --profile_class Win7x64
+$ head 2C39F687423840E793308F28C4FDE0CD2
+{
+ "$METADATA": {
+  "ProfileClass": "Win7x64",
+  "Type": "Profile"
+  },
+ "$STRUCTS": {
+  "BATTERY_REPORTING_SCALE": [8, {
+   "Capacity": [4, ["unsigned long", {}]],
+   "Granularity": [0, ["unsigned long", {}]]
+   }],
+------------------------------------------------------------------------
+
+Windows profiles are usually stored in the repository by their GUIDs, e.g. the
+above is stored under
+`ntoskrnl.exe/AMD64/6.1.7600.17273/2C39F687423840E793308F28C4FDE0CD2.gz`.
+
+Symbolic names
+^^^^^^^^^^^^^^
+
+The above profile would need to be specified in full to precisely use it for the
+command line. For example:
+
+------------------------------------------------------------------------
+$ rekal --profile ntoskrnl.exe/AMD64/6.1.7600.17273/2C39F687423840E793308F28C4FDE0CD2 \
+  -f ~/images/win7.elf pslist
+------------------------------------------------------------------------
+
+This is very hard for a human to remember.
+
+It is possible to create a `Symlink` in the profile repository to essentially
+give a profile a short name. We simply create a JSON file and store it in the repository under its short name:
+
+------------------------------------------------------------------------
+{
+  "$METADATA": {
+    "Type": "Symlink",
+    "Target": "ntoskrnl.exe/AMD64/6.1.7601.17514/3844dbb920174967be7aa4a2c20430fa"
+  }
+}
+------------------------------------------------------------------------
+
+When accessed, Rekall will automatically retrieve the correct profile:
+
+------------------------------------------------------------------------
+$ rekal -v --profile Win7SP1x64  -f ~/images/win7.elf pslist
+INFO:root:Loaded profile ntoskrnl.exe/AMD64/6.1.7601.17514/3844dbb920174967be7aa4a2c20430fa from URL:http://profiles.rekall.googlecode.com/git/
+INFO:root:Loaded profile Win7SP1x64 from URL:http://profiles.rekall.googlecode.com/git/
+....
+------------------------------------------------------------------------
+
+
+Profile Modifications
+~~~~~~~~~~~~~~~~~~~~~
+
+The profile is a self contained system for parsing the kernel data
+structures. However, some modules would like to alter the profile slightly - for
+example to add new classes replacing the default classes (with additional
+methods), or maybe adding new information obtained by reverse engineering
+certain data structures. In these cases we wish to 'modify' the profile
+definition by adding an improved class definition system.
+
+It is normally discouraged to directly add new BaseObject class implementations
+to the rekall framework since the changes will appear in all users of the
+profile - potentially clashing with others' modifications. In other words we
+want to modify the profile only for the users of this profile.
+
+This can be done by explicitly calling the ProfileModification class in your
+plugin. This will install the updated implementation in your profile - without
+affecting other profiles. This localized change opens the door for multiple
+implementations of profile parsing systems.
+
+For example consider the standard registry parsing implementation in
+'rekall.plugins.windows.registry.registry'. This implementation is a fast,
+self contained and complete implementation of registry parsing in the windows
+kernel. For a plugin to use this implementation, they will need to add it to
+their current profile:
+
+------------------------------------------------------------------------
+class RekallRegisteryImplementation(obj.ProfileModification):
+    """The standard rekall registry parsing subsystem."""
+
+    @classmethod
+    def modify(cls, profile):                                           <1>
+        profile.add_classes(dict(
+                _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
+                _CM_KEY_VALUE=_CM_KEY_VALUE, _CMHIVE=_CMHIVE
+                ))
+
+        profile.add_overlay(registry_overlays)
+
+
+class RegistryPlugin(common.WindowsCommandPlugin):
+    def __init__(self, **kwargs):
+        """Operate on in memory registry hives.
+        super(RegistryPlugin, self).__init__(**kwargs)
+
+        # Install our specific implementation of registry support.
+        self.profile = RekallRegisteryImplementation(self.profile)  <2>
+------------------------------------------------------------------------
+
+<1> The RekallRegisteryImplementation profile modification implements a
+complete registry parsing system. It does this by modifying a profile and
+replacing certain classes within it with newer classes with additional
+functionality.
+
+<2> A plugin wishing to use this new functionality, can upgrade its profile
+using the RekallRegisteryImplementation modification. Note that the
+modification simply produces a new, enhanced profile - the plugin could use the
+modified profile interchangeably with the old unmodified profile.  The
+modification does not affect other users of the profile.
+
+
+The Registry parsing implementation.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This section describes the Rekall registry parsing implementation found in
+'rekall.plugins.windows.registry.registry'.
+
+The PE parsing implementation.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The PE parsing implementation is found in
+'rekall.plugins.overlays.windows.pe_vtypes'.
+
+
+Testing
+-------
+
+Rekall introduces an automated testing framework to assist in detecting
+regressions and bugs when handling different images. The idea is to
+automatically compare the output of rekall between different runs for each
+plugin. If the output differs, a regression bug may have been uncovered. Note
+that the test framework does not check that the output is actually correct, only
+that the output of each plugin is the same as it was some time in the past. Once
+the output of each plugin (for the same image) is inspected manually as being
+correct, any changes will be flagged and can be reinspected.
+
+We do this by creating a 'baseline' file which describes the output of one
+version of rekall. Ideally the baseline file is the ground truth and can be
+independently verified to be correct. We then run the current version of
+rekall against the baseline and compare the output in some way.
+
+The baseline itself is created using a template which is generated by the test
+case itself. This template can be tweaked for the specific image we have.
+
+The process is therefore:
+
+- Create a test directory and place the image inside it (or a symlink).
+
+- Create a test template for this image. The template specifies information
+about executing Rekall for each test. For example, command line
+parameters. Note that common data is interpolated from the DEFAULT section:
+
+.Sample test configuration file.
+------------------------------------------------------------------------
+[DEFAULT]
+--profile = Win7SP1x64
+--filename = %(testdir)s/win7.elf
+
+# When any test is looking for a pid, use this one.
+pid = 2912
+
+[TestDT]
+commandline = dt _EPROCESS
+
+[TestDump]
+commandline = dump 0xfa8002193060
+
+[TestVtoP]
+commandline = vtop 0xfa8002193060
+
+[TestDisassemble]
+func = 0xfa8002193060
+------------------------------------------------------------------------
+
+-------------------------------------------------------------------
+$ python tools/testing/build_suite.py template \                <1>
+  --file xp-laptop-2005-06-25_trunk/xp-laptop-2005-06-25.img    <2>
+-------------------------------------------------------------------
+
+<1> Run the tool in template mode.
+<2> Specify the image the template will use - the template file is placed in the
+same directory.
+
+
+- Build baselines for all the tests specified in this template. It might be
+necessary to manually tweak the template here (for example if command line args
+have changed between the old and new versions.).
+
+-------------------------------------------------------------------
+$ python tools/testing/build_suite.py baseline \                <1>
+  --config xp-laptop-2005-06-25_trunk/tests.config             <2>
+-------------------------------------------------------------------
+
+<1> Run the tool in baseline mode.
+<2> Specify the testing template to use.
+
+The tool will create a json file for each test in the testing directory. This is
+called the baseline data. The baseline contains information about the output
+generated:
+
+.Sample baseline image for a test case.
+-------------------------------------------------------------------
+{
+    "time_used": 4.6139168739318848,
+    "output": [
+        "Offset(V) ||Name                ||   PID||  PPID||  Thds||    Hnds||  Sess|| Wow64||Start               ||Exit                ",
+        "----------||--------------------||------||------||------||--------||------||------||--------------------||--------------------",
+        "0x823c87c0||System              ||     4||     0||    61||    1140||------||     0||                    ||                    ",
+        "0x81fdf020||smss.exe            ||   448||     4||     3||      21||------||     0||2005-06-25 16:47:28 ||                    ",
+        "0x81ed84e8||dd.exe              ||  4012||  2624||     1||      22||     0||     0||2005-06-25 16:58:46 ||                    "
+    ],
+    "options": {
+        "--profile": "WinXPSP2x86",
+        "commandline": "pslist",
+        "--filename": "/tmp/xp-laptop-2005-06-25_trunk/xp-laptop-2005-06-25.img",
+    }
+}
+-------------------------------------------------------------------
+
+- Finally test the current output against the baseline:
+
+-------------------------------------------------------------------
+$ python tools/testing/build_suite.py test \                    <1>
+  --config xp-laptop-2005-06-25_trunk/tests.config              <2>
+-------------------------------------------------------------------
+
+<1> Run the tool in test mode.
+<2> Specify the testing template to use.
+
+The test will run and be compared with the baseline. The test will fail if there
+was any discrepancy with the baseline.
