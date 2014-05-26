@@ -146,7 +146,7 @@ def ListPages(path):
     if not path.startswith(os.getcwd()):
         path = os.path.abspath("%s/%s" % (os.getcwd(), path))
 
-    for filename in os.listdir(path):
+    for filename in sorted(os.listdir(path)):
         full_path = os.path.abspath("%s/%s" % (path, filename))
 
         if os.path.isdir(full_path):

@@ -115,19 +115,28 @@ def _render_categories(path):
         if page.type == "directory":
             inner_html = _render_categories(page.filename)
             if inner_html:
-                result += "<li>%s" % os.path.basename(page.filename)
+                result += """
+<li>
+  <input type="checkbox" id="item-{page.url}" />
+  <label for="item-{page.url}">
+    {basename}
+  </label>
+""".format(basename=os.path.basename(page.filename), page=page)
+
                 result += inner_html
                 result += "</li>"
         else:
             result += """
- <li>
-   <a href='{page.url}'>{page.title}</a>""".format(page=page)
+<li>
+   <a href='{page.url}' class="tree-link">{page.title}</a>
+""".format(page=page)
 
         if page.download:
             result += """
-     <a href='{page.download}'><i class="icon-download"></i></a>
+   <a href='{page.download}'><i class="icon-download"></i></a>
 """.format(page=page)
-        result += "</li>"
+        result += """
+</li>"""
 
     if result:
         return "<ul>%s</ul>" % result
@@ -137,15 +146,19 @@ def categories(page=None, path=None):
     """Write navigation menu for all the plugins."""
     path = path or page.root
 
-    page.content = _render_categories(path)
+    result = "{page.content} <div class='css-treeview'>".format(
+        page=page)
+
+    result += _render_categories(path)
+    result += "</div>"
+
+    page.content = result
 
     return default(page)
 
 
 def docs(page=None):
     return default(page)
-
-
 
 
 def embedded(page=None):
@@ -215,7 +228,7 @@ def downloads(page=None):
                    "</tr>")
 
         for name in sorted(files):
-            if name in readme_files:
+            if name in readme_files or "html" in name:
                 continue
 
             path = os.path.join(root, name)

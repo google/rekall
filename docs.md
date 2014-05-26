@@ -7,3 +7,7 @@ root: docs/
 
 # Documentation Portal
 
+The below is a collection of documents useful for Memory Forensic analysis. We
+include various presentations and papers written by Rekall contributors. Here
+you will find Rekall specific manuals and details information about all
+available plugins.
