@@ -23,9 +23,14 @@ def navigation(page=None):
     items.sort()
 
     result = u"""
-<nav class="nav-primary" role="navigation" >
-  <ul>
-"""
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">{site.name}</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+""".format(site=SITE)
+
     for _, menuitem, url in items:
         active = ""
         if url == page.url:
@@ -40,8 +45,11 @@ def navigation(page=None):
 """.format(active=active, menuitem=menuitem, url=url)
 
     result += u"""
-  </ul>
-</nav>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
 """
     return result
 
@@ -184,5 +192,54 @@ def plugin(page=None):
 
 {page.content}
 """.format(page=page)
+
+    return default(page)
+
+
+def downloads(page=None):
+    """Create an automatic directory index for downloads."""
+    result = "<div id='downloads'>"
+
+    for root, _, files in os.walk(page.root_path, topdown=True):
+        readme_files = [x for x in files if x.startswith("README")]
+        readme_files = [x for x in readme_files if "html" not in x]
+        if not readme_files:
+            continue
+
+        # Insert the README.md from the download directory.
+        subpage = utils.ParsePage(os.path.join(root, readme_files[0]))
+        result += "<h3>{0}</h3><div>".format(subpage.title)
+        result += subpage.content
+
+        result += ("<table><tr><th></th><th>Name</th><th>Size</th>"
+                   "</tr>")
+
+        for name in sorted(files):
+            if name in readme_files:
+                continue
+
+            path = os.path.join(root, name)
+            result += """
+<tr>
+  <td><a href='/{url}'><i class='icon-download'></i></a></td>
+  <td>{name}</td>
+  <td>{size}</td>
+</tr>
+""".format(url=path, name=name,
+           size=os.stat(path).st_size)
+
+        result += "</table>"
+        result += "</div>"
+
+    result += """</div>
+<script>
+  $('#downloads').accordion({
+      collapsible: true,
+      heightStyle: "fill"
+   });
+</script>
+"""
+
+    page.content = result
 
     return default(page)

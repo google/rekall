@@ -1,7 +1,18 @@
+---
+layout: blog
+date: 2014-02-19
+title: Rekall Profiles
+abstract: |
+  So what is a profile? A profile provides the application with specialized
+  support for precisely the operating system version which is running inside the
+  image. Why do we need specialized support? In order to make sense of the
+  memory image. How are Rekall profiles different?
+
+author: Michael Cohen <scudette@google.com>
+
+---
 Rekall Profiles
 ===============
-:author: Michael Cohen <scudette@google.com>
-:date: Feb 19 2014
 
 Rekall started life as a fork from the Volatility project. Volatility uses
 profiles to control the parsing of memory. For example, in Volatility one must

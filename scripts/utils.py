@@ -117,22 +117,21 @@ def ParsePage(filename):
 
     try:
         text = open(filename).read().decode("utf8", "ignore").lstrip()
-        text = "\n" + text
     except (OSError, IOError):
         return None
 
-    if not text.startswith(SEPERATOR):
+    match = re.match("^---\n(.*?)---\n(.*)", text, re.S | re.M)
+    if not match:
         return None
 
     try:
-        _, yaml_part, content = text.split(SEPERATOR, 2)
-        metadata = Page(yaml.safe_load(yaml_part))
+        metadata = Page(yaml.safe_load(match.group(1)) or {})
     except ValueError:
         logging.warning("Invalid page %s" % filename)
         return None
 
     metadata.extension = extension
-    metadata.raw_content = content
+    metadata.raw_content = match.group(2)
     metadata.filename = filename
     metadata.base_name = base_name
     metadata.url = GetUrlFromFilename(base_name) + ".html"

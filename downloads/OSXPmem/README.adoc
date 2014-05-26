@@ -1,14 +1,14 @@
-===================================================
+---
+title: OSXPMem - Mac OS X Physical Memory acquisition tool
+---
 OSXPMem - Mac OS X Physical Memory acquisition tool
 ===================================================
-
 Version: RC3
 Supported OS X versions: 10.7 - 10.9.2
-
 Author: Johannes Stuettgen (johannes.stuettgen@gmail.com)
 
 Summary:
-========
+--------
 The OSX Memory Imager is an open source tool to acquire physical memory on an
 Intel based Mac. It consists of 2 components:
 
@@ -20,7 +20,7 @@ access to physical memory. After loading it into the kernel it provides
 a device file ('/dev/pmem/'), from which physical memory can be read.
 
 Usage:
-======
+------
 1. You need root access for this to work so first open a root shell ('sudo su').
 
 2. Now unpack the archive ('tar xvf OSXPMem.tar.gz'). This creates a new
@@ -40,7 +40,7 @@ and zero-padded RAW. You can select which output format to use by passing the
 For more information on different command line switches run './osxpmem --help'.
 
 Common Pitfalls:
-================
+----------------
 1. Mac OS X only allows kernel extension to load if they are owned by the user
 'root' and the group 'wheel'. The distribution package has this already set up
 for you. However, if you accidentally extract the archive as a normal user (eg.
@@ -65,7 +65,7 @@ by running "vsdbutil -a /Volumes/DRIVENAME" where DRIVENAME is the name of the
 external drive.
 
 Compatibility:
-==============
+--------------
 Due to the nature of physical memory access many things are very platform
 dependent. The tool is designed to work on 64 bit Intel Macs. It can probably be
 compiled to work in 32 bit mode, the binary distribution however only contains
@@ -80,7 +80,7 @@ We have also successfully tested the tool in a VMWare Fusion OS X 10.7 machine,
 so it should work in virtualized environments.
 
 Building from Source:
-=====================
+---------------------
 The project can only be built on Mac OS X, due to linking with Apple
 libraries and kernel headers. You also need the Apple Developer Kit installed,
 the easiest way to obtain this is by installing XCode.
@@ -95,7 +95,7 @@ You might need to adjust the 'SDK_PATH' and 'FRAMEWORK_PATH' in the Makefile, if
 they reside in different locations on your build system.
 
 Codesigning:
-============
+------------
 As of OS X 10.9, kernel extensions support codesigning. Unsigned extensions
 still load as of 10.9.2, but trigger a warning message to the user. In future
 versions, Apple plans to prevent loading of unsigned extensions. The binary

@@ -3,10 +3,24 @@
 """
 Generate the site.
 """
+import argparse
 import pdb
 import os
+import BaseHTTPServer
+import SimpleHTTPServer
 import utils
 import layout
+
+PARSER = argparse.ArgumentParser()
+PARSER.add_argument("path", default=".",
+                    help="The path to the file to convert")
+
+PARSER.add_argument("--serve", default=False, action="store_true",
+                    help="When specified we serve the current directory.")
+
+PARSER.add_argument("--port", default=8000,
+                    help="HTTP Server port.")
+
 
 def RenderPage(filename):
     metadata = utils.ParsePage(filename)
@@ -22,6 +36,10 @@ def RenderPage(filename):
 
 
 def main(path="."):
+    if os.path.isfile(path):
+        print "Converting %s" % path
+        return RenderPage(path)
+
     for root, dirs, files in os.walk(path, topdown=True):
         # Prune dirs with _
         excluded = utils.EXCLUDED_DIRECTORIES
@@ -36,8 +54,22 @@ def main(path="."):
                 RenderPage(path)
 
 
+def Serve(port):
+    server_address = ("127.0.0.1", port)
+    httpd = BaseHTTPServer.HTTPServer(
+        server_address, SimpleHTTPServer.SimpleHTTPRequestHandler)
+
+    sa = httpd.socket.getsockname()
+    print "Serving HTTP on", sa[0], "port", sa[1], "..."
+    httpd.serve_forever()
+
+
 if __name__ == "__main__":
+    FLAGS = PARSER.parse_args()
+    if FLAGS.serve:
+        Serve(FLAGS.port)
+
     try:
-        main()
+        main(path=FLAGS.path)
     except Exception:
         pdb.post_mortem()

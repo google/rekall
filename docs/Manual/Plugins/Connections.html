@@ -16,6 +16,8 @@
     <link href="/css/bootstrap-responsive.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -26,31 +28,16 @@ ript>
 
   <body>
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".na\
-v-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
-              <li class="active"><a href="/">Home</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
     
-<nav class="nav-primary" role="navigation" >
-  <ul>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
 
         <li>
           <a class="" href="/index.html">
@@ -76,8 +63,17 @@ v-collapse">
           </a>
         </li>
 
-  </ul>
-</nav>
+        <li>
+          <a class="" href="/downloads.html">
+            Downloads
+          </a>
+        </li>
+
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 
@@ -87,25 +83,13 @@ v-collapse">
 
 <div class="abstract">
 <h2>Print list of open connections [Windows XP Only]</h2>
-<p>This module enumerates the active connections from tcpip.sys.</p>
-<p>Note that if you are using a hibernated image this might not work
-because Windows closes all sockets before hibernating. You might
-find it more effective to do conscan instead.</p>
-<p>Active TCP connections are found in a hash table. The Hash table is given by
-the _TCBTable symbol. The size of the hash table is found in the
-_MaxHashTableSize variable.</p>
 </div>
 
 
 
   </div>
   <div class="span2 sidebar">
-    <h3>About Rekall</h3>
-
-<p>
-
-</p>
-
+    <img src="img/Rekall.png"></img>
 
   </div>
 </div>

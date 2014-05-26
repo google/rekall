@@ -1,4 +1,0 @@
-name: Rekall Memory Forensic Framework
-markdown: redcarpet
-pygments: true
-exclude: ['scripts', '*.adoc']
