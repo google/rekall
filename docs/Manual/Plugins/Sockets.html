@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".na\
+v-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    
+<nav class="nav-primary" role="navigation" >
+  <ul>
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+  </ul>
+</nav>
+
+  </div>
+
+  <div class="span8">
+    
+<h1>sockets</h1>
+
+<div class="abstract">
+<h2>Print list of open sockets. [Windows xp only]</h2>
+<p>This module enumerates the active sockets from tcpip.sys</p>
+<p>Note that if you are using a hibernated image this might not work
+because Windows closes all sockets before hibernating.</p>
+<p>_ADDRESS_OBJECT are arranged in a hash table found by the _AddrObjTable
+symbol. The hash table has a size found by the _AddrObjTableSize symbol.</p>
+</div>
+
+<div class="highlight"><pre><span class="n">This</span> <span class="n">module</span> <span class="n">enumerates</span> <span class="n">the</span> <span class="n">active</span> <span class="n">sockets</span> <span class="n">from</span> <span class="n">tcpip</span><span class="p">.</span><span class="n">sys</span>
+
+<span class="n">Note</span> <span class="n">that</span> <span class="k">if</span> <span class="n">you</span> <span class="n">are</span> <span class="n">using</span> <span class="n">a</span> <span class="n">hibernated</span> <span class="n">image</span> <span class="n">this</span> <span class="n">might</span> <span class="n">not</span> <span class="n">work</span>
+<span class="n">because</span> <span class="n">Windows</span> <span class="n">closes</span> <span class="n">all</span> <span class="n">sockets</span> <span class="n">before</span> <span class="n">hibernating</span><span class="p">.</span>
+
+<span class="n">_ADDRESS_OBJECT</span> <span class="n">are</span> <span class="n">arranged</span> <span class="n">in</span> <span class="n">a</span> <span class="n">hash</span> <span class="n">table</span> <span class="n">found</span> <span class="n">by</span> <span class="n">the</span> <span class="n">_AddrObjTable</span>
+<span class="n">symbol</span><span class="p">.</span> <span class="n">The</span> <span class="n">hash</span> <span class="n">table</span> <span class="n">has</span> <span class="n">a</span> <span class="n">size</span> <span class="n">found</span> <span class="n">by</span> <span class="n">the</span> <span class="n">_AddrObjTableSize</span> <span class="n">symbol</span><span class="p">.</span>
+</pre></div>
+
+
+<h2>epydoc: rekall.plugins.windows.connections.Sockets-class.html</h2>
+
+  </div>
+  <div class="span2 sidebar">
+    <h3>About Rekall</h3>
+
+<p>
+
+</p>
+
+
+  </div>
+</div>
+</div>
+  </body>
+</html>
+

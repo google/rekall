@@ -55,6 +55,7 @@ pre {
   border-top: 2px solid silver;
   padding-top: 0.5em;
   margin-top: 4.0em;
+  display: none;
 }
 #footer-text {
   float: left;

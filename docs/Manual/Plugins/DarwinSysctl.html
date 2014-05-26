@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".na\
+v-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    
+<nav class="nav-primary" role="navigation" >
+  <ul>
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+  </ul>
+</nav>
+
+  </div>
+
+  <div class="span8">
+    
+<h1>sysctl</h1>
+
+<div class="abstract">
+<p>Dumps the sysctl database.</p>
+<p>On OSX the kernel is configured through the sysctl mechanism. This is
+analogous to /proc or /sysfs on Linux. The configuration space is broken
+into MIBs - or hierarchical namespace.</p>
+<p>https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man8/sysctl.8.html</p>
+<p>For example:</p>
+<p>net.inet.ip.subnets_are_local
+net.inet.ip.ttl
+net.inet.ip.use_route_genid</p>
+<p>This is implemented via a singly linked list of sysctl_oid structs. The
+structs can be on the following types:</p>
+<ul>
+<li>CTLTYPE_INT     means this MIB will handle an int.</li>
+<li>CTLTYPE_STRING  means this MIB will handle a string.</li>
+<li>CTLTYPE_QUAD    means this MIB will handle a long long int.</li>
+<li>CTLTYPE_NODE means this is a node which handles a sublevel of MIBs. It is
+  actually a pointer to a new sysctl_oid_list which handles the sublevel.</li>
+</ul>
+</div>
+
+
+
+  </div>
+  <div class="span2 sidebar">
+    <h3>About Rekall</h3>
+
+<p>
+
+</p>
+
+
+  </div>
+</div>
+</div>
+  </body>
+</html>
+

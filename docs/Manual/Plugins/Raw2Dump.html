@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".na\
+v-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    
+<nav class="nav-primary" role="navigation" >
+  <ul>
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+  </ul>
+</nav>
+
+  </div>
+
+  <div class="span8">
+    
+<h1>raw2dmp</h1>
+
+<div class="abstract">
+<p>Convert the physical address space to a crash dump.</p>
+<p>The Windows debugger (Windbg) works only with memory dumps stored
+in the proprietary &lsquo;crashdump&rsquo; file format. This file format
+contains the following features:</p>
+<p>1) Physical memory ranges are stored in a sparse way - there is a
+   &lsquo;Runs&rsquo; table which specifies the mapping between the physical
+   offset and the file offset of each page. This allows the format
+   to omit unmapped regions (unlike raw format which must pad them
+   with zero to maintain alignment).</p>
+<p>2) The crash dump header contains metadata about the
+   image. Specifically, the header contain a copy of the Kernel
+   Debugger Data Block (AKA the KDBG). This data is used to
+   bootstrap the windows debugger by providing critical initial
+   hints to the debugger.</p>
+<p>Since the KDBG block is created at system boot and never used
+(until the crash dump is written) it is trivial for malware to
+overwrite it - making it really hard for responders since windbg
+will not be able to read the file. In later versions of windows,
+the kdbg is also obfuscated (See the function &ldquo;nt!KdCopyDataBlock&rdquo;
+which decrypts it.).</p>
+<p>Rekall itself does not use the KDBG block any more, although older
+memory forensic tools still do use it. Rekall instead relies on
+accurate debugging symbols to locate critical kernel data
+structures, reducing the level of trust we place on the image
+itself (so Rekall is more resilient to manipulation).</p>
+<p>In order to ensure that the windows debugger is able to read the
+produced crash dump, we recreate the kernel debugger block from
+the symbol information we already have.</p>
+<p>NOTE: The crashdump file format can be deduced by:</p>
+<p>dis &lsquo;nt!IoFillDumpHeader&rsquo;</p>
+<p>This is the reference for this plugin.</p>
+</div>
+
+
+
+  </div>
+  <div class="span2 sidebar">
+    <h3>About Rekall</h3>
+
+<p>
+
+</p>
+
+
+  </div>
+</div>
+</div>
+  </body>
+</html>
+

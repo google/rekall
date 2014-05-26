@@ -1,0 +1,235 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".na\
+v-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    
+<nav class="nav-primary" role="navigation" >
+  <ul>
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+  </ul>
+</nav>
+
+  </div>
+
+  <div class="span8">
+    
+<div id="header">
+<h1>Rekall - We can remember it for you wholesale.</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>Rekall started life as special branch in the Volatility project to explore new
+approaches of performing some memory analysis. Over time this branch was known
+as the "scudette" branch after the volatility core developer who performed this
+work (<a href="mailto:scudette@gmail.com">scudette@gmail.com</a>). For various reasons (which you can read more about in
+the History section of the README.txt file) this branch evolved into a new
+project called "Rekall".</p></div>
+<div class="paragraph"><p>Although the Volatility project implements some excellent algorithms, we wanted
+to improve on the Volatility code by focusing on some areas which we felt were
+very important. The goals and priorities of the Rekall project are slighly
+different from the Volatility project&#8217;s:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Focus on coding style, readability and maintainability.
+</p>
+</li>
+<li>
+<p>
+Create modular code which can be used as a library within other tools.
+</p>
+</li>
+<li>
+<p>
+Focus on performance. Because we wanted to deploy Rekall to perform Live
+  analysis with GRR we need it to be efficient and robust. It turns out that
+  making it faster also makes the tool more accurate (We will discuss it in
+  another post).
+</p>
+</li>
+<li>
+<p>
+Develop and research more accurate, advanced memory analysis techniques.
+</p>
+</li>
+<li>
+<p>
+Document all algorithms heavily. The volatility code base lacks much
+  documentation on how algorithms are implemented. There are many "magic"
+  numbers derived by reversing some unknown functions. These are hard to
+  replicate and explain.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>We will use this blog as a medium to discuss some of the improvements and
+research we did in the Rekall project, and the improvements over the Volatility
+code base. If you have suggestions or contribution, please either add a comment
+to the page below or send us a mail to <a href="mailto:rekall-dev@googlegroups.com">rekall-dev@googlegroups.com</a>.</p></div>
+<div class="paragraph"><p>Although we often compare the Rekall implementation to the one in the Volatility
+project, we do not mean to suggest that the Volatility approach is
+inferiour. Simply that they are focusing on different aspects of memory
+analysis. For example, volatility hasn&#8217;t focused much on performance, but it&#8217;s
+one of our current main focus - so we put more effort into optimizing the code
+for speed.</p></div>
+<div class="paragraph"><p>Currently we are focusing our efforts on the above areas and the tool is not yet
+officially released as a stable tool. Although it is generally stable, we
+reserve the right to modify APIs heavily before the final release.</p></div>
+<div class="paragraph"><p>We encourage people to try out the Rekall trunk and send bug reports or open
+issues with the google code site:</p></div>
+<div class="paragraph"><p><a href="https://code.google.com/p/rekall/">https://code.google.com/p/rekall/</a></p></div>
+<div class="paragraph"><p>Or the mailing list:</p></div>
+<div class="paragraph"><p><a href="mailto:rekall-discuss@googlegroups.com">rekall-discuss@googlegroups.com</a></p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_quick_start">Quick start</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Rekall is available as a python package installable via the pip package
+manager. Simply type (for example on Linux):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>sudo pip install rekall</tt></pre>
+</div></div>
+<div class="paragraph"><p>You might need to specifically allow pre-release software to be included (until
+Rekall makes a major stable release):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>sudo pip install --pre rekall</tt></pre>
+</div></div>
+<div class="paragraph"><p>To have all the dependencies installed. You still need to have python and pip
+installed first.</p></div>
+<div class="paragraph"><p>To be able to run the ipython notebook, the following are also required:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>pip install Jinja2 MarkupSafe Pygments astroid pyzmq tornado wsgiref</tt></pre>
+</div></div>
+<div class="paragraph"><p>For windows, Rekall is also available as a self contained installer
+package. Please check the download page for the most appropriate installer to
+use (<a href="http://downloads.rekall.googlecode.com/git/index.html">http://downloads.rekall.googlecode.com/git/index.html</a>)</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_development_version">Development version</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>For development it is easier to install rekall inside a virtual env. Virtual Env
+is a way for containing and running multiple versions of python packages at the
+same time, without interfering with the host system.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt># You might need to install virtualenv:
+$ sudo apt-get install python-virtualenv
+
+# This will build a new empty python environment.
+$ virtualenv /tmp/Test
+
+# Now we switch to the environment - all python code runs from here.
+$ source /tmp/Test/bin/activate
+
+# This will install all dependencies into the virtual environment.
+$ pip install --pre rekall
+
+# For development run the devel version - this will symlink your virtual
+# environment with the source tree so when you make changes to the source they
+# appear immediately in the code (without needing to install them to the
+# environment first).
+
+$ git clone https://code.google.com/p/rekall/
+$ cd rekall
+$ python setup.py develop</tt></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2014-05-26 11:45:19 CEST
+</div>
+</div>
+
+  </div>
+  <div class="span2 sidebar">
+    <h3>About Rekall</h3>
+
+<p>
+
+</p>
+
+
+  </div>
+</div>
+</div>
+  </body>
+</html>
+

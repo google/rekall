@@ -1,1 +1,3 @@
-_site
+_cache
+*.pyc
+*.pyo

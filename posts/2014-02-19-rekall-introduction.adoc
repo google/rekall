@@ -1,0 +1,131 @@
+---
+layout: blog
+date: 2014-02-19
+title: Rekall - We can remember it for you wholesale.
+abstract: |
+  Rekall started life as special branch in the Volatility project to explore new
+  approaches of performing some memory analysis. Over time this branch was known
+  as the "scudette" branch after the volatility core developer who performed
+  this work (scudette@gmail.com). For various reasons (which you can read more
+  about in the History section of the README.txt file) this branch evolved into
+  a new project called "Rekall".
+
+author: Michael Cohen <scudette@gmail.com>
+---
+
+Rekall - We can remember it for you wholesale.
+==============================================
+
+Rekall started life as special branch in the Volatility project to explore new
+approaches of performing some memory analysis. Over time this branch was known
+as the "scudette" branch after the volatility core developer who performed this
+work (scudette@gmail.com). For various reasons (which you can read more about in
+the History section of the README.txt file) this branch evolved into a new
+project called "Rekall".
+
+Although the Volatility project implements some excellent algorithms, we wanted
+to improve on the Volatility code by focusing on some areas which we felt were
+very important. The goals and priorities of the Rekall project are slighly
+different from the Volatility project's:
+
+* Focus on coding style, readability and maintainability.
+
+* Create modular code which can be used as a library within other tools.
+
+* Focus on performance. Because we wanted to deploy Rekall to perform Live
+  analysis with GRR we need it to be efficient and robust. It turns out that
+  making it faster also makes the tool more accurate (We will discuss it in
+  another post).
+
+* Develop and research more accurate, advanced memory analysis techniques.
+
+* Document all algorithms heavily. The volatility code base lacks much
+  documentation on how algorithms are implemented. There are many "magic"
+  numbers derived by reversing some unknown functions. These are hard to
+  replicate and explain.
+
+We will use this blog as a medium to discuss some of the improvements and
+research we did in the Rekall project, and the improvements over the Volatility
+code base. If you have suggestions or contribution, please either add a comment
+to the page below or send us a mail to rekall-dev@googlegroups.com.
+
+Although we often compare the Rekall implementation to the one in the Volatility
+project, we do not mean to suggest that the Volatility approach is
+inferiour. Simply that they are focusing on different aspects of memory
+analysis. For example, volatility hasn't focused much on performance, but it's
+one of our current main focus - so we put more effort into optimizing the code
+for speed.
+
+Currently we are focusing our efforts on the above areas and the tool is not yet
+officially released as a stable tool. Although it is generally stable, we
+reserve the right to modify APIs heavily before the final release.
+
+We encourage people to try out the Rekall trunk and send bug reports or open
+issues with the google code site:
+
+https://code.google.com/p/rekall/
+
+Or the mailing list:
+
+rekall-discuss@googlegroups.com
+
+
+Quick start
+-----------
+
+Rekall is available as a python package installable via the pip package
+manager. Simply type (for example on Linux):
+
+--------------------------------------------------------------------------
+sudo pip install rekall
+--------------------------------------------------------------------------
+
+You might need to specifically allow pre-release software to be included (until
+Rekall makes a major stable release):
+
+--------------------------------------------------------------------------
+sudo pip install --pre rekall
+--------------------------------------------------------------------------
+
+To have all the dependencies installed. You still need to have python and pip
+installed first.
+
+To be able to run the ipython notebook, the following are also required:
+
+--------------------------------------------------------------------------
+pip install Jinja2 MarkupSafe Pygments astroid pyzmq tornado wsgiref
+--------------------------------------------------------------------------
+
+For windows, Rekall is also available as a self contained installer
+package. Please check the download page for the most appropriate installer to
+use (http://downloads.rekall.googlecode.com/git/index.html)
+
+Development version
+-------------------
+
+For development it is easier to install rekall inside a virtual env. Virtual Env
+is a way for containing and running multiple versions of python packages at the
+same time, without interfering with the host system.
+
+--------------------------------------------------------------------------
+# You might need to install virtualenv:
+$ sudo apt-get install python-virtualenv
+
+# This will build a new empty python environment.
+$ virtualenv /tmp/Test
+
+# Now we switch to the environment - all python code runs from here.
+$ source /tmp/Test/bin/activate
+
+# This will install all dependencies into the virtual environment.
+$ pip install --pre rekall
+
+# For development run the devel version - this will symlink your virtual
+# environment with the source tree so when you make changes to the source they
+# appear immediately in the code (without needing to install them to the
+# environment first).
+
+$ git clone https://code.google.com/p/rekall/
+$ cd rekall
+$ python setup.py develop
+--------------------------------------------------------------------------

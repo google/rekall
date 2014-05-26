@@ -1,19 +1,167 @@
----
-layout: default
-menuitem: Blog
-order: 3
----
 
-{% for post in site.posts limit: 5 %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".na\
+v-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    
+<nav class="nav-primary" role="navigation" >
+  <ul>
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="active" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+  </ul>
+</nav>
+
+  </div>
+
+  <div class="span8">
+    
   <ul>
     <div class="row-fluid">
       <div class="span12">
-        <h2>{{ post.title | truncatewords: 10 | capitalize  }}</h2>
-        <h4>{{ post.date | date: "%m-%d-%Y" }} {{ post.author }}</h4>
+        <h2>Rekall - We can remember it for you wholesale.</h2>
+        <h4>2014-02-19 Michael Cohen <scudette@gmail.com></h4>
+        Rekall started life as special branch in the Volatility project to explore new
+approaches of performing some memory analysis. Over time this branch was known
+as the "scudette" branch after the volatility core developer who performed
+this work (scudette@gmail.com). For various reasons (which you can read more
+about in the History section of the README.txt file) this branch evolved into
+a new project called "Rekall".
+
         <p>
-          <a href="{{ post.url }}">Read Post</a>
+          <a href="/posts/2014-02-19-rekall-introduction.html">Read Post</a>
         </p>
       </div>
     </div>
   </ul>
-{% endfor %}
+  <ul>
+    <div class="row-fluid">
+      <div class="span12">
+        <h2>Rekall Profiles</h2>
+        <h4>2014-02-19 Michael Cohen <scudette@google.com></h4>
+        So what is a profile? A profile provides the application with specialized
+support for precisely the operating system version which is running inside the
+image. Why do we need specialized support? In order to make sense of the
+memory image. How are Rekall profiles different?
+
+        <p>
+          <a href="/posts/2014-02-19-profiles.html">Read Post</a>
+        </p>
+      </div>
+    </div>
+  </ul>
+  <ul>
+    <div class="row-fluid">
+      <div class="span12">
+        <h2>The Rekall Profile Repository and Profile Auto-selection</h2>
+        <h4>2014-02-20 Michael Cohen <scudette@google.com></h4>
+        The previous blog post discussed how Rekall redesigned the profile format into
+a simple JSON data structure. The profile JSON file now becomes the complete
+information source about a specific kernel version - including global
+constants, struct definitions (via vtype definitions) and metadata (such as
+architecture, version etc).
+
+        <p>
+          <a href="/posts/2014-02-20-profile-selection.html">Read Post</a>
+        </p>
+      </div>
+    </div>
+  </ul>
+  <ul>
+    <div class="row-fluid">
+      <div class="span12">
+        <h2>Do we need the Kernel Debugging Block?</h2>
+        <h4>2014-02-21 Michael Cohen <scudette@google.com></h4>
+        Recently, the Volatility blog reminded us that the KDBG is critical for memory
+analysis. In that post, the author recognizes that the KDBG block is encoded
+on Window 8 and is not readily scanned for using the usual `kdbgscan`
+plugin. But is the KDBG really that imporant? Perhaps not so...
+
+        <p>
+          <a href="/posts/2014-02-21-do-we-need-kdbg.html">Read Post</a>
+        </p>
+      </div>
+    </div>
+  </ul>
+  </div>
+  <div class="span2 sidebar">
+    <h3>About Rekall</h3>
+
+<p>
+
+</p>
+
+
+  </div>
+</div>
+</div>
+  </body>
+</html>
+

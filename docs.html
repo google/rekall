@@ -1,0 +1,472 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".na\
+v-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    
+<nav class="nav-primary" role="navigation" >
+  <ul>
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="active" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+  </ul>
+</nav>
+
+  </div>
+
+  <div class="span8">
+    <ul></li><li>blogg_posts<ul><li>scudette<ul></li></ul></li></li></li></ul></li></li><li>References<ul><li>Papers<ul>
+ <li>
+   <a href='/docs/References/Papers/DFRWS2014EU.html'>DFRWS 2014EU: Robust Linux Memory Acquisition with Minimal Target Impact, Johannes Stuettgen and Michael Cohen</a>
+     <a href='http://www.dfrws.org/2014eu/proceedings/DFRWS-EU-2014-14.pdf'><i class="icon-download"></i></a>
+</li>
+ <li>
+   <a href='/docs/References/Papers/DFRWS2013.html'>DFRWS 2013: Anti-Forensic Resilient Memory Acquisition, Johannes Stuettgen and Michael Cohen.</a>
+     <a href='http://www.dfrws.org/2013/proceedings/DFRWS2013-13.pdf'><i class="icon-download"></i></a>
+</li></ul></li></li><li>Presentations<ul>
+ <li>
+   <a href='/docs/References/Presentations/LMAP-DFRWS_EU_2014.html'>DFRWS-EU 2014: Linux Memory Acquisition</a>
+     <a href='http://www.rekall-forensic.com/docs/Workshops/LMAP-DFRWS_EU_2014.pdf'><i class="icon-download"></i></a>
+</li>
+ <li>
+   <a href='/docs/References/Presentations/AntiForensic.html'>DFRWS 2013: Anti-Forensic Resilient Memory Acquisition</a>
+     <a href='http://www.dfrws.org/2013/proceedings/DFRWS2013-p13.pdf'><i class="icon-download"></i></a>
+</li>
+ <li>
+   <a href='/docs/References/Presentations/DFRWS EU 2014 Rekall workshop.html'>DFRWS-EU 2014: Forensic Memory Analysis Workshop</a>
+     <a href='http://www.rekall-forensic.com/docs/Workshops/DFRWS EU 2014 Rekall workshop.pdf'><i class="icon-download"></i></a>
+</li></ul></li></li></ul></li></li><li>images<ul><li>icons<ul></li></ul></li></li></ul></li></li><li>Manual<ul>
+ <li>
+   <a href='/docs/Manual/overview.html'>The Rekall Memory Forensic Framework.</a></li>
+ <li>
+   <a href='/docs/Manual/tutorial.html'>Rekall Tutorial.</a></li><li>Plugins<ul>
+ <li>
+   <a href='/docs/Manual/Plugins/IOmem.html'>iomem</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Sockets.html'>sockets</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ProcInfo.html'>procinfo</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Modules.html'>modules</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LSADump.html'>lsadump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinMemMap.html'>memmap</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/BuildIndex.html'>build_index</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Grep.html'>grep</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CheckSyscall.html'>check_syscall</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/GetSIDs.html'>tokens</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Banner.html'>banner</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Lsmod.html'>lsmod</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/SymLinkScan.html'>symlinkscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/SetProcessContext.html'>cc</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CheckTTY.html'>check_ttys</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Raw2Dump.html'>raw2dmp</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/VADWalk.html'>vadwalk</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WindowsStations.html'>windows_stations</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinPhysicalMap.html'>phys_map</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinDMSG.html'>dmesg</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WebConsole.html'>webconsole</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/FLS.html'>fls</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/SvcScan.html'>svcscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PEDump.html'>pedump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinLsmod.html'>lsmod</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/GetServiceSids.html'>getservicesids</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/VADDump.html'>vaddump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Handles.html'>handles</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/VtoP.html'>vtop</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ImageInfo.html'>imageinfo</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Null.html'>None</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Lsof.html'>lsof</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/UnloadedModules.html'>unloaded_modules</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/KPCR.html'>kpcr</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinListSessions.html'>sessions</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Lister.html'>l</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ObjectTree.html'>object_tree</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CheckIdt.html'>check_idt</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PSScan.html'>psscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinMount.html'>mount</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinFindDTB.html'>find_dtb</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CmdScan.html'>cmdscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LinuxDmesg.html'>dmesg</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Disassemble.html'>dis</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinVadDump.html'>vaddump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinCheckSysCalls.html'>check_syscalls</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/UserAssist.html'>userassist</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CpuInfo.html'>cpuinfo</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinIFConfig.html'>ifconfig</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CheckCreds.html'>check_creds</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ModDump.html'>moddump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PEInfo.html'>peinfo</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ThrdScan.html'>thrdscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinNetstat.html'>netstat</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LinPas2Vas.html'>pas2vas</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LoadPlugins.html'>load_plugin</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LinVadDump.html'>vaddump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LinMemMap.html'>memmap</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LinPSTree.html'>pstree</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinEventHooks.html'>eventhooks</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Timers.html'>timers</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Sessions.html'>sessions</a></li></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ModScan.html'>modscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DTBScan2.html'>dtbscan2</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DwarfParser.html'>dwarfparser</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/KDBGScan.html'>kdbgscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Objects.html'>object_types</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/pslist.html'>Process Listing</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinMachineInfo.html'>machine_info</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ImageCopy.html'>imagecopy</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DeviceTree.html'>devicetree</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinPsxView.html'>psxview</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CheckTaskFops.html'>check_task_fops</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinDesktops.html'>desktops</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Rekall.html'>rekal</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinPsList.html'>pslist</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LinuxPsList.html'>pslist</a></li><li>Windows<ul><li>Win32_GUI<ul>
+ <li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/atoms.html'>atoms</a></li></ul></li></li></ul></li></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinPas2Vas.html'>pas2vas</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinSSDT.html'>ssdt</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PTE.html'>pte</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinMemDump.html'>memdump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PtoV.html'>ptov</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/VmScan.html'>vmscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ProcExeDump.html'>procdump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinPsList.html'>pslist</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LinuxFindKASLR.html'>find_kaslr</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Consoles.html'>consoles</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/VADInfo.html'>vadinfo</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PrintKey.html'>printkey</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/VADTree.html'>vadtree</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinDeadProcesses.html'>dead_procs</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinNetscan.html'>netscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinDllList.html'>dlllist</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ConvertProfile.html'>convert_profile</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinIPFilters.html'>ip_filters</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PSTree.html'>pstree</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/EvtLogs.html'>evtlogs</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ImpScan.html'>impscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/GuessGUID.html'>guess_guid</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LinuxFindDTB.html'>find_dtb</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DriverScan.html'>driverscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinNotifiers.html'>notifiers</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinPhysicalMap.html'>phys_map</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinPSAUX.html'>psaux</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinFindKASLR.html'>find_kaslr</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinNetstat.html'>netstat</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/EntityIFConfig.html'>eifconfig</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/YaraScan.html'>yarascan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Info.html'>info</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Connections.html'>connections</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Threads.html'>threads</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ProcMaps.html'>maps</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CheckAFInfo.html'>check_afinfo</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/RegDump.html'>regdump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/JSONParser.html'>json_render</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PidHashTable.html'>pidhashtable</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DawrinPSTree.html'>pstree</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DTBScan.html'>dtbscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PoolTracker.html'>pool_tracker</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinFindDTB.html'>find_dtb</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CheckModules.html'>check_modules</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PSAux.html'>psaux</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/VersionScan.html'>version_scan</a></li></li>
+ <li>
+   <a href='/docs/Manual/Plugins/HashDump.html'>hashdump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinVirtualMap.html'>virt_map</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CheckProcFops.html'>check_proc_fops</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/VAD.html'>vad</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CertVadScan.html'>cert_vad_scan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Dump.html'>dump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LdrModules.html'>ldrmodules</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Netstat.html'>netstat</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CheckTrapTable.html'>check_trap_table</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinLsof.html'>lsof</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/AtomScan.html'>atomscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/CertScan.html'>certscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/HiveDump.html'>hivedump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Hives.html'>hives</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/MutantScan.html'>mutantscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DT.html'>dt</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Printer.html'>p</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Ifconfig.html'>ifconfig</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinArp.html'>arp</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/EntityNetstat.html'>enetstat</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/BashHistory.html'>bash</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ConnScan.html'>connscan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ModVersions.html'>version_modules</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PFNInfo.html'>pfn</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/FetchPDB.html'>fetch_pdb</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/UserHandles.html'>userhandles</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/WinMessageHooks.html'>messagehooks</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LoadAddressSpace.html'>load_as</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinMaps.html'>maps</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinListZones.html'>list_zones</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Gahti.html'>gahti</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Notebook.html'>notebook</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Pools.html'>pools</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/FileScan.html'>filescan</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Malfind.html'>malfind</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/LinMemDump.html'>memdump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Atoms.html'>atoms</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/ParsePDB.html'>parse_pdb</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinSysctl.html'>sysctl</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinBootParameters.html'>boot_cmdline</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/PsXview.html'>psxview</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Users.html'>users</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DLLDump.html'>dlldump</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Arp.html'>arp</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DriverIrp.html'>driverirp</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/Callbacks.html'>callbacks</a></li>
+ <li>
+   <a href='/docs/Manual/Plugins/DarwinRoute.html'>route</a></li></ul></li></li></ul></li></li><li>Developers<ul>
+ <li>
+   <a href='/docs/Developers/epydocs.html'>Generated API Docs.</a></li>
+ <li>
+   <a href='/docs/Developers/development.html'>The Rekall Memory Forensic Framework API.</a></li></ul></li></li><li>Tools<ul>
+ <li>
+   <a href='/docs/Tools/pmem.html'>The Pmem Memory acquisition suite.</a></li></ul></li></li></ul>
+  </div>
+  <div class="span2 sidebar">
+    <h3>About Rekall</h3>
+
+<p>
+
+</p>
+
+
+  </div>
+</div>
+</div>
+  </body>
+</html>
+
