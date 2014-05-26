@@ -1,10 +1,10 @@
-import subprocess
+import functools
 import logging
-import re
 import markdown
-import yaml
-
 import os
+import re
+import subprocess
+import yaml
 
 SEPERATOR = "\n---\n"
 MARKDOWN_EXTENSIONS = [".md", ".markdown"]
@@ -28,7 +28,7 @@ EXCLUDED_DIRECTORIES = ["img", "blogg_posts"]
 
 class Page(dict):
     def __getattr__(self, attr):
-        return self.get(attr, None)
+        return self.get(attr, "")
 
     def __setattr__(self, attr, value):
         if hasattr(self.__class__, attr) or attr in self.__dict__:
@@ -68,7 +68,7 @@ class Page(dict):
 
     @property
     def content(self):
-        if self.parsed_content is not None:
+        if self.parsed_content:
             return self.parsed_content
 
         self.parsed_content = self.CheckContentCache()
@@ -157,3 +157,15 @@ def ListPages(path):
             page = ParsePage(full_path)
             if page is not None:
                 yield page
+
+
+def memoize(obj):
+    cache = obj.cache = {}
+
+    @functools.wraps(obj)
+    def memoizer(*args, **kwargs):
+        key = str(args) + str(kwargs)
+        if key not in cache:
+            cache[key] = obj(*args, **kwargs)
+        return cache[key]
+    return memoizer

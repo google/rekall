@@ -57,10 +57,11 @@ def navigation(page=None):
 def default(page=None):
     return u"""
 {head}
+{nav}
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    {nav}
+    {page.navigator}
   </div>
 
   <div class="span8">
@@ -109,13 +110,27 @@ def blog(page=None):
     return default(page)
 
 
+@utils.memoize
 def _render_categories(path):
-    result = ""
+    directories = []
+    files = []
+
+    # Separate pages into files and directories.
     for page in utils.ListPages(path):
+        if "index" in page.url:
+            continue
+
         if page.type == "directory":
-            inner_html = _render_categories(page.filename)
-            if inner_html:
-                result += """
+            directories.append(page)
+        else:
+            files.append(page)
+
+    # First render the directories in the tree.
+    result = ""
+    for page in sorted(directories, key=lambda x: x.title):
+        inner_html = _render_categories(page.filename)
+        if inner_html:
+            result += """
 <li>
   <input type="checkbox" id="item-{page.url}" />
   <label for="item-{page.url}">
@@ -123,19 +138,22 @@ def _render_categories(path):
   </label>
 """.format(basename=os.path.basename(page.filename), page=page)
 
-                result += inner_html
-                result += "</li>"
-        else:
-            result += """
+            result += inner_html
+            result += "</li>"
+
+    # Now render the files.
+    for page in sorted(files, key=lambda x: x.title):
+        result += """
 <li>
    <a href='{page.url}' class="tree-link">{page.title}</a>
 """.format(page=page)
 
+        # Optionally add a download button if the page has a download link.
         if page.download:
             result += """
    <a href='{page.download}'><i class="icon-download"></i></a>
 """.format(page=page)
-        result += """
+            result += """
 </li>"""
 
     if result:
@@ -193,8 +211,26 @@ def embedded(page=None):
            nav=navigation(page))
 
 
+@utils.memoize
+def _MakeNavigatorForPlugin(plugin_path):
+    return (
+        "<a href='{0}/index.html'><i class='icon-hand-up'></i></a>".format(
+            os.path.dirname(plugin_path)) +
+        "<h3><a href='{1}/index.html'>{0}</a></h3>".format(
+            os.path.basename(plugin_path),
+            plugin_path) +
+        "<div class='css-treeview'>" +
+        _render_categories(plugin_path) +
+        "</div>")
+
+
 def plugin(page=None):
     page.html_abstract = utils.ConvertFromMD(page.abstract)
+
+    if page.epydoc:
+        page.epydoc_link = """
+<a href="/epydocs/{page.epydoc}">View Source</a>
+""".format(page=page)
 
     page.content = u"""
 <h1>{page.title}</h1>
@@ -203,8 +239,13 @@ def plugin(page=None):
 {page.html_abstract}
 </div>
 
+{page.epydoc_link}
+
 {page.content}
 """.format(page=page)
+
+    plugin_path = os.path.dirname(page.url)
+    page.navigator = _MakeNavigatorForPlugin(plugin_path)
 
     return default(page)
 
@@ -256,3 +297,14 @@ def downloads(page=None):
     page.content = result
 
     return default(page)
+
+
+def redirect(page=None):
+    return """
+<html><head>
+<meta http-equiv="refresh" content="0; url={page.target}" />
+</head>
+<body>
+</body>
+</html>
+""".format(page=page)

@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/treeview.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/downloads.html">
+            Downloads
+          </a>
+        </li>
+
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/General/index.html'>General</a></h3><div class='css-treeview'><ul>
+<li>
+   <a href='/docs/Manual/Plugins/General/Null.html' class="tree-link">None</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/BuildIndex.html' class="tree-link">build_index</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/ConvertProfile.html' class="tree-link">convert_profile</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/DT.html' class="tree-link">dt</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Dump.html' class="tree-link">dump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/DwarfParser.html' class="tree-link">dwarfparser</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/FetchPDB.html' class="tree-link">fetch_pdb</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Grep.html' class="tree-link">grep</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/GuessGUID.html' class="tree-link">guess_guid</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/ImageCopy.html' class="tree-link">imagecopy</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Info.html' class="tree-link">info</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/JSONParser.html' class="tree-link">json_render</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Lister.html' class="tree-link">l</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/LoadAddressSpace.html' class="tree-link">load_as</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/LoadPlugins.html' class="tree-link">load_plugin</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Notebook.html' class="tree-link">notebook</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Printer.html' class="tree-link">p</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/ParsePDB.html' class="tree-link">parse_pdb</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Rekall.html' class="tree-link">rekal</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/VersionScan.html' class="tree-link">version_scan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/VmScan.html' class="tree-link">vmscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/WebConsole.html' class="tree-link">webconsole</a>
+</ul></div>
+  </div>
+
+  <div class="span8">
+    
+<h1>build_index</h1>
+
+<div class="abstract">
+<p>Generate a profile index file based on an index specification.</p>
+<p>The index specification is currently a yaml file with the following
+structure:</p>
+<ul>
+<li>repository_path: The path to the repository to index.</li>
+<li>symbols: # A list of symbols to index.
+   name: Symbol name.
+   data: Data that should be found in the image.</li>
+</ul>
+<p>Example:</p>
+<div class="highlight"><pre><span class="nl">repository_root:</span> <span class="p">.</span><span class="o">/</span>
+<span class="nl">path:</span> <span class="n">win32k</span><span class="p">.</span><span class="n">sys</span>
+<span class="nl">symbols:</span>
+  <span class="o">-</span>
+    <span class="err">#</span> <span class="n">The</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">symbol</span> <span class="n">we</span> <span class="n">test</span> <span class="k">for</span><span class="p">.</span>
+    <span class="nl">name:</span> <span class="s">&quot;??_C@_1BO@KLKIFHLC@?$AAG?$AAU?$AAI?$AAF?$AAo?$AAn?$AAt?$AA?4?$AAH?$AAe?$AAi?$AAg?$AAh?$AAt?$AA?$AA@&quot;</span>
+
+    <span class="err">#</span> <span class="n">The</span> <span class="n">data</span> <span class="n">we</span> <span class="n">expect</span> <span class="n">to</span> <span class="n">find</span> <span class="n">at</span> <span class="n">that</span> <span class="n">offset</span><span class="p">.</span>
+    <span class="nl">data:</span> <span class="s">&quot;47005500490046006f006e0074002e00480065006900670068007400&quot;</span>
+
+  <span class="o">-</span>
+    <span class="nl">name:</span> <span class="s">&quot;wcschr&quot;</span>
+    <span class="nl">shift:</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="nl">data:</span> <span class="s">&quot;90&quot;</span>
+</pre></div>
+
+
+<p>The result is an index profile. This has an $INDEX section which is a dict,
+with keys being the profile name, and values being a list of (offset, match)
+tuples.</p>
+</div>
+
+
+<a href="/epydocs/rekall.plugins.tools.profile_tool.BuildIndex-class.html">View Source</a>
+
+
+<p>For example:</p>
+<div class="highlight"><pre>    <span class="p">{</span>
+     <span class="s">&quot;$INDEX&quot;</span><span class="o">:</span> <span class="p">{</span>
+      <span class="s">&quot;tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1184600</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
+      <span class="s">&quot;tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1190376</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
+      <span class="s">&quot;tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1194296</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
+     <span class="s">&quot;$METADATA&quot;</span><span class="o">:</span> <span class="p">{</span>
+      <span class="s">&quot;ProfileClass&quot;</span><span class="o">:</span> <span class="s">&quot;Index&quot;</span><span class="p">,</span>
+      <span class="s">&quot;Type&quot;</span><span class="o">:</span> <span class="s">&quot;Profile&quot;</span>
+      <span class="p">}</span>
+     <span class="p">}</span>
+</pre></div>
+
+  </div>
+  <div class="span2 sidebar">
+    <img src="/img/Rekall.png"></img>
+
+  </div>
+</div>
+</div>
+  </body>
+</html>
+

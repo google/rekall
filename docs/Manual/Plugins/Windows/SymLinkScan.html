@@ -1,0 +1,390 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/treeview.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/downloads.html">
+            Downloads
+          </a>
+        </li>
+
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+<li>
+  <input type="checkbox" id="item-/Registry" />
+  <label for="item-/Registry">
+    Registry
+  </label>
+<ul>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/HiveDump.html' class="tree-link">hivedump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/Hives.html' class="tree-link">hives</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/LSADump.html' class="tree-link">lsadump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/PrintKey.html' class="tree-link">printkey</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/RegDump.html' class="tree-link">regdump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/UserAssist.html' class="tree-link">userassist</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/Users.html' class="tree-link">users</a>
+</ul></li>
+<li>
+  <input type="checkbox" id="item-/Win32_GUI" />
+  <label for="item-/Win32_GUI">
+    Win32_GUI
+  </label>
+<ul>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/AtomScan.html' class="tree-link">atomscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/SetProcessContext.html' class="tree-link">cc</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="tree-link">desktops</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinEventHooks.html' class="tree-link">eventhooks</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Gahti.html' class="tree-link">gahti</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinMessageHooks.html' class="tree-link">messagehooks</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Sessions.html' class="tree-link">sessions</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/UserHandles.html' class="tree-link">userhandles</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WindowsStations.html' class="tree-link">windows_stations</a>
+</ul></li>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link">callbacks</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/CertVadScan.html' class="tree-link">cert_vad_scan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/CertScan.html' class="tree-link">certscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/CmdScan.html' class="tree-link">cmdscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Connections.html' class="tree-link">connections</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ConnScan.html' class="tree-link">connscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Consoles.html' class="tree-link">consoles</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/DeviceTree.html' class="tree-link">devicetree</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Disassemble.html' class="tree-link">dis</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/DLLDump.html' class="tree-link">dlldump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinDllList.html' class="tree-link">dlllist</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/DriverIrp.html' class="tree-link">driverirp</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/DriverScan.html' class="tree-link">driverscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/DTBScan.html' class="tree-link">dtbscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/DTBScan2.html' class="tree-link">dtbscan2</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/EvtLogs.html' class="tree-link">evtlogs</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/FileScan.html' class="tree-link">filescan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ImageInfo.html' class="tree-link">imageinfo</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ImpScan.html' class="tree-link">impscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/KDBGScan.html' class="tree-link">kdbgscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/KPCR.html' class="tree-link">kpcr</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/LdrModules.html' class="tree-link">ldrmodules</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinMemMap.html' class="tree-link">memmap</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ModDump.html' class="tree-link">moddump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ModScan.html' class="tree-link">modscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Modules.html' class="tree-link">modules</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/MutantScan.html' class="tree-link">mutantscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinNetscan.html' class="tree-link">netscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Netstat.html' class="tree-link">netstat</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinNetstat.html' class="tree-link">netstat</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ObjectTree.html' class="tree-link">object_tree</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Objects.html' class="tree-link">object_types</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinPas2Vas.html' class="tree-link">pas2vas</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/PEDump.html' class="tree-link">pedump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/PEInfo.html' class="tree-link">peinfo</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/PFNInfo.html' class="tree-link">pfn</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinPhysicalMap.html' class="tree-link">phys_map</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/PoolTracker.html' class="tree-link">pool_tracker</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Pools.html' class="tree-link">pools</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ProcExeDump.html' class="tree-link">procdump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ProcInfo.html' class="tree-link">procinfo</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/PSAux.html' class="tree-link">psaux</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinPsList.html' class="tree-link">pslist</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/PSScan.html' class="tree-link">psscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/PSTree.html' class="tree-link">pstree</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/PsXview.html' class="tree-link">psxview</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/PTE.html' class="tree-link">pte</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/PtoV.html' class="tree-link">ptov</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Raw2Dump.html' class="tree-link">raw2dmp</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Sockets.html' class="tree-link">sockets</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinSSDT.html' class="tree-link">ssdt</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/SvcScan.html' class="tree-link">svcscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/SymLinkScan.html' class="tree-link">symlinkscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ThrdScan.html' class="tree-link">thrdscan</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Threads.html' class="tree-link">threads</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Timers.html' class="tree-link">timers</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/GetSIDs.html' class="tree-link">tokens</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/UnloadedModules.html' class="tree-link">unloaded_modules</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VAD.html' class="tree-link">vad</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VADDump.html' class="tree-link">vaddump</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VADInfo.html' class="tree-link">vadinfo</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VADTree.html' class="tree-link">vadtree</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VADWalk.html' class="tree-link">vadwalk</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/ModVersions.html' class="tree-link">version_modules</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinVirtualMap.html' class="tree-link">virt_map</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VtoP.html' class="tree-link">vtop</a>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/YaraScan.html' class="tree-link">yarascan</a>
+</ul></div>
+  </div>
+
+  <div class="span8">
+    
+<h1>symlinkscan</h1>
+
+<div class="abstract">
+<p>Scan for symbolic link objects </p>
+</div>
+
+
+<a href="/epydocs/rekall.plugins.windows.filescan.SymLinkScan-class.html">View Source</a>
+
+
+
+
+  </div>
+  <div class="span2 sidebar">
+    <img src="/img/Rekall.png"></img>
+
+  </div>
+</div>
+</div>
+  </body>
+</html>
+
