@@ -459,7 +459,7 @@ class BuildIndex(plugin.Command):
     def args(cls, parser):
         super(BuildIndex, cls).args(parser)
         parser.add_argument(
-            "--spec", default=None,
+            "--spec", default=None, required=True,
             help="An Index specification file.")
 
     def __init__(self, spec=None, **kwargs):
