@@ -72,11 +72,13 @@ class DarwinDeadProcesses(common.DarwinPlugin):
 
         # Walk over the free list and get all proc objects.
         procs = []
-        for obj in proc_zone.free_elements.walk_list("next"):
-            procs.append(obj.cast("proc"))
+        for allocation in proc_zone.free_elements.walk_list("next"):
+            proc = allocation.cast("proc")
+            # Validate the proc.
+            if proc.p_argc > 0:
+                procs.append(proc)
 
         if procs:
             # Just delegate the rendering to the regular pslist plugin.
             pslist_plugin = self.session.plugins.pslist(proc=procs)
             pslist_plugin.render(renderer)
-

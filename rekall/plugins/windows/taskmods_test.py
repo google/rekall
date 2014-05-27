@@ -74,24 +74,11 @@ class TestDLLList(testlib.RekallBaseUnitTestCase):
                 self.ExtractColumn(current_map[pid], 2, 1))
 
 
-class TestMemmap(testlib.RekallBaseUnitTestCase):
+class TestMemmap(testlib.SimpleTestCase):
     """Test the pslist module."""
 
     PARAMETERS = dict(commandline="memmap --pid=%(pid)s",
                       pid=2624)
-
-    def testMemmap(self):
-        # Virtual address - Hex formatting might be different so convert it from
-        # hex and compare the ints themselves.
-        self.assertIntegerListEqual(
-            self.ExtractColumn(self.baseline['output'], 0, 4),
-            self.ExtractColumn(self.current['output'], 0, 4))
-
-        # Physical address.
-        self.assertIntegerListEqual(
-            self.ExtractColumn(self.baseline['output'], 1, 4),
-            self.ExtractColumn(self.current['output'], 1, 4))
-
 
 
 class TestMemmapCoalesce(testlib.SimpleTestCase):

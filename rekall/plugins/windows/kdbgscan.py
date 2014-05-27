@@ -175,8 +175,7 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
                 num_tasks = 0
 
             try:
-                modules = self.session.plugins.modules(session=self.session,
-                                                       kdbg=kdbg)
+                modules = self.session.plugins.modules(session=self.session)
                 num_modules = len(list(modules.lsmod()))
             except AttributeError:
                 num_modules = 0
