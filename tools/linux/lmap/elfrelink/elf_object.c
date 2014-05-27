@@ -15,6 +15,9 @@
 #include "elf_sections.c"
 #include "elf_symbols.h"
 
+static const int MODULE_NAME_LEN = 64 - sizeof(unsigned long);
+static const char *THIS_MODULE_SECTION = ".gnu.linkonce.this_module";
+
 // Checks if a pointer is actually inside an elf object
 ELF_ERROR elf_ptr_invalid(ELF_OBJ *obj, uint8_t *ptr) {
   if (ptr < obj->data || ptr >= obj->data + obj->size) {
@@ -346,6 +349,44 @@ ELF_ERROR elf_clean_dependencies(ELF_OBJ *obj) {
   log_print(LL_DBG, "Cleaning dependency string %s of len %d", dependencies,
             dependencies_len);
   memset(dependencies, 0x00, dependencies_len);
+  return ELF_SUCCESS;
+}
+
+// Change the module name by overwriting it in section .gnu.linkone.this_module
+ELF_ERROR elf_rename_module(ELF_OBJ *obj, char *old_name, char *new_name) {
+  uint8_t *this_module = NULL;
+  char *module_name = NULL;
+  Elf_Word this_module_idx = 0;
+  Elf_Shdr *this_module_shdr = NULL;
+
+  if (strlen(new_name) >= MODULE_NAME_LEN) {
+    log_print(LL_ERR, "Can't rename module %s to %s, "
+        "new name too long (limit: %d)", old_name, new_name, MODULE_NAME_LEN);
+    return ELF_FAILURE;
+  }
+  if (obj->section_by_name(obj, THIS_MODULE_SECTION,
+        &this_module_idx, &this_module_shdr) != ELF_SUCCESS) {
+    log_print(LL_ERR, "Can't rename module, section %s not found",
+        THIS_MODULE_SECTION);
+    return ELF_FAILURE;
+  }
+  if (obj->section_get_contents(obj, this_module_shdr, &this_module)
+      != ELF_SUCCESS) {
+    log_print(LL_ERR, "Can't rename module, section %s contents not found",
+        THIS_MODULE_SECTION);
+    return ELF_FAILURE;
+  }
+  module_name = memmem(this_module, this_module_shdr->sh_size, old_name,
+      strlen(old_name));
+  if (module_name == NULL) {
+    log_print(LL_ERR, "Can't rename module, name (%s) not found in %s",
+        old_name, THIS_MODULE_SECTION);
+    return ELF_FAILURE;
+  }
+  // this_module.name has enough space to fit any module name, because:
+  // char name[MODULE_NAME_LEN];
+  // #define MODULE_NAME_LEN (64 - sizeof(unsigned long))
+  strncpy(module_name, new_name, MODULE_NAME_LEN);
   return ELF_SUCCESS;
 }
 

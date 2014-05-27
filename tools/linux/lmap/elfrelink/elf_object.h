@@ -98,6 +98,8 @@ ELF_ERROR elf_parse_headers(ELF_OBJ *obj);
 // Removes any dependencies a module might have by overwriting the 'depends='
 // string in .modinfo with zeroes.
 ELF_ERROR elf_clean_dependencies(ELF_OBJ *obj);
+// Change the module name by overwriting it in section .gnu.linkone.this_module
+ELF_ERROR elf_rename_module(ELF_OBJ *obj, char *old_name, char *new_name);
 // Increases the size of an elf object by growing it at the end.
 ELF_ERROR elf_enlarge_obj(ELF_OBJ *obj, Elf_Word amount);
 // Increases the size of a section. Also pushes all other sections and the
