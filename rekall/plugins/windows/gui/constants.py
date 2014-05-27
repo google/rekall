@@ -42,48 +42,48 @@ DEFAULT_ATOMS = {
 }
 
 WINDOW_STYLES = dict(
-    WS_OVERLAPPED = 0x00000000L,
-    WS_POPUP = 0x80000000L,
-    WS_CHILD = 0x40000000L,
-    WS_MINIMIZE = 0x20000000L,
-    WS_VISIBLE = 0x10000000L,
-    WS_DISABLED = 0x08000000L,
-    WS_CLIPSIBLINGS = 0x04000000L,
-    WS_CLIPCHILDREN = 0x02000000L,
-    WS_MAXIMIZE = 0x01000000L,
-    WS_CAPTION = 0x00C00000L,
-    WS_BORDER = 0x00800000L,
-    WS_DLGFRAME = 0x00400000L,
-    WS_VSCROLL = 0x00200000L,
-    WS_HSCROLL = 0x00100000L,
-    WS_SYSMENU = 0x00080000L,
-    WS_THICKFRAME = 0x00040000L,
-    WS_GROUP = 0x00020000L,
-    WS_TABSTOP = 0x00010000L,
-    WS_MINIMIZEBOX = 0x00020000L,
-    WS_MAXIMIZEBOX = 0x00010000L,
+    WS_OVERLAPPED=0x00000000L,
+    WS_POPUP=0x80000000L,
+    WS_CHILD=0x40000000L,
+    WS_MINIMIZE=0x20000000L,
+    WS_VISIBLE=0x10000000L,
+    WS_DISABLED=0x08000000L,
+    WS_CLIPSIBLINGS=0x04000000L,
+    WS_CLIPCHILDREN=0x02000000L,
+    WS_MAXIMIZE=0x01000000L,
+    WS_CAPTION=0x00C00000L,
+    WS_BORDER=0x00800000L,
+    WS_DLGFRAME=0x00400000L,
+    WS_VSCROLL=0x00200000L,
+    WS_HSCROLL=0x00100000L,
+    WS_SYSMENU=0x00080000L,
+    WS_THICKFRAME=0x00040000L,
+    WS_GROUP=0x00020000L,
+    WS_TABSTOP=0x00010000L,
+    WS_MINIMIZEBOX=0x00020000L,
+    WS_MAXIMIZEBOX=0x00010000L,
     )
 
 WINDOW_STYLES_EX = dict(
-    WS_EX_DLGMODALFRAME = 0x00000001L,
-    WS_EX_NOPARENTNOTIFY = 0x00000004L,
-    WS_EX_TOPMOST = 0x00000008L,
-    WS_EX_ACCEPTFILES = 0x00000010L,
-    WS_EX_TRANSPARENT = 0x00000020L,
-    WS_EX_MDICHILD = 0x00000040L,
-    WS_EX_TOOLWINDOW = 0x00000080L,
-    WS_EX_WINDOWEDGE = 0x00000100L,
-    WS_EX_CLIENTEDGE = 0x00000200L,
-    WS_EX_CONTEXTHELP = 0x00000400L,
-    WS_EX_RIGHT = 0x00001000L,
-    WS_EX_LEFT = 0x00000000L,
-    WS_EX_RTLREADING = 0x00002000L,
-    WS_EX_LTRREADING = 0x00000000L,
-    WS_EX_LEFTSCROLLBAR = 0x00004000L,
-    WS_EX_RIGHTSCROLLBAR = 0x00000000L,
-    WS_EX_CONTROLPARENT = 0x00010000L,
-    WS_EX_STATICEDGE = 0x00020000L,
-    WS_EX_APPWINDOW = 0x00040000L,
+    WS_EX_DLGMODALFRAME=0x00000001L,
+    WS_EX_NOPARENTNOTIFY=0x00000004L,
+    WS_EX_TOPMOST=0x00000008L,
+    WS_EX_ACCEPTFILES=0x00000010L,
+    WS_EX_TRANSPARENT=0x00000020L,
+    WS_EX_MDICHILD=0x00000040L,
+    WS_EX_TOOLWINDOW=0x00000080L,
+    WS_EX_WINDOWEDGE=0x00000100L,
+    WS_EX_CLIENTEDGE=0x00000200L,
+    WS_EX_CONTEXTHELP=0x00000400L,
+    WS_EX_RIGHT=0x00001000L,
+    WS_EX_LEFT=0x00000000L,
+    WS_EX_RTLREADING=0x00002000L,
+    WS_EX_LTRREADING=0x00000000L,
+    WS_EX_LEFTSCROLLBAR=0x00004000L,
+    WS_EX_RIGHTSCROLLBAR=0x00000000L,
+    WS_EX_CONTROLPARENT=0x00010000L,
+    WS_EX_STATICEDGE=0x00020000L,
+    WS_EX_APPWINDOW=0x00040000L,
     )
 
 # These are message types in the order that they appear in the aphkStart array.
@@ -108,14 +108,14 @@ MESSAGE_TYPES = [
 
 # See http://forum.sysinternals.com/enumerate-windows-hooks_topic23877_post124845.html
 HOOK_FLAGS = dict(
-    HF_GLOBAL = 0, #0x0001, # Global hooks (for all threads on desktop)
-    HF_ANSI = 1, #0x0002, # Uses Ansi strings instead of Unicode
-    HF_HUNG = 3, #0x0008, # The hook procedure is hung
-    HF_HOOKFAULTED = 4, #0x0010, # The hook procedure caused some fault
-    HF_WX86KNOWNDLL = 6, #0x0040, # Hook Module is x86 machine type
-    HF_DESTROYED = 7, #0x0080, # The object is destroyed (set by FreeHook)
-    HF_INCHECKWHF = 8, #0x0100, # The fsHooks is currently being updated
-    HF_FREED = 9, #0x0200, # The object is freed
+    HF_GLOBAL=0, #0x0001, # Global hooks (for all threads on desktop)
+    HF_ANSI=1, #0x0002, # Uses Ansi strings instead of Unicode
+    HF_HUNG=3, #0x0008, # The hook procedure is hung
+    HF_HOOKFAULTED=4, #0x0010, # The hook procedure caused some fault
+    HF_WX86KNOWNDLL=6, #0x0040, # Hook Module is x86 machine type
+    HF_DESTROYED=7, #0x0080, # The object is destroyed (set by FreeHook)
+    HF_INCHECKWHF=8, #0x0100, # The fsHooks is currently being updated
+    HF_FREED=9, #0x0200, # The object is freed
     )
 
 # dwflags parameter to SetWinEventHook
@@ -223,28 +223,33 @@ HANDLE_TYPE_ENUM = utils.Invert(dict(
     TYPE_GENERIC=255     # 'used for generic handle validation
     ))
 
-HANDLE_TYPE_ENUM = {
-    0: 'TYPE_FREE',
-    1: 'TYPE_WINDOW',
-    2: 'TYPE_MENU',
-    3: 'TYPE_CURSOR',
-    4: 'TYPE_SETWINDOWPOS',
-    5: 'TYPE_HOOK',
-    6: 'TYPE_CLIPDATA',
-    7: 'TYPE_CALLPROC',
-    8: 'TYPE_ACCELTABLE',
-    9: 'TYPE_DDEACCESS',
-   10: 'TYPE_DDECONV',
-   11: 'TYPE_DDEXACT',
-   12: 'TYPE_MONITOR',
-   13: 'TYPE_KBDLAYOUT',
-   14: 'TYPE_KBDFILE',
-   15: 'TYPE_WINEVENTHOOK',
-   16: 'TYPE_TIMER',
-   17: 'TYPE_INPUTCONTEXT',
-   18: 'TYPE_HIDDATA',
-   19: 'TYPE_DEVICEINFO',
-}
+# Ref: https://www.reactos.org/wiki/Techwiki:Win32k/HANDLEENTRY
+HANDLE_TYPE_ENUM = utils.Invert(dict(
+   TYPE_FREE=0,         # 'must be zero!
+   TYPE_WINDOW=1,       # 'in order of use for C code lookups
+   TYPE_MENU=2,         #
+   TYPE_CURSOR=3,       #
+   TYPE_SETWINDOWPOS=4, # HDWP
+   TYPE_HOOK=5,         #
+   TYPE_CLIPDATA=6,     # 'clipboard data
+   TYPE_CALLPROC=7,     #
+   TYPE_ACCELTABLE=8,   #
+   TYPE_DDEACCESS=9,    #  tagSVR_INSTANCE_INFO
+   TYPE_DDECONV=10,     #
+   TYPE_DDEXACT=11,     # 'DDE transaction tracking info.
+   TYPE_MONITOR=12,     #
+   TYPE_KBDLAYOUT=13,   # 'Keyboard Layout handle (HKL) object.
+   TYPE_KBDFILE=14,     # 'Keyboard Layout file object.
+   TYPE_WINEVENTHOOK=15,# 'WinEvent hook (EVENTHOOK)
+   TYPE_TIMER=16,       #
+   TYPE_INPUTCONTEXT=17,# 'Input Context info structure
+   TYPE_HIDDATA=18,     #
+   TYPE_DEVICEINFO=19,  #
+   TYPE_TOUCHINPUT=20,  # 'Ustz' W7U sym tagTOUCHINPUTINFO
+   TYPE_GESTUREINFO=21, # 'Usgi'
+   TYPE_CTYPES=22,      # 'Count of TYPEs; Must be LAST + 1
+   TYPE_GENERIC=255     # 'used for generic handle validation
+))
 
 # USER objects for Windows 7
 HANDLE_TYPE_ENUM_SEVEN = copy.copy(HANDLE_TYPE_ENUM)
@@ -284,11 +289,11 @@ CLIPBOARD_FORMAT_ENUM = {
 
 # Flags for timer objects
 TIMER_FLAGS = dict(
-    TMRF_READY = 0, # 0x0001
-    TMRF_SYSTEM = 1, # 0x0002
-    TMRF_RIT = 2, # 0x0004
-    TMRF_INIT = 3, # 0x0008
-    TMRF_ONESHOT = 4, # 0x0010
-    TMRF_WAITING = 5, # 0x0020
-    TMRF_TIFROMWND = 6, # 0x0040
+    TMRF_READY=0, # 0x0001
+    TMRF_SYSTEM=1, # 0x0002
+    TMRF_RIT=2, # 0x0004
+    TMRF_INIT=3, # 0x0008
+    TMRF_ONESHOT=4, # 0x0010
+    TMRF_WAITING=5, # 0x0020
+    TMRF_TIFROMWND=6, # 0x0040
 )

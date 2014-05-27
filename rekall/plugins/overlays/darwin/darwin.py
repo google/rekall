@@ -38,7 +38,7 @@ darwin_overlay = {
         "p_list": [None, ["LIST_ENTRY"]],
         "p_sibling": [None, ["LIST_ENTRY"]],
 
-        "p_comm": [None, ["String"]],
+        "p_comm": [None, ["String", dict(length=17)]],
         "task": [None, ["Pointer", dict(
             target="task"
         )]],
@@ -1186,7 +1186,7 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
             collector=darwin.DarwinAllprocProcessCollector,
             components=["Named", "Process", "User", "MemoryObject"],
         )
-        
+
         profile.add_collector(
             collector = darwin.DarwinPidHashProcessCollector,
             components=["Named", "Process", "User", "MemoryObject"],

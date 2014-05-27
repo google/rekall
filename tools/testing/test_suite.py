@@ -302,7 +302,7 @@ exit 0
 
         # Write the json summary of the results.
         with open(os.path.join(self.output_dir, "results"), "wb") as fd:
-          json.dump(dict(passes=self.successes, fails=self.failures), fd)
+            json.dump(dict(passes=self.successes, fails=self.failures), fd)
 
     def GenerateTests(self, config):
         """Generates test classes for all the plugins.
@@ -440,7 +440,7 @@ exit 0
             test_case(result)
 
             # Store the current run someplace for closer inspection.
-            output_path = os.path.join(self.output_dir, plugin_cls.__name__ )
+            output_path = os.path.join(self.output_dir, plugin_cls.__name__)
             with open(output_path, "wb") as fd:
                 baseline_filename = os.path.join(
                     self.test_directory, plugin_cls.__name__)
@@ -449,6 +449,9 @@ exit 0
                     src=fd.name, dest=baseline_filename))
 
                 fd.write(json.dumps(current_run, indent=4))
+
+            # Make the output executable.
+            subprocess.call(["chmod", "+x", output_path])
 
             if result.wasSuccessful():
                 self.renderer.table_row(
