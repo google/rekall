@@ -182,8 +182,8 @@ class LinProcessFilter(LinuxPlugin):
             help="Kernel addresses of task structs.")
 
         parser.add_argument("--task_head", action=config.IntParser,
-                            help="Use this as the process head. If "
-                            "specified we do not use kdbg.")
+                            help="Use this as the first task to follow "
+                            "the list.")
 
 
     def __init__(self, pid=None, proc_regex=None, phys_task=None, task=None,

@@ -23,7 +23,7 @@ Rekall supports investigations of the following x86 bit memory images:
 * Microsoft Windows 7 Service Pack 0 and 1
 * Microsoft Windows 8 and 8.1
 * Linux Kernels 2.6.24 to 3.10.
-* OSX 10.6-10.8.
+* OSX 10.6-10.9.x.
 
 Rekall also provides a complete memory sample acquisition capability for all
 major operating systems (see the tools directory).
@@ -53,7 +53,7 @@ If you want to use the yarascan plugin, install yara and yara-python
 
 For windows, Rekall is also available as a self contained installer
 package. Please check the download page for the most appropriate installer to
-use (http://downloads.rekall.googlecode.com/git/index.html)
+use (http://www.rekall-forensic.com/download/)
 
 Mailing Lists
 =============
@@ -138,4 +138,4 @@ More documentation
 ==================
 
 Further documentation is available at
-http://docs.rekall.googlecode.com/git/index.html
+http://www.rekall-forensic.com/

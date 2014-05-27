@@ -48,7 +48,7 @@ def GetHomeDir():
 # not have an existing file. The aim is not to exhaustively list all possible
 # options, rather to ensure that reasonable defaults are specified initially.
 DEFAULT_CONFIGURATION = dict(
-    profile_path=[constants.PROFILE_REPOSITORY],
+    profile_path=constants.PROFILE_REPOSITORIES,
 
     # By default we just drop the notebooks at the home directory.
     notebook_dir=GetHomeDir(),

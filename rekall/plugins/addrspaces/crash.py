@@ -57,9 +57,6 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
         self.session.SetParameter(
             "dtb", int(self.header.DirectoryTableBase))
 
-        self.session.SetParameter(
-            "kdbg", int(self.header.KdDebuggerDataBlock))
-
     def check_file(self):
         """Checks the base file handle for sanity."""
 

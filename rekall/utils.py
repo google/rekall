@@ -95,9 +95,6 @@ class Node(object):
     def __str__(self):
         return "Node:" + SmartStr(self.data)
 
-    def __repr__(self):
-        return SmartStr(self)
-
 
 class LinkedList(object):
     """A simple doubly linked list used for fast caches."""
@@ -118,6 +115,7 @@ class LinkedList(object):
         last_node.next = node
         node.prev = last_node
         node.next = self
+        self.prev = node
 
         return node
 
@@ -128,6 +126,7 @@ class LinkedList(object):
 
         first_node = self.next
         self.Unlink(first_node)
+
         return first_node.data
 
     def Pop(self):
@@ -137,6 +136,7 @@ class LinkedList(object):
 
         last_node = self.tail
         self.Unlink(last_node)
+
         return last_node.data
 
     def Unlink(self, node):

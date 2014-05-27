@@ -339,19 +339,10 @@ class PsActiveProcessHeadHook(kb.ParameterHook):
     name = "PsActiveProcessHead"
 
     def calculate(self):
-        head = self.session.profile.get_constant_object(
+        return self.session.profile.get_constant_object(
             "PsActiveProcessHead",
             target="_LIST_ENTRY",
             vm=self.session.kernel_address_space)
-
-        # Verify it.
-        if head.reflect():
-            return head
-
-        # Failing this, we try to get PsActiveProcessHead using the KDBG.
-        kdbg = self.session.GetParameter("kdbg")
-        if kdbg:
-            return kdbg.PsActiveProcessHead
 
 
 class PsLoadedModuleList(kb.ParameterHook):
@@ -360,67 +351,13 @@ class PsLoadedModuleList(kb.ParameterHook):
     name = "PsLoadedModuleList"
 
     def calculate(self):
-        head = self.session.profile.get_constant_object(
+        return self.session.profile.get_constant_object(
             "PsLoadedModuleList",
             target="_LIST_ENTRY",
             vm=self.session.kernel_address_space)
 
-        # Verify it.
-        if head.reflect():
-            return head
 
-        # Failing this, we try to get PsLoadedModuleList using the
-        # KDBG.
-        kdbg = self.session.GetParameter("kdbg")
-        if kdbg:
-            return kdbg.PsLoadedModuleList
-
-
-class KDBGMixin(plugin.KernelASMixin):
-    """A plugin mixin to make sure the kdbg is set correctly."""
-
-    _kdbg = None
-
-    @property
-    def kdbg(self):
-        if self._kdbg is None:
-            self._kdbg = self.session.GetParameter("kdbg")
-
-        # Allow kdbg to be an actual object.
-        if isinstance(self._kdbg, obj.BaseObject):
-            return self._kdbg
-
-        # Or maybe its an integer representing the offset.
-        elif self._kdbg:
-            self._kdbg = self.profile._KDDEBUGGER_DATA64(
-                offset=int(self._kdbg), vm=self.kernel_address_space)
-
-            return self._kdbg
-
-    @kdbg.setter
-    def kdbg(self, value):
-        self._kdbg = value
-
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(KDBGMixin, cls).args(parser)
-        parser.add_argument("--kdbg", action=config.IntParser,
-                            help="Location of the KDBG structure.")
-
-    def __init__(self, kdbg=None, **kwargs):
-        """Ensure there is a valid KDBG object.
-
-        Args:
-          kdbg: The location of the kernel debugger block (In the physical
-             AS).
-        """
-        super(KDBGMixin, self).__init__(**kwargs)
-        self._kdbg = kdbg
-
-
-
-class WindowsCommandPlugin(KDBGMixin, AbstractWindowsCommandPlugin):
+class WindowsCommandPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
     """A windows plugin which requires the kernel address space."""
     __abstract = True
 
@@ -509,8 +446,7 @@ class WinProcessFilter(WindowsCommandPlugin):
         self.proc_regex = proc_regex
 
         # Sometimes its important to know if any filtering is specified at all.
-        self.filtering_requested = (self.pids or self.proc_regex or
-                                    self.eprocess)
+        self.filtering_requested = bool(self.pids or self.proc_regex)
 
     def filter_processes(self):
         """Filters eprocess list using phys_eprocess and pids lists."""

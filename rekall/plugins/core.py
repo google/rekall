@@ -195,7 +195,7 @@ class Info(plugin.Command):
             doc_string = cls_doc + init_doc
             doc_string += (
                 "\n\nLink:\n"
-                "http://epydocs.rekall.googlecode.com/git/%s.%s-class.html"
+                "http://www.rekall-forensic.com/epydoc/%s.%s-class.html"
                 "\n\n" % (item.__module__, item.__name__))
 
             renderer.write(doc_string)

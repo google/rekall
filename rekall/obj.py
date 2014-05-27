@@ -1336,7 +1336,7 @@ class Profile(object):
 
         Args:
           data: A data structure of an encoded profile. Described:
-          http://docs.rekall.googlecode.com/git/development.html#_profile_serializations
+          http://www.rekall-forensic.com/docs/development.html#_profile_serializations
 
         Returns:
           a Profile() instance.
