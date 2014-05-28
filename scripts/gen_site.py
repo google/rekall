@@ -18,7 +18,7 @@ PARSER.add_argument("path", default=".",
 PARSER.add_argument("--serve", default=False, action="store_true",
                     help="When specified we serve the current directory.")
 
-PARSER.add_argument("--port", default=8000,
+PARSER.add_argument("--port", default=8000, type=int,
                     help="HTTP Server port.")
 
 

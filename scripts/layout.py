@@ -1,4 +1,5 @@
 import os
+import sha
 import utils
 
 SITE = utils.Page(
@@ -265,7 +266,7 @@ def downloads(page=None):
         result += "<h3>{0}</h3><div>".format(subpage.title)
         result += subpage.content
 
-        result += ("<table><tr><th></th><th>Name</th><th>Size</th>"
+        result += ("<table><tr><th></th><th>Name</th><th>SHA1</th><th>Size</th>"
                    "</tr>")
 
         for name in sorted(files):
@@ -273,13 +274,15 @@ def downloads(page=None):
                 continue
 
             path = os.path.join(root, name)
+            sha_hash = sha.sha(open(path).read()).hexdigest()
             result += """
 <tr>
   <td><a href='/{url}'><i class='icon-download'></i></a></td>
-  <td>{name}</td>
+  <td><a href='/{url}'>{name}</a></td>
+  <td>{sha}</td>
   <td>{size}</td>
 </tr>
-""".format(url=path, name=name,
+""".format(url=path, name=name, sha=sha_hash,
            size=os.stat(path).st_size)
 
         result += "</table>"
