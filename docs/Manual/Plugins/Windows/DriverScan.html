@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -369,14 +372,48 @@ ript>
 <h1>driverscan</h1>
 
 <div class="abstract">
-<p>Scan for driver objects _DRIVER_OBJECT </p>
+<p>Scan for driver objects _DRIVER_OBJECT</p>
 </div>
+
+
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>address_space</td><td></td></tr><tr><td>scan_in_kernel</td><td>Scan in the kernel address space</td></tr>
+</tbody>
+</table>
+
 
 
 <a href="/epydocs/rekall.plugins.windows.filescan.DriverScan-class.html">View Source</a>
 
 
-
+<p>To find <strong>_DRIVER_OBJECT</strong>s in physical memory using pool tag scanning, use this
+plugin. This is another way to locate kernel modules, although not all kernel
+modules have an associated <strong>_DRIVER_OBJECT</strong>.</p>
+<p>The usual way for malware to enter Ring 0 is via loading a kernel driver of some
+sort. A malicious kernel driver is a strong indication that malware is running
+in Ring 0.</p>
+<h3>Notes</h3>
+<ol>
+<li>Like other pool scanning plugins, this plugin may produce false positives
+   since it essentially carves <strong>_DRIVER_OBJECT</strong> structures out of memory. On
+   the other hand, this plugin may reveal drivers which have been unloaded.</li>
+</ol>
+<h3>Sample output</h3>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">16</span><span class="o">:</span><span class="mi">17</span><span class="o">:</span><span class="mi">29</span><span class="o">&gt;</span> <span class="n">driverscan</span>
+<span class="o">-------------------&gt;</span> <span class="n">driverscan</span><span class="p">()</span>
+    <span class="n">Offset</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>    <span class="err">#</span><span class="n">Ptr</span> <span class="err">#</span><span class="n">Hnd</span>     <span class="n">Start</span>           <span class="n">Size</span>      <span class="n">Service</span> <span class="n">Key</span>          <span class="n">Name</span>         <span class="n">Driver</span> <span class="n">Name</span>
+<span class="o">-</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">------------</span> <span class="o">-----------</span>
+<span class="p">...</span>
+  <span class="mh">0x00003e569c60</span>    <span class="mi">3</span>    <span class="mi">0</span> <span class="mh">0xf80000b14000</span>        <span class="mh">0x10000</span> <span class="n">pcw</span>                  <span class="n">pcw</span>          <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">pcw</span>
+  <span class="mh">0x00003e569e60</span>    <span class="mi">3</span>    <span class="mi">0</span> <span class="mh">0xf80000aeb000</span>        <span class="mh">0x29000</span> <span class="n">VBoxGuest</span>            <span class="n">VBoxGuest</span>    <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">VBoxGuest</span>
+  <span class="mh">0x00003e59e590</span>   <span class="mi">17</span>    <span class="mi">0</span> <span class="mh">0xf80000c26000</span>       <span class="mh">0x118000</span> <span class="n">NDIS</span>                 <span class="n">NDIS</span>         <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">NDIS</span>
+  <span class="mh">0x00003e5a1060</span>    <span class="mi">8</span>    <span class="mi">0</span> <span class="mh">0xf80000ec5000</span>       <span class="mh">0x27f000</span> <span class="n">Tcpip</span>                <span class="n">Tcpip</span>        <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">Tcpip</span>
+  <span class="mh">0x00003eb8d870</span>    <span class="mi">3</span>    <span class="mi">0</span> <span class="mh">0xf800025ca000</span>        <span class="mh">0x10000</span> <span class="n">pmem</span>                 <span class="n">pmem</span>         <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">pmem</span>
+  <span class="mh">0x00003f066e60</span>    <span class="mi">3</span>    <span class="mi">0</span> <span class="mh">0xf80001c69000</span>         <span class="mh">0xe000</span> <span class="n">monitor</span>              <span class="n">monitor</span>      <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">monitor</span>
+<span class="p">....</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">

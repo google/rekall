@@ -40,6 +40,9 @@ def main(path="."):
         print "Converting %s" % path
         return RenderPage(path)
 
+    if not os.path.isdir(path):
+        raise RuntimeError("Unknown path %s" % path)
+
     for root, dirs, files in os.walk(path, topdown=True):
         # Prune dirs with _
         excluded = utils.EXCLUDED_DIRECTORIES

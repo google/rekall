@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,35 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>dump_dir</td><td>Path suitable for dumping files. (Optional)</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.dumpcerts.CertScan-class.html">View Source</a>
 
 
-
+<p>This plugin is similar to the <a href="CertVadScan.html">cert_vad_scan</a> plugin. It
+attempts to detect DER encoded X509 certificates or RSA private keys in physical
+memory.</p>
+<p>Optionally, if a dump directory is provided the DER encoded certificates are
+also dumped to files in the specified directory.</p>
+<h3>Sample Output</h3>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">35</span><span class="o">&gt;</span> <span class="n">certscan</span>
+<span class="o">-------------------&gt;</span> <span class="n">certscan</span><span class="p">()</span>
+   <span class="n">Address</span>     <span class="n">Type</span>       <span class="n">Length</span>     <span class="n">Description</span>
+<span class="o">--------------</span> <span class="o">----------</span> <span class="o">----------</span> <span class="o">-----------</span>
+<span class="mh">0x000000030c95</span> <span class="n">X509</span>       <span class="mi">1287</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Windows</span>
+<span class="mh">0x00000003119c</span> <span class="n">X509</span>       <span class="mi">1499</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Production</span> <span class="n">PCA</span> <span class="mi">2011</span>
+<span class="mh">0x000000031b94</span> <span class="n">X509</span>       <span class="mi">1653</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Time</span><span class="o">-</span><span class="n">Stamp</span> <span class="n">PCA</span> <span class="mi">2010</span>
+<span class="mh">0x000000032209</span> <span class="n">X509</span>       <span class="mi">1246</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">MOPR</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">nCipher</span> <span class="n">DSE</span> <span class="n">ESN</span><span class="o">:</span><span class="n">F528</span><span class="o">-</span><span class="mi">3777</span><span class="o">-</span><span class="mi">8</span><span class="n">A76</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Time</span><span class="o">-</span><span class="n">Stamp</span> <span class="n">Service</span>
+<span class="mh">0x00000017114e</span> <span class="n">X509</span>       <span class="mi">1499</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Production</span> <span class="n">PCA</span> <span class="mi">2011</span>
+<span class="mh">0x000000171b46</span> <span class="n">X509</span>       <span class="mi">1653</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Time</span><span class="o">-</span><span class="n">Stamp</span> <span class="n">PCA</span> <span class="mi">2010</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">

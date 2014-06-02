@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,7 +82,10 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/Windows/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/Registry/index.html'>Registry</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/Windows/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/Registry/index.html'>Registry</a></h3><div class='css-treeview'><ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -110,6 +119,15 @@ ript>
 <div class="abstract">
 <p>Prints out a hive</p>
 </div>
+
+
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>hive_offsets</td><td>A list of hive offsets as found by hivelist. If not provided we call hivescan ourselves and list the keys on all hives.</td></tr><tr><td>hive_regex</td><td>A regex to filter hive names.If not provided we use all hives.</td></tr>
+</tbody>
+</table>
+
 
 
 <a href="/epydocs/rekall.plugins.windows.registry.printkey.HiveDump-class.html">View Source</a>

@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -371,9 +374,9 @@ ript>
 <div class="abstract">
 <p>Scan for possible _KDDEBUGGER_DATA64 structures.</p>
 <p>The scanner is detailed here:
-http://moyix.blogspot.com/2008/04/finding-kernel-global-variables-in.html</p>
+<a href="http://moyix.blogspot.com/2008/04/finding-kernel-global-variables-in.html">http://moyix.blogspot.com/2008/04/finding-kernel-global-variables-in.html</a></p>
 <p>The relevant structures are detailed here:
-http://doxygen.reactos.org/d3/ddf/include_2psdk_2wdbgexts_8h_source.html</p>
+<a href="http://doxygen.reactos.org/d3/ddf/include_2psdk_2wdbgexts_8h_source.html">http://doxygen.reactos.org/d3/ddf/include_2psdk_2wdbgexts_8h_source.html</a></p>
 <p>We can see that _KDDEBUGGER_DATA64.Header is:</p>
 <p>typedef struct _DBGKD_DEBUG_DATA_HEADER64 {
     LIST_ENTRY64    List;
@@ -386,10 +389,30 @@ through the Header.List member.</p>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>full_scan</td><td>Scan the full address space.</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.kdbgscan.KDBGScan-class.html">View Source</a>
 
 
-
+<p>Windows keeps a store of some useful global variables in a structure called
+<strong>_KDDEBUGGER_DATA64</strong>. This information is used by the microsoft kernel
+debugger in order to bootstap the analysis of a crash dump.</p>
+<p>Rekall no longer uses the Kernel Debugger Block for analysis - instead accurate
+global symbol information are fetched from Microsoft PDB files containing
+debugging symbols.</p>
+<h3>Notes</h3>
+<ol>
+<li>Previous versions of Rekall used the KDBG heavily for analysis, and by
+   extension used this plugin. Currently the KDBG is not used by Rekall at all
+   so this plugin is not all that useful.</li>
+</ol>
 
   </div>
   <div class="span2 sidebar">

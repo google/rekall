@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,100 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>verbose</td><td>Enable more detailed output.</td></tr><tr><td>pid</td><td>One or more pids of processes to select.</td></tr><tr><td>eprocess</td><td>Kernel addresses of eprocess structs.</td></tr><tr><td>phys_eprocess</td><td>Physical addresses of eprocess structs.</td></tr><tr><td>proc_regex</td><td>A regex to select a process by name.</td></tr><tr><td>method</td><td>Method to list processes (Default uses all methods).</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.malware.malfind.LdrModules-class.html">View Source</a>
 
 
+<p>There are many ways to hide a DLL. One of the ways involves unlinking the DLL
+from one (or all) of the linked lists in the PEB. However, when this is done,
+there is still information contained within the VAD (Virtual Address Descriptor)
+which identifies the base address of the DLL and its full path on disk. To
+cross-reference this information (known as memory mapped files) with the 3 PEB
+lists, use the ldrmodules command.</p>
+<p>For each memory mapped PE file, the ldrmodules command prints True or False if
+the PE exists in the PEB lists.</p>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mi">17</span><span class="o">:</span><span class="mi">36</span><span class="o">&gt;</span> <span class="n">ldrmodules</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span>
+<span class="o">-------------------&gt;</span> <span class="n">ldrmodules</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span><span class="p">)</span>
+<span class="n">Pid</span>      <span class="n">Process</span>                   <span class="n">Base</span>      <span class="n">InLoad</span> <span class="n">InInit</span> <span class="n">InMem</span> <span class="n">MappedPath</span>
+<span class="o">--------</span> <span class="o">--------------------</span> <span class="o">--------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">-----</span> <span class="o">----------</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x0000753b0000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">KernelBase</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000000020000</span> <span class="n">True</span>  <span class="n">False</span> <span class="n">True</span>  <span class="err">\</span><span class="n">temp</span><span class="err">\</span><span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="n">exe</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000076c30000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">kernel32</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000074a40000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">cryptbase</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000074a50000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">sspicli</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000077010000</span> <span class="n">True</span>  <span class="n">True</span>  <span class="n">True</span>  <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000076f50000</span> <span class="n">True</span>  <span class="n">True</span>  <span class="n">True</span>  <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000076fa0000</span> <span class="n">True</span>  <span class="n">True</span>  <span class="n">True</span>  <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000075250000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">rpcrt4</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x7ff87f320000</span> <span class="n">True</span>  <span class="n">True</span>  <span class="n">True</span>  <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000077020000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x0000749e0000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">bcryptprimitives</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000074ff0000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">advapi32</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000076f10000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">sechost</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000074d80000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">msvcrt</span><span class="p">.</span><span class="n">dll</span>
+</pre></div>
 
+
+<p>Since the PEB and the DLL lists that it contains all exist in user mode, its
+also possible for malware to hide (or obscure) a DLL by simply overwriting the
+path. Tools that only look for unlinked entries may miss the fact that malware
+could overwrite <em>C:\bad.dll</em> to show <em>C:\windows\system32\kernel32.dll</em>. So you
+can also pass the <em>verbosity=10</em> parameter to ldrmodules to see the full path of
+all entries.</p>
+<p>For concrete examples, see <a href="http://blogs.mcafee.com/mcafee-labs/zeroaccess-misleads-memory-file-link">ZeroAccess Misleads Memory-File
+Link</a>
+and <a href="http://mnin.blogspot.com/2012/06/quickpost-flame-volatility.html">QuickPost: Flame &amp;
+Volatility</a>.</p>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mi">17</span><span class="o">:</span><span class="mi">41</span><span class="o">&gt;</span> <span class="n">ldrmodules</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="mi">10</span>
+<span class="o">-------------------&gt;</span> <span class="n">ldrmodules</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">Pid</span>      <span class="n">Process</span>                   <span class="n">Base</span>      <span class="n">InLoad</span> <span class="n">InInit</span> <span class="n">InMem</span> <span class="n">MappedPath</span>
+<span class="o">--------</span> <span class="o">--------------------</span> <span class="o">--------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">-----</span> <span class="o">----------</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x0000753b0000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">KernelBase</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000000020000</span> <span class="n">True</span>  <span class="n">False</span> <span class="n">True</span>  <span class="err">\</span><span class="n">temp</span><span class="err">\</span><span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="n">exe</span>
+  <span class="n">Load</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">temp</span><span class="err">\</span><span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="n">exe</span> <span class="o">:</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="n">exe</span>
+  <span class="n">Mem</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">temp</span><span class="err">\</span><span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="n">exe</span> <span class="o">:</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="n">exe</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000076c30000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">kernel32</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000074a40000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">cryptbase</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000074a50000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">sspicli</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000077010000</span> <span class="n">True</span>  <span class="n">True</span>  <span class="n">True</span>  <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Load</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Init</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Mem</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000076f50000</span> <span class="n">True</span>  <span class="n">True</span>  <span class="n">True</span>  <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Load</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SYSTEM32</span><span class="err">\</span><span class="n">wow64</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">wow64</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Init</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SYSTEM32</span><span class="err">\</span><span class="n">wow64</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">wow64</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Mem</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SYSTEM32</span><span class="err">\</span><span class="n">wow64</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">wow64</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000076fa0000</span> <span class="n">True</span>  <span class="n">True</span>  <span class="n">True</span>  <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Load</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Init</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Mem</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000075250000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">rpcrt4</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x7ff87f320000</span> <span class="n">True</span>  <span class="n">True</span>  <span class="n">True</span>  <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Load</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SYSTEM32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Init</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SYSTEM32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>
+  <span class="n">Mem</span> <span class="n">Path</span><span class="o">:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SYSTEM32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span> <span class="o">:</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000077020000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x0000749e0000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">bcryptprimitives</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000074ff0000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">advapi32</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000076f10000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">sechost</span><span class="p">.</span><span class="n">dll</span>
+<span class="mi">2628</span>     <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>       <span class="mh">0x000074d80000</span> <span class="n">False</span> <span class="n">False</span> <span class="n">False</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">msvcrt</span><span class="p">.</span><span class="n">dll</span>
+</pre></div>
+
+
+<h3>Notes</h3>
+<ol>
+<li>Wow64 processes (i.e. 32 bit processes on 64 bit windows) will not show any
+   32 bit DLLs in any of the loader lists. This is normal (and you will see the
+   Dlls loaded from the \Windows\Wow64 directory.</li>
+</ol>
 
   </div>
   <div class="span2 sidebar">

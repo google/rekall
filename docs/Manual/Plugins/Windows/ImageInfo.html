@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,39 @@ ript>
 </div>
 
 
+
+
 <a href="/epydocs/rekall.plugins.windows.misc.ImageInfo-class.html">View Source</a>
 
 
-
+<p>This plugin prints an overview of certain parameters of the image.</p>
+<h3>Notes</h3>
+<ol>
+<li>Since Rekall does not require users to select the profiles manually this
+   plugin is not required to be run prior to any analysis. In fact the plugin
+   itself needs to have accurate profiles loaded. It therefore does not server
+   the same purpose as in previous version of the software.</li>
+</ol>
+<h3>Sample output</h3>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">18</span><span class="o">:</span><span class="mo">00</span><span class="o">:</span><span class="mi">48</span><span class="o">&gt;</span> <span class="n">imageinfo</span>
+<span class="o">-------------------&gt;</span> <span class="n">imageinfo</span><span class="p">()</span>
+<span class="n">Fact</span>                 <span class="n">Value</span>
+<span class="o">--------------------</span> <span class="o">-----</span>
+<span class="n">Kernel</span> <span class="n">DTB</span>           <span class="mh">0x1a7000</span>
+<span class="n">NT</span> <span class="n">Build</span>             <span class="mf">9600.</span><span class="n">winblue_gdr</span><span class="mf">.130913</span><span class="o">-</span><span class="mi">2141</span>
+<span class="n">NT</span> <span class="n">Build</span> <span class="n">Ex</span>          <span class="mf">9600.16404</span><span class="p">.</span><span class="n">amd64fre</span><span class="p">.</span><span class="n">winblue_gdr</span><span class="mf">.130913</span><span class="o">-</span><span class="mi">2141</span>
+<span class="n">Signed</span> <span class="n">Drivers</span>       <span class="o">-</span>
+<span class="n">Time</span> <span class="p">(</span><span class="n">UTC</span><span class="p">)</span>           <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mo">05</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">Time</span> <span class="p">(</span><span class="n">Local</span><span class="p">)</span>         <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mo">05</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">Sec</span> <span class="n">Since</span> <span class="n">Boot</span>       <span class="mf">764.359375</span>
+<span class="n">NtSystemRoot</span>         <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span>
+<span class="o">****************</span> <span class="n">Physical</span> <span class="n">Layout</span> <span class="o">****************</span>
+<span class="n">Physical</span> <span class="n">Start</span>  <span class="n">Physical</span> <span class="n">End</span>  <span class="n">Number</span> <span class="n">of</span> <span class="n">Pages</span>
+<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">---------------</span>
+<span class="mh">0x000000001000</span> <span class="mh">0x00000009f000</span> <span class="mi">158</span>
+<span class="mh">0x000000100000</span> <span class="mh">0x000000102000</span> <span class="mi">2</span>
+<span class="mh">0x000000103000</span> <span class="mh">0x00003fff0000</span> <span class="mi">261869</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">

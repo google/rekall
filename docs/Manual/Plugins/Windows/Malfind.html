@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,138 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>dump_dir</td><td>Path suitable for dumping files. (Optional)</td></tr><tr><td>pid</td><td>One or more pids of processes to select.</td></tr><tr><td>eprocess</td><td>Kernel addresses of eprocess structs.</td></tr><tr><td>phys_eprocess</td><td>Physical addresses of eprocess structs.</td></tr><tr><td>proc_regex</td><td>A regex to select a process by name.</td></tr><tr><td>method</td><td>Method to list processes (Default uses all methods).</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.malware.malfind.Malfind-class.html">View Source</a>
 
 
+<p>The malfind command helps find hidden or injected code/DLLs in user mode memory,
+based on characteristics such as VAD tag and page permissions.</p>
+<p>Note: malfind does not detect DLLs injected into a process using
+<strong>CreateRemoteThread-&gt;LoadLibrary</strong>. DLLs injected with this technique are not
+hidden and thus you can view them with dlllist. The purpose of malfind is to
+locate DLLs that standard methods/tools do not see.</p>
+<p>Here is an example of using it to detect the presence of Zeus. The first memory
+segment (starting at 0x2aa0000) was detected because it is executable, marked as
+private (not shared between processes) and has a VadS tag&hellip; which means there
+is no memory mapped file already occupying the space. Based on a disassembly of
+the data found at this address, it seems to contain some API hook trampoline
+stubs.</p>
+<p>The second memory segment (starting at 0x3080000) was detected because it contained an executable that isn&rsquo;t listed in the PEB&rsquo;s module lists.</p>
+<p>If you want to save extracted copies of the memory segments identified by
+malfind, just supply an output directory with the <em>dump_dir</em> parameter. In this
+case, an unpacked copy of the Zeus binary that was injected into explorer.exe
+would be written to disk.</p>
+<div class="highlight"><pre><span class="n">zeus2x4</span><span class="p">.</span><span class="n">vmem</span> <span class="mi">22</span><span class="o">:</span><span class="mi">53</span><span class="o">:</span><span class="mi">43</span><span class="o">&gt;</span> <span class="n">malfind</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;explorer&quot;</span>
+<span class="o">---------------------&gt;</span> <span class="n">malfind</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;explorer&quot;</span><span class="p">)</span>
+<span class="o">**************************************************</span><span class="n">f</span> <span class="n">pid</span> <span class="mi">1752</span>
+<span class="nl">Process:</span> <span class="n">explorer</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">1752</span> <span class="n">Address</span><span class="o">:</span> <span class="mh">0x2aa0000</span>
+<span class="n">Vad</span> <span class="n">Tag</span><span class="o">:</span> <span class="n">VadS</span> <span class="n">Protection</span><span class="o">:</span> <span class="n">EXECUTE_READWRITE</span>
+<span class="nl">Flags:</span> <span class="n">CommitCharge</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">MemCommit</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">PrivateMemory</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Protection</span><span class="o">:</span> <span class="mi">6</span>
 
+ <span class="mh">0x2aa0000</span> <span class="n">b8</span> <span class="mi">35</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="n">e9</span> <span class="n">a9</span> <span class="n">d1</span> <span class="n">e6</span> <span class="mi">79</span> <span class="mi">68</span> <span class="mi">6</span><span class="n">c</span> <span class="mo">02</span> <span class="mo">00</span> <span class="mo">00</span> <span class="n">e9</span>  <span class="mf">.5</span><span class="p">.......</span><span class="n">yhl</span><span class="p">....</span>
+ <span class="mh">0x2aa0010</span> <span class="n">b4</span> <span class="mi">63</span> <span class="n">e7</span> <span class="mi">79</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ff</span> <span class="mi">55</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ec</span> <span class="n">e9</span> <span class="mi">7</span><span class="n">c</span> <span class="mi">11</span> <span class="n">d7</span> <span class="mi">79</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ff</span>  <span class="p">.</span><span class="n">c</span><span class="p">.</span><span class="n">y</span><span class="p">..</span><span class="n">U</span><span class="p">...</span><span class="o">|</span><span class="p">..</span><span class="n">y</span><span class="p">..</span>
+ <span class="mh">0x2aa0020</span> <span class="mi">55</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ec</span> <span class="n">e9</span> <span class="mo">01</span> <span class="mi">32</span> <span class="mi">77</span> <span class="mi">74</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ff</span> <span class="mi">55</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ec</span> <span class="n">e9</span> <span class="mi">7</span><span class="n">c</span> <span class="mi">60</span>  <span class="n">U</span><span class="p">...</span><span class="mf">.2</span><span class="n">wt</span><span class="p">..</span><span class="n">U</span><span class="p">...</span><span class="o">|</span><span class="err">`</span>
+ <span class="mh">0x2aa0030</span> <span class="mi">72</span> <span class="mi">74</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ff</span> <span class="mi">55</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ec</span> <span class="n">e9</span> <span class="n">ca</span> <span class="n">e9</span> <span class="mi">72</span> <span class="mi">74</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ff</span> <span class="mi">55</span> <span class="mi">8</span><span class="n">b</span>  <span class="n">rt</span><span class="p">..</span><span class="n">U</span><span class="p">.....</span><span class="n">rt</span><span class="p">..</span><span class="n">U</span><span class="p">.</span>
+
+<span class="mh">0x02aa0000</span>      <span class="n">b835000000</span>           <span class="n">MOV</span> <span class="n">EAX</span><span class="p">,</span> <span class="mh">0x35</span>
+<span class="mh">0x02aa0005</span>      <span class="n">e9a9d1e679</span>           <span class="n">JMP</span> <span class="mh">0x7c90d1b3</span>
+<span class="mh">0x02aa000a</span>      <span class="mi">686</span><span class="n">c020000</span>           <span class="n">PUSH</span> <span class="n">DWORD</span> <span class="mh">0x26c</span>
+<span class="mh">0x02aa000f</span>      <span class="n">e9b463e779</span>           <span class="n">JMP</span> <span class="mh">0x7c9163c8</span>
+<span class="mh">0x02aa0014</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0016</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0017</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0019</span>      <span class="n">e97c11d779</span>           <span class="n">JMP</span> <span class="mh">0x7c81119a</span>
+<span class="mh">0x02aa001e</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0020</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0021</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0023</span>      <span class="n">e901327774</span>           <span class="n">JMP</span> <span class="mh">0x77213229</span>
+<span class="mh">0x02aa0028</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa002a</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa002b</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa002d</span>      <span class="n">e97c607274</span>           <span class="n">JMP</span> <span class="mh">0x771c60ae</span>
+<span class="mh">0x02aa0032</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0034</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0035</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0037</span>      <span class="n">e9cae97274</span>           <span class="n">JMP</span> <span class="mh">0x771cea06</span>
+<span class="mh">0x02aa003c</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa003e</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa003f</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0041</span>      <span class="n">e9e8327774</span>           <span class="n">JMP</span> <span class="mh">0x7721332e</span>
+<span class="mh">0x02aa0046</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0048</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0049</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa004b</span>      <span class="n">e9494d7274</span>           <span class="n">JMP</span> <span class="mh">0x771c4d99</span>
+<span class="mh">0x02aa0050</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0052</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0053</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0055</span>      <span class="n">e99d827274</span>           <span class="n">JMP</span> <span class="mh">0x771c82f7</span>
+<span class="mh">0x02aa005a</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa005c</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa005d</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa005f</span>      <span class="n">e9ef927574</span>           <span class="n">JMP</span> <span class="mh">0x771f9353</span>
+<span class="mh">0x02aa0064</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0066</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0067</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0069</span>      <span class="n">e9fe897374</span>           <span class="n">JMP</span> <span class="mh">0x771d8a6c</span>
+<span class="mh">0x02aa006e</span>      <span class="mi">6</span><span class="n">a2c</span>                 <span class="n">PUSH</span> <span class="mh">0x2c</span>
+<span class="mh">0x02aa0070</span>      <span class="mi">68187</span><span class="n">b1c77</span>           <span class="n">PUSH</span> <span class="n">DWORD</span> <span class="mh">0x771c7b18</span>
+<span class="mh">0x02aa0075</span>      <span class="n">e957797274</span>           <span class="n">JMP</span> <span class="mh">0x771c79d1</span>
+<span class="mh">0x02aa007a</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa007c</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa007d</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa007f</span>      <span class="n">e9ac3d016f</span>           <span class="n">JMP</span> <span class="mh">0x71ab3e30</span>
+<span class="mh">0x02aa0084</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0086</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0087</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0089</span>      <span class="n">e99e4b016f</span>           <span class="n">JMP</span> <span class="mh">0x71ab4c2c</span>
+<span class="mh">0x02aa008e</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0090</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0091</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0093</span>      <span class="n">e96768016f</span>           <span class="n">JMP</span> <span class="mh">0x71ab68ff</span>
+<span class="mh">0x02aa0098</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa009a</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa009b</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa009d</span>      <span class="n">e9598b977b</span>           <span class="n">JMP</span> <span class="mh">0x7e418bfb</span>
+<span class="mh">0x02aa00a2</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa00a4</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa00a5</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa00a7</span>      <span class="n">e9130d997b</span>           <span class="n">JMP</span> <span class="mh">0x7e430dbf</span>
+<span class="mh">0x02aa00ac</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa00ae</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="o">**************************************************</span>
+<span class="nl">Process:</span> <span class="n">explorer</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">1752</span> <span class="n">Address</span><span class="o">:</span> <span class="mh">0x3080000</span>
+<span class="n">Vad</span> <span class="n">Tag</span><span class="o">:</span> <span class="n">VadS</span> <span class="n">Protection</span><span class="o">:</span> <span class="n">EXECUTE_READWRITE</span>
+<span class="nl">Flags:</span> <span class="n">CommitCharge</span><span class="o">:</span> <span class="mi">52</span><span class="p">,</span> <span class="n">MemCommit</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">PrivateMemory</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Protection</span><span class="o">:</span> <span class="mi">6</span>
+
+ <span class="mh">0x3080000</span> <span class="mi">4</span><span class="n">d</span> <span class="mi">5</span><span class="n">a</span> <span class="mi">90</span> <span class="mo">00</span> <span class="mo">03</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">04</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="n">ff</span> <span class="n">ff</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="n">MZ</span><span class="p">..............</span>
+ <span class="mh">0x3080010</span> <span class="n">b8</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="p">........</span><span class="err">@</span><span class="p">.......</span>
+ <span class="mh">0x3080020</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="p">................</span>
+ <span class="mh">0x3080030</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="n">c0</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="p">................</span>
+
+<span class="mh">0x03080000</span>      <span class="mi">4</span><span class="n">d</span>                   <span class="n">DEC</span> <span class="n">EBP</span>
+<span class="mh">0x03080001</span>      <span class="mi">5</span><span class="n">a</span>                   <span class="n">POP</span> <span class="n">EDX</span>
+<span class="mh">0x03080002</span>      <span class="mi">90</span>                   <span class="n">NOP</span>
+<span class="mh">0x03080003</span>      <span class="mo">0003</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EBX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x03080005</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x03080007</span>      <span class="mo">000400</span>               <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="o">+</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x0308000a</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x0308000c</span>      <span class="n">ff</span>                   <span class="n">DB</span> <span class="mh">0xff</span>
+<span class="mh">0x0308000d</span>      <span class="n">ff00</span>                 <span class="n">INC</span> <span class="n">DWORD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">]</span>
+<span class="mh">0x0308000f</span>      <span class="mo">00</span><span class="n">b800000000</span>         <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="o">+</span><span class="mh">0x0</span><span class="p">],</span> <span class="n">BH</span>
+<span class="mh">0x03080015</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x03080017</span>      <span class="mo">004000</span>               <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="o">+</span><span class="mh">0x0</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x0308001a</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x0308001c</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x0308001e</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">

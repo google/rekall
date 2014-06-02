@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,39 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>verbosity</td><td>Resolve sids to users, services etc.</td></tr><tr><td>hive_offsets</td><td>A list of hive offsets as found by hivelist. If not provided we call hivescan ourselves and list the keys on all hives.</td></tr><tr><td>hive_regex</td><td>A regex to filter hive names.If not provided we use all hives.</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html">View Source</a>
 
 
-
+<p>The evtlogs command extracts and parses binary event logs from memory. Binary
+event logs are found on Windows XP and 2003 machines, therefore this plugin only
+works on these architectures. These files are extracted from VAD of the
+services.exe process, parsed and shown as output.</p>
+<h3>Notes</h3>
+<ol>
+<li>This plugin will only work on Windows XP/2003. Modern windows systems use
+   evtx event log format. We are still working on supporting these logs.</li>
+</ol>
+<h3>Sample output</h3>
+<div class="highlight"><pre><span class="n">xp</span><span class="o">-</span><span class="n">laptop</span><span class="o">-</span><span class="mi">2005</span><span class="o">-</span><span class="mo">06</span><span class="o">-</span><span class="mf">25.</span><span class="n">img</span> <span class="mi">16</span><span class="o">:</span><span class="mi">43</span><span class="o">:</span><span class="mi">19</span><span class="o">&gt;</span> <span class="n">evtlogs</span>
+<span class="o">---------------------------------&gt;</span> <span class="n">evtlogs</span><span class="p">()</span>
+<span class="n">TimeWritten</span> <span class="n">Filename</span> <span class="n">Computer</span> <span class="n">Sid</span> <span class="n">Source</span> <span class="n">Event</span> <span class="n">Id</span> <span class="n">Event</span> <span class="n">Type</span> <span class="n">Message</span>
+<span class="o">-----------</span> <span class="o">--------</span> <span class="o">--------</span> <span class="o">---</span> <span class="o">------</span> <span class="o">--------</span> <span class="o">----------</span> <span class="o">-------</span>
+<span class="mi">2004</span><span class="o">-</span><span class="mo">05</span><span class="o">-</span><span class="mo">05</span> <span class="mi">19</span><span class="o">:</span><span class="mi">36</span><span class="o">:</span><span class="mi">55</span><span class="o">+</span><span class="mo">0000</span> <span class="n">SecEvent</span><span class="p">.</span><span class="n">Evt</span> <span class="n">MOIT</span><span class="o">-</span><span class="n">A</span><span class="o">-</span><span class="n">PHXMOD2</span> <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">18</span> <span class="n">Security</span> <span class="mi">612</span> <span class="n">Success</span> <span class="sc">&#39;-&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;-&#39;</span><span class="p">;</span><span class="sc">&#39;-&#39;</span><span class="p">;</span><span class="sc">&#39;-&#39;</span><span class="p">;</span><span class="sc">&#39;-&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="sc">&#39;+&#39;</span><span class="p">;</span><span class="err">&#39;</span><span class="n">MOIT</span><span class="o">-</span><span class="n">A</span><span class="o">-</span><span class="n">PHXMOD2</span><span class="err">$</span><span class="sc">&#39;;&#39;</span><span class="n">BALTIMORE</span><span class="sc">&#39;;&#39;</span><span class="p">(</span><span class="mh">0x0</span><span class="p">,</span><span class="mh">0x3E7</span><span class="p">)</span><span class="err">&#39;</span>
+<span class="mi">2004</span><span class="o">-</span><span class="mo">05</span><span class="o">-</span><span class="mo">05</span> <span class="mi">19</span><span class="o">:</span><span class="mi">36</span><span class="o">:</span><span class="mi">56</span><span class="o">+</span><span class="mo">0000</span> <span class="n">SecEvent</span><span class="p">.</span><span class="n">Evt</span> <span class="n">MOIT</span><span class="o">-</span><span class="n">A</span><span class="o">-</span><span class="n">PHXMOD2</span> <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">18</span> <span class="n">Security</span> <span class="mi">618</span> <span class="n">Success</span> <span class="err">&#39;</span><span class="n">MOIT</span><span class="o">-</span><span class="n">A</span><span class="o">-</span><span class="n">PHXMOD2</span><span class="err">$</span><span class="sc">&#39;;&#39;</span><span class="n">BALTIMORE</span><span class="sc">&#39;;&#39;</span><span class="p">(</span><span class="mh">0x0</span><span class="p">,</span><span class="mh">0x3E7</span><span class="p">)</span><span class="sc">&#39;;&#39;</span><span class="n">PolEfDat</span><span class="o">:</span> <span class="o">&lt;</span><span class="n">binary</span> <span class="n">data</span><span class="o">&gt;</span> <span class="p">(</span><span class="n">none</span><span class="p">);</span>  <span class="err">&#39;</span>
+<span class="mi">2004</span><span class="o">-</span><span class="mo">05</span><span class="o">-</span><span class="mo">05</span> <span class="mi">19</span><span class="o">:</span><span class="mi">37</span><span class="o">:</span><span class="mo">03</span><span class="o">+</span><span class="mo">0000</span> <span class="n">SecEvent</span><span class="p">.</span><span class="n">Evt</span> <span class="n">MOIT</span><span class="o">-</span><span class="n">A</span><span class="o">-</span><span class="n">PHXMOD2</span> <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">18</span> <span class="n">Security</span> <span class="mi">537</span> <span class="n">Failure</span> <span class="err">&#39;</span><span class="n">AJ</span><span class="p">.</span><span class="n">Morning</span><span class="sc">&#39;;&#39;</span><span class="n">BALTIMORE</span><span class="sc">&#39;;&#39;</span><span class="mi">11</span><span class="sc">&#39;;&#39;</span><span class="n">User32</span>  <span class="sc">&#39;;&#39;</span><span class="n">Negotiate</span><span class="sc">&#39;;&#39;</span><span class="n">MOIT</span><span class="o">-</span><span class="n">A</span><span class="o">-</span><span class="n">PHXMOD2</span><span class="sc">&#39;;&#39;</span><span class="mh">0xC000005E</span><span class="sc">&#39;;&#39;</span><span class="mh">0x0</span><span class="err">&#39;</span>
+<span class="mi">2004</span><span class="o">-</span><span class="mo">05</span><span class="o">-</span><span class="mo">05</span> <span class="mi">19</span><span class="o">:</span><span class="mi">37</span><span class="o">:</span><span class="mo">03</span><span class="o">+</span><span class="mo">0000</span> <span class="n">SecEvent</span><span class="p">.</span><span class="n">Evt</span> <span class="n">MOIT</span><span class="o">-</span><span class="n">A</span><span class="o">-</span><span class="n">PHXMOD2</span> <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">21</span><span class="o">-</span><span class="mi">487349131</span><span class="o">-</span><span class="mi">2095749132</span><span class="o">-</span><span class="mi">2248483902</span><span class="o">-</span><span class="mi">19753</span> <span class="n">Security</span> <span class="mi">528</span> <span class="n">Success</span> <span class="err">&#39;</span><span class="n">AJ</span><span class="p">.</span><span class="n">Morning</span><span class="sc">&#39;;&#39;</span><span class="n">BALTIMORE</span><span class="sc">&#39;;&#39;</span><span class="p">(</span><span class="mh">0x0</span><span class="p">,</span><span class="mh">0x113AD</span><span class="p">)</span><span class="sc">&#39;;&#39;</span><span class="mi">2</span><span class="sc">&#39;;&#39;</span><span class="n">User32</span>  <span class="sc">&#39;;&#39;</span><span class="n">Negotiate</span><span class="sc">&#39;;&#39;</span><span class="n">MOIT</span><span class="o">-</span><span class="n">A</span><span class="o">-</span><span class="n">PHXMOD2</span><span class="sc">&#39;;&#39;</span><span class="p">{</span><span class="mi">5</span><span class="n">c92d34f</span><span class="o">-</span><span class="mi">85</span><span class="n">d3</span><span class="o">-</span><span class="mf">2f</span><span class="mi">5</span><span class="n">d</span><span class="o">-</span><span class="n">d036</span><span class="o">-</span><span class="mi">759</span><span class="n">d7c97bfd7</span><span class="p">}</span><span class="err">&#39;</span>
+<span class="mi">2004</span><span class="o">-</span><span class="mo">05</span><span class="o">-</span><span class="mo">05</span> <span class="mi">19</span><span class="o">:</span><span class="mi">37</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="n">SecEvent</span><span class="p">.</span><span class="n">Evt</span> <span class="n">MOIT</span><span class="o">-</span><span class="n">A</span><span class="o">-</span><span class="n">PHXMOD2</span> <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">19</span> <span class="n">Security</span> <span class="mi">528</span> <span class="n">Success</span> <span class="err">&#39;</span><span class="n">LOCAL</span> <span class="n">SERVICE</span><span class="sc">&#39;;&#39;</span><span class="n">NT</span> <span class="n">AUTHORITY</span><span class="sc">&#39;;&#39;</span><span class="p">(</span><span class="mh">0x0</span><span class="p">,</span><span class="mh">0x3E5</span><span class="p">)</span><span class="sc">&#39;;&#39;</span><span class="mi">5</span><span class="sc">&#39;;&#39;</span><span class="n">Advapi</span>  <span class="sc">&#39;;&#39;</span><span class="n">Negotiate</span><span class="sc">&#39;;&#39;&#39;;&#39;</span><span class="p">{</span><span class="mo">00000000</span><span class="o">-</span><span class="mo">0000</span><span class="o">-</span><span class="mo">0000</span><span class="o">-</span><span class="mo">0000</span><span class="o">-</span><span class="mo">000000000000</span><span class="p">}</span><span class="err">&#39;</span>
+<span class="mi">2004</span><span class="o">-</span><span class="mo">05</span><span class="o">-</span><span class="mo">05</span> <span class="mi">19</span><span class="o">:</span><span class="mi">37</span><span class="o">:</span><span class="mi">33</span><span class="o">+</span><span class="mo">0000</span> <span class="n">SecEvent</span><span class="p">.</span><span class="n">Evt</span> <span class="n">MOIT</span><span class="o">-</span><span class="n">A</span><span class="o">-</span><span class="n">PHXMOD2</span> <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">21</span><span class="o">-</span><span class="mi">487349131</span><span class="o">-</span><span class="mi">2095749132</span><span class="o">-</span><span class="mi">2248483902</span><span class="o">-</span><span class="mi">19753</span> <span class="n">Security</span> <span class="mi">596</span> <span class="n">Failure</span> <span class="err">&#39;</span><span class="mi">619</span><span class="n">be804</span><span class="o">-</span><span class="n">cde6</span><span class="o">-</span><span class="mf">484f</span><span class="o">-</span><span class="n">aff4</span><span class="o">-</span><span class="mi">2</span><span class="n">a5e588d6eef</span><span class="sc">&#39;;&#39;&#39;;&#39;&#39;;&#39;</span><span class="mh">0x57</span><span class="err">&#39;</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">

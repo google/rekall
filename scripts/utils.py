@@ -1,3 +1,4 @@
+import collections
 import functools
 import logging
 import markdown
@@ -5,6 +6,12 @@ import os
 import re
 import subprocess
 import yaml
+
+def dict_constructor(loader, node):
+    return collections.OrderedDict(loader.construct_pairs(node))
+
+yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+                     dict_constructor)
 
 SEPERATOR = "\n---\n"
 MARKDOWN_EXTENSIONS = [".md", ".markdown"]
@@ -120,12 +127,12 @@ def ParsePage(filename):
     except (OSError, IOError):
         return None
 
-    match = re.match("^---\n(.*?)---\n(.*)", text, re.S | re.M)
+    match = re.match("^---(.*?)\n---\n(.*)", text, re.S | re.M)
     if not match:
         return None
 
     try:
-        metadata = Page(yaml.safe_load(match.group(1)) or {})
+        metadata = Page(yaml.load(match.group(1)) or {})
     except ValueError:
         logging.warning("Invalid page %s" % filename)
         return None

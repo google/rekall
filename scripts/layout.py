@@ -1,3 +1,5 @@
+
+
 import os
 import sha
 import utils
@@ -89,7 +91,7 @@ def blog_nav(page=None):
     result = ""
     for _, post in items[:5]:
         result += """
-  <ul>
+  <ul class="nav nav-list">
     <div class="row-fluid">
       <div class="span12">
         <h2>{post.title}</h2>
@@ -158,7 +160,7 @@ def _render_categories(path):
 </li>"""
 
     if result:
-        return "<ul>%s</ul>" % result
+        return "<ul class='nav nav-list'>%s</ul>" % result
 
 
 def categories(page=None, path=None):
@@ -233,6 +235,23 @@ def plugin(page=None):
 <a href="/epydocs/{page.epydoc}">View Source</a>
 """.format(page=page)
 
+    # Render the args in a table.
+    table = ""
+    if page.args:
+        table = """
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+"""
+
+        for arg, arg_doc in page.args.items():
+            table += "<tr><td>{arg}</td><td>{arg_doc}</td></tr>".format(
+                arg=arg, arg_doc=arg_doc)
+        table += """
+</tbody>
+</table>
+"""
+
     page.content = u"""
 <h1>{page.title}</h1>
 
@@ -240,10 +259,12 @@ def plugin(page=None):
 {page.html_abstract}
 </div>
 
+{table}
+
 {page.epydoc_link}
 
 {page.content}
-""".format(page=page)
+""".format(page=page, table=table)
 
     plugin_path = os.path.dirname(page.url)
     page.navigator = _MakeNavigatorForPlugin(plugin_path)
@@ -266,8 +287,13 @@ def downloads(page=None):
         result += "<h3>{0}</h3><div>".format(subpage.title)
         result += subpage.content
 
-        result += ("<table><tr><th></th><th>Name</th><th>SHA1</th><th>Size</th>"
-                   "</tr>")
+        result += """
+<table class="table table-striped table-bordered table-hover">
+<thead>
+<tr><th></th><th>Name</th><th>SHA1</th><th>Size</th></tr>
+</thead>
+<tbody>
+"""
 
         for name in sorted(files):
             if name in readme_files or "html" in name:
@@ -285,7 +311,7 @@ def downloads(page=None):
 """.format(url=path, name=name, sha=sha_hash,
            size=os.stat(path).st_size)
 
-        result += "</table>"
+        result += "</tbody></table>"
         result += "</div>"
 
     result += """</div>

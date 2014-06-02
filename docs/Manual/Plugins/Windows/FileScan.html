@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,73 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>address_space</td><td></td></tr><tr><td>scan_in_kernel</td><td>Scan in the kernel address space</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.filescan.FileScan-class.html">View Source</a>
 
 
-
+<p>To find FILE_OBJECTs in physical memory using pool tag scanning, use the
+filescan command. This will find open files even if a rootkit is hiding the
+files on disk and if the rootkit hooks some API functions to hide the open
+handles on a live system.</p>
+<p>The plugin also resolves back the <strong>_FILE_OBJECT</strong> into the ownning
+process. This works only if the <strong>_FILE_OBJECT</strong> is actually in use (it does not
+work for closed files).</p>
+<h3>Notes</h3>
+<ol>
+<li>
+<p>Like other pool scanning plugins, this plugin may produce false positives
+   since it essentially carves <strong>_FILE_OBJECT</strong> structures out of memory. On the
+   other hand, this plugin may reveal files which have been closed or freed.</p>
+</li>
+<li>
+<p>When inspecting the output, the <strong>#Hnd</strong> column indicates the number of
+   handles to this <strong>_FILE_OBJECT</strong>.  Objects in use will have a non zero value
+   here and are likely to not be freed.</p>
+</li>
+<li>
+<p>The plugin displays the physical address of the <strong>_FILE_OBJECT</strong> found. It
+   may be possible to derive their virtual address using the <a href="PtoV.html">ptov</a>
+   plugin. Alternatively, specify the <em>scan_in_kernel</em> option, to ensure
+   scanning occurs in the kernel address space.</p>
+</li>
+</ol>
+<h3>Sample output</h3>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">16</span><span class="o">:</span><span class="mi">55</span><span class="o">:</span><span class="mi">44</span><span class="o">&gt;</span> <span class="n">filescan</span> <span class="n">scan_in_kernel</span><span class="o">=</span><span class="n">True</span>
+<span class="o">-------------------&gt;</span> <span class="n">filescan</span><span class="p">(</span><span class="n">scan_in_kernel</span><span class="o">=</span><span class="n">True</span><span class="p">)</span>
+      <span class="n">Offset</span>       <span class="err">#</span><span class="n">Ptr</span> <span class="err">#</span><span class="n">Hnd</span> <span class="n">Access</span>     <span class="n">Owner</span>      <span class="n">Owner</span> <span class="n">Pid</span> <span class="n">Owner</span> <span class="n">Name</span>       <span class="n">Name</span>
+<span class="o">-</span> <span class="o">--------------</span> <span class="o">------</span> <span class="o">----</span> <span class="o">------</span> <span class="o">--------------</span> <span class="o">---------</span> <span class="o">----------------</span> <span class="o">----</span>
+  <span class="mh">0xe000000421e0</span>     <span class="mi">17</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">Directory</span>
+  <span class="mh">0xe00000057d70</span>     <span class="mi">14</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">AuthBroker</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe000000599d0</span>  <span class="mi">32758</span>   <span class="mi">1</span> <span class="n">R</span><span class="o">--</span><span class="n">rw</span><span class="o">-</span> <span class="mh">0xe00000074580</span>    <span class="mi">4</span> <span class="n">System</span>           <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">CSC</span><span class="err">\</span><span class="n">v2</span><span class="mf">.0.6</span>
+  <span class="mh">0xe000000686e0</span>     <span class="mi">19</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">Directory</span>
+  <span class="mh">0xe0000006a1f0</span>     <span class="mi">19</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">Directory</span>
+  <span class="mh">0xe0000006b5a0</span>     <span class="mi">16</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">Fonts</span><span class="err">\</span><span class="n">modern</span><span class="p">.</span><span class="n">fon</span>
+  <span class="mh">0xe0000006d8c0</span>      <span class="mi">4</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">negoexts</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe0000006dc40</span>     <span class="mi">16</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">--</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">Fonts</span><span class="err">\</span><span class="n">meiryob</span><span class="p">.</span><span class="n">ttc</span>
+  <span class="mh">0xe0000006e1f0</span>  <span class="mi">29617</span>   <span class="mi">1</span> <span class="o">------</span> <span class="mh">0xe0000204a900</span> <span class="mi">2628</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>   <span class="err">\</span><span class="n">Connect</span>
+  <span class="mh">0xe0000006edd0</span>     <span class="mi">16</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">msctf</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe00000079270</span>     <span class="mi">16</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">--</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">Cursors</span><span class="err">\</span><span class="n">aero_up</span><span class="p">.</span><span class="n">cur</span>
+  <span class="mh">0xe0000007abc0</span>     <span class="mi">12</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">puiobj</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe0000007ba90</span>     <span class="mi">18</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">Directory</span>
+  <span class="mh">0xe0000007e070</span>      <span class="mi">3</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">--</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">Fonts</span><span class="err">\</span><span class="n">segoeui</span><span class="p">.</span><span class="n">ttf</span>
+  <span class="mh">0xe0000007e360</span>      <span class="mi">4</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">ConvertToNonresident</span>
+  <span class="mh">0xe0000007e890</span>      <span class="mi">7</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">usbmon</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe0000007f360</span>  <span class="mi">32768</span>   <span class="mi">1</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="mh">0xe000000ce080</span>  <span class="mi">432</span> <span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">en</span><span class="o">-</span><span class="n">GB</span><span class="err">\</span><span class="n">user32</span><span class="p">.</span><span class="n">dll</span><span class="p">.</span><span class="n">mui</span>
+  <span class="mh">0xe0000007f980</span>      <span class="mi">4</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">KBDUK</span><span class="p">.</span><span class="n">DLL</span>
+  <span class="mh">0xe000000b1d90</span>     <span class="mi">17</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">Directory</span>
+  <span class="mh">0xe000000b1f20</span>      <span class="mi">5</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">AppXDeploymentServer</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe000000b4610</span>     <span class="mi">12</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">winmmbase</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe000000b6820</span>      <span class="mi">1</span>   <span class="mi">1</span> <span class="n">RWD</span><span class="o">---</span> <span class="mh">0xe00000074580</span>    <span class="mi">4</span> <span class="n">System</span>           <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">config</span><span class="err">\</span><span class="n">RegBack</span><span class="err">\</span><span class="n">SECURITY</span>
+  <span class="mh">0xe000000b6a50</span>  <span class="mi">32766</span>   <span class="mi">1</span> <span class="n">RW</span><span class="o">----</span> <span class="mh">0xe00000074580</span>    <span class="mi">4</span> <span class="n">System</span>           <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">config</span><span class="err">\</span><span class="n">SECURITY</span><span class="p">.</span><span class="n">LOG2</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">

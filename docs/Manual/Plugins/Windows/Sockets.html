@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -370,21 +373,27 @@ ript>
 
 <div class="abstract">
 <h2>Print list of open sockets. [Windows xp only]</h2>
+<p>This module enumerates the active sockets from tcpip.sys</p>
+<p>Note that if you are using a hibernated image this might not work
+because Windows closes all sockets before hibernating.</p>
+<p>_ADDRESS_OBJECT are arranged in a hash table found by the _AddrObjTable
+symbol. The hash table has a size found by the _AddrObjTableSize symbol.</p>
 </div>
 
 
-
-<div class="highlight"><pre><span class="n">This</span> <span class="n">module</span> <span class="n">enumerates</span> <span class="n">the</span> <span class="n">active</span> <span class="n">sockets</span> <span class="n">from</span> <span class="n">tcpip</span><span class="p">.</span><span class="n">sys</span>
-
-<span class="n">Note</span> <span class="n">that</span> <span class="k">if</span> <span class="n">you</span> <span class="n">are</span> <span class="n">using</span> <span class="n">a</span> <span class="n">hibernated</span> <span class="n">image</span> <span class="n">this</span> <span class="n">might</span> <span class="n">not</span> <span class="n">work</span>
-<span class="n">because</span> <span class="n">Windows</span> <span class="n">closes</span> <span class="n">all</span> <span class="n">sockets</span> <span class="n">before</span> <span class="n">hibernating</span><span class="p">.</span>
-
-<span class="n">_ADDRESS_OBJECT</span> <span class="n">are</span> <span class="n">arranged</span> <span class="n">in</span> <span class="n">a</span> <span class="n">hash</span> <span class="n">table</span> <span class="n">found</span> <span class="n">by</span> <span class="n">the</span> <span class="n">_AddrObjTable</span>
-<span class="n">symbol</span><span class="p">.</span> <span class="n">The</span> <span class="n">hash</span> <span class="n">table</span> <span class="n">has</span> <span class="n">a</span> <span class="n">size</span> <span class="n">found</span> <span class="n">by</span> <span class="n">the</span> <span class="n">_AddrObjTableSize</span> <span class="n">symbol</span><span class="p">.</span>
-</pre></div>
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>tcpip_guid</td><td>Force this profile to be used for tcpip.</td></tr>
+</tbody>
+</table>
 
 
-<h2>epydoc: rekall.plugins.windows.connections.Sockets-class.html</h2>
+
+<a href="/epydocs/rekall.plugins.windows.connections.Sockets-class.html">View Source</a>
+
+
+
 
   </div>
   <div class="span2 sidebar">

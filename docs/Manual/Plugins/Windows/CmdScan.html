@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,103 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>max_history</td><td>Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize for default.</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html">View Source</a>
 
 
+<p>The cmdscan plugin searches the memory of csrss.exe on XP/2003/Vista/2008 and
+conhost.exe on Windows 7 for commands that attackers entered through a console
+shell (cmd.exe). This is one of the most powerful commands you can use to gain
+visibility into an attackers actions on a victim system, whether they opened
+cmd.exe through an RDP session or proxied input/output to a command shell from a
+networked backdoor.</p>
+<p>This plugin finds structures known as <strong>COMMAND_HISTORY</strong> by looking for a known
+constant value (<strong>MaxHistory</strong>) and then applying sanity checks. It is important
+to note that the <strong>MaxHistory</strong> value can be changed by right clicking in the
+top left of a cmd.exe window and going to Properties. The value can also be
+changed for all consoles opened by a given user by modifying the registry key
+HKCU\Console\HistoryBufferSize. The default is 50 on Windows systems, meaning
+the most recent 50 commands are saved. You can tweak it if needed by using the
+&ndash;max_history=NUMBER parameter.</p>
+<p>The structures used by this plugin are not public (i.e. Microsoft does not
+produce PDBs for them), thus they&rsquo;re not available in WinDBG or any other
+forensic framework. They were reverse engineered by Michael Ligh from the
+conhost.exe and winsrv.dll binaries.</p>
+<p>In addition to the commands entered into a shell, this plugin shows:</p>
+<ul>
+<li>
+<p>The name of the console host process (csrss.exe or conhost.exe)</p>
+</li>
+<li>
+<p>The name of the application using the console (whatever process is using cmd.exe)</p>
+</li>
+<li>
+<p>The location of the command history buffers, including the current buffer count, last added command, and last displayed command</p>
+</li>
+<li>
+<p>The application process handle</p>
+</li>
+</ul>
+<p>Due to the scanning technique this plugin uses, it has the capability to find
+commands from both active and closed consoles.</p>
+<h3>Notes</h3>
+<p>This plugin is pretty fragile since it relies on reversed structures in
+undocumented code. We are working on improving the situation here but there is a
+moderate chance that it will produce no results or garbage results.</p>
+<h3>Sample Output</h3>
+<p>The following showing an operator using the winpmem acquisition tool to analyse
+the live memory of a Windows 7 machine.</p>
+<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">22</span><span class="o">:</span><span class="mi">15</span><span class="o">:</span><span class="mi">39</span><span class="o">&gt;</span> <span class="n">cmdscan</span>
+<span class="o">-----------------&gt;</span> <span class="n">cmdscan</span><span class="p">()</span>
+<span class="o">**************************************************</span>
+<span class="nl">CommandProcess:</span> <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">2652</span>
+<span class="nl">CommandHistory:</span> <span class="mh">0x7ea40</span> <span class="n">Application</span><span class="o">:</span> <span class="n">cmd</span><span class="p">.</span><span class="n">exe</span> <span class="n">Flags</span><span class="o">:</span> <span class="n">Allocated</span><span class="p">,</span> <span class="n">Reset</span>
+<span class="nl">CommandCount:</span> <span class="mi">3</span> <span class="n">LastAdded</span><span class="o">:</span> <span class="mi">2</span> <span class="n">LastDisplayed</span><span class="o">:</span> <span class="mi">2</span>
+<span class="nl">FirstCommand:</span> <span class="mi">0</span> <span class="n">CommandCountMax</span><span class="o">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle:</span> <span class="mh">0x5c</span>
+<span class="n">Cmd</span>    <span class="n">Address</span>     <span class="n">Text</span>
+<span class="o">---</span> <span class="o">--------------</span> <span class="o">--------------------------------------------------</span>
+  <span class="mi">0</span> <span class="mh">0x00000005ea70</span> <span class="n">cd</span> <span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">a</span><span class="err">\</span><span class="n">Desktop</span>
+  <span class="mi">1</span> <span class="mh">0x00000005b920</span> <span class="n">winpmem_1</span><span class="mf">.1</span><span class="o">-</span><span class="n">write</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">w</span> <span class="o">-</span><span class="n">l</span>
+  <span class="mi">2</span> <span class="mh">0x0000000b3e70</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="o">--</span><span class="n">profile</span> <span class="n">Win7SP1x64</span> <span class="o">--</span><span class="n">file</span> <span class="err">\\</span><span class="p">.</span><span class="err">\</span><span class="n">pmem</span>
+ <span class="mi">15</span> <span class="mh">0x000000040158</span>
+ <span class="mi">16</span> <span class="mh">0x00000007d3b0</span>
 
+<span class="o">**************************************************</span>
+<span class="nl">CommandProcess:</span> <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">2652</span>
+<span class="nl">CommandHistory:</span> <span class="mh">0xb40c0</span> <span class="n">Application</span><span class="o">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="n">Flags</span><span class="o">:</span> <span class="n">Allocated</span>
+<span class="nl">CommandCount:</span> <span class="mi">0</span> <span class="n">LastAdded</span><span class="o">:</span> <span class="o">-</span><span class="mi">1</span> <span class="n">LastDisplayed</span><span class="o">:</span> <span class="o">-</span><span class="mi">1</span>
+<span class="nl">FirstCommand:</span> <span class="mi">0</span> <span class="n">CommandCountMax</span><span class="o">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle:</span> <span class="mh">0xd4</span>
+<span class="n">Cmd</span>    <span class="n">Address</span>     <span class="n">Text</span>
+<span class="o">---</span> <span class="o">--------------</span> <span class="o">--------------------------------------------------</span>
+  <span class="mi">0</span> <span class="mh">0x0000001f77e0</span>
+  <span class="mi">3</span> <span class="mh">0x000000060ef0</span>
+  <span class="mi">5</span> <span class="mh">0x0000001f77e0</span>
+  <span class="mi">8</span> <span class="mh">0x000000060ef0</span>
+ <span class="mi">10</span> <span class="mh">0x0000001f77e0</span>
+ <span class="mi">13</span> <span class="mh">0x0000ffd96238</span>
+ <span class="mi">14</span> <span class="mh">0x00000007ec20</span>
+ <span class="mi">15</span> <span class="mh">0x0000001f7720</span>
+ <span class="mi">23</span> <span class="mh">0x0000000610a0</span>
+ <span class="mi">24</span> <span class="mh">0x0000000974e0</span>
+<span class="o">**************************************************</span>
+<span class="nl">CommandProcess:</span> <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">2652</span>
+<span class="nl">CommandHistory:</span> <span class="mh">0xb4410</span> <span class="n">Application</span><span class="o">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="n">Flags</span><span class="o">:</span> <span class="n">Allocated</span>
+<span class="nl">CommandCount:</span> <span class="mi">0</span> <span class="n">LastAdded</span><span class="o">:</span> <span class="o">-</span><span class="mi">1</span> <span class="n">LastDisplayed</span><span class="o">:</span> <span class="o">-</span><span class="mi">1</span>
+<span class="nl">FirstCommand:</span> <span class="mi">0</span> <span class="n">CommandCountMax</span><span class="o">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle:</span> <span class="mh">0xd8</span>
+<span class="n">Cmd</span>    <span class="n">Address</span>     <span class="n">Text</span>
+<span class="o">---</span> <span class="o">--------------</span> <span class="o">--------------------------------------------------</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">

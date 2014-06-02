@@ -1,7 +1,7 @@
 ---
 layout: docs
 category: manual
-title: The Rekall Memory Forensic Framework.
+title: Rekall Overview.
 author: Michael Cohen <scudette@gmail.com>
 ---
 

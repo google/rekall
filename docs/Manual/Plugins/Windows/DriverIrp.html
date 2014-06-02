@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,77 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>regex</td><td>Analyze drivers matching REGEX</td></tr><tr><td>verbosity</td><td>Add more output.</td></tr><tr><td>address_space</td><td></td></tr><tr><td>scan_in_kernel</td><td>Scan in the kernel address space</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.malware.devicetree.DriverIrp-class.html">View Source</a>
 
 
-
+<p>Windows drivers export a table of functions called the IRP <strong>MajorFunction</strong>
+table. In that table, the driver installs function handlers to handle verious
+types of requests from userspace. A common way to hook a legitimate driver is to
+replace these function pointers with a malicious function.</p>
+<p>Many drivers forward their IRP functions to other drivers for legitimate
+purposes, so detecting hooked IRP functions based on containing modules is not a
+good method. Instead, we print everything and let you be the judge. The command
+also checks for Inline hooks of IRP functions and optionally prints a
+disassembly of the instructions at the IRP address (pass &ndash;verbosity to enable
+this).</p>
+<p>This command outputs information for all drivers, unless you specify a regular
+expression filter.</p>
+<h3>Notes</h3>
+<p>In the current implementation this plugin uses scanning methods to locate the
+driver and device objects. This is an inefficient method which is also
+susceptible to false positives and active subversion. We are working on
+converting this plugin to use the <a href="ObjectTree.html">object_tree</a> plugin to
+directly parse kernel driver structures.</p>
+<h3>Sample output</h3>
+<p>In the below we see that the pmem driver handles the <strong>IRP_MJ_CREATE</strong>,
+<strong>IRP_MJ_CLOSE</strong>, <strong>IRP_MJ_READ</strong> and <strong>IRP_MJ_DEVICE_CONTROL</strong> IRP types.</p>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">16</span><span class="o">:</span><span class="mi">15</span><span class="o">:</span><span class="mi">36</span><span class="o">&gt;</span> <span class="n">driverirp</span> <span class="n">regex</span><span class="o">=</span><span class="s">&quot;pmem&quot;</span>
+<span class="o">-------------------&gt;</span> <span class="n">driverirp</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="s">&quot;pmem&quot;</span><span class="p">)</span>
+<span class="o">**************************************************</span>
+<span class="nl">DriverName:</span> <span class="n">pmem</span>
+<span class="nl">DriverStart:</span> <span class="mh">0xf800025ca000</span>
+<span class="nl">DriverSize:</span> <span class="mh">0x10000</span>
+<span class="nl">DriverStartIo:</span> <span class="mh">0x0</span>
+   <span class="o">-</span> <span class="n">Func</span> <span class="n">Name</span>                              <span class="n">Func</span> <span class="n">Addr</span>    <span class="n">Module</span>
+<span class="o">----</span> <span class="o">------------------------------------</span> <span class="o">--------------</span> <span class="o">------</span>
+   <span class="mi">0</span> <span class="n">IRP_MJ_CREATE</span>                        <span class="mh">0xf800025cb210</span> <span class="err">\</span><span class="o">??</span><span class="err">\</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">test</span><span class="err">\</span><span class="n">AppData</span><span class="err">\</span><span class="n">Local</span><span class="err">\</span><span class="n">Temp</span><span class="err">\</span><span class="n">pmeA86F</span><span class="p">.</span><span class="n">tmp</span>
+   <span class="mi">1</span> <span class="n">IRP_MJ_CREATE_NAMED_PIPE</span>             <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+   <span class="mi">2</span> <span class="n">IRP_MJ_CLOSE</span>                         <span class="mh">0xf800025cb270</span> <span class="err">\</span><span class="o">??</span><span class="err">\</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">test</span><span class="err">\</span><span class="n">AppData</span><span class="err">\</span><span class="n">Local</span><span class="err">\</span><span class="n">Temp</span><span class="err">\</span><span class="n">pmeA86F</span><span class="p">.</span><span class="n">tmp</span>
+   <span class="mi">3</span> <span class="n">IRP_MJ_READ</span>                          <span class="mh">0xf800025cbfa0</span> <span class="err">\</span><span class="o">??</span><span class="err">\</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">test</span><span class="err">\</span><span class="n">AppData</span><span class="err">\</span><span class="n">Local</span><span class="err">\</span><span class="n">Temp</span><span class="err">\</span><span class="n">pmeA86F</span><span class="p">.</span><span class="n">tmp</span>
+   <span class="mi">4</span> <span class="n">IRP_MJ_WRITE</span>                         <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+   <span class="mi">5</span> <span class="n">IRP_MJ_QUERY_INFORMATION</span>             <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+   <span class="mi">6</span> <span class="n">IRP_MJ_SET_INFORMATION</span>               <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+   <span class="mi">7</span> <span class="n">IRP_MJ_QUERY_EA</span>                      <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+   <span class="mi">8</span> <span class="n">IRP_MJ_SET_EA</span>                        <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+   <span class="mi">9</span> <span class="n">IRP_MJ_FLUSH_BUFFERS</span>                 <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">10</span> <span class="n">IRP_MJ_QUERY_VOLUME_INFORMATION</span>      <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">11</span> <span class="n">IRP_MJ_SET_VOLUME_INFORMATION</span>        <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">12</span> <span class="n">IRP_MJ_DIRECTORY_CONTROL</span>             <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">13</span> <span class="n">IRP_MJ_FILE_SYSTEM_CONTROL</span>           <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">14</span> <span class="n">IRP_MJ_DEVICE_CONTROL</span>                <span class="mh">0xf800025cb300</span> <span class="err">\</span><span class="o">??</span><span class="err">\</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">test</span><span class="err">\</span><span class="n">AppData</span><span class="err">\</span><span class="n">Local</span><span class="err">\</span><span class="n">Temp</span><span class="err">\</span><span class="n">pmeA86F</span><span class="p">.</span><span class="n">tmp</span>
+  <span class="mi">15</span> <span class="n">IRP_MJ_INTERNAL_DEVICE_CONTROL</span>       <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">16</span> <span class="n">IRP_MJ_SHUTDOWN</span>                      <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">17</span> <span class="n">IRP_MJ_LOCK_CONTROL</span>                  <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">18</span> <span class="n">IRP_MJ_CLEANUP</span>                       <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">19</span> <span class="n">IRP_MJ_CREATE_MAILSLOT</span>               <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">20</span> <span class="n">IRP_MJ_QUERY_SECURITY</span>                <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">21</span> <span class="n">IRP_MJ_SET_SECURITY</span>                  <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">22</span> <span class="n">IRP_MJ_POWER</span>                         <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">23</span> <span class="n">IRP_MJ_SYSTEM_CONTROL</span>                <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">24</span> <span class="n">IRP_MJ_DEVICE_CHANGE</span>                 <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">25</span> <span class="n">IRP_MJ_QUERY_QUOTA</span>                   <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">26</span> <span class="n">IRP_MJ_SET_QUOTA</span>                     <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+  <span class="mi">27</span> <span class="n">IRP_MJ_PNP</span>                           <span class="mh">0xf802d31131b8</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">

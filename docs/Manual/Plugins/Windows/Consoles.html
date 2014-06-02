@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,113 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>history_buffers</td><td>Number of history buffere. See HKCU\Console\NumberOfHistoryBuffers. Uses 4 by default.</td></tr><tr><td>max_history</td><td>Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize for default.</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.malware.cmdhistory.Consoles-class.html">View Source</a>
 
 
+<p>Similar to <a href="CmdScan.html">cmdscan</a> the consoles plugin finds commands that
+attackers typed into cmd.exe or executed via backdoors. However, instead of
+scanning for <strong>COMMAND_HISTORY</strong>, this plugin scans for
+<strong>CONSOLE_INFORMATION</strong>. The major advantage to this plugin is it not only
+prints the commands attackers typed, but it collects the entire screen buffer
+(input and output). For instance, instead of just seeing &ldquo;dir&rdquo;, you&rsquo;ll see
+exactly what the attacker saw, including all files and directories listed by the
+&ldquo;dir&rdquo; command.</p>
+<p>Additionally, this plugin prints the following:</p>
+<ul>
+<li>The original console window title and current console window title</li>
+<li>The name and pid of attached processes (walks a <strong>LIST_ENTRY</strong> to enumerate
+  all of them if more than one)</li>
+<li>Any aliases associated with the commands executed. For example, attackers can
+  register an alias such that typing &ldquo;hello&rdquo; actually executes &ldquo;cd system&rdquo;</li>
+<li>The screen coordinates of the cmd.exe console.</li>
+</ul>
+<h3>Notes</h3>
+<p>This plugin is pretty fragile since it relies on reversed structures in
+undocumented code. We are working on improving the situation here but there is a
+moderate chance that it will produce no results or garbage results.</p>
+<h3>Sample Output</h3>
+<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">22</span><span class="o">:</span><span class="mi">23</span><span class="o">:</span><span class="mi">10</span><span class="o">&gt;</span> <span class="n">consoles</span>
+<span class="o">**************************************************</span>
+<span class="nl">ConsoleProcess:</span> <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">2652</span>
+<span class="nl">Console:</span> <span class="mh">0xffd96200</span> <span class="n">CommandHistorySize</span><span class="o">:</span> <span class="mi">50</span>
+<span class="nl">HistoryBufferCount:</span> <span class="mi">4</span> <span class="n">HistoryBufferMax</span><span class="o">:</span> <span class="mi">4</span>
+<span class="nl">OriginalTitle:</span> <span class="n">Console2</span> <span class="n">command</span> <span class="n">window</span>
+<span class="nl">Title:</span> <span class="n">Administrator</span><span class="o">:</span> <span class="n">Console2</span> <span class="n">command</span> <span class="n">window</span> <span class="o">-</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span>  <span class="o">--</span><span class="n">profile</span> <span class="n">Win7SP1x64</span> <span class="o">--</span><span class="n">file</span> <span class="err">\\</span><span class="p">.</span><span class="err">\</span><span class="n">pmem</span>
+<span class="nl">AttachedProcess:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">2920</span> <span class="n">Handle</span><span class="o">:</span> <span class="mh">0xd8</span>
+<span class="nl">AttachedProcess:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">2912</span> <span class="n">Handle</span><span class="o">:</span> <span class="mh">0xd4</span>
+<span class="nl">AttachedProcess:</span> <span class="n">cmd</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">2644</span> <span class="n">Handle</span><span class="o">:</span> <span class="mh">0x5c</span>
+<span class="o">----</span>
+<span class="nl">CommandHistory:</span> <span class="mh">0xb4410</span> <span class="n">Application</span><span class="o">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="n">Flags</span><span class="o">:</span> <span class="n">Allocated</span>
+<span class="nl">CommandCount:</span> <span class="mi">0</span> <span class="n">LastAdded</span><span class="o">:</span> <span class="o">-</span><span class="mi">1</span> <span class="n">LastDisplayed</span><span class="o">:</span> <span class="o">-</span><span class="mi">1</span>
+<span class="nl">FirstCommand:</span> <span class="mi">0</span> <span class="n">CommandCountMax</span><span class="o">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle:</span> <span class="mh">0xd8</span>
+<span class="o">----</span>
+<span class="nl">CommandHistory:</span> <span class="mh">0xb40c0</span> <span class="n">Application</span><span class="o">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="n">Flags</span><span class="o">:</span> <span class="n">Allocated</span>
+<span class="nl">CommandCount:</span> <span class="mi">0</span> <span class="n">LastAdded</span><span class="o">:</span> <span class="o">-</span><span class="mi">1</span> <span class="n">LastDisplayed</span><span class="o">:</span> <span class="o">-</span><span class="mi">1</span>
+<span class="nl">FirstCommand:</span> <span class="mi">0</span> <span class="n">CommandCountMax</span><span class="o">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle:</span> <span class="mh">0xd4</span>
+<span class="o">----</span>
+<span class="nl">CommandHistory:</span> <span class="mh">0xb3ee0</span> <span class="n">Application</span><span class="o">:</span> <span class="n">winpmem_1</span><span class="mf">.1</span><span class="o">-</span><span class="n">write</span><span class="p">.</span><span class="n">exe</span> <span class="n">Flags</span><span class="o">:</span>
+<span class="nl">CommandCount:</span> <span class="mi">0</span> <span class="n">LastAdded</span><span class="o">:</span> <span class="o">-</span><span class="mi">1</span> <span class="n">LastDisplayed</span><span class="o">:</span> <span class="o">-</span><span class="mi">1</span>
+<span class="nl">FirstCommand:</span> <span class="mi">0</span> <span class="n">CommandCountMax</span><span class="o">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle:</span> <span class="mh">0x0</span>
+<span class="o">----</span>
+<span class="nl">CommandHistory:</span> <span class="mh">0x7ea40</span> <span class="n">Application</span><span class="o">:</span> <span class="n">cmd</span><span class="p">.</span><span class="n">exe</span> <span class="n">Flags</span><span class="o">:</span> <span class="n">Allocated</span><span class="p">,</span> <span class="n">Reset</span>
+<span class="nl">CommandCount:</span> <span class="mi">3</span> <span class="n">LastAdded</span><span class="o">:</span> <span class="mi">2</span> <span class="n">LastDisplayed</span><span class="o">:</span> <span class="mi">2</span>
+<span class="nl">FirstCommand:</span> <span class="mi">0</span> <span class="n">CommandCountMax</span><span class="o">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle:</span> <span class="mh">0x5c</span>
+<span class="n">Cmd</span> <span class="err">#</span><span class="mi">0</span> <span class="n">at</span> <span class="mh">0x5ea70</span><span class="o">:</span> <span class="n">cd</span> <span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">a</span><span class="err">\</span><span class="n">Desktop</span>
+<span class="n">Cmd</span> <span class="err">#</span><span class="mi">1</span> <span class="n">at</span> <span class="mh">0x5b920</span><span class="o">:</span> <span class="n">winpmem_1</span><span class="mf">.1</span><span class="o">-</span><span class="n">write</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">w</span> <span class="o">-</span><span class="n">l</span>
+<span class="n">Cmd</span> <span class="err">#</span><span class="mi">2</span> <span class="n">at</span> <span class="mh">0xb3e70</span><span class="o">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="o">--</span><span class="n">profile</span> <span class="n">Win7SP1x64</span> <span class="o">--</span><span class="n">file</span> <span class="err">\\</span><span class="p">.</span><span class="err">\</span><span class="n">pmem</span>
+<span class="o">----</span>
+<span class="n">Screen</span> <span class="mh">0x60ef0</span> <span class="n">X</span><span class="o">:</span><span class="mi">117</span> <span class="n">Y</span><span class="o">:</span><span class="mi">500</span>
+<span class="nl">Dump:</span>
+<span class="n">Microsoft</span> <span class="n">Windows</span> <span class="p">[</span><span class="n">Version</span> <span class="mf">6.1.7600</span><span class="p">]</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2009</span> <span class="n">Microsoft</span> <span class="n">Corporation</span><span class="p">.</span>  <span class="n">All</span> <span class="n">rights</span> <span class="n">reserved</span><span class="p">.</span>
 
+<span class="nl">C:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="o">&gt;</span><span class="n">cd</span> <span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">a</span><span class="err">\</span><span class="n">Desktop</span>
+
+<span class="nl">C:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">a</span><span class="err">\</span><span class="n">Desktop</span><span class="o">&gt;</span><span class="n">winpmem_1</span><span class="mf">.1</span><span class="o">-</span><span class="n">write</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">w</span> <span class="o">-</span><span class="n">l</span>
+<span class="n">Will</span> <span class="n">enable</span> <span class="n">write</span> <span class="n">mode</span>
+<span class="n">Loaded</span> <span class="n">Driver</span><span class="p">.</span>
+
+<span class="nl">C:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">a</span><span class="err">\</span><span class="n">Desktop</span><span class="o">&gt;</span><span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="o">--</span><span class="n">profile</span> <span class="n">Win7SP1x64</span> <span class="o">--</span><span class="n">file</span> <span class="err">\\</span><span class="p">.</span><span class="err">\</span><span class="n">pmem</span>
+<span class="n">Python</span> <span class="mf">2.7.3</span> <span class="p">(</span><span class="k">default</span><span class="p">,</span> <span class="n">Apr</span> <span class="mi">10</span> <span class="mi">2012</span><span class="p">,</span> <span class="mi">23</span><span class="o">:</span><span class="mi">31</span><span class="o">:</span><span class="mi">26</span><span class="p">)</span> <span class="p">[</span><span class="n">MSC</span> <span class="n">v</span><span class="mf">.1500</span> <span class="mi">32</span> <span class="n">bit</span> <span class="p">(</span><span class="n">Intel</span><span class="p">)]</span>
+<span class="n">Type</span> <span class="s">&quot;copyright&quot;</span><span class="p">,</span> <span class="s">&quot;credits&quot;</span> <span class="n">or</span> <span class="s">&quot;license&quot;</span> <span class="k">for</span> <span class="n">more</span> <span class="n">information</span><span class="p">.</span>
+
+<span class="n">IPython</span> <span class="mf">0.12.1</span> <span class="o">--</span> <span class="n">An</span> <span class="n">enhanced</span> <span class="n">Interactive</span> <span class="n">Python</span><span class="p">.</span>
+<span class="o">?</span>         <span class="o">-&gt;</span> <span class="n">Introduction</span> <span class="n">and</span> <span class="n">overview</span> <span class="n">of</span> <span class="n">IPython</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">features</span><span class="p">.</span>
+<span class="o">%</span><span class="n">quickref</span> <span class="o">-&gt;</span> <span class="n">Quick</span> <span class="n">reference</span><span class="p">.</span>
+<span class="n">help</span>      <span class="o">-&gt;</span> <span class="n">Python</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">own</span> <span class="n">help</span> <span class="n">system</span><span class="p">.</span>
+<span class="n">object</span><span class="o">?</span>   <span class="o">-&gt;</span> <span class="n">Details</span> <span class="n">about</span> <span class="err">&#39;</span><span class="n">object</span><span class="err">&#39;</span><span class="p">,</span> <span class="n">use</span> <span class="err">&#39;</span><span class="n">object</span><span class="o">??</span><span class="err">&#39;</span> <span class="k">for</span> <span class="n">extra</span> <span class="n">details</span><span class="p">.</span>
+
+
+<span class="n">The</span> <span class="n">Volatility</span> <span class="n">Memory</span> <span class="n">Forensic</span> <span class="n">Framework</span> <span class="n">technology</span> <span class="n">preview</span> <span class="p">(</span><span class="mf">3.0</span><span class="n">_tp2</span><span class="p">).</span>
+
+<span class="nl">NOTE:</span> <span class="n">This</span> <span class="n">is</span> <span class="n">pre</span><span class="o">-</span><span class="n">release</span> <span class="n">software</span> <span class="n">and</span> <span class="n">is</span> <span class="n">provided</span> <span class="k">for</span> <span class="n">evauation</span> <span class="n">only</span><span class="p">.</span> <span class="n">Please</span>
+<span class="n">check</span> <span class="n">at</span> <span class="n">http</span><span class="o">:</span><span class="c1">//volatility.googlecode.com/ for officially supported versions.</span>
+
+<span class="n">This</span> <span class="n">program</span> <span class="n">is</span> <span class="n">free</span> <span class="n">software</span><span class="p">;</span> <span class="n">you</span> <span class="n">can</span> <span class="n">redistribute</span> <span class="n">it</span> <span class="n">and</span><span class="o">/</span><span class="n">or</span> <span class="n">modify</span> <span class="n">it</span> <span class="n">under</span>
+<span class="n">the</span> <span class="n">terms</span> <span class="n">of</span> <span class="n">the</span> <span class="n">GNU</span> <span class="n">General</span> <span class="n">Public</span> <span class="n">License</span><span class="p">.</span>
+<span class="nl">Win7SP1x64:</span><span class="n">pmem</span> <span class="mo">07</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mi">08</span><span class="o">&gt;</span> <span class="n">pslist</span>
+<span class="o">------------------------&gt;</span> <span class="n">pslist</span><span class="p">()</span>
+  <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>   <span class="n">Name</span>                    <span class="n">PID</span>   <span class="n">PPID</span>   <span class="n">Thds</span>     <span class="n">Hnds</span>   <span class="n">Sess</span>  <span class="n">Wow64</span> <span class="n">Start</span>                <span class="n">Exit</span>
+
+<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------------------</span> <span class="o">----------------</span>
+<span class="o">----</span>
+<span class="mh">0xfa80008959e0</span> <span class="n">System</span>                    <span class="mi">4</span>      <span class="mi">0</span>     <span class="mi">85</span>      <span class="mi">502</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">51</span>  <span class="o">-</span>
+
+<span class="mh">0xfa8001994310</span> <span class="n">smss</span><span class="p">.</span><span class="n">exe</span>                <span class="mi">272</span>      <span class="mi">4</span>      <span class="mi">2</span>       <span class="mi">29</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">51</span>  <span class="o">-</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">

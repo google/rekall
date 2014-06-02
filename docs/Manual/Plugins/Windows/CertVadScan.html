@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,42 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>dump_dir</td><td>Path suitable for dumping files. (Optional)</td></tr><tr><td>pid</td><td>One or more pids of processes to select.</td></tr><tr><td>eprocess</td><td>Kernel addresses of eprocess structs.</td></tr><tr><td>phys_eprocess</td><td>Physical addresses of eprocess structs.</td></tr><tr><td>proc_regex</td><td>A regex to select a process by name.</td></tr><tr><td>method</td><td>Method to list processes (Default uses all methods).</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.dumpcerts.CertVadScan-class.html">View Source</a>
 
 
-
+<p>This plugin is similar to the <a href="CertScan.html">certscan</a> plugin. It attempts to detect
+DER encoded X509 certificates or RSA private keys in memory. This plugin scans
+the process memory of selected processes only. The usualy process selection
+arguments are supported in order to restrict the search to some processes only.</p>
+<p>Optionally, if a dump directory is provided the DER encoded certificates are
+also dumped to files in the specified directory.</p>
+<h3>Sample Output</h3>
+<p>In the example below we scan the address space of the winpmem acquistion tool to
+find certificates used to sign the driver and binary.</p>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">16</span><span class="o">&gt;</span> <span class="n">cert_vad_scan</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span>
+<span class="o">-------------------&gt;</span> <span class="n">cert_vad_scan</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span><span class="p">)</span>
+<span class="n">Pid</span>   <span class="n">Command</span>       <span class="n">Address</span>     <span class="n">Type</span>  <span class="n">Length</span> <span class="n">Description</span>
+<span class="o">-----</span> <span class="o">----------</span> <span class="o">--------------</span> <span class="o">-----</span> <span class="o">------</span> <span class="o">-----------</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003c179</span> <span class="n">X509</span>  <span class="mi">1010</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Time</span> <span class="n">Stamping</span> <span class="n">Services</span> <span class="n">CA</span> <span class="o">-</span> <span class="n">G2</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003c56b</span> <span class="n">X509</span>  <span class="mi">1191</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Time</span> <span class="n">Stamping</span> <span class="n">Services</span> <span class="n">Signer</span> <span class="o">-</span> <span class="n">G4</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003ca12</span> <span class="n">X509</span>  <span class="mi">1343</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">Inc</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">www</span><span class="p">.</span><span class="n">digicert</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">High</span> <span class="n">Assurance</span> <span class="n">EV</span> <span class="n">Root</span> <span class="n">CA</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003cf51</span> <span class="n">X509</span>  <span class="mi">1690</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">CH</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Switzerland</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Horgen</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Michael</span> <span class="n">Cohen</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Michael</span> <span class="n">Cohen</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003d285</span> <span class="n">X509</span>  <span class="mi">443</span>   <span class="o">-</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003d5eb</span> <span class="n">X509</span>  <span class="mi">1734</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">Inc</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">www</span><span class="p">.</span><span class="n">digicert</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">High</span> <span class="n">Assurance</span> <span class="n">Code</span> <span class="n">Signing</span> <span class="n">CA</span><span class="o">-</span><span class="mi">1</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003d87c</span> <span class="n">X509</span>  <span class="mi">442</span>   <span class="o">-</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x000000bd2260</span> <span class="n">X509</span>  <span class="mi">704</span>   <span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">VeriSign</span> <span class="n">Trust</span> <span class="n">Network</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">VeriSign</span><span class="p">,</span> <span class="n">Inc</span><span class="p">.</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">VeriSign</span> <span class="n">Time</span> <span class="n">Stamping</span> <span class="n">Service</span> <span class="n">Root</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">NO</span> <span class="n">LIABILITY</span> <span class="n">ACCEPTED</span><span class="p">,</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="mi">97</span> <span class="n">VeriSign</span><span class="p">,</span> <span class="n">Inc</span><span class="p">.</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x000000bd2720</span> <span class="n">X509</span>  <span class="mi">462</span>   <span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Root</span> <span class="n">Agency</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x000000c153b0</span> <span class="n">X509</span>  <span class="mi">1491</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">MOPR</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Update</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">

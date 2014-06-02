@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/treeview.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/downloads.html">
+            Downloads
+          </a>
+        </li>
+
+        <li>
+          <a class="active" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    
+  </div>
+
+  <div class="span8">
+    <h1>Frequently Asked Questions (FAQ).</h1>
+<div id="profile"></div>
+
+<h4>Rekall fails with &ldquo;Unable to load profile from any repository&rdquo;. What gives?</h4>
+<p>Rekall requires accurate profiles to operate. This is similar to the way the
+windows kernel debugger works - in order to analyse a windows image, the kernel
+debugger needs to obtain debugging symbols from the microsoft debugging server.</p>
+<p>To generate a profile file for an image, simple use the <strong>fetch_pdb</strong> and
+<strong>parse_pdb</strong> plugins. For example, suppose you have a memory image which you
+are not quite sure what exact version of Windows it is.</p>
+<ol>
+<li>
+<p>The first step is to figure out the precise version of the windows kernel
+   this image has. We do this by scanning for the GUID of the <strong>ntoskrnl.exe</strong>
+   process from the image itself.</p>
+</li>
+<li>
+<p>We then fetch the debugging symbols (pdb file) for this kernel from
+   Microsoft&rsquo;s debug symbols.</p>
+</li>
+<li>
+<p>Finally we convert the pdb file into Rekall&rsquo;s own json format.</p>
+</li>
+</ol>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">rekal</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/</span><span class="n">images</span><span class="o">/</span><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="n">version_scan</span> <span class="o">|</span> <span class="n">grep</span> <span class="n">ntkrnl</span>
+<span class="mh">0x0000027bb5fc</span> <span class="n">f8e2a8b5c9b74bf4a6e4a48f180099942</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span>
+
+<span class="err">$</span> <span class="n">rekal</span> <span class="n">fetch_pdb</span> <span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">dir</span> <span class="p">.</span> <span class="o">--</span><span class="n">filename</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">guid</span> <span class="n">f8e2a8b5c9b74bf4a6e4a48f180099942</span>
+<span class="n">Trying</span> <span class="n">to</span> <span class="n">fetch</span> <span class="n">http</span><span class="o">:</span><span class="c1">//msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/F8E2A8B5C9B74BF4A6E4A48F180099942/ntkrnlmp.pd_</span>
+<span class="n">Received</span> <span class="mi">2675077</span> <span class="n">bytes</span>
+<span class="n">Extracting</span> <span class="n">cabinet</span><span class="o">:</span> <span class="p">.</span><span class="o">/</span><span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pd_</span>
+ <span class="n">extracting</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span>
+
+<span class="n">All</span> <span class="n">done</span><span class="p">,</span> <span class="n">no</span> <span class="n">errors</span><span class="p">.</span>
+
+<span class="err">$</span> <span class="n">rekal</span> <span class="n">parse_pdb</span> <span class="o">-</span><span class="n">f</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">output</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">json</span> <span class="o">--</span><span class="n">profile_class</span> <span class="n">Win7x64</span>
+<span class="err">$</span> <span class="n">rekal</span> <span class="o">--</span><span class="n">profile</span> <span class="p">.</span><span class="o">/</span><span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">json</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/</span><span class="n">images</span><span class="o">/</span><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="n">pslist</span>
+ <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>   <span class="n">Name</span>                    <span class="n">PID</span>   <span class="n">PPID</span>   <span class="n">Thds</span>     <span class="n">Hnds</span>   <span class="n">Sess</span>  <span class="n">Wow64</span> <span class="n">Start</span>                    <span class="n">Exit</span>
+<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------------------------</span> <span class="o">------------------------</span>
+<span class="mh">0xfa80008959e0</span> <span class="n">System</span>                    <span class="mi">4</span>      <span class="mi">0</span>     <span class="mi">84</span>      <span class="mi">511</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">51</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xfa8001994310</span> <span class="n">smss</span><span class="p">.</span><span class="n">exe</span>                <span class="mi">272</span>      <span class="mi">4</span>      <span class="mi">2</span>       <span class="mi">29</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">51</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xfa8002259060</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>               <span class="mi">348</span>    <span class="mi">340</span>      <span class="mi">9</span>      <span class="mi">436</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">57</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xfa8000901060</span> <span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>             <span class="mi">384</span>    <span class="mi">340</span>      <span class="mi">3</span>       <span class="mi">75</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">57</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xfa8000900420</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>               <span class="mi">396</span>    <span class="mi">376</span>      <span class="mi">8</span>      <span class="mi">192</span>      <span class="mi">1</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">57</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="p">....</span>
+</pre></div>
+
+
+<p>The same technique can be used to generate symbols for other profiles which
+might be needed - for example <strong>tcpip.pdb</strong> or <strong>win32k.pdb</strong>.</p>
+  </div>
+  <div class="span2 sidebar">
+    <img src="/img/Rekall.png"></img>
+
+  </div>
+</div>
+</div>
+  </body>
+</html>
+

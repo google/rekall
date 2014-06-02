@@ -67,6 +67,12 @@ ript>
           </a>
         </li>
 
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
             </ul>
           </div>
         </div>
@@ -76,13 +82,16 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul>
+    <a href='/docs/Manual/Plugins/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/index.html'>Windows</a></h3><div class='css-treeview'><ul class='nav nav-list'>
 <li>
   <input type="checkbox" id="item-/Registry" />
   <label for="item-/Registry">
     Registry
   </label>
-<ul>
+<ul class='nav nav-list'>
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="tree-link">getservicesids</a>
+
 <li>
    <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="tree-link">hashdump</a>
 
@@ -112,7 +121,7 @@ ript>
   <label for="item-/Win32_GUI">
     Win32_GUI
   </label>
-<ul>
+<ul class='nav nav-list'>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
 
@@ -198,9 +207,6 @@ ript>
    <a href='/docs/Manual/Plugins/Windows/WinFindDTB.html' class="tree-link">find_dtb</a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/GetServiceSids.html' class="tree-link">getservicesids</a>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link">handles</a>
 
 <li>
@@ -220,9 +226,6 @@ ript>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/Malfind.html' class="tree-link">malfind</a>
-
-<li>
-   <a href='/docs/Manual/Plugins/Windows/ProcMaps.html' class="tree-link">maps</a>
 
 <li>
    <a href='/docs/Manual/Plugins/Windows/WinMemDump.html' class="tree-link">memdump</a>
@@ -373,10 +376,45 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>tcpip_guid</td><td>Force this profile to be used for tcpip.</td></tr><tr><td>address_space</td><td></td></tr><tr><td>scan_in_kernel</td><td>Scan in the kernel address space</td></tr>
+</tbody>
+</table>
+
+
+
 <a href="/epydocs/rekall.plugins.windows.connscan.ConnScan-class.html">View Source</a>
 
 
-
+<p>Similar to the <a href="Connections.html">connections</a> plugin, this plugin searches from
+_TCP_OBJECT structs. However, it employs pool scanning techniques.</p>
+<h3>Notes</h3>
+<ol>
+<li>
+<p>This plugin only works on versions of winsows prior to Win7.</p>
+</li>
+<li>
+<p>Since the plugin may recover freed pool memory, the data may have been
+   overwritten. This might produce garbage results for terminated connections.</p>
+</li>
+</ol>
+<h3>Sample output.</h3>
+<p>Note the nonsensical connection for local address <em>3.0.48.2</em> and the incorrect
+pid number below.</p>
+<div class="highlight"><pre><span class="n">xp</span><span class="o">-</span><span class="n">laptop</span><span class="o">-</span><span class="mi">2005</span><span class="o">-</span><span class="mo">06</span><span class="o">-</span><span class="mf">25.</span><span class="n">img</span> <span class="mi">23</span><span class="o">:</span><span class="mo">00</span><span class="o">:</span><span class="mi">29</span><span class="o">&gt;</span> <span class="n">connscan</span>
+<span class="o">---------------------------------&gt;</span> <span class="n">connscan</span><span class="p">()</span>
+<span class="n">Offset</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>  <span class="n">Local</span> <span class="n">Address</span>             <span class="n">Remote</span> <span class="n">Address</span>                   <span class="n">Pid</span>
+<span class="o">----------</span> <span class="o">-------------------------</span> <span class="o">-------------------------</span> <span class="o">----------</span>
+<span class="mh">0x01370e70</span> <span class="mf">192.168.2.7</span><span class="o">:</span><span class="mi">1115</span>          <span class="mf">207.126.123.29</span><span class="o">:</span><span class="mi">80</span>               <span class="mi">1916</span>
+<span class="mh">0x01ed1a50</span> <span class="mf">3.0.48.2</span><span class="o">:</span><span class="mi">17985</span>            <span class="mf">66.179.81.245</span><span class="o">:</span><span class="mi">20084</span>       <span class="mi">4287933200</span>
+<span class="mh">0x01f0e358</span> <span class="mf">192.168.2.7</span><span class="o">:</span><span class="mi">1164</span>          <span class="mf">66.179.81.247</span><span class="o">:</span><span class="mi">80</span>                 <span class="mi">944</span>
+<span class="mh">0x01f11e70</span> <span class="mf">192.168.2.7</span><span class="o">:</span><span class="mi">1082</span>          <span class="mf">205.161.7.134</span><span class="o">:</span><span class="mi">80</span>                <span class="mi">2392</span>
+<span class="mh">0x01f35cd0</span> <span class="mf">192.168.2.7</span><span class="o">:</span><span class="mi">1086</span>          <span class="mf">199.239.137.200</span><span class="o">:</span><span class="mi">80</span>              <span class="mi">1916</span>
+<span class="mh">0x01f88e70</span> <span class="mf">192.168.2.7</span><span class="o">:</span><span class="mi">1162</span>          <span class="mf">170.224.8.51</span><span class="o">:</span><span class="mi">80</span>                 <span class="mi">1916</span>
+<span class="mh">0x020869b0</span> <span class="mf">127.0.0.1</span><span class="o">:</span><span class="mi">1055</span>            <span class="mf">127.0.0.1</span><span class="o">:</span><span class="mi">1056</span>                  <span class="mi">2160</span>
+</pre></div>
 
   </div>
   <div class="span2 sidebar">
