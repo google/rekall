@@ -21,20 +21,16 @@
 import sys
 import yara
 
-from rekall import yarascanner
 from rekall import constants
 from rekall import plugin
 from rekall import scan
 from rekall import utils
-from rekall.plugins.windows import common
-from rekall.plugins.windows import vadinfo
+from rekall.plugins import yarascanner
+from rekall.plugins.linux import common
 
 
-class VadYaraScanner(vadinfo.VadScanner, yarascanner.BaseYaraASScanner):
-    """A Yara scanner which only operates on VAD regions."""
 
-
-class YaraScan(common.WinProcessFilter):
+class YaraScan(common.LinProcessFilter):
     """Scan using yara signatures."""
 
     __name = "yarascan"
@@ -52,24 +48,15 @@ class YaraScan(common.WinProcessFilter):
                             help="If provided we scan for this yarra "
                             "expression.")
 
-        parser.add_argument("--scan_vads", default=False, action="store_true",
-                            help="If specified we scan the vads of "
-                            "processes, else we scan their entire address spaces. "
-                            "Note that scanning the entire address space will "
-                            "typically also include the kernel, while targetting "
-                            "VADs only will only include the addresses mapped by "
-                            "the process.")
-
         parser.add_argument("--scan_physical", default=False, action="store_true",
                             help="If specified we scan the physcial address space.")
 
-    def __init__(self, string=None, scan_vads=False, scan_physical=False,
-                 yara_file=None, yara_expression=None, **kwargs):
+    def __init__(self, string=None, scan_physical=False, yara_file=None,
+                 yara_expression=None, **kwargs):
         """Scan using yara signatures.
 
         Args:
           string: A verbatim string to search for.
-          scan_vads: If true we scan the vads of the specified processes, else
             we scan their entire address spaces.
           scan_physical: If true we scan the physical address space.
           yara_file: The yara file to read.
@@ -92,11 +79,10 @@ class YaraScan(common.WinProcessFilter):
             raise plugin.PluginError("You must specify a yara rule file or "
                                      "string to match.")
 
-        self.scan_vads = scan_vads
         self.scan_physical = scan_physical
 
     def generate_hits(self, address_space):
-        scanner = BaseYaraASScanner(
+        scanner = yarascanner.BaseYaraASScanner(
             profile=self.profile, session=self.session,
             address_space=address_space,
             rules=self.rules)
@@ -113,7 +99,7 @@ class YaraScan(common.WinProcessFilter):
             utils.WriteHexdump(renderer, context, base=address)
 
     def render_kernel_scan(self, renderer):
-        modules = self.session.plugins.modules()
+        modules = self.session.plugins.lsmod()
 
         for rule, address, _, hit in self.generate_hits(
             self.kernel_address_space):
@@ -122,7 +108,7 @@ class YaraScan(common.WinProcessFilter):
             # Find out who owns this hit.
             owner = modules.find_module(address)
             if owner:
-                renderer.format("Owner: {0}\n", owner.BaseDllName)
+                renderer.format("Owner: {0}\n", owner.name)
                 filename = "kernel.{0:#x}.{1:#x}.dmp".format(
                     owner.obj_offset, address)
             else:
@@ -140,22 +126,7 @@ class YaraScan(common.WinProcessFilter):
         for rule, address, _, hit in self.generate_hits(task_as):
             renderer.format("Rule: {0}\n", rule)
 
-            renderer.format("Owner: {0}\n", task.ImageFileName)
-
-            context = task_as.read(address, 0x40)
-            utils.WriteHexdump(renderer, context, base=address)
-
-    def render_task_scan_vad(self, renderer, task):
-        """This method scans the process memory using the VAD."""
-        task_as = task.get_process_address_space()
-
-        scanner = VadYaraScanner(
-            session=self.session, rules=self.rules, task=task)
-
-        for rule, address, _, hit in scanner.scan():
-            renderer.format("Rule: {0}\n", rule)
-
-            renderer.format("Owner: {0}\n", task.ImageFileName)
+            renderer.format("Owner: {0}\n", task.comm)
 
             context = task_as.read(address, 0x40)
             utils.WriteHexdump(renderer, context, base=address)
@@ -166,12 +137,9 @@ class YaraScan(common.WinProcessFilter):
         if self.scan_physical:
             return self.render_scan_physical(renderer)
 
-        elif self.scan_vads or self.filtering_requested:
+        elif self.filtering_requested:
             for task in self.filter_processes():
-                if self.scan_vads:
-                    self.render_task_scan_vad(renderer, task)
-                else:
-                    self.render_task_scan(renderer, task)
+                self.render_task_scan(renderer, task)
 
         # We are searching the kernel address space
         else:

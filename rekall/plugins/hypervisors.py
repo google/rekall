@@ -2,6 +2,7 @@
 
 from rekall import config
 from rekall import plugin
+from rekall import obj
 from rekall import scan
 from rekall import session
 from rekall.plugins.addrspaces import amd64
@@ -193,6 +194,16 @@ class VirtualMachine(object):
     def is_nested(self):
         """A VM is nested if it has a parent or all its VMCS are nested."""
         return self.parent != None
+
+    @property
+    def hostname(self):
+        try:
+            session = self.GetSession()
+            return session.plugins.hostname().get_hostname()
+        except AttributeError:
+            return obj.NoneObject()
+        except InvalidVM:
+            return obj.NoneObject("**INVALID VM**")
 
     @property
     def num_cores(self):
@@ -434,7 +445,6 @@ class VirtualMachine(object):
         mapped in our physical AS and then try to validate them via HOST_CR3
         in our context.
         """
-
 
         if not vm_list:
             return

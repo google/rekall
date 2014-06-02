@@ -40,13 +40,13 @@ class Banner(common.LinuxPlugin):
 
 
 class CpuInfo(common.LinuxPlugin):
-    ''' prints info about each active processor '''
+    """Prints information about each active processor."""
 
     __name = "cpuinfo"
 
     def online_cpus(self):
         """returns a list of online cpus (the processor numbers)"""
-        #later kernels..
+        #later kernels.
         cpus = (self.profile.get_constant("cpu_online_bits") or
                 self.profile.get_constant("cpu_present_map"))
         if not cpus:
@@ -55,7 +55,7 @@ class CpuInfo(common.LinuxPlugin):
 
         bmap = self.profile.Object("unsigned long", offset=cpus, vm=self.kernel_address_space)
 
-        for i in xrange(0, 8):
+        for i in xrange(0, bmap.size()):
             if bmap & (1 << i):
                 yield i
 
@@ -63,7 +63,8 @@ class CpuInfo(common.LinuxPlugin):
 
         cpus = list(self.online_cpus())
 
-        if len(cpus) > 1 and self.profile.get_constant("per_cpu__cpu_info"):
+        if len(cpus) > 1 and (self.profile.get_constant("cpu_info") or
+                              self.profile.get_constant("per_cpu__cpu_info")):
             return self.get_info_smp()
 
         elif self.profile.get_constant("boot_cpu_data"):
@@ -96,7 +97,9 @@ class CpuInfo(common.LinuxPlugin):
         for i in cpus:
             offset = per_offsets[i]
 
-            addr = self.get_constant("per_cpu__cpu_info") + offset.v()
+            cpuinfo_addr = (self.profile.get_constant("cpu_info") or
+                            self.profile.get_constant("per_cpu__cpu_info"))
+            addr = cpuinfo_addr + offset.v()
             var = self.profile.Object("cpuinfo_x86", offset=addr,
                                       vm=self.kernel_address_space)
             yield i, var

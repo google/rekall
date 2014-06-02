@@ -50,8 +50,7 @@ class LinuxPsList(common.LinProcessFilter):
                                ])
 
         for task in self.filter_processes():
-            start_time = (task.start_time.as_timestamp()+
-                          task.start_time.getboottime())
+            start_time = task.start_time.as_timestamp()
 
             dtb = self.kernel_address_space.vtop(task.mm.pgd)
             renderer.table_row(task.obj_offset,
@@ -83,7 +82,12 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
 
         # We want to stop dumping memory when we reach the max addressable
         # memory by the process (anything above that is kernel memory).
-        max_memory = task.mm.task_size
+        # See: arch/x86/include/asm/processor.h
+        if self.session.profile.metadata("arch") == "I386":
+            max_task_size = 0x80000000
+        else:
+            max_task_size = (1 << 47) - self.address_space.PAGE_SIZE
+        max_memory = task.mm.task_size or max_task_size
 
         result = []
         for virtual_address, phys_address, length in task_as.get_address_ranges(
@@ -126,15 +130,15 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
                 maps = self.dump_process(task, fd)
 
             with open(filename + ".idx", 'wb') as fd:
-                temp_renderer = renderer.classes["TextRenderer"](fd=fd)
-                temp_renderer.table_header([
+                with renderer.classes["TextRenderer"](fd=fd) as temp_renderer:
+                    temp_renderer.table_header([
                         ("File Address", "file_addr", "[addrpad]"),
                         ("Length", "length", "[addrpad]"),
                         ("Virtual Addr", "virtual", "[addrpad]")])
 
-                self.write_index(temp_renderer, maps)
+                    self.write_index(temp_renderer, maps)
 
-                temp_renderer.end()
+                    temp_renderer.end()
 
 
 class TestLinMemDump(testlib.HashChecker):

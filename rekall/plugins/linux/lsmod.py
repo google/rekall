@@ -24,6 +24,7 @@
 """
 import bisect
 import logging
+import os
 
 from rekall import obj
 from rekall.plugins.linux import common
@@ -194,7 +195,7 @@ class Lsmod(common.LinuxPlugin):
 
         # Get the module.
         module = self.mod_lookup[self.modlist[pos]]
-        start = int(module.module_core.deref())
+        start = int(module.module_core.v())
 
         if (addr >= start and
             addr < start + module.core_size):
@@ -245,3 +246,37 @@ class Lsmod(common.LinuxPlugin):
             for module in self.get_module_list():
                 for key, value in self.get_module_parameters(module):
                     renderer.table_row(module.name, key, value)
+
+
+class Moddump(common.LinuxPlugin):
+    '''Dumps loaded kernel modules.'''
+    __name = "moddump"
+
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(Moddump, cls).args(parser)
+        parser.add_argument(
+            "--dump-dir", default=None, help="Dump directory.",
+            required=True)
+        parser.add_argument(
+            "--regexp", default=None, help="Regexp on the module name.")
+
+    def __init__(self, dump_dir=None, regexp=None, **kwargs):
+        super(Moddump, self).__init__(**kwargs)
+        self.dump_dir = dump_dir
+        self.regexp = regexp
+
+    def dump_module(self, module):
+        module_start = int(module.module_core.v())
+        return module.obj_vm.read(module_start, module.core_size)
+
+    def render(self, renderer):
+        lsmod_plugin = self.session.plugins.lsmod(session=self.session)
+        for module in lsmod_plugin.get_module_list():
+            file_name = "{0}.{1:#x}.lkm".format(module.name, module.module_core)
+            mod_file = open(os.path.join(self.dump_dir, file_name), 'wb')
+            mod_data = self.dump_module(module)
+            mod_file.write(mod_data)
+            mod_file.close()
+            renderer.write("Wrote {0} bytes to {1}\n".format(module.core_size, file_name))

@@ -469,16 +469,13 @@ class _CM_KEY_VALUE(obj.Struct):
 
 def RekallRegisteryImplementation(profile):
     """The standard rekall registry parsing subsystem."""
-    if "RekallRegisteryImplementation" not in profile.applied_modifications:
-        profile.add_classes(dict(
-            _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
-            _CM_KEY_VALUE=_CM_KEY_VALUE, _CMHIVE=_CMHIVE,
-            Pointer32=Pointer32
-            ))
+    profile.add_classes(dict(
+        _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
+        _CM_KEY_VALUE=_CM_KEY_VALUE, _CMHIVE=_CMHIVE,
+        Pointer32=Pointer32
+        ))
 
-        profile.add_overlay(registry_overlays)
-        profile.applied_modifications.add("RekallRegisteryImplementation")
-
+    profile.add_overlay(registry_overlays)
     return profile
 
 

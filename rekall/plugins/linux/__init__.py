@@ -10,10 +10,11 @@ from rekall.plugins.linux import check_tty
 from rekall.plugins.linux import common
 from rekall.plugins.linux import cpuinfo
 from rekall.plugins.linux import dmesg
+from rekall.plugins.linux import fs
 from rekall.plugins.linux import ifconfig
 from rekall.plugins.linux import iomem
 from rekall.plugins.linux import lsmod
-#from rekall.plugins.linux import mount
+from rekall.plugins.linux import mount
 from rekall.plugins.linux import netstat
 from rekall.plugins.linux import lsof
 from rekall.plugins.linux import pas2kas
@@ -21,3 +22,4 @@ from rekall.plugins.linux import proc_maps
 from rekall.plugins.linux import psaux
 from rekall.plugins.linux import pslist
 from rekall.plugins.linux import pstree
+from rekall.plugins.linux import yarascan

@@ -18,6 +18,10 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
+
+import logging
+import os
+
 from rekall.plugins.linux import common
 from rekall.plugins.overlays import basic
 
@@ -26,7 +30,6 @@ class Netstat(common.LinuxPlugin):
     """Print the active network connections."""
 
     __name = "netstat"
-
 
     def sockets(self):
         """Enumerate all socket objects."""
@@ -48,7 +51,7 @@ class Netstat(common.LinuxPlugin):
 
     def render(self, renderer):
         unix_sockets = []
-        tcp_sockets = []
+        inet_sockets = []
 
         for task, fd, sock, iaddr in self.sockets():
             inet_sock = sock.dereference_as("inet_sock")
@@ -58,16 +61,16 @@ class Netstat(common.LinuxPlugin):
 
             sk_common = sock.m("__sk_common")
 
-            if sk_common.skc_family == "AF_UNIX":
+            if sk_common.skc_family in ("AF_UNIX", "AF_LOCAL"):
                 unix_sock = sock.dereference_as("unix_sock")
                 name = unix_sock.addr.name[0].sun_path
                 unix_sockets.append((task, fd, sock, iaddr, sk_common))
 
             elif sk_common.skc_family in ("AF_INET", "AF_INET6"):
-                tcp_sockets.append((task, fd, sock, iaddr, sk_common))
+                inet_sockets.append((task, fd, sock, iaddr, sk_common))
 
-        # First do the tcp sockets.
-        renderer.table_header([("Proto", "proto", "8"),
+        # First do the AF_INET and AF_INET6 sockets.
+        renderer.table_header([("Proto", "proto", "12"),
                                ("SAddr", "saddr", "15"),
                                ("SPort", "sport", "8"),
                                ("DAddr", "daddr", "15"),
@@ -76,11 +79,11 @@ class Netstat(common.LinuxPlugin):
                                ("Pid", "pid", "8"),
                                ("Comm", "comm", "20")])
 
-        for task, fd, sock, iaddr, sk_common in tcp_sockets:
+        for task, fd, sock, iaddr, sk_common in inet_sockets:
             inet_sock = sock.dereference_as("inet_sock")
 
             renderer.table_row(
-                sk_common.skc_family,
+                inet_sock.sk.sk_protocol,
                 inet_sock.src_addr,
                 inet_sock.src_port,
                 inet_sock.dst_addr,
@@ -90,10 +93,12 @@ class Netstat(common.LinuxPlugin):
                 task.comm,
                 )
 
-        # Now do the udp sockets.
-        renderer.table_header([("Proto", "proto", "8"),
-                               ("Ref Count", "ref", "^6"),
-                               ("Type", "type", "12"),
+        renderer.section()
+
+        # Now do the UNIX sockets.
+        renderer.table_header([("Proto", "proto", "12"),
+                               ("RefCount", "ref", "^8"),
+                               ("Type", "type", "15"),
                                ("State", "state", "18"),
                                ("Inode", "inode", "8"),
                                ("Path", "path", "20")])
@@ -103,10 +108,62 @@ class Netstat(common.LinuxPlugin):
             name = unix_sock.addr.name[0].sun_path
 
             renderer.table_row(
-                sk_common.skc_family,
+                "UNIX",
                 unix_sock.addr.refcnt.counter,
                 sock.sk_type,
                 sk_common.skc_state,
                 iaddr.i_ino,
                 name
                 )
+
+
+class PacketQueues(common.LinuxPlugin):
+    """Dumps the current packet queues for all known open sockets."""
+
+    __name = "pkt_queues"
+
+    @classmethod
+    def args(cls, parser):
+        super(PacketQueues, cls).args(parser)
+        parser.add_argument("--dump-dir", default=None, help="Output directory",
+                            required=True)
+
+    def __init__(self, dump_dir=None, **kwargs):
+        super(PacketQueues, self).__init__(**kwargs)
+        self.output_dir = dump_dir
+
+    def process_socket(self, task, fd_num, socket):
+        queues = ["receive", "write"]
+        for queue_name in queues:
+            sk_buff_head_name = "sk_{0:s}_queue".format(queue_name)
+            queue = getattr(socket, sk_buff_head_name)
+            filename = "{0:d}.{1:s}.{2:s}.{3:d}".format(
+                task.pid, task.name, queue_name, fd_num)
+            data = []
+            for sk_buff in queue.walk_list("next", False):
+                pkt_len = sk_buff.len
+                if pkt_len > 0:
+                    if not sk_buff.data:
+                        continue
+                    data.append(self.kernel_address_space.read(
+                        sk_buff.data.obj_offset, pkt_len))
+            if data:
+                with open(os.path.join(self.output_dir, filename), "wb") as fd:
+                    fd.write(''.join(data))
+                    logging.debug("Wrote %d bytes to %s", fd.tell(), filename)
+                return True
+            else:
+                logging.debug("Skipped empty queue %s", filename)
+                return False
+
+    def render(self, renderer):
+        netstat_plugin = self.session.plugins.netstat(session=self.session)
+        sockets = netstat_plugin.sockets()
+
+        all_sockets = list(sockets)
+        skipped_sockets_count = 0
+        for task, fd, socket, iaddr in all_sockets:
+            if not self.process_socket(task, fd, socket):
+                skipped_sockets_count += 1
+        renderer.format("Skipped %d/%d sockets.", skipped_sockets_count,
+                        len(all_sockets))

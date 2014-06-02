@@ -324,3 +324,32 @@ class KernelAddressCheckerMixIn(object):
         # We use the module plugin to help us local addresses inside kernel
         # modules.
         self.module_plugin = self.session.plugins.lsmod(session=self.session)
+
+
+class Hostname(AbstractLinuxCommandPlugin):
+    __name = "hostname"
+
+    def get_hostname(self):
+        hostname = ""
+
+        pslist_plugin = self.session.plugins.pslist(session=self.session)
+        for process in pslist_plugin.filter_processes():
+            task = process
+            break
+
+        profile = self.session.profile
+        default_hostname = (profile.get_kernel_config("CONFIG_DEFAULT_HOSTNAME")
+                            or "(none)")
+        utsname = task.nsproxy.uts_ns.name
+        nodename = utsname.nodename.cast("String")
+        domainname = utsname.domainname.cast("String")
+        if nodename != None:
+            if domainname == default_hostname:
+                hostname = nodename
+            else:
+                hostname = "%s.%s" % (nodename, domainname)
+        return hostname
+
+    def render(self, renderer):
+        renderer.table_header([("Hostname", "hostname", "80")])
+        renderer.table_row(self.get_hostname())

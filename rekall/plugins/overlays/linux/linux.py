@@ -189,6 +189,10 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
                         )]],
             'is_root': lambda x: x == x.d_parent,
             }],
+    'd_name': [None, {
+            'd_name': [None, ['Pointer', dict(
+                  target="String")]],
+            }],
 
     'qstr': [None, {
             'name': [None, ['Pointer', dict(
@@ -237,10 +241,44 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
             'Address': lambda x: (x.offset_low |
                                   x.offset_middle << 16 |
                                   x.offset_high << 32),
+            'GateType': [5, ['Enumeration', {
+                        'choices': {
+                            5: '32-bit Task Gate',
+                            6: '16-bit Int Gate',
+                            7: '16-bit Trap Gate',
+                            14: '32-bit Int Gate',
+                            15: '32-bit Trap Gate',
+                            },
+                        'target': 'BitField',
+                        'target_args': dict(
+                            start_bit=0, end_bit=4),
+                        }]],
+            'DPL': [5, ['BitField', {
+                'target': 'unsigned int',
+                'start_bit': 45,
+                'end_bit': 46
+                }]],
             }],
 
     'desc_struct': [None, {
-            'Address': lambda x: (x.b & 0xffff0000) | (x.a & 0x0000ffff),
+            'Address': lambda x: (x.u1.u1.b & 0xffff0000) | (x.u1.u1.a & 0x0000ffff),
+            'GateType': [5, ['Enumeration', {
+                        'choices': {
+                            5: '32-bit Task Gate',
+                            6: '16-bit Int Gate',
+                            7: '16-bit Trap Gate',
+                            14: '32-bit Int Gate',
+                            15: '32-bit Trap Gate',
+                            },
+                        'target': 'BitField',
+                        'target_args': dict(
+                            start_bit=0, end_bit=4),
+                        }]],
+            'DPL': [5, ['BitField', {
+                'target': 'unsigned int',
+                'start_bit': 45,
+                'end_bit': 46
+                }]],
             }],
 
     'tty_driver': [None, {
@@ -339,18 +377,21 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
     "sock_common": [None, {
             "skc_state": [None, ["Enumeration", dict(
                         # http://lxr.free-electrons.com/source/include/net/tcp_states.h#L16
+                        # Because these states are not only used by AF_INET*
+                        # with TCP proto, we removed the TCP_ prefix to make
+                        # them more readable.
                         choices={
-                            1:"TCP_ESTABLISHED",
-                            2:"TCP_SYN_SENT",
-                            3:"TCP_SYN_RECV",
-                            4:"TCP_FIN_WAIT1",
-                            5:"TCP_FIN_WAIT2",
-                            6:"TCP_TIME_WAIT",
-                            7:"TCP_CLOSE",
-                            8:"TCP_CLOSE_WAIT",
-                            9:"TCP_LAST_ACK",
-                            10:"TCP_LISTEN",
-                            11:"TCP_CLOSING",
+                            1:"ESTABLISHED",
+                            2:"SYN_SENT",
+                            3:"SYN_RECV",
+                            4:"FIN_WAIT1",
+                            5:"FIN_WAIT2",
+                            6:"TIME_WAIT",
+                            7:"CLOSE",
+                            8:"CLOSE_WAIT",
+                            9:"LAST_ACK",
+                            10:"LISTEN",
+                            11:"CLOSING",
                             },
                         target="unsigned char",
                         )]],
@@ -407,6 +448,78 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
                         target="short unsigned int"
                         )]],
             }],
+    "mount": [None, {
+            "mnt_devname": [None, ["Pointer", dict(target="String")]],
+            "mnt_root": lambda x: x.m("mnt_root") or x.m("mnt.mnt_root"),
+            }],
+    "vfsmount": [None, {
+            "mnt_devname": [None, ["Pointer", dict(target="String")]],
+            "mnt_flags": [None, ["Flags", dict(
+                        maskmap={
+                            # include/linux/mount.h
+                            "nosuid": 0x01,
+                            "nodev": 0x02,
+                            "noexec": 0x04,
+                            "noatime": 0x08,
+                            "nodiratime": 0x10,
+                            "relatime": 0x20,
+                            "ro": 0x40,
+                            "shrinkable": 0x100,
+                            "writehold": 0x200,
+                            "shared": 0x1000,
+                            "unbindable": 0x2000,
+                          },
+                        target="unsigned int",
+                        )]],
+            "mnt": lambda x: x,
+            }],
+    "file_system_type": [None, {
+            "name": [None, ["Pointer", dict(target="String")]],
+            }],
+    "qstr": [None, {
+            "name": [None, ["Pointer", dict(target="String")]],
+            }],
+    "inode": [None, {
+            "i_mode": [None, ["InodePermission", dict(
+                target="unsigned int",
+                )]],
+            "type": lambda x: x.m("i_mode").cast(
+                "Enumeration", choices={
+                    1: "S_IFIFO",
+                    2: "S_IFCHR",
+                    4: "S_IFDIR",
+                    6: "S_IFBLK",
+                    8: "S_IFREG",
+                   10: "S_IFLNK",
+                   12: "S_IFSOCK",
+                   },
+                target="BitField",
+                target_args=dict(start_bit=12, end_bit=16),
+                ),
+            "mode": lambda x: x.m("i_mode").cast(
+                "Flags",
+                maskmap=utils.MaskMapFromDefines("""
+    # From http://lxr.free-electrons.com/source/include/uapi/linux/stat.h
+ #define S_ISUID  0004000
+ #define S_ISGID  0002000
+ #define S_ISVTX  0001000
+
+ #define S_IRUSR 00400
+ #define S_IWUSR 00200
+ #define S_IXUSR 00100
+
+ #define S_IRGRP 00040
+ #define S_IWGRP 00020
+ #define S_IXGRP 00010
+
+ #define S_IROTH 00004
+ #define S_IWOTH 00002
+ #define S_IXOTH 00001
+"""),
+                target="BitField",
+                target_args=dict(start_bit=0, end_bit=12),
+                ),
+            }],
     }
 
 
@@ -418,11 +531,13 @@ class list_head(basic.ListMixIn, obj.Struct):
 
 class hlist_head(obj.Struct):
     def list_of_type(self, type, member):
-        hlist = self.first.deref()
-        while hlist:
-            yield basic.container_of(hlist, type, member)
-
-            hlist = hlist.next
+        head = self.first.deref()
+        node = head
+        if node:
+            yield basic.container_of(node, type, member)
+        while node and node != head:
+            yield basic.container_of(node, type, member)
+            node = node.next
 
 
 class inet_sock(obj.Struct):
@@ -442,7 +557,8 @@ class inet_sock(obj.Struct):
     def src_addr(self):
         if self.sk.m("__sk_common").skc_family == "AF_INET":
             return (self.m("rcv_saddr") or self.m("inet_rcv_saddr") or
-                    self.sk.m("__sk_common").u1.u1.skc_rcv_saddr).cast(
+                    self.sk.m("__sk_common.u1.u1.skc_rcv_saddr") or
+                    self.m("inet_saddr")).cast(
                 "Ipv4Address")
 
         else:
@@ -452,7 +568,8 @@ class inet_sock(obj.Struct):
     def dst_addr(self):
         if self.sk.m("__sk_common").skc_family == "AF_INET":
             return (self.m("daddr") or self.m("inet_daddr") or
-                    self.sk.m("__sk_common").u1.u1.skc_daddr).cast(
+                    self.sk.m("__sk_common.u1.u1.skc_daddr") or
+                    self.sk.m("__sk_common").m("skc_daddr")).cast(
                 "Ipv4Address")
 
         else:
@@ -545,10 +662,10 @@ class task_struct(obj.Struct):
         # Newer kernels have mnt_parent in the mount struct, not in the
         # vfsmount struct.
         if self.obj_profile.get_obj_offset("vfsmount", "mnt_parent"):
-            return vfs.Linux26VFS().get_path(self, filp)
+            return vfs.Linux26VFS(self.obj_profile).get_path(self, filp)
 
         else:
-            return vfs.Linux3VFS().get_path(self, filp)
+            return vfs.Linux3VFS(self.obj_profile).get_path(self, filp)
 
     def get_process_address_space(self):
         directory_table_base = self.obj_vm.vtop(self.mm.pgd.v())
@@ -567,7 +684,7 @@ class task_struct(obj.Struct):
 
 
 class timespec(obj.Struct):
-    # The following calculate the number of ns each tick is.
+    # The following calculates the number of ns each tick is.
     # http://lxr.free-electrons.com/source/include/linux/jiffies.h?v=2.6.32#L12
 
     # The HZ value should be obtained from the auxilary vector but for now we
@@ -588,49 +705,16 @@ class timespec(obj.Struct):
 
     NSEC_PER_SEC = 1000000000
 
-    @property
-    def wall_to_monotonic(self):
-        wall_addr = self.obj_profile.get_constant("wall_to_monotonic")
-        if wall_addr:
-            return self.obj_profile.timespec(vm=self.obj_vm, offset=wall_addr)
-
-        # After Kernel 3.3 wall_to_monotonic is stored inside the timekeeper.
-        timekeeper_addr = self.obj_profile.get_constant("timekeeper")
-        if timekeeper_addr:
-            return  self.obj_profile.timekeeper(
-                vm=self.obj_vm, offset=timekeeper_addr).wall_to_monotonic
-
-    @property
-    def total_sleep_time(self):
-        total_sleep_time_addr = self.obj_profile.get_constant(
-            "total_sleep_time")
-
-        if total_sleep_time_addr:
-            return self.obj_profile.timespec(
-                vm=self.obj_vm, offset=total_sleep_time_addr)
-
-        # After Kernel 3.3 wall_to_monotonic is stored inside the timekeeper.
-        timekeeper_addr = self.obj_profile.get_constant("timekeeper")
-        if timekeeper_addr:
-            return  self.obj_profile.timekeeper(
-                vm=self.obj_vm, offset=timekeeper_addr).total_sleep_time
-
-        # Just return an empty timespec.
-        return self.obj_profile.timespec()
+    def __init__(self, *args, **kwargs):
+        super(timespec, self).__init__(*args, **kwargs)
+        self.HZ = self.obj_profile.get_kernel_config("CONFIG_HZ") or self.HZ
 
     def __add__(self, other):
-        """Properly normalize this object from sec and nsec.
-
-        based on set_normalized_timespec function.
-        """
         if not isinstance(other, self.__class__):
             raise TypeError("Can only add timespec to timespec")
 
         sec = other.tv_sec + self.tv_sec
         nsec = other.tv_nsec + self.tv_nsec
-
-        sec += nsec / self.NSEC_PER_SEC
-        nsec = nsec % self.NSEC_PER_SEC
 
         result = self.obj_profile.timespec()
         result.tv_sec = sec
@@ -638,13 +722,25 @@ class timespec(obj.Struct):
 
         return result
 
-    def getboottime(self):
-        result = self.wall_to_monotonic + self.total_sleep_time
-        return result.tv_sec + result.tv_nsec / self.NSEC_PER_SEC
+    def normalized_timespec(self):
+        """Normalizes a timespec's secs and nsecs.
+
+        Based on set_normalized_timespec:
+          http://lxr.free-electrons.com/source/kernel/time.c?v=3.11#L358
+        """
+        sec = self.tv_sec + self.tv_nsec / self.NSEC_PER_SEC
+        nsec = self.tv_nsec % self.NSEC_PER_SEC
+
+        result = self.obj_profile.timespec()
+        result.tv_sec = sec
+        result.tv_nsec = nsec
+        return result
 
     def as_timestamp(self):
-        secs = self.tv_sec + self.tv_nsec / self.NSEC_PER_SEC
-        return self.obj_profile.UnixTimeStamp(value=secs)
+        """Returns the time as a UnixTimestamp."""
+        the_time = self.obj_profile.getboottime(vm=self.obj_vm) + self
+        the_time = the_time.normalized_timespec()
+        return self.obj_profile.UnixTimeStamp(value=the_time.tv_sec)
 
 
 class PermissionFlags(basic.Flags):
@@ -675,6 +771,16 @@ class PermissionFlags(basic.Flags):
         return self.is_flag('w')
 
 
+class InodePermission(basic.Flags):
+    def __getattr__(self, attr):
+        mask = super(InodePermission, self).__getattr__(attr)
+        if not mask:
+            return obj.NoneObject("Mask {0} not known".format(attr))
+
+        if attr.startswith("S_IF"):
+            return (self.v() & 0xF000) == mask
+        return self.v() & mask
+
 class Linux(basic.BasicClasses):
     METADATA = dict(
         os="linux",
@@ -689,6 +795,7 @@ class Linux(basic.BasicClasses):
                 task_struct=task_struct,
                 timespec=timespec, inet_sock=inet_sock,
                 PermissionFlags=PermissionFlags,
+                InodePermission=InodePermission,
                 ))
         profile.add_overlay(linux_overlay)
         profile.add_constants(default_text_encoding="utf8")
@@ -756,6 +863,40 @@ class Linux(basic.BasicClasses):
             raise ValueError("No kernel config options present in the profile.")
         return self.kernel_config_options.get(config_option)
 
+    def get_wall_to_monotonic(self, vm=None):
+        wall_addr = self.get_constant("wall_to_monotonic")
+        if wall_addr:
+            return self.timespec(vm=vm, offset=wall_addr)
+
+        # After Kernel 3.3 wall_to_monotonic is stored inside the timekeeper.
+        timekeeper_addr = self.get_constant("timekeeper")
+        if timekeeper_addr:
+            return  self.timekeeper(
+                vm=vm, offset=timekeeper_addr).wall_to_monotonic
+
+    def get_total_sleep_time(self, vm=None):
+        total_sleep_time_addr = self.get_constant(
+            "total_sleep_time")
+
+        if total_sleep_time_addr:
+            return self.timespec(
+                vm=vm, offset=total_sleep_time_addr)
+
+        # After Kernel 3.3 wall_to_monotonic is stored inside the timekeeper.
+        timekeeper_addr = self.get_constant("timekeeper")
+        if timekeeper_addr:
+            return  self.timekeeper(
+                vm=vm, offset=timekeeper_addr).total_sleep_time
+
+        # Just return an empty timespec.
+        return self.timespec()
+
+    def getboottime(self, vm=None):
+        """Returns the real time of system boot."""
+        boottime = self.get_wall_to_monotonic(vm=vm) + self.get_total_sleep_time(vm=vm)
+        boottime.tv_sec = -boottime.tv_sec
+        boottime.tv_nsec = -boottime.tv_nsec
+        return boottime.normalized_timespec()
 
 # Legacy for old profiles
 class Linux32(Linux):

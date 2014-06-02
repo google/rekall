@@ -27,6 +27,111 @@ from rekall import utils
 from rekall.plugins.overlays import basic
 
 
+class File(object):
+    """Represents a Linux file."""
+
+    def __init__(self, filename=None, mountpoint=None, dentry=None,
+                 is_root=False):
+        if isinstance(filename, (basestring, basic.String)):
+            self.filename = utils.SmartUnicode(filename).split("/")
+        elif isinstance(filename, list):
+            self.filename = filename
+        elif not filename:
+            self.filename = []
+        else:
+           raise TypeError("Invalid filename.")
+        self.mountpoint = mountpoint or MountPoint()
+        self.dentry = dentry
+        self.is_root = is_root
+
+    @property
+    def fullpath(self):
+        if self.is_root:
+            return self.mountpoint.name
+        else:
+            return '/'.join([self.mountpoint.name.rstrip("/"),
+                            '/'.join(self.filename)])
+
+    @property
+    def name(self):
+        try:
+            return self.filename[-1] or obj.NoneObject()
+        except IndexError:
+            return obj.NoneObject()
+
+    def walk(self, recursive=False, unallocated=False):
+        if not self.dentry.d_inode.type.S_IFDIR:
+            return
+
+        for dentry in self.dentry.d_subdirs.list_of_type_fast("dentry", "d_u"):
+            filename = unicode(dentry.d_name.name.deref())
+            inode = dentry.d_inode
+
+            # If we are the root pseudofile, we have no name.
+            if self.is_root:
+                child_filename = filename
+            else:
+                child_filename = self.filename + [filename]
+
+            new_file = File(filename=child_filename,
+                            mountpoint=self.mountpoint,
+                            dentry=dentry)
+
+            if (unallocated or (filename and inode)):
+                yield new_file
+
+            if recursive and inode and inode.type.S_IFDIR:
+                if recursive and inode.type.S_IFDIR:
+                    for sub_file in new_file.walk(recursive=recursive,
+                                                  unallocated=unallocated):
+                        yield sub_file
+
+    def __eq__(self, other):
+        if isinstance(other, File):
+            return (self.fullpath == other.fullpath and
+                    self.dentry == other.dentry and
+                    self.mountpoint == other.mountpoint)
+        return False
+
+    def is_directory(self):
+        return self.dentry and self.dentry.d_inode.type.S_IFDIR
+
+
+class MountPoint(object):
+    """Represents a Linux mount point."""
+
+    def __init__(self, device="(undefined device)",
+                 mount_path="(undefined mount path)",
+                 superblock=None, flags=None):
+        self.device = device
+        self.name = unicode(mount_path)
+        self.sb = superblock
+        self.flags = flags
+
+    def walk(self, recursive=False, unallocated=False):
+        """Yields Files for each file in this mountpoint."""
+
+        if self.sb and self.sb.s_root.d_inode.type.S_IFDIR:
+            # Create a dummy file for the root of the filesystem to walk it.
+            root_file = File(mountpoint=self,
+                             dentry=self.sb.s_root,
+                             is_root=True)
+            for sub_file in root_file.walk(recursive=recursive,
+                                           unallocated=unallocated):
+                yield sub_file
+
+    @property
+    def fstype(self):
+        return self.sb.s_type.name.deref()
+
+    def __eq__(self, other):
+        if isinstance(other, MountPoint):
+            return (self.sb == other.sb
+                    and self.device == other.device
+                    and self.name == other.name)
+        return False
+
+
 class FileName(object):
     """An object to represent a filename."""
     MAX_DEPTH = 15
@@ -83,6 +188,15 @@ class Linux3VFS(object):
     http://lxr.free-electrons.com/source/fs/dcache.c?v=3.7#L2576
     """
 
+    def __init__(self, profile=None):
+        # Autodetect kernel version
+        self.profile = profile
+        if self.profile.get_constant("set_mphash_entries"):
+            self._prepend_path = self._prepend_path314
+        elif self.profile.has_type("mount"):
+            self._prepend_path = self._prepend_path303
+        else:
+            self._prepend_path = self._prepend_path300
 
     def get_path(self, task, filp):
         """Resolve the dentry, vfsmount relative to this task's chroot.
@@ -100,8 +214,55 @@ class Linux3VFS(object):
     def _mnt_has_parent(self, mnt):
         return  mnt != mnt.mnt_parent
 
-    def _prepend_path(self, path, root):
-        """Return the path of a dentry.
+    def _prepend_path300(self, path, root):
+        """Return the path of a dentry for 3.0-3.2 kernels.
+
+        http://lxr.free-electrons.com/source/fs/dcache.c?v=3.2#L2576
+        """
+        # Ensure we can not get into an infinite loop here by limiting the
+        # depth.
+        depth = 0
+        dentry = path.dentry
+        vfsmnt = path.mnt
+
+        result = FileName(start_dentry=dentry)
+
+        # Check for deleted dentry.
+        if dentry.d_flags.DCACHE_UNHASHED and not dentry.is_root:
+            result.deleted = True
+
+        while dentry != root.dentry or vfsmnt != root.mnt:
+            # Control the depth.
+            depth += 1
+            if depth >= result.MAX_DEPTH:
+                break
+
+            if dentry == vfsmnt.mnt_root or dentry.is_root:
+                # Global root?
+                if vfsmnt.mnt_parent == vfsmnt:
+                    result.PrependName("")
+                    break
+                dentry = vfsmnt.mnt_mountpoint
+                vfsmnt = vfsmnt.mnt_parent
+                continue
+
+            parent = dentry.d_parent
+            if dentry.d_name.name:
+                result.PrependName(dentry.d_name.name.deref())
+            dentry = parent
+
+        # When we get here dentry is a root dentry and mnt is the mount point it
+        # is mounted on. There are some special mount points we want to
+        # highlight.
+        result.mount_point = vfsmnt.mnt_mountpoint.d_name.name.deref()
+
+        return result.FormatName(dentry)
+
+    def _prepend_path303(self, path, root):
+        """Return the path of a dentry for 3.3-3.13 kernels.
+
+        Linxu 3.3 introduced the struct mount, and moved some fields between
+        struct mount and struct vfsmount.
 
         http://lxr.free-electrons.com/source/fs/dcache.c?v=3.7#L2576
         """
@@ -111,6 +272,7 @@ class Linux3VFS(object):
         dentry = path.dentry
         vfsmnt = path.mnt
         mnt = self._real_mount(vfsmnt)
+        slash = False
 
         result = FileName(start_dentry=dentry)
 
@@ -127,16 +289,62 @@ class Linux3VFS(object):
             if dentry == vfsmnt.mnt_root or dentry.is_root:
                 # Global root?
                 if not self._mnt_has_parent(mnt):
+                    if not slash:
+                        result.PrependName("")
                     break
-
                 dentry = mnt.mnt_mountpoint
                 mnt = mnt.mnt_parent
-                vfsmnt = mnt.mnt.reference()
+                vfsmnt = mnt.mnt
                 continue
 
             parent = dentry.d_parent
-            result.PrependName(dentry.d_name.name.deref())
+            if dentry.d_name.name:
+                result.PrependName(dentry.d_name.name.deref())
+            slash = True
+            dentry = parent
 
+        # When we get here dentry is a root dentry and mnt is the mount point it
+        # is mounted on. There are some special mount points we want to
+        # highlight.
+        result.mount_point = mnt.mnt_mountpoint.d_name.name.deref()
+
+        return result.FormatName(dentry)
+
+    def _prepend_path314(self, path, root):
+        """Return the path of a dentry for 3.14 kernels.
+
+        http://lxr.free-electrons.com/source/fs/dcache.c?v=3.14#L2867
+        """
+        # Ensure we can not get into an infinite loop here by limiting the
+        # depth.
+        depth = 0
+        dentry = path.dentry
+        vfsmnt = path.mnt
+        mnt = self._real_mount(vfsmnt)
+        result = FileName(start_dentry=dentry)
+
+        # Check for deleted dentry.
+        if dentry.d_flags.DCACHE_UNHASHED and not dentry.is_root:
+            result.deleted = True
+
+        while dentry != root.dentry or vfsmnt != root.mnt:
+            # Control the depth.
+            depth += 1
+            if depth >= result.MAX_DEPTH:
+                break
+
+            if dentry == vfsmnt.mnt_root or dentry.is_root:
+                parent = mnt.mnt_parent
+                # Global root?
+                if mnt != parent:
+                    dentry = mnt.mnt_mountpoint
+                    mnt = mnt.mnt_parent
+                    vfsmnt = mnt.mnt
+                    continue
+
+            parent = dentry.d_parent
+            if dentry.d_name.name:
+                result.PrependName(dentry.d_name.name.deref())
             dentry = parent
 
         # When we get here dentry is a root dentry and mnt is the mount point it

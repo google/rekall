@@ -280,6 +280,7 @@ class Enumeration(obj.NativeType):
         # Due to the way JSON serializes dicts, we must always operate on the
         # choices dict with string keys.
         self.choices = dict((str(k), v) for k, v in choices.iteritems())
+        self.reverse_choices = None
         self.default = default
         if callable(value):
             value = value(self.obj_parent)
@@ -334,6 +335,11 @@ class Enumeration(obj.NativeType):
 
         return result
 
+    def __getattr__(self, attr):
+        if self.reverse_choices is None:
+            self.reverse_choices = {v: int(k) for k,v in self.choices.items()}
+        value = self.reverse_choices.get(attr, None)
+        return value is not None and self.v() == value
 
 
 class Ipv4Address(obj.NativeType):

@@ -61,7 +61,7 @@ class CheckIdt(common.LinuxPlugin):
                     # We really dont know where this is going.
                     "Unknown")
 
-            yield i, idt_addr, name
+            yield i, idt_addr, entry.GateType, entry.DPL, name
 
 
     def CheckIDTTables(self):
@@ -69,12 +69,17 @@ class CheckIdt(common.LinuxPlugin):
         This works by walking the IDT table for the entries that Linux uses
         and verifies that each is a symbol in the kernel
         """
+        # arch/x86/include/asm/desc_defs.h
         # hw handlers + system call
         if self.profile.metadata('arch') == "I386":
             idt_type = "desc_struct"
         else:
             idt_type = "gate_struct64"
 
+        # idt_table is defined in arch/x86/kernel/traps.c for 32-bit kernels
+        # and in arch/x86/kernel/head_64.S on 64-bit kernels.
+        # idt_table entries are set via the set_*_gate set of functions in
+        # arch/x86/include/asm/desc.h.
         idt_table = self.profile.get_constant_object(
             "idt_table",
             target="Array",
@@ -88,11 +93,13 @@ class CheckIdt(common.LinuxPlugin):
     def render(self, renderer):
         renderer.table_header([("Index", "index", "[addr]"),
                                ("Address", "address", "[addrpad]"),
+                               ("Type", "type", ">18"),
+                               ("DPL", "dpl", ">3"),
                                ("Symbol", "symbol", "<30")])
 
-        for (i, idt_addr, symbol) in self.CheckIDTTables():
+        for (i, idt_addr, gate_type, dpl, symbol) in self.CheckIDTTables():
             highlight = None
             if symbol == "Unknown":
                 highlight = "important"
 
-            renderer.table_row(i, idt_addr, symbol, highlight=highlight)
+            renderer.table_row(i, idt_addr, gate_type, dpl, symbol, highlight=highlight)

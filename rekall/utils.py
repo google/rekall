@@ -519,6 +519,8 @@ def MaskMapFromDefines(text):
             value = m.group(2)
             if m.group(3):
                 value = int(value, 16)
+            elif value.startswith("0"):
+                value = int(value, 8)
             else:
                 value = int(value)
 

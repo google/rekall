@@ -31,8 +31,8 @@ class WinPhysicalMap(common.WindowsCommandPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-                ("Physical Start", "phys", "[addrpad]"),
-                ("Physical End", "phys", "[addrpad]"),
+                ("Phys Start", "phys", "[addrpad]"),
+                ("Phys End", "phys", "[addrpad]"),
                 ("Number of Pages", "pages", "10"),
                 ])
 

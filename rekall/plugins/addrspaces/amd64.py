@@ -230,6 +230,7 @@ class VTxPagedMemory(AMD64PagedMemory):
 
         self.as_assert(this_ept != None, "No more EPTs specified")
         self.ept = this_ept
+        self.name = "VTxPagedMemory@%#x" % self.ept
 
     def entry_present(self, entry):
         # A page entry being present depends only on bits 2:0 for EPT
