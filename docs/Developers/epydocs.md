@@ -2,5 +2,7 @@
 layout: embedded
 category: developers
 title: Generated API Docs.
-target: /epydocs/index.html
+download: /epydocs/index.html
+mime: text/html
+tag: iframe
 ---

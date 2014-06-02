@@ -85,8 +85,8 @@ ript>
   </div>
   <div class="span8" >
     
-    <iframe src="http://docs.google.com/viewer?url=http%3A%2F%2Fwww.dfrws.org%2F2014eu%2Fproceedings%2FDFRWS-EU-2014-14.pdf&embedded=true" width="100%">
-    </iframe>
+    <embed src="http://www.dfrws.org/2014eu/proceedings/DFRWS-EU-2014-14.pdf" width="100%" type="application/pdf">
+    </embed>
   </div>
   <div class="span2 sidebar">
     <img src="/img/Rekall.png"></img>
@@ -97,7 +97,7 @@ ript>
 <script>
   $(window).resize(function(){
     var height = $(window).height() - 100;
-    $('iframe').height(height);
+    $('embed').height(height);
   });
 
   $(window).resize();

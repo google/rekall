@@ -184,6 +184,9 @@ def docs(page=None):
 
 def embedded(page=None):
     """Embed an iframe in the page."""
+
+    tag = page.get("tag", "embed")
+
     return u"""
 {head}
 <div class="container-fluid">
@@ -193,8 +196,8 @@ def embedded(page=None):
   </div>
   <div class="span8" >
     {page.content}
-    <iframe src="{page.target}" width="100%">
-    </iframe>
+    <{tag} src="{page.download}" width="100%" type="{page.mime}">
+    </{tag}>
   </div>
   <div class="span2 sidebar">
     {sidebar}
@@ -204,13 +207,13 @@ def embedded(page=None):
 <script>
   $(window).resize(function(){{
     var height = $(window).height() - 100;
-    $('iframe').height(height);
+    $('{tag}').height(height);
   }});
 
   $(window).resize();
 </script>
 {foot}
-""".format(head=HEAD, foot=FOOT, sidebar=SIDEBAR, page=page,
+""".format(head=HEAD, foot=FOOT, sidebar=SIDEBAR, page=page, tag=tag,
            nav=navigation(page))
 
 
