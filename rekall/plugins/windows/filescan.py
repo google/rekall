@@ -27,8 +27,7 @@
 @contact:      a.schuster@forensikblog.de
 @organization: http://computer.forensikblog.de/en/
 """
-
-from rekall import obj
+from rekall import plugin
 from rekall.plugins.windows import common
 
 
@@ -258,19 +257,10 @@ class PoolScanMutant(PoolScanDriver):
             ]
 
 
-class MutantScan(FileScan):
+class MutantScan(plugin.VerbosityMixIn, FileScan):
     "Scan for mutant objects _KMUTANT "
 
     __name = "mutantscan"
-
-    def __init__(self, silent=False, **kwargs):
-        """Scan for mutant objects _KMUTANT.
-
-        Args:
-           silent: Suppress less meaningful results.
-        """
-        super(MutantScan, self).__init__(**kwargs)
-        self.silent = silent
 
     def generate_hits(self):
         scanner = PoolScanMutant(profile=self.profile, session=self.session,
@@ -284,7 +274,9 @@ class MutantScan(FileScan):
             object_name = object_obj.NameInfo.Name.v(
                 vm=self.kernel_address_space)
 
-            if self.silent and not object_name:
+            # By default we suppress non-named mutants because they are not very
+            # interesting.
+            if self.verbosity < 5 and not object_name:
                 continue
 
             mutant = self.profile._KMUTANT(

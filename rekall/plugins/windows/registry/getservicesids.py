@@ -56,7 +56,8 @@ class GetServiceSids(registry.RegistryPlugin):
             current_control_set = reg.CurrentControlSet()
 
             # There is no CurrentControlSet in this hive.
-            if not current_control_set: continue
+            if not current_control_set:
+                continue
 
             # Enumerate the services.
             for subkey in current_control_set.open_subkey("services").subkeys():

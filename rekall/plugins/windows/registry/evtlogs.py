@@ -27,14 +27,14 @@
 @contact:      jamie.levy@gmail.com
 @organization: Volatile Systems
 """
+from rekall import plugin
 from rekall import obj
 from rekall import scan
 from rekall import utils
-from rekall.plugins import core
 from rekall.plugins.windows.registry import registry
 from rekall.plugins.windows.registry import getsids
 
-import os, datetime, ntpath
+import ntpath
 
 
 # for more information on Event Log structures see WFA 2E pg 260-263 by Harlan
@@ -187,17 +187,10 @@ class EVTScanner(scan.BaseScanner):
                 yield event
 
 
-class EvtLogs(registry.RegistryPlugin):
+class EvtLogs(plugin.VerbosityMixIn, registry.RegistryPlugin):
     """Extract Windows Event Logs (XP/2003 only)"""
 
     __name = "evtlogs"
-
-    @classmethod
-    def args(cls, parser):
-        super(EvtLogs, cls).args(parser)
-        parser.add_argument(
-            "-v", "--verbose", default=False, action="store_true",
-            help='Resolve sids to users, services etc.')
 
     @classmethod
     def is_active(cls, config):
@@ -205,9 +198,7 @@ class EvtLogs(registry.RegistryPlugin):
         return (super(EvtLogs, cls).is_active(config) and
                 config.profile.metadata("major") == "5")
 
-    def __init__(self, save_evt=False, verbose=False, **kwargs):
-        self.save_evt = save_evt
-        self.verbose = verbose
+    def __init__(self, **kwargs):
         super(EvtLogs, self).__init__(**kwargs)
         self.profile = EVTObjectTypes(self.profile)
         self.context = dict(sid_cache={})
@@ -268,7 +259,7 @@ class EvtLogs(registry.RegistryPlugin):
             sid_cache[sid] = "(Service: %s)" % service_name
 
     def render(self, renderer):
-        if self.verbose:
+        if self.verbosity > 5:
             self.PrecacheSids()
 
         renderer.table_header([("TimeWritten", "timestamp", ""),

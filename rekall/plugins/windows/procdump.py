@@ -42,9 +42,16 @@ class PEDump(common.WinProcessFilter):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(PEDump, cls).args(parser)
+        parser.add_argument("-a", "--address_space", default=None,
+                            help="The address space to use.")
+
         parser.add_argument(
             "--image_base", default=0, action=config.IntParser,
             help="The address of the image base (dos header).")
+
+        parser.add_argument(
+            "--out_fd", dest="SUPPRESS",
+            help="A file like object to write the output.")
 
         parser.add_argument("--out_file", default=None,
                             help="The file name to write.")
@@ -144,6 +151,14 @@ class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
     __name = "procdump"
 
     dump_dir_optional = True
+
+    @classmethod
+    def args(cls, parser):
+        super(ProcExeDump, cls).args(parser)
+
+        parser.add_argument(
+            "--out_fd", dest="SUPPRESS",
+            help="A file like object to write the output.")
 
     def __init__(self, out_fd=None, **kwargs):
         """Dump a process from memory into an executable.
@@ -253,6 +268,12 @@ class DLLDump(ProcExeDump):
         self.regex = re.compile(regex)
 
     def render(self, renderer):
+        renderer.table_header([("_EPROCESS", "eprocess", "[addrpad]"),
+                               ("Name", "name", "16"),
+                               ("Base", "base", "[addrpad]"),
+                               ("Module", "module", "20s"),
+                               ("Dump File", "filename", "")])
+
         for task in self.filter_processes():
             task_as = task.get_process_address_space()
 
@@ -266,13 +287,16 @@ class DLLDump(ProcExeDump):
                         utils.SmartUnicode(module.BaseDllName)):
                         continue
 
-                    dump_file = "module.{0}.{1:x}.{2:x}.dll".format(
-                        task.UniqueProcessId, process_offset, module.DllBase)
+                    base_name = os.path.basename(
+                        utils.SmartUnicode(module.BaseDllName))
 
-                    renderer.format(
-                        "Dumping {0}, Process: {1}, Base: {2:8x} "
-                        "output: {3}\n", module.BaseDllName,
-                        task.ImageFileName, module.DllBase, dump_file)
+                    dump_file = "module.{0}.{1:x}.{2:x}.{3}".format(
+                        task.UniqueProcessId, process_offset, module.DllBase,
+                        base_name)
+
+                    renderer.table_row(
+                        task, task.name, module.DllBase, module.BaseDllName,
+                        dump_file)
 
                     # Use the procdump module to dump out the binary:
                     path = os.path.join(self.dump_dir, dump_file)

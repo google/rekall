@@ -94,7 +94,7 @@ class WinDllList(common.WinProcessFilter):
         for task in self.filter_processes():
             pid = task.UniqueProcessId
 
-            renderer.write(u"*" * 72 + "\n")
+            renderer.section()
             renderer.format(u"{0} pid: {1:6}\n", task.ImageFileName, pid)
 
             if task.Peb:
@@ -102,17 +102,18 @@ class WinDllList(common.WinProcessFilter):
                                 task.Peb.ProcessParameters.CommandLine)
 
                 if task.IsWow64:
-                    renderer.write(u"Note: use ldrmodules for listing DLLs "
-                                   "in Wow64 processes\n")
+                    renderer.format(u"Note: use ldrmodules for listing DLLs "
+                                    "in Wow64 processes\n")
 
-                renderer.format(u"{0}\n", task.Peb.CSDVersion)
-                renderer.write(u"\n")
+                renderer.format(u"{0}\n\n", task.Peb.CSDVersion)
                 renderer.table_header([("Base", "module_base", "[addrpad]"),
                                        ("Size", "module_size", "[addr]"),
+                                       ("Load Reason/Count", "reason", "30"),
                                        ("Path", "loaded_dll_path", ""),
                                        ])
                 for m in task.get_load_modules():
-                    renderer.table_row(m.DllBase, m.SizeOfImage, m.FullDllName)
+                    renderer.table_row(m.DllBase, m.SizeOfImage,
+                                       m.LoadReason, m.FullDllName)
             else:
                 renderer.write("Unable to read PEB for task.\n")
 

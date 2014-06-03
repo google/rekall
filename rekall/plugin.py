@@ -92,6 +92,8 @@ class Command(object):
             session by default, if not provided. This allows users to omit
             specifying many options.
         """
+        super(Command, self).__init__(**kwargs)
+
         if session is None:
             raise InvalidArgs("A session must be provided.")
 
@@ -198,29 +200,26 @@ class KernelASMixin(object):
         parser.add_argument("--dtb", action=config.IntParser,
                             help="The DTB physical address.")
 
-    def __init__(self, kernel_address_space=None, dtb=None, **kwargs):
+    def __init__(self, dtb=None, **kwargs):
         """A mixin for plugins which require a valid kernel address space.
 
         Args:
-          kernel_address_space: The kernel address space to use. If not
-            specified, we use the session.
-
           dtb: A potential dtb to be used.
         """
         super(KernelASMixin, self).__init__(**kwargs)
 
         # If the dtb is specified use that as the kernel address space.
         if dtb is not None:
-            kernel_address_space = self.session.kernel_address_space.__class__(
-                base=self.physical_address_space, dtb=dtb)
-
-        # Try to load the AS from the session if possible.
-        self.kernel_address_space = (kernel_address_space or
-                                     self.session.kernel_address_space)
+            self.kernel_address_space = (
+                self.session.kernel_address_space.__class__(
+                    base=self.physical_address_space, dtb=dtb))
+        else:
+            # Try to load the AS from the session if possible.
+            self.kernel_address_space = self.session.kernel_address_space
 
         if self.kernel_address_space is None:
             # Try to guess the AS
-            self.session.plugins.load_as().GetVirtualAddressSpace(dtb=dtb)
+            self.session.plugins.load_as().GetVirtualAddressSpace()
 
             self.kernel_address_space = self.session.kernel_address_space
 
@@ -233,7 +232,7 @@ class PhysicalASMixin(object):
 
     This class ensures a valid physical AS exists or an exception is raised.
     """
-    def __init__(self, physical_address_space=None, **kwargs):
+    def __init__(self, **kwargs):
         """A mixin for those plugins requiring a physical address space.
 
         Args:
@@ -249,8 +248,7 @@ class PhysicalASMixin(object):
         """
         super(PhysicalASMixin, self).__init__(**kwargs)
 
-        self.physical_address_space = (physical_address_space or
-                                       self.session.physical_address_space)
+        self.physical_address_space = self.session.physical_address_space
 
         if self.physical_address_space is None:
             # Try to guess the AS
@@ -269,10 +267,14 @@ class VerbosityMixIn(object):
     def args(cls, parser):
         super(VerbosityMixIn, cls).args(parser)
 
-        parser.add_argument("-v", "--verbosity", default=1, type=int,
-                            help="Add more output.")
+        parser.add_argument(
+            "-v", "--verbosity", default=1, type=int,
+            help="An integer reflecting the amount of desired output: "
+            "0 = quiet, 10 = noisy. Default: 1")
 
-    def __init__(self, verbosity=1, **kwargs):
-        super(VerbosityMixIn, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        # Do not interfere with positional args, since this is a mixin.
+        self.verbosity = kwargs.pop("verbosity", 1)
+        super(VerbosityMixIn, self).__init__(*args, **kwargs)
 
-        self.verbosity = verbosity
+

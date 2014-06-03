@@ -21,12 +21,11 @@ windows system:
 If you install these in different locations be sure to adjust the constants
 below.
 """
-import re
 import os
 import subprocess
 import shutil
 
-VERSION="1.6.0"
+VERSION = "1.6.0"
 PATH_TO_DDK = r"C:\WinDDK\7600.16385.1"
 PATH_TO_VS = r"C:\Program Files\Microsoft SDKs\Windows\v7.1"
 
@@ -89,7 +88,7 @@ def BuildDriver(arch, target, principal="test", store=None, signtool_params=""):
         args["store"] = " /s %s " % store
 
 
-    if arch=="x64":
+    if arch == "x64":
         args["arch2"] = "amd64"
     else:
         args["arch2"] = "i386"
@@ -111,7 +110,7 @@ def BuildDriver(arch, target, principal="test", store=None, signtool_params=""):
     cmd = ("cd \"%(cwd)s\" && "
            "Signtool sign /v %(store)s /n %(principal)s %(signtool_params)s "
            "/t http://timestamp.verisign.com/scripts/timestamp.dll "
-           "release\%(arch2)s\winpmem.sys"
+           "release\\%(arch2)s\\winpmem.sys"
            "\n") % args
 
     pipe.communicate(cmd)
@@ -135,9 +134,10 @@ def CleanUpOldFiles():
 def BuildSignedProductionBinaries():
     args = dict(
         principal="Michael",
-        signtool_params="/ac \"certs\\DigiCert_High_Assurance_EV_Root_CA.crt\" ")
-    x64_driver = BuildDriver("x64", "WIN7", **args)
-    x32_driver = BuildDriver("x86", "WXP", **args)
+        signtool_params=(
+            "/ac \"certs\\DigiCert_High_Assurance_EV_Root_CA.crt\" "))
+    BuildDriver("x64", "WIN7", **args)
+    BuildDriver("x86", "WXP", **args)
     BuildProgram(**args)
 
 def BuildTestSignedBinries():

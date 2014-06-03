@@ -323,6 +323,7 @@ windows_overlay = {
 
     "_LDR_DATA_TABLE_ENTRY": [None, {
             "TimeDateStamp": [None, ["WinFileTime"]],
+            "LoadReason": lambda x: x.m("LoadReason") or x.m("LoadCount")
             }],
 
     '_PHYSICAL_MEMORY_DESCRIPTOR' : [None, {

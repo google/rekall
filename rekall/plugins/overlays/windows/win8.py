@@ -38,6 +38,10 @@ def TagOffset(x):
 # then the _MMVAD_SHORT, then the _MMVAD. For example, the tree traversal code,
 # simply casts all objects to an _MM_AVL_NODE without caring what they actually
 # are, then depending on the vad tag, they get casted to different structs.
+
+# Additionally there are new fields StartingVpnHigh and EndingVpnHigh which are
+# chars representing the high part of the PFN. Therefore the real PFN is
+# (StartingVpnHigh << 32) | StartingVpn.
 win8_overlays = {
     '_EPROCESS': [None, {
         # A symbolic link to the real vad root.
@@ -54,8 +58,8 @@ win8_overlays = {
 
     '_MMVAD_SHORT': [None, {
             'Tag': [TagOffset, ['String', dict(length=4)]],
-            'Start': lambda x: x.StartingVpn << 12,
-            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+            'Start': lambda x: (x.StartingVpn + (x.StartingVpnHigh<<32)) << 12,
+            'End': lambda x: (x.EndingVpn + (x.EndingVpnHigh<<32) + 1) << 12,
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u1.VadFlags1.CommitCharge,
             }],
@@ -63,8 +67,8 @@ win8_overlays = {
     '_MMVAD': [None, {
             'Tag': [TagOffset, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
-            'Start': lambda x: x.Core.StartingVpn << 12,
-            'End': lambda x: ((x.Core.EndingVpn + 1) << 12) - 1,
+            'Start': lambda x: x.Core.Start,
+            'End': lambda x: x.Core.End,
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.Core.u1.VadFlags1.CommitCharge,
             'u': lambda x: x.Core.u,
@@ -73,8 +77,8 @@ win8_overlays = {
     '_MMVAD_LONG': [None, {
             'Tag': [TagOffset, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
-            'Start': lambda x: x.Core.StartingVpn << 12,
-            'End': lambda x: ((x.Core.EndingVpn + 1) << 12) - 1,
+            'Start': lambda x: x.Core.Start,
+            'End': lambda x: x.Core.End,
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.Core.u.VadFlags.CommitCharge,
             'u': lambda x: x.Core.u,

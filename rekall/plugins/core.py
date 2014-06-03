@@ -525,8 +525,8 @@ class OutputFileMixin(object):
 class DirectoryDumperMixin(object):
     """A mixin for plugins that want to dump files to a directory."""
 
-    # Set this to True if the dump_dir parameter should be optional.
-    dump_dir_optional = False
+    # Set this to False if the dump_dir parameter is mandatory.
+    dump_dir_optional = True
 
     @classmethod
     def args(cls, parser):
@@ -534,11 +534,11 @@ class DirectoryDumperMixin(object):
         super(DirectoryDumperMixin, cls).args(parser)
         help = "Path suitable for dumping files."
         if cls.dump_dir_optional:
-            help += " (Optional)"
+            help += " (Default: Use current directory)"
         else:
             help += " (Required)"
 
-        parser.add_argument("-D", "--dump-dir",
+        parser.add_argument("-D", "--dump-dir", default=".",
                             required=not cls.dump_dir_optional,
                             help=help)
 

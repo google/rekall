@@ -45,7 +45,7 @@ from rekall import testlib
 
 
 class Disassemble(plugin.Command):
-    """Disassemble the given address space."""
+    """Disassemble the given offset."""
 
     __name = "dis"
 
@@ -69,24 +69,18 @@ class Disassemble(plugin.Command):
             "-e", "--end", default=None, action=config.IntParser,
             help="The end address to disassemble up to.")
 
+
+        parser.add_argument(
+            "--mode", default=None,
+            help="Disassemble Mode (AMD64 or I386). Defaults to profile arch.")
+
+        parser.add_argument(
+            "--suppress_headers", default=False, action="store_true",
+            help="If set we do not write table headers.")
+
     def __init__(self, offset=0, address_space=None, length=None, end=None,
-                 mode=None, suppress_headers=False, target=None, **kwargs):
-        """Dumps a disassembly of a location.
-
-        Args:
-          address_space: The address_space to read from.
-          offset: The offset to read from.
-          length: The number of instructions (lines) to disassemble.
-          mode: The mode (32/64 bit)- if not set taken from profile.
-          suppress_headers: If set we do not write headers.
-          target: An ObjBase instance. If specified we do not need the offset
-            and address_space.
-        """
+                 mode=None, suppress_headers=False, **kwargs):
         super(Disassemble, self).__init__(**kwargs)
-        if target is not None:
-            address_space = target.obj_vm
-            offset = target.offset
-
         load_as = self.session.plugins.load_as(session=self.session)
         self.address_space = load_as.ResolveAddressSpace(address_space)
         self.offset = offset

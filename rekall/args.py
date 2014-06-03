@@ -66,13 +66,27 @@ class MockArgParser(object):
         cls.args(self)
 
         for key in self.args:
-            self.args[key] = getattr(namespace, key)
+            value = getattr(namespace, key, None)
+            if value is not None:
+                self.args[key] = value
 
         return self.args
 
 
+class RekallHelpFormatter(argparse.RawDescriptionHelpFormatter):
+    def add_argument(self, action):
+        # Allow us to suppress an arg from the --help output for those options
+        # which do not make sense on the command line.
+        if action.dest != "SUPPRESS":
+            super(RekallHelpFormatter, self).add_argument(action)
+
+
 class RekallArgParser(argparse.ArgumentParser):
     ignore_errors = False
+
+    def __init__(self, **kwargs):
+        kwargs["formatter_class"] = RekallHelpFormatter
+        super(RekallArgParser, self).__init__(**kwargs)
 
     def error(self, message):
         if self.ignore_errors:
@@ -205,7 +219,7 @@ def parse_args(argv=None, user_session=None):
         conflict_handler='resolve',
         add_help=False,
         epilog='When no module is provided, drops into interactive mode',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=RekallHelpFormatter)
 
     config.RegisterArgParser(parser)
 
