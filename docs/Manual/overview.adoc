@@ -1,13 +1,10 @@
 ---
 layout: docs
+title: Rekall Overview
 ---
 
-Rekall Memory Forensic Framework
-================================
-Michael Cohen <scudette@google.com>
 :icons:
 :numbered:
-
 
 The Rekall Framework is a completely open collection of tools, implemented in
 Python under the GNU General Public License, for the extraction of digital

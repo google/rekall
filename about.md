@@ -8,6 +8,7 @@ title: Rekall Memory Forensic Framework
 ## Licensing and Copyright
 
 Copyright (C) 2007-2011 Volatile Systems
+
 Copyright 2013 Google Inc. All Rights Reserved.
 
 All Rights Reserved

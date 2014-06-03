@@ -1,16 +1,10 @@
 ---
 layout: docs
 category: manual
-title: Rekall Tutorial.
+title: Rekall Tutorial
 author: Michael Cohen <scudette@gmail.com>
 ---
 
-
-The Rekall Memory Forensic Framework Tutorial
-=============================================
-Michael Cohen <scudette@gmail.com>
-August 2012
-:toc2:
 :icons:
 :numbered:
 :website: http://www.rekall-forensic.com
