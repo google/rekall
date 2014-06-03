@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
     <style>
       body {
         padding-top: 60px;
       }
     </style>
-    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
     <link href="/css/treeview.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
@@ -31,12 +31,14 @@ ript>
   <body>
 
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-collapse collapse">
+         <div class="navbar-header">
+           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+         </div>
+         <ul class="nav navbar-nav">
 
         <li>
           <a class="" href="/index.html">
@@ -74,154 +76,156 @@ ript>
           </a>
         </li>
 
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+         </ul>
+       </div>
+     </div>
+   </nav>
 
 <div class="container-fluid">
-<div class="row-fluid">
-  <div class="span2">
+<div class="row">
+  <div class="col-md-2">
     
- <a href='/docs/Manual/Plugins/index.html' class='btn btn-large'>
-     <i class='icon-backward'></i> Back
+ <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> Plugins
  </a>
 
- <h3><a href='/docs/Manual/Plugins/General/index.html'>General</a></h3>
+ <a href='/docs/Manual/Plugins/General/index.html' class="btn btn-default btn-lg btn-block">
+   General
+ </a>
+ <p>
  <div class='css-treeview'>
-   <ul class='nav nav-list'>
+   <ul class='nav nav-stacked'>
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/BuildIndex.html' class="tree-link "  title="build_index">
       build_index
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/ConvertProfile.html' class="tree-link "  title="convert_profile">
       convert_profile
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/DT.html' class="tree-link "  title="dt">
       dt
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/Dump.html' class="tree-link "  title="dump">
       dump
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/DwarfParser.html' class="tree-link "  title="dwarfparser">
       dwarfparser
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/FetchPDB.html' class="tree-link "  title="fetch_pdb">
       fetch_pdb
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/Grep.html' class="tree-link "  title="grep">
       grep
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/GuessGUID.html' class="tree-link "  title="guess_guid">
       guess_guid
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/ImageCopy.html' class="tree-link "  title="imagecopy">
       imagecopy
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/Info.html' class="tree-link "  title="info">
       info
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/JSONParser.html' class="tree-link "  title="json_render">
       json_render
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/Lister.html' class="tree-link "  title="l">
       l
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/LoadAddressSpace.html' class="tree-link "  title="load_as">
       load_as
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/LoadPlugins.html' class="tree-link "  title="load_plugin">
       load_plugin
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/Notebook.html' class="tree-link "  title="notebook">
       notebook
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/Printer.html' class="tree-link "  title="p">
       p
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/ParsePDB.html' class="tree-link "  title="parse_pdb">
       parse_pdb
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/Rekall.html' class="tree-link "  title="rekal">
       rekal
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/VersionScan.html' class="tree-link "  title="version_scan">
       version_scan
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/VmScan.html' class="tree-link "  title="vmscan">
       vmscan
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/General/WebConsole.html' class="tree-link "  title="webconsole">
       webconsole
    </a>
+</li>
 </ul>
  </div>
 
   </div>
 
-  <div class="span8">
+  <div class="col-md-8">
     
 <h1>vmscan</h1>
 
@@ -256,8 +260,8 @@ http://ark.intel.com/products/virtualizationtechnology.</p>
 
 
   </div>
-  <div class="span2 sidebar">
-    <img src="/img/Rekall.png"></img>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
 
   </div>
 </div>

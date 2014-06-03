@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
     <style>
       body {
         padding-top: 60px;
       }
     </style>
-    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
     <link href="/css/treeview.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
@@ -31,12 +31,14 @@ ript>
   <body>
 
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-collapse collapse">
+         <div class="navbar-header">
+           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+         </div>
+         <ul class="nav navbar-nav">
 
         <li>
           <a class="" href="/index.html">
@@ -74,190 +76,192 @@ ript>
           </a>
         </li>
 
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+         </ul>
+       </div>
+     </div>
+   </nav>
 
 <div class="container-fluid">
-<div class="row-fluid">
-  <div class="span2">
+<div class="row">
+  <div class="col-md-2">
     
- <a href='/docs/Manual/Plugins/index.html' class='btn btn-large'>
-     <i class='icon-backward'></i> Back
+ <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> Plugins
  </a>
 
- <h3><a href='/docs/Manual/Plugins/OSX/index.html'>OSX</a></h3>
+ <a href='/docs/Manual/Plugins/OSX/index.html' class="btn btn-default btn-lg btn-block">
+   OSX
+ </a>
+ <p>
  <div class='css-treeview'>
-   <ul class='nav nav-list'>
+   <ul class='nav nav-stacked'>
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinArp.html' class="tree-link "  title="arp">
       arp
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinBootParameters.html' class="tree-link "  title="boot_cmdline">
       boot_cmdline
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinCheckSysCalls.html' class="tree-link "  title="check_syscalls">
       check_syscalls
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/CheckTrapTable.html' class="tree-link activate_tooltip"  title="check_trap_table">
       check_trap_tabl ...
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinDeadProcesses.html' class="tree-link "  title="dead_procs">
       dead_procs
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinDMSG.html' class="tree-link "  title="dmesg">
       dmesg
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinFindDTB.html' class="tree-link "  title="find_dtb">
       find_dtb
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinFindKASLR.html' class="tree-link "  title="find_kaslr">
       find_kaslr
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinIFConfig.html' class="tree-link "  title="ifconfig">
       ifconfig
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinIPFilters.html' class="tree-link "  title="ip_filters">
       ip_filters
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinListZones.html' class="tree-link "  title="list_zones">
       list_zones
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinLsmod.html' class="tree-link "  title="lsmod">
       lsmod
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinLsof.html' class="tree-link "  title="lsof">
       lsof
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinMachineInfo.html' class="tree-link "  title="machine_info">
       machine_info
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinMaps.html' class="tree-link "  title="maps">
       maps
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinMount.html' class="tree-link "  title="mount">
       mount
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinNetstat.html' class="tree-link "  title="netstat">
       netstat
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinNotifiers.html' class="tree-link "  title="notifiers">
       notifiers
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinPhysicalMap.html' class="tree-link "  title="phys_map">
       phys_map
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinPSAUX.html' class="tree-link "  title="psaux">
       psaux
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinPsList.html' class="tree-link "  title="pslist">
       pslist
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DawrinPSTree.html' class="tree-link "  title="pstree">
       pstree
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinPsxView.html' class="tree-link "  title="psxview">
       psxview
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinRoute.html' class="tree-link "  title="route">
       route
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinListSessions.html' class="tree-link "  title="sessions">
       sessions
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinSysctl.html' class="tree-link "  title="sysctl">
       sysctl
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/OSX/DarwinVadDump.html' class="tree-link "  title="vaddump">
       vaddump
    </a>
+</li>
 </ul>
  </div>
 
   </div>
 
-  <div class="span8">
+  <div class="col-md-8">
     
 <h1>netstat</h1>
 
@@ -274,8 +278,8 @@ ript>
 
 
   </div>
-  <div class="span2 sidebar">
-    <img src="/img/Rekall.png"></img>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
 
   </div>
 </div>

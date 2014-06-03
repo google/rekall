@@ -1,9 +1,5 @@
 a {
   color: blue;
-  text-decoration: underline;
-}
-a:visited {
-  color: fuchsia;
 }
 
 em {

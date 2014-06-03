@@ -1,0 +1,11 @@
+img.logo {
+    width: 100%;
+}
+
+.css-treeview .nav > li > a {
+  padding: 0px;
+}
+
+label.category {
+ font-weight: normal;
+}

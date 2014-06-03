@@ -1,14 +1,10 @@
 ---
 layout: docs
-category: manual
-title: Rekall Overview.
-author: Michael Cohen <scudette@gmail.com>
 ---
 
 Rekall Memory Forensic Framework
 ================================
 Michael Cohen <scudette@google.com>
-:toc2:
 :icons:
 :numbered:
 

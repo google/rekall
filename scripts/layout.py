@@ -26,12 +26,14 @@ def navigation(page=None):
     items.sort()
 
     result = u"""
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="#">{site.name}</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-collapse collapse">
+         <div class="navbar-header">
+           <a class="navbar-brand" href="#">{site.name}</a>
+         </div>
+         <ul class="nav navbar-nav">
 """.format(site=SITE)
 
     for _, menuitem, url in items:
@@ -48,11 +50,10 @@ def navigation(page=None):
 """.format(active=active, menuitem=menuitem, url=url)
 
     result += u"""
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+         </ul>
+       </div>
+     </div>
+   </nav>
 """
     return result
 
@@ -62,15 +63,15 @@ def default(page=None):
 {head}
 {nav}
 <div class="container-fluid">
-<div class="row-fluid">
-  <div class="span2">
+<div class="row">
+  <div class="col-md-2">
     {page.navigator}
   </div>
 
-  <div class="span8">
+  <div class="col-md-8">
     {page.content}
   </div>
-  <div class="span2 sidebar">
+  <div class="col-md-2 sidebar">
     {sidebar}
   </div>
 </div>
@@ -91,17 +92,13 @@ def blog_nav(page=None):
     result = ""
     for _, post in items[:5]:
         result += """
-  <ul class="nav nav-list">
-    <div class="row-fluid">
-      <div class="span12">
-        <h2>{post.title}</h2>
-        <h4>{post.date} {post.author}</h4>
-        {post.abstract}
-        <p>
-          <a href="{post.url}">Read Post</a>
-        </p>
-      </div>
-    </div>
+  <ul class="nav nav-stacked">
+     <h2>{post.title}</h2>
+     <h4>{post.date} {post.author}</h4>
+     {post.abstract}
+     <p>
+     <a href="{post.url}">Read Post</a>
+     </p>
   </ul>""".format(post=post)
 
     page.content = result
@@ -136,7 +133,7 @@ def _render_categories(path, width):
             result += """
 <li>
   <input type="checkbox" id="item-{page.url}" />
-  <label for="item-{page.url}">
+  <label for="item-{page.url}" class="category">
     {basename}
   </label>
 """.format(basename=os.path.basename(page.filename), page=page)
@@ -154,23 +151,14 @@ def _render_categories(path, width):
 
         result += """
 <li>
- <div>
    <a href='{page.url}' class="tree-link {tooltip}"  title="{page.title}">
       {abbrev}
    </a>
+</li>
 """.format(page=page, abbrev=abbrev, tooltip=tooltip)
 
-        # Optionally add a download button if the page has a download link.
-        if page.download:
-            result += """
-   <a href='{page.download}'><i class="icon-download"></i></a>
-""".format(page=page)
-            result += """
- </div>
-</li>"""
-
     if result:
-        return "<ul class='nav nav-list'>%s</ul>" % result
+        return "<ul class='nav nav-stacked'>%s</ul>" % result
 
 
 def categories(page=None, path=None):
@@ -214,15 +202,15 @@ def embedded(page=None):
 {nav}
 <div class="container-fluid">
 <div class="row-fluid">
-  <div class="span2">
+  <div class="col-md-2">
     {page.navigator}
   </div>
-  <div class="span8" >
+  <div class="col-md-8" >
     {page.content}
     <{tag} src="{page.download}" width="100%" type="{page.mime}">
     </{tag}>
   </div>
-  <div class="span2 sidebar">
+  <div class="col-md-2 sidebar">
     {sidebar}
   </div>
 </div>
@@ -242,19 +230,26 @@ def embedded(page=None):
 
 @utils.memoize
 def _MakeNavigatorForPlugin(plugin_path, width):
+    args = dict(prev_url=os.path.dirname(plugin_path),
+                plugin_name=os.path.basename(plugin_path),
+                plugin_url=plugin_path,
+                categories=_render_categories(plugin_path, width))
+
+    args["prev"] = os.path.basename(args["prev_url"])
+
     return """
- <a href='{0}/index.html' class='btn btn-large'>
-     <i class='icon-backward'></i> Back
+ <a href="{prev_url}/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> {prev}
  </a>
 
- <h3><a href='{2}/index.html'>{1}</a></h3>
+ <a href='{plugin_url}/index.html' class="btn btn-default btn-lg btn-block">
+   {plugin_name}
+ </a>
+ <p>
  <div class='css-treeview'>
-   {3}
+   {categories}
  </div>
-""".format(os.path.dirname(plugin_path),
-           os.path.basename(plugin_path),
-           plugin_path,
-           _render_categories(plugin_path, width))
+""".format(**args)
 
 
 def plugin(page=None):
@@ -321,7 +316,7 @@ def downloads(page=None):
         result += """
 <table class="table table-striped table-bordered table-hover">
 <thead>
-<tr><th></th><th>Name</th><th>SHA1</th><th>Size</th></tr>
+<tr><th>Name</th><th>SHA1</th><th>Size</th></tr>
 </thead>
 <tbody>
 """
@@ -334,7 +329,6 @@ def downloads(page=None):
             sha_hash = sha.sha(open(path).read()).hexdigest()
             result += """
 <tr>
-  <td><a href='/{url}'><i class='icon-download'></i></a></td>
   <td><a href='/{url}'>{name}</a></td>
   <td>{sha}</td>
   <td>{size}</td>

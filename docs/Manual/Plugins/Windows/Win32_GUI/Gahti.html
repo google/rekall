@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
     <style>
       body {
         padding-top: 60px;
       }
     </style>
-    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
     <link href="/css/treeview.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
@@ -31,12 +31,14 @@ ript>
   <body>
 
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-collapse collapse">
+         <div class="navbar-header">
+           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+         </div>
+         <ul class="nav navbar-nav">
 
         <li>
           <a class="" href="/index.html">
@@ -74,88 +76,90 @@ ript>
           </a>
         </li>
 
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+         </ul>
+       </div>
+     </div>
+   </nav>
 
 <div class="container-fluid">
-<div class="row-fluid">
-  <div class="span2">
+<div class="row">
+  <div class="col-md-2">
     
- <a href='/docs/Manual/Plugins/Windows/index.html' class='btn btn-large'>
-     <i class='icon-backward'></i> Back
+ <a href="/docs/Manual/Plugins/Windows/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> Windows
  </a>
 
- <h3><a href='/docs/Manual/Plugins/Windows/Win32_GUI/index.html'>Win32_GUI</a></h3>
+ <a href='/docs/Manual/Plugins/Windows/Win32_GUI/index.html' class="btn btn-default btn-lg btn-block">
+   Win32_GUI
+ </a>
+ <p>
  <div class='css-treeview'>
-   <ul class='nav nav-list'>
+   <ul class='nav nav-stacked'>
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link "  title="atoms">
       atoms
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/AtomScan.html' class="tree-link "  title="atomscan">
       atomscan
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/SetProcessContext.html' class="tree-link "  title="cc">
       cc
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="tree-link "  title="desktops">
       desktops
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinEventHooks.html' class="tree-link "  title="eventhooks">
       eventhooks
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Gahti.html' class="tree-link "  title="gahti">
       gahti
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinMessageHooks.html' class="tree-link "  title="messagehooks">
       messagehooks
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Sessions.html' class="tree-link "  title="sessions">
       sessions
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/UserHandles.html' class="tree-link "  title="userhandles">
       userhandles
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WindowsStations.html' class="tree-link activate_tooltip"  title="windows_stations">
       windows_station ...
    </a>
+</li>
 </ul>
  </div>
 
   </div>
 
-  <div class="span8">
+  <div class="col-md-8">
     
 <h1>gahti</h1>
 
@@ -172,8 +176,8 @@ ript>
 
 
   </div>
-  <div class="span2 sidebar">
-    <img src="/img/Rekall.png"></img>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
 
   </div>
 </div>

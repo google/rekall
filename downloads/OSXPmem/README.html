@@ -7,17 +7,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
     <style>
       body {
         padding-top: 60px;
       }
     </style>
-    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
     <link href="/css/treeview.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -30,12 +31,14 @@ ript>
   <body>
 
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-collapse collapse">
+         <div class="navbar-header">
+           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+         </div>
+         <ul class="nav navbar-nav">
 
         <li>
           <a class="" href="/index.html">
@@ -73,19 +76,18 @@ ript>
           </a>
         </li>
 
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+         </ul>
+       </div>
+     </div>
+   </nav>
 
 <div class="container-fluid">
-<div class="row-fluid">
-  <div class="span2">
+<div class="row">
+  <div class="col-md-2">
     
   </div>
 
-  <div class="span8">
+  <div class="col-md-8">
     
 <div id="header">
 <h1>OSXPMem - Mac OS X Physical Memory acquisition tool</h1>
@@ -231,12 +233,15 @@ Last updated 2014-05-26 16:37:19 CEST
 </div>
 
   </div>
-  <div class="span2 sidebar">
-    <img src="/img/Rekall.png"></img>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
 
   </div>
 </div>
 </div>
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
   </body>
 </html>
 

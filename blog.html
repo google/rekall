@@ -7,17 +7,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
     <style>
       body {
         padding-top: 60px;
       }
     </style>
-    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
     <link href="/css/treeview.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -30,12 +31,14 @@ ript>
   <body>
 
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-collapse collapse">
+         <div class="navbar-header">
+           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+         </div>
+         <ul class="nav navbar-nav">
 
         <li>
           <a class="" href="/index.html">
@@ -73,94 +76,80 @@ ript>
           </a>
         </li>
 
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+         </ul>
+       </div>
+     </div>
+   </nav>
 
 <div class="container-fluid">
-<div class="row-fluid">
-  <div class="span2">
+<div class="row">
+  <div class="col-md-2">
     
   </div>
 
-  <div class="span8">
+  <div class="col-md-8">
     
-  <ul class="nav nav-list">
-    <div class="row-fluid">
-      <div class="span12">
-        <h2>Rekall - We can remember it for you wholesale.</h2>
-        <h4>2014-02-19 Michael Cohen <scudette@gmail.com></h4>
-        Rekall started life as special branch in the Volatility project to explore new
+  <ul class="nav nav-stacked">
+     <h2>Rekall - We can remember it for you wholesale.</h2>
+     <h4>2014-02-19 Michael Cohen <scudette@gmail.com></h4>
+     Rekall started life as special branch in the Volatility project to explore new
 approaches of performing some memory analysis. Over time this branch was known
 as the "scudette" branch after the volatility core developer who performed
 this work (scudette@gmail.com). For various reasons (which you can read more
 about in the History section of the README.txt file) this branch evolved into
 a new project called "Rekall".
 
-        <p>
-          <a href="/posts/2014-02-19-rekall-introduction.html">Read Post</a>
-        </p>
-      </div>
-    </div>
+     <p>
+     <a href="/posts/2014-02-19-rekall-introduction.html">Read Post</a>
+     </p>
   </ul>
-  <ul class="nav nav-list">
-    <div class="row-fluid">
-      <div class="span12">
-        <h2>Rekall Profiles</h2>
-        <h4>2014-02-19 Michael Cohen <scudette@google.com></h4>
-        So what is a profile? A profile provides the application with specialized
+  <ul class="nav nav-stacked">
+     <h2>Rekall Profiles</h2>
+     <h4>2014-02-19 Michael Cohen <scudette@google.com></h4>
+     So what is a profile? A profile provides the application with specialized
 support for precisely the operating system version which is running inside the
 image. Why do we need specialized support? In order to make sense of the
 memory image. How are Rekall profiles different?
 
-        <p>
-          <a href="/posts/2014-02-19-profiles.html">Read Post</a>
-        </p>
-      </div>
-    </div>
+     <p>
+     <a href="/posts/2014-02-19-profiles.html">Read Post</a>
+     </p>
   </ul>
-  <ul class="nav nav-list">
-    <div class="row-fluid">
-      <div class="span12">
-        <h2>The Rekall Profile Repository and Profile Auto-selection</h2>
-        <h4>2014-02-20 Michael Cohen <scudette@google.com></h4>
-        The previous blog post discussed how Rekall redesigned the profile format into
+  <ul class="nav nav-stacked">
+     <h2>The Rekall Profile Repository and Profile Auto-selection</h2>
+     <h4>2014-02-20 Michael Cohen <scudette@google.com></h4>
+     The previous blog post discussed how Rekall redesigned the profile format into
 a simple JSON data structure. The profile JSON file now becomes the complete
 information source about a specific kernel version - including global
 constants, struct definitions (via vtype definitions) and metadata (such as
 architecture, version etc).
 
-        <p>
-          <a href="/posts/2014-02-20-profile-selection.html">Read Post</a>
-        </p>
-      </div>
-    </div>
+     <p>
+     <a href="/posts/2014-02-20-profile-selection.html">Read Post</a>
+     </p>
   </ul>
-  <ul class="nav nav-list">
-    <div class="row-fluid">
-      <div class="span12">
-        <h2>Do we need the Kernel Debugging Block?</h2>
-        <h4>2014-02-21 Michael Cohen <scudette@google.com></h4>
-        Recently, the Volatility blog reminded us that the KDBG is critical for memory
+  <ul class="nav nav-stacked">
+     <h2>Do we need the Kernel Debugging Block?</h2>
+     <h4>2014-02-21 Michael Cohen <scudette@google.com></h4>
+     Recently, the Volatility blog reminded us that the KDBG is critical for memory
 analysis. In that post, the author recognizes that the KDBG block is encoded
 on Window 8 and is not readily scanned for using the usual `kdbgscan`
 plugin. But is the KDBG really that imporant? Perhaps not so...
 
-        <p>
-          <a href="/posts/2014-02-21-do-we-need-kdbg.html">Read Post</a>
-        </p>
-      </div>
-    </div>
+     <p>
+     <a href="/posts/2014-02-21-do-we-need-kdbg.html">Read Post</a>
+     </p>
   </ul>
   </div>
-  <div class="span2 sidebar">
-    <img src="/img/Rekall.png"></img>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
 
   </div>
 </div>
 </div>
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
   </body>
 </html>
 

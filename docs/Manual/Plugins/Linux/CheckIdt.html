@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="/css/bootstrap.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
     <style>
       body {
         padding-top: 60px;
       }
     </style>
-    <link href="/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
     <link href="/css/treeview.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
@@ -31,12 +31,14 @@ ript>
   <body>
 
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="#">Rekall Memory Forensic Framework</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-collapse collapse">
+         <div class="navbar-header">
+           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+         </div>
+         <ul class="nav navbar-nav">
 
         <li>
           <a class="" href="/index.html">
@@ -74,190 +76,192 @@ ript>
           </a>
         </li>
 
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+         </ul>
+       </div>
+     </div>
+   </nav>
 
 <div class="container-fluid">
-<div class="row-fluid">
-  <div class="span2">
+<div class="row">
+  <div class="col-md-2">
     
- <a href='/docs/Manual/Plugins/index.html' class='btn btn-large'>
-     <i class='icon-backward'></i> Back
+ <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> Plugins
  </a>
 
- <h3><a href='/docs/Manual/Plugins/Linux/index.html'>Linux</a></h3>
+ <a href='/docs/Manual/Plugins/Linux/index.html' class="btn btn-default btn-lg btn-block">
+   Linux
+ </a>
+ <p>
  <div class='css-treeview'>
-   <ul class='nav nav-list'>
+   <ul class='nav nav-stacked'>
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/Arp.html' class="tree-link "  title="arp">
       arp
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/Banner.html' class="tree-link "  title="banner">
       banner
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/BashHistory.html' class="tree-link "  title="bash">
       bash
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/CheckAFInfo.html' class="tree-link "  title="check_afinfo">
       check_afinfo
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/CheckCreds.html' class="tree-link "  title="check_creds">
       check_creds
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/CheckIdt.html' class="tree-link "  title="check_idt">
       check_idt
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/CheckModules.html' class="tree-link "  title="check_modules">
       check_modules
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/CheckProcFops.html' class="tree-link "  title="check_proc_fops">
       check_proc_fops
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/CheckSyscall.html' class="tree-link "  title="check_syscall">
       check_syscall
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/CheckTaskFops.html' class="tree-link "  title="check_task_fops">
       check_task_fops
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/CheckTTY.html' class="tree-link "  title="check_ttys">
       check_ttys
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/CpuInfo.html' class="tree-link "  title="cpuinfo">
       cpuinfo
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/LinuxDmesg.html' class="tree-link "  title="dmesg">
       dmesg
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/LinuxFindDTB.html' class="tree-link "  title="find_dtb">
       find_dtb
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/LinuxFindKASLR.html' class="tree-link "  title="find_kaslr">
       find_kaslr
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/Ifconfig.html' class="tree-link "  title="ifconfig">
       ifconfig
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/IOmem.html' class="tree-link "  title="iomem">
       iomem
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/Lsmod.html' class="tree-link "  title="lsmod">
       lsmod
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/Lsof.html' class="tree-link "  title="lsof">
       lsof
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/ProcMaps.html' class="tree-link "  title="maps">
       maps
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/LinMemDump.html' class="tree-link "  title="memdump">
       memdump
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/LinMemMap.html' class="tree-link "  title="memmap">
       memmap
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/LinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/PidHashTable.html' class="tree-link "  title="pidhashtable">
       pidhashtable
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/LinuxPsList.html' class="tree-link "  title="pslist">
       pslist
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/LinPSTree.html' class="tree-link "  title="pstree">
       pstree
    </a>
+</li>
 
 <li>
- <div>
    <a href='/docs/Manual/Plugins/Linux/LinVadDump.html' class="tree-link "  title="vaddump">
       vaddump
    </a>
+</li>
 </ul>
  </div>
 
   </div>
 
-  <div class="span8">
+  <div class="col-md-8">
     
 <h1>check_idt</h1>
 
@@ -274,8 +278,8 @@ ript>
 
 
   </div>
-  <div class="span2 sidebar">
-    <img src="/img/Rekall.png"></img>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
 
   </div>
 </div>
