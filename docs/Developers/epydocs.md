@@ -1,5 +1,5 @@
 ---
-layout: embedded
+layout: embedded_doc
 category: developers
 title: Generated API Docs.
 download: /epydocs/index.html

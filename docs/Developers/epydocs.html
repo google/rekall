@@ -18,6 +18,7 @@
     <link href="/css/treeview.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -29,10 +30,7 @@ ript>
 
   <body>
 
-<div class="container-fluid">
-<div class="row-fluid">
-  <div class="span2">
-    
+
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
@@ -82,6 +80,35 @@ ript>
       </div>
     </div>
 
+<div class="container-fluid">
+<div class="row-fluid">
+  <div class="span2">
+    
+ <a href='/docs/index.html' class='btn btn-large'>
+     <i class='icon-backward'></i> Back
+ </a>
+
+ <h3><a href='/docs/Developers/index.html'>Developers</a></h3>
+ <div class='css-treeview'>
+   <ul class='nav nav-list'>
+<li>
+ <div>
+   <a href='/docs/Developers/epydocs.html' class="tree-link activate_tooltip"  title="Generated API Docs.">
+      Generated API D ...
+   </a>
+
+   <a href='/epydocs/index.html'><i class="icon-download"></i></a>
+
+ </div>
+</li>
+<li>
+ <div>
+   <a href='/docs/Developers/development.html' class="tree-link activate_tooltip"  title="The Rekall Memory Forensic Framework API.">
+      The Rekall Memo ...
+   </a>
+</ul>
+ </div>
+
   </div>
   <div class="span8" >
     
@@ -102,6 +129,9 @@ ript>
 
   $(window).resize();
 </script>
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
   </body>
 </html>
 

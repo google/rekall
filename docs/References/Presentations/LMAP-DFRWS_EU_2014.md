@@ -1,5 +1,5 @@
 ---
-layout: embedded
+layout: embedded_doc
 category: presentations
 title: "DFRWS-EU 2014: Linux Memory Acquisition"
 mime: application/pdf

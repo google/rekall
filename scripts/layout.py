@@ -114,7 +114,7 @@ def blog(page=None):
 
 
 @utils.memoize
-def _render_categories(path):
+def _render_categories(path, width):
     directories = []
     files = []
 
@@ -131,7 +131,7 @@ def _render_categories(path):
     # First render the directories in the tree.
     result = ""
     for page in sorted(directories, key=lambda x: x.title):
-        inner_html = _render_categories(page.filename)
+        inner_html = _render_categories(page.filename, width)
         if inner_html:
             result += """
 <li>
@@ -146,10 +146,19 @@ def _render_categories(path):
 
     # Now render the files.
     for page in sorted(files, key=lambda x: x.title):
+        abbrev = page.title
+        tooltip = ""
+        if len(abbrev) > width:
+            abbrev = abbrev[:width] + " ..."
+            tooltip = "activate_tooltip"
+
         result += """
 <li>
-   <a href='{page.url}' class="tree-link">{page.title}</a>
-""".format(page=page)
+ <div>
+   <a href='{page.url}' class="tree-link {tooltip}"  title="{page.title}">
+      {abbrev}
+   </a>
+""".format(page=page, abbrev=abbrev, tooltip=tooltip)
 
         # Optionally add a download button if the page has a download link.
         if page.download:
@@ -157,6 +166,7 @@ def _render_categories(path):
    <a href='{page.download}'><i class="icon-download"></i></a>
 """.format(page=page)
             result += """
+ </div>
 </li>"""
 
     if result:
@@ -170,7 +180,8 @@ def categories(page=None, path=None):
     result = "{page.content} <div class='css-treeview'>".format(
         page=page)
 
-    result += _render_categories(path)
+    width = page.width or 15
+    result += _render_categories(path, width)
     result += "</div>"
 
     page.content = result
@@ -179,7 +190,18 @@ def categories(page=None, path=None):
 
 
 def docs(page=None):
-    return default(page)
+    return plugin(page)
+
+
+def embedded_doc(page=None):
+    """Embed an iframe in the page.
+
+    Also includes the doc nav bar on the left.
+    """
+    plugin_path = os.path.dirname(page.url)
+    width = page.width or 15
+    page.navigator = _MakeNavigatorForPlugin(plugin_path, width)
+    return embedded(page)
 
 
 def embedded(page=None):
@@ -189,10 +211,11 @@ def embedded(page=None):
 
     return u"""
 {head}
+{nav}
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    {nav}
+    {page.navigator}
   </div>
   <div class="span8" >
     {page.content}
@@ -218,16 +241,20 @@ def embedded(page=None):
 
 
 @utils.memoize
-def _MakeNavigatorForPlugin(plugin_path):
-    return (
-        "<a href='{0}/index.html'><i class='icon-hand-up'></i></a>".format(
-            os.path.dirname(plugin_path)) +
-        "<h3><a href='{1}/index.html'>{0}</a></h3>".format(
-            os.path.basename(plugin_path),
-            plugin_path) +
-        "<div class='css-treeview'>" +
-        _render_categories(plugin_path) +
-        "</div>")
+def _MakeNavigatorForPlugin(plugin_path, width):
+    return """
+ <a href='{0}/index.html' class='btn btn-large'>
+     <i class='icon-backward'></i> Back
+ </a>
+
+ <h3><a href='{2}/index.html'>{1}</a></h3>
+ <div class='css-treeview'>
+   {3}
+ </div>
+""".format(os.path.dirname(plugin_path),
+           os.path.basename(plugin_path),
+           plugin_path,
+           _render_categories(plugin_path, width))
 
 
 def plugin(page=None):
@@ -270,7 +297,8 @@ def plugin(page=None):
 """.format(page=page, table=table)
 
     plugin_path = os.path.dirname(page.url)
-    page.navigator = _MakeNavigatorForPlugin(plugin_path)
+    width = page.width or 15
+    page.navigator = _MakeNavigatorForPlugin(plugin_path, width)
 
     return default(page)
 

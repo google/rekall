@@ -1,5 +1,5 @@
 ---
-layout: embedded
+layout: embedded_doc
 category: presentations
 title: "DFRWS 2013: Anti-Forensic Resilient Memory Acquisition"
 mime: application/pdf

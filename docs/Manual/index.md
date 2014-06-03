@@ -1,4 +1,6 @@
 ---
-layout: redirect
-target: /docs.html
+layout: docs
+title: User Manual.
 ---
+
+Rekall documentation.

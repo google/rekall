@@ -3,6 +3,7 @@ layout: categories
 order: 3
 menuitem: Documentation
 root: docs/
+width: 80
 ---
 
 # Documentation Portal

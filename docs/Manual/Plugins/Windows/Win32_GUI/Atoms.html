@@ -18,6 +18,7 @@
     <link href="/css/treeview.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -82,37 +83,76 @@ ript>
 <div class="container-fluid">
 <div class="row-fluid">
   <div class="span2">
-    <a href='/docs/Manual/Plugins/Windows/index.html'><i class='icon-hand-up'></i></a><h3><a href='/docs/Manual/Plugins/Windows/Win32_GUI/index.html'>Win32_GUI</a></h3><div class='css-treeview'><ul class='nav nav-list'>
+    
+ <a href='/docs/Manual/Plugins/Windows/index.html' class='btn btn-large'>
+     <i class='icon-backward'></i> Back
+ </a>
+
+ <h3><a href='/docs/Manual/Plugins/Windows/Win32_GUI/index.html'>Win32_GUI</a></h3>
+ <div class='css-treeview'>
+   <ul class='nav nav-list'>
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link">atoms</a>
+ <div>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="tree-link "  title="atoms">
+      atoms
+   </a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/AtomScan.html' class="tree-link">atomscan</a>
+ <div>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/AtomScan.html' class="tree-link "  title="atomscan">
+      atomscan
+   </a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/SetProcessContext.html' class="tree-link">cc</a>
+ <div>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/SetProcessContext.html' class="tree-link "  title="cc">
+      cc
+   </a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="tree-link">desktops</a>
+ <div>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="tree-link "  title="desktops">
+      desktops
+   </a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinEventHooks.html' class="tree-link">eventhooks</a>
+ <div>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinEventHooks.html' class="tree-link "  title="eventhooks">
+      eventhooks
+   </a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Gahti.html' class="tree-link">gahti</a>
+ <div>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Gahti.html' class="tree-link "  title="gahti">
+      gahti
+   </a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinMessageHooks.html' class="tree-link">messagehooks</a>
+ <div>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinMessageHooks.html' class="tree-link "  title="messagehooks">
+      messagehooks
+   </a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Sessions.html' class="tree-link">sessions</a>
+ <div>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Sessions.html' class="tree-link "  title="sessions">
+      sessions
+   </a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/UserHandles.html' class="tree-link">userhandles</a>
+ <div>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/UserHandles.html' class="tree-link "  title="userhandles">
+      userhandles
+   </a>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WindowsStations.html' class="tree-link">windows_stations</a>
-</ul></div>
+ <div>
+   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WindowsStations.html' class="tree-link activate_tooltip"  title="windows_stations">
+      windows_station ...
+   </a>
+</ul>
+ </div>
+
   </div>
 
   <div class="span8">
@@ -173,6 +213,9 @@ paths, window class names, etc.</p>
   </div>
 </div>
 </div>
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
   </body>
 </html>
 

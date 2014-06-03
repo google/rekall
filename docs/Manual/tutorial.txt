@@ -13,7 +13,7 @@ August 2012
 :toc2:
 :icons:
 :numbered:
-:website: http://code.google.com/p/rekall/
+:website: http://www.rekall-forensic.com
 
 The main goals of the Rekall framework are to enhance user experience by making
 common tasks easier and more intuitive as well as provide a powerful and capable
@@ -97,7 +97,9 @@ linux use '--pager less' for example, or even '--pager "gvim -f"'.
 The '--profile' flag specifies the profile to use. The profile is an operating
 system specific collection of struct definitions which are used to parse the
 kernel data structures (which vary from version to version). The profile used
-must match the operating system version of the image.
+must match the operating system version of the image. This parameter is usually
+only needed if you are generating your own profile. Profiles are normally
+autodetected in Rekall.
 
 --filename::
 The '--filename' option is the name of the image to analyse. If you are using
@@ -107,11 +109,11 @@ a filename to operate on.
 
 --renderer::
 The '--renderer' option allows the user to specify the output format for the
-plugin. Currently supported formats are textual output, and json output.
+plugin. Currently supported formats are textual output (default), and json output.
 
 --plugin::
 The '--plugin' option allows the user to specify one or more python modules or zip
-files which contain third party rekal extension plugins. Each python file
+files which contain third party rekall extension plugins. Each python file
 in these plugins will be imported and any plugins defined there will become
 available to the tool.
 
@@ -121,7 +123,7 @@ interactive shell, but rather run the plugin and exit:
 
 .Example: Running plugin from command line.
 -----------------------------------------------------------------------------
-$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist
+$ rekal -f xp-laptop-2005-06-25.img pslist
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0x823c87c0 System                    4      0     61     1140 ------  False -                    -
@@ -146,7 +148,6 @@ List processes for windows.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --kdbg KDBG           Location of the KDBG structure.
   --eprocess EPROCESS [EPROCESS ...]
                         Kernel addresses of eprocess structs.
   --phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]
@@ -160,7 +161,7 @@ For example to list all the *svchost* processes, we can apply a regex to process
 names:
 
 -----------------------------------------------------------------------------
-$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --proc_regex svc
+$ rekal -f xp-laptop-2005-06-25.img --proc_regex svc
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0x81fa5aa0 svchost.exe             740    580     17      198      0  False 2005-06-25 16:47:32  -
@@ -174,8 +175,8 @@ Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Star
 In order to use the interactive shell, do not specify any plugin to run:
 
 -----------------------------------------------------------------------------
-$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 --pager less
-The Rekall Memory Forensic framework 1.0RC1.
+$ rekal -f xp-laptop-2005-06-25.img
+The Rekall Memory Forensic framework 1.0RC11.
 
 "We can remember it for you wholesale!"
 
@@ -284,10 +285,10 @@ Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Star
 [NOTE]
 ================================================================================
 Since important information is already stored in the interactive session between
-plugin invocations (e.g. kdbg location, dtb location etc), it is much faster to
-run plugins from the interactive session than to run each plugin in turn from
-the command line. It is possible to easily write a script for automating the
-running of multiple plugins.
+plugin invocations (e.g. dtb location etc), it is much faster to run plugins
+from the interactive session than to run each plugin in turn from the command
+line. It is possible to easily write a script for automating the running of
+multiple plugins.
 ================================================================================
 
 The interactive shell is the most powerful and flexible interface and so the
@@ -479,13 +480,12 @@ In [20]: v
 Automating Rekall
 -----------------
 
-One of the main thrusts in the technology preview version is the automation of
-Rekall so it can be used from external programs easily, as well as making it
-easier to write custom scripts.
+One of our main design goals is the automation of Rekall so it can be used from
+external programs easily, as well as making it easier to write custom scripts.
 
-This section demonstrates how to automate the new framework, both by embedding
-it a completely inside another application, as well as simply automating the
-analysis from rekall itself.
+This section demonstrates how to automate the framework, both by embedding it a
+completely inside another application, as well as simply automating the analysis
+from rekall itself.
 
 
 Embedding Rekall in an external python program
@@ -518,32 +518,34 @@ Render the plugin into the renderer::
 [source,python,numbered]
 .Example of embedding Rekall in a python application
 -----------------------------------------------------------------------------
-import StringIO
+import logging
 
 from rekall import session
-from rekall import plugins            # <1>
-from rekall.ui import renderer
+from rekall import plugins                           # <1>
 
-s = session.Session(                  # <2>
-    filename="xp-laptop-2005-06-25.img",
-    profile="WinXPSP2x86")
+# Setup logging as required. Rekall will log to the standard logging service.
+logging.getLogger().setLevel(logging.DEBUG)
 
-fd = StringIO.StringIO()
+s = session.Session(                                 # <2>
+  filename="win7.elf",
+  profile_path=[
+     "http://profiles.rekall-forensic.com"
+  ])
 
-r = renderer.TextRenderer(fd=fd)
+print s.plugins.pslist(method="PsActiveProcessHead") # <3>
 
-plugin = s.plugins.pslist()           # <3>
-plugin.render(r)                      # <4>
-
-print fd.getvalue()
 -----------------------------------------------------------------------------
 
 <1> Importing the plugins is required to make rekall load all the default
-plugins. At this point any third party plugins will need to be imported too.
-<2> The session object is created with initial values for some parameters.
-<3> The plugin is instantiated from the session object.
-<4> The output is rendered into the renderer and becomes available in the
-StringIO.
+    plugins. At this point any third party plugins will need to be imported too.
+
+<2> The session object is created with initial values for some parameters. It is
+    critical that Rekall is able to contant the profile repository at runtime,
+    therefore you will need to provide a valid repository address here.
+
+<3> The plugin is instantiated from the session object. When a plugin instance
+    is printed, it renders its output to the console by default.
+
 
 Automating Rekall
 ~~~~~~~~~~~~~~~~~
@@ -581,7 +583,7 @@ for task in pslist.filter_processes():
 
 Now we run this file directly from the interactive shell.
 -----------------------------------------------------------------------------
-$ rekal -f \\.\pmem --profile Win7SP0x64
+$ rekal -f \\.\pmem
 ...
 
 In [1]: run -i dumper.py  <1>
@@ -603,7 +605,7 @@ In the interactive shell IPython will automatically attempt to execute plugins
 without requiring the brackets to be present - this is merely a usability
 feature. In reality all input is interpreted as python code.
 
-This means that while in the interactive shell its sufficient to just type
+This means that while in the interactive shell it is sufficient to just type
 'pslist', when running an external script, you will need to explicitly call the
 function as 'pslist()'.
 ================================================================================
@@ -612,10 +614,10 @@ function as 'pslist()'.
 Extending Rekall
 ~~~~~~~~~~~~~~~~
 
-Extending Rekall is most useful when you want to add additional
-functionality which should be reused by other people, or contributed to the
-core. If you are just interested in automating a very specific analysis, an
-interactive shell script is sufficient usually, and is simple to write.
+Extending Rekall is most useful when you want to add additional functionality
+which should be reused by other people, or contributed to the core. If you are
+just interested in automating a very specific analysis, an interactive shell
+script is sufficient usually, and is simple to write.
 
 There are a number of different components which can be extended these fall
 roughly into these categories:

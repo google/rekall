@@ -5,9 +5,6 @@ title: The Rekall Memory Forensic Framework API.
 author: Michael Cohen <scudette@gmail.com>
 ---
 
-The Rekall Memory Forensic Framework API
-========================================
-
 Rekall is a powerful framework with many components. It is not necessary to be
 intimately familiar with all components to be able to contribute. This document
 attempts to cover as much internal API information as possible, but if you
