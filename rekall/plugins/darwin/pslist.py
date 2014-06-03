@@ -244,4 +244,3 @@ class DarwinPSAUX(common.DarwinProcessFilter):
                 proc.p_argslen,
                 proc.p_argc,
                 " ".join(proc.argv))
-

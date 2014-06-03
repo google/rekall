@@ -494,7 +494,15 @@ class DarwinProcessFilter(DarwinPlugin):
 
         # Walk over the free list and get all the proc objects.
         obj_list = proc_zone.free_elements.walk_list("next")
-        return [object.cast("proc") for object in obj_list]
+        result = []
+        for object in obj_list:
+            proc = object.cast("proc")
+
+            # Validate the proc. Real procs have a non zero argc.
+            if proc.p_argc > 0:
+                result.append(proc)
+
+        return result
 
     def list_using_allproc(self):
         """List all processes by following the _allproc list head."""
@@ -689,4 +697,3 @@ class KernelAddressCheckerMixIn(object):
         # We use the module plugin to help us local addresses inside kernel
         # modules.
         self.module_plugin = self.session.plugins.lsmod(session=self.session)
-

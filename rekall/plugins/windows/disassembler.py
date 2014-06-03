@@ -227,6 +227,7 @@ class Disassemble(plugin.Command):
 
 class TestDisassemble(testlib.SimpleTestCase):
     PARAMETERS = dict(
-        commandline="dis %(func)s",
-        func=0x805031be
+        commandline="dis -l %(length)s %(func)s",
+        func=0x805031be,
+        length=20
         )

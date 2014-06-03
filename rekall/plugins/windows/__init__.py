@@ -11,6 +11,7 @@ from rekall.plugins.windows import kernel
 from rekall.plugins.windows import gui
 from rekall.plugins.windows import handles
 from rekall.plugins.windows import index
+from rekall.plugins.windows import interactive
 from rekall.plugins.windows import kdbgscan
 from rekall.plugins.windows import kpcr
 

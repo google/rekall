@@ -28,7 +28,7 @@ from rekall import plugin
 from rekall import testlib
 from rekall.plugins import core
 from rekall.plugins.linux import common
-
+from rekall.ui import text
 
 class LinuxPsList(common.LinProcessFilter):
     """Gathers active tasks by walking the task_struct->task list.
@@ -130,15 +130,13 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
                 maps = self.dump_process(task, fd)
 
             with open(filename + ".idx", 'wb') as fd:
-                with renderer.classes["TextRenderer"](fd=fd) as temp_renderer:
+                with text.TextRenderer(fd=fd) as temp_renderer:
                     temp_renderer.table_header([
                         ("File Address", "file_addr", "[addrpad]"),
                         ("Length", "length", "[addrpad]"),
                         ("Virtual Addr", "virtual", "[addrpad]")])
 
                     self.write_index(temp_renderer, maps)
-
-                    temp_renderer.end()
 
 
 class TestLinMemDump(testlib.HashChecker):

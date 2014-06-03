@@ -138,6 +138,7 @@ class WriteableAddressSpaceMixIn(object):
     NOTE: This does not participate in voting or gets automatically
     selected. It can only be instantiated directly.
     """
+    writeable = True
 
     def write(self, addr, data):
         try:
@@ -170,7 +171,6 @@ class WriteableAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
         self.name = os.path.abspath(filename)
         self.fname = self.name
         self.mode = mode
-        self.writeable = True
 
         fhandle = open(self.fname, self.mode)
         super(WriteableAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
@@ -180,9 +180,7 @@ class DummyAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
     """An AS which always returns nulls."""
     __name = 'dummy'
 
-    def __init__(self, size=10*1024, **kwargs):
-        self.mode = "w+b"
-        self.writeable = True
-
-        kwargs["fhandle"] = StringIO.StringIO(size * "\x00")
-        super(DummyAddressSpace, self).__init__(**kwargs)
+    def __init__(self, size=10*1024, session=None, **_):
+        super(DummyAddressSpace, self).__init__(
+            session=session,
+            fhandle=StringIO.StringIO(size * "\x00"))

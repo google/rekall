@@ -58,6 +58,7 @@ win32k_overlay = {
         'pheapDesktop': [None, ['Pointer', dict(
                         target="_HEAP"
                         )]],
+
         }],
 
     'tagSHAREDINFO': [None, {
@@ -143,7 +144,19 @@ win32k_undocumented_AMD64 = {
     # nt kernel one.
     # http://doxygen.reactos.org/d5/df7/ndk_2rtltypes_8h_source.html
     '_RTL_ATOM_TABLE': [None, {
-        'NumberOfBuckets': [0x18, ["unsigned long", {}]],
+        # Technically the number of buckets is specified by this field, but this
+        # field varies a lot between operating systems:
+
+        # - Win7: 0x18
+        # - Win8.1: 0x1c (like the kernel _RTL_ATOM_TABLE)
+
+        # It is usually around 25 - if we overestimate we just work through more
+        # buckets - it does not matter. If we underestimate however, we will
+        # miss some atoms. We just set it to a large enough value here.
+
+        'NumberOfBuckets': lambda x: 0x35,  # Usually this is 0x25.
+
+        # 'NumberOfBuckets': [0x18, ["unsigned long", {}]],
         'Buckets': [0x20, ['Array', dict(
             count=lambda x: x.NumberOfBuckets,
             max_count=100,
@@ -396,14 +409,18 @@ class _HANDLEENTRY(obj.Struct):
     def Process(self):
         """Return the _EPROCESS if its process or thread owned"""
         if self.ProcessOwned:
-            return self.pOwner.\
-                        dereference_as("tagPROCESSINFO").\
-                        Process.dereference()
+            return (self.pOwner.
+                    dereference_as("tagPROCESSINFO").
+                    Process.dereference())
+
         elif self.ThreadOwned:
-            return self.pOwner.\
-                        dereference_as("tagTHREADINFO").\
-                        ppi.Process.dereference()
+            thread_info = self.pOwner.dereference_as("tagTHREADINFO")
+            return (thread_info.ppi.Process.dereference() or
+                    thread_info.pEThread.Tcb.Process.dereference_as(
+                        "_EPROCESS"))
+
         return obj.NoneObject("Cannot find process")
+
 
 class tagWINDOWSTATION(obj.Struct):
     """A class for Windowstation objects"""
@@ -791,28 +808,24 @@ class Win32k(windows.BasicPEProfile):
         version = profile.metadata('version')
         arch = profile.metadata("arch")
 
-        ## Windows 7 and above
-        if profile.has_type("tagWINDOWSTATION"):
-            num_handles = len(constants.HANDLE_TYPE_ENUM_SEVEN)
+        # Prior to Windows 7, Microsoft did not release symbols for win32k
+        # structs. However, we know that these are basically the same across
+        # different versions. Here we just copy them from the windows 7
+        # profiles.
+        if arch == "AMD64":
+            exempler = ("win32k/GUID/"
+                        "99227A2085CE41969CD5A06F7CC20F522")
         else:
-            num_handles = len(constants.HANDLE_TYPE_ENUM)
+            exempler = ("win32k/GUID/"
+                        "18EB20F5448A47F5B850023FEE0B24D62")
 
-            # Prior to Windows 7, Microsoft did not release symbols for win32k
-            # structs. However, we know that these are basically the same across
-            # different versions. Here we just copy them from the windows 7
-            # profiles.
-            if arch == "AMD64":
-                exempler = ("win32k/GUID/"
-                            "99227A2085CE41969CD5A06F7CC20F522")
-            else:
-                exempler = ("win32k/GUID/"
-                            "18EB20F5448A47F5B850023FEE0B24D62")
+        win7_profile = profile.session.LoadProfile(exempler)
 
-            win7_profile = profile.session.LoadProfile(exempler)
-
-            for item in ["tagWINDOWSTATION", "tagDESKTOP", "tagTHREADINFO",
-                         "tagWND", "tagDESKTOPINFO", "tagPROCESSINFO",
-                         "tagSHAREDINFO", "_HANDLEENTRY", "_HEAD"]:
+        for item in ["tagWINDOWSTATION", "tagDESKTOP", "tagTHREADINFO",
+                     "tagWND", "tagDESKTOPINFO", "tagPROCESSINFO",
+                     "tagSHAREDINFO", "_HANDLEENTRY", "_HEAD", "tagHOOK",
+                     "_THRDESKHEAD", "_WNDMSG", "tagSERVERINFO"]:
+            if not profile.has_type(item):
                 profile.vtypes[item] = win7_profile.vtypes[item]
 
         if version < "6.0":

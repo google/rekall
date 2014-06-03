@@ -271,7 +271,6 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
             return obj.NoneObject()
 
         atom_num = self.atom_number_from_ihmod(session, ihmod)
-
         module_name = global_atom_table.get(atom_num)
         if module_name:
             module_name = module_name.Name
@@ -281,6 +280,11 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
         return module_name
 
     def get_owner(self, session, hook):
+        owner = hook.m("head.pti.pEThread.Tcb.Process").dereference_as(
+            "_EPROCESS")
+        if owner:
+            return owner
+
         session_id = session.SessionId.v()
         self._build_handle_cache()
         handle = hook.head.h.v()

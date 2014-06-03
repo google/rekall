@@ -332,6 +332,16 @@ windows_overlay = {
                 target='_PHYSICAL_MEMORY_RUN')]],
             }],
 
+    '_POOL_HEADER': [None, {
+        # Wrap the pool type in an enumeration.
+        'PoolType': lambda x: basic.Enumeration(
+            enum_name="_MM_POOL_TYPES", profile=x.obj_profile,
+            offset=x.obj_offset,
+            name=x.obj_name, parent=x.obj_parent, type_name=x.obj_type,
+            value=x.m("PoolType")),
+        'Tag': lambda x: str(x.PoolTag.cast("String", length=4)),
+        }],
+
     '_HEAP': [None, {
         'Flags': [None, ['Flags', dict(
             maskmap=dict(
@@ -513,7 +523,7 @@ class _EPROCESS(obj.Struct):
         space so we need to switch address spaces when we look at
         it. This method ensure this happens automatically.
         """
-        return self.m("Peb").dereference_as(
+        return self.m("Peb").cast("Pointer", target="_PEB",
             vm=self.get_process_address_space())
 
     @property

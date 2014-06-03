@@ -21,7 +21,6 @@ Networking plugins that are not OS-specific live here.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from rekall import entity
 from rekall import plugin
 
 
@@ -33,7 +32,8 @@ class EntityIFConfig(plugin.ProfileCommand):
     def render(self, renderer):
         renderer.table_header([("Interface", "interface", "10"),
                                ("Family", "af", "10"),
-                               ("Address", "address", "20")])
+                               ("Address", "address", "20")],
+                              sort=("interface",))
 
         for interface in self.session.entities.find_by_component(
             component="NetworkInterface",
@@ -53,7 +53,7 @@ class EntityNetstat(plugin.ProfileCommand):
 
     def render(self, renderer):
         entities = self.session.entities.find_by_component("Connection")
-        
+
         # Sort all the sockets into buckets based on whether they're network or
         # UNIX connections.
         inet_socks = []
@@ -132,4 +132,3 @@ class EntityNetstat(plugin.ProfileCommand):
 
         for row in unix_socks:
             renderer.table_row(*row)
-

@@ -70,6 +70,9 @@ class Demangler(object):
 
     This is not a complete or accurate demangler, it simply extract the name and
     strips out args etc.
+
+    Ref:
+    http://www.kegel.com/mangle.html
     """
     STRING_MANGLE_MAP = {
         "^0": ",",
@@ -111,6 +114,7 @@ class Demangler(object):
         return "str:" + "".join(result).strip()
 
     SIMPLE_X86_CALL = re.compile(r"[_@]([A-Za-z0-9_]+)@(\d{1,3})$")
+    FUNCTION_NAME_RE = re.compile(r"\?([A-Za-z0-9_]+)@")
     def DemangleName(self, mangled_name):
         """Returns the de-mangled name.
 
@@ -123,21 +127,24 @@ class Demangler(object):
             # If we see x86 name mangling (_cdecl, __stdcall) with stack sizes
             # of 4 bytes, this is definitely a 32 bit pdb. Sometimes we dont
             # know the architecture of the pdb file for example if we do not
-            # have the original binary, but on the GUID as extracted by
+            # have the original binary, but only the GUID as extracted by
             # version_scan.
             if m.group(2) in ["4", "12"]:
                 self._metadata.setdefault("arch", "I386")
 
             return m.group(1)
-        else:
-            # Strip the first _ from the name. I386 mangled constants have a
-            # leading _ but their AMD64 counterparts do not.
-            if mangled_name.startswith("_"):
-                mangled_name = mangled_name[1:]
 
-        if mangled_name.startswith("??_C@"):
+        m = self.FUNCTION_NAME_RE.match(mangled_name)
+        if m:
+            return m.group(1)
+
+        # Strip the first _ from the name. I386 mangled constants have a
+        # leading _ but their AMD64 counterparts do not.
+        if mangled_name.startswith("_"):
+            mangled_name = mangled_name[1:]
+
+        elif mangled_name.startswith("??_C@"):
             return self._UnpackMangledString(mangled_name)
-
 
         return mangled_name
 

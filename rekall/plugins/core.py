@@ -36,6 +36,7 @@ from rekall import io_manager
 from rekall import registry
 from rekall import plugin
 from rekall import obj
+from rekall import testlib
 from rekall import utils
 
 
@@ -223,30 +224,6 @@ class Info(plugin.Command):
 
         return "\n".join(clean_doc)
 
-    def render_profile_info(self, renderer):
-        for path in self.session.state.profile_path:
-            manager = io_manager.Factory(path)
-            renderer.section()
-            renderer.format("Profile Repository {0}\n\n", path)
-            renderer.table_header([('Profile', 'profile', "40"),
-                                   ('Docs', 'docs', '[wrap:70]'),
-                                   ])
-
-            try:
-                # If the repository contains a proper metadata list we show it.
-                repository_metadata = manager.GetData("metadata")
-                if repository_metadata:
-                    for name, profile_metadata in sorted(
-                        repository_metadata.get("inventory", {}).items()):
-
-                        renderer.table_row(
-                            name, profile_metadata.get("description", ""))
-            except IOError:
-                # Otherwise we just list the files in the repository.
-                for name in sorted(manager.ListFiles()):
-                    renderer.table_row(name)
-
-
     def render_general_info(self, renderer):
         renderer.write(constants.BANNER)
         renderer.section()
@@ -258,7 +235,11 @@ class Info(plugin.Command):
         for cls, name, doc in sorted(self.plugins(), key=lambda x: x[1]):
             renderer.table_row(name, cls, doc)
 
-        self.render_profile_info(renderer)
+
+class TestInfo(testlib.DisabledTest):
+    """Disable the Info test."""
+
+    PARAMETERS = dict(commandline="info")
 
 
 class FindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):

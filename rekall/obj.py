@@ -1171,15 +1171,18 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         # Print all the fields sorted by offset within the struct.
         for k in self.members:
             width_name = max(width_name, len(k))
-            obj = self.m(k)
+            obj = getattr(self, k)
+            if obj == None:
+                obj = self.m(k)
+
             fields.append(
                 (getattr(obj, "obj_offset", self.obj_offset) -
-                 self.obj_offset, k, repr(obj)))
+                 self.obj_offset, k, utils.SmartUnicode(repr(obj))))
 
         fields.sort()
 
-        return result + "\n".join(
-            ["  0x%02X %s%s %s" % (offset, k, " " * (width_name - len(k)), v)
+        return result + u"\n".join(
+            [u"  0x%02X %s%s %s" % (offset, k, " " * (width_name - len(k)), v)
              for offset, k, v in fields]) + "\n"
 
     def v(self, vm=None):
@@ -1711,7 +1714,13 @@ class Profile(object):
             if cb:
                 # Only implement getter for callable fields since setters do
                 # not really make sense.
-                getter = lambda self, cb=cb: cb(self)
+                def CbGetter(self, cb=cb):
+                    try:
+                        return cb(self)
+                    except Exception as e:
+                        return NoneObject("Failed to run callback %s" % e)
+
+                getter = CbGetter
 
             elif value:
                 # Specify both getters and setter for the field.
