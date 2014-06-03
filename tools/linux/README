@@ -19,8 +19,8 @@ install further tools on the target system).
 Step 1: Build the debug kernel module
 -------------------------------------
 
-Copy this directory (http://rekall.googlecode.com/git/tools/linux/) to the
-target system, ensuring the kernel headers are installed. Type:
+Copy this directory to the target system, ensuring the kernel headers are
+installed. Type:
 
 bash$ sudo make profile
 make -C /usr/src/linux-headers-3.8.0-34-generic CONFIG_DEBUG_INFO=y M=`pwd` modules

@@ -23,7 +23,7 @@ DestDir: {app}\webconsole\; Source: ..\..\rekall\plugins\tools\webconsole\*; Fla
 Compression=zip
 AppCopyright=GPLv2
 AppPublisher=Rekall Team
-AppPublisherURL=http://rekall.googlecode.com/
+AppPublisherURL=http://www.rekall-forensic.com/
 AppName=Rekall
 AppVerName=Rekall v1.0RC9
 DefaultDirName={pf}\Rekall
@@ -54,4 +54,4 @@ UseAbsolutePaths=true
 Name: {group}\{cm:UninstallProgram, Rekall}; Filename: {uninstallexe}
 Name: {group}\Rekall Memory Forensics (Console); Filename: {app}\Rekal.exe; WorkingDir: {app}
 Name: {group}\Rekall Memory Forensics (Notebook); Filename: {app}\Rekal.exe; WorkingDir: {app}; Parameters: notebook
-Name: {group}\Rekall Documentation; Filename: http://docs.rekall.googlecode.com/git/index.html
+Name: {group}\Rekall Documentation; Filename: http://www.rekall-forensic.com/docs.html

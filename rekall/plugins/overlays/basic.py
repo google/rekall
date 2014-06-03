@@ -337,8 +337,10 @@ class Enumeration(obj.NativeType):
 
     def __getattr__(self, attr):
         if self.reverse_choices is None:
-            self.reverse_choices = {v: int(k) for k,v in self.choices.items()}
+            self.reverse_choices = {v: int(k) for k, v in self.choices.items()}
         value = self.reverse_choices.get(attr, None)
+        if value is None:
+            raise AttributeError(attr)
         return value is not None and self.v() == value
 
 

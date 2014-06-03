@@ -377,7 +377,7 @@ class PoolScanProcess(common.PoolScanner):
             yield pool_obj, eprocess
 
 
-class PSScan(common.KDBGMixin, common.PoolScannerPlugin):
+class PSScan(common.PoolScannerPlugin):
     """Scan Physical memory for _EPROCESS pool allocations.
 
     Status flags:

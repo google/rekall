@@ -25,7 +25,6 @@ import struct
 import win32file
 
 from rekall import addrspace
-from rekall import utils
 
 
 def CTL_CODE(DeviceType, Function, Method, Access):
@@ -50,7 +49,6 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
     ## We should be the AS of last resort but in front of the non win32 version.
     order = 90
-    PAGE_SIZE = 0x10000
     __image = True
 
     def __init__(self, base=None, filename=None, **kwargs):
@@ -64,38 +62,41 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
                        "session.GetParameter('filename', 'MyFile.raw').")
 
         self.fname = path
-        try:
-            self.fhandle = win32file.CreateFile(
-                path,
-                win32file.GENERIC_READ | win32file.GENERIC_WRITE,
-                win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
-                None,
-                win32file.OPEN_EXISTING,
-                win32file.FILE_ATTRIBUTE_NORMAL,
-                None)
-        except pywintypes.error:
-            self.fhandle = win32file.CreateFile(
-                path,
-                win32file.GENERIC_READ,
-                win32file.FILE_SHARE_READ,
-                None,
-                win32file.OPEN_EXISTING,
-                win32file.FILE_ATTRIBUTE_NORMAL,
-                None)
 
-        # Try to get the memory runs from the winpmem driver.
-        try:
+        # If the file is a device we try to talk to the winpmem driver.
+        if path.startswith("\\\\"):
+            try:
+                # First open for write in case the driver is in write mode.
+                self._OpenFileForWrite(path)
+            except pywintypes.error:
+                self._OpenFileForRead(path)
+
             self.ParseMemoryRuns()
-        except Exception:
-            if self.session.debug:
-                import pdb
-                pdb.post_mortem()
 
+        else:
+            # The file is just a regular file, we open for reading.
+            self._OpenFileForRead(path)
             self.runs.insert((0, 0, win32file.GetFileSize(self.fhandle)))
 
-        # IO on windows is extremely slow so we are better off using a
-        # cache.
-        self.cache = utils.FastStore(1000)
+    def _OpenFileForRead(self, path):
+        self.fhandle = win32file.CreateFile(
+            path,
+            win32file.GENERIC_READ,
+            win32file.FILE_SHARE_READ,
+            None,
+            win32file.OPEN_EXISTING,
+            win32file.FILE_ATTRIBUTE_NORMAL,
+            None)
+
+    def _OpenFileForWrite(self, path):
+        self.fhandle = win32file.CreateFile(
+            path,
+            win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+            win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
+            None,
+            win32file.OPEN_EXISTING,
+            win32file.FILE_ATTRIBUTE_NORMAL,
+            None)
 
     FIELDS = (["CR3", "NtBuildNumber", "KernBase", "KDBG"] +
               ["KPCR%02d" % i for i in xrange(32)] +
@@ -113,9 +114,6 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
         self.dtb = self.memory_parameters["CR3"]
         self.session.SetParameter("dtb", int(self.dtb))
-
-        self.kdbg = self.memory_parameters["KDBG"]
-        self.session.SetParameter("kdbg", int(self.kdbg))
 
         offset = struct.calcsize(fmt_string)
 

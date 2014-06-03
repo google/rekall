@@ -18,10 +18,14 @@
 #
 import time
 
-VERSION = "1.0rc10"
+VERSION = "1.0rc11"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
-PROFILE_REPOSITORY = "http://profiles.rekall.googlecode.com/git/"
+PROFILE_REPOSITORIES = [
+    "https://raw.githubusercontent.com/google/rekall-profiles/master",
+    "http://profiles.rekall-forensic.com",
+    ]
+
 
 # The supported profile repository version we will use. This version needs to be
 # consistent with the profile json file's data layout version. We automatically
