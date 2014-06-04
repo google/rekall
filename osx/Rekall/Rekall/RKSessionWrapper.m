@@ -10,6 +10,16 @@
 
 const NSInteger RKNullPortNumberSentinel = -1;
 
+NSString * const RKErrorDomain = @"RKErrorDomain";
+NSString * const RKErrorTitle = @"RKErrorTitle";
+NSString * const RKErrorDescription = @"RKErrorDescription";
+
+NSString * const RKWrapperPortPattern = @"Server running at http://.*?:(\\d+)";
+NSString * const RKWrapperErrorPattern = @"([a-z]*?Error):\\s?(.*?)$";
+
+static NSRegularExpression *RKWrapperPortRegex;
+static NSRegularExpression *RKWrapperErrorRegex;
+
 @interface RKSessionWrapper ()
 
 @property (retain) NSTask *rekallTask;
@@ -25,17 +35,55 @@ const NSInteger RKNullPortNumberSentinel = -1;
 
 @implementation RKSessionWrapper
 
-@synthesize port, rekallTask, rekallStdErr, rekallStdErrString, onLaunchCallback;
+@synthesize port, rekallTask, rekallStdErr, rekallStdErrString, onLaunchCallback, onErrorCallback;
+
++ (void)initialize {
+    
+}
 
 - (void)tryExtractWebconsoleAddress {
-    NSLog(@"Attempting to extract rekall webconsole port number from stderr...");
+    NSLog(@"Parsing rekall stderr output for errors and bind info.");
     
-    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"Server running at http://.*?:(\\d+)"
-                                                                           options:NSRegularExpressionCaseInsensitive
-                                                                             error:nil];
-    NSTextCheckingResult *match = [regex firstMatchInString:self.rekallStdErrString
-                                                    options:0
-                                                      range:(NSRange) {0, self.rekallStdErrString.length}];
+    if(!RKWrapperPortRegex) {
+        RKWrapperErrorRegex = [NSRegularExpression regularExpressionWithPattern:RKWrapperErrorPattern
+                                                                        options:NSRegularExpressionCaseInsensitive
+                                                                          error:nil];
+        RKWrapperPortRegex = [NSRegularExpression regularExpressionWithPattern:RKWrapperPortPattern
+                                                                       options:NSRegularExpressionCaseInsensitive
+                                                                         error:nil];
+    }
+    
+    NSTextCheckingResult *match;
+    
+    // Any errors?
+    match = [RKWrapperErrorRegex firstMatchInString:self.rekallStdErrString
+                                           options:0
+                                             range:(NSRange) {0, self.rekallStdErrString.length}];
+    
+    if(match) {
+        NSString *errorTitle = [self.rekallStdErrString substringWithRange:[match rangeAtIndex:1]];
+        NSString *errorDesc = [self.rekallStdErrString substringWithRange:[match rangeAtIndex:2]];
+        NSLog(@"Rekall error: %@\n%@", errorTitle, errorDesc);
+        
+        if (self.onErrorCallback) {
+            NSError *error = [NSError errorWithDomain:RKErrorDomain
+                                                 code:RKSessionRekallError
+                                             userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                       errorTitle,
+                                                       RKErrorTitle,
+                                                       errorDesc,
+                                                       RKErrorDescription,
+                                                       nil]];
+            self.onErrorCallback(error);
+        }
+        
+        return;
+    }
+    
+    // Port number?
+    match = [RKWrapperPortRegex firstMatchInString:self.rekallStdErrString
+                                           options:0
+                                             range:(NSRange) {0, self.rekallStdErrString.length}];
     
     if(!match) {
         return;
@@ -60,7 +108,7 @@ const NSInteger RKNullPortNumberSentinel = -1;
     
     NSString *rekallPath = [[NSBundle mainBundle] pathForResource:@"rekal"
                                                            ofType:nil
-                                                           inDirectory:@"rekal"];
+                                                      inDirectory:@"rekal"];
     NSArray *rekallArgs = [NSArray arrayWithObjects:
                            @"-f", [path path],
                            @"webconsole",

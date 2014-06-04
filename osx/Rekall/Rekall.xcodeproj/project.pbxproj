@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		662BC33F191E63D30096AEAA /* RKApplicationDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 662BC33E191E63D30096AEAA /* RKApplicationDelegate.m */; };
+		662BC341191E67000096AEAA /* error.html in Resources */ = {isa = PBXBuildFile; fileRef = 662BC340191E67000096AEAA /* error.html */; };
 		66778381191B83B500A0A51B /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66778380191B83B500A0A51B /* Cocoa.framework */; };
 		6677838B191B83B500A0A51B /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 66778389191B83B500A0A51B /* InfoPlist.strings */; };
 		6677838D191B83B500A0A51B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6677838C191B83B500A0A51B /* main.m */; };
@@ -21,6 +23,8 @@
 		667783AE191B83B500A0A51B /* RekallTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 667783AD191B83B500A0A51B /* RekallTests.m */; };
 		667783B8191B84AA00A0A51B /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 667783B7191B84AA00A0A51B /* WebKit.framework */; };
 		667783C3191B8A6100A0A51B /* RKSessionWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 667783C2191B8A6100A0A51B /* RKSessionWrapper.m */; };
+		66F5DEB71920FC2E00B3CA43 /* jquery.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 66F5DEB61920FC1F00B3CA43 /* jquery.min.js */; };
+		66F5DEB91920FC4F00B3CA43 /* error.js in Resources */ = {isa = PBXBuildFile; fileRef = 66F5DEB81920FC4900B3CA43 /* error.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,6 +38,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		662BC33D191E63D30096AEAA /* RKApplicationDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RKApplicationDelegate.h; sourceTree = "<group>"; };
+		662BC33E191E63D30096AEAA /* RKApplicationDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RKApplicationDelegate.m; sourceTree = "<group>"; };
+		662BC340191E67000096AEAA /* error.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = error.html; sourceTree = "<group>"; };
 		6637896F191B905B002B32C1 /* rekal */ = {isa = PBXFileReference; lastKnownFileType = folder; name = rekal; path = ../../dist/rekal; sourceTree = "<group>"; };
 		6677837D191B83B500A0A51B /* Rekall.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Rekall.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		66778380191B83B500A0A51B /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -58,6 +65,8 @@
 		667783B7191B84AA00A0A51B /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		667783C1191B8A6100A0A51B /* RKSessionWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RKSessionWrapper.h; sourceTree = "<group>"; };
 		667783C2191B8A6100A0A51B /* RKSessionWrapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RKSessionWrapper.m; sourceTree = "<group>"; };
+		66F5DEB61920FC1F00B3CA43 /* jquery.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = jquery.min.js; sourceTree = "<group>"; };
+		66F5DEB81920FC4900B3CA43 /* error.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = error.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,12 +137,14 @@
 			children = (
 				66778392191B83B500A0A51B /* RKDocument.h */,
 				66778393191B83B500A0A51B /* RKDocument.m */,
+				662BC33D191E63D30096AEAA /* RKApplicationDelegate.h */,
+				662BC33E191E63D30096AEAA /* RKApplicationDelegate.m */,
 				66778395191B83B500A0A51B /* RKDocument.xib */,
 				66778398191B83B500A0A51B /* MainMenu.xib */,
-				6677839B191B83B500A0A51B /* Images.xcassets */,
-				66778387191B83B500A0A51B /* Supporting Files */,
 				667783C1191B8A6100A0A51B /* RKSessionWrapper.h */,
 				667783C2191B8A6100A0A51B /* RKSessionWrapper.m */,
+				6677839B191B83B500A0A51B /* Images.xcassets */,
+				66778387191B83B500A0A51B /* Supporting Files */,
 			);
 			path = Rekall;
 			sourceTree = "<group>";
@@ -141,11 +152,14 @@
 		66778387191B83B500A0A51B /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				66F5DEB61920FC1F00B3CA43 /* jquery.min.js */,
 				66778388191B83B500A0A51B /* Rekall-Info.plist */,
 				66778389191B83B500A0A51B /* InfoPlist.strings */,
 				6677838C191B83B500A0A51B /* main.m */,
 				6677838E191B83B500A0A51B /* Rekall-Prefix.pch */,
 				6677838F191B83B500A0A51B /* Credits.rtf */,
+				662BC340191E67000096AEAA /* error.html */,
+				66F5DEB81920FC4900B3CA43 /* error.js */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -249,6 +263,9 @@
 				6677838B191B83B500A0A51B /* InfoPlist.strings in Resources */,
 				6677839C191B83B500A0A51B /* Images.xcassets in Resources */,
 				66778391191B83B500A0A51B /* Credits.rtf in Resources */,
+				662BC341191E67000096AEAA /* error.html in Resources */,
+				66F5DEB71920FC2E00B3CA43 /* jquery.min.js in Resources */,
+				66F5DEB91920FC4F00B3CA43 /* error.js in Resources */,
 				66778397191B83B500A0A51B /* RKDocument.xib in Resources */,
 				6677839A191B83B500A0A51B /* MainMenu.xib in Resources */,
 			);
@@ -287,6 +304,7 @@
 			files = (
 				6677838D191B83B500A0A51B /* main.m in Sources */,
 				667783C3191B8A6100A0A51B /* RKSessionWrapper.m in Sources */,
+				662BC33F191E63D30096AEAA /* RKApplicationDelegate.m in Sources */,
 				66778394191B83B500A0A51B /* RKDocument.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

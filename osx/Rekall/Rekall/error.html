@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Rekall Error!</title>
+<style type="text/css">
+    body {
+        font-family: "helvetica", "sans-serif";
+        font-size: 10pt;
+    }
+
+    h1 {
+        font-size: 14pt;
+    }
+
+    #details {
+        border: 1px dashed green;
+        padding: 1em;
+        font-family: "courier new";
+    }
+</style>
+</head>
+<body>
+    <section>
+        <h1>You broke Rekall</h1>
+        <p>I hope you're proud of yourself. You'll find the details below, as well as some tips for not breaking Rekall again in the future.</p>
+    </section>
+    <section id="details">
+        <h1 id="title">{Error}</h2>
+        <p id="description">{ErrorDescription}</p>
+    </section>
+    <section>
+        <h1>Recovery tips</h1>
+        <ul>
+            <li>This may not be obvious, but Rekall needs to be online for certain operations, such as guessing the image profile.</li>
+            <li>Sometimes, things just don't work out the way we all wanted. But that's alright, turns out that's why we have bug trackers! If you think this is our fault, please <a href="https://code.google.com/p/rekall/issues/list">file a bug</a>.
+        </ul>
+    </section>
+</body>
+</html>
