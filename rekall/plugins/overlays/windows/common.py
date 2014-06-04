@@ -863,6 +863,11 @@ class _OBJECT_HEADER(obj.Struct):
         File="_FILE_OBJECT",
         Directory="_OBJECT_DIRECTORY",
         SymbolicLink="_OBJECT_SYMBOLIC_LINK",
+        Mutant="_KMUTANT",
+        Process="_EPROCESS",
+        Key="_CM_KEY_BODY",
+        Token="_TOKEN",
+        Thread="_ETHREAD",
         )
 
 

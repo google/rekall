@@ -57,7 +57,10 @@ class Handles(common.WinProcessFilter):
             for handle in task.ObjectTable.handles():
                 name = ""
                 object_type = handle.get_object_type(self.kernel_address_space)
-                if object_type == "File":
+                if object_type == None:
+                    continue
+
+                elif object_type == "File":
                     file_obj = handle.dereference_as("_FILE_OBJECT")
                     name = file_obj.file_name_with_device()
                 elif object_type == "Key":
@@ -83,7 +86,7 @@ class Handles(common.WinProcessFilter):
                 yield handle, object_type, name
 
     def render(self, renderer):
-        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
+        renderer.table_header([("_OBJECT_HEADER", "offset_v", "[addrpad]"),
                                ("Pid", "pid", ">6"),
                                ("Handle", "handle", "[addr]"),
                                ("Access", "access", "[addr]"),
@@ -105,9 +108,8 @@ class Handles(common.WinProcessFilter):
                     if len(utils.SmartUnicode(name).replace("'", "")) == 0:
                         continue
 
-                offset = handle.Body.obj_offset
                 renderer.table_row(
-                    offset,
+                    handle,
                     task.UniqueProcessId,
                     handle.HandleValue,
                     handle.GrantedAccess,

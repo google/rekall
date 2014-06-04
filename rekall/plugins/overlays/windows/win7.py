@@ -29,6 +29,7 @@ This file provides support for windows Windows 7 SP 0.
 from rekall import addrspace
 from rekall import kb
 from rekall import obj
+from rekall import utils
 from rekall.plugins.overlays.windows import common
 
 
@@ -83,7 +84,7 @@ win7_overlays = {
 
     "_OBJECT_HEADER": [None, {
         "InfoMask": [None, ["Flags", dict(
-            maskmap={
+            maskmap=utils.Invert({
                 0x01: "CreatorInfo",
                 0x2: "NameInfo",
                 0x4: "HandleInfo",
@@ -91,7 +92,7 @@ win7_overlays = {
                 0x10: "ProcessInfo",
                 0x20: "AuditInfo",
                 0x40: "PaddingInfo",
-                },
+                }),
             target="unsigned char",
             )
                              ]],

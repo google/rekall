@@ -248,6 +248,8 @@ class Session(object):
 
         We are expected to re-check the config and re-initialize this session.
         """
+        self._update_runners()
+
         filename = self.state.filename
         if filename:
             # This may fire off the profile auto-detection code if a profile was
@@ -256,14 +258,15 @@ class Session(object):
             if profile_parameter:
                 self.profile = self.LoadProfile(profile_parameter)
 
+                # The profile has just changed, we need to update the runners.
+                self._update_runners()
+
         # Set the renderer.
         self.renderer = renderer.BaseRenderer.classes.get(
             self.GetParameter("renderer"), "TextRenderer")
 
         # Make a new address resolver.
         self.address_resolver = kb.AddressResolver(self)
-
-        self._update_runners()
 
     def _update_runners(self):
         self.plugins = Container()
