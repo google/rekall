@@ -37,6 +37,9 @@ PROFILE_STRINGS = {
 
     # This maps the name of the XNU kernel to the OSX release as found on:
     # http://www.opensource.apple.com/
+    "2422.100.13": "10.9.3",
+    "2422.92.1": "10.9.2",
+    # Gap for 10.9.1 is intentional, since the kernel version is the same.
     "2422.1.72": "10.9",
     "2050.48.11": "10.8.5",
     "2050.24.15": "10.8.4",
