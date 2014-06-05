@@ -25,9 +25,7 @@ import gc
 import logging
 import time
 import re
-import os
 import string
-import sys
 
 from rekall import config
 from rekall import obj
@@ -36,21 +34,9 @@ from rekall import registry
 
 
 config.DeclareOption(
-    "--pager", default=os.environ.get("PAGER"), group="Interface",
-    help="The pager to use when output is larger than a screen full.")
-
-config.DeclareOption(
-    "--paging_limit", default=None, group="Interface", type=int,
-    help="The number of output lines before we invoke the pager.")
-
-config.DeclareOption(
     "--renderer", default="TextRenderer", group="Interface",
     help="The renderer to use. e.g. (TextRenderer, "
     "JsonRenderer).")
-
-config.DeclareOption(
-    "--nocolors", default=False, action="store_true", group="Interface",
-    help="If set suppress outputting colors.")
 
 config.DeclareOption(
     "--logging", default="error", choices=[
@@ -64,24 +50,6 @@ config.DeclareOption(
 config.DeclareOption(
     "--debug", default=False, action="store_true",
     help="If set we break into the debugger on error conditions.")
-
-
-class UnicodeWrapper(object):
-    """A wrapper around a file like object which guarantees writes in utf8."""
-
-    def __init__(self, fd, encoding='utf8'):
-        self.fd = fd
-        self.encoding = encoding
-
-    def write(self, data):
-        data = utils.SmartUnicode(data).encode(self.encoding, "replace")
-        self.fd.write(data)
-
-    def flush(self):
-        self.fd.flush()
-
-    def isatty(self):
-        return self.fd.isatty()
 
 
 class Formatter(string.Formatter):
@@ -179,35 +147,19 @@ class BaseRenderer(object):
 
     __metaclass__ = registry.MetaclassRegistry
 
-    isatty = False
-    paging_limit = None
     sort_key_func = None
     deferred_rows = None
     table_cls = None
-    spinner = r"/-\|"
+
     last_spin_time = 0
-    last_spin = 0
-    last_message_len = 0
-    progress_fd = None
     progress_interval = 0.2
 
     # This is used to ensure that renderers are always called as context
     # managers. This guarantees we call start() and end() automatically.
     _started = False
 
-    def __init__(self, session=None, fd=None, pager=None):
+    def __init__(self, session=None):
         self.session = session
-        self.pager = pager
-        # Make sure that our output is unicode safe.
-        self.fd = UnicodeWrapper(fd or sys.stdout)
-
-        # Only pipe to the pager if we are attached to a tty and there is a
-        # pager.
-        if self.fd.isatty() and self.pager:
-            self.paging_limit = session.GetParameter("paging_limit")
-            self.isatty = True
-
-        self.formatter = Formatter()
 
     def __enter__(self):
         self._started = True
@@ -392,76 +344,26 @@ class BaseRenderer(object):
 
         self.format("\n")
 
-    def color(self, target, **kwargs):
-        return self.colorizer.Render(target, **kwargs)
-
     def report_error(self, message):
         """Render the error in an appropriate way."""
         # By default just log the error. Visual renderers may choose to render
         # errors in a distinctive way.
         logging.error(message)
 
-    def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
-        # Only write once per second.
+    def RenderProgress(self, *_, **kwargs):
+        """Will be called to render a progress message to the user."""
+        # Only write once per self.progress_interval.
         now = time.time()
         force = kwargs.get("force")
 
         if force or now > self.last_spin_time + self.progress_interval:
             self.last_spin_time = now
-            self.last_spin += 1
             gc.collect()
 
-            if not message:
-                return
+            # Signal that progress must be written.
+            return True
 
-            # Only expand variables when we need to.
-            if "%(" in message:
-                kwargs["spinner"] = self.spinner[
-                    self.last_spin % len(self.spinner)]
-
-                message = message % kwargs
-            elif args:
-                format_args = []
-                for arg in args:
-                    if callable(arg):
-                        format_args.append(arg())
-                    else:
-                        format_args.append(arg)
-
-                message = message % tuple(format_args)
-
-            self.ClearProgress()
-
-            message = " " + message + "\r"
-
-            # Truncate the message to the terminal width to avoid wrapping.
-            message = message[:self._GetColumns()]
-
-            self.last_message_len = len(message)
-
-            self._RenderProgress(message)
-
-    def _GetColumns(self):
-        return 80
-
-    def _RenderProgress(self, message):
-        """Actually write the progress message.
-
-        This can be overwritten by renderers to deliver the progress messages
-        elsewhere.
-        """
-        if self.progress_fd is not None:
-            self.progress_fd.write(message)
-            self.progress_fd.flush()
-
-    def ClearProgress(self):
-        """Delete the last progress message."""
-        if self.progress_fd is None:
-            return
-
-        # Wipe the last message.
-        self.progress_fd.write("\r" + " " * self.last_message_len + "\r")
-        self.progress_fd.flush()
+        return False
 
 
 class BaseColumn(object):
@@ -509,7 +411,7 @@ class BaseColumn(object):
             self.table.elide = False
             return
 
-        m = re.search(r"\[addrpad\]", formatstring)
+        m = re.match(r"\[addrpad\]", formatstring)
         if m:
             self.formatstring = "#0%sx" % self.address_size
             self.header_format = "^%ss" % self.address_size
@@ -517,7 +419,7 @@ class BaseColumn(object):
             self.table.elide = False
             return
 
-        m = re.search(r"\[addr\]", formatstring)
+        m = re.match(r"\[addr\]", formatstring)
         if m:
             self.formatstring = ">#%sx" % self.address_size
             self.header_format = "^%ss" % self.address_size
@@ -525,7 +427,7 @@ class BaseColumn(object):
             return
 
         # Look for the wrap specifier.
-        m = re.search(r"\[wrap:([^\]]+)\]", formatstring)
+        m = re.match(r"\[wrap:([^\]]+)\]", formatstring)
         if m:
             self.formatstring = "s"
             self.wrap = int(m.group(1))

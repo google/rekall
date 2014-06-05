@@ -32,7 +32,6 @@ from rekall import addrspace
 from rekall import args
 from rekall import config
 from rekall import constants
-from rekall import io_manager
 from rekall import registry
 from rekall import plugin
 from rekall import obj
@@ -56,7 +55,7 @@ class Info(plugin.Command):
 
     __name = "info"
 
-    standard_options = [("renderer", "Use this renderer for the output.")]
+    standard_options = []
 
     def __init__(self, item=None, verbosity=0, **kwargs):
         """Display information about a plugin.

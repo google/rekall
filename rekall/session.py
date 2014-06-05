@@ -26,7 +26,6 @@ way for people to save their own results.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import inspect
 import logging
 import os
 import pdb
@@ -45,7 +44,6 @@ from rekall import plugin
 from rekall import utils
 
 from rekall.ui import renderer
-from rekall.ui import text
 
 
 # Top level args.
@@ -70,6 +68,10 @@ config.DeclareOption(
     action=config.IntParser,
     help="The maximum size of buffers we are allowed to read. "
     "This is used to control Rekall memory usage.")
+
+config.DeclareOption(
+    "--output", default=None,
+    help="If specified we write output to this file.")
 
 
 class Container(object):
@@ -337,10 +339,6 @@ class Session(object):
             self.SetParameter(name, result)
             return result
 
-    def error(self, _plugin_cls, e):
-        """An error handler for plugin errors."""
-        raise e
-
     def RunPlugin(self, plugin_cls, *pos_args, **kwargs):
         """Launch a plugin and its render() method automatically.
 
@@ -356,13 +354,7 @@ class Session(object):
           output: If set we open and write the output to this
             filename. Otherwise the output is redirected to stdout.
         """
-        ui_renderer = kwargs.pop("renderer", None)
-        fd = kwargs.pop("fd", None)
-        debug = self.GetParameter("debug", False)
-        pager = self.GetParameter("pager")
-        if pager == "-":
-            pager = None
-
+        # When passed as a string this specifies a plugin name.
         if isinstance(plugin_cls, basestring):
             plugin_name = plugin_cls
             plugin_cls = getattr(self.plugins, plugin_cls, None)
@@ -370,8 +362,6 @@ class Session(object):
                 logging.error("Plugin %s is not active. Is it supported with "
                               "this profile?", plugin_name)
                 return
-        else:
-            plugin_name = plugin_cls.name
 
         # If the args came from the command line parse them now:
         flags = kwargs.get("flags")
@@ -380,68 +370,32 @@ class Session(object):
 
             kwargs = args.MockArgParser().build_args_dict(plugin_cls, flags)
 
-        # Allow the output to be sent to a file.
-        output = kwargs.pop("output", None)
+        ui_renderer = self.GetRenderer()
+        with ui_renderer.start(plugin_name=plugin_name, kwargs=kwargs):
 
-        # Select the renderer from the session or from the kwargs.
-        if not isinstance(ui_renderer, renderer.BaseRenderer):
-            ui_renderer_cls = self.renderer or text.TextRenderer
+            # Start the renderer before instantiating the plugin to allow
+            # rendering of reported progress in the constructor.
+            kwargs['session'] = self
 
-            if isinstance(ui_renderer_cls, basestring):
-                ui_renderer_cls = text.TextRenderer.classes[ui_renderer_cls]
+            plugin_obj = plugin_cls(*pos_args, **kwargs)
 
-            # Allow the output to be written to file.
-            if output is not None:
-                fd = open(output, "w")
-                pager = None
-
-            ui_renderer = ui_renderer_cls(session=self, fd=fd, pager=pager)
-
-        # Start the renderer before instantiating the plugin to allow
-        # rendering of reported progress in the constructor.
-        with ui_renderer.start(plugin_name=plugin_name):
             try:
-                kwargs['session'] = self
-
-                # If we were passed an instance we do not instantiate it.
-                if (inspect.isclass(plugin_cls) or
-                    isinstance(plugin_cls, obj.Curry)):
-                    result = plugin_cls(*pos_args, **kwargs)
-                else:
-                    result = plugin_cls
-
-                result.render(ui_renderer)
-
-                # If there was too much data and a pager is specified, simply
-                # pass the data to the pager:
-                if (ui_renderer.isatty and pager and
-                    len(ui_renderer.data) >= ui_renderer.paging_limit):
-                    pager = text.Pager(self)
-                    for data in ui_renderer.data:
-                        pager.write(data)
-
-                    # Now wait for the user to exit the pager.
-                    pager.flush()
-
-                return result
+                plugin_obj.render(ui_renderer)
+                return plugin_obj
 
             except plugin.InvalidArgs, e:
-                logging.error("Invalid Args (Try info plugins.%s): %s",
+                logging.error("Invalid Args (Try 'info plugins.%s'): %s",
                               plugin_cls.name, e)
 
-            except plugin.Error, e:
-                self.error(plugin_cls, e)
-
             except KeyboardInterrupt:
-                if self.debug:
-                    pdb.post_mortem(sys.exc_info()[2])
-
+                ui_renderer.report_error("Aborted")
                 self.report_progress("Aborted!\r\n", force=True)
 
             except Exception, e:
                 # If anything goes wrong, we break into a debugger here.
                 ui_renderer.report_error(traceback.format_exc())
-                if debug:
+
+                if self.GetParameter("debug"):
                     pdb.post_mortem(sys.exc_info()[2])
 
                 raise
@@ -546,6 +500,18 @@ class Session(object):
     def report_progress(self, message=" %(spinner)s", *args, **kwargs):
         """Called by the library to report back on the progress."""
         self.progress.Broadcast(message, *args, **kwargs)
+
+    def GetRenderer(self):
+        """Get a renderer for this session.
+
+        We instantiate the renderer specified in self.GetParameter("renderer").
+        """
+        ui_renderer = self.GetParameter("renderer", "TextRenderer")
+        if isinstance(ui_renderer, basestring):
+            ui_renderer_cls = renderer.BaseRenderer.classes[ui_renderer]
+            ui_renderer = ui_renderer_cls(session=self)
+
+        return ui_renderer
 
 
 class InteractiveSession(Session):

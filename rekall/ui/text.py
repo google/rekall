@@ -36,10 +36,24 @@ import sys
 import tempfile
 import textwrap
 
+from rekall import config
 from rekall import obj
 from rekall import utils
 
 from rekall.ui import renderer
+
+
+config.DeclareOption(
+    "--pager", default=os.environ.get("PAGER"), group="Interface",
+    help="The pager to use when output is larger than a screen full.")
+
+config.DeclareOption(
+    "--paging_limit", default=None, group="Interface", type=int,
+    help="The number of output lines before we invoke the pager.")
+
+config.DeclareOption(
+    "--nocolors", default=False, action="store_true", group="Interface",
+    help="If set suppress outputting colors.")
 
 
 HIGHLIGHT_SCHEME = dict(
@@ -58,17 +72,32 @@ class Pager(object):
     # Default encoding is utf8
     encoding = "utf8"
 
-    def __init__(self, session=None, encoding=None):
+    def __init__(self, session=None, term_fd=None):
+        self.session = session
+
         # More is the least common denominator of pagers :-(. Less is better,
         # but most is best!
         self.pager_command = (session.GetParameter("pager") or
                               os.environ.get("PAGER"))
 
-        self.encoding = (encoding or session.encoding or
-                         sys.stdout.encoding or "utf8")
+        if self.pager_command is None:
+            raise AttributeError("Pager command must be specified")
 
-        # Make a temporary filename to store output in.
-        self.fd, self.filename = tempfile.mkstemp(prefix="rekall")
+        self.encoding = session.GetParameter("encoding", "UTF-8")
+        self.fd = None
+        self.paging_limit = self.session.GetParameter("paging_limit")
+        self.data = ""
+
+        # Partial results will be directed to this until we hit the
+        # paging_limit, and then we send them to the real pager. This means that
+        # short results do not invoke the pager, but render directly to the
+        # terminal. It probably does not make sense to have term_fd as anything
+        # other than sys.stdout.
+        self.term_fd = term_fd or sys.stdout
+        self.colorizer = Colorizer(
+            self.term_fd,
+            nocolor=self.session.GetParameter("nocolors"),
+            )
 
     def __enter__(self):
         return self
@@ -76,45 +105,83 @@ class Pager(object):
     def __exit__(self, *args, **kwargs):
         # Delete the temp file.
         try:
-            os.unlink(self.filename)
+            if self.fd:
+                self.fd.close()
+                os.unlink(self.fd.name)
         except OSError:
             pass
+
+    def GetTempFile(self):
+        if self.fd is not None:
+            return self.fd
+
+        # Make a temporary filename to store output in.
+        self.fd = tempfile.NamedTemporaryFile(prefix="rekall")
+
+        return self.fd
 
     def write(self, data):
         # Encode the data according to the output encoding.
         data = utils.SmartUnicode(data).encode(self.encoding, "replace")
-        try:
-            if sys.platform in ["win32"]:
-                data = data.replace("\n", "\r\n")
+        if sys.platform == "win32":
+            data = data.replace("\n", "\r\n")
 
-            os.write(self.fd, data)
-        # This can happen if the pager disappears in the middle of the write.
-        except IOError:
-            pass
+        if self.fd is not None:
+            # Suppress terminal output. Output is buffered in self.fd and will
+            # be sent to the pager.
+            self.fd.write(data)
+
+        # No paging limit specified - just dump to terminal.
+        elif self.paging_limit is None:
+            self.term_fd.write(data)
+            self.term_fd.flush()
+
+        # If there is not enough output yet, just write it to the terminal and
+        # store it locally.
+        elif len(self.data.splitlines()) < self.paging_limit:
+            self.term_fd.write(data)
+            self.term_fd.flush()
+            self.data += data
+
+        # Now create a tempfile and dump the rest of the output there.
+        else:
+            self.term_fd.write(
+                self.colorizer.Render(
+                    "Please wait while the rest is paged...",
+                    foreground="YELLOW") + "\r\n")
+            self.term_fd.flush()
+
+            fd = self.GetTempFile()
+            fd.write(self.data + data)
+
+    def isatty(self):
+        return self.term_fd.isatty()
 
     def flush(self):
         """Wait for the pager to be exited."""
-        os.close(self.fd)
+        if self.fd is None:
+            return
+
+        self.fd.flush()
 
         try:
-            args = dict(filename=self.filename)
+            args = dict(filename=self.fd.name)
             # Allow the user to interpolate the filename in a special way,
             # otherwise just append to the end of the command.
             if "%" in self.pager_command:
                 pager_command = self.pager_command % args
             else:
-                pager_command = self.pager_command + " %s" % self.filename
+                pager_command = self.pager_command + " %s" % self.fd.name
 
             subprocess.call(pager_command, shell=True)
 
         # Allow the user to break out from waiting for the command.
         except KeyboardInterrupt:
             pass
+
         finally:
-            try:
-                os.unlink(self.filename)
-            except OSError:
-                pass
+            # This will delete the temp file.
+            self.fd.close()
 
 
 class Colorizer(object):
@@ -259,7 +326,8 @@ class TextColumn(renderer.BaseColumn):
         if isinstance(target, bool):
             color = "GREEN" if target else "RED"
             result = [
-                self.table.renderer.color(x, foreground=color) for x in result]
+                self.table.renderer.colorizer.Render(
+                    x, foreground=color) for x in result]
 
         return result or [""]
 
@@ -311,7 +379,7 @@ class TextTable(renderer.BaseTable):
                     line_components.append(" " * cell_widths[i])
 
             self.renderer.write(
-                self.renderer.color(
+                self.renderer.colorizer.Render(
                     self.tablesep.join(line_components),
                     foreground=foreground, background=background) + "\n")
 
@@ -330,6 +398,32 @@ class TextTable(renderer.BaseTable):
             highlight=highlight)
 
 
+class UnicodeWrapper(object):
+    """A wrapper around a file like object which guarantees writes in utf8."""
+
+    _isatty = None
+
+    def __init__(self, fd, encoding='utf8'):
+        self.fd = fd
+        self.encoding = encoding
+
+    def write(self, data):
+        data = utils.SmartUnicode(data).encode(self.encoding, "replace")
+        self.fd.write(data)
+
+    def flush(self):
+        self.fd.flush()
+
+    def isatty(self):
+        if self._isatty is None:
+            try:
+                self._isatty = self.fd.isatty()
+            except AttributeError:
+                self._isatty = False
+
+        return self._isatty
+
+
 class TextRenderer(renderer.BaseRenderer):
     """Renderer for the command line that supports paging, colors and progress.
 
@@ -339,27 +433,55 @@ class TextRenderer(renderer.BaseRenderer):
     """
     tablesep = " "
     elide = False
-    isatty = False
     paging_limit = None
     table_cls = TextTable
+    progress_fd = None
 
-    def __init__(self, tablesep=" ", elide=False, max_data=1024*1024, **kwargs):
+    # Render progress with a spinner.
+    spinner = r"/-\|"
+    last_spin = 0
+    last_message_len = 0
+
+    def __init__(self, tablesep=" ", elide=False, **kwargs):
         super(TextRenderer, self).__init__(**kwargs)
+
+        # Allow the user to dump all output to a file.
+        self.output = self.session.GetParameter("output")
+
+        fd = None
+        if self.output:
+            # We append the text output for each command. This allows the user
+            # to just set it once for the session and each new command is
+            # recorded in the output file.
+            fd = open(self.output, "a+b")
+
+        if fd is None:
+            fd = self.session.fd
+
+        if fd is None:
+            try:
+                fd = Pager(session=self.session)
+            except AttributeError:
+                fd = sys.stdout
+
+        # Make sure that our output is unicode safe.
+        self.fd = UnicodeWrapper(fd)
+        self.formatter = renderer.Formatter()
 
         self.tablesep = tablesep
         self.elide = elide
 
         # We keep the data that we produce in memory for while.
         self.data = []
-        self.max_data = max_data
 
         # Write progress to stdout but only if it is a tty.
-        if sys.stdout.isatty():
-            self.progress_fd = sys.stdout
+        self.progress_fd = UnicodeWrapper(sys.stdout)
+        if not self.progress_fd.isatty():
+            self.progress_fd = None
 
         self.colorizer = Colorizer(
             self.fd,
-            nocolor=(self.session and self.session.GetParameter("nocolors")),
+            nocolor=self.session.GetParameter("nocolors"),
         )
 
     def format(self, formatstring, *data):
@@ -371,26 +493,7 @@ class TextRenderer(renderer.BaseRenderer):
         super(TextRenderer, self).format(formatstring, *data)
 
     def write(self, data):
-        self.data.append(data)
-
-        # When not to use the pager.
-        if (not self.isatty or  # Not attached to a tty.
-            self.paging_limit is None or  # No paging limit specified.
-            len(self.data) < self.paging_limit):  # Not enough output yet.
-            self.fd.write(data)
-            self.fd.flush()
-
-        # Write a single message to the terminal.
-        elif len(self.data) == self.paging_limit:
-            self.fd.write(
-                self.color("Please wait while the rest is paged...",
-                           foreground="YELLOW") + "\r\n")
-            self.fd.flush()
-
-        # Suppress terminal output. Output is buffered in self.data and will be
-        # sent to the pager.
-        else:
-            return
+        self.fd.write(data)
 
     def flush(self):
         self.data = []
@@ -422,6 +525,73 @@ class TextRenderer(renderer.BaseRenderer):
             return curses.tigetnum('cols')
 
         return int(os.environ.get("COLUMNS", 80))
+
+
+    def start(self, plugin_name=None, kwargs=None):
+        super(TextRenderer, self).start(plugin_name=plugin_name, kwargs=kwargs)
+        if self.output:
+            # Remove values which are None.
+            for k, v in kwargs.items():
+                if v is None:
+                    kwargs.pop(k)
+
+            self.section("%s %s" % (plugin_name, kwargs or ""))
+
+        return self
+
+    def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
+        if super(TextRenderer, self).RenderProgress(**kwargs):
+            self.last_spin += 1
+            if not message:
+                return
+
+            # Only expand variables when we need to.
+            if "%(" in message:
+                kwargs["spinner"] = self.spinner[
+                    self.last_spin % len(self.spinner)]
+
+                message = message % kwargs
+            elif args:
+                format_args = []
+                for arg in args:
+                    if callable(arg):
+                        format_args.append(arg())
+                    else:
+                        format_args.append(arg)
+
+                message = message % tuple(format_args)
+
+            self.ClearProgress()
+
+            message = " " + message + "\r"
+
+            # Truncate the message to the terminal width to avoid wrapping.
+            message = message[:self._GetColumns()]
+
+            self.last_message_len = len(message)
+
+            self._RenderProgress(message)
+
+            return True
+
+    def _RenderProgress(self, message):
+        """Actually write the progress message.
+
+        This can be overwritten by renderers to deliver the progress messages
+        elsewhere.
+        """
+        if self.progress_fd is not None:
+            self.progress_fd.write(message)
+            self.progress_fd.flush()
+
+    def ClearProgress(self):
+        """Delete the last progress message."""
+        if self.progress_fd is None:
+            return
+
+        # Wipe the last message.
+        self.progress_fd.write("\r" + " " * self.last_message_len + "\r")
+        self.progress_fd.flush()
 
 
 class TestRenderer(TextRenderer):

@@ -23,6 +23,7 @@ A renderer is used by plugins to produce formatted output.
 """
 
 import json
+import sys
 
 from rekall import constants
 from rekall.ui import renderer
@@ -67,6 +68,25 @@ class JsonRenderer(renderer.BaseRenderer):
     # This will hold a list of JSON commands to buffer them before they are
     # written to the json file.
     data = None
+
+    def __init__(self, output=None, **kwargs):
+        super(JsonRenderer, self).__init__(**kwargs)
+
+        # Allow the user to dump all output to a file.
+        self.output = output or self.session.GetParameter("output")
+
+        fd = None
+        if self.output:
+            # This overwrites the output file with a new json message.
+            fd = open(self.output, "wb")
+
+        if fd is None:
+            fd = self.session.fd
+
+        if fd is None:
+            fd = sys.stdout
+
+        self.fd = fd
 
     def start(self, plugin_name=None, kwargs=None):
         super(JsonRenderer, self).start(plugin_name=plugin_name, kwargs=kwargs)
@@ -211,5 +231,6 @@ class JsonRenderer(renderer.BaseRenderer):
         # port of the first statement.
         self.SendMessage(["l", self.reverse_lexicon])
 
-    def _RenderProgress(self, message):
-        self.SendMessage(["p", message])
+    def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
+        if super(JsonRenderer, self).RenderProgress(**kwargs):
+            self.SendMessage(["p", message, args, kwargs])
