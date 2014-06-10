@@ -139,6 +139,7 @@ class ProfileConverter(object):
     def Convert(self):
         raise RuntimeError("Unknown profile format.")
 
+
 class LinuxConverter(ProfileConverter):
     """Convert an existing Linux profile zip file.
 
@@ -413,12 +414,20 @@ class BuildIndex(plugin.Command):
     The index specification is currently a yaml file with the following
     structure:
 
-    - repository_path: The path to the repository to index.
-    - symbols: # A list of symbols to index.
-       name: Symbol name.
-       data: Data that should be found in the image.
+    Structure:
+    ==========
+
+    repository_root: (string) # The path to the repository to index.
+    base_symbol: (string) # OPTIONAL Compute ALL offsets as relative to this
+        symbol. This includes MaxOffset and MinOffset.
+    symbols: (array of dicts) # A list of symbols to index.
+      -
+        name: (string) # Symbol name
+        data: (string) # Data that should be at the symbol's offset
+        shift: (int) # OPTIONAL Adjust symbol offset by this number
 
     Example:
+    ========
 
     repository_root: ./
     path: win32k.sys
@@ -449,6 +458,8 @@ class BuildIndex(plugin.Command):
      "$METADATA": {
       "ProfileClass": "Index",
       "Type": "Profile"
+      "MaxOffset": 546567
+      "MinOffset": 0
       }
      }
     """
@@ -466,6 +477,13 @@ class BuildIndex(plugin.Command):
         super(BuildIndex, self).__init__(**kwargs)
         self.spec = spec
 
+    @staticmethod
+    def _decide_base(data, base_symbol):
+        if base_symbol == None:
+            return 0
+
+        return data["$CONSTANTS"].get(base_symbol, None)
+
     def render(self, renderer):
         spec = yaml.safe_load(open(self.spec))
         index = {}
@@ -477,6 +495,8 @@ class BuildIndex(plugin.Command):
 
         repository_root = spec["repository_root"]
         highest_offset = 0
+        lowest_offset = float("inf")
+        base_sym = spec.get("base_symbol", None)
 
         for root, _, files in os.walk(
             os.path.join(repository_root, spec["path"])):
@@ -496,6 +516,7 @@ class BuildIndex(plugin.Command):
                     index[relative_path] = []
                     for sym_spec in spec["symbols"]:
                         shift = sym_spec.get("shift", 0)
+
                         if "$CONSTANTS" not in data:
                             continue
 
@@ -504,14 +525,47 @@ class BuildIndex(plugin.Command):
                         if not offset:
                             continue
 
+                        # Offsets (as well as min/max offset) are computed
+                        # relative to base.
+                        base = self._decide_base(
+                            data=data,
+                            base_symbol=base_sym)
+
+                        # If we got a base symbol but it's not in the constants
+                        # then that means this profile is incompatible with this
+                        # index and should be skipped.
+                        if base == None:
+                            continue
+
+                        # We don't record the offset as reported by the profile
+                        # but as the reader is actually going to use it.
+                        offset = offset + shift - base
+
+                        values = []
+                        # If a symbol's expected value is prefixed with
+                        # 'string:' then that means it was given to us as
+                        # human-readable and we need to encode it. Otherwise it
+                        # should already be hex-encoded.
+                        raw_prefix = "string:"
+                        for value in sym_spec["data"]:
+                            if value.startswith(raw_prefix):
+                                value = value[len(raw_prefix):].encode("hex")
+
+                            values.append(value)
+
                         index[relative_path].append(
-                            (offset + shift, sym_spec["data"]))
+                            (offset, values))
 
-                        # Store the highest offset, so the reader can optimize
-                        # their reading.
+                        # Compute the lowest and highest offsets so the reader
+                        # can optimize reading the image.
+                        lowest_offset = min(
+                            lowest_offset, offset)
                         highest_offset = max(
-                            highest_offset,
-                            offset + shift + len(sym_spec["data"]))
+                            highest_offset, offset + len(sym_spec["data"]))
 
-        metadata["max_offset"] = highest_offset
+        metadata["BaseSymbol"] = base_sym
+        metadata["MaxOffset"] = highest_offset
+        metadata["MinOffset"] = lowest_offset
+
         renderer.write(utils.PPrint(result))
+

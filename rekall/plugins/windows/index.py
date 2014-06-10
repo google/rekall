@@ -33,64 +33,9 @@ the RSDS GUID is not available or incorrect.
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-import logging
 from rekall import obj
 from rekall import testlib
 from rekall.plugins.windows import common
-
-
-class Index(obj.Profile):
-    """A profile which contains an index to locate other profiles."""
-    index = None
-
-    def _SetupProfileFromData(self, data):
-        super(Index, self)._SetupProfileFromData(data)
-        self.index = data.get("$INDEX")
-
-    def copy(self):
-        result = super(Index, self).copy()
-        result.index = self.index.copy()
-
-        return result
-
-    def _TestSymbols(self, data, offset, possible_symbols):
-        """Match any of the possible_symbols at offset.
-
-        Return True if there is a match.
-        """
-        for symbol in possible_symbols:
-            symbol = symbol.decode("hex")
-
-            if data.startswith(symbol, offset):
-                return True
-
-    def _TestProfile(self, data, image_base, profile, symbols):
-        """Match _all_ the symbols against this data."""
-        for offset, possible_symbols in symbols:
-            # The possible_symbols can be a single string which means there is
-            # only one option. If it is a list, then any of the symbols may
-            # match at this offset to be considered a match.
-            if isinstance(possible_symbols, basestring):
-                possible_symbols = [possible_symbols]
-
-            if self._TestSymbols(data, offset, possible_symbols):
-                logging.debug(
-                    "%s matched offset %#x+%#x=%#x",
-                    profile, offset, image_base, offset+image_base)
-            else:
-                return False
-
-        # If we get here _all_ symbols matched.
-        return True
-
-    def LookupIndex(self, image_base):
-        address_space = self.session.GetParameter("default_address_space")
-        data = address_space.read(
-            image_base, self.metadata("max_offset", 5*1024*1024))
-
-        for profile, symbols in self.index.iteritems():
-            if self._TestProfile(data, image_base, profile, symbols):
-                yield profile
 
 
 class GuessGUID(common.WindowsCommandPlugin):
@@ -164,3 +109,4 @@ class TestGuessGUID(testlib.SimpleTestCase):
     PARAMETERS = dict(
         commandline="guess_guid win32k"
         )
+

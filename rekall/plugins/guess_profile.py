@@ -22,52 +22,29 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 # pylint: disable=protected-access
-import re
 import logging
+import re
 
 from rekall import config
-from rekall import scan
 from rekall import kb
+from rekall import scan
 from rekall.plugins.darwin import common as darwin_common
 from rekall.plugins.linux import common as linux_common
 from rekall.plugins.windows import common as win_common
 
+OSX_NEEDLE = "Catfish \x00\x00"
 
-PROFILE_STRINGS = {
+PROFILE_STRINGS = [
+    # Anything that looks like a RSDS record signature.
+    "RSDS",
 
-    # This maps the name of the XNU kernel to the OSX release as found on:
-    # http://www.opensource.apple.com/
-    "2422.100.13": "10.9.3",
-    "2422.92.1": "10.9.2",
-    # Gap for 10.9.1 is intentional, since the kernel version is the same.
-    "2422.1.72": "10.9",
-    "2050.48.11": "10.8.5",
-    "2050.24.15": "10.8.4",
-    "2050.22.13": "10.8.3",
-    "2050.18.24": "10.8.2",
-    "2050.9.2": "10.8.1",
-    "2050.7.9": "10.8",
-    "1699.32.7": "10.7.5",
-    "1699.26.8": "10.7.4",
-    "1699.24.23": "10.7.3",
-    "1699.24.8": "10.7.2",
-    "1699.22.8": "10.7.1",
-    "1699.22.73": "10.7",
-    "1504.15.3": "10.6.8",
-    "1504.9.37": "10.6.7",
-    "1504.9.26": "10.6.6",
-    "1504.9.17": "10.6.5",
-    "1504.7.4": "10.6.4",
-    "1504.3.12": "10.6.3",
-    "1486.2.11": "10.6.2",
-    "1456.1.26": "10.6.1",
+    # Found in every OS X image. See documentation for DarwinFindKASLR for
+    # details.
+    OSX_NEEDLE,
 
-    # The signature of an RSDS record.
-    "RSDS": "PDB",
-
-    "Linux version ": "Linux",
-    }
-
+    # The Linux kernels we care about contain this.
+    "Linux version ",
+]
 
 
 class ProfileScanner(scan.BaseScanner):
@@ -102,11 +79,6 @@ class ProfileHook(kb.ParameterHook):
 
     # Windows kernel pdb files.
     KERNEL_NAMES = win_common.KERNEL_NAMES
-
-    # Darwin TEMPLATE from xnu-1699.26.8/libkern/libkern/version.h.template
-    DARWIN_TEMPLATE = re.compile(
-        r"Darwin Kernel Version .+? "
-        r"root:xnu-(\d+\.\d+\.\d+)~\d+/RELEASE_X86_64")
 
     LINUX_TEMPLATE = re.compile(
         r"Linux version (\d+\.\d+\.\d+-\d+-[^ ]+)")
@@ -150,8 +122,10 @@ class ProfileHook(kb.ParameterHook):
         return self.ApplyFindDTB(win_common.WinFindDTB, profile)
 
     def ApplyFindDTB(self, find_dtb_cls, profile):
-        # Try to load the dtb with this profile. If it works, this is likely
-        # correct.
+        """Verify profile by trying to use it to load the dtb.
+
+        If this succeeds the profile is likely correct.
+        """
         self.session.profile = profile
 
         find_dtb_plugin = find_dtb_cls(session=self.session)
@@ -180,6 +154,8 @@ class ProfileHook(kb.ParameterHook):
         address_space = self.session.physical_address_space
         for hit in ProfileScanner(address_space=address_space,
                                   session=self.session).scan():
+
+            # Try Windows by GUID:
             rsds = pe_profile.CV_RSDS_HEADER(offset=hit, vm=address_space)
             if (rsds.Signature.is_valid() and
                 str(rsds.Filename) in self.KERNEL_NAMES):
@@ -193,18 +169,30 @@ class ProfileHook(kb.ParameterHook):
 
                     return profile
 
-            else:
-                guess = address_space.read(hit-100, 300)
-                m = self.DARWIN_TEMPLATE.search(guess)
-                if m:
-                    version = PROFILE_STRINGS.get(m.group(1), "")
-                    profile_name = "OSX/%s_AMD" % version
+            # Try OS X by profile similarity:
+            elif address_space.read(hit, len(OSX_NEEDLE)) == OSX_NEEDLE:
+                # To work around KASLR, we have an index of known symbols'
+                # offsets relative to the Catfish string, along with the data we
+                # expect to find at those offsets. Profile similarity is the
+                # percentage of these symbols that match as expected.
+                #
+                # Ideally, we'd like a 100% match, but in case we don't have the
+                # exact profile, we'll make do with anything higher than 0% that
+                # can resolve the DTB.
+                logging.debug("Hit for Darwin at 0x%x", hit)
+                index = self.session.LoadProfile("OSX/index")
+                for profile_name in index.LookupIndex(
+                    image_base=hit,
+                    address_space=self.session.physical_address_space):
                     profile = self.VerifyDarwinProfile(profile_name)
                     if profile:
                         logging.info(
-                            "Detected %s: %s", profile_name, m.group(0))
-
+                            "Detected %s by exact symbol match.", profile_name)
                         return profile
+
+            # Try Linux by version string:
+            else:
+                guess = address_space.read(hit-100, 300)
 
                 m = self.LINUX_TEMPLATE.search(guess)
                 if m:
@@ -233,3 +221,4 @@ class ProfileHook(kb.ParameterHook):
         # Only do something only if we are allowed to autodetect profiles.
         if not self.session.GetParameter("no_autodetect"):
             return self.ScanProfiles()
+
