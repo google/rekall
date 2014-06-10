@@ -11,28 +11,54 @@
 
 @interface RKDocument ()
 
-@property (retain) RKSessionWrapper *rekall;
-@property (retain) NSURL *rekallURL;
-
+/** This is the URL we will eventually load, once the WebView is initialized and ready. */
 @property (copy) NSURL *deferredLoadURL;
+
+/** This gets called every time WebView finishes loading a page. */
 @property (copy, nonatomic) void (^webViewLoadCallback)(WebView *);
 
+/** Connects to the webconsole at self.rekallURL. */
 - (void)loadWebconsole:(id)sender;
+
+/** Loads an error page into the WebView and displays contents of error. */
 - (void)reportError:(NSError *)error;
 
+/** Loads url at the earliest possible time and executes callback once load finishes. */
 - (void)loadPageWhenReady:(NSURL *)url callback:(void (^)(WebView *))callback;
+
+/** Loads resource from the main bundle and executes it as javascript. */
 - (void)injectJavascriptResource:(NSString *)resource;
+
+/** Runs javascript from the argument in the main WebView.
+ *  @param js The javascript to execute.
+ *  @return Output of the javascript, as string.
+ */
 - (NSString *)injectJavascript:(NSString *)js;
-- (NSString *)callJavascriptFunction:(NSString *)function args:(NSArray *)args onReady:(BOOL)onReady;
+
+/** Calls the javascript function, while safely escaping its arguments.
+ *  @param function The name of the function to run.
+ *  @param args Arguments to the function. For now, only instances of NSString.
+ *  @param onReady Wraps the invocation in a jQuery 'onReady' block. (Must have loaded jQuery.)
+ *  @return Return value of the javascript function, as string.
+ */
+- (NSString *)callJavascriptFunction:(NSString *)function
+                                args:(NSArray *)args
+                             onReady:(BOOL)onReady;
 
 @end
 
-
+/** Needed to talk to the WebView's main frame. */
 @interface RKDocument (WebFrameLoadDelegate)
 
 - (void)webView:(WebView *)sender didFinishLoadForFrame:(WebFrame *)frame;
-- (void)webView:(WebView *)sender didFailProvisionalLoadWithError:(NSError *)error forFrame:(WebFrame *)frame;
-- (void)webView:(WebView *)sender didFailLoadWithError:(NSError *)error forFrame:(WebFrame *)frame;
+
+- (void)webView:(WebView *)sender
+    didFailProvisionalLoadWithError:(NSError *)error
+                           forFrame:(WebFrame *)frame;
+
+- (void)webView:(WebView *)sender
+    didFailLoadWithError:(NSError *)error
+                forFrame:(WebFrame *)frame;
 
 @end
 
@@ -48,7 +74,9 @@
     [self.spinner removeFromSuperview];
 }
 
-- (void)webView:(WebView *)sender didFailProvisionalLoadWithError:(NSError *)error forFrame:(WebFrame *)frame {
+- (void)webView:(WebView *)sender
+    didFailProvisionalLoadWithError:(NSError *)error
+                           forFrame:(WebFrame *)frame {
     NSLog(@"WebView provisional load error: %@", error);
 }
 
@@ -181,7 +209,11 @@
     return nil;
 }
 
-- (BOOL)readFromURL:(NSURL *)url ofType:(NSString *)typeName error:(NSError *__autoreleasing *)outError {
+- (BOOL)readFromURL:(NSURL *)url
+             ofType:(NSString *)typeName
+              error:(NSError *__autoreleasing *)outError {
+    NSLog(@"Opening document of type %@ from %@.", typeName, url);
+    
     self.rekall = [[RKSessionWrapper alloc] init];
     __weak id weakSelf = self;
     
@@ -191,11 +223,13 @@
     };
     
     self.rekall.onErrorCallback = ^(NSError *error) {
+        // I get called if RKSessionWrapper detects an error.
         [weakSelf reportError:error];
     };
     
+    // Did we get passed a saved session? If so, restore it.
     if ([typeName isEqualToString:@"com.google.rekall-session"]) {
-        // Restore saved session.
+        // This is a work in progress.
         NSLog(@"Not yet implemented.");
         return NO;
     }
