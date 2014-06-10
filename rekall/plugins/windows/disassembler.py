@@ -107,6 +107,9 @@ class Disassemble(plugin.Command):
         if isinstance(offset, basestring):
             offset = self.resolver.get_address_by_name(offset)
 
+        # Normalize the offset to an address.
+        offset = obj.Pointer.integer_to_address(offset)
+
         # Disassemble the data one page at the time.
         while 1:
             # The start of the disassembler buffer.
@@ -144,9 +147,9 @@ class Disassemble(plugin.Command):
         operand_name = self.resolver.format_address(operand)
 
         if target_name:
-            return "0x%X %s -> %s" % (target, operand_name, target_name)
+            return "0x%x %s -> %s" % (target, operand_name, target_name)
         else:
-            return "0x%X %s" % (target, operand_name)
+            return "0x%x %s" % (target, operand_name)
 
     SIMPLE_REFERENCE = re.compile("0x[0-9a-fA-F]+$")
     INDIRECT_REFERENCE = re.compile(r"\[(0x[0-9a-fA-F]+)\]")
@@ -204,7 +207,7 @@ class Disassemble(plugin.Command):
                 renderer.format("------ %s ------\n" % func_name)
 
             comment = self.find_reference(offset, size, instruction)
-            relative = "%X" % (offset - func_offset)
+            relative = "%x" % (offset - func_offset)
             if offset - func_offset > 0x1000:
                 relative = ""
 
@@ -212,7 +215,7 @@ class Disassemble(plugin.Command):
                 offset, relative, hexdump, instruction, comment)
 
             self.session.report_progress(
-                "Disassembled %s: 0x%X", func_name, offset)
+                "Disassembled %s: 0x%x", func_name, offset)
 
         # Continue from where we left off when the user calls us again with the
         # v() plugin.

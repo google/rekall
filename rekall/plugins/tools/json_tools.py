@@ -23,10 +23,11 @@
 """Tools for manipulating json output."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
-
+import os
 import json
 import time
 from rekall import plugin
+from rekall import testlib
 from rekall import utils
 
 class DecodingError(KeyError):
@@ -207,3 +208,29 @@ class JSONParser(plugin.Command):
 
         for statement in data:
             self.RenderStatement(statement, renderer)
+
+
+class TestJSONParser(testlib.SimpleTestCase):
+    """Test the JSON renderer/parser."""
+    PLUGIN = "json_render"
+
+    PARAMETERS = dict(
+        # The plugin to test json rendering with.
+        commandline="pslist"
+        )
+
+
+    def BuildBaselineData(self, config_options):
+        # We want to actually run the plugin first with JsonRenderer, then run
+        # json_render on its json output - That will be the baseline.
+        config_options["commandline"] = (
+            "--renderer JsonRenderer --output %(tempdir)s_output.json " +
+            config_options["commandline"])
+
+        baseline = super(TestJSONParser, self).BuildBaselineData(config_options)
+
+        output_file = self.temp_directory + "_output.json"
+        config_options["commandline"] = "json_render %s" % output_file
+
+        baseline = super(TestJSONParser, self).BuildBaselineData(config_options)
+        return baseline

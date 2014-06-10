@@ -526,6 +526,7 @@ class DirectoryDumperMixin(object):
 
     # Set this to False if the dump_dir parameter is mandatory.
     dump_dir_optional = True
+    default_dump_dir = "."
 
     @classmethod
     def args(cls, parser):
@@ -537,7 +538,7 @@ class DirectoryDumperMixin(object):
         else:
             help += " (Required)"
 
-        parser.add_argument("-D", "--dump-dir", default=".",
+        parser.add_argument("-D", "--dump-dir", default=None,
                             required=not cls.dump_dir_optional,
                             help=help)
 
@@ -549,7 +550,9 @@ class DirectoryDumperMixin(object):
         """
         super(DirectoryDumperMixin, self).__init__(**kwargs)
 
-        self.dump_dir = dump_dir or self.session.dump_dir
+        self.dump_dir = (dump_dir or self.default_dump_dir or
+                         self.session.GetParameter("dump_dir"))
+
         self.check_dump_dir(self.dump_dir)
 
     def check_dump_dir(self, dump_dir=None):

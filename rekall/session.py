@@ -34,6 +34,7 @@ import time
 import traceback
 
 from rekall import addrspace
+from rekall import args
 from rekall import config
 from rekall import constants
 from rekall import entity
@@ -339,36 +340,39 @@ class Session(object):
             self.SetParameter(name, result)
             return result
 
-    def RunPlugin(self, plugin_cls, *pos_args, **kwargs):
+    def RunPlugin(self, plugin_obj, *pos_args, **kwargs):
         """Launch a plugin and its render() method automatically.
 
         We use the pager specified in session.GetParameter("pager").
 
         Args:
-          plugin_cls: A string naming the plugin, or the plugin class itself.
-
-          renderer: An optional renderer to use.
-
-          debug: If set we break into the debugger if anything goes wrong.
-
-          output: If set we open and write the output to this
-            filename. Otherwise the output is redirected to stdout.
+          plugin_obj: A string naming the plugin, or the plugin instance itself.
+          *pos_args: Args passed to the plugin if it is not an instance.
+          **kwargs: kwargs passed to the plugin if it is not an instance.
         """
+        flags = kwargs.pop("flags", None)
+
         # When passed as a string this specifies a plugin name.
-        if isinstance(plugin_cls, basestring):
-            plugin_name = plugin_cls
-            plugin_cls = getattr(self.plugins, plugin_cls, None)
+        if isinstance(plugin_obj, basestring):
+            plugin_name = plugin_obj
+            plugin_cls = getattr(self.plugins, plugin_obj, None)
             if plugin_cls is None:
                 logging.error("Plugin %s is not active. Is it supported with "
                               "this profile?", plugin_name)
                 return
 
-        # If the args came from the command line parse them now:
-        flags = kwargs.get("flags")
-        if flags:
-            from rekall import args
+            # If the args came from the command line parse them now:
+            if flags:
+                kwargs = args.MockArgParser().build_args_dict(plugin_cls, flags)
 
-            kwargs = args.MockArgParser().build_args_dict(plugin_cls, flags)
+            plugin_obj = plugin_cls(*pos_args, **kwargs)
+
+        elif isinstance(plugin_obj, plugin.Command):
+            plugin_name = plugin_obj.name
+
+        else:
+            raise TypeError(
+                "First parameter should be a plugin name or instance.")
 
         ui_renderer = self.GetRenderer()
         with ui_renderer.start(plugin_name=plugin_name, kwargs=kwargs):
@@ -377,15 +381,16 @@ class Session(object):
             # rendering of reported progress in the constructor.
             kwargs['session'] = self
 
-            plugin_obj = plugin_cls(*pos_args, **kwargs)
-
             try:
                 plugin_obj.render(ui_renderer)
                 return plugin_obj
 
-            except plugin.InvalidArgs, e:
+            except plugin.InvalidArgs as e:
                 logging.error("Invalid Args (Try 'info plugins.%s'): %s",
                               plugin_cls.name, e)
+
+            except plugin.PluginError as e:
+                ui_renderer.report_error(str(e))
 
             except KeyboardInterrupt:
                 ui_renderer.report_error("Aborted")
@@ -399,6 +404,8 @@ class Session(object):
                     pdb.post_mortem(sys.exc_info()[2])
 
                 raise
+
+        return plugin_obj
 
     def LoadProfile(self, filename, use_cache=True):
         """Try to load a profile directly from a filename.

@@ -102,6 +102,7 @@ class CertScan(core.DirectoryDumperMixin, plugin.PhysicalASMixin,
 
     # We can just display the certs instead of dumping them.
     dump_dir_optional = True
+    default_dump_dir = None
 
     def render(self, renderer):
         headers = [("Address", "address", "[addrpad]"),
@@ -124,16 +125,22 @@ class CertScan(core.DirectoryDumperMixin, plugin.PhysicalASMixin,
             args = [hit, type, len(data)]
 
             if self.dump_dir:
-                filename = os.path.join(self.dump_dir, "%s.%08X.der" % (
-                        type, hit))
+                base_filename = "%s.%08X.der" % (type, hit)
+                filename = os.path.join(self.dump_dir, base_filename)
 
                 with open(filename, "wb") as fd:
                     fd.write(data)
 
-                    args.append(filename)
+                    args.append(base_filename)
 
             args.append(description)
             renderer.table_row(*args)
+
+
+class TestCertScan(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline="certscan -D %(tempdir)s",
+        )
 
 
 class VadCertScanner(CertScanner, vadinfo.VadScanner):
@@ -147,6 +154,7 @@ class CertVadScan(core.DirectoryDumperMixin, common.WinProcessFilter):
 
     # We can just display the certs instead of dumping them.
     dump_dir_optional = True
+    default_dump_dir = None
 
     def render(self, renderer):
         headers = [
@@ -171,21 +179,22 @@ class CertVadScan(core.DirectoryDumperMixin, common.WinProcessFilter):
                         hit, type, len(data)]
 
                 if self.dump_dir:
+                    base_filename = "%s.%s.%08X.der" % (
+                        task.UniqueProcessId, type, hit)
                     filename = os.path.join(
-                        self.dump_dir, "%s.%s.%08X.der" % (
-                            task.UniqueProcessId, type, hit))
+                        self.dump_dir, base_filename)
 
                     with open(filename, "wb") as fd:
                         fd.write(data)
 
-                        args.append(filename)
+                        args.append(base_filename)
 
                 args.append(description)
                 renderer.table_row(*args)
 
 
-class TestCertVadScan(testlib.SimpleTestCase):
+class TestCertVadScan(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="cert_vad_scan --proc_regex %(regex)s",
+        commandline="cert_vad_scan --proc_regex %(regex)s -D %(tempdir)s ",
         regex="csrss.exe"
         )

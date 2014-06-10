@@ -319,6 +319,9 @@ class PFNInfo(common.WindowsCommandPlugin):
 
     def render(self, renderer):
         pfn = self.pfn
+        if pfn is None:
+            raise plugin.PluginError("PFN not provided.")
+
         if self.physical_address is not None:
             pfn = int(self.physical_address) / self.PAGE_SIZE
 

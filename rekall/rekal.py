@@ -126,7 +126,7 @@ def main(argv=None):
         try:
             # Explicitly disable our handling of the pager since we are not
             # running in interactive mode.
-            user_session.RunPlugin(flags.module, flags=flags, pager=None)
+            user_session.RunPlugin(flags.module, flags=flags)
         except Exception as e:
             if getattr(flags, "debug", None):
                 pdb.post_mortem(sys.exc_info()[2])

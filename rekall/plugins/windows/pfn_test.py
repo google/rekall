@@ -35,7 +35,7 @@ class TestPFN(testlib.RekallBaseUnitTestCase):
                   "0x81ed84e8":  ["0x240200", "0x360012"]
                 }""")
 
-    def BuildBaseLineData(self, config_options):
+    def BuildBaselineData(self, config_options):
         return {}
 
     def testPFN(self):

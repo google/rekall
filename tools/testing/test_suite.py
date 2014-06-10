@@ -127,6 +127,7 @@ import os
 import shutil
 import sys
 import tempfile
+import threading
 import time
 import unittest
 
@@ -242,18 +243,19 @@ exit 0
         config.set(None, "testdir", self.test_directory)
         config.set(None, "executable", self.FLAGS.executable)
 
-        # Extra options to be used for testing the tech preview branch.
+        # Extra options to be used for testing.
         config.set(None, "--renderer", "TestRenderer")
 
         return config
 
-    def BuildBaseLineData(self, config_options, plugin_cls):
+    def BuildBaselineData(self, config_options, plugin_cls):
         # Operate on a copy here as we need to provide this test a unique
         # tempdir to write on.
         config_options = config_options.copy()
 
-        config_options["tempdir"] = os.path.join(config_options["tempdir"],
-                                                 plugin_cls.__name__)
+        config_options["tempdir"] = os.path.join(
+            config_options["tempdir"],
+            plugin_cls.__name__ + threading.current_thread().getName())
 
         # This directory should not exist already!
         os.mkdir(config_options["tempdir"])
@@ -261,7 +263,7 @@ exit 0
         plugin_obj = plugin_cls(temp_directory=config_options["tempdir"])
         start = time.time()
 
-        baseline_data = plugin_obj.BuildBaseLineData(config_options)
+        baseline_data = plugin_obj.BuildBaselineData(config_options)
         if baseline_data is None:
             baseline_data = {}
 
@@ -270,14 +272,14 @@ exit 0
 
         return baseline_data
 
-    def BuildBaseLineTask(self, config_options, plugin_cls):
+    def BuildBaselineTask(self, config_options, plugin_cls):
         """Run the rekall test program.
 
         This runs in a separate thread on the thread pool. After
         running, we capture the output into a json baseline file, and
         print progress to the terminal.
         """
-        baseline_data = self.BuildBaseLineData(config_options, plugin_cls)
+        baseline_data = self.BuildBaselLineData(config_options, plugin_cls)
 
         output_filename = os.path.join(self.test_directory, plugin_cls.__name__)
 
@@ -285,7 +287,7 @@ exit 0
             baseline_fd.write(json.dumps(baseline_data, indent=4))
             self.renderer.table_row(
                 plugin_cls.__name__,
-                self.renderer.color("REBUILT", foreground="YELLOW"),
+                self.renderer.colorizer.Render("REBUILT", foreground="YELLOW"),
                 baseline_data["time_used"])
 
             self.rebuilt += 1
@@ -325,9 +327,9 @@ exit 0
         plugins_with_test = set()
         for _, cls in testlib.RekallBaseUnitTestCase.classes.items():
             if cls.is_active(s):
-                plugin_name = cls.PARAMETERS.get("commandline", "").split()
+                plugin_name = cls.CommandName()
                 if plugin_name:
-                    plugins_with_test.add(plugin_name[0])
+                    plugins_with_test.add(plugin_name)
                     result.append(cls)
 
         # Now generate tests automatically for all other plugins.
@@ -406,9 +408,9 @@ exit 0
 
                 # process == 0 means we run tests in series.
                 if self.FLAGS.processes == 0:
-                    self.BuildBaseLineTask(config_options, plugin_cls)
+                    self.BuildBaselineTask(config_options, plugin_cls)
                 else:
-                    self.threadpool.AddTask(self.BuildBaseLineTask, [
+                    self.threadpool.AddTask(self.BuildBaselineTask, [
                             config_options, plugin_cls])
 
             else:
@@ -426,7 +428,7 @@ exit 0
             return
 
         # Re-Run the current test again.
-        current_run = self.BuildBaseLineData(config_options, plugin_cls)
+        current_run = self.BuildBaselineData(config_options, plugin_cls)
 
         test_cases = []
         for name in dir(plugin_cls):
@@ -456,7 +458,7 @@ exit 0
             if result.wasSuccessful():
                 self.renderer.table_row(
                     plugin_cls.__name__,
-                    self.renderer.color("PASS", foreground="GREEN"),
+                    self.renderer.colorizer.Render("PASS", foreground="GREEN"),
                     current_run.get("time_used", 0),
                     baseline_data.get("time_used", 0))
                 self.successes.append(plugin_cls.__name__)
@@ -471,7 +473,7 @@ exit 0
 
                 self.renderer.table_row(
                     plugin_cls.__name__,
-                    self.renderer.color("FAIL", foreground="RED"),
+                    self.renderer.colorizer.Render("FAIL", foreground="RED"),
                     current_run.get("time_used", 0),
                     baseline_data.get("time_used", 0),
                     fd.name)
@@ -484,8 +486,9 @@ exit 0
 
 def main(_):
     start = time.time()
-    renderer = text.TextRenderer()
-    with renderer:
+    # We dont want a pager for the main view.
+    renderer = text.TextRenderer(session=session.Session(pager="-"))
+    with renderer.start():
         with RekallTester(renderer=renderer) as tester:
             tester.RunTests()
 

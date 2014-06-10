@@ -228,11 +228,6 @@ class VADDump(core.DirectoryDumperMixin, VADInfo):
 
     __name = "vaddump"
 
-    def __init__(self, **kwargs):
-        """Dump all the memory reserved for a process in its vad tree.
-        """
-        super(VADDump, self).__init__(**kwargs)
-
     def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()

@@ -80,7 +80,7 @@ class Pager(object):
         self.pager_command = (session.GetParameter("pager") or
                               os.environ.get("PAGER"))
 
-        if self.pager_command is None:
+        if self.pager_command in [None, "-"]:
             raise AttributeError("Pager command must be specified")
 
         self.encoding = session.GetParameter("encoding", "UTF-8")
@@ -94,6 +94,9 @@ class Pager(object):
         # terminal. It probably does not make sense to have term_fd as anything
         # other than sys.stdout.
         self.term_fd = term_fd or sys.stdout
+        if not self.term_fd.isatty():
+            raise AttributeError("Pager can only work on a tty.")
+
         self.colorizer = Colorizer(
             self.term_fd,
             nocolor=self.session.GetParameter("nocolors"),

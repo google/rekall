@@ -204,7 +204,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
             return {}
 
-    def BuildBaseLineData(self, config_options):
+    def BuildBaselineData(self, config_options):
         return self.LaunchExecutable(config_options)
 
     def MakeUserSession(self, config_options):
@@ -390,9 +390,9 @@ class TempDirectory(object):
 class HashChecker(RekallBaseUnitTestCase):
     """A test comparing the hashes of all the files dumped in the tempdir."""
 
-    def BuildBaseLineData(self, config_options):
+    def BuildBaselineData(self, config_options):
         """We need to calculate the hash of the image we produce."""
-        baseline = super(HashChecker, self).BuildBaseLineData(config_options)
+        baseline = super(HashChecker, self).BuildBaselineData(config_options)
         baseline['hashes'] = {}
         for filename in os.listdir(self.temp_directory):
             if not filename.startswith("."):
