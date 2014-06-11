@@ -101,6 +101,24 @@ class KernelSlideHook(kb.ParameterHook):
         return 0
 
 
+class CatfishScanner(scan.BaseScanner):
+    checks = [
+        ("StringCheck", dict(needle="Catfish \x00\x00"))
+    ]
+
+
+class CatfishOffsetHook(kb.ParameterHook):
+    """Find the actual offset of the _lowGlo struct."""
+
+    name = "catfish_offset"
+
+    def calculate(self):
+        for hit in CatfishScanner(
+            address_space=self.session.physical_address_space,
+            session=self.session).scan():
+            return hit
+
+
 class DarwinKASLRMixin(object):
     """Ensures that KASLR slide is computed and stored in the session."""
 
@@ -139,12 +157,6 @@ class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
                 plugin.Command.is_active(session))
 
 
-class CatfishScanner(scan.BaseScanner):
-    checks = [
-        ("StringCheck", dict(needle="Catfish \x00\x00"))
-        ]
-
-
 class DarwinFindKASLR(AbstractDarwinCommandPlugin):
     """A scanner for KASLR slide values in the Darwin kernel.
 
@@ -165,6 +177,24 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
         return (super(DarwinFindKASLR, cls).is_active(session) and
                 MOUNTAIN_LION_OR_LATER(session.profile))
 
+    def all_catfish_hits(self):
+        """Yields possible lowGlo offsets, starting with session-cached one.
+
+        Because the first hit on the catfish string isn't necessarily the right
+        one, this function will yield subsequent ones by scanning the physical
+        address space, starting with the offset of the cached first hit.
+
+        The caller is responsible for updating the session cache with the correct
+        offset.
+        """
+        first_hit = self.session.GetParameter("catfish_offset")
+        yield first_hit
+
+        for hit in CatfishScanner(
+            address_space=self.session.physical_address_space,
+            session=self.session).scan(offset=first_hit+1):
+            yield hit
+
     def vm_kernel_slide_hits(self):
         """Tries to compute the KASLR slide.
 
@@ -178,12 +208,11 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
                                                     is_address=False)
         expected_offset = ID_MAP_VTOP(expected_offset)
 
-        for hit in CatfishScanner(
-            address_space=self.physical_address_space,
-            session=self.session).scan():
+        for hit in self.all_catfish_hits():
             vm_kernel_slide = int(hit - expected_offset)
 
             if self._validate_vm_kernel_slide(vm_kernel_slide):
+                self.session.SetParameter("catfish_offset", hit)
                 yield vm_kernel_slide
 
     def vm_kernel_slide(self):

@@ -92,7 +92,7 @@ class Index(obj.Profile):
         # Only preload the data we need to read, based on the known max offset.
         min_offset = self.metadata("MinOffset", 0) + image_base
         max_offset = self.metadata("MaxOffset", 5*1024*1024) + image_base
-        data = address_space.read(min_offset, max_offset)
+        data = address_space.read(min_offset, max_offset - min_offset)
 
         address_space = addrspace.BufferAddressSpace(
                 base_offset=min_offset,

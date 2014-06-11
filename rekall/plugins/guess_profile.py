@@ -188,6 +188,9 @@ class ProfileHook(kb.ParameterHook):
                     if profile:
                         logging.info(
                             "Detected %s by exact symbol match.", profile_name)
+
+                        self.session.SetParameter("catfish_offset", hit)
+
                         return profile
 
             # Try Linux by version string:
