@@ -113,7 +113,7 @@ class FileAddressSpace(FDAddressSpace):
                        "session.SetParameter('filename', 'MyFile.raw').")
 
         self.name = os.path.abspath(path)
-        self.fname = self.name
+        self.fname = self.name.strip()
         self.mode = 'rb'
 
         if path.startswith(r"\\\\.\\"):
