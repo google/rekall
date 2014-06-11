@@ -445,18 +445,17 @@ class TextRenderer(renderer.BaseRenderer):
     last_spin = 0
     last_message_len = 0
 
-    def __init__(self, tablesep=" ", elide=False, **kwargs):
+    def __init__(self, tablesep=" ", elide=False, output=None, mode="a+b",
+                 fd=None, **kwargs):
         super(TextRenderer, self).__init__(**kwargs)
 
         # Allow the user to dump all output to a file.
-        self.output = self.session.GetParameter("output")
-
-        fd = None
+        self.output = output or self.session.GetParameter("output")
         if self.output:
             # We append the text output for each command. This allows the user
             # to just set it once for the session and each new command is
             # recorded in the output file.
-            fd = open(self.output, "a+b")
+            fd = open(self.output, mode)
 
         if fd is None:
             fd = self.session.fd

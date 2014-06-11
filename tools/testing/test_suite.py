@@ -279,7 +279,7 @@ exit 0
         running, we capture the output into a json baseline file, and
         print progress to the terminal.
         """
-        baseline_data = self.BuildBaselLineData(config_options, plugin_cls)
+        baseline_data = self.BuildBaselineData(config_options, plugin_cls)
 
         output_filename = os.path.join(self.test_directory, plugin_cls.__name__)
 
