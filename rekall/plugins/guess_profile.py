@@ -54,6 +54,10 @@ class ProfileScanner(scan.BaseScanner):
 config.DeclareOption("--no_autodetect", default=False, action="store_true",
                      help="Should profiles be autodetected.")
 
+config.DeclareOption("--autodetect_threshold", default=1.0, action="store",
+                     help="Worst acceptable match for profile autodetection." +
+                     " (Default 1.0)",
+                     type=float)
 
 class KernelASHook(kb.ParameterHook):
     """A ParameterHook for default_address_space.
@@ -181,8 +185,10 @@ class ProfileHook(kb.ParameterHook):
                 # can resolve the DTB.
                 logging.debug("Hit for Darwin at 0x%x", hit)
                 index = self.session.LoadProfile("OSX/index")
+                threshold = self.session.GetParameter("autodetect_threshold")
                 for profile_name in index.LookupIndex(
                     image_base=hit,
+                    threshold=threshold,
                     address_space=self.session.physical_address_space):
                     profile = self.VerifyDarwinProfile(profile_name)
                     if profile:

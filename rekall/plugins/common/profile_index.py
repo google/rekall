@@ -42,6 +42,9 @@ class Index(obj.Profile):
     index = None
     base_offset = 0
 
+    PERFECT_MATCH = 1.0
+    GOOD_MATCH = 0.75
+
     def _SetupProfileFromData(self, data):
         super(Index, self)._SetupProfileFromData(data)
         self.index = data.get("$INDEX")
@@ -65,6 +68,7 @@ class Index(obj.Profile):
 
     def _TestProfile(self, address_space, image_base, profile, symbols):
         """Match _all_ the symbols against this data."""
+        count_matched = 0
         for offset, possible_values in symbols:
             # The possible_values can be a single string which means there is
             # only one option. If it is a list, then any of the symbols may
@@ -79,13 +83,15 @@ class Index(obj.Profile):
                 logging.debug(
                     "%s matched offset %#x+%#x=%#x",
                     profile, offset, image_base, offset+image_base)
-            else:
-                return False
+                count_matched += 1
 
-        # If we get here _all_ symbols matched.
-        return True
+        logging.debug(
+            "%s matches %d/%d comparison points",
+            profile, count_matched, len(symbols))
 
-    def LookupIndex(self, image_base, address_space=None):
+        return float(count_matched) / len(symbols)
+
+    def IndexHits(self, image_base, address_space=None):
         if address_space == None:
             address_space = self.session.GetParameter("default_address_space")
 
@@ -95,11 +101,32 @@ class Index(obj.Profile):
         data = address_space.read(min_offset, max_offset - min_offset)
 
         address_space = addrspace.BufferAddressSpace(
-                base_offset=min_offset,
-                data=data,
-                session=self.session)
+            base_offset=min_offset,
+            data=data,
+            session=self.session)
 
         for profile, symbols in self.index.iteritems():
-            if self._TestProfile(address_space, image_base, profile, symbols):
+            match = self._TestProfile(
+                address_space=address_space,
+                image_base=image_base,
+                profile=profile,
+                symbols=symbols)
+
+            yield match, profile
+
+    def LookupIndex(self,image_base, address_space=None,
+                    threshold=PERFECT_MATCH):
+        partial_matches = []
+        for match, profile in self.IndexHits(image_base, address_space):
+            if match == self.PERFECT_MATCH:
+                # Yield perfect matches right away.
                 yield profile
+            elif match >= threshold:
+                # Imperfect matches will be saved and returned in order of
+                # accuracy.
+                partial_matches.append((match, profile))
+
+        partial_matches.sort(reverse=True)
+        for match, profile in partial_matches:
+            yield profile
 
