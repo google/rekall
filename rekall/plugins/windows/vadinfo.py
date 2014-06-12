@@ -172,7 +172,7 @@ class VADTree(VADInfo):
 
             for vad in task.RealVadRoot.traverse():
                 level = vad.obj_context.get('depth', 0)
-                renderer.table_row(u" " * level, vad.Start, vad.End)
+                renderer.table_row(u" " * level, vad.Start, "->", vad.End)
 
     def render_dot(self, outfd):
         for task in self.filter_processes():
@@ -217,8 +217,8 @@ class VADWalk(VADInfo):
                     renderer.table_row(
                         vad.obj_offset,
                         vad.obj_parent.obj_offset,
-                        vad.LeftChild.dereference().obj_offset,
-                        vad.RightChild.dereference().obj_offset,
+                        vad.LeftChild.v(),
+                        vad.RightChild.v(),
                         vad.Start,
                         vad.End,
                         vad.Tag)

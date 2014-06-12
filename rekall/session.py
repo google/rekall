@@ -260,6 +260,8 @@ class Session(object):
             profile_parameter = self.GetParameter("profile")
             if profile_parameter:
                 self.profile = self.LoadProfile(profile_parameter)
+                if self.profile == None:
+                    raise ValueError(self.profile.reason)
 
                 # The profile has just changed, we need to update the runners.
                 self._update_runners()
@@ -496,8 +498,8 @@ class Session(object):
         # retry again.
         self.profile_cache[canonical_name] = result
         if result == None:
-            raise ValueError("Unable to load profile %s from any repository." %
-                             filename)
+            return obj.NoneObject(
+                "Unable to load profile %s from any repository." % filename)
 
         return result
 
@@ -546,10 +548,7 @@ class InteractiveSession(Session):
     def _update_runners(self):
         super(InteractiveSession, self)._update_runners()
 
-        try:
-            help_profile = self.LoadProfile("help_doc")
-        except ValueError:
-            help_profile = None
+        help_profile = self.LoadProfile("help_doc")
 
         self._locals['plugins'] = Container()
         for cls in plugin.Command.GetActiveClasses(self):

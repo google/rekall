@@ -39,7 +39,7 @@ class File(object):
         elif not filename:
             self.filename = []
         else:
-           raise TypeError("Invalid filename.")
+            raise TypeError("Invalid filename.")
         self.mountpoint = mountpoint or MountPoint()
         self.dentry = dentry
         self.is_root = is_root

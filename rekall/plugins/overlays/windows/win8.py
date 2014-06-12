@@ -58,30 +58,44 @@ win8_overlays = {
 
     '_MMVAD_SHORT': [None, {
             'Tag': [TagOffset, ['String', dict(length=4)]],
-            'Start': lambda x: (x.StartingVpn + (x.StartingVpnHigh<<32)) << 12,
-            'End': lambda x: (x.EndingVpn + (x.EndingVpnHigh<<32) + 1) << 12,
+            'Start': lambda x: (
+                x.StartingVpn + (x.StartingVpnHigh<<32)) << 12,
+
+            'End': lambda x: (
+                ((x.EndingVpn + (x.EndingVpnHigh<<32)) + 1) << 12) - 1,
+
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u1.VadFlags1.CommitCharge,
+            'LeftChild': lambda x: x.VadNode.Left,
+            'RightChild': lambda x: x.VadNode.Right,
             }],
 
     '_MMVAD': [None, {
             'Tag': [TagOffset, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
+
+            # The following members proxy the embedded _MMVAD_SHORT in .Core.
             'Start': lambda x: x.Core.Start,
             'End': lambda x: x.Core.End,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.Core.u1.VadFlags1.CommitCharge,
+            'Length': lambda x: x.Core.Length,
+            'CommitCharge': lambda x: x.Core.CommitCharge,
             'u': lambda x: x.Core.u,
+            'LeftChild': lambda x: x.Core.LeftChild,
+            'RightChild': lambda x: x.Core.RightChild,
             }],
 
     '_MMVAD_LONG': [None, {
             'Tag': [TagOffset, ['String', dict(length=4)]],
             'ControlArea': lambda x: x.Subsection.ControlArea,
+
+            # The following members proxy the embedded _MMVAD_SHORT in .Core.
             'Start': lambda x: x.Core.Start,
             'End': lambda x: x.Core.End,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.Core.u.VadFlags.CommitCharge,
+            'Length': lambda x: x.Core.Length,
+            'CommitCharge': lambda x: x.Core.CommitCharge,
             'u': lambda x: x.Core.u,
+            'LeftChild': lambda x: x.Core.LeftChild,
+            'RightChild': lambda x: x.Core.RightChild,
             }],
 
     "_CONTROL_AREA": [None, {

@@ -71,6 +71,14 @@ class ModScan(filescan.FileScan):
             ldr_entry = self.profile._LDR_DATA_TABLE_ENTRY(
                 vm=self.address_space, offset=pool_obj.obj_end)
 
+            # Must have a non zero size.
+            if ldr_entry.SizeOfImage == 0:
+                continue
+
+            # Must be page aligned.
+            if ldr_entry.DllBase & 0xFFF:
+                continue
+
             yield ldr_entry
 
     def render(self, renderer):

@@ -18,6 +18,7 @@
 """Miscelaneous information gathering plugins."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
+import logging
 
 # pylint: disable=protected-access
 from rekall import obj
@@ -74,12 +75,12 @@ class SetProcessContext(common.WinProcessFilter):
 
     def SwitchProcessContext(self, process=None):
         if process is None:
-            message = "Switching to Kernel context\n"
+            message = "Switching to Kernel context"
             self.session.SetParameter("default_address_space",
                                       self.session.kernel_address_space)
         else:
             message = ("Switching to process context: {0} "
-                       "(Pid {1}@{2:#x})\n").format(
+                       "(Pid {1}@{2:#x})").format(
                            process.name, process.pid, process)
 
             self.session.SetParameter("default_address_space",
@@ -88,6 +89,7 @@ class SetProcessContext(common.WinProcessFilter):
         # Reset the address resolver for the new context.
         self.session.address_resolver.Reset()
         self.session.SetParameter("process_context", process)
+        logging.debug(message)
 
         return message
 
@@ -102,7 +104,7 @@ class SetProcessContext(common.WinProcessFilter):
 
     def render(self, renderer):
         message = self.SwitchContext()
-        renderer.format(message)
+        renderer.format(message + "\n")
 
 
 

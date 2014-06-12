@@ -526,7 +526,7 @@ class WinProcessFilter(WindowsCommandPlugin):
         for table in handle_table_list_head.list_of_type(
             "_HANDLE_TABLE", "HandleTableList"):
             proc = table.QuotaProcess.deref()
-            if proc:
+            if proc and proc.pid > 0:
                 yield proc
 
     def list_from_pspcid(self, seen=None):

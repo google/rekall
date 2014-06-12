@@ -133,7 +133,7 @@ class WinDesktops(plugin.VerbosityMixIn, WindowsStations):
                 renderer.format(
                     "Desktop: {0:#x}, Name: {1}\\{2}, Next: {3:#x}\n",
                     desktop,
-                    desktop.WindowStation.Name,
+                    window_station.Name,
                     desktop.Name,
                     desktop.rpdeskNext.v(),
                     )

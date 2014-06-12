@@ -85,9 +85,10 @@ class Index(obj.Profile):
                     profile, offset, image_base, offset+image_base)
                 count_matched += 1
 
-        logging.debug(
-            "%s matches %d/%d comparison points",
-            profile, count_matched, len(symbols))
+        if count_matched > 0:
+            logging.debug(
+                "%s matches %d/%d comparison points",
+                profile, count_matched, len(symbols))
 
         return float(count_matched) / len(symbols)
 
@@ -114,13 +115,14 @@ class Index(obj.Profile):
 
             yield match, profile
 
-    def LookupIndex(self,image_base, address_space=None,
+    def LookupIndex(self, image_base, address_space=None,
                     threshold=PERFECT_MATCH):
         partial_matches = []
         for match, profile in self.IndexHits(image_base, address_space):
             if match == self.PERFECT_MATCH:
                 # Yield perfect matches right away.
                 yield profile
+
             elif match >= threshold:
                 # Imperfect matches will be saved and returned in order of
                 # accuracy.
@@ -129,4 +131,3 @@ class Index(obj.Profile):
         partial_matches.sort(reverse=True)
         for match, profile in partial_matches:
             yield profile
-

@@ -198,7 +198,9 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
             'name': [None, ['Pointer', dict(
                         target='UnicodeString',
                         target_args=dict(
-                            length=lambda x: x.m("len") or x.u1.u1.len,
+                            # include/linux/limits.h
+                            length=lambda x: (x.m("len") or
+                                              x.m("u1.u1.len") or 255),
                             )
                         )]],
             }],
@@ -261,25 +263,26 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
             }],
 
     'desc_struct': [None, {
-            'Address': lambda x: (x.u1.u1.b & 0xffff0000) | (x.u1.u1.a & 0x0000ffff),
-            'GateType': [5, ['Enumeration', {
-                        'choices': {
-                            5: '32-bit Task Gate',
-                            6: '16-bit Int Gate',
-                            7: '16-bit Trap Gate',
-                            14: '32-bit Int Gate',
-                            15: '32-bit Trap Gate',
-                            },
-                        'target': 'BitField',
-                        'target_args': dict(
-                            start_bit=0, end_bit=4),
-                        }]],
-            'DPL': [5, ['BitField', {
-                'target': 'unsigned int',
-                'start_bit': 45,
-                'end_bit': 46
-                }]],
-            }],
+        'Address': lambda x: ((x.u1.u1.b & 0xffff0000) |
+                              (x.u1.u1.a & 0x0000ffff)),
+        'GateType': [5, ['Enumeration', {
+            'choices': {
+                5: '32-bit Task Gate',
+                6: '16-bit Int Gate',
+                7: '16-bit Trap Gate',
+                14: '32-bit Int Gate',
+                15: '32-bit Trap Gate',
+                },
+            'target': 'BitField',
+            'target_args': dict(
+                start_bit=0, end_bit=4),
+            }]],
+        'DPL': [5, ['BitField', {
+            'target': 'unsigned int',
+            'start_bit': 45,
+            'end_bit': 46
+            }]],
+        }],
 
     'tty_driver': [None, {
 
@@ -473,12 +476,11 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
                         )]],
             "mnt": lambda x: x,
             }],
+
     "file_system_type": [None, {
             "name": [None, ["Pointer", dict(target="String")]],
             }],
-    "qstr": [None, {
-            "name": [None, ["Pointer", dict(target="String")]],
-            }],
+
     "inode": [None, {
             "i_mode": [None, ["InodePermission", dict(
                 target="unsigned int",
@@ -740,7 +742,7 @@ class timespec(obj.Struct):
         """Returns the time as a UnixTimestamp."""
         the_time = self.obj_profile.getboottime(vm=self.obj_vm) + self
         the_time = the_time.normalized_timespec()
-        return self.obj_profile.UnixTimeStamp(value=the_time.tv_sec)
+        return self.obj_profile.UnixTimeStamp(value=the_time.tv_sec.v())
 
 
 class PermissionFlags(basic.Flags):
@@ -834,12 +836,11 @@ class Linux(basic.BasicClasses):
             if (self.get_kernel_config("CONFIG_X86_PAE") == "y" and
                 self.metadata("arch") == "I386"):
                 self.set_metadata("pae", True)
-        except ValueError, e:
+        except ValueError:
             # We cannot autoguess PAE at the moment if we don't know the config
             # option value for it.
             logging.debug(("No kernel config available in the profile, so "
                            "we cannot detect PAE."))
-            pass
 
     def get_constant(self, name, is_address=True):
         """Gets the constant from the profile, correcting for KASLR."""
@@ -860,7 +861,9 @@ class Linux(basic.BasicClasses):
         Raises if no kernel configuration is present in the profile.
         """
         if not self.kernel_config_options:
-            raise ValueError("No kernel config options present in the profile.")
+            return obj.NoneObject(
+                "No kernel config options present in the profile.")
+
         return self.kernel_config_options.get(config_option)
 
     def get_wall_to_monotonic(self, vm=None):
@@ -893,7 +896,8 @@ class Linux(basic.BasicClasses):
 
     def getboottime(self, vm=None):
         """Returns the real time of system boot."""
-        boottime = self.get_wall_to_monotonic(vm=vm) + self.get_total_sleep_time(vm=vm)
+        boottime = (self.get_wall_to_monotonic(vm=vm) +
+                    self.get_total_sleep_time(vm=vm))
         boottime.tv_sec = -boottime.tv_sec
         boottime.tv_nsec = -boottime.tv_nsec
         return boottime.normalized_timespec()

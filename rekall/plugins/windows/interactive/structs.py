@@ -23,10 +23,12 @@ examining a memory image.
 """
 # pylint: disable=protected-access
 from rekall import config
+from rekall import obj
+from rekall import utils
 from rekall.plugins.windows import common
 
 
-class AnalyzeStruct(common.AbstractWindowsCommandPlugin):
+class AnalyzeStruct(common.WindowsCommandPlugin):
     """A plugin to analyze a memory location."""
     name = "analyze_struct"
 
@@ -37,77 +39,114 @@ class AnalyzeStruct(common.AbstractWindowsCommandPlugin):
         parser.add_argument("offset",
                             help="A virtual address to analyze.")
 
-        parser.add_argument("search", type=config.IntParser, default=0x100,
+        parser.add_argument("--search", type=config.IntParser, default=0x100,
                             help="How far back to search for pool tag.")
 
+        parser.add_argument("--size", type=config.IntParser, default=0x100,
+                            help="How many elements to identify.")
 
-    def __init__(self, offset=0, search=0x100, **kwargs):
+    def __init__(self, offset=0, search=0x100, size=0x100, **kwargs):
         super(AnalyzeStruct, self).__init__(**kwargs)
         self.offset = self.session.address_resolver.get_address_by_name(offset)
         self.search = search
+        self.size = size
+        self.highest_user_address = self.profile.get_constant_object(
+            "MmHighestUserAddress", "unsigned long long")
 
-    def SearchForPoolHeader(self, offset, size=0x100):
+    def SearchForPoolHeader(self, offset, search=0x100):
         """Search backwards from offset for a pool header."""
-        offset = int(offset)
+        pool_alignment = self.profile.get_constant("PoolAlignment")
+        offset = int(offset) - offset % pool_alignment
 
-        for o in xrange(offset, offset-size, -0x8):
+        for o in xrange(offset, offset-search, -pool_alignment):
             pool_header = self.profile._POOL_HEADER(o)
-            if pool_header.BlockSize == 0:
+
+            # If this is the pool header for this allocation it must be big
+            # enough to contain it.
+            if pool_header.BlockSize < (offset - o) / pool_alignment + 1:
                 continue
 
-            if pool_header.PoolType > 4:
-                continue
+            #if not pool_header.PoolType.is_valid():
+            #    continue
 
-            # Verfiy it.
+            # Verify it.
             if pool_header.PreviousSize > 0:
                 previous_pool_header = self.profile._POOL_HEADER(
-                    o - 0x10 * pool_header.PreviousSize)
+                    o - pool_alignment * pool_header.PreviousSize)
 
                 if previous_pool_header.BlockSize == pool_header.PreviousSize:
                     return pool_header
 
             # Check the next allocation.
             next_pool_header = self.profile._POOL_HEADER(
-                o + 0x10 * pool_header.BlockSize)
+                o + pool_alignment * pool_header.BlockSize)
 
             if next_pool_header.PreviousSize == pool_header.BlockSize:
                 return pool_header
 
-    def GuessMembers(self, offset, size=0x100):
+        return obj.NoneObject("No pool tag found")
+
+    def GuessMembers(self, offset, size=0x100, search=0x100):
         offset = int(offset)
+        resolver = self.session.address_resolver
+        result = []
 
         for member in self.profile.Array(offset, target="Pointer",
                                          count=size/8):
-            result = []
+            address_info = ["Data:%#x" % member.v()]
             relative_offset = member.obj_offset - offset
+            result.append((relative_offset, address_info))
+
+            # If the last member was a _LIST_ENTRY skip this one since its just
+            # the Blink of it.
+            if len(result) > 1 and "_LIST_ENTRY" in result[-2][1]:
+                continue
 
             # Check for _LIST_ENTRYs
             list_member = member.cast("_LIST_ENTRY")
             if list_member.obj_offset == list_member.Flink.Blink.v():
-                result.append("_LIST_ENTRY")
-                result.append("@%#x" % list_member.Flink.obj_offset)
+                address_info.append("_LIST_ENTRY")
+                address_info.append("@%#x" % list_member.Flink.v())
+
+            if list_member.obj_offset == list_member.Flink.v():
+                address_info.append("Empty")
 
             # Try to find pointers to known pool allocations.
-            pool = self.SearchForPoolHeader(member.v(), size=size)
+            pool = self.SearchForPoolHeader(member.v(), search=search)
             if pool:
-                result.append("Tag:%s" % pool.Tag)
-                result.append("@%#x" % member.v())
+                address_info.append("Tag:%s" % pool.Tag)
+                proc = pool.m("ProcessBilled")
+                # Does the tag refer to a real _EPROCESS? If so it must have a
+                # valid environment block (and a corresponding address space).
+                if proc.Peb:
+                    address_info.append("ProcessBilled:%s" % proc.name)
 
-            if result:
-                yield relative_offset, result
+                address_info.append("@%#x" % member.v())
 
+            else:
+                # Look for pointers to global symbols.
+                sym_offset, symbol = resolver.get_nearest_constant_by_address(
+                    member.v())
+
+                if symbol and sym_offset == member.v():
+                    address_info.append("Const:%s" % symbol)
+
+        return result
 
     def render(self, renderer):
-        pool_header = self.SearchForPoolHeader(self.offset, size=self.search)
+        pool_header = self.SearchForPoolHeader(self.offset, search=self.search)
+
         if pool_header:
-            renderer.format("{0:#x} is inside pool allocation with tag '{1}'\n",
-                            self.offset,
-                            str(pool_header.Tag).encode("string-escape"))
+            name = (pool_header.ProcessBilled.name or
+                    str(pool_header.Tag).encode("string-escape"))
+            renderer.format(
+                "{0:#x} is inside pool allocation with tag '{1}' ({2:#x})\n",
+                self.offset, name, pool_header)
 
         renderer.table_header([("Offset", "offset", "[addr]"),
                                ("Content", "content", "")])
 
         for relative_offset, info in self.GuessMembers(
-            self.offset, size=self.search):
+            self.offset, size=self.size, search=self.search):
             renderer.table_row(relative_offset, " ".join(
-                [x.encode("string-escape") for x in info]))
+                [utils.SmartStr(x).encode("string-escape") for x in info]))

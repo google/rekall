@@ -336,7 +336,7 @@ windows_overlay = {
     '_POOL_HEADER': [None, {
         # Wrap the pool type in an enumeration.
         'PoolType': lambda x: basic.Enumeration(
-            enum_name="_MM_POOL_TYPES", profile=x.obj_profile,
+            enum_name="_POOL_TYPE", profile=x.obj_profile,
             offset=x.obj_offset,
             name=x.obj_name, parent=x.obj_parent, type_name=x.obj_type,
             value=x.m("PoolType")),

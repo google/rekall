@@ -156,6 +156,8 @@ if [ "$1" == "ok" ]; then
    cp %(src)s %(dest)s
 elif [ "$1" == "meld" ]; then
    meld %(src)s %(dest)s
+elif [ "$1" == "diff" ]; then
+   diff %(src)s %(dest)s
 else
    less %(src)s
 fi

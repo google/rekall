@@ -296,6 +296,9 @@ class Enumeration(obj.NativeType):
     def size(self):
         return self.target_obj.size()
 
+    def is_valid(self):
+        return str(self.v()) in self.choices
+
     def v(self, vm=None):
         if self.value is None:
             return self.target_obj.v(vm=vm)
@@ -556,7 +559,7 @@ class UnixTimeStamp(obj.NativeType):
     def __getstate__(self):
         state = super(UnixTimeStamp, self).__getstate__()
         state["type"] = "DateTime"
-        state["epoch"] = self.v()
+        state["epoch"] = int(self.v())
         return state
 
 

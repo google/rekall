@@ -86,7 +86,7 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
         if self.session.profile.metadata("arch") == "I386":
             max_task_size = 0x80000000
         else:
-            max_task_size = (1 << 47) - self.address_space.PAGE_SIZE
+            max_task_size = (1 << 47) - task_as.PAGE_SIZE
         max_memory = task.mm.task_size or max_task_size
 
         result = []
@@ -129,14 +129,16 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
             with open(filename, 'wb') as fd:
                 maps = self.dump_process(task, fd)
 
-            with open(filename + ".idx", 'wb') as fd:
-                with text.TextRenderer(fd=fd) as temp_renderer:
-                    temp_renderer.table_header([
-                        ("File Address", "file_addr", "[addrpad]"),
-                        ("Length", "length", "[addrpad]"),
-                        ("Virtual Addr", "virtual", "[addrpad]")])
+            temp_renderer = text.TextRenderer(session=self.session,
+                                              output=filename + ".idx",
+                                              mode="wb")
+            with temp_renderer.start():
+                temp_renderer.table_header([
+                    ("File Address", "file_addr", "[addrpad]"),
+                    ("Length", "length", "[addrpad]"),
+                    ("Virtual Addr", "virtual", "[addrpad]")])
 
-                    self.write_index(temp_renderer, maps)
+                self.write_index(temp_renderer, maps)
 
 
 class TestLinMemDump(testlib.HashChecker):

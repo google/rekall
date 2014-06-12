@@ -23,93 +23,305 @@ symbols). These structures do change a lot between versions of windows. This
 module autodetects the struct layout using various heuristics.
 """
 import logging
-from rekall import kb
+import re
+
+from rekall.plugins.windows import common
 
 
-class Win32kStructs(kb.ParameterHook):
-    """Return vtype definitions for various win32k structs."""
+class Win32kAutodetect(common.WindowsCommandPlugin):
+    """Automatically detect win32k struct layout."""
 
-    name = "win32k_structs"
+    name = "win32k_autodetect"
 
-    def calculate(self):
+    def render(self, renderer):
+        win32k_profile = self.session.address_resolver.LoadProfileForName(
+            "win32k")
+
+        overlay = self.GetWin32kOverlay(win32k_profile)
+
+        for struct, definition in overlay.items():
+            renderer.section("Struct %s" % struct)
+            renderer.table_header([("field", "field", "20"),
+                                   ("offset", "offset", "[addr]"),
+                                   ("Definition", "definition", "")])
+
+            for field, (offset, field_def) in sorted(definition[1].items(),
+                                                     key=lambda x: x[1]):
+                renderer.table_row(field, offset, field_def)
+
+    def GetWin32kOverlay(self, win32k_profile):
+        # Make a temporary profile to work with.
+        self.temp_profile = win32k_profile
         self.analyze_struct = self.session.plugins.analyze_struct()
-        profile = self.session.address_resolver.LoadProfileForName("win32k")
-        self.profile = profile.copy()
+
+        # Start off with an empty overlay.
         overlay = dict(tagDESKTOP=[None, {}],
-                       tagWINDOWSTATION=[None, {}])
+                       tagWINDOWSTATION=[None, {}],
+                       tagTHREADINFO=[None, {}],
+                       )
 
-        self.profile.add_types(overlay)
-        self.Get_tagWINDOWSTATION_overlay(overlay, self.wndstation())
-        self.profile.add_types(overlay)
+        with self.session.plugins.cc() as cc:
+            for task in self.session.plugins.pslist().filter_processes():
+                cc.SwitchProcessContext(task)
 
-        for x in self.wndstation().walk_list("rpwinstaNext"):
-            self.Get_tagWINDOWSTATION_overlay(overlay, x)
-            self.Get_tagDESKTOP_overlay(overlay, x.rpdeskList)
+                # Find a process context which makes the symbol valid.
+                if not self.wndstation():
+                    continue
 
-        self.profile.add_types(overlay)
+                try:
+                    self.Get_tagWINDOWSTATION_overlay(overlay)
+                    self.Get_tagDESKTOP_overlay(overlay)
+                    self.Get_tagTHREADINFO_overlay(overlay)
 
-        for w in self.wndstation().walk_list("rpwinstaNext"):
-            for d in w.rpdeskList.walk_list("rpdeskNext"):
-                self.Get_tagDESKTOP_overlay(overlay, d)
-
-        return overlay
+                    return overlay
+                except RuntimeError:
+                    continue
 
     def wndstation(self):
-        return self.profile.get_constant_object(
+        return self.temp_profile.get_constant_object(
             "grpWinStaList",
             target="Pointer",
             target_args=dict(
                 target="tagWINDOWSTATION")
             ).deref()
 
-    def Get_tagWINDOWSTATION_overlay(self, overlay, offset):
+    def _Match(self, regex, info):
+        for item in info:
+            if re.match(regex, item):
+                return True
+
+    def _AddField(self, regex, info, field_name, fields, description):
+        if field_name not in fields and self._Match(regex, info):
+            fields[field_name] = description
+            logging.debug("Detected field %s: %s @ %#x", field_name, info,
+                          description[0])
+            return True
+
+    def Get_tagWINDOWSTATION_overlay(self, overlay):
         """Derive the tagWINDOWSTATION overlay."""
-        overlay.setdefault("tagWINDOWSTATION", [None, {}])
-        fields = overlay["tagWINDOWSTATION"][1]
+        fields = {}
+        offset = self.wndstation()
 
-        logging.debug("Checking tagWINDOWSTATION at %#x", offset)
-        for o, info in self.analyze_struct.GuessMembers(offset, size=0x400):
-            if "Tag:Wind" in info or "Tag:Win\xe4" in info:
-                fields["rpwinstaNext"] = [o, ["Pointer", dict(
-                    target="tagWINDOWSTATION"
-                    )]]
+        required_fields = set([
+            "rpwinstaNext", "rpdeskList", "pGlobalAtomTable"])
 
-            elif "Tag:Desk" in info or "Tag:Des\xeb" in info:
-                fields["rpdeskList"] = [o, ["Pointer", dict(
-                    target="tagDESKTOP"
-                    )]]
+        stations = set()
 
-            elif "Tag:AtmT" in info:
-                fields["pGlobalAtomTable"] = [o, ["Pointer", dict(
-                    target="_RTL_ATOM_TABLE"
-                    )]]
+        while not offset == None and offset not in stations:
+            stations.add(offset)
+
+            logging.debug("Checking tagWINDOWSTATION at %#x", offset)
+            for o, info in self.analyze_struct.GuessMembers(offset, size=0x200):
+                if self._AddField(
+                    "Tag:Win", info, "rpwinstaNext", fields,
+                    [o, ["Pointer", dict(
+                        target="tagWINDOWSTATION"
+                        )]]):
+                    continue
+
+                elif self._AddField(
+                    "Tag:Des", info, "rpdeskList", fields,
+                    [o, ["Pointer", dict(
+                        target="tagDESKTOP"
+                        )]]):
+                    continue
+
+                elif self._AddField(
+                    "Tag:AtmT", info, "pGlobalAtomTable", fields,
+                    [o, ["Pointer", dict(
+                        target="_RTL_ATOM_TABLE"
+                        )]]):
+                    continue
+
+                elif self._AddField(
+                    "Const:win32k!gTerm", info, "pTerm", fields,
+                    [o, ["Pointer", dict(
+                        target="tagTERMINAL"
+                        )]]):
+                    continue
+
+                else:
+                    logging.debug("Unhandled field %#x, %s" % (o, info))
+                    continue
+
+                # Add the derived overlay to the profile so we can walk the list
+                # of window stations.
+                self.temp_profile.add_overlay(overlay)
+
+            offset = self.temp_profile.tagWINDOWSTATION(offset).rpwinstaNext
+
+            # We worked out all the fields, return the overlay.
+            if required_fields.issubset(fields):
+                overlay["tagWINDOWSTATION"][1].update(fields)
+                return overlay
+
+            logging.debug("tagWINDOWSTATION: Missing required fields %s",
+                          required_fields.difference(fields))
+
+        raise RuntimeError("Unable to guess tagWINDOWSTATION")
+
+    def Get_tagDESKTOP_overlay(self, overlay):
+        fields = {}
+        required_fields = set([
+            "rpdeskNext", "rpwinstaParent", "hsectionDesktop"])
+
+        # Iterate over all tagDESKTOP objects.
+        desktops = set()
+
+        offset = self.wndstation().rpdeskList.v()
+
+        while not offset == None and offset not in desktops:
+            logging.debug("Checking tagDESKTOP at %#x", offset)
+            desktops.add(offset)
+
+            for o, info in self.analyze_struct.GuessMembers(
+                offset, search=0x400):
+
+                if self._AddField("Tag:Des", info, "rpdeskNext", fields,
+                                  [o, ["Pointer", dict(
+                                      target="tagDESKTOP"
+                                      )]]):
+                    continue
+
+                elif self._AddField("Tag:Win", info, "rpwinstaParent", fields,
+                                    [o, ["Pointer", dict(
+                                        target="tagWINDOWSTATION"
+                                        )]]):
+                    continue
+
+                elif self._AddField("Tag:Sec", info, "hsectionDesktop", fields,
+                                    [o, ["Pointer", dict(
+                                        target="_SECTION_OBJECT"
+                                        )]]):
+                    continue
+
+                # The PtiList is a _LIST_ENTRY to a tagTHREADINFO (Usti tag).
+                elif ("_LIST_ENTRY" in info and
+                      self._AddField("Tag:Usti", info, "PtiList", fields,
+                                     [o, ["_LIST_ENTRY"]])):
+                    continue
+
+                # On WinXP a tagTHREADINFO allocation contains ProcessBilled.
+                elif ("_LIST_ENTRY" in info and not self._Match("Tag:", info)
+                      and self._AddField(
+                          "ProcessBilled:", info, "PtiList", fields,
+                          [o, ["_LIST_ENTRY"]])):
+                    continue
+
+                else:
+                    logging.debug("Unhandled field %#x %s" % (o, info))
+                    continue
+
+            # Add the derived overlay to the profile so we can walk the list
+            # of window stations.
+            self.temp_profile.add_overlay(overlay)
+
+            offset = self.temp_profile.tagDESKTOP(offset).rpdeskNext
+
+            # We worked out all the fields, return the overlay.
+            if required_fields.issubset(fields):
+                overlay["tagDESKTOP"][1].update(fields)
+                return overlay
+
+            logging.debug("tagDESKTOP: Missing required fields %s",
+                          required_fields.difference(fields))
+
+        raise RuntimeError("Unable to guess tagDESKTOP")
+
+    def _Check_tagPROCESSINFO(self, offset):
+        """Checks if a pointer points to tagPROCESSINFO."""
+        pointer = self.profile.Pointer(offset)
+        pool = self.analyze_struct.SearchForPoolHeader(pointer.v())
+        if pool.Tag == "Uspi":
+            return True
+
+        # Its definitely not a tagPROCESSINFO if it is a tagTHREADINFO.
+        if pool.Tag in ["Usti"]:
+            return False
+
+        # In windows XP tagPROCESSINFO allocations contain the _EPROCESS
+        # address in the ProcessBilled field of the allocation.
+        if pool.m("ProcessBilled").Peb:
+            return True
+
+        return False
+
+    def _AnalyzeTagTHREADINFO(self, offset, fields):
+        logging.debug("Checking tagTHREADINFO at %#x", offset)
+        for o, info in self.analyze_struct.GuessMembers(
+            offset, size=0x400, search=0x600):
+
+            if self._AddField("Tag:Thr", info, "pEThread", fields,
+                              [o, ["Pointer", dict(
+                                  target="_ETHREAD"
+                                  )]]):
+                continue
+
+            elif self._AddField("Tag:Usqu", info, "pq", fields,
+                                [o, ["Pointer", dict(
+                                    target="tagQ"
+                                    )]]):
+                continue
+
+            elif self._AddField("Tag:Uskb", info, "spklActive", fields,
+                                [o, ["Pointer", dict(
+                                    target="tagKL"
+                                    )]]):
+                continue
+
+            elif self._AddField("Tag:Des", info, "rpdesk", fields,
+                                [o, ["Pointer", dict(
+                                    target="tagDESKTOP"
+                                    )]]):
+                continue
+
+            elif ("_LIST_ENTRY" in info and
+                  self._AddField("Tag:Usti", info, "GdiTmpTgoList", fields,
+                                 [o, ["_LIST_ENTRY"]])):
+                continue
+
+            elif (self._Check_tagPROCESSINFO(offset + o) and
+                  self._AddField(".", info, "ppi", fields,
+                                 [o, ["Pointer", dict(
+                                     target="tagPROCESSINFO"
+                                     )]])):
+                continue
 
             else:
-                logging.debug("Unhandled field %s" % (info,))
+                logging.debug("Unhandled field %#x %s" % (o, info))
+                continue
 
-    def Get_tagDESKTOP_overlay(self, overlay, offset):
-        overlay.setdefault("tagDESKTOP", [None, {}])
-        fields = overlay["tagDESKTOP"][1]
+    def Get_tagTHREADINFO_overlay(self, overlay):
+        fields = {}
+        required_fields = set([
+            "pEThread", "pq", "spklActive", "rpdesk", "PtiLink", "ppi"
+            ])
 
-        logging.debug("Checking tagDESKTOP at %#x", offset)
-        for o, info in self.analyze_struct.GuessMembers(offset, size=0x400):
-            if "Tag:Desk" in info or "Tag:Des\xeb" in info:
-                fields["rpdeskNext"] = [o, ["Pointer", dict(
-                    target="tagDESKTOP"
-                    )]]
+        # Iterate over all tagTHREADINFO objects.
+        thread_infos = set()
+        for wndstation in self.wndstation().rpwinstaNext.walk_list(
+            "rpwinstaNext"):
+            for desktop in wndstation.rpdeskList.walk_list("rpdeskNext"):
+                thread_info_pool = self.analyze_struct.SearchForPoolHeader(
+                    desktop.PtiList.Flink.v(), search=0x600)
 
-            elif "Tag:Wind" in info or "Tag:Win\xe4" in info:
-                fields["rpwinstaParent"] = [o, ["Pointer", dict(
-                    target="tagWINDOWSTATION"
-                    )]]
+                if thread_info_pool and thread_info_pool not in thread_infos:
+                    thread_infos.add(thread_info_pool)
 
-            elif "Tag:Sect" in info:
-                fields["hsectionDesktop"] = [o, ["Pointer", dict(
-                    target="_SECTION_OBJECT"
-                    )]]
+                    # We can already determine the tagTHREADINFO's PtiLink:
+                    PtiLink_offset = (desktop.PtiList.Flink.v() -
+                                      thread_info_pool.obj_end)
+                    fields["PtiLink"] = [PtiLink_offset, ["_LIST_ENTRY"]]
 
-            elif "_LIST_ENTRY" in info:
-                fields["PtiList"] = [o, ["_LIST_ENTRY"]]
+                    self._AnalyzeTagTHREADINFO(thread_info_pool.obj_end, fields)
+                    self.temp_profile.add_overlay(overlay)
 
-            else:
-                logging.debug("Unhandled field %s" % (info,))
+                # We worked out all the fields, return the overlay.
+                if required_fields.issubset(fields):
+                    overlay["tagTHREADINFO"][1].update(fields)
+                    return overlay
+
+                logging.debug("tagTHREADINFO: Missing required fields %s",
+                              required_fields.difference(fields))
+
+        raise RuntimeError("Unable to guess tagTHREADINFO")

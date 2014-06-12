@@ -533,11 +533,13 @@ class TextRenderer(renderer.BaseRenderer):
         super(TextRenderer, self).start(plugin_name=plugin_name, kwargs=kwargs)
         if self.output:
             # Remove values which are None.
-            for k, v in kwargs.items():
-                if v is None:
-                    kwargs.pop(k)
+            if kwargs:
+                for k, v in kwargs.items():
+                    if v is None:
+                        kwargs.pop(k)
 
-            self.section("%s %s" % (plugin_name, kwargs or ""))
+            if plugin_name:
+                self.section("%s %s" % (plugin_name, kwargs or ""))
 
         return self
 

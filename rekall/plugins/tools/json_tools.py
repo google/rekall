@@ -49,6 +49,9 @@ class LiteralFormatter(StructFormatter):
     def __int__(self):
         return self.state["value"]
 
+    def __float__(self):
+        return float(self.state["value"])
+
 
 class EnumFormatter(StructFormatter):
     def __unicode__(self):
@@ -70,7 +73,7 @@ class NoneObjectFormatter(StructFormatter):
 
 class DatetimeFormatter(StructFormatter):
     def __unicode__(self):
-        return time.ctime(self.state["epoch"])
+        return time.ctime(float(self.state["epoch"]))
 
 
 class JSONParser(plugin.Command):

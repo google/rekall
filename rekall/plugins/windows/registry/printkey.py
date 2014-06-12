@@ -195,12 +195,14 @@ class HiveDump(registry.RegistryPlugin):
     __name = "hivedump"
 
     def _key_iterator(self, key, seen):
-        for subkey in key.subkeys():
-            if subkey in seen:
-                break
+        yield key
 
-            seen.add(subkey)
-            yield subkey
+        if key in seen:
+            return
+
+        seen.add(key)
+
+        for subkey in key.subkeys():
             for subsubkey in self._key_iterator(subkey, seen):
                 yield subsubkey
 

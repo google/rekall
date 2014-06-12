@@ -19,6 +19,7 @@
 #
 
 # pylint: disable=protected-access
+import logging
 
 from rekall import kb
 from rekall import utils
@@ -414,9 +415,9 @@ class _HANDLEENTRY(obj.Struct):
                     Process.dereference())
 
         elif self.ThreadOwned:
-            thread_info = self.pOwner.dereference_as("tagTHREADINFO")
-            return (thread_info.ppi.Process.dereference() or
-                    thread_info.pEThread.Tcb.Process.dereference_as(
+            return (self.m("pOwner.pEThread.ThreadsProcess") or
+                    self.pOwner.ppi.Process.dereference() or
+                    self.pOwner.pEThread.Tcb.Process.dereference_as(
                         "_EPROCESS"))
 
         return obj.NoneObject("Cannot find process")
@@ -432,7 +433,7 @@ class tagWINDOWSTATION(obj.Struct):
     @property
     def LastRegisteredViewer(self):
         """The EPROCESS of the last registered clipboard viewer"""
-        return self.spwndClipViewer.head.pti.ppi.Process
+        return self.m("spwndClipViewer.head.pti.ppi.Process")
 
     @property
     def Interactive(self):
@@ -768,6 +769,16 @@ class Win32kPluginMixin(object):
 
         resolver = self.session.address_resolver
         self.win32k_profile = resolver.LoadProfileForName("win32k")
+        self.win32k_profile.EnsureInitialized()
+
+        if self.win32k_profile.guessed_types:
+            logging.debug(
+                "Win32k profile is incomplete - attempting autodetection.")
+            overlay = self.session.plugins.win32k_autodetect().GetWin32kOverlay(
+                self.win32k_profile)
+
+            self.win32k_profile.add_overlay(overlay)
+            self.win32k_profile.guessed_types = False
 
         # If the resolver loads the dummy profile this is not good enough.
         if not self._is_valid(self.win32k_profile):
@@ -776,6 +787,28 @@ class Win32kPluginMixin(object):
 
 class Win32k(windows.BasicPEProfile):
     """A profile for the Win32 GUI system."""
+
+    guessed_types = False
+
+    @staticmethod
+    def _LoadExempler(profile):
+        # Prior to Windows 7, Microsoft did not release symbols for win32k
+        # structs. However, we know that these are basically the same across
+        # different versions. Here we just copy them from the windows 7
+        # profiles.
+        arch = profile.metadata("arch")
+        if arch == "AMD64":
+            exempler = ("win32k/GUID/"
+                        "99227A2085CE41969CD5A06F7CC20F522")
+        else:
+            exempler = ("win32k/GUID/"
+                        "18EB20F5448A47F5B850023FEE0B24D62")
+
+        result = profile.session.LoadProfile(exempler)
+        if result == None:
+            raise RuntimeError("Unable to load exempler profile %s" % exempler)
+
+        return result
 
     @classmethod
     def Initialize(cls, profile):
@@ -805,28 +838,25 @@ class Win32k(windows.BasicPEProfile):
         else:
             profile.add_overlay(win32k_undocumented_I386)
 
+        exempler = None
+        required_types = ["tagWINDOWSTATION", "tagDESKTOP", "tagTHREADINFO",
+                          "tagWND", "tagDESKTOPINFO", "tagPROCESSINFO",
+                          "tagSHAREDINFO", "_HANDLEENTRY", "_HEAD", "tagHOOK",
+                          "_THRDESKHEAD", "_WNDMSG", "tagSERVERINFO"]
+        for item in required_types:
+            if not profile.has_type(item):
+                # Mark the profile as guessed - its not as good as the real
+                # thing, but its a starting point where win32k_autodetect can
+                # start with.
+                profile.guessed_types = True
+                if exempler is None:
+                    win7_profile = cls._LoadExempler(profile)
+
+                profile.vtypes[item] = win7_profile.vtypes[item]
+
+        # Specific support for xp types.
         version = profile.metadata('version')
         arch = profile.metadata("arch")
-
-        # Prior to Windows 7, Microsoft did not release symbols for win32k
-        # structs. However, we know that these are basically the same across
-        # different versions. Here we just copy them from the windows 7
-        # profiles.
-        if arch == "AMD64":
-            exempler = ("win32k/GUID/"
-                        "99227A2085CE41969CD5A06F7CC20F522")
-        else:
-            exempler = ("win32k/GUID/"
-                        "18EB20F5448A47F5B850023FEE0B24D62")
-
-        win7_profile = profile.session.LoadProfile(exempler)
-
-        for item in ["tagWINDOWSTATION", "tagDESKTOP", "tagTHREADINFO",
-                     "tagWND", "tagDESKTOPINFO", "tagPROCESSINFO",
-                     "tagSHAREDINFO", "_HANDLEENTRY", "_HEAD", "tagHOOK",
-                     "_THRDESKHEAD", "_WNDMSG", "tagSERVERINFO"]:
-            if not profile.has_type(item):
-                profile.vtypes[item] = win7_profile.vtypes[item]
 
         if version < "6.0":
             if arch == "I386":

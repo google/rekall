@@ -271,5 +271,3 @@ class VerbosityMixIn(object):
         # Do not interfere with positional args, since this is a mixin.
         self.verbosity = kwargs.pop("verbosity", 1)
         super(VerbosityMixIn, self).__init__(*args, **kwargs)
-
-
