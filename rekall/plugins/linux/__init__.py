@@ -22,4 +22,7 @@ from rekall.plugins.linux import proc_maps
 from rekall.plugins.linux import psaux
 from rekall.plugins.linux import pslist
 from rekall.plugins.linux import pstree
-from rekall.plugins.linux import yarascan
+try:
+    from rekall.plugins.linux import yarascan
+except (ImportError, OSError):
+    pass

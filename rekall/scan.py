@@ -115,6 +115,11 @@ class BaseScanner(object):
         """
         maxlen = maxlen or 2**64
         end = offset + maxlen
+        overlap = ""
+
+        # Record the last reported hit to prevent multiple reporting of the same
+        # hits when using an overlap.
+        last_reported_hit = -1
 
         # Delay building the constraints so they can be added after scanner
         # construction.
@@ -131,6 +136,7 @@ class BaseScanner(object):
         # If a range is larger than the block size, it's split in chunks until
         # it's fully consumed. Overlap is applied only in this case, starting
         # from the second chunk.
+        chunk_end = 0
 
         for (range_start, phys_start,
              length) in self.address_space.get_address_ranges(offset, end):
@@ -159,6 +165,12 @@ class BaseScanner(object):
                         "Scanning 0x%08X with %s" %
                         (chunk_offset, self.__class__.__name__))
 
+                # This chunk does not begin where the last chunk ended - this
+                # means there is a gap in the virtual address space and
+                # therefore we should not use any overlap.
+                if chunk_offset != chunk_end:
+                    overlap = ""
+
                 chunk_offset = max(start, chunk_offset)
 
                 # Our chunk is SCAN_BLOCKSIZE long or as much data there's
@@ -170,26 +182,37 @@ class BaseScanner(object):
                 # the end or we could end up scanning more data than requested.
                 chunk_size = min(chunk_size, end - chunk_offset)
 
+                chunk_end = chunk_offset + chunk_size
+
                 phys_chunk_offset = phys_start + (chunk_offset - range_start)
+
                 # Consume the next block in this range.
                 buffer_as = addrspace.BufferAddressSpace(
                     session=self.session,
 
-                    data=self.address_space.base.read(
-                        phys_chunk_offset, chunk_size + self.overlap),
+                    data=overlap + self.address_space.base.read(
+                        phys_chunk_offset, chunk_size),
 
-                    base_offset=chunk_offset)
+                    base_offset=chunk_offset - len(overlap))
 
-                scan_offset = chunk_offset
-                while scan_offset < chunk_offset + chunk_size:
+                overlap = buffer_as.data[-self.overlap:]
+
+                scan_offset = buffer_as.base_offset
+                while scan_offset < buffer_as.end():
                     # Check the current offset for a match.
                     res = self.check_addr(scan_offset, buffer_as=buffer_as)
-                    if res is not None:
+
+                    # Remove multiple matches in the overlap region which we
+                    # have previously reported.
+                    if res is not None and scan_offset > last_reported_hit:
+                        last_reported_hit = scan_offset
                         yield res
 
-                    # Skip as much data as the skippers tell us to.
-                    scan_offset += min(chunk_size,
+                    # Skip as much data as the skippers tell us to, up to the
+                    # end of the buffer.
+                    scan_offset += min(buffer_as.end(),
                                        self.skip(buffer_as, scan_offset))
+
 
                 chunk_offset = scan_offset
 

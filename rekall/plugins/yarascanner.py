@@ -20,9 +20,6 @@
 
 
 """A Rekall Memory Forensics scanner which uses yara."""
-import sys
-import yara
-
 from rekall import scan
 
 
@@ -56,7 +53,7 @@ class BaseYaraASScanner(scan.BaseScanner):
         matches = self.rules.match(data=buffer_as.data)
         # yara-cpython bindings from pip.
         if type(matches) is dict:
-            for source, matches in matches.items():
+            for _, matches in matches.items():
                 for match in matches:
                     for string in match["strings"]:
                         hit_offset = string["offset"] + buffer_as.base_offset
@@ -71,7 +68,7 @@ class BaseYaraASScanner(scan.BaseScanner):
                     hit_offset = buffer_offset + buffer_as.base_offset
                     yield (match.rule, hit_offset, name, value)
 
-    def check_addr(self, offset, buffer_as=None):
+    def check_addr(self, scan_offset, buffer_as=None):
         # The buffer was changed - we scan the entire buffer and record the
         # hits - then we can feed it to the Rekall scan framework.
         if self.base_offset != buffer_as.base_offset:
@@ -81,7 +78,7 @@ class BaseYaraASScanner(scan.BaseScanner):
             for rule, offset, name, value in self._match_rules(buffer_as):
                 self.hits.append((rule, offset, name, value))
 
-        if self.hits and offset == self.hits[0][1]:
+        if self.hits and scan_offset == self.hits[0][1]:
             return self.hits.pop(0)
 
     def skip(self, buffer_as, offset):
@@ -91,4 +88,3 @@ class BaseYaraASScanner(scan.BaseScanner):
 
         next_hit = self.hits[0][1]
         return next_hit - offset
-
