@@ -1,5 +1,6 @@
 img.logo {
-    width: 100%;
+    width: 128px;
+    float: right;
 }
 
 .css-treeview .nav > li > a {

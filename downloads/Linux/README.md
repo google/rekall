@@ -1,5 +1,8 @@
 ---
 title: Pmem- Linux Acquisition tool.
+downloads:
+  lmap-0.1.zip: The LMAP advanced Linux acquisition tool.
+  linux_pmem_1.0RC1.tgz: The standard pmem linux acquitiion tool.
 ---
 
 # Pmem: Linux Acquisition tools.

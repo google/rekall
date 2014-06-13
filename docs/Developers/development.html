@@ -131,6 +131,10 @@ ript>
 
 
 <div id="header">
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
 </div>
 <div id="content">
 <div class="paragraph"><p>Rekall is a powerful framework with many components. It is not necessary to be
@@ -140,7 +144,7 @@ already have a good idea of what you wish to accomplish, the
 <a href="#overview">Overview</a> section will direct new users to the most relevant
 section.</p></div>
 <div class="sect1">
-<h2 id="overview">Overview</h2>
+<h2 id="overview">1. Overview</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The following usage examples are typical areas where people would like to
 contribute:</p></div>
@@ -176,7 +180,7 @@ I want to add new functionality
 </div>
 </div>
 <div class="sect1">
-<h2 id="commands">Plugins and Commands.</h2>
+<h2 id="commands">2. Plugins and Commands.</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Rekall is a modular framework. This means that most of the functionality of
 the framework is implemented by plugins, enabling the framework to support
@@ -194,7 +198,7 @@ places a reference to all plugins of the same class in a class variable called
 <em>classes</em>. This mechanism provides a simple way for one plugin to access another
 plugin without needing to explicitly import its module.</p></div>
 <div class="sect2">
-<h3 id="_command_plugin">Command Plugin</h3>
+<h3 id="_command_plugin">2.1. Command Plugin</h3>
 <div class="paragraph"><p>A command is a reusable plugin which implements a user runnable command. For
 example, when the user issues the <em>pslist</em> command, the WinPSList plugin is
 run. Therefore in order to be accessible to the user, a command plugin must
@@ -264,7 +268,7 @@ commands which operate on processes can present a consistent user interface
 easily with the same filtering options.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_command_line_invocation">Command line Invocation</h3>
+<h3 id="_command_line_invocation">2.2. Command line Invocation</h3>
 <div class="paragraph"><p>So what happens when a user invokes rekall from the command line? Assume the
 following command is issued:</p></div>
 <div class="listingblock">
@@ -414,7 +418,7 @@ optional arguments:
 </div></div>
 </div>
 <div class="sect2">
-<h3 id="_interactive_session_invocation">Interactive Session Invocation.</h3>
+<h3 id="_interactive_session_invocation">2.3. Interactive Session Invocation.</h3>
 <div class="paragraph"><p>When invoked without a command name, Rekall drops into the interactive
 shell. This mode of operation is more efficient as many commands can be run
 without needing to reinitialize the framework each time.</p></div>
@@ -535,7 +539,7 @@ render method.
 </div>
 </div>
 <div class="sect1">
-<h2 id="as">Address Spaces.</h2>
+<h2 id="as">3. Address Spaces.</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Rekall uses an address space to abstract the handling of different images
 and formats and therefore allow plugins to support multiple kind of input images
@@ -1039,7 +1043,7 @@ to support these image file formats. Currently the address spaces which are
 supported in this way are WindowsCrashDumpSpace, Elf64CoreDump (for virtual
 box), MACHOCoreDump (for osx).</p></div>
 <div class="sect2">
-<h3 id="_automatic_address_space_selection">Automatic Address Space Selection</h3>
+<h3 id="_automatic_address_space_selection">3.1. Automatic Address Space Selection</h3>
 <div class="paragraph"><p>Most rekall plugins expect to have valid address spaces set in the session
 object before they run. There are two main session parameters which are commonly
 required, the <em>session.physical_address_space</em> and
@@ -1209,7 +1213,7 @@ appended to the end of the raw file.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_the_object_parsing_system">The object parsing system.</h2>
+<h2 id="_the_object_parsing_system">4. The object parsing system.</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Computers use volatile memory in order to organize data and for program
 control. Memory analysis is ultimately all about trying to make sense of a
@@ -1420,7 +1424,7 @@ each object ourselves. What we need is a way to control the creation of Rekall
 object automatically by using debug symbol information. This is done through the
 <tt>profile</tt> object, and its <tt>vtype language</tt> definitions.</p></div>
 <div class="sect2">
-<h3 id="_the_vtypes_language">The VTypes language.</h3>
+<h3 id="_the_vtypes_language">4.1. The VTypes language.</h3>
 <div class="paragraph"><p>In order to control object creation automatically, we need to describe how they
 are to be created. This description is termed the <tt>vtypes language</tt>. It is
 really a data driven description of how to create instances of the <tt>Struct()</tt>
@@ -1651,7 +1655,7 @@ of type <em>unsigned long</em>.
 </table></div>
 </div>
 <div class="sect2">
-<h3 id="_overlaying">Overlaying</h3>
+<h3 id="_overlaying">4.2. Overlaying</h3>
 <div class="paragraph"><p>Rekall aims to specify semantic information about each field type. That means that we are really looking for the meaning behind each field, not just the mechanics of how to parse it. For example, the following struct may be defined in C:</p></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.5
@@ -1803,7 +1807,7 @@ $ rekal --profile ./ntkrnlmp.json -f ~/images/win7.elf pslist
 </div></div>
 </div>
 <div class="sect2">
-<h3 id="_the_profile">The Profile.</h3>
+<h3 id="_the_profile">4.3. The Profile.</h3>
 <div class="paragraph"><p>The profile is essentially the factory class for all Rekall objects. A profile
 is where a number of sources of information are combined in order to produce
 information consistant with a single uniform <tt>compilation unit</tt>:</p></div>
@@ -1859,7 +1863,7 @@ system for the windows kernel.  When a user selects the profile with the
 created for parsing the kernel.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_profile_serializations">Profile Serializations</h3>
+<h3 id="_profile_serializations">4.4. Profile Serializations</h3>
 <div class="paragraph"><p>In the code, the profile is an instance of the obj.Profile command. Generally
 however, the profile contains large data structures such as the VType dictionary
 and constant lists. It is much better to be able to serialize the profile to a
@@ -2045,7 +2049,7 @@ files without fear of giving arbitrary code execution to the repository owners.<
 </div>
 </div>
 <div class="sect2">
-<h3 id="_profile_repositories">Profile Repositories.</h3>
+<h3 id="_profile_repositories">4.5. Profile Repositories.</h3>
 <div class="paragraph"><p>Most of the information in a profile is extracted from debugging symbols
 specific for the executable of interest. In the case of operating systems,
 debugging information is extracted from the operating system kernels (via DWARF
@@ -2069,7 +2073,7 @@ possible to add a secondary profile repository for local or less commonly seen
 profiles.</p></div>
 <div class="paragraph"><p>The following sections give examples of generating new profiles for various operating systems.</p></div>
 <div class="sect3">
-<h4 id="_generating_linux_profiles">Generating Linux Profiles</h4>
+<h4 id="_generating_linux_profiles">4.5.1. Generating Linux Profiles</h4>
 <div class="paragraph"><p>To generate a linux profile, one must compile a linux module against the target
 kernel with debugging symbols enabled. The target system must also have the
 Linux kernel headers for the currently running kernel as well as compilers
@@ -2147,7 +2151,7 @@ system map. We now get rekal to convert this into a proper linux profile.</p></d
 the repository directory). It can also be compressed to save space.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_generating_windows_profiles">Generating Windows Profiles</h4>
+<h4 id="_generating_windows_profiles">4.5.2. Generating Windows Profiles</h4>
 <div class="paragraph"><p>Although windows releases are less frequent than Linux releases, the number of
 distinct windows kernels in existance can be quite large. Usually the user will
 simply select a profile like <tt>Win7SP1x64</tt>, however, even for Service Pack 1
@@ -2216,7 +2220,7 @@ above is stored under
 <tt>ntoskrnl.exe/AMD64/6.1.7600.17273/2C39F687423840E793308F28C4FDE0CD2.gz</tt>.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_symbolic_names">Symbolic names</h4>
+<h4 id="_symbolic_names">4.5.3. Symbolic names</h4>
 <div class="paragraph"><p>The above profile would need to be specified in full to precisely use it for the
 command line. For example:</p></div>
 <div class="listingblock">
@@ -2247,7 +2251,7 @@ INFO:root:Loaded profile Win7SP1x64 from URL:http://profiles.rekall.googlecode.c
 </div>
 </div>
 <div class="sect2">
-<h3 id="_profile_modifications">Profile Modifications</h3>
+<h3 id="_profile_modifications">4.6. Profile Modifications</h3>
 <div class="paragraph"><p>The profile is a self contained system for parsing the kernel data
 structures. However, some modules would like to alter the profile slightly - for
 example to add new classes replacing the default classes (with additional
@@ -2330,12 +2334,12 @@ modification does not affect other users of the profile.
 </td></tr>
 </table></div>
 <div class="sect3">
-<h4 id="_the_registry_parsing_implementation">The Registry parsing implementation.</h4>
+<h4 id="_the_registry_parsing_implementation">4.6.1. The Registry parsing implementation.</h4>
 <div class="paragraph"><p>This section describes the Rekall registry parsing implementation found in
 <em>rekall.plugins.windows.registry.registry</em>.</p></div>
 </div>
 <div class="sect3">
-<h4 id="_the_pe_parsing_implementation">The PE parsing implementation.</h4>
+<h4 id="_the_pe_parsing_implementation">4.6.2. The PE parsing implementation.</h4>
 <div class="paragraph"><p>The PE parsing implementation is found in
 <em>rekall.plugins.overlays.windows.pe_vtypes</em>.</p></div>
 </div>
@@ -2343,7 +2347,7 @@ modification does not affect other users of the profile.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_testing">Testing</h2>
+<h2 id="_testing">5. Testing</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Rekall introduces an automated testing framework to assist in detecting
 regressions and bugs when handling different images. The idea is to
@@ -2554,10 +2558,10 @@ was any discrepancy with the baseline.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-06-03 18:20:43 CEST
+Last updated 2014-06-13 16:09:31 CEST
 </div>
 </div>
-
+<script src="/js/asciidoc.js"></script>
 
   </div>
   <div class="col-md-2 sidebar">

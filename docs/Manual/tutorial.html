@@ -1187,6 +1187,10 @@ ript>
 
 
 <div id="header">
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
 </div>
 <div id="content">
 <div class="paragraph"><p>The main goals of the Rekall framework are to enhance user experience by making
@@ -1781,7 +1785,7 @@ external programs easily, as well as making it easier to write custom scripts.</
 completely inside another application, as well as simply automating the analysis
 from rekall itself.</p></div>
 <div class="sect2">
-<h3 id="_embedding_rekall_in_an_external_python_program">4.1. Embedding Rekall in an external python program</h3>
+<h3 id="_example_embedding_rekall_in_an_external_python_program">4.1. Example: Embedding Rekall in an external python program</h3>
 <div class="paragraph"><p>In this example we will run the pslist plugin on a sample image, capture the
 text table into a string and then print this string (In a real example, this
 could be served over a HTTP or whatever).</p></div>
@@ -1902,7 +1906,92 @@ The plugin is instantiated from the session object. When a plugin instance
 </table></div>
 </div>
 <div class="sect2">
-<h3 id="_automating_rekall_2">4.2. Automating Rekall</h3>
+<h3 id="_example_using_a_custom_address_space">4.2. Example: Using a custom address space</h3>
+<div class="paragraph"><p>Sometimes the image files to be analyzed are not directly written to disk. For
+example, they may be available as a python file-like object. In this case we
+want to provide this "virtual image" to Rekall for analysis, but wrapping it in
+a <em>FDAddressSpace</em>.</p></div>
+<div class="paragraph"><p>For example consider the following code which provides the image as a python
+file-like object (For this example we directly open the file).</p></div>
+<div class="listingblock">
+<div class="title">Example of embedding Rekall in a python application</div>
+<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #000000">00001:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> logging
+<span style="color: #000000">00002:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins
+<span style="color: #000000">00003:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
+<span style="color: #000000">00004:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span>addrspaces <span style="font-weight: bold"><span style="color: #000080">import</span></span> standard
+<span style="color: #000000">00005:</span>
+<span style="color: #000000">00006:</span> logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getLogger</span></span><span style="color: #990000">().</span><span style="font-weight: bold"><span style="color: #000000">setLevel</span></span><span style="color: #990000">(</span>logging<span style="color: #990000">.</span>DEBUG<span style="color: #990000">)</span>
+<span style="color: #000000">00007:</span>
+<span style="color: #000000">00008:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                                      <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></span></span>
+<span style="color: #000000">00009:</span>     profile_path<span style="color: #990000">=[</span>
+<span style="color: #000000">00010:</span> <span style="font-style: italic"><span style="color: #9A1900">        "http://profiles.rekall-forensic.com"</span></span>
+<span style="color: #000000">00011:</span>     <span style="color: #990000">])</span>
+<span style="color: #000000">00012:</span>
+<span style="color: #000000">00013:</span> with s<span style="color: #990000">:</span>                                                   <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
+HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
+Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
+izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
+MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
+MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
+AAAASUVORK5CYII=" /></span></span>
+<span style="color: #000000">00014:</span>     s<span style="color: #990000">.</span>physical_address_space <span style="color: #990000">=</span> standard<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">FDAddressSpace</span></span><span style="color: #990000">(</span>fhandle<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">open</span></span><span style="color: #990000">(</span>
+<span style="color: #000000">00015:</span>             <span style="color: #FF0000">"/home/scudette/images/win7x86.raw"</span><span style="color: #990000">),</span> session<span style="color: #990000">=</span>s<span style="color: #990000">)</span>
+<span style="color: #000000">00016:</span>     s<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">GetParameter</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"profile"</span><span style="color: #990000">)</span>                             <span style="font-style: italic"><span style="color: #9A1900"># <img alt="3" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
+JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
+7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
+Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
+cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
+NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
+SUVORK5CYII=" /></span></span>
+<span style="color: #000000">00017:</span>
+<span style="color: #000000">00018:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span>
+<span style="color: #000000">00019:</span> </tt></pre></div></div>
+<div class="colist arabic"><table>
+<tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></td><td>
+We create a session but do not profile a filename.
+</td></tr>
+<tr><td><img alt="2" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
+HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
+Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
+izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
+MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
+MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
+AAAASUVORK5CYII=" /></td><td>
+Using the <tt>with</tt> operator we can directly add the FDAddressSpace() as the
+    physical address space to the session.
+</td></tr>
+<tr><td><img alt="3" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
+JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
+7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
+Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
+cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
+NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
+SUVORK5CYII=" /></td><td>
+This step triggers the profile autodetection code which looks at the
+    physical address space, figures out the profile and enabled all the active
+    plugins which work with this profile.
+</td></tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_example_automating_the_rekall_console">4.3. Example: Automating the Rekall Console</h3>
 <div class="paragraph"><p>Much of the time the Rekall interactive interface is sufficient for most
 analysis. Sometimes, however, we need to automate some of this
 analysis.</p></div>
@@ -2032,7 +2121,7 @@ function as <em>pslist()</em>.</p></div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_extending_rekall">4.3. Extending Rekall</h3>
+<h3 id="_extending_rekall">4.4. Extending Rekall</h3>
 <div class="paragraph"><p>Extending Rekall is most useful when you want to add additional functionality
 which should be reused by other people, or contributed to the core. If you are
 just interested in automating a very specific analysis, an interactive shell
@@ -2088,10 +2177,10 @@ Plugins
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-06-04 01:10:43 CEST
+Last updated 2014-06-13 16:09:27 CEST
 </div>
 </div>
-
+<script src="/js/asciidoc.js"></script>
 
   </div>
   <div class="col-md-2 sidebar">

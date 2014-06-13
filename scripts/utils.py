@@ -107,8 +107,9 @@ def ConvertFromAsciiDoc(text):
     stdoutdata, _ = pipe.communicate(text.encode("utf8"))
 
     m = re.search("<body[^>]*>(.+)</body", stdoutdata, re.S|re.M)
-
-    return m.group(1).decode("utf8", "ignore")
+    result = m.group(1).decode("utf8", "ignore")
+    result += '<script src="/js/asciidoc.js"></script>'
+    return result
 
 
 def GetUrlFromFilename(filename):

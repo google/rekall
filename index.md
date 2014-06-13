@@ -31,6 +31,10 @@ Rekall supports investigations of the following x86 bit memory images:
 Rekall also provides a complete memory acquisition capability for all major
 operating systems (see the tools directory).
 
+# News
+
+* Check out the new release candidate [v1.0rc11](downloads.html).
+
 ## Browse the project on github.
 
 Rekall is hosted on [github](https://github.com/google/rekall)
