@@ -195,7 +195,8 @@ class BaseScanner(object):
 
                     base_offset=chunk_offset - len(overlap))
 
-                overlap = buffer_as.data[-self.overlap:]
+                if self.overlap > 0:
+                    overlap = buffer_as.data[-self.overlap:]
 
                 scan_offset = buffer_as.base_offset
                 while scan_offset < buffer_as.end():
