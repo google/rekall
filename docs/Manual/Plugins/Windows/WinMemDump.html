@@ -672,7 +672,60 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.taskmods.WinMemDump-class.html">View Source</a>
 
 
-
+<p>To dump all addressable memory in a process, use the memdump plugin. This plugin
+enumerates the process page tables and writes them out into an external file. An
+index file is also created which can be used to find the virtual address of each
+byte in the output file.</p>
+<p>You would typically use this output file in order to scan for e.g. virus
+signatures or other patterns in tools which do not understand virtual memory
+mappings.</p>
+<p>The plugin accepts all the usual process filtering commands (e.g. by pid,
+proc_regex etc). Additionally if no filtering command is specified the plugin
+dumps the kernel&rsquo;s address space. (You can dump all processes by providing a
+<strong>proc_regex</strong> of &lsquo;.&rsquo;).</p>
+<h3>Notes</h3>
+<ol>
+<li>
+<p>This plugin is very similar to the vaddump plugin, except that it dumps the
+   page table, and not only the VAD tree. This plugin actually contains all
+   memory currently accessible to the process (despite any possible manipulation
+   of the VAD tree).</p>
+</li>
+<li>
+<p>The process&rsquo;s virtual address space is typically fragmented and had large,
+   unmapped gaps in it. Therefore this plugin does not just zero fill these
+   gaps, rather it writes all addressable memory directly to the output
+   file. This means that contiguous memory in the output file is not necessarily
+   contiguous in memory.</p>
+</li>
+<li>
+<p>To find out where a particular byte in the output file maps in the process
+   virtual memory, check the index file (Example below).</p>
+</li>
+<li>
+<p>Note that processes typically alway map the kernel in the upper memory region
+   (i.e. above the symbol <code>MmHighestUserAddress</code>. This plugin does not dump the
+   kernel portion of the address space, unless the <strong>&ndash;all</strong> parameter is
+   specified.</p>
+</li>
+</ol>
+<h3>Sample output</h3>
+<pre class="highlight"><code>win7.elf 00:30:52&gt; memdump pid=2912, dump_dir=&quot;/tmp/&quot;
+-----------------&gt; memdump(pid=2912, dump_dir=&quot;/tmp/&quot;)
+**************************************************
+Writing vol.exe 0xfa8002193060 to vol.exe_2912.dmp
+win7.elf 00:30:55&gt; ls -l /tmp/vol.exe_2912.dmp -h
+-rw-r----- 1 scudette staff 2.2M Jun 18 00:30 /tmp/vol.exe_2912.dmp
+win7.elf 00:30:59&gt; less /tmp/vol.exe_2912.dmp.idx
+ File Address      Length      Virtual Addr
+-------------- -------------- --------------
+0x000000000000 0x000000001000 0x000000010000
+0x000000001000 0x000000001000 0x000000020000
+0x000000002000 0x000000001000 0x000000021000
+0x000000003000 0x000000001000 0x00000002f000
+0x000000004000 0x000000001000 0x000000040000
+0x000000005000 0x000000001000 0x000000050000
+0x000000006000 0x000000001000 0x000000051000</code></pre>
 
   </div>
   <div class="col-md-2 sidebar">
