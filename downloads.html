@@ -88,63 +88,114 @@ ript>
   </div>
 
   <div class="col-md-8">
-    <div id='downloads'><h3>WinPMEM - A Windows Memory Acquisition Tool.</h3><div><h1>WinPMEM - A Windows Memory Acquisition Tool.</h1>
+    <h1>Rekall Downloads.</h1>
+<p>The currently released version is <strong>v1.0rc11</strong>. This is can be downloaded from
+<a href="https://github.com/google/rekall/releases">https://github.com/google/rekall/releases</a> or from this page.</p>
+<h3>Simply select the relevant download below to show release information.</h3>
+<div id='accordion' class='panel-group'>
+  <div class='panel panel-default'>
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#accordion"
+         href="#af50a7a9bb5600e12a26d590671668fc5a285003">
+         Binary Releases of Rekall Memory Forensics.
+        </a>
+      </h4>
+    </div>
+    <div id="af50a7a9bb5600e12a26d590671668fc5a285003" class="panel-collapse collapse">
+      <div class="panel-body">
+         <h1>Binary Releases of Rekall Memory Forensics.</h1>
+<p>The following are windows installers for the Rekall memory analysis
+framework. These are completely self contained and do not require any other
+dependencies. They also include the WinPmem memory acquisition tool.</p>
+         
+<table class="table table-striped table-bordered table-hover">
+<thead>
+<tr><th>Filename</th><th>Description</th></tr>
+</thead>
+<tbody>
+
+<tr>
+  <td><a href='https://github.com/google/rekall/releases/download/v1.0rc11/Rekall_1.0RC11_x64.exe'>Rekall_1.0RC11_x64.exe</a></td>
+  <td>Windows 64 bit installer.</td>
+</tr>
+
+<tr>
+  <td><a href='https://github.com/google/rekall/releases/download/v1.0rc11/Rekall_1.0RC11_x86.exe'>Rekall_1.0RC11_x86.exe</a></td>
+  <td>Windows 32 bit installer.</td>
+</tr>
+
+<tr>
+  <td><a href='https://github.com/google/rekall/releases/download/v1.0rc11/rekall-forensic_1.0rc11_amd64.deb'>rekall-forensic_1.0rc11_amd64.deb</a></td>
+  <td>Ubuntu/Debian package.</td>
+</tr>
+</tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <div class='panel panel-default'>
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#accordion"
+         href="#fc9e4bc577ee083ed5cb85a994711f37af81a0cd">
+         WinPMEM - A Windows Memory Acquisition Tool.
+        </a>
+      </h4>
+    </div>
+    <div id="fc9e4bc577ee083ed5cb85a994711f37af81a0cd" class="panel-collapse collapse">
+      <div class="panel-body">
+         <h1>WinPMEM - A Windows Memory Acquisition Tool.</h1>
 <p>Version 1.6.0</p>
 <p>Michael Cohen <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#115;&#99;&#117;&#100;&#101;&#116;&#116;&#101;&#64;&#103;&#111;&#111;&#103;&#108;&#101;&#46;&#99;&#111;&#109;">&#115;&#99;&#117;&#100;&#101;&#116;&#116;&#101;&#64;&#103;&#111;&#111;&#103;&#108;&#101;&#46;&#99;&#111;&#109;</a></p>
 <p>This directory contains two binaries:</p>
 <ul>
 <li>
 <p>winpmem_1.6.0.exe: The officially supported winpmem binary memory imager. This
-contains signed drivers for loading into 64 bit windows versions. The drivers
-support only read mode for forensic analysis. Write support is disabled.</p>
+  contains signed drivers for loading into 64 bit windows versions. The drivers
+  support only read mode for forensic analysis. Write support is disabled.</p>
 </li>
 <li>
 <p>winpmem_write_1.6.0.exe: This is a binary with test signed drivers that also
-have write support enabled. These will not load on a regular windows machine! In
-order to use these drivers you will need to enable test mode signing in your
-kernel:</p>
-<p>Bcdedit.exe -set TESTSIGNING ON</p>
+  have write support enabled. These will not load on a regular windows machine!
+  In order to use these drivers you will need to enable test mode signing in
+  your kernel by typing in a cmd shell <code>Bcdedit.exe -set TESTSIGNING ON</code> and
+  rebooting.</p>
 </li>
 </ul>
-<p>and reboot.</p>
-<p>Also included are the raw signed drivers. These are useful for integrating into
-another program (see rekall/tools/windows/winpmem/winpmem.py).</p>
+         
 <table class="table table-striped table-bordered table-hover">
 <thead>
-<tr><th>Name</th><th>SHA1</th><th>Size</th></tr>
+<tr><th>Filename</th><th>Description</th></tr>
 </thead>
 <tbody>
 
 <tr>
-  <td><a href='/downloads/WinPMEM/winpmem_1.6.0.exe'>winpmem_1.6.0.exe</a></td>
-  <td>8aba3ad68a441a9d183288106a7122785fbf6b26</td>
-  <td>168464</td>
+  <td><a href='https://github.com/google/rekall/releases/download/v1.0rc11/winpmem_1.6.0.exe'>winpmem_1.6.0.exe</a></td>
+  <td>Signed Official WinPmem Acquisition tool</td>
 </tr>
 
 <tr>
-  <td><a href='/downloads/WinPMEM/winpmem_1.6.0.zip'>winpmem_1.6.0.zip</a></td>
-  <td>0a5bfdd241c98b14ec9340bc0b17e574d002f8c2</td>
-  <td>113473</td>
+  <td><a href='https://github.com/google/rekall/releases/download/v1.0rc11/winpmem_write_1.6.0.exe'>winpmem_write_1.6.0.exe</a></td>
+  <td>Test WinPmem Acquisition tool with write support.</td>
 </tr>
+</tbody></table>
+      </div>
+    </div>
+  </div>
 
-<tr>
-  <td><a href='/downloads/WinPMEM/winpmem_write_1.6.0.exe'>winpmem_write_1.6.0.exe</a></td>
-  <td>33ac54e662758a7cf6501802a1f0481f9378a9c1</td>
-  <td>156776</td>
-</tr>
-
-<tr>
-  <td><a href='/downloads/WinPMEM/winpmem_x64.sys'>winpmem_x64.sys</a></td>
-  <td>05653b63f011bce9b5da3305b7e12f7b119cc731</td>
-  <td>41488</td>
-</tr>
-
-<tr>
-  <td><a href='/downloads/WinPMEM/winpmem_x86.sys'>winpmem_x86.sys</a></td>
-  <td>c92b20477efa80cc42ef9eeeec241e6447f8e0f8</td>
-  <td>42896</td>
-</tr>
-</tbody></table></div><h3>Pmem- Linux Acquisition tool.</h3><div><h1>Pmem: Linux Acquisition tools.</h1>
+  <div class='panel panel-default'>
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#accordion"
+         href="#c9807daf931037c186c0c9d7f77be6e9fa353368">
+         Pmem- Linux Acquisition tool.
+        </a>
+      </h4>
+    </div>
+    <div id="c9807daf931037c186c0c9d7f77be6e9fa353368" class="panel-collapse collapse">
+      <div class="panel-body">
+         <h1>Pmem: Linux Acquisition tools.</h1>
 <p>This directory contains two tools for memory acquisition on linux platforms:</p>
 <ul>
 <li>
@@ -156,24 +207,39 @@ another program (see rekall/tools/windows/winpmem/winpmem.py).</p>
 <p>The LMAP (Linux Memory Acquisition Parasite) is an advanced linux memory acquisition tool which does not need to be compiled in advance. See <a href="/docs/References/Presentations/LMAP-DFRWS_EU_2014.html">LMAP</a> for details.</p>
 </li>
 </ul>
+         
 <table class="table table-striped table-bordered table-hover">
 <thead>
-<tr><th>Name</th><th>SHA1</th><th>Size</th></tr>
+<tr><th>Filename</th><th>Description</th></tr>
 </thead>
 <tbody>
 
 <tr>
-  <td><a href='/downloads/Linux/linux_pmem_1.0RC1.tgz'>linux_pmem_1.0RC1.tgz</a></td>
-  <td>e19cf3d0689bcd4011ba1555bc77964decc671be</td>
-  <td>10854</td>
+  <td><a href='https://github.com/google/rekall/releases/download/v1.0rc11/lmap-0.1.zip'>lmap-0.1.zip</a></td>
+  <td>The LMAP advanced Linux acquisition tool.</td>
 </tr>
 
 <tr>
-  <td><a href='/downloads/Linux/lmap-0.1.zip'>lmap-0.1.zip</a></td>
-  <td>d4bd544a54fe2098894d77497b6353e7f177701c</td>
-  <td>366742</td>
+  <td><a href='https://github.com/google/rekall/releases/download/v1.0rc11/linux_pmem_1.0RC1.tgz'>linux_pmem_1.0RC1.tgz</a></td>
+  <td>The standard pmem linux acquitiion tool.</td>
 </tr>
-</tbody></table></div><h3>OSXPMem - Mac OS X Physical Memory acquisition tool</h3><div>
+</tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <div class='panel panel-default'>
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#accordion"
+         href="#e96b9e0b84e72a5e37c8cc4ca4a01aca2e18f7f2">
+         OSXPMem - Mac OS X Physical Memory acquisition tool
+        </a>
+      </h4>
+    </div>
+    <div id="e96b9e0b84e72a5e37c8cc4ca4a01aca2e18f7f2" class="panel-collapse collapse">
+      <div class="panel-body">
+         
 <div id="header">
 <h1>OSXPMem - Mac OS X Physical Memory acquisition tool</h1>
 <span id="author">Version: RC3</span><br />
@@ -313,60 +379,26 @@ Programme who have been explictly approved for kext development.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-05-26 16:37:19 CEST
+Last updated 2014-06-13 16:09:24 CEST
 </div>
 </div>
-
+<script src="/js/asciidoc.js"></script>
+         
 <table class="table table-striped table-bordered table-hover">
 <thead>
-<tr><th>Name</th><th>SHA1</th><th>Size</th></tr>
+<tr><th>Filename</th><th>Description</th></tr>
 </thead>
 <tbody>
 
 <tr>
-  <td><a href='/downloads/OSXPmem/OSXPMem-RC1-signed.tar.gz'>OSXPMem-RC1-signed.tar.gz</a></td>
-  <td>7bb144c3d2c5af36399a6299025142532ab2fe82</td>
-  <td>19900</td>
+  <td><a href='https://github.com/google/rekall/releases/download/v1.0rc11/OSXPMem-RC3-signed.tar.gz'>OSXPMem-RC3-signed.tar.gz</a></td>
+  <td>The OSXPmem acquisiton tool.</td>
 </tr>
-
-<tr>
-  <td><a href='/downloads/OSXPmem/OSXPMem-RC3-signed.tar.gz'>OSXPMem-RC3-signed.tar.gz</a></td>
-  <td>3304344b7de2d287dbcf8832b0fef8a38ecf9c8b</td>
-  <td>26314</td>
-</tr>
-</tbody></table></div><h3>Binary Releases of Rekall Memory Forensics.</h3><div><h1>Binary Releases of Rekall Memory Forensics.</h1>
-<p>The following are windows installers for the Rekall memory analysis
-framework. These are completely self contained and do not require any other
-dependencies. They also include the WinPmem memory acquisition tool.</p>
-<ul>
-<li>Rekall_1.0RC11_x64.zip: Windows installer for 64 bit systems.</li>
-<li>Rekall_1.0RC11_x86.zip: Windows installer for 32 bit systems.</li>
-</ul>
-<table class="table table-striped table-bordered table-hover">
-<thead>
-<tr><th>Name</th><th>SHA1</th><th>Size</th></tr>
-</thead>
-<tbody>
-
-<tr>
-  <td><a href='/downloads/Rekall/binaries/Rekall_1.0RC9_x64.exe'>Rekall_1.0RC9_x64.exe</a></td>
-  <td>ef829892072b4f3b26f59cefe1f1f6d6d99e0571</td>
-  <td>17323009</td>
-</tr>
-
-<tr>
-  <td><a href='/downloads/Rekall/binaries/Rekall_1.0RC9_x86.exe'>Rekall_1.0RC9_x86.exe</a></td>
-  <td>c7900c5a3d556dc55bc9d8fa5b302a1b935afa07</td>
-  <td>17003118</td>
-</tr>
-</tbody></table></div></div>
-<script>
-  $('#downloads').accordion({
-      collapsible: true,
-      heightStyle: "fill"
-   });
-</script>
-
+</tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
   </div>
   <div class="col-md-2 sidebar">
     <img src="/img/Rekall.png" class="logo"></img>

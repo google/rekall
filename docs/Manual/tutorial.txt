@@ -5,6 +5,7 @@ title: Rekall Tutorial
 author: Michael Cohen <scudette@gmail.com>
 ---
 
+:toc:
 :icons:
 :numbered:
 :website: http://www.rekall-forensic.com
@@ -590,9 +591,8 @@ This section demonstrates how to automate the framework, both by embedding it a
 completely inside another application, as well as simply automating the analysis
 from rekall itself.
 
-
-Embedding Rekall in an external python program
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example: Embedding Rekall in an external python program
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In this example we will run the pslist plugin on a sample image, capture the
 text table into a string and then print this string (In a real example, this
 could be served over a HTTP or whatever).
@@ -648,8 +648,53 @@ print s.plugins.pslist(method="PsActiveProcessHead") # <3>
     is printed, it renders its output to the console by default.
 
 
-Automating Rekall
-~~~~~~~~~~~~~~~~~
+Example: Using a custom address space
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sometimes the image files to be analyzed are not directly written to disk. For
+example, they may be available as a python file-like object. In this case we
+want to provide this "virtual image" to Rekall for analysis, but wrapping it in
+a 'FDAddressSpace'.
+
+For example consider the following code which provides the image as a python
+file-like object (For this example we directly open the file).
+
+[source,python,numbered]
+.Example of embedding Rekall in a python application
+-----------------------------------------------------------------------------
+import logging
+from rekall import plugins
+from rekall import session
+from rekall.plugins.addrspaces import standard
+
+logging.getLogger().setLevel(logging.DEBUG)
+
+s = session.Session(                                      # <1>
+    profile_path=[
+        "http://profiles.rekall-forensic.com"
+    ])
+
+with s:                                                   # <2>
+    s.physical_address_space = standard.FDAddressSpace(fhandle=open(
+            "/home/scudette/images/win7x86.raw"), session=s)
+    s.GetParameter("profile")                             # <3>
+
+print s.plugins.pslist(method="PsActiveProcessHead")
+
+-----------------------------------------------------------------------------
+
+<1> We create a session but do not profile a filename.
+
+<2> Using the `with` operator we can directly add the FDAddressSpace() as the
+    physical address space to the session.
+
+<3> This step triggers the profile autodetection code which looks at the
+    physical address space, figures out the profile and enabled all the active
+    plugins which work with this profile.
+
+
+Example: Automating the Rekall Console
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Much of the time the Rekall interactive interface is sufficient for most
 analysis. Sometimes, however, we need to automate some of this

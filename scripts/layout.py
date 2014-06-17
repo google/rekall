@@ -298,55 +298,68 @@ def plugin(page=None):
     return default(page)
 
 
-def downloads(page=None):
-    """Create an automatic directory index for downloads."""
-    result = "<div id='downloads'>"
-
-    for root, _, files in os.walk(page.root_path, topdown=True):
-        readme_files = [x for x in files if x.startswith("README")]
-        readme_files = [x for x in readme_files if "html" not in x]
-        if not readme_files:
-            continue
-
-        # Insert the README.md from the download directory.
-        subpage = utils.ParsePage(os.path.join(root, readme_files[0]))
-        result += "<h3>{0}</h3><div>".format(subpage.title)
-        result += subpage.content
-
-        result += """
+def _MakeDownloadPageContentTable(page, release=None):
+    result = """
 <table class="table table-striped table-bordered table-hover">
 <thead>
-<tr><th>Name</th><th>SHA1</th><th>Size</th></tr>
+<tr><th>Filename</th><th>Description</th></tr>
 </thead>
 <tbody>
 """
-
-        for name in sorted(files):
-            if name in readme_files or "html" in name:
-                continue
-
-            path = os.path.join(root, name)
-            sha_hash = sha.sha(open(path).read()).hexdigest()
-            result += """
+    for name, desc in page.downloads.items():
+        url = "https://github.com/google/rekall/releases/download/"
+        url += (page.release or release) + "/" + name
+        result += """
 <tr>
-  <td><a href='/{url}'>{name}</a></td>
-  <td>{sha}</td>
-  <td>{size}</td>
+  <td><a href='{url}'>{name}</a></td>
+  <td>{desc}</td>
 </tr>
-""".format(url=path, name=name, sha=sha_hash,
-           size=os.stat(path).st_size)
+""".format(url=url, name=name, desc=desc)
 
-        result += "</tbody></table>"
-        result += "</div>"
+    result += "</tbody></table>"
 
-    result += """</div>
-<script>
-  $('#downloads').accordion({
-      collapsible: true,
-      heightStyle: "fill"
-   });
-</script>
-"""
+    return result
+
+
+def downloads(page=None):
+    """Create an automatic directory index for downloads."""
+    result = page.content + "\n<div id='accordion' class='panel-group'>"
+    release = page.release
+
+    readme_files = []
+    for root, _, files in os.walk(page.root_path, topdown=True):
+        for x in files:
+            if x in ["README.md", "README.adoc"]:
+                readme_files.append(
+                    utils.ParsePage(os.path.join(root, x)))
+
+    readme_files.sort(key=lambda x: x.get("order", 10))
+    for subpage in readme_files:
+        subpage.content_table = _MakeDownloadPageContentTable(
+            subpage, release)
+
+        subpage.tag = sha.sha(subpage.filename).hexdigest()
+        result += """
+  <div class='panel panel-default'>
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#accordion"
+         href="#{page.tag}">
+         {page.title}
+        </a>
+      </h4>
+    </div>
+    <div id="{page.tag}" class="panel-collapse collapse">
+      <div class="panel-body">
+         {page.content}
+         {page.content_table}
+      </div>
+    </div>
+  </div>
+""".format(page=subpage)
+
+    # Close the accordion div.
+    result += """</div>"""
 
     page.content = result
 

@@ -95,20 +95,17 @@ ript>
 <ul>
 <li>
 <p>winpmem_1.6.0.exe: The officially supported winpmem binary memory imager. This
-contains signed drivers for loading into 64 bit windows versions. The drivers
-support only read mode for forensic analysis. Write support is disabled.</p>
+  contains signed drivers for loading into 64 bit windows versions. The drivers
+  support only read mode for forensic analysis. Write support is disabled.</p>
 </li>
 <li>
 <p>winpmem_write_1.6.0.exe: This is a binary with test signed drivers that also
-have write support enabled. These will not load on a regular windows machine! In
-order to use these drivers you will need to enable test mode signing in your
-kernel:</p>
-<p>Bcdedit.exe -set TESTSIGNING ON</p>
+  have write support enabled. These will not load on a regular windows machine!
+  In order to use these drivers you will need to enable test mode signing in
+  your kernel by typing in a cmd shell <code>Bcdedit.exe -set TESTSIGNING ON</code> and
+  rebooting.</p>
 </li>
 </ul>
-<p>and reboot.</p>
-<p>Also included are the raw signed drivers. These are useful for integrating into
-another program (see rekall/tools/windows/winpmem/winpmem.py).</p>
   </div>
   <div class="col-md-2 sidebar">
     <img src="/img/Rekall.png" class="logo"></img>

@@ -8,6 +8,7 @@ import pdb
 import os
 import BaseHTTPServer
 import SimpleHTTPServer
+import traceback
 import utils
 import layout
 
@@ -75,4 +76,6 @@ if __name__ == "__main__":
     try:
         main(path=FLAGS.path)
     except Exception:
+        traceback.print_exc()
+
         pdb.post_mortem()

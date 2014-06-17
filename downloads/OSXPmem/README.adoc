@@ -1,5 +1,8 @@
 ---
 title: OSXPMem - Mac OS X Physical Memory acquisition tool
+downloads:
+  OSXPMem-RC3-signed.tar.gz: The OSXPmem acquisiton tool.
+
 ---
 OSXPMem - Mac OS X Physical Memory acquisition tool
 ===================================================
