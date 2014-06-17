@@ -211,6 +211,13 @@ def LoadProfileIntoSession(parser, argv, user_session):
     # plugins with args.
     LoadPlugins(user_session.state.plugin)
 
+    session_filename = getattr(known_args, "session", None)
+    if session_filename:
+        try:
+            user_session.LoadFromFile(session_filename)
+        except IOError:
+            pass
+
 
 def parse_args(argv=None, user_session=None):
     """Parse the args from the command line argv."""

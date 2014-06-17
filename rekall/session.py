@@ -26,6 +26,7 @@ way for people to save their own results.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import json
 import logging
 import os
 import pdb
@@ -45,6 +46,7 @@ from rekall import plugin
 from rekall import utils
 
 from rekall.ui import renderer
+from rekall.ui import json_renderer
 
 
 # Top level args.
@@ -84,6 +86,10 @@ class Cache(utils.AttributeDict):
     def _CheckCorrectType(self, value):
         """Ensure that the configuration remains json serializable."""
         if value is None:
+            return True
+
+        # Supports the extended pickle protocol.
+        if hasattr(value, "__getstate__"):
             return True
 
         if isinstance(value, (int, long, basestring, float)):
@@ -177,9 +183,9 @@ class Configuration(Cache):
         return self
 
     def __exit__(self, exc_type, exc_value, trace):
-        self._lock = True
         if self.session:
             self.session.UpdateFromConfigObject()
+        self._lock = True
 
 
 class ProgressDispatcher(object):
@@ -229,8 +235,19 @@ class Session(object):
 
         # Store user configurable attributes here. These will be read/written to
         # the configuration file.
-        self.state = Configuration(self, cache=Cache(), **kwargs)
+        kwargs.setdefault("cache", Cache())
+        self.state = Configuration(self, **kwargs)
         self.inventories = {}
+        self.UpdateFromConfigObject()
+
+    def __getstate__(self):
+        return self.state.__getstate__()
+
+    def __setstate__(self, state):
+        self.__init__()
+        for k, v in state.iteritems():
+            self.SetParameter(k, v)
+
         self.UpdateFromConfigObject()
 
     def __enter__(self):
@@ -321,10 +338,10 @@ class Session(object):
 
     def SetParameter(self, item, value):
         if self.state.has_key(item):
-            self.state[item] = value
+            self.state.Set(item, value)
 
         else:
-            self.state.cache[item] = value
+            self.state.cache.Set(item, value)
 
     def _RunParameterHook(self, name):
         hook = self._parameter_hooks.get(name)
@@ -616,3 +633,25 @@ Config:
         """Swallow the error but report it."""
         logging.error("Failed running plugin %s: %s",
                       plugin_cls.name, e)
+
+    def SaveToFile(self, filename):
+        with open(filename, "wb") as fd:
+            logging.info("Saving session to %s", filename)
+            json.dump(self.Serialize(), fd)
+
+    def LoadFromFile(self, filename):
+        lexicon, data = json.load(open(filename, "rb"))
+        logging.info("Loaded session from %s", filename)
+
+        self.Unserialize(lexicon, data)
+
+    def Unserialize(self, lexicon, data):
+        decoder = json_renderer.JsonDecoder(self)
+        decoder.SetLexicon(lexicon)
+        self.state = Configuration(**decoder.Decode(data))
+        self.UpdateFromConfigObject()
+
+    def Serialize(self):
+        encoder = json_renderer.JsonEncoder()
+        data = encoder.Encode(self.state)
+        return encoder.GetLexicon(), data

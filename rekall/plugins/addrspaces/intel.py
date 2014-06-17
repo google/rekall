@@ -234,9 +234,11 @@ class IA32PagedMemory(addrspace.PagedReader):
     def __getstate__(self):
         state = super(IA32PagedMemory, self).__getstate__()
         state["dtb"] = self.dtb
-        state["name"] = self.name
 
         return state
+
+    def __setstate__(self, state):
+        self.__init__(base=state["base"], dtb=state["dtb"])
 
 
 class IA32PagedMemoryPae(IA32PagedMemory):

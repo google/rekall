@@ -49,6 +49,10 @@ config.DeclareOption(
     help="Run this script before dropping into the interactive shell.")
 
 
+config.DeclareOption(
+    "-s", "--session", default=None,
+    help="If specified we save and restore the session from this filename.")
+
 
 def IPython012Support(user_session):
     """Launch the ipython session for post 0.12 versions.
@@ -101,6 +105,7 @@ def NativePythonSupport(user_session):
     user_session._prepare_local_namespace()
     code.interact(banner=constants.BANNER, local=user_session._locals)
 
+
 def main(argv=None):
     # IPython notebook launches the IPython kernel by re-spawning the main
     # binary with its own command line args. This hack traps this and diverts
@@ -133,20 +138,25 @@ def main(argv=None):
             else:
                 logging.error("%s. Try --debug for more information." % e)
 
-        sys.exit()
-
-    # Interactive session, turn off object access logging since in interactive
-    # mode, the user may use arbitrary object members.
-    os.environ.pop(obj.ProfileLog.ENVIRONMENT_VAR, None)
-
-    user_session.mode = "Interactive"
-
-    # Try to launch the session using something.
-    if user_session.state.ipython_engine == "notebook":
-        ipython_support.NotebookSupport(user_session)
     else:
-        _ = (IPython012Support(user_session) or
-             NativePythonSupport(user_session))
+        # Interactive session, turn off object access logging since in
+        # interactive mode, the user may use arbitrary object members.
+        os.environ.pop(obj.ProfileLog.ENVIRONMENT_VAR, None)
+
+        user_session.mode = "Interactive"
+
+        # Try to launch the session using something.
+        if user_session.state.ipython_engine == "notebook":
+            ipython_support.NotebookSupport(user_session)
+        else:
+            _ = (IPython012Support(user_session) or
+                 NativePythonSupport(user_session))
+
+    # Right before we exit we check if we need to save the current session.
+    if user_session.state.session and (
+        user_session.state.dirty or user_session.state.cache.dirty):
+        user_session.SaveToFile(user_session.state.session)
+
 
 if __name__ == '__main__':
     main()

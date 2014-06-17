@@ -366,6 +366,9 @@ exit 0
         # Use the options in the DEFAULT section to select the plugins which
         # apply to this profile.
         config_options = dict(config.items("DEFAULT"))
+        if self.FLAGS.verbose:
+            config_options["--verbose"] = True
+
         self.renderer.table_header([("Test", "test", "<30s"),
                                     ("Status", "status", "^10s"),
                                     ("Time", "time", "^ 7.2f"),
@@ -436,12 +439,17 @@ exit 0
         for name in dir(plugin_cls):
             if name.startswith("test"):
                 test_cases.append(
-                    plugin_cls(name, baseline=baseline_data,
-                               current=current_run, debug=self.FLAGS.debug))
+                    plugin_cls(
+                        name, baseline=baseline_data,
+                        config_options=config_options,
+                        current=current_run, debug=self.FLAGS.debug))
 
         for test_case in test_cases:
             result = unittest.TestResult()
             test_case(result)
+
+            current_run["errors"] = dict(
+                (str(x), y) for x, y in result.errors)
 
             # Store the current run someplace for closer inspection.
             output_path = os.path.join(self.output_dir, plugin_cls.__name__)

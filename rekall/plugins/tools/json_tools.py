@@ -23,15 +23,13 @@
 """Tools for manipulating json output."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
-import os
+
 import json
 import time
 from rekall import plugin
 from rekall import testlib
 from rekall import utils
-
-class DecodingError(KeyError):
-    """Raised if there is a decoding error."""
+from rekall.ui import json_renderer
 
 
 class StructFormatter(object):
@@ -76,22 +74,12 @@ class DatetimeFormatter(StructFormatter):
         return time.ctime(float(self.state["epoch"]))
 
 
-class JSONParser(plugin.Command):
-    """Renders a json rendering file, as produced by the JsonRenderer.
+class RendererDecoder(json_renderer.JsonDecoder):
+    """A decoder which produces proxy objects for the real thing.
 
-    The output of any plugin can be stored to a JSON file using:
-
-    rekall -f img.dd --renderer JsonRenderer plugin_name --output test.json
-
-    Then it can be rendered again using:
-
-    rekall json_render test.json
-
-    This plugin implements the proper decoding of the JSON encoded output.
+    This is suitable to be run with no access to the real image, we simply use
+    the proxy objects to render the available data in a type specific way.
     """
-
-    name = "json_render"
-
 
     # This is a mapping between the semantic name of the BaseObject
     # serialization and a suitable Formatter. The idea is that the GUI framework
@@ -110,6 +98,38 @@ class JSONParser(plugin.Command):
         DateTime=DatetimeFormatter,
         )
 
+
+    def Factory(self, state):
+        semantic_type = state.get("type")
+        if semantic_type is None:
+            return state
+
+        item_renderer = self.semantic_map.get(semantic_type)
+        if item_renderer is None:
+            raise json_renderer.DecodingError(
+                "Unsupported Semantic type %s" % semantic_type)
+
+        # Instantiate the BaseObject this refers to.
+        return item_renderer(state)
+
+
+class JSONParser(plugin.Command):
+    """Renders a json rendering file, as produced by the JsonRenderer.
+
+    The output of any plugin can be stored to a JSON file using:
+
+    rekall -f img.dd --renderer JsonRenderer plugin_name --output test.json
+
+    Then it can be rendered again using:
+
+    rekall json_render test.json
+
+    This plugin implements the proper decoding of the JSON encoded output.
+    """
+
+    name = "json_render"
+
+
     @classmethod
     def args(cls, parser):
         super(JSONParser, cls).args(parser)
@@ -119,73 +139,27 @@ class JSONParser(plugin.Command):
 
     def __init__(self, file=None, fd=None, **kwargs):
         super(JSONParser, self).__init__(**kwargs)
-        self.lexicon = {}
+        self.decoder = RendererDecoder(session=self.session)
         self.file = file
         self.fd = fd
-
-    def _decode_value(self, value):
-        if value == None:
-            return None
-
-        if isinstance(value, dict):
-            return self._decode(value)
-
-        try:
-            result = self.lexicon[str(value)]
-            # Check if this is a string encoded as a list.
-            if (isinstance(result, list) and
-                len(result) == 2 and
-                self.lexicon[str(result[1])] == 1):
-                return self.lexicon[str(result[0])].decode("base64")
-
-            return result
-        except KeyError:
-            raise DecodingError("Lexicon corruption: Tag %s" % value)
-
-    def _decode(self, item):
-        if not isinstance(item, dict):
-            return self._decode_value(item)
-
-        elif isinstance(item, str):
-            return self._decode_value(item)
-
-        state = {}
-        for k, v in item.items():
-            decoded_key = self._decode_value(k)
-            decoded_value = self._decode_value(v)
-            if isinstance(decoded_value, dict):
-                decoded_value = self._decode(decoded_value)
-
-            state[decoded_key] = decoded_value
-
-        semantic_type = state.get("type")
-        if semantic_type is None:
-            return state
-
-        item_renderer = self.semantic_map.get(semantic_type)
-        if item_renderer is None:
-            raise DecodingError("Unsupported Semantic type %s" % semantic_type)
-
-        # Instantiate the BaseObject this refers to.
-        return item_renderer(state)
 
     def RenderStatement(self, statement, renderer):
         """Renders one json decoded data command at a time."""
         command = statement[0]
         if command == "l":
-            self.lexicon = statement[1]
+            self.decoder.SetLexicon(statement[1])
 
         elif command == "m":
             renderer.section("Plugin %s" % statement[1]["plugin_name"])
 
         elif command == "s":
-            renderer.section(**self._decode(statement[1]))
+            renderer.section(**self.decoder.Decode(statement[1]))
 
         elif command == "e":
             renderer.report_error(statement[1])
 
         elif command == "f":
-            args = [self._decode(x) for x in statement[1:]]
+            args = [self.decoder.Decode(x) for x in statement[1:]]
             renderer.format(*args)
 
         elif command == "t":
@@ -193,7 +167,7 @@ class JSONParser(plugin.Command):
 
         elif command == "r":
             renderer.table_row(
-                *[self._decode(x) for x in statement[1]])
+                *[self.decoder.Decode(x) for x in statement[1]])
 
     def render(self, renderer):
         """Renders the stored JSON file using the default renderer.

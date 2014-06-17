@@ -131,6 +131,9 @@ class FileAddressSpace(FDAddressSpace):
 
         return state
 
+    def __setstate__(self, state):
+        self.__init__(session=self.session, filename=state["filename"])
+
 
 class WriteableAddressSpaceMixIn(object):
     """This address space can be used to create new files.

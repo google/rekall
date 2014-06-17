@@ -18,7 +18,4 @@
 
 # pylint: disable=unused-import
 
-from rekall.plugins import core_test
-from rekall.plugins.windows import tests
-from rekall.plugins.linux import tests
-from rekall.plugins.tools import tests
+from rekall.plugins.tools import json_test

@@ -10,3 +10,4 @@ recursive-include tools *
 recursive-include resources *
 recursive-exclude rekall *.pyc
 recursive-exclude tools *.a *.la *.lo *.o
+recursive-include manuskript/static *

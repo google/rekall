@@ -287,7 +287,6 @@ class ProfileError(Error):
 
 
 class BaseObject(object):
-
     obj_parent = NoneObject("No parent")
     obj_name = NoneObject("No name")
 
@@ -340,13 +339,24 @@ class BaseObject(object):
         self.obj_session = session
 
     def __getstate__(self):
+
+        # This method should generally return all the parameters passed to the
+        # constructor as well as a registry parameter to describe the registered
+        # type of this hierarchy.
         return dict(
-            type="BaseObject",
+            registry="BaseObject",
             offset=self.obj_offset,
             name=self.obj_name,
             type_name=self.obj_type,
             vm=self.obj_vm,
+            profile=self.obj_profile.name
             )
+
+    def __setstate__(self, state):
+        """Sets the object's state."""
+        # Unless this object does something unusual we should just call the
+        # constructor with the saved data.
+        self.__init__(**state)
 
     @property
     def obj_end(self):
@@ -583,7 +593,8 @@ class NativeType(BaseObject, NumericProxyMixIn):
 
     def __getstate__(self):
         state = super(NativeType, self).__getstate__()
-        state["type"] = "NativeType"
+
+        # Just cache the value so we do not need to actually read it.
         state["value"] = self.v()
 
         return state
@@ -812,8 +823,9 @@ class Pointer(NativeType):
 
     def __getstate__(self):
         state = super(Pointer, self).__getstate__()
-        state["type"] = "Pointer"
         state["target"] = self.target
+        state["target_args"] = self.target_args
+
         return state
 
 
@@ -980,12 +992,11 @@ class Array(BaseObject):
 
     def __getstate__(self):
         state = super(Array, self).__getstate__()
-        state["type"] = "Array"
         state["target"] = self.target
+        state["target_args"] = self.target_args
         state["count"] = self.count
 
         return state
-
 
 
 class ListArray(Array):
@@ -1278,12 +1289,6 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
             seen.add(item.obj_offset)
             yield item
-
-    def __getstate__(self):
-        state = super(Struct, self).__getstate__()
-        state["type"] = "Struct"
-
-        return state
 
 
 ## Profiles are the interface for creating/interpreting
@@ -2175,6 +2180,13 @@ class Profile(object):
 
     def __repr__(self):
         return unicode(self)
+
+    def __getstate__(self):
+        return dict(
+            registry="Profile",
+            type=self.__class__.__name__,
+            name=self.name
+            )
 
 
 PROFILE_CACHE = utils.FastStore()

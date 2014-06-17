@@ -222,14 +222,17 @@ class BaseAddressSpace(object):
 
     def __getstate__(self):
         result = dict(
-            type="AddressSpace",
-            type_name=self.__class__.__name__,
+            registry="BaseAddressSpace",
+            type=self.__class__.__name__,
             )
 
         if self.base is not self:
             result["base"] = self.base
 
         return result
+
+    def __setstate__(self, state):
+        self.__init__(session=self.session, base=state.get("base"))
 
 
 ## This is a specialised AS for use internally - Its used to provide
@@ -457,7 +460,7 @@ class Error(Exception):
     """Address space errors."""
 
 
-class ASAssertionError(Error, IOError):
+class ASAssertionError(Error, IOError, AssertionError):
     """The address space failed to instantiate."""
 
 

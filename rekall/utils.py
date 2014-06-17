@@ -409,6 +409,7 @@ class FileLock(object):
 
 class AttributeDict(dict):
     """A dict that can be accessed via attributes."""
+    dirty = False
 
     def __setattr__(self, attr, value):
         try:
@@ -423,6 +424,7 @@ class AttributeDict(dict):
         return self.get(item, default)
 
     def Set(self, attr, value):
+        self.dirty = True
         self[attr] = value
 
     def __getattr__(self, attr):
@@ -430,6 +432,13 @@ class AttributeDict(dict):
 
     def __dir__(self):
         return sorted(self)
+
+    def __getstate__(self):
+        return dict(type="AttributeDict", data=dict(self))
+
+    def __setstate__(self, state):
+        self.clear()
+        self.update(state.get("data"))
 
 
 def FormatIPAddress(family, value):

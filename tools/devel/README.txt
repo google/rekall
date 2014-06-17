@@ -8,7 +8,7 @@ The following is adapted from:
 
 ## Step 1: Clone the project
 
-    > git clone https://code.google.com/p/rekall/
+    > git clone https://github.com/google/rekall.git
 
 ## Step 2a: Clone the depot_tools repository somewhere.
 

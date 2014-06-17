@@ -555,7 +555,7 @@ class _EPROCESS(obj.Struct):
             process_as = self.obj_vm.__class__(
                 base=self.obj_vm.base, session=self.obj_vm.session,
                 dtb=directory_table_base)
-        except AssertionError, e:
+        except addrspace.ASAssertionError, e:
             return obj.NoneObject("Unable to get process AS: %s" % e)
 
         process_as.name = "Process {0}".format(self.UniqueProcessId)

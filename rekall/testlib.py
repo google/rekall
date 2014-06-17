@@ -59,6 +59,7 @@ import sys
 import tempfile
 import unittest
 
+from rekall import config
 from rekall import plugin
 from rekall import registry
 from rekall import session as rekall_session
@@ -101,9 +102,10 @@ class RekallBaseUnitTestCase(unittest.TestCase):
             return name[0]
 
     def __init__(self, method_name="__init__", baseline=None, current=None,
-                 debug=False, temp_directory=None):
+                 debug=False, temp_directory=None, config_options=None):
 
         self.baseline = baseline
+        self.config_options = config_options
         self.current = current
         self.debug = debug
         self.temp_directory = temp_directory
@@ -207,13 +209,19 @@ class RekallBaseUnitTestCase(unittest.TestCase):
     def BuildBaselineData(self, config_options):
         return self.LaunchExecutable(config_options)
 
-    def MakeUserSession(self, config_options):
-        args = {}
-        for k, v in config_options.items():
-            if k.startswith("--"):
-                args[k[2:]] = v
+    def MakeUserSession(self, config_options=None):
+        if config_options is None:
+            config_options = self.config_options
 
-        return rekall_session.Session(**args)
+        user_session = rekall_session.Session()
+        with user_session.state as state:
+            config.MergeConfigOptions(state)
+            for k, v in config_options.items():
+                if k.startswith("--"):
+                    state.Set(k[2:], v)
+
+        return user_session
+
 
     def ExtractColumn(self, lines, column, skip_headers=0, seperator=r"\|\|"):
         """Iterates over the lines and extracts the column number specified.

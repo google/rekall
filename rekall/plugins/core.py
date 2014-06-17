@@ -401,9 +401,10 @@ class LoadAddressSpace(plugin.Command):
         else:
             logging.debug("DTB not specified. Delegating to find_dtb.")
             for address_space in find_dtb.address_space_hits():
-                self.session.kernel_address_space = address_space
-                self.session.SetParameter("dtb", address_space.dtb)
-                break
+                with self.session:
+                    self.session.kernel_address_space = address_space
+                    self.session.SetParameter("dtb", address_space.dtb)
+                    break
 
             if self.session.kernel_address_space is None:
                 logging.info(
