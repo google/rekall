@@ -515,10 +515,9 @@ class OutputFileMixin(object):
 
     def __init__(self, out_file=None, **kwargs):
         super(OutputFileMixin, self).__init__(**kwargs)
+        self.out_file = out_file
         if out_file is None:
             raise RuntimeError("An output must be provided.")
-
-        self.output = open(out_file, mode="w")
 
 
 class DirectoryDumperMixin(object):

@@ -385,23 +385,24 @@ class ConvertProfile(core.OutputFileMixin, plugin.Command):
             "No suitable converter found - profile not recognized.")
 
     def render(self, renderer):
-        if self.converter:
-            cls = ProfileConverter.classes.get(self.converter)
-            if not cls:
-                raise IOError("Unknown converter %s" % self.converter)
+        with renderer.open(filename=self.out_file, mode="wb") as output:
+            if self.converter:
+                cls = ProfileConverter.classes.get(self.converter)
+                if not cls:
+                    raise IOError("Unknown converter %s" % self.converter)
 
-            return cls(self.source, self.output,
-                       profile_class=self.profile_class).Convert()
+                return cls(self.source, output,
+                           profile_class=self.profile_class).Convert()
 
-        try:
-            input = io_manager.Factory(self.source, mode="r")
-        except IOError:
-            logging.critical("Input profile file %s could not be opened.",
-                             self.source)
-            return
+            try:
+                input = io_manager.Factory(self.source, mode="r")
+            except IOError:
+                logging.critical("Input profile file %s could not be opened.",
+                                 self.source)
+                return
 
-        with input, self.output:
-            self.ConvertProfile(input, self.output)
+            with input, output:
+                self.ConvertProfile(input, output)
 
 
 class TestConvertProfile(testlib.DisabledTest):
@@ -485,7 +486,9 @@ class BuildIndex(plugin.Command):
         return data["$CONSTANTS"].get(base_symbol, None)
 
     def render(self, renderer):
-        spec = yaml.safe_load(open(self.spec))
+        with renderer.open(filename=self.spec, mode="rb") as fd:
+            spec = yaml.safe_load(fd)
+
         index = {}
         metadata = dict(Type="Profile",
                         ProfileClass="Index")
@@ -568,4 +571,3 @@ class BuildIndex(plugin.Command):
         metadata["MinOffset"] = lowest_offset
 
         renderer.write(utils.PPrint(result))
-

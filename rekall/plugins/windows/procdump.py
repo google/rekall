@@ -42,46 +42,29 @@ class PEDump(common.WinProcessFilter):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(PEDump, cls).args(parser)
-        parser.add_argument("-a", "--address_space", default=None,
-                            help="The address space to use.")
-
         parser.add_argument(
             "--image_base", default=0, action=config.IntParser,
             help="The address of the image base (dos header).")
+
+        parser.add_argument("--out_file", default=None,
+                            help="The file name to write.")
+
+        parser.add_argument("-a", "--address_space", default=None,
+                            help="The address space to use.")
 
         parser.add_argument(
             "--out_fd", dest="SUPPRESS",
             help="A file like object to write the output.")
 
-        parser.add_argument("--out_file", default=None,
-                            help="The file name to write.")
-
-
-    def __init__(self, address_space=None, image_base=None, out_fd=None,
+    def __init__(self, image_base=None, out_fd=None, address_space=None,
                  out_file=None, **kwargs):
-        """Dump a PE binary from memory.
-
-        Args:
-          address_space: The address space which contains the PE image.
-          image_base: The address of the image base (dos header).
-          out_fd: The output file like object which will be used to write the
-            file onto.
-
-          out_file: Alternatively a filename can be provided to write the PE
-            file to.
-        """
         super(PEDump, self).__init__(**kwargs)
         self.address_space = address_space
+
+        # Allow the image base to be given as a name.
         self.image_base = image_base
-        if out_fd:
-            self.out_fd = out_fd
-            self.out_file = "FD <%s>" % out_fd
-        elif out_file:
-            self.out_fd = open(out_file, "wb")
-            self.out_file = out_file
-        else:
-            self.out_fd = None
-            self.out_file = None
+        self.out_fd = out_fd
+        self.out_file = out_file
 
         # Get the pe profile.
         self.pe_profile = self.session.LoadProfile("pe")
@@ -126,19 +109,23 @@ class PEDump(common.WinProcessFilter):
             fd.write(data)
 
     def render(self, renderer):
-        if self.out_fd is None:
+        if self.out_file:
+            self.out_fd = renderer.open(filename=self.out_file, mode="wb")
+
+        if not self.out_fd:
             logging.error("No output filename or file handle specified.")
             return
 
         # Default address space is the kernel if not specified.
         if self.address_space is None:
-            self.address_space = self.kernel_address_space
+            self.address_space = self.session.GetParameter(
+                "default_address_space")
 
-        if self.out_file is None:
-            logging.error("output file must be specified.")
-        else:
+        with self.out_fd:
+            image_base = self.session.address_resolver.get_address_by_name(
+                self.image_base)
             renderer.format("Dumping PE File at image_base {0:#x} to {1}\n",
-                            self.image_base, self.out_file)
+                            image_base, self.out_file)
 
             self.WritePEFile(self.out_fd, self.address_space, self.image_base)
 
@@ -230,16 +217,17 @@ class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
                 sanitized_image_name = re.sub(
                     "[^a-zA-Z0-9-_]", "_", utils.SmartStr(task.ImageFileName))
 
-                filename = os.path.join(
-                    self.dump_dir, u"executable.%s_%s.exe" % (
-                        sanitized_image_name, pid))
+                filename = u"executable.%s_%s.exe" % (
+                    sanitized_image_name, pid)
 
                 renderer.section()
 
                 renderer.format("Dumping {0}, pid: {1:6} output: {2}\n",
                                 task.ImageFileName, pid, filename)
 
-                with open(filename, 'wb') as fd:
+                with renderer.open(directory=self.dump_dir,
+                                   filename=filename,
+                                   mode="wb") as fd:
                     # The Process Environment Block contains the dos header:
                     self.pedump.WritePEFile(
                         fd, task_address_space, task.Peb.ImageBaseAddress)
@@ -299,8 +287,9 @@ class DLLDump(ProcExeDump):
                         dump_file)
 
                     # Use the procdump module to dump out the binary:
-                    path = os.path.join(self.dump_dir, dump_file)
-                    with open(path, "wb") as fd:
+                    with renderer.open(filename=dump_file,
+                                       directory=self.dump_dir,
+                                       mode="wb") as fd:
                         self.pedump.WritePEFile(fd, task_as, module.DllBase)
 
                 else:
@@ -339,7 +328,8 @@ class ModDump(DLLDump):
                                     module.BaseDllName, module.DllBase,
                                     dump_file)
 
-                    path = os.path.join(self.dump_dir, dump_file)
-                    with open(path, "wb") as fd:
+                    with renderer.open(filename=dump_file,
+                                       directory=self.dump_dir,
+                                       mode="wb") as fd:
                         self.pedump.WritePEFile(
                             fd, address_space, module.DllBase)

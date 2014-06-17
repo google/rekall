@@ -597,6 +597,15 @@ class TextRenderer(renderer.BaseRenderer):
         self.progress_fd.write("\r" + " " * self.last_message_len + "\r")
         self.progress_fd.flush()
 
+    def open(self, directory=None, filename=None, mode="rb"):
+        if filename is None and directory is None:
+            raise IOError("Must provide a filename")
+        if directory:
+            filename = os.path.join(directory, "./", filename)
+
+        return open(filename, mode)
+
+
 
 class TestRenderer(TextRenderer):
     """A special renderer which makes parsing the output of tables easier."""

@@ -113,6 +113,9 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def __eq__(self, other):
         return unicode(self) == utils.SmartUnicode(other)
 
+    def __neq__(self, other):
+        return unicode(self) != utils.SmartUnicode(other)
+
     def size(self):
         """This is equivalent to strlen()."""
         # The length is really determined by the terminator here.

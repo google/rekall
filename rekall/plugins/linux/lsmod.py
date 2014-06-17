@@ -275,8 +275,11 @@ class Moddump(common.LinuxPlugin):
         lsmod_plugin = self.session.plugins.lsmod(session=self.session)
         for module in lsmod_plugin.get_module_list():
             file_name = "{0}.{1:#x}.lkm".format(module.name, module.module_core)
-            mod_file = open(os.path.join(self.dump_dir, file_name), 'wb')
-            mod_data = self.dump_module(module)
-            mod_file.write(mod_data)
-            mod_file.close()
-            renderer.write("Wrote {0} bytes to {1}\n".format(module.core_size, file_name))
+            with renderer.open(directory=self.dump_dir,
+                               filename=file_name,
+                               mode="wb") as mod_file:
+
+                mod_data = self.dump_module(module)
+                mod_file.write(mod_data)
+                renderer.format("Wrote {0} bytes to {1}\n",
+                                module.core_size, file_name)

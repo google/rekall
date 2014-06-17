@@ -182,7 +182,9 @@ class DarwinVadDump(core.DirectoryDumperMixin, common.DarwinProcessFilter):
                 renderer.format(u"Writing {0}, pid {1} to {2}\n",
                                 proc.p_comm, proc.p_pid, filename)
 
-                with open(os.path.join(self.dump_dir, filename), 'wb') as fd:
+                with renderer.open(directory=self.dump_dir,
+                                   filename=filename,
+                                   mode='wb') as fd:
                     self.CopyToFile(task_space, vma.links.start,
                                     vma.links.end, fd)
 

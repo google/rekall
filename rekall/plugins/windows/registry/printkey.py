@@ -26,7 +26,6 @@
 @organization: Volatile Systems
 """
 import re
-import os
 
 from rekall import addrspace
 from rekall import utils
@@ -178,12 +177,12 @@ class RegDump(core.DirectoryDumperMixin, registry.RegistryPlugin):
             filename = re.sub(r"[^a-zA-Z0-9_\-@ ]", "_", filename)
 
             # Make up the path.
-            path = os.path.join(self.dump_dir, filename)
-
             renderer.section()
-            renderer.format("Dumping {0} into \"{1}\"\n", reg.Name, path)
+            renderer.format("Dumping {0} into \"{1}\"\n", reg.Name, filename)
 
-            with open(path, "wb") as fd:
+            with renderer.open(directory=self.dump_dir,
+                               filename=filename,
+                               mode="wb") as fd:
                 self.dump_hive(reg=reg, fd=fd)
                 renderer.format("Dumped {0} bytes\n", fd.tell())
 

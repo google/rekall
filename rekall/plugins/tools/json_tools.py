@@ -202,7 +202,7 @@ class JSONParser(plugin.Command):
         decompressing them.
         """
         if self.file:
-            self.fd = open(self.file)
+            self.fd = renderer.open(filename=self.file, mode="rb")
 
         if self.fd is None:
             raise ValueError("Need a filename or a file descriptor.")

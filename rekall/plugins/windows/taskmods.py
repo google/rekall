@@ -23,8 +23,6 @@
 
 # pylint: disable=protected-access
 
-import os
-
 from rekall.plugins import core
 from rekall.plugins.windows import common
 from rekall import plugin
@@ -146,7 +144,9 @@ class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
             renderer.format(u"Writing {0} {1:6} to {2}\n",
                             task.ImageFileName, task, filename)
 
-            with open(os.path.join(self.dump_dir, filename), 'wb') as fd:
+            with renderer.open(directory=self.dump_dir,
+                               filename=filename,
+                               mode='wb') as fd:
                 self.dump_process(task, fd)
 
 

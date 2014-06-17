@@ -22,7 +22,6 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
-import os
 
 from rekall import testlib
 from rekall.plugins import core
@@ -102,7 +101,6 @@ class LinVadDump(core.DirectoryDumperMixin, common.LinProcessFilter):
             # Get the task and all process specific information
             task_space = task.get_process_address_space()
             name = task.comm
-            offset = task.obj_offset
 
             for vma in task.mm.mmap.walk_list("vm_next"):
                 if not vma.vm_file:
@@ -114,7 +112,9 @@ class LinVadDump(core.DirectoryDumperMixin, common.LinProcessFilter):
                 renderer.format(u"Writing {0}, pid {1} to {2}\n",
                                 task.comm, task.pid, filename)
 
-                with open(os.path.join(self.dump_dir, filename), 'wb') as fd:
+                with renderer.open(directory=self.dump_dir,
+                                   filename=filename,
+                                   mode='wb') as fd:
                     self.CopyToFile(task_space, vma.vm_start, vma.vm_end, fd)
 
 

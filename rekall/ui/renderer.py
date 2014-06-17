@@ -365,6 +365,13 @@ class BaseRenderer(object):
 
         return False
 
+    def open(self, directory=None, filename=None, mode="rb"):
+        """Opens a file for writing or reading."""
+        _ = directory
+        _ = filename
+        _ = mode
+        raise IOError("Renderer does not support writing to files.")
+
 
 class BaseColumn(object):
     """Things that all columnae have in common."""

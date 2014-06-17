@@ -255,10 +255,9 @@ class VADDump(core.DirectoryDumperMixin, VADInfo):
                 filename = "{0}.{1:x}.{2:08x}-{3:08x}.dmp".format(
                     name, offset, start, end)
 
-                # Open the file and initialize the data
-                path = os.path.join(self.dump_dir, filename)
-
-                with open(path, 'wb') as fd:
+                with renderer.open(directory=self.dump_dir,
+                                   filename=filename,
+                                   mode='wb') as fd:
                     self.session.report_progress("Dumping %s" % filename)
                     self.CopyToFile(task_space, start, end + 1, fd)
 

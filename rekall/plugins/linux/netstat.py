@@ -132,7 +132,7 @@ class PacketQueues(common.LinuxPlugin):
         super(PacketQueues, self).__init__(**kwargs)
         self.output_dir = dump_dir
 
-    def process_socket(self, task, fd_num, socket):
+    def process_socket(self, renderer, task, fd_num, socket):
         queues = ["receive", "write"]
         for queue_name in queues:
             sk_buff_head_name = "sk_{0:s}_queue".format(queue_name)
@@ -148,10 +148,13 @@ class PacketQueues(common.LinuxPlugin):
                     data.append(self.kernel_address_space.read(
                         sk_buff.data.obj_offset, pkt_len))
             if data:
-                with open(os.path.join(self.output_dir, filename), "wb") as fd:
+                with renderer.open(directory=self.output_dir,
+                                   filename=filename,
+                                   mode="wb") as fd:
                     fd.write(''.join(data))
                     logging.debug("Wrote %d bytes to %s", fd.tell(), filename)
                 return True
+
             else:
                 logging.debug("Skipped empty queue %s", filename)
                 return False
@@ -162,8 +165,8 @@ class PacketQueues(common.LinuxPlugin):
 
         all_sockets = list(sockets)
         skipped_sockets_count = 0
-        for task, fd, socket, iaddr in all_sockets:
-            if not self.process_socket(task, fd, socket):
+        for task, fd, socket, _ in all_sockets:
+            if not self.process_socket(renderer, task, fd, socket):
                 skipped_sockets_count += 1
         renderer.format("Skipped %d/%d sockets.", skipped_sockets_count,
                         len(all_sockets))

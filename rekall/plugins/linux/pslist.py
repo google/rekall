@@ -22,8 +22,6 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
-import os
-
 from rekall import plugin
 from rekall import testlib
 from rekall.plugins import core
@@ -120,13 +118,14 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
             raise plugin.PluginError("Dump directory not specified.")
 
         for task in self.filter_processes():
-            filename = os.path.join(
-                self.dump_dir, u"{0}_{1:d}.dmp".format(task.comm, task.pid))
+            filename = u"{0}_{1:d}.dmp".format(task.comm, task.pid)
 
             renderer.write(u"Writing {0} {1:6x} to {2}\n".format(
                     task.comm, task, filename))
 
-            with open(filename, 'wb') as fd:
+            with renderer.open(directory=self.dump_dir,
+                               filename=filename,
+                               mode='wb') as fd:
                 maps = self.dump_process(task, fd)
 
             temp_renderer = text.TextRenderer(session=self.session,

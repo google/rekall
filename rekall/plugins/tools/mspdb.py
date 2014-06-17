@@ -171,11 +171,12 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
                 data = urllib2.urlopen(request).read()
                 renderer.format("Received {0} bytes\n", len(data))
 
-                output_file = os.path.join(self.dump_dir, "%s.pd_" % basename)
-                with open(output_file, "wb") as fd:
+                with renderer.open(filename="%s.pd_" % basename,
+                                   directory=self.dump_dir) as fd:
                     fd.write(data)
 
                 try:
+                    output_file = os.path.join(self.dump_dir, )
                     subprocess.check_call(["cabextract",
                                            os.path.basename(output_file)],
                                           cwd=self.dump_dir)
