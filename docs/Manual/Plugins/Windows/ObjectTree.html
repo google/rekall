@@ -667,7 +667,73 @@ http://msdn.microsoft.com/en-us/library/windows/hardware/ff557762(v=vs.85).aspx<
 <a href="/epydocs/rekall.plugins.windows.misc.ObjectTree-class.html">View Source</a>
 
 
+<p>The windows kernel has the notion of a <strong>Kernel Object</strong>. Objects are managed by
+the kernel through a dedicated API. Kernel Objects are typically used to manage
+resources which the kernel manages on behalf of user space, for example, open
+files are managed via the <strong>_FILE_OBJECT</strong> object.</p>
+<p>Objects can be named using a directory structure not unlike a
+filesystem. Objects are placed inside an <strong>_OBJECT_DIRECTORY</strong> object which
+contains other objects, including other directories. This means that named
+kernel objects forma tree in memory.</p>
+<p>It is possible to discover all currently in-use named objects by following this
+object tree in memory, which is what this plugin does. This is an alternative to
+the scanning approach employed by plugins like <strong>psscan</strong>, <strong>driverscan</strong> etc.</p>
+<h3>Notes</h3>
+<ol>
+<li>
+<p>The object tree only tracks named objects. So for example Process objects are
+   typically not tracked here, but Mutants, SymbolicLinks etc are.</p>
+</li>
+<li>
+<p>It is possible to filter objects by types. So for example to enumerate all
+   Mutants one would use the <strong>type_regex=&rdquo;Mutant&rdquo;</strong> option.</p>
+</li>
+<li>
+<p><em>SymbolicLinks</em> also contain the timestamp when they were created. Note that
+   SymbolicLinks are typically used to provide userspace access to a kernel
+   driver (via the <em>CreateFile</em> api), so a timestamp here is a good indication
+   of when a driver was loaded.</p>
+</li>
+</ol>
+<h3>Sample output</h3>
+<pre class="highlight"><code># Enumeate all drivers
+win7.elf 01:25:12&gt; object_tree type_regex=&quot;Driver&quot;
+-----------------&gt; object_tree(type_regex=&quot;Driver&quot;)
+_OBJECT_HEADER Type                 Name
+-------------- -------------------- --------------------
+0xfa80025e5d10 Driver               . mrxsmb10
+0xfa80025e1190 Driver               . mrxsmb
+0xfa8001953940 Driver               . mrxsmb20
+....
 
+# We can examine a specific object using the virtual offset.
+
+win7.elf 01:28:18&gt; x=profile._OBJECT_HEADER(0xfa80019fb8d0)
+win7.elf 01:28:34&gt; print x.get_object_type()
+Driver
+
+# We can dereference the exact object contained in this header (in this case
+#  _DRIVER_OBJECT.
+
+win7.elf 01:28:40&gt; print x.Object
+[_DRIVER_OBJECT _DRIVER_OBJECT] @ 0xFA80019FB900
+  0x00 Type              [short:Type]: 0x00000004
+  0x02 Size              [short:Size]: 0x00000150
+  0x08 DeviceObject     &lt;_DEVICE_OBJECT Pointer to [0xFA80019FB550] (DeviceObject)&gt;
+  0x10 Flags             [unsigned long:Flags]: 0x00000012
+  0x18 DriverStart      &lt;Void Pointer to [0xF88003B45000] (DriverStart)&gt;
+  0x20 DriverSize        [unsigned long:DriverSize]: 0x0000B000
+  0x28 DriverSection    &lt;Void Pointer to [0xFA80019FB7C0] (DriverSection)&gt;
+  0x30 DriverExtension  &lt;_DRIVER_EXTENSION Pointer to [0xFA80019FBA50] (DriverExtension)&gt;
+  0x38 DriverName       [_UNICODE_STRING DriverName] @ 0xFA80019FB938 (\Driver\rdpbus)
+  0x48 HardwareDatabase &lt;_UNICODE_STRING Pointer to [0xF80002B59558] (HardwareDatabase)&gt;
+  0x50 FastIoDispatch   &lt;_FAST_IO_DISPATCH Pointer to [0x00000000] (FastIoDispatch)&gt;
+  0x58 DriverInit       &lt;Function Pointer to [0xF88003B4D1B0] (DriverInit)&gt;
+  0x60 DriverStartIo    &lt;Function Pointer to [0x00000000] (DriverStartIo)&gt;
+  0x68 DriverUnload     &lt;Function Pointer to [0xF88003B4B480] (DriverUnload)&gt;
+  0x70 MajorFunction    &lt;IndexedArray 28 x Pointer @ 0xFA80019FB970&gt;
+win7.elf 01:29:01&gt; print x.Object.DriverName
+\Driver\rdpbus</code></pre>
 
   </div>
   <div class="col-md-2 sidebar">
