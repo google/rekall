@@ -211,7 +211,7 @@ def LoadProfileIntoSession(parser, argv, user_session):
     # plugins with args.
     LoadPlugins(user_session.state.plugin)
 
-    session_filename = getattr(known_args, "session", None)
+    session_filename = getattr(known_args, "session_filename", None)
     if session_filename:
         try:
             user_session.LoadFromFile(session_filename)

@@ -185,6 +185,7 @@ class Configuration(Cache):
     def __exit__(self, exc_type, exc_value, trace):
         if self.session:
             self.session.UpdateFromConfigObject()
+
         self._lock = True
 
 
