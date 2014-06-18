@@ -492,12 +492,6 @@ ript>
 </li>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/PSAux.html' class="tree-link "  title="psaux">
-      psaux
-   </a>
-</li>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/WinPsList.html' class="tree-link "  title="pslist">
       pslist
    </a>
@@ -665,7 +659,29 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.misc.WinPhysicalMap-class.html">View Source</a>
 
 
-
+<p>This plugin will simply print the kernels idea of the physical memory layout on
+a machine. Typically the physical address space is not contiguous (i.e. does not
+have RAM chip mapping all address ranges between 0 and the maximum number). This
+is because the BIOS needs to leave gaps for DMA devices to be mapped.</p>
+<p>The BIOS sets up an initial mapping and communicates the mapping to the kernel
+through a BIOS service call (Or EFI call) which can be done while the kernel
+still boots (In real mode). The kernel then keeps this information and returns
+it through the <strong>MmGetPhysicalMemoryRanges()</strong> function.</p>
+<h3>Notes</h3>
+<ol>
+<li>It is rather easy to manupulate this information to subvert acquisition. Most
+   acquisition tools use this information to determine where it is safe to read
+   and to avoid reading from DMA mapped memory.</li>
+</ol>
+<h3>Sample output</h3>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">15</span><span class="o">:</span><span class="mi">19</span><span class="o">:</span><span class="mi">26</span><span class="o">&gt;</span> <span class="n">phys_map</span>
+<span class="o">-------------------&gt;</span> <span class="n">phys_map</span><span class="p">()</span>
+  <span class="n">Phys</span> <span class="n">Start</span>      <span class="n">Phys</span> <span class="n">End</span>    <span class="n">Number</span> <span class="n">of</span> <span class="n">Pages</span>
+<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">---------------</span>
+<span class="mh">0x000000001000</span> <span class="mh">0x00000009f000</span> <span class="mi">158</span>
+<span class="mh">0x000000100000</span> <span class="mh">0x000000102000</span> <span class="mi">2</span>
+<span class="mh">0x000000103000</span> <span class="mh">0x00003fff0000</span> <span class="mi">261869</span>
+</pre></div>
 
   </div>
   <div class="col-md-2 sidebar">

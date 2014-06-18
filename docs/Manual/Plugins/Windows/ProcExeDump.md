@@ -16,3 +16,8 @@ args:
 
 ---
 
+This plugin dumps the mapped PE files associated with a windows process. It is
+equivalent to calling **pedump** with an image base corresponding to the VAD
+section of the main process executable.
+
+The **procdump** plugin is a thin wrapper around the **pedump** plugin.

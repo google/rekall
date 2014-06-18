@@ -14,3 +14,6 @@ args:
 
 ---
 
+The **procinfo** plugin displays basic information about a process. It takes all
+the usual process selectors (e.g. pid, name etc) and prints information about
+the PE file (using **peinfo**) as well as the process environment strings.

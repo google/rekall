@@ -576,13 +576,13 @@ print s.plugins.pslist(method="PsActiveProcessHead")
 
 -----------------------------------------------------------------------------
 
-<1> We create a session but do not profile a filename.
+<1> We create a session but do not provide a filename.
 
 <2> Using the `with` operator we can directly add the FDAddressSpace() as the
     physical address space to the session.
 
 <3> This step triggers the profile autodetection code which looks at the
-    physical address space, figures out the profile and enabled all the active
+    physical address space, figures out the profile and enables all the active
     plugins which work with this profile.
 
 

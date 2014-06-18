@@ -492,12 +492,6 @@ ript>
 </li>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/PSAux.html' class="tree-link "  title="psaux">
-      psaux
-   </a>
-</li>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/WinPsList.html' class="tree-link "  title="pslist">
       pslist
    </a>
@@ -672,7 +666,30 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.procdump.PEDump-class.html">View Source</a>
 
 
-
+<p>Windows executable files (PE Files) are mapped into memory from disk. This
+plugin can dump arbitrary PE files from memory (whether they are executables,
+DLLs, kernel modules etc). All we require is the PE file&rsquo;s mapped base addresses
+(i.e. the location in the virtual address space where the MZ header resides.</p>
+<p>The image_base offset can be specified using a named address as usual. So for
+example, to specify a kernel module it is sufficient to just name it
+(e.g. pedump &ldquo;nt&rdquo; - will dump the kernel image).</p>
+<p>This plugin is used by the <strong>dlldump</strong>, <strong>moddump</strong>, <strong>procdump</strong> etc plugins.</p>
+<h3>Note</h3>
+<ol>
+<li>
+<p>In order to dump any PE file from memory we need the PE header to be memory
+   resident. Often this is not the case, and the header is flushed out of
+   virtual memory. In this case it is still possible to dump parts of the PE
+   image using the <a href="VADDump.html">vaddump</a> plugin.</p>
+</li>
+<li>
+<p>When dumping any binary from memory, it is not usually a perfect binary
+   (i.e. you can not just run it). This is because the Import Address Table
+   (IAT) reflects the patched version in memory and some pages may be
+   missing. The resultant binary is probably only useful to analyses using a
+   tool like IDA pro.</p>
+</li>
+</ol>
 
   </div>
   <div class="col-md-2 sidebar">

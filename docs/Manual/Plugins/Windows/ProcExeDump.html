@@ -492,12 +492,6 @@ ript>
 </li>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/PSAux.html' class="tree-link "  title="psaux">
-      psaux
-   </a>
-</li>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/WinPsList.html' class="tree-link "  title="pslist">
       pslist
    </a>
@@ -672,7 +666,10 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.procdump.ProcExeDump-class.html">View Source</a>
 
 
-
+<p>This plugin dumps the mapped PE files associated with a windows process. It is
+equivalent to calling <strong>pedump</strong> with an image base corresponding to the VAD
+section of the main process executable.</p>
+<p>The <strong>procdump</strong> plugin is a thin wrapper around the <strong>pedump</strong> plugin.</p>
 
   </div>
   <div class="col-md-2 sidebar">

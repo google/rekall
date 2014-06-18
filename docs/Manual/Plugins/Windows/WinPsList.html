@@ -492,12 +492,6 @@ ript>
 </li>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/PSAux.html' class="tree-link "  title="psaux">
-      psaux
-   </a>
-</li>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/WinPsList.html' class="tree-link "  title="pslist">
       pslist
    </a>
@@ -672,7 +666,56 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.taskmods.WinPsList-class.html">View Source</a>
 
 
-
+<p>The <strong>pslist</strong> plugin list all the processes on windows using a variety of
+methods. Since it is required by all plugins which has process selectors, this
+plugin will, by default, list processes using all methods.</p>
+<p>The output of this plugin is typically cached in the session, so the first time
+it is run there might be a slight delay while all methods are used, but
+subsequent invokations should be almost instant.</p>
+<p>Currently the following process listing methods are used:</p>
+<ul>
+<li>
+<p>PsActiveProcessHead: This method follows the doubly linked list found by the
+  symbol <strong>PsActiveProcessHead</strong>. It is the simplest and fastest method for
+  listing processes, but it is easily subverted by simply removing an _EPROCESS
+  struct from this list.</p>
+</li>
+<li>
+<p>CSRSS: The client-server runtime service is responsible for monitoring all
+  running processes. It therefore maintains open handles to running
+  processes. This method locates the <code>csrss.exe</code> process and enumerates its
+  handle table finding all handles to processes. Note that this will not
+  typically find the csrss.exe proces itself, nor system processes which were
+  started before it.</p>
+</li>
+<li>
+<p>PspCidTable:</p>
+</li>
+<li>
+<p>Sessions: This enumerates all the processes in all windows sessions
+  (<strong>SessionProcessLinks</strong> member of <strong>_MM_SESSION_SPACE</strong> struct).</p>
+</li>
+<li>
+<p>Handles: The enumerates all handle tables (Which are found on a list from the
+  symbol <strong>HandleTableListHead</strong>) and collects their owning process (The
+  <strong>QuotaProcess</strong> member).</p>
+</li>
+</ul>
+<h3>Sample output</h3>
+<div class="highlight"><pre>  <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>   <span class="n">Name</span>                    <span class="n">PID</span>   <span class="n">PPID</span>   <span class="n">Thds</span>     <span class="n">Hnds</span>   <span class="n">Sess</span>  <span class="n">Wow64</span> <span class="n">Start</span>                    <span class="n">Exit</span>
+<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------------------------</span> <span class="o">------------------------</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">48</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">PsActiveProcessHead</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">43</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">CSRSS</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">47</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">PspCidTable</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">45</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">Sessions</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">45</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">Handles</span>
+<span class="mh">0xe00000074580</span> <span class="n">System</span>                    <span class="mi">4</span>      <span class="mi">0</span>     <span class="mi">97</span> <span class="o">--------</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">24</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xe00001499040</span> <span class="n">smss</span><span class="p">.</span><span class="n">exe</span>                <span class="mi">292</span>      <span class="mi">4</span>      <span class="mi">2</span> <span class="o">--------</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">24</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xe0000212c900</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>             <span class="mi">372</span>    <span class="mi">528</span>     <span class="mi">15</span> <span class="o">--------</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">51</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xe00001be1280</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>               <span class="mi">380</span>    <span class="mi">372</span>      <span class="mi">8</span> <span class="o">--------</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xe000000ce080</span> <span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>             <span class="mi">432</span>    <span class="mi">372</span>      <span class="mi">1</span> <span class="o">--------</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xe000000d9280</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>               <span class="mi">440</span>    <span class="mi">424</span>      <span class="mi">9</span> <span class="o">--------</span>      <span class="mi">1</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+</pre></div>
 
   </div>
   <div class="col-md-2 sidebar">

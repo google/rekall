@@ -492,12 +492,6 @@ ript>
 </li>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/PSAux.html' class="tree-link "  title="psaux">
-      psaux
-   </a>
-</li>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/WinPsList.html' class="tree-link "  title="pslist">
       pslist
    </a>
@@ -665,7 +659,59 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.misc.PoolTracker-class.html">View Source</a>
 
 
+<p>The Windows kernel allocates memory from a shared pool. In order to track memory
+leaks and to aid in debugging, pool allocations typically have fixed tags
+indicating the component which allocated the memory. For example, in windows 8,
+allocating an _EPROCESS struct will result in a pool allocation with a tag of
+<code>Proc</code>.</p>
+<p>To aid in debugging, Windows tracks pool allocation in a special table found by
+the symbol <strong>PoolTrackTable</strong>. This table can show the total number of
+allocation and deallocations associated with a particular pool tag.</p>
+<p>From a forensic point of view, this information can be useful to assess the
+number of outstanding allocations. For example we can see how many live
+processes we expect to be preset.</p>
+<h3>Notes</h3>
+<ol>
+<li>Just because the process is terminated does not mean the _EPROCESS structure
+   is immediately deallocated. Windows might keep these structures alive for
+   some time for various reasons. A discrepancy here is at best a hint that
+   something does&rsquo;nt add up.</li>
+</ol>
+<h3>Sample output</h3>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">15</span><span class="o">:</span><span class="mi">29</span><span class="o">:</span><span class="mo">07</span><span class="o">&gt;</span> <span class="n">pool_tracker</span>
+<span class="n">Tag</span>              <span class="n">NP</span> <span class="n">Alloc</span>   <span class="n">NP</span> <span class="n">Bytes</span>              <span class="n">P</span> <span class="n">Alloc</span>    <span class="n">P</span> <span class="n">Bytes</span>
+<span class="o">----</span> <span class="o">--------------------</span> <span class="o">----------</span> <span class="o">--------------------</span> <span class="o">----------</span>
+ <span class="n">DMV</span>                <span class="mi">1</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="mi">8042</span>                <span class="mi">6</span> <span class="p">(</span><span class="mi">4</span><span class="p">)</span>       <span class="mi">4048</span>               <span class="mi">12</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="n">ACPI</span>                <span class="mi">4</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="n">AFGp</span>                <span class="mi">1</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="n">ALPC</span>           <span class="mi">3211</span> <span class="p">(</span><span class="mi">770</span><span class="p">)</span>     <span class="mi">434240</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="n">ARFT</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>              <span class="mi">151</span> <span class="p">(</span><span class="mi">3</span><span class="p">)</span>        <span class="mi">192</span>
+<span class="n">AcpA</span>                <span class="mi">2</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span>        <span class="mi">160</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="n">AcpB</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>              <span class="mi">121</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="p">...</span>
+<span class="n">Pprl</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>                <span class="mi">3</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="n">Ppsu</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>           <span class="mi">1394</span> <span class="p">(</span><span class="mi">223</span><span class="p">)</span>      <span class="mi">18512</span>
+<span class="n">Prcr</span>                <span class="mi">5</span> <span class="p">(</span><span class="mi">4</span><span class="p">)</span>       <span class="mi">5440</span>               <span class="mi">13</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="n">Proc</span>             <span class="mi">137</span> <span class="p">(</span><span class="mi">48</span><span class="p">)</span>      <span class="mi">91328</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="n">PsFn</span>              <span class="mi">136</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>                <span class="mi">0</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="mi">0</span>
+<span class="p">...</span>
 
+<span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">15</span><span class="o">:</span><span class="mi">36</span><span class="o">:</span><span class="mi">40</span><span class="o">&gt;</span> <span class="n">pslist</span>
+<span class="o">-------------------&gt;</span> <span class="n">pslist</span><span class="p">()</span>
+  <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>   <span class="n">Name</span>                    <span class="n">PID</span>   <span class="n">PPID</span>   <span class="n">Thds</span>     <span class="n">Hnds</span>   <span class="n">Sess</span>  <span class="n">Wow64</span> <span class="n">Start</span>                    <span class="n">Exit</span>
+<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------------------------</span> <span class="o">------------------------</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">48</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">PsActiveProcessHead</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">43</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">CSRSS</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">47</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">PspCidTable</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">45</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">Sessions</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">45</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">Handles</span>
+<span class="p">...</span>
+</pre></div>
+
+
+<p>In the above example we see that there are 48 outstanding <em>_EPROCESS</em> objects
+and there are 48 members in the <strong>PsActiveProcessHead</strong> list.</p>
 
   </div>
   <div class="col-md-2 sidebar">
