@@ -99,6 +99,13 @@ class Index(obj.Profile):
         # Only preload the data we need to read, based on the known max offset.
         min_offset = self.metadata("MinOffset", 0) + image_base
         max_offset = self.metadata("MaxOffset", 5*1024*1024) + image_base
+
+        # If min_offset is negative then the index is faulty, even though that
+        # may not have been obvious at the time it was generated. Go ahead and
+        # explode.
+        if min_offset < 0:
+            raise RuntimeError("Profile index points to a negative offset.")
+
         data = address_space.read(min_offset, max_offset - min_offset)
 
         address_space = addrspace.BufferAddressSpace(
@@ -115,19 +122,19 @@ class Index(obj.Profile):
 
             yield match, profile
 
-    def LookupIndex(self, image_base, address_space=None,
-                    threshold=PERFECT_MATCH):
+    def LookupIndex(self, image_base, address_space=None):
         partial_matches = []
         for match, profile in self.IndexHits(image_base, address_space):
             if match == self.PERFECT_MATCH:
                 # Yield perfect matches right away.
-                yield profile
+                yield (profile, self.PERFECT_MATCH)
 
-            elif match >= threshold:
+            elif match > 0:
                 # Imperfect matches will be saved and returned in order of
                 # accuracy.
                 partial_matches.append((match, profile))
 
         partial_matches.sort(reverse=True)
         for match, profile in partial_matches:
-            yield profile
+            yield (profile, match)
+

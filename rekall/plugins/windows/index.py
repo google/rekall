@@ -78,7 +78,7 @@ class GuessGUID(common.WindowsCommandPlugin):
                 image_base = self.session.address_resolver.get_address_by_name(
                     self.module)
 
-                for profile in index.LookupIndex(image_base):
+                for profile, _ in index.LookupIndex(image_base):
                     yield self.session.GetParameter("process_context"), profile
 
     def GuessProfiles(self):

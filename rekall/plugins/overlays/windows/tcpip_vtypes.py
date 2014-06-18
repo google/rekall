@@ -651,5 +651,5 @@ class TcpipHook(kb.ParameterHook):
         index = self.session.LoadProfile("tcpip/index")
         image_base = self.session.address_resolver.get_address_by_name("tcpip")
 
-        for guess in index.LookupIndex(image_base):
+        for guess, _ in index.LookupIndex(image_base):
             return guess

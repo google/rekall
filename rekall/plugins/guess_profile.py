@@ -154,8 +154,10 @@ class ProfileHook(kb.ParameterHook):
 
     def ScanProfiles(self):
         pe_profile = self.session.LoadProfile("pe")
-
         address_space = self.session.physical_address_space
+        best_profile = None
+        best_match = 0
+
         for hit in ProfileScanner(address_space=address_space,
                                   session=self.session).scan():
 
@@ -171,7 +173,8 @@ class ProfileHook(kb.ParameterHook):
                         "Detected %s with GUID %s", rsds.Filename,
                         rsds.GUID_AGE)
 
-                    return profile
+                    best_profile = profile
+                    best_match = 1
 
             # Try OS X by profile similarity:
             elif address_space.read(hit, len(OSX_NEEDLE)) == OSX_NEEDLE:
@@ -185,19 +188,20 @@ class ProfileHook(kb.ParameterHook):
                 # can resolve the DTB.
                 logging.debug("Hit for Darwin at 0x%x", hit)
                 index = self.session.LoadProfile("OSX/index")
-                threshold = self.session.GetParameter("autodetect_threshold")
-                for profile_name in index.LookupIndex(
+                for profile_name, match in index.LookupIndex(
                     image_base=hit,
-                    threshold=threshold,
                     address_space=self.session.physical_address_space):
                     profile = self.VerifyDarwinProfile(profile_name)
                     if profile:
-                        logging.info(
-                            "Detected %s by exact symbol match.", profile_name)
+                        if match > best_match:
+                            logging.info(
+                                "New best match: %s (%.0f%% match)",
+                                profile_name, match * 100)
+                            best_profile, best_match = profile, match
+                            self.session.SetParameter("catfish_offset", hit)
 
-                        self.session.SetParameter("catfish_offset", hit)
-
-                        return profile
+                            if match == 1.0:
+                                break
 
             # Try Linux by version string:
             else:
@@ -216,8 +220,31 @@ class ProfileHook(kb.ParameterHook):
                         logging.info(
                             "Detected %s: %s", profile_name, m.group(0))
 
-                        return profile
+                        best_profile = profile
+                        best_match = 1
 
+            if best_match == 1.0:
+                # If we have an exact match we can stop scanning.
+                break
+
+        threshold = self.session.GetParameter("autodetect_threshold")
+        if best_match == 0:
+            logging.error(
+                "No profiles match this image. Try specifying manually.")
+        elif best_match < threshold:
+            logging.error(
+                "Best match for profile is %s with %.0f%%, which is too low " +
+                "for given threshold of %.0f%%. Try lowering " +
+                "--autodetect-threshold.",
+                best_profile.name,
+                best_match * 100,
+                threshold * 100)
+        else:
+            logging.info(
+                "Profile %s matched with %.0f%% confidence.",
+                best_profile.name,
+                best_match * 100)
+            return best_profile
 
     def calculate(self):
         """Try to find the correct profile by scanning for PDB files."""
