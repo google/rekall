@@ -63,8 +63,8 @@
 <h1 class="epydoc">Class PluginHelp</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.core-pysrc.html#PluginHelp">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_pluginhelp" name="class_hierarchy_for_pluginhelp">
-<area shape="rect" id="node1" href="rekall.obj.Profile-class.html" title="obj.Profile" alt="" coords="5,5,75,32"/>
-<area shape="rect" id="node2" href="rekall.plugins.core.PluginHelp-class.html" title="PluginHelp" alt="" coords="105,5,177,32"/>
+<area shape="rect" id="node1" href="rekall.obj.Profile-class.html" title="obj.Profile" alt="" coords="7,5,76,32"/>
+<area shape="rect" id="node2" href="rekall.plugins.core.PluginHelp-class.html" title="PluginHelp" alt="" coords="5,61,77,88"/>
 </map>
   <img src="class_hierarchy_for_pluginhelp.gif" alt='' usemap="#class_hierarchy_for_pluginhelp" ismap="ismap" class="graph-without-title" />
 </center>
@@ -229,6 +229,23 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="__getstate__"></a><span class="summary-sig-name">__getstate__</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+          <td align="right" valign="top">
+            
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
@@ -365,26 +382,6 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#add_generator" class="summary-sig-name">add_generator</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">entity_cls</span>,
-        <span class="summary-sig-arg">generator</span>)</span><br />
-      Add a generator for a particular entity class.
-      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
-          <td align="right" valign="top">
-            
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="add_overlay"></a><span class="summary-sig-name">add_overlay</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">overlay</span>)</span><br />
       Add an overlay to the current overlay stack.
@@ -465,26 +462,6 @@ kwargs.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.copy">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#entity_generators" class="summary-sig-name">entity_generators</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">entity_cls</span>,
-        <span class="summary-sig-arg">subclasses</span>=<span class="summary-sig-default">True</span>)</span><br />
-      Get generators that return a particular entity class.
-      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
-          <td align="right" valign="top">
-            
             
           </td>
         </tr>
@@ -895,7 +872,7 @@ kwargs.
       Install required types, classes and constants.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.Initialize">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -916,7 +893,7 @@ kwargs.
       Creates a profile directly from a JSON object.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.LoadProfileFromData">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -1012,15 +989,6 @@ t86'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="generators"></a><span class="summary-name">generators</span> = <code title="None">None</code><br />
-      hash(x)
-      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a name="overlays"></a><span class="summary-name">overlays</span> = <code title="None">None</code><br />
       hash(x)
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
@@ -1100,7 +1068,7 @@ t86'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 19 16:21:31 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:16:59 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -65,22 +65,22 @@
 <h1 class="epydoc">Class RegistryPlugin</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.registry.registry-pysrc.html#RegistryPlugin">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_registrypl" name="class_hierarchy_for_registrypl">
-<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="7,107,108,133"/>
-<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="139,107,272,133"/>
-<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="144,208,267,235"/>
-<area shape="rect" id="node6" href="rekall.plugins.windows.common.KDBGMixin-class.html" title="common.KDBGMixin" alt="" coords="355,208,475,235"/>
-<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="141,157,269,184"/>
-<area shape="rect" id="node5" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="301,157,528,184"/>
-<area shape="rect" id="node7" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="559,183,745,209"/>
-<area shape="rect" id="node15" href="rekall.plugins.windows.registry.registry.RegistryPlugin-class.html" title="RegistryPlugin" alt="" coords="776,183,867,209"/>
-<area shape="rect" id="node8" href="rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html" title="evtlogs.EvtLogs" alt="" coords="929,5,1025,32"/>
-<area shape="rect" id="node9" href="rekall.plugins.windows.registry.getservicesids.GetServiceSids-class.html" title="getservicesids.GetServiceSids" alt="" coords="896,56,1059,83"/>
-<area shape="rect" id="node10" href="rekall.plugins.windows.registry.printkey.HiveDump-class.html" title="printkey.HiveDump" alt="" coords="921,107,1033,133"/>
-<area shape="rect" id="node11" href="rekall.plugins.windows.registry.printkey.PrintKey-class.html" title="printkey.PrintKey" alt="" coords="927,157,1028,184"/>
-<area shape="rect" id="node12" href="rekall.plugins.windows.registry.printkey.RegDump-class.html" title="printkey.RegDump" alt="" coords="923,208,1032,235"/>
-<area shape="rect" id="node13" href="rekall.plugins.windows.registry.printkey.Users-class.html" title="printkey.Users" alt="" coords="932,259,1023,285"/>
-<area shape="rect" id="node14" href="rekall.plugins.windows.registry.registry.Hives-class.html" title="Hives" alt="" coords="953,309,1001,336"/>
-<area shape="rect" id="node16" href="rekall.plugins.windows.registry.userassist.UserAssist-class.html" title="userassist.UserAssist" alt="" coords="916,360,1039,387"/>
+<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="283,5,384,32"/>
+<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="267,61,400,88"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="600,61,723,88"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.common.KDBGMixin-class.html" title="common.KDBGMixin" alt="" coords="601,117,721,144"/>
+<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="424,61,552,88"/>
+<area shape="rect" id="node5" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="351,117,577,144"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="469,173,656,200"/>
+<area shape="rect" id="node15" href="rekall.plugins.windows.registry.registry.RegistryPlugin-class.html" title="RegistryPlugin" alt="" coords="517,229,608,256"/>
+<area shape="rect" id="node8" href="rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html" title="evtlogs.EvtLogs" alt="" coords="5,285,101,312"/>
+<area shape="rect" id="node9" href="rekall.plugins.windows.registry.getservicesids.GetServiceSids-class.html" title="getservicesids.GetServiceSids" alt="" coords="125,285,288,312"/>
+<area shape="rect" id="node10" href="rekall.plugins.windows.registry.printkey.HiveDump-class.html" title="printkey.HiveDump" alt="" coords="312,285,424,312"/>
+<area shape="rect" id="node11" href="rekall.plugins.windows.registry.printkey.PrintKey-class.html" title="printkey.PrintKey" alt="" coords="448,285,549,312"/>
+<area shape="rect" id="node12" href="rekall.plugins.windows.registry.printkey.RegDump-class.html" title="printkey.RegDump" alt="" coords="573,285,683,312"/>
+<area shape="rect" id="node13" href="rekall.plugins.windows.registry.printkey.Users-class.html" title="printkey.Users" alt="" coords="707,285,797,312"/>
+<area shape="rect" id="node14" href="rekall.plugins.windows.registry.registry.Hives-class.html" title="Hives" alt="" coords="821,285,869,312"/>
+<area shape="rect" id="node16" href="rekall.plugins.windows.registry.userassist.UserAssist-class.html" title="userassist.UserAssist" alt="" coords="893,285,1016,312"/>
 </map>
   <img src="class_hierarchy_for_registrypl.gif" alt='' usemap="#class_hierarchy_for_registrypl" ismap="ismap" class="graph-without-title" />
 </center>
@@ -149,6 +149,22 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="list_hives"></a><span class="summary-sig-name">list_hives</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.registry.registry-pysrc.html#RegistryPlugin.list_hives">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Render into a string using the text renderer.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
@@ -174,22 +190,6 @@
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.get_plugin">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="list_hives"></a><span class="summary-sig-name">list_hives</span>(<span class="summary-sig-arg">self</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.registry.registry-pysrc.html#RegistryPlugin.list_hives">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -271,7 +271,7 @@
       Return only the active commands based on config.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -290,7 +290,7 @@
       We are only active if the profile is windows.
       <em>(Inherited from <a href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html">rekall.plugins.windows.common.AbstractWindowsCommandPlugin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsCommandPlugin.is_active">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -496,7 +496,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 19 16:22:14 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:12 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

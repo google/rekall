@@ -62,13 +62,13 @@
 <h1 class="epydoc">Class Array</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.obj-pysrc.html#Array">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_array" name="class_hierarchy_for_array">
-<area shape="rect" id="node1" href="rekall.obj.Array-class.html" title="Array" alt="" coords="112,56,160,83"/>
-<area shape="rect" id="node3" href="rekall.obj.ListArray-class.html" title="ListArray" alt="" coords="287,5,351,32"/>
-<area shape="rect" id="node4" href="rekall.plugins.overlays.basic.IndexedArray-class.html" title="plugins.overlays.basic.IndexedArray" alt="" coords="224,56,413,83"/>
-<area shape="rect" id="node5" href="rekall.plugins.overlays.windows.pe_vtypes.SentinelArray-class.html" title="plugins.overlays.windows.pe_vtypes.SentinelArray" alt="" coords="189,107,448,133"/>
-<area shape="rect" id="node2" href="rekall.obj.BaseObject-class.html" title="BaseObject" alt="" coords="7,56,81,83"/>
-<area shape="rect" id="node6" href="rekall.plugins.overlays.windows.pe_vtypes.SentinelListArray-class.html" title="plugins.overlays.windows.pe_vtypes.SentinelListArray" alt="" coords="477,31,752,57"/>
-<area shape="rect" id="node7" href="rekall.plugins.overlays.windows.pe_vtypes.ThunkArray-class.html" title="plugins.overlays.windows.pe_vtypes.ThunkArray" alt="" coords="489,107,740,133"/>
+<area shape="rect" id="node1" href="rekall.obj.Array-class.html" title="Array" alt="" coords="213,61,261,88"/>
+<area shape="rect" id="node3" href="rekall.obj.ListArray-class.html" title="ListArray" alt="" coords="55,117,119,144"/>
+<area shape="rect" id="node4" href="rekall.plugins.overlays.basic.IndexedArray-class.html" title="plugins.overlays.basic.IndexedArray" alt="" coords="143,117,332,144"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.windows.pe_vtypes.SentinelArray-class.html" title="plugins.overlays.windows.pe_vtypes.SentinelArray" alt="" coords="356,117,615,144"/>
+<area shape="rect" id="node2" href="rekall.obj.BaseObject-class.html" title="BaseObject" alt="" coords="200,5,275,32"/>
+<area shape="rect" id="node6" href="rekall.plugins.overlays.windows.pe_vtypes.SentinelListArray-class.html" title="plugins.overlays.windows.pe_vtypes.SentinelListArray" alt="" coords="5,173,280,200"/>
+<area shape="rect" id="node7" href="rekall.plugins.overlays.windows.pe_vtypes.ThunkArray-class.html" title="plugins.overlays.windows.pe_vtypes.ThunkArray" alt="" coords="360,173,611,200"/>
 </map>
   <img src="class_hierarchy_for_array.gif" alt='' usemap="#class_hierarchy_for_array" ismap="ismap" class="graph-without-title" />
 </center>
@@ -248,6 +248,22 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Array-class.html#__getstate__" class="summary-sig-name">__getstate__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Array.__getstate__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="__dir__"></a><span class="summary-sig-name">__dir__</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Hide any members with _.
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
@@ -272,22 +288,6 @@
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.__format__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.obj.Array-class.html#__getstate__" class="summary-sig-name">__getstate__</a>(<span class="summary-sig-arg">self</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Array.__getstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -342,6 +342,25 @@
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.__nonzero__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">state</span>)</span><br />
+      Sets the object's state.
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -795,7 +814,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 19 16:21:18 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:16:56 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

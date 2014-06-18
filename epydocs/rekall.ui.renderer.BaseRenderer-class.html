@@ -63,10 +63,10 @@
 <h1 class="epydoc">Class BaseRenderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_baserender" name="class_hierarchy_for_baserender">
-<area shape="rect" id="node1" href="rekall.ui.json_renderer.JsonRenderer-class.html" title="json_renderer.JsonRenderer" alt="" coords="128,5,288,32"/>
-<area shape="rect" id="node2" href="rekall.ui.renderer.BaseRenderer-class.html" title="BaseRenderer" alt="" coords="7,31,97,57"/>
-<area shape="rect" id="node4" href="rekall.ui.text.TextRenderer-class.html" title="text.TextRenderer" alt="" coords="153,56,263,83"/>
-<area shape="rect" id="node3" href="rekall.ui.text.TestRenderer-class.html" title="text.TestRenderer" alt="" coords="317,56,427,83"/>
+<area shape="rect" id="node1" href="rekall.ui.json_renderer.JsonRenderer-class.html" title="json_renderer.JsonRenderer" alt="" coords="5,61,165,88"/>
+<area shape="rect" id="node2" href="rekall.ui.renderer.BaseRenderer-class.html" title="BaseRenderer" alt="" coords="119,5,209,32"/>
+<area shape="rect" id="node4" href="rekall.ui.text.TextRenderer-class.html" title="text.TextRenderer" alt="" coords="189,61,299,88"/>
+<area shape="rect" id="node3" href="rekall.ui.text.TestRenderer-class.html" title="text.TestRenderer" alt="" coords="189,117,299,144"/>
 </map>
   <img src="class_hierarchy_for_baserender.gif" alt='' usemap="#class_hierarchy_for_baserender" ismap="ismap" class="graph-without-title" />
 </center>
@@ -113,29 +113,13 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="ClearProgress"></a><span class="summary-sig-name">ClearProgress</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Delete the last progress message.</td>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">fd</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">pager</span>=<span class="summary-sig-default">None</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.ClearProgress">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="RenderProgress"></a><span class="summary-sig-name">RenderProgress</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">message</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"> %(spinner)s</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">*args</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.RenderProgress">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -184,31 +168,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">fd</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">pager</span>=<span class="summary-sig-default">None</span>)</span><br />
-      x.__init__(...) initializes x; see help(type(x)) for signature</td>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#start" class="summary-sig-name">start</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">plugin_name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">kwargs</span>=<span class="summary-sig-default">None</span>)</span><br />
+      The method is called when new output is required.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.__init__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="color"></a><span class="summary-sig-name">color</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">target</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.color">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.start">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -239,83 +204,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="flush"></a><span class="summary-sig-name">flush</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Renderer should flush data.</td>
+          <td><span class="summary-sig"><a name="write"></a><span class="summary-sig-name">write</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>)</span><br />
+      Renderer should write some data.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.flush">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="flush_table"></a><span class="summary-sig-name">flush_table</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">keep_sort</span>=<span class="summary-sig-default">False</span>)</span><br />
-      If sorting is on, this will trigger deferred rendering.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.flush_table">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#format" class="summary-sig-name">format</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">formatstring</span>,
-        <span class="summary-sig-arg">*data</span>)</span><br />
-      Write formatted data.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.format">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#record" class="summary-sig-name">record</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">record_data</span>)</span><br />
-      Writes a single complete record.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.record">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="report_error"></a><span class="summary-sig-name">report_error</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">message</span>)</span><br />
-      Render the error in an appropriate way.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.report_error">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.write">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -349,12 +242,29 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#start" class="summary-sig-name">start</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">plugin_name</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">kwargs</span>=<span class="summary-sig-default">None</span>)</span><br />
-      The method is called when new output is required.</td>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#format" class="summary-sig-name">format</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">formatstring</span>,
+        <span class="summary-sig-arg">*data</span>)</span><br />
+      Write formatted data.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.start">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.format">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="flush"></a><span class="summary-sig-name">flush</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Renderer should flush data.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.flush">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -409,11 +319,122 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="write"></a><span class="summary-sig-name">write</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">data</span>)</span><br />
-      Renderer should write some data.</td>
+          <td><span class="summary-sig"><a name="flush_table"></a><span class="summary-sig-name">flush_table</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">keep_sort</span>=<span class="summary-sig-default">False</span>)</span><br />
+      If sorting is on, this will trigger deferred rendering.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.write">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.flush_table">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#record" class="summary-sig-name">record</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record_data</span>)</span><br />
+      Writes a single complete record.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.record">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="color"></a><span class="summary-sig-name">color</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">target</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.color">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="report_error"></a><span class="summary-sig-name">report_error</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">message</span>)</span><br />
+      Render the error in an appropriate way.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.report_error">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="RenderProgress"></a><span class="summary-sig-name">RenderProgress</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">message</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"> %(spinner)s</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Will be called to render a progress message to the user.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.RenderProgress">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ClearProgress"></a><span class="summary-sig-name">ClearProgress</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Delete the last progress message.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.ClearProgress">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="open"></a><span class="summary-sig-name">open</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">directory</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">filename</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">&quot;rb&quot;</span>)</span><br />
+      Opens a file for writing or reading.</td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -452,6 +473,88 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="isatty"></a><span class="summary-name">isatty</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="paging_limit"></a><span class="summary-name">paging_limit</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="sort_key_func"></a><span class="summary-name">sort_key_func</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="deferred_rows"></a><span class="summary-name">deferred_rows</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="table_cls"></a><span class="summary-name">table_cls</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="spinner"></a><span class="summary-name">spinner</span> = <code title="'/-\\|'"><code class="variable-quote">'</code><code class="variable-string">/-\\|</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="last_spin_time"></a><span class="summary-name">last_spin_time</span> = <code title="0">0</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="last_spin"></a><span class="summary-name">last_spin</span> = <code title="0">0</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="last_message_len"></a><span class="summary-name">last_message_len</span> = <code title="0">0</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="progress_fd"></a><span class="summary-name">progress_fd</span> = <code title="None">None</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="progress_interval"></a><span class="summary-name">progress_interval</span> = <code title="0.2">0.2</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="__abstractmethods__"></a><span class="summary-name">__abstractmethods__</span> = <code title="frozenset([])"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></code>
     </td>
   </tr>
@@ -476,44 +579,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="deferred_rows"></a><span class="summary-name">deferred_rows</span> = <code title="None">None</code><br />
-      hash(x)
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="isatty"></a><span class="summary-name">isatty</span> = <code title="False">False</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="last_message_len"></a><span class="summary-name">last_message_len</span> = <code title="0">0</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="last_spin"></a><span class="summary-name">last_spin</span> = <code title="0">0</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="last_spin_time"></a><span class="summary-name">last_spin_time</span> = <code title="0">0</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="paging_limit"></a><span class="summary-name">paging_limit</span> = <code title="None">None</code><br />
-      hash(x)
+        <a name="last_gc_time"></a><span class="summary-name">last_gc_time</span> = <code title="0">0</code>
     </td>
   </tr>
 <tr>
@@ -521,44 +587,6 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'BaseRenderer'"><code class="variable-quote">'</code><code class="variable-string">BaseRenderer</code><code class="variable-quote">'</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="progress_fd"></a><span class="summary-name">progress_fd</span> = <code title="None">None</code><br />
-      hash(x)
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="progress_interval"></a><span class="summary-name">progress_interval</span> = <code title="0.2">0.2</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="sort_key_func"></a><span class="summary-name">sort_key_func</span> = <code title="None">None</code><br />
-      hash(x)
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="spinner"></a><span class="summary-name">spinner</span> = <code title="'/-\\|'"><code class="variable-quote">'</code><code class="variable-string">/-\\|</code><code class="variable-quote">'</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="table_cls"></a><span class="summary-name">table_cls</span> = <code title="None">None</code><br />
-      hash(x)
     </td>
   </tr>
 </table>
@@ -614,53 +642,31 @@
   </dl>
 </td></tr></table>
 </div>
-<a name="format"></a>
+<a name="start"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">format</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">formatstring</span>,
-        <span class="sig-arg">*data</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">start</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">plugin_name</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">kwargs</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.format">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Write formatted data.</p>
-  <p>For renderers that need access to the raw data (e.g. to check for 
-  NoneObjects), it is preferred to call this method directly rather than to
-  format the string in the plugin itself.</p>
-  <p>By default we just call the format string directly.</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="record"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">record</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">record_data</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.record">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.start">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
   <pre class="literalblock">
-Writes a single complete record.
+The method is called when new output is required.
 
-A record consists of one object of related fields.
+Metadata about the running plugin is provided so the renderer may log it
+if desired.
 
 Args:
-  data: A list of tuples (name, short_name, formatstring, data)
+   plugin_name: The name of the plugin which is running.
+   kwargs: The args for this plugin.
 
 </pre>
   <dl class="fields">
@@ -691,33 +697,27 @@ Args:
   </dl>
 </td></tr></table>
 </div>
-<a name="start"></a>
+<a name="format"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">start</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">plugin_name</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">kwargs</span>=<span class="sig-default">None</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">format</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">formatstring</span>,
+        <span class="sig-arg">*data</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.start">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.format">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-The method is called when new output is required.
-
-Metadata about the running plugin is provided so the renderer may log it
-if desired.
-
-Args:
-   plugin_name: The name of the plugin which is running.
-   kwargs: The args for this plugin.
-
-</pre>
+  <p>Write formatted data.</p>
+  <p>For renderers that need access to the raw data (e.g. to check for 
+  NoneObjects), it is preferred to call this method directly rather than to
+  format the string in the plugin itself.</p>
+  <p>By default we just call the format string directly.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -761,6 +761,34 @@ Args:
   sorting is on, rendering of table rows will be deferred either
   until next call to table_header (or section) or until the plugin
   render function ends.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="record"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">record</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">record_data</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.record">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Writes a single complete record.
+
+A record consists of one object of related fields.
+
+Args:
+  data: A list of tuples (name, short_name, formatstring, data)
 
 </pre>
   <dl class="fields">
@@ -830,7 +858,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 19 16:22:18 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:14 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

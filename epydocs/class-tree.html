@@ -226,9 +226,6 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.standard.DummyAddressSpace-class.html">rekall.plugins.addrspaces.standard.DummyAddressSpace</a></strong>:
       <em class="summary">An AS which always returns nulls.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.ewf.EWFAddressSpace-class.html">rekall.plugins.addrspaces.ewf.EWFAddressSpace</a></strong>:
-      <em class="summary">An EWF capable address space.</em>
-    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.standard.FileAddressSpace-class.html">rekall.plugins.addrspaces.standard.FileAddressSpace</a></strong>:
       <em class="summary">This is a direct file AS.</em>
     </li>
@@ -333,14 +330,13 @@
     <li> <strong class="uidlink">exceptions.Exception</strong>:
       <em class="summary">Common base class for all non-exit exceptions.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugin.Error-class.html">rekall.plugin.Error</a></strong>:
-      <em class="summary">Raised for plugin errors.</em>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.Error-class.html">rekall.plugins.overlays.windows.ntfs.Error</a></strong>
     <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugin.InvalidArgs-class.html">rekall.plugin.InvalidArgs</a></strong>:
-      <em class="summary">Invalid arguments.</em>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.ParseError-class.html">rekall.plugins.overlays.windows.ntfs.ParseError</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.NTFSParseError-class.html">rekall.plugins.overlays.windows.ntfs.NTFSParseError</a></strong>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugin.PluginError-class.html">rekall.plugin.PluginError</a></strong>:
-      <em class="summary">An error occured in a plugin.</em>
+    </ul>
     </li>
     </ul>
     </li>
@@ -367,6 +363,17 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugin.Error-class.html">rekall.plugin.Error</a></strong>:
+      <em class="summary">Raised for plugin errors.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugin.InvalidArgs-class.html">rekall.plugin.InvalidArgs</a></strong>:
+      <em class="summary">Invalid arguments.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugin.PluginError-class.html">rekall.plugin.PluginError</a></strong>:
+      <em class="summary">An error occured in a plugin.</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.addrspace.Error-class.html">rekall.addrspace.Error</a></strong>:
       <em class="summary">Address space errors.</em>
     <ul>
@@ -375,16 +382,6 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.addrspace.AddrSpaceError-class.html">rekall.addrspace.AddrSpaceError</a></strong>:
       <em class="summary">Address Space Exception.</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.Error-class.html">rekall.plugins.overlays.windows.ntfs.Error</a></strong>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.ParseError-class.html">rekall.plugins.overlays.windows.ntfs.ParseError</a></strong>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.NTFSParseError-class.html">rekall.plugins.overlays.windows.ntfs.NTFSParseError</a></strong>
-    </li>
-    </ul>
     </li>
     </ul>
     </li>
@@ -691,14 +688,6 @@
     <li> <strong class="uidlink"><a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a></strong>:
       <em class="summary">A more thorough scanner which checks every byte</em>
     <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.yarascan.BaseYaraASScanner-class.html">rekall.plugins.windows.malware.yarascan.BaseYaraASScanner</a></strong>:
-      <em class="summary">An address space scanner for Yara signatures.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.yarascan.VadYarraScanner-class.html">rekall.plugins.windows.malware.yarascan.VadYarraScanner</a></strong>:
-      <em class="summary">A Yarra scanner which only operates on VAD regions.</em>
-    </li>
-    </ul>
-    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.common.CatfishScanner-class.html">rekall.plugins.darwin.common.CatfishScanner</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.dumpcerts.CertScanner-class.html">rekall.plugins.windows.dumpcerts.CertScanner</a></strong>:
@@ -838,9 +827,6 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.dumpcerts.VadCertScanner-class.html">rekall.plugins.windows.dumpcerts.VadCertScanner</a></strong>:
       <em class="summary">Scanner for certs in vads.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.yarascan.VadYarraScanner-class.html">rekall.plugins.windows.malware.yarascan.VadYarraScanner</a></strong>:
-      <em class="summary">A Yarra scanner which only operates on VAD regions.</em>
-    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.common.WinDTBScanner-class.html">rekall.plugins.windows.common.WinDTBScanner</a></strong>
@@ -857,9 +843,6 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.addrspace.CachingAddressSpaceMixIn-class.html">rekall.addrspace.CachingAddressSpaceMixIn</a></strong>
     <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.ewf.EWFAddressSpace-class.html">rekall.plugins.addrspaces.ewf.EWFAddressSpace</a></strong>:
-      <em class="summary">An EWF capable address space.</em>
-    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.mspdb.StreamBasedAddressSpace-class.html">rekall.plugins.tools.mspdb.StreamBasedAddressSpace</a></strong>:
       <em class="summary">An address space which combines together the page lists.</em>
     </li>
@@ -1428,9 +1411,6 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods.WinPsList-class.html">rekall.plugins.windows.taskmods.WinPsList</a></strong>:
       <em class="summary">List processes for windows.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.yarascan.YaraScan-class.html">rekall.plugins.windows.malware.yarascan.YaraScan</a></strong>:
-      <em class="summary">Scan using yara signatures.</em>
-    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.ssdt.WinSSDT-class.html">rekall.plugins.windows.ssdt.WinSSDT</a></strong>:
@@ -1535,10 +1515,10 @@
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.dwarfparser.DWARFParser-class.html">rekall.plugins.overlays.linux.dwarfparser.DWARFParser</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html">rekall.plugins.overlays.linux.dwarfdump.DWARFParser</a></strong>:
       <em class="summary">A parser for DWARF files.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html">rekall.plugins.overlays.linux.dwarfdump.DWARFParser</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.dwarfparser.DWARFParser-class.html">rekall.plugins.overlays.linux.dwarfparser.DWARFParser</a></strong>:
       <em class="summary">A parser for DWARF files.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html">rekall.plugins.darwin.common.DarwinKASLRMixin</a></strong>:
@@ -2102,9 +2082,6 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods.WinPsList-class.html">rekall.plugins.windows.taskmods.WinPsList</a></strong>:
       <em class="summary">List processes for windows.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.yarascan.YaraScan-class.html">rekall.plugins.windows.malware.yarascan.YaraScan</a></strong>:
-      <em class="summary">Scan using yara signatures.</em>
-    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.ssdt.WinSSDT-class.html">rekall.plugins.windows.ssdt.WinSSDT</a></strong>:
@@ -2286,10 +2263,10 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.common.KernelAddressCheckerMixIn-class.html">rekall.plugins.darwin.common.KernelAddressCheckerMixIn</a></strong>:
       <em class="summary">A plugin mixin which does kernel address checks.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.kb.KernelModule-class.html">rekall.kb.KernelModule</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsmod.KernelModule-class.html">rekall.plugins.linux.lsmod.KernelModule</a></strong>:
       <em class="summary">A Fake object which makes the kernel look like a module.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.kb.KernelModule-class.html">rekall.kb.KernelModule</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.utils.LinkedList-class.html">rekall.utils.LinkedList</a></strong>:
       <em class="summary">A simple doubly linked list used for fast caches.</em>
@@ -2986,9 +2963,6 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods.WinPsList-class.html">rekall.plugins.windows.taskmods.WinPsList</a></strong>:
       <em class="summary">List processes for windows.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.yarascan.YaraScan-class.html">rekall.plugins.windows.malware.yarascan.YaraScan</a></strong>:
-      <em class="summary">Scan using yara signatures.</em>
     </li>
     </ul>
     </li>
@@ -3873,7 +3847,7 @@ dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 19 16:21:12 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:16:55 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

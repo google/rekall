@@ -64,12 +64,12 @@
 <h1 class="epydoc">Class WindowsCrashDumpSpace32</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.addrspaces.crash-pysrc.html#WindowsCrashDumpSpace32">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_windowscra" name="class_hierarchy_for_windowscra">
-<area shape="rect" id="node1" href="rekall.addrspace.BaseAddressSpace-class.html" title="addrspace.BaseAddressSpace" alt="" coords="5,5,173,32"/>
-<area shape="rect" id="node2" href="rekall.addrspace.PagedReader-class.html" title="addrspace.PagedReader" alt="" coords="204,5,345,32"/>
-<area shape="rect" id="node3" href="rekall.addrspace.RunBasedAddressSpace-class.html" title="addrspace.RunBasedAddressSpace" alt="" coords="376,5,571,32"/>
-<area shape="rect" id="node4" href="rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32-class.html" title="WindowsCrashDumpSpace32" alt="" coords="600,5,765,32"/>
-<area shape="rect" id="node5" href="rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace64-class.html" title="WindowsCrashDumpSpace64" alt="" coords="795,5,960,32"/>
-<area shape="rect" id="node6" href="rekall.plugins.windows.crashinfo.WritableCrashDump-class.html" title="windows.crashinfo.WritableCrashDump" alt="" coords="991,5,1199,32"/>
+<area shape="rect" id="node1" href="rekall.addrspace.BaseAddressSpace-class.html" title="addrspace.BaseAddressSpace" alt="" coords="25,5,193,32"/>
+<area shape="rect" id="node2" href="rekall.addrspace.PagedReader-class.html" title="addrspace.PagedReader" alt="" coords="39,61,180,88"/>
+<area shape="rect" id="node3" href="rekall.addrspace.RunBasedAddressSpace-class.html" title="addrspace.RunBasedAddressSpace" alt="" coords="12,117,207,144"/>
+<area shape="rect" id="node4" href="rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32-class.html" title="WindowsCrashDumpSpace32" alt="" coords="27,173,192,200"/>
+<area shape="rect" id="node5" href="rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace64-class.html" title="WindowsCrashDumpSpace64" alt="" coords="27,229,192,256"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.crashinfo.WritableCrashDump-class.html" title="windows.crashinfo.WritableCrashDump" alt="" coords="5,285,213,312"/>
 </map>
   <img src="class_hierarchy_for_windowscra.gif" alt='' usemap="#class_hierarchy_for_windowscra" ismap="ismap" class="graph-without-title" />
 </center>
@@ -194,6 +194,24 @@ we may use.</td>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.__repr__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">state</span>)</span>
+      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
+          <td align="right" valign="top">
+            
             
           </td>
         </tr>
@@ -457,8 +475,8 @@ dMemory'&gt;,
 ressSpace'&gt;,
  'DummyAddressSpace': &lt;class 'rekall.plugins.addrspaces.standard.Dummy\
 AddressSpace'&gt;,
- 'EWFAddressSpace': &lt;class 'rekall.plugins.addrspaces.ewf.EWFAddressSp\
-ace'&gt;,
+ 'Elf64CoreDump': &lt;class 'rekall.plugins.addrspaces.vboxelf.Elf64CoreD\
+ump'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AMD64PagedMemory</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.addrspac<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
     </td>
@@ -467,8 +485,7 @@ ace'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.addrspace.BaseAddressSpace-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'': &lt;class 'rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace\
-'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.addrspaces.hiber<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.addrspace.BaseAddressSpace-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'': &lt;class 'rekall.addrspace_test.CustomRunsAddressSpace'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.addrspace_test.CustomRun<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
     </td>
   </tr>
@@ -619,7 +636,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 19 16:21:28 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:16:59 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

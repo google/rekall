@@ -64,15 +64,15 @@
 <h1 class="epydoc">Class PSTree</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_pstree" name="class_hierarchy_for_pstree">
-<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="7,5,108,32"/>
-<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="139,5,272,32"/>
-<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="144,107,267,133"/>
-<area shape="rect" id="node6" href="rekall.plugins.windows.common.KDBGMixin-class.html" title="common.KDBGMixin" alt="" coords="355,107,475,133"/>
-<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="141,56,269,83"/>
-<area shape="rect" id="node5" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="301,56,528,83"/>
-<area shape="rect" id="node8" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="559,81,745,108"/>
-<area shape="rect" id="node7" href="rekall.plugins.windows.common.WinProcessFilter-class.html" title="common.WinProcessFilter" alt="" coords="776,81,923,108"/>
-<area shape="rect" id="node9" href="rekall.plugins.windows.pstree.PSTree-class.html" title="PSTree" alt="" coords="952,81,1011,108"/>
+<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,5,123,32"/>
+<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,61,139,88"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="339,61,461,88"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.common.KDBGMixin-class.html" title="common.KDBGMixin" alt="" coords="340,117,460,144"/>
+<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,61,291,88"/>
+<area shape="rect" id="node5" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="89,117,316,144"/>
+<area shape="rect" id="node8" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="208,173,395,200"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.common.WinProcessFilter-class.html" title="common.WinProcessFilter" alt="" coords="228,229,375,256"/>
+<area shape="rect" id="node9" href="rekall.plugins.windows.pstree.PSTree-class.html" title="PSTree" alt="" coords="272,285,331,312"/>
 </map>
   <img src="class_hierarchy_for_pstree.gif" alt='' usemap="#class_hierarchy_for_pstree" ismap="ismap" class="graph-without-title" />
 </center>
@@ -410,7 +410,7 @@
       Return only the active commands based on config.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -429,7 +429,7 @@
       We are only active if the profile is windows.
       <em>(Inherited from <a href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html">rekall.plugins.windows.common.AbstractWindowsCommandPlugin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsCommandPlugin.is_active">source&nbsp;code</a></span>
+            
             
           </td>
         </tr>
@@ -452,7 +452,7 @@
     </td><td class="summary">
         <a href="rekall.plugins.windows.common.WinProcessFilter-class.html#METHODS" class="summary-name">METHODS</a> = <code title="[(&quot;PsActiveProcessHead&quot;, list_from_PsActiveProcessHead), (&quot;CSRSS&quot;, lis\
 t_from_csrss_handles), (&quot;PspCidTable&quot;, list_from_pspcid), (&quot;Sessions&quot;,\
- list_from_sessions),]">[(&quot;PsActiveProcessHead&quot;, list_from_PsActiveProcessHe<code class="variable-ellipsis">...</code></code>
+ list_from_sessions), (&quot;Handles&quot;, list_from_handle_tables),]">[(&quot;PsActiveProcessHead&quot;, list_from_PsActiveProcessHe<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em>
     </td>
   </tr>
@@ -686,7 +686,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon May 19 16:22:11 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:11 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
