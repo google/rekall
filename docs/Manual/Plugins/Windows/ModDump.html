@@ -31,13 +31,15 @@ ript>
   <body>
 
 
+
    <nav class="navbar navbar-inverse navbar-fixed-top"
      role="navigation">
      <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
        <div class="navbar-collapse collapse">
-         <div class="navbar-header">
-           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
-         </div>
          <ul class="nav navbar-nav">
 
         <li>
@@ -77,8 +79,14 @@ ript>
         </li>
 
          </ul>
-       </div>
-     </div>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Search">
+           </div>
+           <button type="submit" class="btn btn-default">Search</button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
    </nav>
 
 <div class="container-fluid">
@@ -647,6 +655,31 @@ ript>
 
   <div class="col-md-8">
     
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/WinMemMap.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         memmap
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/ModScan.html">
+          modscan
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
 <h1>moddump</h1>
 
 <div class="abstract">
@@ -693,9 +726,36 @@ plugin.</p>
 <span class="n">Dumping</span> <span class="n">pmeA86F</span><span class="p">.</span><span class="n">tmp</span><span class="p">,</span> <span class="n">Base</span><span class="o">:</span> <span class="n">f800025ca000</span> <span class="n">output</span><span class="o">:</span> <span class="n">driver</span><span class="p">.</span><span class="n">f800025ca000</span><span class="p">.</span><span class="n">sys</span>
 </pre></div>
 
+<p>
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/WinMemMap.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         memmap
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/ModScan.html">
+          modscan
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
   </div>
   <div class="col-md-2 sidebar">
     <img src="/img/Rekall.png" class="logo"></img>
+
 
   </div>
 </div>

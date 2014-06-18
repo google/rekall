@@ -31,13 +31,15 @@ ript>
   <body>
 
 
+
    <nav class="navbar navbar-inverse navbar-fixed-top"
      role="navigation">
      <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
        <div class="navbar-collapse collapse">
-         <div class="navbar-header">
-           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
-         </div>
          <ul class="nav navbar-nav">
 
         <li>
@@ -77,8 +79,14 @@ ript>
         </li>
 
          </ul>
-       </div>
-     </div>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Search">
+           </div>
+           <button type="submit" class="btn btn-default">Search</button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
    </nav>
 
 <div class="container-fluid">
@@ -647,6 +655,31 @@ ript>
 
   <div class="col-md-8">
     
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/WinFindDTB.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         find_dtb
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/ImageInfo.html">
+          imageinfo
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
 <h1>handles</h1>
 
 <div class="abstract">
@@ -720,9 +753,36 @@ that it has an open file to the raw device <em>\Device\pmem</em> and the output 
 <span class="mh">0xe00001d0c340</span>   <span class="mi">2628</span>           <span class="mh">0x90</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">pmem</span>
 </pre></div>
 
+<p>
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/WinFindDTB.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         find_dtb
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/ImageInfo.html">
+          imageinfo
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
   </div>
   <div class="col-md-2 sidebar">
     <img src="/img/Rekall.png" class="logo"></img>
+
 
   </div>
 </div>

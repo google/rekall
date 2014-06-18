@@ -29,10 +29,11 @@ def navigation(page=None):
    <nav class="navbar navbar-inverse navbar-fixed-top"
      role="navigation">
      <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">{site.name}</a>
+       </div>
+
        <div class="navbar-collapse collapse">
-         <div class="navbar-header">
-           <a class="navbar-brand" href="#">{site.name}</a>
-         </div>
          <ul class="nav navbar-nav">
 """.format(site=SITE)
 
@@ -51,8 +52,14 @@ def navigation(page=None):
 
     result += u"""
          </ul>
-       </div>
-     </div>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Search">
+           </div>
+           <button type="submit" class="btn btn-default">Search</button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
    </nav>
 """
     return result
@@ -111,7 +118,7 @@ def blog(page=None):
 
 
 @utils.memoize
-def _render_categories(path, width):
+def _list_subpages(path):
     directories = []
     files = []
 
@@ -125,9 +132,18 @@ def _render_categories(path, width):
         else:
             files.append(page)
 
+    files.sort(key=lambda x: x.title)
+    directories.sort(key=lambda x: x.title)
+
+    return directories, files
+
+@utils.memoize
+def _render_categories(path, width):
+    directories, files = _list_subpages(path)
+
     # First render the directories in the tree.
     result = ""
-    for page in sorted(directories, key=lambda x: x.title):
+    for page in directories:
         inner_html = _render_categories(page.filename, width)
         if inner_html:
             result += """
@@ -252,6 +268,56 @@ def _MakeNavigatorForPlugin(plugin_path, width):
 """.format(**args)
 
 
+def _plugin_navbar(page):
+    """Renders the bottom nav bar in the plugins view.
+
+    Has links to next/prev plugin within the same plugin category.
+    """
+    plugin_path = os.path.dirname(page.url)
+    _, files = _list_subpages(plugin_path)
+    file_urls = [x.url for x in files]
+    prev_button = ""
+    next_button = ""
+
+    try:
+        idx = file_urls.index(page.url)
+        if idx > 0:
+            prev_button = """
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="{prev_url}">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         {prev_plugin}
+       </a>
+    </li>
+  </ul>
+""".format(prev_url=file_urls[idx-1],
+           prev_plugin=files[idx-1].title)
+
+        if idx < len(file_urls) - 1:
+            next_button = """
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="{next_url}">
+          {next_plugin}
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+""".format(next_url=file_urls[idx+1],
+           next_plugin=files[idx+1].title)
+
+        return """
+<nav class="navbar navbar-default" role="navigation">
+{prev_button}
+{next_button}
+</nav>
+""".format(prev_button=prev_button, next_button=next_button)
+
+    except (IndexError, ValueError):
+        return ""
+
+
 def plugin(page=None):
     page.html_abstract = utils.ConvertFromMD(page.abstract)
 
@@ -277,7 +343,12 @@ def plugin(page=None):
 </table>
 """
 
+    plugin_path = os.path.dirname(page.url)
+    page.plugin_navbar = _plugin_navbar(page)
+
     page.content = u"""
+{page.plugin_navbar}
+
 <h1>{page.title}</h1>
 
 <div class="abstract">
@@ -289,9 +360,11 @@ def plugin(page=None):
 {page.epydoc_link}
 
 {page.content}
+
+<p>
+{page.plugin_navbar}
 """.format(page=page, table=table)
 
-    plugin_path = os.path.dirname(page.url)
     width = page.width or 15
     page.navigator = _MakeNavigatorForPlugin(plugin_path, width)
 

@@ -31,13 +31,15 @@ ript>
   <body>
 
 
+
    <nav class="navbar navbar-inverse navbar-fixed-top"
      role="navigation">
      <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
        <div class="navbar-collapse collapse">
-         <div class="navbar-header">
-           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
-         </div>
          <ul class="nav navbar-nav">
 
         <li>
@@ -77,8 +79,14 @@ ript>
         </li>
 
          </ul>
-       </div>
-     </div>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Search">
+           </div>
+           <button type="submit" class="btn btn-default">Search</button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
    </nav>
 
 <div class="container-fluid">
@@ -647,6 +655,31 @@ ript>
 
   <div class="col-md-8">
     
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/ModScan.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         modscan
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/MutantScan.html">
+          mutantscan
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
 <h1>modules</h1>
 
 <div class="abstract">
@@ -700,9 +733,36 @@ the order they were loaded on the system.</p>
 <span class="mh">0xe00000054100</span> <span class="n">CLASSPNP</span><span class="p">.</span><span class="n">SYS</span>         <span class="mh">0xf80000800000</span>        <span class="mh">0x56000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">CLASSPNP</span><span class="p">.</span><span class="n">SYS</span>
 </pre></div>
 
+<p>
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/ModScan.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         modscan
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/MutantScan.html">
+          mutantscan
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
   </div>
   <div class="col-md-2 sidebar">
     <img src="/img/Rekall.png" class="logo"></img>
+
 
   </div>
 </div>

@@ -31,13 +31,15 @@ ript>
   <body>
 
 
+
    <nav class="navbar navbar-inverse navbar-fixed-top"
      role="navigation">
      <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
        <div class="navbar-collapse collapse">
-         <div class="navbar-header">
-           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
-         </div>
          <ul class="nav navbar-nav">
 
         <li>
@@ -77,8 +79,14 @@ ript>
         </li>
 
          </ul>
-       </div>
-     </div>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Search">
+           </div>
+           <button type="submit" class="btn btn-default">Search</button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
    </nav>
 
 <div class="container-fluid">
@@ -647,6 +655,31 @@ ript>
 
   <div class="col-md-8">
     
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/ObjectTree.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         object_tree
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/WinPas2Vas.html">
+          pas2vas
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
 <h1>object_types</h1>
 
 <div class="abstract">
@@ -659,11 +692,81 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.misc.Objects-class.html">View Source</a>
 
 
+<p>The windows kernel has the notion of a <strong>Kernel Object</strong>. Objects are managed by
+the kernel through a dedicated API. Kernel Objects are typically used to manage
+resources which the kernel manages on behalf of user space, for example, open
+files are managed via the <strong>_FILE_OBJECT</strong> object.</p>
+<p>There is a fixed number of kernel objects, each is described by an
+<strong>_OBJECT_TYPE</strong> structure, the address of which can be found at the
+<strong>ObpObjectTypes</strong> symbol.</p>
+<h3>Notes</h3>
+<ol>
+<li>
+<p>Each time a new object is created by the kernel, the <strong>Number of Objects</strong>
+   count increases. For every free&rsquo;s object, this number decreases. The counter
+   therefore represents the total number of active instances of this object
+   type.</p>
+</li>
+<li>
+<p>The number of kernel objects varies between windows kernel version. In order
+   to find the size of the <strong>ObpObjectTypes</strong> array, Rekall uses the reference
+   count on the <strong>Type</strong> object type - each kernel object type has a unique
+   <strong>_OBJECT_TYPE</strong> structure.</p>
+</li>
+<li>
+<p>The <strong>Number of Objects</strong> count also has forensic significance. For example
+   the total number of <strong>Process</strong> objects represents the total number of
+   _EPROCESS structures in current use (Note that a process may be terminated
+   but the _EPROCESS is still kept in use).</p>
+</li>
+</ol>
+<h3>Sample output</h3>
+<p>The below output indicates that there should be 41 processes active, and 548 threads.</p>
+<pre class="highlight"><code>win7.elf 01:39:36&gt; object_types
+-----------------&gt; object_types()
+Index  Number Objects PoolType        Name
+----- --------------- --------------- ----
+    2              42 NonPagedPool    Type
+    3              40 PagedPool       Directory
+    4             173 PagedPool       SymbolicLink
+    5             704 PagedPool       Token
+    6               3 NonPagedPool    Job
+    7              41 NonPagedPool    Process
+    8             548 NonPagedPool    Thread
+    9               0 NonPagedPool    UserApcReserve
+   10               1 NonPagedPool    IoCompletionReserve
+...</code></pre>
+
+<p>
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/ObjectTree.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         object_tree
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/WinPas2Vas.html">
+          pas2vas
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
 
 
   </div>
   <div class="col-md-2 sidebar">
     <img src="/img/Rekall.png" class="logo"></img>
+
 
   </div>
 </div>

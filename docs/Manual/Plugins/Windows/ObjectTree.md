@@ -82,3 +82,16 @@ win7.elf 01:29:01> print x.Object.DriverName
 \Driver\rdpbus
 ```
 
+In the next example we search for SymbolicLinks for the pmem device and discover
+when the pmem driver was loaded.
+
+```
+win7.elf 01:38:53> object_tree type_regex="Symbolic"
+0xf8a0003a58a0 SymbolicLink         . Root#MS_PPPOEMINIPORT#0000#{cac88484-7515-4c03-82e6-71a87abac361}-> \Device\00000034 (2012-10-01 21:39:55+0000)
+0xf8a0003c1030 SymbolicLink         . Root#*ISATAP#0000#{ad498944-762f-11d0-8dcb-00c04fc3358c}-> \Device\00000001 (2012-10-01 21:39:51+0000)
+0xf8a00007fda0 SymbolicLink         . WMIAdminDevice-> \Device\WMIAdminDevice (2012-10-01 21:39:45+0000)
+0xf8a0056e8dd0 SymbolicLink         . pmem-> \Device\pmem (2012-10-01 14:40:44+0000)
+0xf8a0001111c0 SymbolicLink         . Root#MS_NDISWANIP#0000#{cac88484-7515-4c03-82e6-71a87abac361}-> \Device\00000032 (2012-10-01 21:39:55+0000)
+0xf8a0003bef20 SymbolicLink         . Root#MS_NDISWANBH#0000#{cac88484-7515-4c03-82e6-71a87abac361}-> \Device\00000031 (2012-10-01 21:39:55+0000)
+0xf8a000006f40 SymbolicLink         . Global-> \GLOBAL?? (2012-10-01 21:39:45+0000)
+```

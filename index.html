@@ -31,13 +31,15 @@ ript>
   <body>
 
 
+
    <nav class="navbar navbar-inverse navbar-fixed-top"
      role="navigation">
      <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
        <div class="navbar-collapse collapse">
-         <div class="navbar-header">
-           <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
-         </div>
          <ul class="nav navbar-nav">
 
         <li>
@@ -77,8 +79,14 @@ ript>
         </li>
 
          </ul>
-       </div>
-     </div>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Search">
+           </div>
+           <button type="submit" class="btn btn-default">Search</button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
    </nav>
 
 <div class="container-fluid">
@@ -123,9 +131,8 @@ operating systems (see the tools directory).</p>
 <h2>Mailing Lists</h2>
 <p>Mailing lists to support users and developers of Rekall can be found at the
 following addresses:</p>
-<div class="highlight"><pre><span class="n">rekall</span><span class="o">-</span><span class="n">discuss</span><span class="err">@</span><span class="n">googlegroups</span><span class="p">.</span><span class="n">com</span>
-<span class="n">rekall</span><span class="o">-</span><span class="n">dev</span><span class="err">@</span><span class="n">googlegroups</span><span class="p">.</span><span class="n">com</span>
-</pre></div>
+<pre class="highlight"><code>rekall-discuss@googlegroups.com
+rekall-dev@googlegroups.com</code></pre>
 
 
 <p>You can subsribe to these groups via the <a href="https://groups.google.com">Google Groups
@@ -134,8 +141,7 @@ site</a></p>
 <p>There is no support provided with Rekall. There is NO warranty; not even for
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
 <p>If you think you&rsquo;ve found a bug, please report it at:</p>
-<div class="highlight"><pre><span class="nl">https:</span><span class="c1">//github.com/google/rekall/issues</span>
-</pre></div>
+<pre class="highlight"><code>https://github.com/google/rekall/issues</code></pre>
 
 
 <p>In order to help us solve your issues as quickly as possible,
@@ -151,6 +157,7 @@ please include the following information when filing a bug:</p>
   </div>
   <div class="col-md-2 sidebar">
     <img src="/img/Rekall.png" class="logo"></img>
+
 
   </div>
 </div>
