@@ -1777,7 +1777,162 @@ rerun the last plugin using the <em>v</em> plugin:</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_automating_rekall">4. Automating Rekall</h2>
+<h2 id="_the_rekall_session">4. The Rekall Session</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Rekall uses a <tt>Session</tt> to encapsulate analysis a single interactive analysis
+session. The reason Rekall is so fast is because information is cached in the
+session. Normally when running from the interactive console, the session
+persists in memory and therefore, the cache remains available for subsequent
+modules.</p></div>
+<div class="paragraph"><p>For example, when running the <tt>pslist</tt> module, Rekall caches all the known
+processes within the image. This cache is then subsequently used by all plugins
+which require process listing information (e.g. those plugins which can be
+filtered by process id, process name, etc).</p></div>
+<div class="paragraph"><p>You can see this by printing the session object:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>win7.elf 22:57:28&gt; print session
+Rekall Memory Forensics session Started on Tue Jun 17 22:57:30 2014.
+
+Config:
+{
+  autodetect_threshold = 1.0
+  base_filename = win7.elf
+  buffer_size = 20971520
+  cache = {
+    ObjectTypeMap = &lt;Array 0 x Pointer @ 0xF80002841300&gt;
+    PsActiveProcessHead = [_LIST_ENTRY _LIST_ENTRY] @ 0xF8000283EB30
+    default_address_space = AMD64PagedMemory@0x00187000 (Kernel AS@0x187000)
+    idle_process = [_EPROCESS _EPROCESS] @ 0x02818140 (pid=0)
+    kernel_base = 272678923661312
+    pslist_cache = {'Handles': set([275427700679504, 4, 275427701205808, 275427706255504, 275427701697328, 275427705361984, 275427697963104, 275427706065648, 275427702292576, 27542770046756, 275427696760304, 275427700103984, 275427703556656, 275427703140448, 275427707650448, 275427701734192])}
+  }
+  debug = False
+  dtb = 1601536
+  ept = None
+  filename = /home/scudette/images/win7.elf
+  help = False
+  ipython_engine = None
+  no_autodetect = False
+  nocolors = False
+  notebook_dir = /home/scudette/Worksheets/
+  output = None
+  pager = None
+  paging_limit = None
+  plugin = []
+  profile = &lt;AMD64 profile nt/GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 (Nt)&gt;
+  profile_autodetect = True
+  profile_path = ['https://raw.githubusercontent.com/google/rekall-profiles/master',
+                  'http://profiles.rekall-forensic.com']
+  renderer = TextRenderer
+  run = None
+  session_filename = None
+  timezone = UTC
+  verbose = True
+}</tt></pre>
+</div></div>
+<div class="paragraph"><p>As can be been above, the session stores not only the <tt>pslist_cache</tt>, but also
+the profile (as discovered by profile autodetection) as well as configuration
+parameters such as the location of the profile repository.</p></div>
+<div class="sect2">
+<h3 id="_saving_the_session">4.1. Saving the session</h3>
+<div class="paragraph"><p>In order to save time the next time this image is examined, we can save the
+session to disk. This essentially serializes the session cache, configuration
+and the results of previous plugins. To do this we can tell Rekall to use a file
+as the cache using the <tt>-s</tt> flag. This will cause Rekall to store the session
+after it exists and reloads it at start up time.</p></div>
+<div class="paragraph"><p>The below example shows that the first time we run the <tt>pslist</tt> plugin it takes
+significantly longer since it needs to actually list all processes using all
+supported methods, while the next time it is much faster since the process
+listing is coming from cache. Note also that on subsequent executions we do not
+need to provide any information to Rekall (such as the image filename) since it
+can read that information from the stored session.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>$ time rekal -v -f ~/images/win7.elf -s my_session.rekall pslist
+....
+INFO:root:Detected kernel base at 0xF8000261F000
+DEBUG:root:Listed 41 processes using PsActiveProcessHead
+DEBUG:root:Listed 37 processes using CSRSS
+DEBUG:root:Listed 41 processes using PspCidTable
+DEBUG:root:Listed 39 processes using Sessions
+DEBUG:root:Listed 40 processes using Handles
+0xfa80008959e0 System                    4      0     84      511 ------  False 2012-10-01 21:39:51+0000 -
+...
+INFO:root:Saving session to my_session.rekall
+
+real             0m3.051s
+user             0m2.576s
+sys              0m0.289s
+$ time rekal -v -s my_session.rekall pslist
+0xfa80008959e0 System                    4      0     84      511 ------  False 2012-10-01 21:39:51+0000 -
+.....
+real           0m1.090s
+user           0m0.830s
+sys            0m0.093s</tt></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img alt="Note" src="data:image/png;base64,
+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" />
+</td>
+<td class="content">The on disk version of the session is considered an ephemeral cache of the
+session data. We do not consider this a stable interchange format. This means
+that we do not guarantee compatibility with future versions of Rekall. At best
+the session file is merely a cache which can be deleted and recreated at any
+time. The content of the file is also not considered user viewable and should
+not be edited manually.</td>
+</tr></table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_automating_rekall">5. Automating Rekall</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>One of our main design goals is the automation of Rekall so it can be used from
 external programs easily, as well as making it easier to write custom scripts.</p></div>
@@ -1785,7 +1940,7 @@ external programs easily, as well as making it easier to write custom scripts.</
 completely inside another application, as well as simply automating the analysis
 from rekall itself.</p></div>
 <div class="sect2">
-<h3 id="_example_embedding_rekall_in_an_external_python_program">4.1. Example: Embedding Rekall in an external python program</h3>
+<h3 id="_example_embedding_rekall_in_an_external_python_program">5.1. Example: Embedding Rekall in an external python program</h3>
 <div class="paragraph"><p>In this example we will run the pslist plugin on a sample image, capture the
 text table into a string and then print this string (In a real example, this
 could be served over a HTTP or whatever).</p></div>
@@ -1906,7 +2061,7 @@ The plugin is instantiated from the session object. When a plugin instance
 </table></div>
 </div>
 <div class="sect2">
-<h3 id="_example_using_a_custom_address_space">4.2. Example: Using a custom address space</h3>
+<h3 id="_example_using_a_custom_address_space">5.2. Example: Using a custom address space</h3>
 <div class="paragraph"><p>Sometimes the image files to be analyzed are not directly written to disk. For
 example, they may be available as a python file-like object. In this case we
 want to provide this "virtual image" to Rekall for analysis, but wrapping it in
@@ -1991,7 +2146,7 @@ This step triggers the profile autodetection code which looks at the
 </table></div>
 </div>
 <div class="sect2">
-<h3 id="_example_automating_the_rekall_console">4.3. Example: Automating the Rekall Console</h3>
+<h3 id="_example_automating_the_rekall_console">5.3. Example: Automating the Rekall Console</h3>
 <div class="paragraph"><p>Much of the time the Rekall interactive interface is sufficient for most
 analysis. Sometimes, however, we need to automate some of this
 analysis.</p></div>
@@ -2121,7 +2276,7 @@ function as <em>pslist()</em>.</p></div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_extending_rekall">4.4. Extending Rekall</h3>
+<h3 id="_extending_rekall">5.4. Extending Rekall</h3>
 <div class="paragraph"><p>Extending Rekall is most useful when you want to add additional functionality
 which should be reused by other people, or contributed to the core. If you are
 just interested in automating a very specific analysis, an interactive shell
@@ -2177,7 +2332,7 @@ Plugins
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-06-18 15:28:16 CEST
+Last updated 2014-06-18 22:42:49 CEST
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

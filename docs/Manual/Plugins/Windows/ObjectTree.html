@@ -661,7 +661,74 @@ http://msdn.microsoft.com/en-us/library/windows/hardware/ff557762(v=vs.85).aspx<
 <a href="/epydocs/rekall.plugins.windows.misc.ObjectTree-class.html">View Source</a>
 
 
+<p>The windows kernel has the notion of a <strong>Kernel Object</strong>. Objects are managed by
+the kernel through a dedicated API. Kernel Objects are typically used to manage
+resources which the kernel manages on behalf of user space, for example, open
+files are managed via the <strong>_FILE_OBJECT</strong> object.</p>
+<p>Objects can be named using a directory structure not unlike a
+filesystem. Objects are placed inside an <strong>_OBJECT_DIRECTORY</strong> object which
+contains other objects, including other directories. This means that named
+kernel objects forma tree in memory.</p>
+<p>It is possible to discover all currently in-use named objects by following this
+object tree in memory, which is what this plugin does. This is an alternative to
+the scanning approach employed by plugins like <strong>psscan</strong>, <strong>driverscan</strong> etc.</p>
+<h3>Notes</h3>
+<ol>
+<li>
+<p>The object tree only tracks named objects. So for example Process objects are
+   typically not tracked here, but Mutants, SymbolicLinks etc are.</p>
+</li>
+<li>
+<p>It is possible to filter objects by types. So for example to enumerate all
+   Mutants one would use the <strong>type_regex=&rdquo;Mutant&rdquo;</strong> option.</p>
+</li>
+<li>
+<p><em>SymbolicLinks</em> also contain the timestamp when they were created. Note that
+   SymbolicLinks are typically used to provide userspace access to a kernel
+   driver (via the <em>CreateFile</em> api), so a timestamp here is a good indication
+   of when a driver was loaded.</p>
+</li>
+</ol>
+<h3>Sample output</h3>
+<div class="highlight"><pre><span class="cp"># Enumeate all drivers</span>
+<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">01</span><span class="o">:</span><span class="mi">25</span><span class="o">:</span><span class="mi">12</span><span class="o">&gt;</span> <span class="n">object_tree</span> <span class="n">type_regex</span><span class="o">=</span><span class="s">&quot;Driver&quot;</span>
+<span class="o">-----------------&gt;</span> <span class="n">object_tree</span><span class="p">(</span><span class="n">type_regex</span><span class="o">=</span><span class="s">&quot;Driver&quot;</span><span class="p">)</span>
+<span class="n">_OBJECT_HEADER</span> <span class="n">Type</span>                 <span class="n">Name</span>
+<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">--------------------</span>
+<span class="mh">0xfa80025e5d10</span> <span class="n">Driver</span>               <span class="p">.</span> <span class="n">mrxsmb10</span>
+<span class="mh">0xfa80025e1190</span> <span class="n">Driver</span>               <span class="p">.</span> <span class="n">mrxsmb</span>
+<span class="mh">0xfa8001953940</span> <span class="n">Driver</span>               <span class="p">.</span> <span class="n">mrxsmb20</span>
+<span class="p">....</span>
 
+<span class="cp"># We can examine a specific object using the virtual offset.</span>
+
+<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">01</span><span class="o">:</span><span class="mi">28</span><span class="o">:</span><span class="mi">18</span><span class="o">&gt;</span> <span class="n">x</span><span class="o">=</span><span class="n">profile</span><span class="p">.</span><span class="n">_OBJECT_HEADER</span><span class="p">(</span><span class="mh">0xfa80019fb8d0</span><span class="p">)</span>
+<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">01</span><span class="o">:</span><span class="mi">28</span><span class="o">:</span><span class="mi">34</span><span class="o">&gt;</span> <span class="n">print</span> <span class="n">x</span><span class="p">.</span><span class="n">get_object_type</span><span class="p">()</span>
+<span class="n">Driver</span>
+
+<span class="cp"># We can dereference the exact object contained in this header (in this case</span>
+<span class="cp">#  _DRIVER_OBJECT.</span>
+
+<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">01</span><span class="o">:</span><span class="mi">28</span><span class="o">:</span><span class="mi">40</span><span class="o">&gt;</span> <span class="n">print</span> <span class="n">x</span><span class="p">.</span><span class="n">Object</span>
+<span class="p">[</span><span class="n">_DRIVER_OBJECT</span> <span class="n">_DRIVER_OBJECT</span><span class="p">]</span> <span class="err">@</span> <span class="mh">0xFA80019FB900</span>
+  <span class="mh">0x00</span> <span class="n">Type</span>              <span class="p">[</span><span class="kt">short</span><span class="o">:</span><span class="n">Type</span><span class="p">]</span><span class="o">:</span> <span class="mh">0x00000004</span>
+  <span class="mh">0x02</span> <span class="n">Size</span>              <span class="p">[</span><span class="kt">short</span><span class="o">:</span><span class="n">Size</span><span class="p">]</span><span class="o">:</span> <span class="mh">0x00000150</span>
+  <span class="mh">0x08</span> <span class="n">DeviceObject</span>     <span class="o">&lt;</span><span class="n">_DEVICE_OBJECT</span> <span class="n">Pointer</span> <span class="n">to</span> <span class="p">[</span><span class="mh">0xFA80019FB550</span><span class="p">]</span> <span class="p">(</span><span class="n">DeviceObject</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="mh">0x10</span> <span class="n">Flags</span>             <span class="p">[</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="o">:</span><span class="n">Flags</span><span class="p">]</span><span class="o">:</span> <span class="mh">0x00000012</span>
+  <span class="mh">0x18</span> <span class="n">DriverStart</span>      <span class="o">&lt;</span><span class="n">Void</span> <span class="n">Pointer</span> <span class="n">to</span> <span class="p">[</span><span class="mh">0xF88003B45000</span><span class="p">]</span> <span class="p">(</span><span class="n">DriverStart</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="mh">0x20</span> <span class="n">DriverSize</span>        <span class="p">[</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="o">:</span><span class="n">DriverSize</span><span class="p">]</span><span class="o">:</span> <span class="mh">0x0000B000</span>
+  <span class="mh">0x28</span> <span class="n">DriverSection</span>    <span class="o">&lt;</span><span class="n">Void</span> <span class="n">Pointer</span> <span class="n">to</span> <span class="p">[</span><span class="mh">0xFA80019FB7C0</span><span class="p">]</span> <span class="p">(</span><span class="n">DriverSection</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="mh">0x30</span> <span class="n">DriverExtension</span>  <span class="o">&lt;</span><span class="n">_DRIVER_EXTENSION</span> <span class="n">Pointer</span> <span class="n">to</span> <span class="p">[</span><span class="mh">0xFA80019FBA50</span><span class="p">]</span> <span class="p">(</span><span class="n">DriverExtension</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="mh">0x38</span> <span class="n">DriverName</span>       <span class="p">[</span><span class="n">_UNICODE_STRING</span> <span class="n">DriverName</span><span class="p">]</span> <span class="err">@</span> <span class="mh">0xFA80019FB938</span> <span class="p">(</span><span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">rdpbus</span><span class="p">)</span>
+  <span class="mh">0x48</span> <span class="n">HardwareDatabase</span> <span class="o">&lt;</span><span class="n">_UNICODE_STRING</span> <span class="n">Pointer</span> <span class="n">to</span> <span class="p">[</span><span class="mh">0xF80002B59558</span><span class="p">]</span> <span class="p">(</span><span class="n">HardwareDatabase</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="mh">0x50</span> <span class="n">FastIoDispatch</span>   <span class="o">&lt;</span><span class="n">_FAST_IO_DISPATCH</span> <span class="n">Pointer</span> <span class="n">to</span> <span class="p">[</span><span class="mh">0x00000000</span><span class="p">]</span> <span class="p">(</span><span class="n">FastIoDispatch</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="mh">0x58</span> <span class="n">DriverInit</span>       <span class="o">&lt;</span><span class="n">Function</span> <span class="n">Pointer</span> <span class="n">to</span> <span class="p">[</span><span class="mh">0xF88003B4D1B0</span><span class="p">]</span> <span class="p">(</span><span class="n">DriverInit</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="mh">0x60</span> <span class="n">DriverStartIo</span>    <span class="o">&lt;</span><span class="n">Function</span> <span class="n">Pointer</span> <span class="n">to</span> <span class="p">[</span><span class="mh">0x00000000</span><span class="p">]</span> <span class="p">(</span><span class="n">DriverStartIo</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="mh">0x68</span> <span class="n">DriverUnload</span>     <span class="o">&lt;</span><span class="n">Function</span> <span class="n">Pointer</span> <span class="n">to</span> <span class="p">[</span><span class="mh">0xF88003B4B480</span><span class="p">]</span> <span class="p">(</span><span class="n">DriverUnload</span><span class="p">)</span><span class="o">&gt;</span>
+  <span class="mh">0x70</span> <span class="n">MajorFunction</span>    <span class="o">&lt;</span><span class="n">IndexedArray</span> <span class="mi">28</span> <span class="n">x</span> <span class="n">Pointer</span> <span class="err">@</span> <span class="mh">0xFA80019FB970</span><span class="o">&gt;</span>
+<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">01</span><span class="o">:</span><span class="mi">29</span><span class="o">:</span><span class="mo">01</span><span class="o">&gt;</span> <span class="n">print</span> <span class="n">x</span><span class="p">.</span><span class="n">Object</span><span class="p">.</span><span class="n">DriverName</span>
+<span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">rdpbus</span>
+</pre></div>
 
   </div>
   <div class="col-md-2 sidebar">

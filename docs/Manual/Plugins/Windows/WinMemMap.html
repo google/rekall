@@ -666,7 +666,40 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.taskmods.WinMemMap-class.html">View Source</a>
 
 
+<p>To enumerate the address space of a process use this plugin.</p>
+<p>It is not that useful in practice, unless you want to manually translate a
+physical address to a virtual address.</p>
+<h3>Notes</h3>
+<ol>
+<li>
+<p>It is not often necessary to dump the entire page tables of each
+   process. Instead it is possible to first switch to the process context (using
+   the <strong>cc</strong> plugin), and then use <em>vtop</em> to translate the virtual address to
+   physical address.</p>
+</li>
+<li>
+<p>Similar to the <strong>memdump</strong> plugin, we do not dump the kernel address space
+   portion for processes unless the <strong>all</strong> parameter is specified.</p>
+</li>
+</ol>
+<h3>Sample output</h3>
+<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">00</span><span class="o">:</span><span class="mi">54</span><span class="o">:</span><span class="mi">22</span><span class="o">&gt;</span> <span class="n">memmap</span> <span class="n">pid</span><span class="o">=</span><span class="mi">2912</span>
+<span class="o">-----------------&gt;</span> <span class="n">memmap</span><span class="p">(</span><span class="n">pid</span><span class="o">=</span><span class="mi">2912</span><span class="p">)</span>
+<span class="o">**************************************************</span>
+<span class="nl">Process:</span> <span class="err">&#39;</span><span class="n">vol</span><span class="p">.</span><span class="n">exe</span><span class="err">&#39;</span> <span class="n">pid</span><span class="o">:</span> <span class="mi">2912</span>
 
+<span class="n">Dumping</span> <span class="n">address</span> <span class="n">space</span> <span class="n">at</span> <span class="n">DTB</span> <span class="mh">0x271ec000</span>
+
+   <span class="n">Virtual</span>        <span class="n">Physical</span>         <span class="n">Size</span>
+<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------</span>
+<span class="mh">0x000000010000</span> <span class="mh">0x000007c4c000</span>         <span class="mh">0x1000</span>
+<span class="mh">0x000000020000</span> <span class="mh">0x00000818f000</span>         <span class="mh">0x1000</span>
+<span class="mh">0x000000021000</span> <span class="mh">0x000007e11000</span>         <span class="mh">0x1000</span>
+<span class="mh">0x00000002f000</span> <span class="mh">0x000008010000</span>         <span class="mh">0x1000</span>
+<span class="mh">0x000000040000</span> <span class="mh">0x00002428e000</span>         <span class="mh">0x1000</span>
+<span class="mh">0x000000050000</span> <span class="mh">0x000001e6b000</span>         <span class="mh">0x1000</span>
+<span class="mh">0x000000051000</span> <span class="mh">0x000007f49000</span>         <span class="mh">0x1000</span>
+</pre></div>
 
   </div>
   <div class="col-md-2 sidebar">
