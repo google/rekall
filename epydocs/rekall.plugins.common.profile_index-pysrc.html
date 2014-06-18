@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.common.profile_index</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.common-module.html">Package&nbsp;common</a> ::
+        Module&nbsp;profile_index
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.common.profile_index-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.common.profile_index-module.html">Module rekall.plugins.common.profile_index</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2014 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-docstring">"""This module implements profile indexing.</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">Rekall relies on accurate profiles for reliable analysis of memory artifacts. We</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring">depend on selecting the correct profile from the profile repository, but</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-docstring">sometimes it's hard to determine the exact profile to use. The profile</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-docstring">repository has index files that are used to lookup the correct profile quickly,</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-docstring">based on a limited set of symbols and offsets that are known, or can be easily</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-docstring">detected, about the image.</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">    <tt class="py-string">"Michael Cohen &lt;scudette@google.com&gt;"</tt><tt class="py-op">,</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">    <tt class="py-string">"Adam Sindelar &lt;adamsh@google.com&gt;"</tt><tt class="py-op">,</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-op">)</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.addrspace=rekall.addrspace-module.html"><a title="rekall.addrspace" class="py-name" href="#" onclick="return doclink('link-1', 'addrspace', 'link-1');">addrspace</a></tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-2', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Module rekall.obj=rekall.obj-module.html"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-3', 'obj', 'link-3');">obj</a></tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"> </tt>
+<a name="Index"></a><div id="Index-def"><a name="L40"></a><tt class="py-lineno"> 40</tt> <a class="py-toggle" href="#" id="Index-toggle" onclick="return toggle('Index');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index.Index-class.html">Index</a><tt class="py-op">(</tt><tt class="py-base-class">obj</tt><tt class="py-op">.</tt><tt class="py-base-class">Profile</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Index-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="Index-expanded"><a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">    <tt class="py-docstring">"""A profile which contains an index to locate other profiles."""</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">    <tt id="link-4" class="py-name" targets="Variable rekall.plugins.common.profile_index.Index.index=rekall.plugins.common.profile_index.Index-class.html#index,Module rekall.plugins.windows.index=rekall.plugins.windows.index-module.html,Method rekall.utils.SortedCollection.index()=rekall.utils.SortedCollection-class.html#index"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-4', 'index', 'link-4');">index</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">    <tt id="link-5" class="py-name" targets="Variable rekall.plugins.common.profile_index.Index.base_offset=rekall.plugins.common.profile_index.Index-class.html#base_offset"><a title="rekall.plugins.common.profile_index.Index.base_offset" class="py-name" href="#" onclick="return doclink('link-5', 'base_offset', 'link-5');">base_offset</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">    <tt id="link-6" class="py-name" targets="Variable rekall.plugins.common.profile_index.Index.PERFECT_MATCH=rekall.plugins.common.profile_index.Index-class.html#PERFECT_MATCH"><a title="rekall.plugins.common.profile_index.Index.PERFECT_MATCH" class="py-name" href="#" onclick="return doclink('link-6', 'PERFECT_MATCH', 'link-6');">PERFECT_MATCH</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1.0</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">    <tt id="link-7" class="py-name" targets="Variable rekall.plugins.common.profile_index.Index.GOOD_MATCH=rekall.plugins.common.profile_index.Index-class.html#GOOD_MATCH"><a title="rekall.plugins.common.profile_index.Index.GOOD_MATCH" class="py-name" href="#" onclick="return doclink('link-7', 'GOOD_MATCH', 'link-7');">GOOD_MATCH</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0.75</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"> </tt>
+<a name="Index._SetupProfileFromData"></a><div id="Index._SetupProfileFromData-def"><a name="L48"></a><tt class="py-lineno"> 48</tt> <a class="py-toggle" href="#" id="Index._SetupProfileFromData-toggle" onclick="return toggle('Index._SetupProfileFromData');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index.Index-class.html#_SetupProfileFromData">_SetupProfileFromData</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">data</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Index._SetupProfileFromData-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Index._SetupProfileFromData-expanded"><a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">        <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-8" class="py-name" targets="Class rekall.plugins.common.profile_index.Index=rekall.plugins.common.profile_index.Index-class.html"><a title="rekall.plugins.common.profile_index.Index" class="py-name" href="#" onclick="return doclink('link-8', 'Index', 'link-8');">Index</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">_SetupProfileFromData</tt><tt class="py-op">(</tt><tt id="link-9" class="py-name" targets="Variable rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data=rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE-class.html#data,Variable rekall.ui.json_renderer.JsonRenderer.data=rekall.ui.json_renderer.JsonRenderer-class.html#data,Variable rekall.utils.Node.data=rekall.utils.Node-class.html#data"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-9', 'data', 'link-9');">data</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-10', 'index', 'link-4');">index</a></tt> <tt class="py-op">=</tt> <tt id="link-11" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-11', 'data', 'link-9');">data</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Method rekall.entity.Entity.get()=rekall.entity.Entity-class.html#get"><a title="rekall.entity.Entity.get" class="py-name" href="#" onclick="return doclink('link-12', 'get', 'link-12');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">"$INDEX"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"> </tt>
+<a name="Index.copy"></a><div id="Index.copy-def"><a name="L52"></a><tt class="py-lineno"> 52</tt> <a class="py-toggle" href="#" id="Index.copy-toggle" onclick="return toggle('Index.copy');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index.Index-class.html#copy">copy</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Index.copy-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Index.copy-expanded"><a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-13" class="py-name"><a title="rekall.plugins.common.profile_index.Index" class="py-name" href="#" onclick="return doclink('link-13', 'Index', 'link-8');">Index</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name" targets="Method rekall.obj.Profile.copy()=rekall.obj.Profile-class.html#copy,Method rekall.plugins.common.profile_index.Index.copy()=rekall.plugins.common.profile_index.Index-class.html#copy,Method rekall.plugins.overlays.windows.windows.BasicPEProfile.copy()=rekall.plugins.overlays.windows.windows.BasicPEProfile-class.html#copy,Method rekall.utils.SortedCollection.copy()=rekall.utils.SortedCollection-class.html#copy"><a title="rekall.obj.Profile.copy
+rekall.plugins.common.profile_index.Index.copy
+rekall.plugins.overlays.windows.windows.BasicPEProfile.copy
+rekall.utils.SortedCollection.copy" class="py-name" href="#" onclick="return doclink('link-14', 'copy', 'link-14');">copy</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">        <tt class="py-name">result</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-15', 'index', 'link-4');">index</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-16', 'index', 'link-4');">index</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.obj.Profile.copy
+rekall.plugins.common.profile_index.Index.copy
+rekall.plugins.overlays.windows.windows.BasicPEProfile.copy
+rekall.utils.SortedCollection.copy" class="py-name" href="#" onclick="return doclink('link-17', 'copy', 'link-14');">copy</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">result</tt> </tt>
+</div><a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"> </tt>
+<a name="Index._TestSymbols"></a><div id="Index._TestSymbols-def"><a name="L58"></a><tt class="py-lineno"> 58</tt> <a class="py-toggle" href="#" id="Index._TestSymbols-toggle" onclick="return toggle('Index._TestSymbols');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index.Index-class.html#_TestSymbols">_TestSymbols</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">address_space</tt><tt class="py-op">,</tt> <tt class="py-param">offset</tt><tt class="py-op">,</tt> <tt class="py-param">possible_values</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Index._TestSymbols-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Index._TestSymbols-expanded"><a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">        <tt class="py-docstring">"""Match any of the possible_values at offset.</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt class="py-docstring">        Return True if there is a match.</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">value</tt> <tt class="py-keyword">in</tt> <tt class="py-name">possible_values</tt><tt class="py-op">:</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">            <tt class="py-name">value</tt> <tt class="py-op">=</tt> <tt class="py-name">value</tt><tt class="py-op">.</tt><tt class="py-name">decode</tt><tt class="py-op">(</tt><tt class="py-string">"hex"</tt><tt class="py-op">)</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">            <tt id="link-18" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-18', 'data', 'link-9');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-name">address_space</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.read()=rekall.addrspace.BaseAddressSpace-class.html#read,Method rekall.addrspace.BufferAddressSpace.read()=rekall.addrspace.BufferAddressSpace-class.html#read,Method rekall.addrspace.CachingAddressSpaceMixIn.read()=rekall.addrspace.CachingAddressSpaceMixIn-class.html#read,Method rekall.addrspace.PagedReader.read()=rekall.addrspace.PagedReader-class.html#read,Method rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read()=rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory-class.html#read,Method rekall.plugins.addrspaces.ewf.ewffile.read()=rekall.plugins.addrspaces.ewf.ewffile-class.html#read,Method rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read()=rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace-class.html#read,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.read()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#read,Method rekall.plugins.addrspaces.standard.FDAddressSpace.read()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#read,Method rekall.plugins.addrspaces.standard.WriteableAddressSpaceMixIn.read()=rekall.plugins.addrspaces.standard.WriteableAddressSpaceMixIn-class.html#read,Method rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.read()=rekall.plugins.overlays.windows.ntfs.FixupAddressSpace-class.html#read,Method rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.read()=rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace-class.html#read"><a title="rekall.addrspace.BaseAddressSpace.read
+rekall.addrspace.BufferAddressSpace.read
+rekall.addrspace.CachingAddressSpaceMixIn.read
+rekall.addrspace.PagedReader.read
+rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read
+rekall.plugins.addrspaces.ewf.ewffile.read
+rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.read
+rekall.plugins.addrspaces.standard.FDAddressSpace.read
+rekall.plugins.addrspaces.standard.WriteableAddressSpaceMixIn.read
+rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.read
+rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.read" class="py-name" href="#" onclick="return doclink('link-19', 'read', 'link-19');">read</a></tt><tt class="py-op">(</tt><tt id="link-20" class="py-name" targets="Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#offset"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-20', 'offset', 'link-20');">offset</a></tt><tt class="py-op">,</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">value</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">value</tt> <tt class="py-op">==</tt> <tt id="link-21" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-21', 'data', 'link-9');">data</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">True</tt> </tt>
+</div><a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"> </tt>
+<a name="Index._TestProfile"></a><div id="Index._TestProfile-def"><a name="L69"></a><tt class="py-lineno"> 69</tt> <a class="py-toggle" href="#" id="Index._TestProfile-toggle" onclick="return toggle('Index._TestProfile');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index.Index-class.html#_TestProfile">_TestProfile</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">address_space</tt><tt class="py-op">,</tt> <tt class="py-param">image_base</tt><tt class="py-op">,</tt> <tt class="py-param">profile</tt><tt class="py-op">,</tt> <tt class="py-param">symbols</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Index._TestProfile-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Index._TestProfile-expanded"><a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">        <tt class="py-docstring">"""Match _all_ the symbols against this data."""</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">        <tt class="py-name">count_matched</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-22" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-22', 'offset', 'link-20');">offset</a></tt><tt class="py-op">,</tt> <tt class="py-name">possible_values</tt> <tt class="py-keyword">in</tt> <tt class="py-name">symbols</tt><tt class="py-op">:</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">            <tt class="py-comment"># The possible_values can be a single string which means there is</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">            <tt class="py-comment"># only one option. If it is a list, then any of the symbols may</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">            <tt class="py-comment"># match at this offset to be considered a match.</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">possible_values</tt><tt class="py-op">,</tt> <tt class="py-name">basestring</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">                <tt class="py-name">possible_values</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">possible_values</tt><tt class="py-op">]</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_TestSymbols</tt><tt class="py-op">(</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">                <tt class="py-name">address_space</tt><tt class="py-op">=</tt><tt class="py-name">address_space</tt><tt class="py-op">,</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">                <tt id="link-23" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-23', 'offset', 'link-20');">offset</a></tt><tt class="py-op">=</tt><tt id="link-24" class="py-name" targets="Variable rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.image_base=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#image_base,Variable rekall.plugins.overlays.windows.windows.BasicPEProfile.image_base=rekall.plugins.overlays.windows.windows.BasicPEProfile-class.html#image_base"><a title="rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.image_base
+rekall.plugins.overlays.windows.windows.BasicPEProfile.image_base" class="py-name" href="#" onclick="return doclink('link-24', 'image_base', 'link-24');">image_base</a></tt> <tt class="py-op">+</tt> <tt id="link-25" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-25', 'offset', 'link-20');">offset</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">                <tt class="py-name">possible_values</tt><tt class="py-op">=</tt><tt class="py-name">possible_values</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">                <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">                    <tt class="py-string">"%s matched offset %#x+%#x=%#x"</tt><tt class="py-op">,</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">                    <tt class="py-name">profile</tt><tt class="py-op">,</tt> <tt id="link-26" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-26', 'offset', 'link-20');">offset</a></tt><tt class="py-op">,</tt> <tt id="link-27" class="py-name"><a title="rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.image_base
+rekall.plugins.overlays.windows.windows.BasicPEProfile.image_base" class="py-name" href="#" onclick="return doclink('link-27', 'image_base', 'link-24');">image_base</a></tt><tt class="py-op">,</tt> <tt id="link-28" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-28', 'offset', 'link-20');">offset</a></tt><tt class="py-op">+</tt><tt id="link-29" class="py-name"><a title="rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.image_base
+rekall.plugins.overlays.windows.windows.BasicPEProfile.image_base" class="py-name" href="#" onclick="return doclink('link-29', 'image_base', 'link-24');">image_base</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">                <tt class="py-name">count_matched</tt> <tt class="py-op">+=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">count_matched</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">            <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">                <tt class="py-string">"%s matches %d/%d comparison points"</tt><tt class="py-op">,</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">                <tt class="py-name">profile</tt><tt class="py-op">,</tt> <tt class="py-name">count_matched</tt><tt class="py-op">,</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">symbols</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">float</tt><tt class="py-op">(</tt><tt class="py-name">count_matched</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">symbols</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"> </tt>
+<a name="Index.IndexHits"></a><div id="Index.IndexHits-def"><a name="L95"></a><tt class="py-lineno"> 95</tt> <a class="py-toggle" href="#" id="Index.IndexHits-toggle" onclick="return toggle('Index.IndexHits');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index.Index-class.html#IndexHits">IndexHits</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">image_base</tt><tt class="py-op">,</tt> <tt class="py-param">address_space</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Index.IndexHits-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Index.IndexHits-expanded"><a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">address_space</tt> <tt class="py-op">==</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">            <tt class="py-name">address_space</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-30', 'session', 'link-30');">session</a></tt><tt class="py-op">.</tt><tt id="link-31" class="py-name" targets="Method rekall.session.Session.GetParameter()=rekall.session.Session-class.html#GetParameter"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-31', 'GetParameter', 'link-31');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"default_address_space"</tt><tt class="py-op">)</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-comment"># Only preload the data we need to read, based on the known max offset.</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt class="py-name">min_offset</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name" targets="Class Method rekall.addrspace.BaseAddressSpace.metadata()=rekall.addrspace.BaseAddressSpace-class.html#metadata,Method rekall.obj.Profile.metadata()=rekall.obj.Profile-class.html#metadata"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.obj.Profile.metadata" class="py-name" href="#" onclick="return doclink('link-32', 'metadata', 'link-32');">metadata</a></tt><tt class="py-op">(</tt><tt class="py-string">"MinOffset"</tt><tt class="py-op">,</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt> <tt class="py-op">+</tt> <tt id="link-33" class="py-name"><a title="rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.image_base
+rekall.plugins.overlays.windows.windows.BasicPEProfile.image_base" class="py-name" href="#" onclick="return doclink('link-33', 'image_base', 'link-24');">image_base</a></tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt class="py-name">max_offset</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.obj.Profile.metadata" class="py-name" href="#" onclick="return doclink('link-34', 'metadata', 'link-32');">metadata</a></tt><tt class="py-op">(</tt><tt class="py-string">"MaxOffset"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">*</tt><tt class="py-number">1024</tt><tt class="py-op">*</tt><tt class="py-number">1024</tt><tt class="py-op">)</tt> <tt class="py-op">+</tt> <tt id="link-35" class="py-name"><a title="rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.image_base
+rekall.plugins.overlays.windows.windows.BasicPEProfile.image_base" class="py-name" href="#" onclick="return doclink('link-35', 'image_base', 'link-24');">image_base</a></tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">        <tt id="link-36" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-36', 'data', 'link-9');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-name">address_space</tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.read
+rekall.addrspace.BufferAddressSpace.read
+rekall.addrspace.CachingAddressSpaceMixIn.read
+rekall.addrspace.PagedReader.read
+rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read
+rekall.plugins.addrspaces.ewf.ewffile.read
+rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.read
+rekall.plugins.addrspaces.standard.FDAddressSpace.read
+rekall.plugins.addrspaces.standard.WriteableAddressSpaceMixIn.read
+rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.read
+rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.read" class="py-name" href="#" onclick="return doclink('link-37', 'read', 'link-19');">read</a></tt><tt class="py-op">(</tt><tt class="py-name">min_offset</tt><tt class="py-op">,</tt> <tt class="py-name">max_offset</tt> <tt class="py-op">-</tt> <tt class="py-name">min_offset</tt><tt class="py-op">)</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">        <tt class="py-name">address_space</tt> <tt class="py-op">=</tt> <tt id="link-38" class="py-name"><a title="rekall.addrspace" class="py-name" href="#" onclick="return doclink('link-38', 'addrspace', 'link-1');">addrspace</a></tt><tt class="py-op">.</tt><tt id="link-39" class="py-name" targets="Class rekall.addrspace.BufferAddressSpace=rekall.addrspace.BufferAddressSpace-class.html"><a title="rekall.addrspace.BufferAddressSpace" class="py-name" href="#" onclick="return doclink('link-39', 'BufferAddressSpace', 'link-39');">BufferAddressSpace</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">            <tt id="link-40" class="py-name"><a title="rekall.plugins.common.profile_index.Index.base_offset" class="py-name" href="#" onclick="return doclink('link-40', 'base_offset', 'link-5');">base_offset</a></tt><tt class="py-op">=</tt><tt class="py-name">min_offset</tt><tt class="py-op">,</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">            <tt id="link-41" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-41', 'data', 'link-9');">data</a></tt><tt class="py-op">=</tt><tt id="link-42" class="py-name"><a title="rekall.plugins.overlays.windows.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-42', 'data', 'link-9');">data</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">            <tt id="link-43" class="py-name"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-43', 'session', 'link-30');">session</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-44', 'session', 'link-30');">session</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">profile</tt><tt class="py-op">,</tt> <tt class="py-name">symbols</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-45" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-45', 'index', 'link-4');">index</a></tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">            <tt class="py-name">match</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_TestProfile</tt><tt class="py-op">(</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">                <tt class="py-name">address_space</tt><tt class="py-op">=</tt><tt class="py-name">address_space</tt><tt class="py-op">,</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">                <tt id="link-46" class="py-name"><a title="rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.image_base
+rekall.plugins.overlays.windows.windows.BasicPEProfile.image_base" class="py-name" href="#" onclick="return doclink('link-46', 'image_base', 'link-24');">image_base</a></tt><tt class="py-op">=</tt><tt id="link-47" class="py-name"><a title="rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.image_base
+rekall.plugins.overlays.windows.windows.BasicPEProfile.image_base" class="py-name" href="#" onclick="return doclink('link-47', 'image_base', 'link-24');">image_base</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">                <tt class="py-name">profile</tt><tt class="py-op">=</tt><tt class="py-name">profile</tt><tt class="py-op">,</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">                <tt class="py-name">symbols</tt><tt class="py-op">=</tt><tt class="py-name">symbols</tt><tt class="py-op">)</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-name">match</tt><tt class="py-op">,</tt> <tt class="py-name">profile</tt> </tt>
+</div><a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line"> </tt>
+<a name="Index.LookupIndex"></a><div id="Index.LookupIndex-def"><a name="L118"></a><tt class="py-lineno">118</tt> <a class="py-toggle" href="#" id="Index.LookupIndex-toggle" onclick="return toggle('Index.LookupIndex');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index.Index-class.html#LookupIndex">LookupIndex</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">image_base</tt><tt class="py-op">,</tt> <tt class="py-param">address_space</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">                    <tt class="py-param">threshold</tt><tt class="py-op">=</tt><tt id="link-48" class="py-name"><a title="rekall.plugins.common.profile_index.Index.PERFECT_MATCH" class="py-name" href="#" onclick="return doclink('link-48', 'PERFECT_MATCH', 'link-6');">PERFECT_MATCH</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="Index.LookupIndex-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="Index.LookupIndex-expanded"><a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">        <tt class="py-name">partial_matches</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">match</tt><tt class="py-op">,</tt> <tt class="py-name">profile</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name" targets="Method rekall.plugins.common.profile_index.Index.IndexHits()=rekall.plugins.common.profile_index.Index-class.html#IndexHits"><a title="rekall.plugins.common.profile_index.Index.IndexHits" class="py-name" href="#" onclick="return doclink('link-49', 'IndexHits', 'link-49');">IndexHits</a></tt><tt class="py-op">(</tt><tt id="link-50" class="py-name"><a title="rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.image_base
+rekall.plugins.overlays.windows.windows.BasicPEProfile.image_base" class="py-name" href="#" onclick="return doclink('link-50', 'image_base', 'link-24');">image_base</a></tt><tt class="py-op">,</tt> <tt class="py-name">address_space</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">match</tt> <tt class="py-op">==</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name"><a title="rekall.plugins.common.profile_index.Index.PERFECT_MATCH" class="py-name" href="#" onclick="return doclink('link-51', 'PERFECT_MATCH', 'link-6');">PERFECT_MATCH</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">                <tt class="py-comment"># Yield perfect matches right away.</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">                <tt class="py-keyword">yield</tt> <tt class="py-name">profile</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt class="py-name">match</tt> <tt class="py-op">&gt;=</tt> <tt class="py-name">threshold</tt><tt class="py-op">:</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">                <tt class="py-comment"># Imperfect matches will be saved and returned in order of</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">                <tt class="py-comment"># accuracy.</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                <tt class="py-name">partial_matches</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">match</tt><tt class="py-op">,</tt> <tt class="py-name">profile</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line"> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">        <tt class="py-name">partial_matches</tt><tt class="py-op">.</tt><tt class="py-name">sort</tt><tt class="py-op">(</tt><tt class="py-name">reverse</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">match</tt><tt class="py-op">,</tt> <tt class="py-name">profile</tt> <tt class="py-keyword">in</tt> <tt class="py-name">partial_matches</tt><tt class="py-op">:</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-name">profile</tt> </tt>
+</div></div><a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:41 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

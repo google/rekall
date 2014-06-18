@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -111,9 +111,9 @@ rekall.plugins.windows.gui.constants" class="py-name" href="#" onclick="return d
 <a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"><tt class="py-comment"># not have an existing file. The aim is not to exhaustively list all possible</tt> </tt>
 <a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"><tt class="py-comment"># options, rather to ensure that reasonable defaults are specified initially.</tt> </tt>
 <a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt id="link-4" class="py-name" targets="Variable rekall.config.DEFAULT_CONFIGURATION=rekall.config-module.html#DEFAULT_CONFIGURATION"><a title="rekall.config.DEFAULT_CONFIGURATION" class="py-name" href="#" onclick="return doclink('link-4', 'DEFAULT_CONFIGURATION', 'link-4');">DEFAULT_CONFIGURATION</a></tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt> </tt>
-<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">    <tt class="py-name">profile_path</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt id="link-5" class="py-name"><a title="rekall.constants
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">    <tt class="py-name">profile_path</tt><tt class="py-op">=</tt><tt id="link-5" class="py-name"><a title="rekall.constants
 rekall.obj.Profile.constants
-rekall.plugins.windows.gui.constants" class="py-name" href="#" onclick="return doclink('link-5', 'constants', 'link-1');">constants</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Variable rekall.constants.PROFILE_REPOSITORY=rekall.constants-module.html#PROFILE_REPOSITORY"><a title="rekall.constants.PROFILE_REPOSITORY" class="py-name" href="#" onclick="return doclink('link-6', 'PROFILE_REPOSITORY', 'link-6');">PROFILE_REPOSITORY</a></tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+rekall.plugins.windows.gui.constants" class="py-name" href="#" onclick="return doclink('link-5', 'constants', 'link-1');">constants</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Variable rekall.constants.PROFILE_REPOSITORIES=rekall.constants-module.html#PROFILE_REPOSITORIES"><a title="rekall.constants.PROFILE_REPOSITORIES" class="py-name" href="#" onclick="return doclink('link-6', 'PROFILE_REPOSITORIES', 'link-6');">PROFILE_REPOSITORIES</a></tt><tt class="py-op">,</tt> </tt>
 <a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
 <a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">    <tt class="py-comment"># By default we just drop the notebooks at the home directory.</tt> </tt>
 <a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">    <tt class="py-name">notebook_dir</tt><tt class="py-op">=</tt><tt id="link-7" class="py-name" targets="Function rekall.config.GetHomeDir()=rekall.config-module.html#GetHomeDir"><a title="rekall.config.GetHomeDir" class="py-name" href="#" onclick="return doclink('link-7', 'GetHomeDir', 'link-7');">GetHomeDir</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
@@ -141,7 +141,8 @@ rekall.plugins.windows.gui.constants" class="py-name" href="#" onclick="return d
 <a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"> </tt>
 <a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt id="link-10" class="py-name" targets="Variable rekall.plugins.overlays.linux.linux.dentry.path=rekall.plugins.overlays.linux.linux.dentry-class.html#path"><a title="rekall.plugins.overlays.linux.linux.dentry.path" class="py-name" href="#" onclick="return doclink('link-10', 'path', 'link-10');">path</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">search_path</tt><tt class="py-op">:</tt> </tt>
 <a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
-<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-keyword">with</tt> <tt id="link-11" class="py-name" targets="Method rekall.ui.renderer.BaseRenderer.open()=rekall.ui.renderer.BaseRenderer-class.html#open"><a title="rekall.ui.renderer.BaseRenderer.open" class="py-name" href="#" onclick="return doclink('link-11', 'open', 'link-11');">open</a></tt><tt class="py-op">(</tt><tt id="link-12" class="py-name"><a title="rekall.plugins.overlays.linux.linux.dentry.path" class="py-name" href="#" onclick="return doclink('link-12', 'path', 'link-10');">path</a></tt><tt class="py-op">,</tt> <tt class="py-string">"rb"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt id="link-13" class="py-name" targets="Variable rekall.components.Handle.fd=rekall.components.Handle-class.html#fd"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-13', 'fd', 'link-13');">fd</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-keyword">with</tt> <tt id="link-11" class="py-name" targets="Method rekall.ui.renderer.BaseRenderer.open()=rekall.ui.renderer.BaseRenderer-class.html#open,Method rekall.ui.text.TextRenderer.open()=rekall.ui.text.TextRenderer-class.html#open"><a title="rekall.ui.renderer.BaseRenderer.open
+rekall.ui.text.TextRenderer.open" class="py-name" href="#" onclick="return doclink('link-11', 'open', 'link-11');">open</a></tt><tt class="py-op">(</tt><tt id="link-12" class="py-name"><a title="rekall.plugins.overlays.linux.linux.dentry.path" class="py-name" href="#" onclick="return doclink('link-12', 'path', 'link-10');">path</a></tt><tt class="py-op">,</tt> <tt class="py-string">"rb"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt id="link-13" class="py-name" targets="Variable rekall.components.Handle.fd=rekall.components.Handle-class.html#fd"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-13', 'fd', 'link-13');">fd</a></tt><tt class="py-op">:</tt> </tt>
 <a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">yaml</tt><tt class="py-op">.</tt><tt class="py-name">safe_load</tt><tt class="py-op">(</tt><tt id="link-14" class="py-name"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-14', 'fd', 'link-13');">fd</a></tt><tt class="py-op">)</tt> </tt>
 <a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-op">(</tt><tt class="py-name">IOError</tt><tt class="py-op">,</tt> <tt class="py-name">ValueError</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
 <a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">            <tt class="py-keyword">pass</tt> </tt>
@@ -152,17 +153,19 @@ rekall.plugins.windows.gui.constants" class="py-name" href="#" onclick="return d
 <a name="MergeConfigOptions"></a><div id="MergeConfigOptions-def"><a name="L87"></a><tt class="py-lineno"> 87</tt> <a class="py-toggle" href="#" id="MergeConfigOptions-toggle" onclick="return toggle('MergeConfigOptions');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.config-module.html#MergeConfigOptions">MergeConfigOptions</a><tt class="py-op">(</tt><tt class="py-param">state</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
 </div><div id="MergeConfigOptions-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="MergeConfigOptions-expanded"><a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">    <tt class="py-docstring">"""Read the config file and apply the config options to the session."""</tt> </tt>
 <a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">    <tt class="py-comment"># First apply the defaults:</tt> </tt>
-<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt id="link-15" class="py-name" targets="Variable rekall.components._=rekall.components-module.html#_"><a title="rekall.components._" class="py-name" href="#" onclick="return doclink('link-15', '_', 'link-15');">_</a></tt><tt class="py-op">,</tt> <tt id="link-16" class="py-name"><a title="rekall.components._" class="py-name" href="#" onclick="return doclink('link-16', '_', 'link-15');">_</a></tt><tt class="py-op">,</tt> <tt id="link-17" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.components.Named.name=rekall.components.Named-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.linux.common.KASLRHook.name=rekall.plugins.linux.common.KASLRHook-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKASLR.name=rekall.plugins.linux.common.LinuxFindKASLR-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt id="link-15" class="py-name" targets="Variable rekall.components._=rekall.components-module.html#_"><a title="rekall.components._" class="py-name" href="#" onclick="return doclink('link-15', '_', 'link-15');">_</a></tt><tt class="py-op">,</tt> <tt id="link-16" class="py-name"><a title="rekall.components._" class="py-name" href="#" onclick="return doclink('link-16', '_', 'link-15');">_</a></tt><tt class="py-op">,</tt> <tt id="link-17" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.components.Named.name=rekall.components.Named-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.CatfishOffsetHook.name=rekall.plugins.darwin.common.CatfishOffsetHook-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.linux.common.KASLRHook.name=rekall.plugins.linux.common.KASLRHook-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKASLR.name=rekall.plugins.linux.common.LinuxFindKASLR-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.linux.vfs.File.name=rekall.plugins.overlays.linux.vfs.File-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name=rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.interactive.structs.AnalyzeStruct.name=rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.malware.yarascan.YaraScan.name=rekall.plugins.windows.malware.yarascan.YaraScan-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
 rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -171,13 +174,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -197,12 +203,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -211,13 +219,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -237,7 +248,8 @@ rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="
 <a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">homedir</tt><tt class="py-op">:</tt> </tt>
 <a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
 <a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">                <tt class="py-name">filename</tt> <tt class="py-op">=</tt> <tt class="py-string">"%s/.rekallrc"</tt> <tt class="py-op">%</tt> <tt class="py-name">homedir</tt> </tt>
-<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">                <tt class="py-keyword">with</tt> <tt id="link-27" class="py-name"><a title="rekall.ui.renderer.BaseRenderer.open" class="py-name" href="#" onclick="return doclink('link-27', 'open', 'link-11');">open</a></tt><tt class="py-op">(</tt><tt class="py-name">filename</tt><tt class="py-op">,</tt> <tt class="py-string">"wb"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt id="link-28" class="py-name"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-28', 'fd', 'link-13');">fd</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">                <tt class="py-keyword">with</tt> <tt id="link-27" class="py-name"><a title="rekall.ui.renderer.BaseRenderer.open
+rekall.ui.text.TextRenderer.open" class="py-name" href="#" onclick="return doclink('link-27', 'open', 'link-11');">open</a></tt><tt class="py-op">(</tt><tt class="py-name">filename</tt><tt class="py-op">,</tt> <tt class="py-string">"wb"</tt><tt class="py-op">)</tt> <tt class="py-keyword">as</tt> <tt id="link-28" class="py-name"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-28', 'fd', 'link-13');">fd</a></tt><tt class="py-op">:</tt> </tt>
 <a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">                    <tt class="py-name">yaml</tt><tt class="py-op">.</tt><tt class="py-name">dump</tt><tt class="py-op">(</tt><tt id="link-29" class="py-name"><a title="rekall.config.DEFAULT_CONFIGURATION" class="py-name" href="#" onclick="return doclink('link-29', 'DEFAULT_CONFIGURATION', 'link-4');">DEFAULT_CONFIGURATION</a></tt><tt class="py-op">,</tt> <tt id="link-30" class="py-name"><a title="rekall.components.Handle.fd" class="py-name" href="#" onclick="return doclink('link-30', 'fd', 'link-13');">fd</a></tt><tt class="py-op">)</tt> </tt>
 <a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
 <a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">                <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"Created new configuration file %s"</tt><tt class="py-op">,</tt> <tt class="py-name">filename</tt><tt class="py-op">)</tt> </tt>
@@ -300,12 +312,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -314,13 +328,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -337,12 +354,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -351,13 +370,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -376,12 +398,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -390,13 +414,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -412,12 +439,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -426,13 +455,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -452,12 +484,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -466,13 +500,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -495,12 +532,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -509,13 +548,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -532,12 +574,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -546,13 +590,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -569,12 +616,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -583,13 +632,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -605,12 +657,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -619,13 +673,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -649,19 +706,22 @@ rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="
 <a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">                <tt class="py-name">groups</tt><tt class="py-op">[</tt><tt class="py-name">group</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">arg_group</tt> <tt class="py-op">=</tt> <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_argument_group</tt><tt class="py-op">(</tt><tt class="py-name">group</tt><tt class="py-op">)</tt> </tt>
 <a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line"> </tt>
 <a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">short_name</tt><tt class="py-op">:</tt> </tt>
-<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">                <tt class="py-name">arg_group</tt><tt class="py-op">.</tt><tt id="link-53" class="py-name" targets="Method rekall.args.MockArgParser.add_argument()=rekall.args.MockArgParser-class.html#add_argument,Method rekall.plugins.core.DummyParser.add_argument()=rekall.plugins.core.DummyParser-class.html#add_argument,Method rekall.plugins.tools.webconsole.FakeParser.add_argument()=rekall.plugins.tools.webconsole.FakeParser-class.html#add_argument"><a title="rekall.args.MockArgParser.add_argument
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">                <tt class="py-name">arg_group</tt><tt class="py-op">.</tt><tt id="link-53" class="py-name" targets="Method rekall.args.MockArgParser.add_argument()=rekall.args.MockArgParser-class.html#add_argument,Method rekall.args.RekallHelpFormatter.add_argument()=rekall.args.RekallHelpFormatter-class.html#add_argument,Method rekall.plugins.core.DummyParser.add_argument()=rekall.plugins.core.DummyParser-class.html#add_argument,Method rekall.plugins.tools.webconsole.FakeParser.add_argument()=rekall.plugins.tools.webconsole.FakeParser-class.html#add_argument"><a title="rekall.args.MockArgParser.add_argument
+rekall.args.RekallHelpFormatter.add_argument
 rekall.plugins.core.DummyParser.add_argument
 rekall.plugins.tools.webconsole.FakeParser.add_argument" class="py-name" href="#" onclick="return doclink('link-53', 'add_argument', 'link-53');">add_argument</a></tt><tt class="py-op">(</tt><tt class="py-name">short_name</tt><tt class="py-op">,</tt> <tt id="link-54" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
 rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -670,13 +730,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -690,18 +753,21 @@ rekall.plugins.windows.ssdt.WinSSDT.name
 rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-54', 'name', 'link-17');">name</a></tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
 <a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
 <a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">                <tt class="py-name">arg_group</tt><tt class="py-op">.</tt><tt id="link-55" class="py-name"><a title="rekall.args.MockArgParser.add_argument
+rekall.args.RekallHelpFormatter.add_argument
 rekall.plugins.core.DummyParser.add_argument
 rekall.plugins.tools.webconsole.FakeParser.add_argument" class="py-name" href="#" onclick="return doclink('link-55', 'add_argument', 'link-53');">add_argument</a></tt><tt class="py-op">(</tt><tt id="link-56" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
 rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -710,13 +776,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -732,18 +801,21 @@ rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="
 <a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
 <a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">short_name</tt><tt class="py-op">:</tt> </tt>
 <a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">                <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="rekall.args.MockArgParser.add_argument
+rekall.args.RekallHelpFormatter.add_argument
 rekall.plugins.core.DummyParser.add_argument
 rekall.plugins.tools.webconsole.FakeParser.add_argument" class="py-name" href="#" onclick="return doclink('link-57', 'add_argument', 'link-53');">add_argument</a></tt><tt class="py-op">(</tt><tt class="py-name">short_name</tt><tt class="py-op">,</tt> <tt id="link-58" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
 rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -752,13 +824,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -772,18 +847,21 @@ rekall.plugins.windows.ssdt.WinSSDT.name
 rekall.plugins.windows.taskmods.Threads.name" class="py-name" href="#" onclick="return doclink('link-58', 'name', 'link-17');">name</a></tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-name">kwargs</tt><tt class="py-op">)</tt> </tt>
 <a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
 <a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">                <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name"><a title="rekall.args.MockArgParser.add_argument
+rekall.args.RekallHelpFormatter.add_argument
 rekall.plugins.core.DummyParser.add_argument
 rekall.plugins.tools.webconsole.FakeParser.add_argument" class="py-name" href="#" onclick="return doclink('link-59', 'add_argument', 'link-53');">add_argument</a></tt><tt class="py-op">(</tt><tt id="link-60" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
 rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -792,13 +870,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -912,14 +993,14 @@ expandto(location.href);
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:15 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:42 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

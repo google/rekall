@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -147,6 +147,13 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rekall.plugins.overlays.linux.linux.InodePermission-class.html" class="summary-name">InodePermission</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.plugins.overlays.linux.linux.Linux-class.html" class="summary-name">Linux</a>
     </td>
   </tr>
@@ -183,8 +190,8 @@
                   'x86_vendor_id': [None,
                                     ['UnicodeString', {'length': 16}]]\
 }],
- 'dentry': [None,
-            {'d_flags': [None, ['Flags', {'maskmap': {'DCACHE_AUTOFS_P\
+ 'd_name': [None,
+            {'d_name': [None, ['Pointer', {'target': 'String'}]]}],
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cpuinfo_x86</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">x86_model_id</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -223,8 +230,8 @@
                   <code class="variable-quote">'</code><code class="variable-string">x86_vendor_id</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
                                     <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">UnicodeString</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">length</code><code class="variable-quote">'</code><code class="variable-op">: </code>16<code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 <code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">dentry</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
-            <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">d_flags</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Flags</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">maskmap</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DCACHE_AUTOFS_P</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ <code class="variable-quote">'</code><code class="variable-string">d_name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+            <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">d_name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">String</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -256,14 +263,14 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:16:55 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:15 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

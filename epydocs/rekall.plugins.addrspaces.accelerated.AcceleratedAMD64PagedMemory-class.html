@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -68,7 +68,7 @@
 <area shape="rect" id="node2" href="rekall.addrspace.PagedReader-class.html" title="addrspace.PagedReader" alt="" coords="19,61,160,88"/>
 <area shape="rect" id="node5" href="rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html" title="intel.IA32PagedMemory" alt="" coords="21,117,157,144"/>
 <area shape="rect" id="node3" href="rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory-class.html" title="AcceleratedAMD64PagedMemory" alt="" coords="197,5,381,32"/>
-<area shape="rect" id="node4" href="javascript:void(0);" title="amd64.AMD64PagedMemory" alt="" coords="405,5,568,32"/>
+<area shape="rect" id="node4" href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html" title="amd64.AMD64PagedMemory" alt="" coords="8,229,171,256"/>
 <area shape="rect" id="node6" href="rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html" title="intel.IA32PagedMemoryPae" alt="" coords="12,173,167,200"/>
 </map>
   <img src="class_hierarchy_for_accelerate.gif" alt='' usemap="#class_hierarchy_for_accelerate" ismap="ismap" class="graph-without-title" />
@@ -229,7 +229,7 @@
         <span class="summary-sig-arg">state</span>)</span>
       <em>(Inherited from <a href="rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html">rekall.plugins.addrspaces.intel.IA32PagedMemory</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugins.addrspaces.intel-pysrc.html#IA32PagedMemory.__setstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -343,6 +343,27 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_one_gig_paddr" class="summary-sig-name">get_one_gig_paddr</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">vaddr</span>,
+        <span class="summary-sig-arg">pdpte</span>)</span><br />
+      Return the offset in a 1GB memory page from the given virtual address
+      and Page Directory Pointer Table Entry.
+      <em>(Inherited from <a href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html">rekall.plugins.addrspaces.amd64.AMD64PagedMemory</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.addrspaces.amd64-pysrc.html#AMD64PagedMemory.get_one_gig_paddr">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html#get_pde" class="summary-sig-name">get_pde</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">vaddr</span>,
         <span class="summary-sig-arg">pdpte</span>)</span><br />
@@ -364,6 +385,27 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_pdpte" class="summary-sig-name">get_pdpte</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">vaddr</span>,
+        <span class="summary-sig-arg">pml4e</span>)</span><br />
+      Return the Page Directory Pointer Table Entry for the virtual 
+      address.
+      <em>(Inherited from <a href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html">rekall.plugins.addrspaces.amd64.AMD64PagedMemory</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.addrspaces.amd64-pysrc.html#AMD64PagedMemory.get_pdpte">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html#get_phys_addr" class="summary-sig-name">get_phys_addr</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">vaddr</span>,
         <span class="summary-sig-arg">pte</span>)</span><br />
@@ -372,6 +414,25 @@
       <em>(Inherited from <a href="rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html">rekall.plugins.addrspaces.intel.IA32PagedMemoryPae</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.addrspaces.intel-pysrc.html#IA32PagedMemoryPae.get_phys_addr">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#get_pml4e" class="summary-sig-name">get_pml4e</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">vaddr</span>)</span><br />
+      Return the Page Map Level 4 Entry for the given virtual address.
+      <em>(Inherited from <a href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html">rekall.plugins.addrspaces.amd64.AMD64PagedMemory</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.addrspaces.amd64-pysrc.html#AMD64PagedMemory.get_pml4e">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -506,6 +567,26 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#pml4e_index" class="summary-sig-name">pml4e_index</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">vaddr</span>)</span><br />
+      Returns the Page Map Level 4 Entry Index number from the given 
+      virtual address.
+      <em>(Inherited from <a href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html">rekall.plugins.addrspaces.amd64.AMD64PagedMemory</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.addrspaces.amd64-pysrc.html#AMD64PagedMemory.pml4e_index">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#read_long_phys" class="summary-sig-name">read_long_phys</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">addr</span>)</span><br />
       Returns an unsigned 32-bit integer from the address addr in physical 
@@ -541,12 +622,6 @@
   </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code>amd64.AMD64PagedMemory</code></b>:
-      <code>get_one_gig_paddr</code>,
-      <code>get_pdpte</code>,
-      <code>get_pml4e</code>,
-      <code>pml4e_index</code>
-      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
       <code>__format__</code>,
@@ -580,7 +655,7 @@
         <span class="summary-sig-arg">name</span>)</span>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.GetPlugin">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -600,7 +675,7 @@
       Obtain metadata about this address space.
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.metadata">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -669,15 +744,16 @@ ump'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'BaseAddressSpace'"><code class="variable-quote">'</code><code class="variable-string">BaseAddressSpace</code><code class="variable-quote">'</code></code>
-      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
+        <a name="order"></a><span class="summary-name">order</span> = <code title="60">60</code>
+      <em>(Inherited from <a href="rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html">rekall.plugins.addrspaces.amd64.AMD64PagedMemory</a>)</em>
     </td>
   </tr>
-  <tr>
-    <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code>amd64.AMD64PagedMemory</code></b>:
-      <code>order</code>
-      </p>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'BaseAddressSpace'"><code class="variable-quote">'</code><code class="variable-string">BaseAddressSpace</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
     </td>
   </tr>
 </table>
@@ -837,14 +913,14 @@ Args:
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:16:59 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:19 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

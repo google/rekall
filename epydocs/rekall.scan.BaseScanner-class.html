@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -102,10 +102,11 @@
 <area shape="rect" id="node35" href="rekall.plugins.windows.modules.RSDSScanner-class.html" title="plugins.windows.modules.RSDSScanner" alt="" coords="3024,61,3237,88"/>
 <area shape="rect" id="node39" href="rekall.plugins.windows.registry.evtlogs.EVTScanner-class.html" title="plugins.windows.registry.evtlogs.EVTScanner" alt="" coords="3261,61,3499,88"/>
 <area shape="rect" id="node40" href="rekall.plugins.windows.vadinfo.VadScanner-class.html" title="plugins.windows.vadinfo.VadScanner" alt="" coords="3523,61,3720,88"/>
-<area shape="rect" id="node41" href="rekall.scan.BaseScanner-class.html" title="BaseScanner" alt="" coords="2377,5,2463,32"/>
-<area shape="rect" id="node43" href="rekall.scan.PointerScanner-class.html" title="PointerScanner" alt="" coords="3931,61,4027,88"/>
-<area shape="rect" id="node44" href="rekall.scan.ScannerGroup-class.html" title="ScannerGroup" alt="" coords="4424,61,4515,88"/>
-<area shape="rect" id="node42" href="rekall.scan.DiscontigScannerGroup-class.html" title="DiscontigScannerGroup" alt="" coords="4589,117,4723,144"/>
+<area shape="rect" id="node41" href="rekall.plugins.yarascanner.BaseYaraASScanner-class.html" title="plugins.yarascanner.BaseYaraASScanner" alt="" coords="3744,61,3965,88"/>
+<area shape="rect" id="node42" href="rekall.scan.BaseScanner-class.html" title="BaseScanner" alt="" coords="2497,5,2583,32"/>
+<area shape="rect" id="node44" href="rekall.scan.PointerScanner-class.html" title="PointerScanner" alt="" coords="4115,61,4211,88"/>
+<area shape="rect" id="node45" href="rekall.scan.ScannerGroup-class.html" title="ScannerGroup" alt="" coords="4485,61,4576,88"/>
+<area shape="rect" id="node43" href="rekall.scan.DiscontigScannerGroup-class.html" title="DiscontigScannerGroup" alt="" coords="4589,117,4723,144"/>
 </map>
   <img src="class_hierarchy_for_basescanne.gif" alt='' usemap="#class_hierarchy_for_basescanne" ismap="ismap" class="graph-without-title" />
 </center>
@@ -294,13 +295,13 @@ not match.</td>
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.scan.BaseScanner-class.html#classes" class="summary-name">classes</a> = <code title="{'BaseScanner': &lt;class 'rekall.scan.BaseScanner'&gt;,
+ 'BaseYaraASScanner': &lt;class 'rekall.plugins.yarascanner.BaseYaraASSca\
+nner'&gt;,
  'CatfishScanner': &lt;class 'rekall.plugins.darwin.common.CatfishScanner\
 '&gt;,
  'CertScanner': &lt;class 'rekall.plugins.windows.dumpcerts.CertScanner'&gt;\
 ,
  'ConsoleScanner': &lt;class 'rekall.plugins.windows.malware.cmdhistory.C\
-onsoleScanner'&gt;,
- 'DiscontigScannerGroup': &lt;class 'rekall.scan.DiscontigScannerGroup'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.scan.BaseScanner'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -308,7 +309,7 @@ onsoleScanner'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.scan.BaseScanner-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.hypervisors.VMCSScanner'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.hypervisors.VM<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.scan.BaseScanner-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.yarascanner.BaseYaraASScanner'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.yarascanner.Ba<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -493,13 +494,13 @@ Yields:
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.scan.BaseScanner'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">BaseYaraASScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.yarascanner.BaseYaraASSca<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+nner'&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">CatfishScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.darwin.common.CatfishScanner<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 '&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">CertScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.dumpcerts.CertScanner'&gt;<code class="variable-op"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 <code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">ConsoleScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.malware.cmdhistory.C<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-onsoleScanner'&gt;<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">DiscontigScannerGroup</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.scan.DiscontigScannerGroup'&gt;<code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -518,7 +519,7 @@ onsoleScanner'&gt;<code class="variable-op">,</code>
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.hypervisors.VMCSScanner'&gt;<code class="variable-group">}</code>
+<code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.yarascanner.BaseYaraASScanner'&gt;<code class="variable-group">}</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -549,14 +550,14 @@ onsoleScanner'&gt;<code class="variable-op">,</code>
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:13 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:33 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -165,9 +165,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="ApplyFindDTB"></a><span class="summary-sig-name">ApplyFindDTB</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.guess_profile.ProfileHook-class.html#ApplyFindDTB" class="summary-sig-name">ApplyFindDTB</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">find_dtb_cls</span>,
-        <span class="summary-sig-arg">profile</span>)</span></td>
+        <span class="summary-sig-arg">profile</span>)</span><br />
+      Verify profile by trying to use it to load the dtb.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.guess_profile-pysrc.html#ProfileHook.ApplyFindDTB">source&nbsp;code</a></span>
             
@@ -266,7 +267,7 @@
         <span class="summary-sig-arg">session</span>)</span>
       <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.kb-pysrc.html#ParameterHook.is_active">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -302,14 +303,6 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.guess_profile.ProfileHook-class.html#DARWIN_TEMPLATE" class="summary-name">DARWIN_TEMPLATE</a> = <code title="re.compile(r'Darwin Kernel Version .+? root:xnu-(\d+\.\d+\.\d+)~\d+/RE\
-LEASE_X86_64')">re.compile(r'Darwin Kernel Version .<code class="re-op">+?</code> root:<code class="variable-ellipsis">...</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a href="rekall.plugins.guess_profile.ProfileHook-class.html#LINUX_TEMPLATE" class="summary-name">LINUX_TEMPLATE</a> = <code title="re.compile(r'Linux version (\d+\.\d+\.\d+-\d+-[^ ]+)')">re.compile(r'Linux version <code class="re-group">(</code>\d<code class="re-op">+</code>\.\d<code class="re-op">+</code>\.\d<code class="re-op">+</code>-\d<code class="re-op">+</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -325,15 +318,15 @@ LEASE_X86_64')">re.compile(r'Darwin Kernel Version .<code class="re-op">+?</code
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.kb.ParameterHook-class.html#classes" class="summary-name">classes</a> = <code title="{'KASLRHook': &lt;class 'rekall.plugins.linux.common.KASLRHook'&gt;,
+        <a href="rekall.kb.ParameterHook-class.html#classes" class="summary-name">classes</a> = <code title="{'CatfishOffsetHook': &lt;class 'rekall.plugins.darwin.common.CatfishOffs\
+etHook'&gt;,
+ 'KASLRHook': &lt;class 'rekall.plugins.linux.common.KASLRHook'&gt;,
  'KDBGHook': &lt;class 'rekall.plugins.windows.common.KDBGHook'&gt;,
  'KernelASHook': &lt;class 'rekall.plugins.guess_profile.KernelASHook'&gt;,
  'KernelBaseHook': &lt;class 'rekall.plugins.windows.kernel.KernelBaseHoo\
 k'&gt;,
  'KernelSlideHook': &lt;class 'rekall.plugins.darwin.common.KernelSlideHo\
-ok'&gt;,
- 'ObjectTypeMapHook': &lt;class 'rekall.plugins.overlays.windows.win7.Obj\
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">KASLRHook</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.common.KA<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CatfishOffsetHook</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.darwin.<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em>
     </td>
   </tr>
@@ -419,6 +412,28 @@ oduleList'&gt;,
   </dl>
 </td></tr></table>
 </div>
+<a name="ApplyFindDTB"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ApplyFindDTB</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">find_dtb_cls</span>,
+        <span class="sig-arg">profile</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.guess_profile-pysrc.html#ProfileHook.ApplyFindDTB">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Verify profile by trying to use it to load the dtb.</p>
+  <p>If this succeeds the profile is likely correct.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <a name="calculate"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -469,25 +484,6 @@ oduleList'&gt;,
   </dl>
 </td></tr></table>
 </div>
-<a name="DARWIN_TEMPLATE"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">DARWIN_TEMPLATE</h3>
-  
-  <dl class="fields">
-  </dl>
-  <dl class="fields">
-    <dt>Value:</dt>
-      <dd><table><tr><td><pre class="variable">
-re.compile(r'Darwin Kernel Version .<code class="re-op">+?</code> root:xnu-<code class="re-group">(</code>\d<code class="re-op">+</code>\.\d<code class="re-op">+</code>\.\d<code class="re-op">+</code><code class="re-group">)</code>~\d<code class="re-op">+</code>/RE<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-LEASE_X86_64')
-</pre></td></tr></table>
-</dd>
-  </dl>
-</td></tr></table>
-</div>
 <a name="LINUX_TEMPLATE"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -531,14 +527,14 @@ re.compile(r'Linux version <code class="re-group">(</code>\d<code class="re-op">
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:01 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:21 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

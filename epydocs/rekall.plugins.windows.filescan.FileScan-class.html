@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -251,7 +251,7 @@
       Return only the active commands based on config.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -270,7 +270,7 @@
       Declare the command line args we need.
       <em>(Inherited from <a href="rekall.plugins.windows.common.PoolScannerPlugin-class.html">rekall.plugins.windows.common.PoolScannerPlugin</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#PoolScannerPlugin.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -289,7 +289,7 @@
       We are only active if the profile is windows.
       <em>(Inherited from <a href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html">rekall.plugins.windows.common.AbstractWindowsCommandPlugin</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsCommandPlugin.is_active">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -318,15 +318,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+nalyzeStruct'&gt;,
+ 'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
  'BashHistory': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
  'BuildIndex': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;,
- 'Callbacks': &lt;class 'rekall.plugins.windows.malware.callbacks.Callbac\
-ks'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Arp</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.arp.Arp'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Ato</code><code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -334,15 +334,15 @@ ks'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
+AnalyzeStruct'&gt;,
+ 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'atomscan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
  'bash': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
  'boot_cmdline': &lt;class 'rekall.plugins.darwin.misc.DarwinBootParamete\
-rs'&gt;,
- 'build_index': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;\
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">arp</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.arp.Arp<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">analyze_struct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.wi<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -444,14 +444,14 @@ rs'&gt;,
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:07 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:28 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

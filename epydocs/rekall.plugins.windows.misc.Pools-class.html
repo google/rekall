@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -66,12 +66,11 @@
 <center>  <map id="class_hierarchy_for_pools" name="class_hierarchy_for_pools">
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,5,123,32"/>
 <area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,61,139,88"/>
-<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="339,61,461,88"/>
-<area shape="rect" id="node6" href="rekall.plugins.windows.common.KDBGMixin-class.html" title="common.KDBGMixin" alt="" coords="340,117,460,144"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="287,117,409,144"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="155,173,341,200"/>
 <area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,61,291,88"/>
-<area shape="rect" id="node5" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="89,117,316,144"/>
-<area shape="rect" id="node7" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="208,173,395,200"/>
-<area shape="rect" id="node8" href="rekall.plugins.windows.misc.Pools-class.html" title="Pools" alt="" coords="277,229,325,256"/>
+<area shape="rect" id="node5" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="36,117,263,144"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.misc.Pools-class.html" title="Pools" alt="" coords="224,229,272,256"/>
 </map>
   <img src="class_hierarchy_for_pools.gif" alt='' usemap="#class_hierarchy_for_pools" ismap="ismap" class="graph-without-title" />
 </center>
@@ -160,13 +159,13 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.windows.common.KDBGMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">kdbg</span>=<span class="summary-sig-default">None</span>,
+          <td><span class="summary-sig"><a href="rekall.plugin.KernelASMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dtb</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Ensure there is a valid KDBG object.
-      <em>(Inherited from <a href="rekall.plugins.windows.common.KDBGMixin-class.html">rekall.plugins.windows.common.KDBGMixin</a>)</em></td>
+      A mixin for plugins which require a valid kernel address space.
+      <em>(Inherited from <a href="rekall.plugin.KernelASMixin-class.html">rekall.plugin.KernelASMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#KDBGMixin.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#KernelASMixin.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -249,7 +248,7 @@
       Return only the active commands based on config.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -263,12 +262,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.windows.common.KDBGMixin-class.html#args" class="summary-sig-name">args</a>(<span class="summary-sig-arg">cls</span>,
+          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">parser</span>)</span><br />
       Declare the command line args we need.
-      <em>(Inherited from <a href="rekall.plugins.windows.common.KDBGMixin-class.html">rekall.plugins.windows.common.KDBGMixin</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugin.KernelASMixin-class.html">rekall.plugin.KernelASMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#KDBGMixin.args">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#KernelASMixin.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -287,7 +286,7 @@
       We are only active if the profile is windows.
       <em>(Inherited from <a href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html">rekall.plugins.windows.common.AbstractWindowsCommandPlugin</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsCommandPlugin.is_active">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -323,15 +322,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+nalyzeStruct'&gt;,
+ 'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
  'BashHistory': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
  'BuildIndex': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;,
- 'Callbacks': &lt;class 'rekall.plugins.windows.malware.callbacks.Callbac\
-ks'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Arp</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.arp.Arp'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Ato</code><code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -339,15 +338,15 @@ ks'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
+AnalyzeStruct'&gt;,
+ 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'atomscan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
  'bash': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
  'boot_cmdline': &lt;class 'rekall.plugins.darwin.misc.DarwinBootParamete\
-rs'&gt;,
- 'build_index': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;\
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">arp</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.arp.Arp<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">analyze_struct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.wi<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -376,14 +375,6 @@ rs'&gt;,
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.plugins.windows.common.KDBGMixin-class.html#kdbg" class="summary-name">kdbg</a>
-      <em>(Inherited from <a href="rekall.plugins.windows.common.KDBGMixin-class.html">rekall.plugins.windows.common.KDBGMixin</a>)</em>
-    </td>
-  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -462,14 +453,14 @@ Args:
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:10 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:31 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

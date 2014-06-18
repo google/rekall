@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -95,9 +95,9 @@
 <a name="L31"></a><tt class="py-lineno">  31</tt>  <tt class="py-line"><tt class="py-docstring">Version information:</tt> </tt>
 <a name="L32"></a><tt class="py-lineno">  32</tt>  <tt class="py-line"><tt class="py-docstring">http://msdn.microsoft.com/en-us/library/windows/desktop/ff468916(v=vs.85).aspx</tt> </tt>
 <a name="L33"></a><tt class="py-lineno">  33</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
-<a name="L34"></a><tt class="py-lineno">  34</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Method rekall.obj.Profile.copy()=rekall.obj.Profile-class.html#copy,Method rekall.plugins.overlays.windows.windows.BasicPEProfile.copy()=rekall.plugins.overlays.windows.windows.BasicPEProfile-class.html#copy,Method rekall.plugins.windows.index.Index.copy()=rekall.plugins.windows.index.Index-class.html#copy,Method rekall.utils.SortedCollection.copy()=rekall.utils.SortedCollection-class.html#copy"><a title="rekall.obj.Profile.copy
+<a name="L34"></a><tt class="py-lineno">  34</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Method rekall.obj.Profile.copy()=rekall.obj.Profile-class.html#copy,Method rekall.plugins.common.profile_index.Index.copy()=rekall.plugins.common.profile_index.Index-class.html#copy,Method rekall.plugins.overlays.windows.windows.BasicPEProfile.copy()=rekall.plugins.overlays.windows.windows.BasicPEProfile-class.html#copy,Method rekall.utils.SortedCollection.copy()=rekall.utils.SortedCollection-class.html#copy"><a title="rekall.obj.Profile.copy
+rekall.plugins.common.profile_index.Index.copy
 rekall.plugins.overlays.windows.windows.BasicPEProfile.copy
-rekall.plugins.windows.index.Index.copy
 rekall.utils.SortedCollection.copy" class="py-name" href="#" onclick="return doclink('link-0', 'copy', 'link-0');">copy</a></tt> </tt>
 <a name="L35"></a><tt class="py-lineno">  35</tt>  <tt class="py-line"> </tt>
 <a name="L36"></a><tt class="py-lineno">  36</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-1', 'rekall', 'link-1');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Module rekall.addrspace=rekall.addrspace-module.html"><a title="rekall.addrspace" class="py-name" href="#" onclick="return doclink('link-2', 'addrspace', 'link-2');">addrspace</a></tt> </tt>
@@ -118,12 +118,13 @@ rekall.plugins.overlays.windows.tcpip_vtypes.overlays" class="py-name" href="#" 
 <a name="L46"></a><tt class="py-lineno">  46</tt>  <tt class="py-line"> </tt>
 <a name="SentinelArray.__init__"></a><div id="SentinelArray.__init__-def"><a name="L47"></a><tt class="py-lineno">  47</tt> <a class="py-toggle" href="#" id="SentinelArray.__init__-toggle" onclick="return toggle('SentinelArray.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.overlays.windows.pe_vtypes.SentinelArray-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">max_count</tt><tt class="py-op">=</tt><tt class="py-number">100000</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">kwargs</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
 </div><div id="SentinelArray.__init__-collapsed" style="display:none;" pad="++++" indent="++++++++"></div><div id="SentinelArray.__init__-expanded"><a name="L48"></a><tt class="py-lineno">  48</tt>  <tt class="py-line">        <tt class="py-comment"># The size of this array is determined by the sentinel.</tt> </tt>
-<a name="L49"></a><tt class="py-lineno">  49</tt>  <tt class="py-line">        <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-15" class="py-name" targets="Class rekall.plugins.overlays.windows.pe_vtypes.SentinelArray=rekall.plugins.overlays.windows.pe_vtypes.SentinelArray-class.html"><a title="rekall.plugins.overlays.windows.pe_vtypes.SentinelArray" class="py-name" href="#" onclick="return doclink('link-15', 'SentinelArray', 'link-15');">SentinelArray</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method rekall.addrspace.AddrSpaceError.__init__()=rekall.addrspace.AddrSpaceError-class.html#__init__,Method rekall.addrspace.BaseAddressSpace.__init__()=rekall.addrspace.BaseAddressSpace-class.html#__init__,Method rekall.addrspace.BufferAddressSpace.__init__()=rekall.addrspace.BufferAddressSpace-class.html#__init__,Method rekall.addrspace.CachingAddressSpaceMixIn.__init__()=rekall.addrspace.CachingAddressSpaceMixIn-class.html#__init__,Method rekall.addrspace.RunBasedAddressSpace.__init__()=rekall.addrspace.RunBasedAddressSpace-class.html#__init__,Method rekall.addrspace_test.CustomRunsAddressSpace.__init__()=rekall.addrspace_test.CustomRunsAddressSpace-class.html#__init__,Method rekall.entity.Entity.__init__()=rekall.entity.Entity-class.html#__init__,Method rekall.entity.EntityLookupTable.__init__()=rekall.entity.EntityLookupTable-class.html#__init__,Method rekall.entity.EntityManager.__init__()=rekall.entity.EntityManager-class.html#__init__,Method rekall.identity.BaseObjectIdentity.__init__()=rekall.identity.BaseObjectIdentity-class.html#__init__,Method rekall.identity.Identity.__init__()=rekall.identity.Identity-class.html#__init__,Method rekall.identity.ProcessIdentity.__init__()=rekall.identity.ProcessIdentity-class.html#__init__,Method rekall.identity.UserIdentity.__init__()=rekall.identity.UserIdentity-class.html#__init__,Method rekall.io_manager.DirectoryIOManager.__init__()=rekall.io_manager.DirectoryIOManager-class.html#__init__,Method rekall.io_manager.IOManager.__init__()=rekall.io_manager.IOManager-class.html#__init__,Method rekall.io_manager.SelfClosingFile.__init__()=rekall.io_manager.SelfClosingFile-class.html#__init__,Method rekall.io_manager.URLManager.__init__()=rekall.io_manager.URLManager-class.html#__init__,Method rekall.io_manager.ZipFileManager.__init__()=rekall.io_manager.ZipFileManager-class.html#__init__,Method rekall.kb.AddressResolver.__init__()=rekall.kb.AddressResolver-class.html#__init__,Method rekall.kb.KernelModule.__init__()=rekall.kb.KernelModule-class.html#__init__,Method rekall.kb.ParameterHook.__init__()=rekall.kb.ParameterHook-class.html#__init__,Method rekall.kb.SortedAddresses.__init__()=rekall.kb.SortedAddresses-class.html#__init__,Method rekall.kb.SymbolAddresses.__init__()=rekall.kb.SymbolAddresses-class.html#__init__,Method rekall.obj.Array.__init__()=rekall.obj.Array-class.html#__init__,Method rekall.obj.BaseObject.__init__()=rekall.obj.BaseObject-class.html#__init__,Method rekall.obj.BitField.__init__()=rekall.obj.BitField-class.html#__init__,Method rekall.obj.Curry.__init__()=rekall.obj.Curry-class.html#__init__,Method rekall.obj.ListArray.__init__()=rekall.obj.ListArray-class.html#__init__,Method rekall.obj.NativeType.__init__()=rekall.obj.NativeType-class.html#__init__,Method rekall.obj.NoneObject.__init__()=rekall.obj.NoneObject-class.html#__init__,Method rekall.obj.Pointer.__init__()=rekall.obj.Pointer-class.html#__init__,Method rekall.obj.Profile.__init__()=rekall.obj.Profile-class.html#__init__,Method rekall.obj.ProfileLog.__init__()=rekall.obj.ProfileLog-class.html#__init__,Method rekall.obj.Struct.__init__()=rekall.obj.Struct-class.html#__init__,Method rekall.obj.Void.__init__()=rekall.obj.Void-class.html#__init__,Method rekall.plugin.Command.__init__()=rekall.plugin.Command-class.html#__init__,Method rekall.plugin.KernelASMixin.__init__()=rekall.plugin.KernelASMixin-class.html#__init__,Method rekall.plugin.PhysicalASMixin.__init__()=rekall.plugin.PhysicalASMixin-class.html#__init__,Method rekall.plugin.ProfileCommand.__init__()=rekall.plugin.ProfileCommand-class.html#__init__,Method rekall.plugin.VerbosityMixIn.__init__()=rekall.plugin.VerbosityMixIn-class.html#__init__,Method rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.__init__()=rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.amd64.VTxPagedMemory.__init__()=rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.__init__()=rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32-class.html#__init__,Method rekall.plugins.addrspaces.ewf.EWFAddressSpace.__init__()=rekall.plugins.addrspaces.ewf.EWFAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.ewf.ewffile.__init__()=rekall.plugins.addrspaces.ewf.ewffile-class.html#__init__,Method rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.__init__()=rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace-class.html#__init__,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.__init__()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.macho.MACHOCoreDump.__init__()=rekall.plugins.addrspaces.macho.MACHOCoreDump-class.html#__init__,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__init__()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.DummyAddressSpace.__init__()=rekall.plugins.addrspaces.standard.DummyAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.FDAddressSpace.__init__()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.FileAddressSpace.__init__()=rekall.plugins.addrspaces.standard.FileAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.WriteableAddressSpace.__init__()=rekall.plugins.addrspaces.standard.WriteableAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.__init__()=rekall.plugins.addrspaces.vboxelf.Elf64CoreDump-class.html#__init__,Method rekall.plugins.addrspaces.win32.Win32FileAddressSpace.__init__()=rekall.plugins.addrspaces.win32.Win32FileAddressSpace-class.html#__init__,Method rekall.plugins.core.DT.__init__()=rekall.plugins.core.DT-class.html#__init__,Method rekall.plugins.core.DirectoryDumperMixin.__init__()=rekall.plugins.core.DirectoryDumperMixin-class.html#__init__,Method rekall.plugins.core.DummyParser.__init__()=rekall.plugins.core.DummyParser-class.html#__init__,Method rekall.plugins.core.Dump.__init__()=rekall.plugins.core.Dump-class.html#__init__,Method rekall.plugins.core.Grep.__init__()=rekall.plugins.core.Grep-class.html#__init__,Method rekall.plugins.core.Info.__init__()=rekall.plugins.core.Info-class.html#__init__,Method rekall.plugins.core.LoadAddressSpace.__init__()=rekall.plugins.core.LoadAddressSpace-class.html#__init__,Method rekall.plugins.core.LoadPlugins.__init__()=rekall.plugins.core.LoadPlugins-class.html#__init__,Method rekall.plugins.core.MemmapMixIn.__init__()=rekall.plugins.core.MemmapMixIn-class.html#__init__,Method rekall.plugins.core.OutputFileMixin.__init__()=rekall.plugins.core.OutputFileMixin-class.html#__init__,Method rekall.plugins.core.Printer.__init__()=rekall.plugins.core.Printer-class.html#__init__,Method rekall.plugins.darwin.checks.CheckTrapTable.__init__()=rekall.plugins.darwin.checks.CheckTrapTable-class.html#__init__,Method rekall.plugins.darwin.checks.OIDInfo.__init__()=rekall.plugins.darwin.checks.OIDInfo-class.html#__init__,Method rekall.plugins.darwin.common.DarwinKASLRMixin.__init__()=rekall.plugins.darwin.common.DarwinKASLRMixin-class.html#__init__,Method rekall.plugins.darwin.common.DarwinProcessFilter.__init__()=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#__init__,Method rekall.plugins.darwin.common.KernelAddressCheckerMixIn.__init__()=rekall.plugins.darwin.common.KernelAddressCheckerMixIn-class.html#__init__,Method rekall.plugins.hypervisors.VMCSScanner.__init__()=rekall.plugins.hypervisors.VMCSScanner-class.html#__init__,Method rekall.plugins.hypervisors.VirtualMachine.__init__()=rekall.plugins.hypervisors.VirtualMachine-class.html#__init__,Method rekall.plugins.hypervisors.VmScan.__init__()=rekall.plugins.hypervisors.VmScan-class.html#__init__,Method rekall.plugins.imagecopy.ImageCopy.__init__()=rekall.plugins.imagecopy.ImageCopy-class.html#__init__,Method rekall.plugins.linux.arp.Arp.__init__()=rekall.plugins.linux.arp.Arp-class.html#__init__,Method rekall.plugins.linux.bash.BashHistory.__init__()=rekall.plugins.linux.bash.BashHistory-class.html#__init__,Method rekall.plugins.linux.bash.BashProfile32.__init__()=rekall.plugins.linux.bash.BashProfile32-class.html#__init__,Method rekall.plugins.linux.bash.BashProfile64.__init__()=rekall.plugins.linux.bash.BashProfile64-class.html#__init__,Method rekall.plugins.linux.check_afinfo.CheckAFInfo.__init__()=rekall.plugins.linux.check_afinfo.CheckAFInfo-class.html#__init__,Method rekall.plugins.linux.check_fops.CheckProcFops.__init__()=rekall.plugins.linux.check_fops.CheckProcFops-class.html#__init__,Method rekall.plugins.linux.common.HeapScannerMixIn.__init__()=rekall.plugins.linux.common.HeapScannerMixIn-class.html#__init__,Method rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__()=rekall.plugins.linux.common.KernelAddressCheckerMixIn-class.html#__init__,Method rekall.plugins.linux.common.LinProcessFilter.__init__()=rekall.plugins.linux.common.LinProcessFilter-class.html#__init__,Method rekall.plugins.linux.lsmod.KernelModule.__init__()=rekall.plugins.linux.lsmod.KernelModule-class.html#__init__,Method rekall.plugins.linux.lsmod.Lsmod.__init__()=rekall.plugins.linux.lsmod.Lsmod-class.html#__init__,Method rekall.plugins.linux.pas2kas.LinPas2Vas.__init__()=rekall.plugins.linux.pas2kas.LinPas2Vas-class.html#__init__,Method rekall.plugins.overlays.basic.Enumeration.__init__()=rekall.plugins.overlays.basic.Enumeration-class.html#__init__,Method rekall.plugins.overlays.basic.Flags.__init__()=rekall.plugins.overlays.basic.Flags-class.html#__init__,Method rekall.plugins.overlays.basic.Function.__init__()=rekall.plugins.overlays.basic.Function-class.html#__init__,Method rekall.plugins.overlays.basic.IndexedArray.__init__()=rekall.plugins.overlays.basic.IndexedArray-class.html#__init__,Method rekall.plugins.overlays.basic.Ipv4Address.__init__()=rekall.plugins.overlays.basic.Ipv4Address-class.html#__init__,Method rekall.plugins.overlays.basic.Ipv6Address.__init__()=rekall.plugins.overlays.basic.Ipv6Address-class.html#__init__,Method rekall.plugins.overlays.basic.MacAddress.__init__()=rekall.plugins.overlays.basic.MacAddress-class.html#__init__,Method rekall.plugins.overlays.basic.Signature.__init__()=rekall.plugins.overlays.basic.Signature-class.html#__init__,Method rekall.plugins.overlays.basic.String.__init__()=rekall.plugins.overlays.basic.String-class.html#__init__,Method rekall.plugins.overlays.basic.UnicodeString.__init__()=rekall.plugins.overlays.basic.UnicodeString-class.html#__init__,Method rekall.plugins.overlays.basic.UnixTimeStamp.__init__()=rekall.plugins.overlays.basic.UnixTimeStamp-class.html#__init__,Method rekall.plugins.overlays.basic.WinFileTime.__init__()=rekall.plugins.overlays.basic.WinFileTime-class.html#__init__,Method rekall.plugins.overlays.darwin.macho.MACHO64Profile.__init__()=rekall.plugins.overlays.darwin.macho.MACHO64Profile-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfdump.DWARFParser.__init__()=rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DIETag.__init__()=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DWARFParser.__init__()=rekall.plugins.overlays.linux.dwarfparser.DWARFParser-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__()=rekall.plugins.overlays.linux.dwarfparser.DwarfParser-class.html#__init__,Method rekall.plugins.overlays.linux.elf.ELFProfile.__init__()=rekall.plugins.overlays.linux.elf.ELFProfile-class.html#__init__,Method rekall.plugins.overlays.linux.vfs.FileName.__init__()=rekall.plugins.overlays.linux.vfs.FileName-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.FLS.__init__()=rekall.plugins.overlays.windows.ntfs.FLS-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__()=rekall.plugins.overlays.windows.ntfs.FixupAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__()=rekall.plugins.overlays.windows.ntfs.MFT_ENTRY-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFS.__init__()=rekall.plugins.overlays.windows.ntfs.NTFS-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFSProfile.__init__()=rekall.plugins.overlays.windows.ntfs.NTFSProfile-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR.__init__()=rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.RunListAddressSpace.__init__()=rekall.plugins.overlays.windows.ntfs.RunListAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.PE.__init__()=rekall.plugins.overlays.windows.pe_vtypes.PE-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.__init__()=rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.__init__()=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.__init__()=rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.SentinelArray.__init__()=rekall.plugins.overlays.windows.pe_vtypes.SentinelArray-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.ThunkArray.__init__()=rekall.plugins.overlays.windows.pe_vtypes.ThunkArray-class.html#__init__,Method rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.__init__()=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin-class.html#__init__,Method rekall.plugins.overlays.windows.windows.Demangler.__init__()=rekall.plugins.overlays.windows.windows.Demangler-class.html#__init__,Method rekall.plugins.tools.ipython.Rekall.__init__()=rekall.plugins.tools.ipython.Rekall-class.html#__init__,Method rekall.plugins.tools.json_tools.JSONParser.__init__()=rekall.plugins.tools.json_tools.JSONParser-class.html#__init__,Method rekall.plugins.tools.json_tools.StructFormatter.__init__()=rekall.plugins.tools.json_tools.StructFormatter-class.html#__init__,Method rekall.plugins.tools.mspdb.FetchPDB.__init__()=rekall.plugins.tools.mspdb.FetchPDB-class.html#__init__,Method rekall.plugins.tools.mspdb.PDBParser.__init__()=rekall.plugins.tools.mspdb.PDBParser-class.html#__init__,Method rekall.plugins.tools.mspdb.PDBProfile.__init__()=rekall.plugins.tools.mspdb.PDBProfile-class.html#__init__,Method rekall.plugins.tools.mspdb.ParsePDB.__init__()=rekall.plugins.tools.mspdb.ParsePDB-class.html#__init__,Method rekall.plugins.tools.mspdb.StreamBasedAddressSpace.__init__()=rekall.plugins.tools.mspdb.StreamBasedAddressSpace-class.html#__init__,Method rekall.plugins.tools.mspdb.lfClass.__init__()=rekall.plugins.tools.mspdb.lfClass-class.html#__init__,Method rekall.plugins.tools.mspdb.lfNestType.__init__()=rekall.plugins.tools.mspdb.lfNestType-class.html#__init__,Method rekall.plugins.tools.profile_tool.BuildIndex.__init__()=rekall.plugins.tools.profile_tool.BuildIndex-class.html#__init__,Method rekall.plugins.tools.profile_tool.ConvertProfile.__init__()=rekall.plugins.tools.profile_tool.ConvertProfile-class.html#__init__,Method rekall.plugins.tools.profile_tool.ProfileConverter.__init__()=rekall.plugins.tools.profile_tool.ProfileConverter-class.html#__init__,Method rekall.plugins.tools.webconsole.FakeParser.__init__()=rekall.plugins.tools.webconsole.FakeParser-class.html#__init__,Method rekall.plugins.tools.webconsole.WebConsole.__init__()=rekall.plugins.tools.webconsole.WebConsole-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolIndex.__init__()=rekall.plugins.windows.common.CheckPoolIndex-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolSize.__init__()=rekall.plugins.windows.common.CheckPoolSize-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolType.__init__()=rekall.plugins.windows.common.CheckPoolType-class.html#__init__,Method rekall.plugins.windows.common.KDBGMixin.__init__()=rekall.plugins.windows.common.KDBGMixin-class.html#__init__,Method rekall.plugins.windows.common.MultiPoolTagCheck.__init__()=rekall.plugins.windows.common.MultiPoolTagCheck-class.html#__init__,Method rekall.plugins.windows.common.PoolScannerPlugin.__init__()=rekall.plugins.windows.common.PoolScannerPlugin-class.html#__init__,Method rekall.plugins.windows.common.PoolTagCheck.__init__()=rekall.plugins.windows.common.PoolTagCheck-class.html#__init__,Method rekall.plugins.windows.common.WinDTBScanner.__init__()=rekall.plugins.windows.common.WinDTBScanner-class.html#__init__,Method rekall.plugins.windows.common.WinFindDTB.__init__()=rekall.plugins.windows.common.WinFindDTB-class.html#__init__,Method rekall.plugins.windows.common.WinProcessFilter.__init__()=rekall.plugins.windows.common.WinProcessFilter-class.html#__init__,Method rekall.plugins.windows.crashinfo.Raw2Dump.__init__()=rekall.plugins.windows.crashinfo.Raw2Dump-class.html#__init__,Method rekall.plugins.windows.disassembler.Disassemble.__init__()=rekall.plugins.windows.disassembler.Disassemble-class.html#__init__,Method rekall.plugins.windows.filescan.MutantScan.__init__()=rekall.plugins.windows.filescan.MutantScan-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanDriver.__init__()=rekall.plugins.windows.filescan.PoolScanDriver-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanFile.__init__()=rekall.plugins.windows.filescan.PoolScanFile-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanMutant.__init__()=rekall.plugins.windows.filescan.PoolScanMutant-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanProcess.__init__()=rekall.plugins.windows.filescan.PoolScanProcess-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanSymlink.__init__()=rekall.plugins.windows.filescan.PoolScanSymlink-class.html#__init__,Method rekall.plugins.windows.gui.atoms.AtomScan.__init__()=rekall.plugins.windows.gui.atoms.AtomScan-class.html#__init__,Method rekall.plugins.windows.gui.atoms.PoolScanAtom.__init__()=rekall.plugins.windows.gui.atoms.PoolScanAtom-class.html#__init__,Method rekall.plugins.windows.gui.clipboard.Clipboard.__init__()=rekall.plugins.windows.gui.clipboard.Clipboard-class.html#__init__,Method rekall.plugins.windows.gui.constants.FakeAtom.__init__()=rekall.plugins.windows.gui.constants.FakeAtom-class.html#__init__,Method rekall.plugins.windows.gui.userhandles.UserHandles.__init__()=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#__init__,Method rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__()=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#__init__,Method rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__()=rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin-class.html#__init__,Method rekall.plugins.windows.handles.Handles.__init__()=rekall.plugins.windows.handles.Handles-class.html#__init__,Method rekall.plugins.windows.index.GuessGUID.__init__()=rekall.plugins.windows.index.GuessGUID-class.html#__init__,Method rekall.plugins.windows.kdbgscan.KDBGScan.__init__()=rekall.plugins.windows.kdbgscan.KDBGScan-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.Callbacks.__init__()=rekall.plugins.windows.malware.callbacks.Callbacks-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__()=rekall.plugins.windows.malware.callbacks.PoolScanPnp9-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback.__init__()=rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.CmdScan.__init__()=rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConHost64.__init__()=rekall.plugins.windows.malware.cmdhistory.ConHost64-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConHost86.__init__()=rekall.plugins.windows.malware.cmdhistory.ConHost86-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConsoleScanner.__init__()=rekall.plugins.windows.malware.cmdhistory.ConsoleScanner-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.Consoles.__init__()=rekall.plugins.windows.malware.cmdhistory.Consoles-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.HistoryScanner.__init__()=rekall.plugins.windows.malware.cmdhistory.HistoryScanner-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__()=rekall.plugins.windows.malware.cmdhistory.WinSrv64-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__()=rekall.plugins.windows.malware.cmdhistory.WinSrv86-class.html#__init__,Method rekall.plugins.windows.malware.devicetree.DeviceTree.__init__()=rekall.plugins.windows.malware.devicetree.DeviceTree-class.html#__init__,Method rekall.plugins.windows.malware.devicetree.DriverIrp.__init__()=rekall.plugins.windows.malware.devicetree.DriverIrp-class.html#__init__,Method rekall.plugins.windows.malware.impscan.IDCRenderer.__init__()=rekall.plugins.windows.malware.impscan.IDCRenderer-class.html#__init__,Method rekall.plugins.windows.malware.impscan.ImpScan.__init__()=rekall.plugins.windows.malware.impscan.ImpScan-class.html#__init__,Method rekall.plugins.windows.malware.malfind.LdrModules.__init__()=rekall.plugins.windows.malware.malfind.LdrModules-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__()=rekall.plugins.windows.malware.svcscan.SvcHeaderScanner-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__()=rekall.plugins.windows.malware.svcscan.SvcRecordScanner-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcScan.__init__()=rekall.plugins.windows.malware.svcscan.SvcScan-class.html#__init__,Method rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__()=rekall.plugins.windows.malware.yarascan.BaseYaraASScanner-class.html#__init__,Method rekall.plugins.windows.malware.yarascan.YaraScan.__init__()=rekall.plugins.windows.malware.yarascan.YaraScan-class.html#__init__,Method rekall.plugins.windows.modscan.PoolScanModuleFast.__init__()=rekall.plugins.windows.modscan.PoolScanModuleFast-class.html#__init__,Method rekall.plugins.windows.modscan.PoolScanThreadFast.__init__()=rekall.plugins.windows.modscan.PoolScanThreadFast-class.html#__init__,Method rekall.plugins.windows.modules.Modules.__init__()=rekall.plugins.windows.modules.Modules-class.html#__init__,Method rekall.plugins.windows.modules.VersionScan.__init__()=rekall.plugins.windows.modules.VersionScan-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanTcpEndpoint.__init__()=rekall.plugins.windows.netscan.PoolScanTcpEndpoint-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanTcpListener.__init__()=rekall.plugins.windows.netscan.PoolScanTcpListener-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanUdpEndpoint.__init__()=rekall.plugins.windows.netscan.PoolScanUdpEndpoint-class.html#__init__,Method rekall.plugins.windows.pas2kas.WinPas2Vas.__init__()=rekall.plugins.windows.pas2kas.WinPas2Vas-class.html#__init__,Method rekall.plugins.windows.pfn.DTBScan.__init__()=rekall.plugins.windows.pfn.DTBScan-class.html#__init__,Method rekall.plugins.windows.pfn.PFNInfo.__init__()=rekall.plugins.windows.pfn.PFNInfo-class.html#__init__,Method rekall.plugins.windows.pfn.PTE.__init__()=rekall.plugins.windows.pfn.PTE-class.html#__init__,Method rekall.plugins.windows.pfn.PtoV.__init__()=rekall.plugins.windows.pfn.PtoV-class.html#__init__,Method rekall.plugins.windows.pfn.ValueEnumeration.__init__()=rekall.plugins.windows.pfn.ValueEnumeration-class.html#__init__,Method rekall.plugins.windows.pfn.VtoP.__init__()=rekall.plugins.windows.pfn.VtoP-class.html#__init__,Method rekall.plugins.windows.procdump.DLLDump.__init__()=rekall.plugins.windows.procdump.DLLDump-class.html#__init__,Method rekall.plugins.windows.procdump.PEDump.__init__()=rekall.plugins.windows.procdump.PEDump-class.html#__init__,Method rekall.plugins.windows.procdump.ProcExeDump.__init__()=rekall.plugins.windows.procdump.ProcExeDump-class.html#__init__,Method rekall.plugins.windows.procinfo.PEInfo.__init__()=rekall.plugins.windows.procinfo.PEInfo-class.html#__init__,Method rekall.plugins.windows.pstree.PSTree.__init__()=rekall.plugins.windows.pstree.PSTree-class.html#__init__,Method rekall.plugins.windows.registry.evtlogs.EvtLogs.__init__()=rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html#__init__,Method rekall.plugins.windows.registry.lsadump.HashDump.__init__()=rekall.plugins.windows.registry.lsadump.HashDump-class.html#__init__,Method rekall.plugins.windows.registry.lsadump.LSADump.__init__()=rekall.plugins.windows.registry.lsadump.LSADump-class.html#__init__,Method rekall.plugins.windows.registry.printkey.PrintKey.__init__()=rekall.plugins.windows.registry.printkey.PrintKey-class.html#__init__,Method rekall.plugins.windows.registry.registry.HiveAddressSpace.__init__()=rekall.plugins.windows.registry.registry.HiveAddressSpace-class.html#__init__,Method rekall.plugins.windows.registry.registry.HiveFileAddressSpace.__init__()=rekall.plugins.windows.registry.registry.HiveFileAddressSpace-class.html#__init__,Method rekall.plugins.windows.registry.registry.Pointer32.__init__()=rekall.plugins.windows.registry.registry.Pointer32-class.html#__init__,Method rekall.plugins.windows.registry.registry.Registry.__init__()=rekall.plugins.windows.registry.registry.Registry-class.html#__init__,Method rekall.plugins.windows.registry.registry.RegistryHive.__init__()=rekall.plugins.windows.registry.registry.RegistryHive-class.html#__init__,Method rekall.plugins.windows.registry.registry.RegistryPlugin.__init__()=rekall.plugins.windows.registry.registry.RegistryPlugin-class.html#__init__,Method rekall.plugins.windows.registry.userassist.UserAssist.__init__()=rekall.plugins.windows.registry.userassist.UserAssist-class.html#__init__,Method rekall.plugins.windows.taskmods.WinPsList.__init__()=rekall.plugins.windows.taskmods.WinPsList-class.html#__init__,Method rekall.plugins.windows.vadinfo.VAD.__init__()=rekall.plugins.windows.vadinfo.VAD-class.html#__init__,Method rekall.plugins.windows.vadinfo.VADDump.__init__()=rekall.plugins.windows.vadinfo.VADDump-class.html#__init__,Method rekall.plugins.windows.vadinfo.VadScanner.__init__()=rekall.plugins.windows.vadinfo.VadScanner-class.html#__init__,Method rekall.registry.MetaclassRegistry.__init__()=rekall.registry.MetaclassRegistry-class.html#__init__,Method rekall.scan.BaseScanner.__init__()=rekall.scan.BaseScanner-class.html#__init__,Method rekall.scan.MultiStringFinderCheck.__init__()=rekall.scan.MultiStringFinderCheck-class.html#__init__,Method rekall.scan.PointerScanner.__init__()=rekall.scan.PointerScanner-class.html#__init__,Method rekall.scan.RegexCheck.__init__()=rekall.scan.RegexCheck-class.html#__init__,Method rekall.scan.ScannerCheck.__init__()=rekall.scan.ScannerCheck-class.html#__init__,Method rekall.scan.ScannerGroup.__init__()=rekall.scan.ScannerGroup-class.html#__init__,Method rekall.scan.StringCheck.__init__()=rekall.scan.StringCheck-class.html#__init__,Method rekall.session.Configuration.__init__()=rekall.session.Configuration-class.html#__init__,Method rekall.session.InteractiveSession.__init__()=rekall.session.InteractiveSession-class.html#__init__,Method rekall.session.ProgressDispatcher.__init__()=rekall.session.ProgressDispatcher-class.html#__init__,Method rekall.session.Session.__init__()=rekall.session.Session-class.html#__init__,Method rekall.superposition.Superposition.__init__()=rekall.superposition.Superposition-class.html#__init__,Method rekall.testlib.RekallBaseUnitTestCase.__init__()=rekall.testlib.RekallBaseUnitTestCase-class.html#__init__,Method rekall.threadpool.ThreadPool.__init__()=rekall.threadpool.ThreadPool-class.html#__init__,Method rekall.threadpool.Worker.__init__()=rekall.threadpool.Worker-class.html#__init__,Method rekall.type_generator.Disassembler.__init__()=rekall.type_generator.Disassembler-class.html#__init__,Method rekall.ui.renderer.BaseColumn.__init__()=rekall.ui.renderer.BaseColumn-class.html#__init__,Method rekall.ui.renderer.BaseRenderer.__init__()=rekall.ui.renderer.BaseRenderer-class.html#__init__,Method rekall.ui.renderer.BaseTable.__init__()=rekall.ui.renderer.BaseTable-class.html#__init__,Method rekall.ui.renderer.UnicodeWrapper.__init__()=rekall.ui.renderer.UnicodeWrapper-class.html#__init__,Method rekall.ui.text.Colorizer.__init__()=rekall.ui.text.Colorizer-class.html#__init__,Method rekall.ui.text.Pager.__init__()=rekall.ui.text.Pager-class.html#__init__,Method rekall.ui.text.TestRenderer.__init__()=rekall.ui.text.TestRenderer-class.html#__init__,Method rekall.ui.text.TextColumn.__init__()=rekall.ui.text.TextColumn-class.html#__init__,Method rekall.ui.text.TextRenderer.__init__()=rekall.ui.text.TextRenderer-class.html#__init__,Method rekall.ui.text.TextTable.__init__()=rekall.ui.text.TextTable-class.html#__init__,Method rekall.utils.AgeBasedCache.__init__()=rekall.utils.AgeBasedCache-class.html#__init__,Method rekall.utils.FastStore.__init__()=rekall.utils.FastStore-class.html#__init__,Method rekall.utils.FileLock.__init__()=rekall.utils.FileLock-class.html#__init__,Method rekall.utils.LinkedList.__init__()=rekall.utils.LinkedList-class.html#__init__,Method rekall.utils.Node.__init__()=rekall.utils.Node-class.html#__init__,Method rekall.utils.SortedCollection.__init__()=rekall.utils.SortedCollection-class.html#__init__"><a title="rekall.addrspace.AddrSpaceError.__init__
+<a name="L49"></a><tt class="py-lineno">  49</tt>  <tt class="py-line">        <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-15" class="py-name" targets="Class rekall.plugins.overlays.windows.pe_vtypes.SentinelArray=rekall.plugins.overlays.windows.pe_vtypes.SentinelArray-class.html"><a title="rekall.plugins.overlays.windows.pe_vtypes.SentinelArray" class="py-name" href="#" onclick="return doclink('link-15', 'SentinelArray', 'link-15');">SentinelArray</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method rekall.addrspace.AddrSpaceError.__init__()=rekall.addrspace.AddrSpaceError-class.html#__init__,Method rekall.addrspace.BaseAddressSpace.__init__()=rekall.addrspace.BaseAddressSpace-class.html#__init__,Method rekall.addrspace.BufferAddressSpace.__init__()=rekall.addrspace.BufferAddressSpace-class.html#__init__,Method rekall.addrspace.CachingAddressSpaceMixIn.__init__()=rekall.addrspace.CachingAddressSpaceMixIn-class.html#__init__,Method rekall.addrspace.RunBasedAddressSpace.__init__()=rekall.addrspace.RunBasedAddressSpace-class.html#__init__,Method rekall.addrspace_test.CustomRunsAddressSpace.__init__()=rekall.addrspace_test.CustomRunsAddressSpace-class.html#__init__,Method rekall.args.RekallArgParser.__init__()=rekall.args.RekallArgParser-class.html#__init__,Method rekall.entity.Entity.__init__()=rekall.entity.Entity-class.html#__init__,Method rekall.entity.EntityLookupTable.__init__()=rekall.entity.EntityLookupTable-class.html#__init__,Method rekall.entity.EntityManager.__init__()=rekall.entity.EntityManager-class.html#__init__,Method rekall.identity.BaseObjectIdentity.__init__()=rekall.identity.BaseObjectIdentity-class.html#__init__,Method rekall.identity.Identity.__init__()=rekall.identity.Identity-class.html#__init__,Method rekall.identity.ProcessIdentity.__init__()=rekall.identity.ProcessIdentity-class.html#__init__,Method rekall.identity.UserIdentity.__init__()=rekall.identity.UserIdentity-class.html#__init__,Method rekall.io_manager.DirectoryIOManager.__init__()=rekall.io_manager.DirectoryIOManager-class.html#__init__,Method rekall.io_manager.IOManager.__init__()=rekall.io_manager.IOManager-class.html#__init__,Method rekall.io_manager.SelfClosingFile.__init__()=rekall.io_manager.SelfClosingFile-class.html#__init__,Method rekall.io_manager.URLManager.__init__()=rekall.io_manager.URLManager-class.html#__init__,Method rekall.io_manager.ZipFileManager.__init__()=rekall.io_manager.ZipFileManager-class.html#__init__,Method rekall.kb.AddressResolver.__init__()=rekall.kb.AddressResolver-class.html#__init__,Method rekall.kb.KernelModule.__init__()=rekall.kb.KernelModule-class.html#__init__,Method rekall.kb.ParameterHook.__init__()=rekall.kb.ParameterHook-class.html#__init__,Method rekall.kb.SortedAddresses.__init__()=rekall.kb.SortedAddresses-class.html#__init__,Method rekall.kb.SymbolAddresses.__init__()=rekall.kb.SymbolAddresses-class.html#__init__,Method rekall.obj.Array.__init__()=rekall.obj.Array-class.html#__init__,Method rekall.obj.BaseObject.__init__()=rekall.obj.BaseObject-class.html#__init__,Method rekall.obj.BitField.__init__()=rekall.obj.BitField-class.html#__init__,Method rekall.obj.Curry.__init__()=rekall.obj.Curry-class.html#__init__,Method rekall.obj.ListArray.__init__()=rekall.obj.ListArray-class.html#__init__,Method rekall.obj.NativeType.__init__()=rekall.obj.NativeType-class.html#__init__,Method rekall.obj.NoneObject.__init__()=rekall.obj.NoneObject-class.html#__init__,Method rekall.obj.Pointer.__init__()=rekall.obj.Pointer-class.html#__init__,Method rekall.obj.Profile.__init__()=rekall.obj.Profile-class.html#__init__,Method rekall.obj.ProfileLog.__init__()=rekall.obj.ProfileLog-class.html#__init__,Method rekall.obj.Struct.__init__()=rekall.obj.Struct-class.html#__init__,Method rekall.obj.Void.__init__()=rekall.obj.Void-class.html#__init__,Method rekall.plugin.Command.__init__()=rekall.plugin.Command-class.html#__init__,Method rekall.plugin.KernelASMixin.__init__()=rekall.plugin.KernelASMixin-class.html#__init__,Method rekall.plugin.PhysicalASMixin.__init__()=rekall.plugin.PhysicalASMixin-class.html#__init__,Method rekall.plugin.ProfileCommand.__init__()=rekall.plugin.ProfileCommand-class.html#__init__,Method rekall.plugin.VerbosityMixIn.__init__()=rekall.plugin.VerbosityMixIn-class.html#__init__,Method rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.__init__()=rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.amd64.VTxPagedMemory.__init__()=rekall.plugins.addrspaces.amd64.VTxPagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32.__init__()=rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32-class.html#__init__,Method rekall.plugins.addrspaces.ewf.EWFAddressSpace.__init__()=rekall.plugins.addrspaces.ewf.EWFAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.ewf.ewffile.__init__()=rekall.plugins.addrspaces.ewf.ewffile-class.html#__init__,Method rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.__init__()=rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace-class.html#__init__,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.__init__()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#__init__,Method rekall.plugins.addrspaces.macho.MACHOCoreDump.__init__()=rekall.plugins.addrspaces.macho.MACHOCoreDump-class.html#__init__,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__init__()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.DummyAddressSpace.__init__()=rekall.plugins.addrspaces.standard.DummyAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.FDAddressSpace.__init__()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.FileAddressSpace.__init__()=rekall.plugins.addrspaces.standard.FileAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.standard.WriteableAddressSpace.__init__()=rekall.plugins.addrspaces.standard.WriteableAddressSpace-class.html#__init__,Method rekall.plugins.addrspaces.vboxelf.Elf64CoreDump.__init__()=rekall.plugins.addrspaces.vboxelf.Elf64CoreDump-class.html#__init__,Method rekall.plugins.addrspaces.win32.Win32FileAddressSpace.__init__()=rekall.plugins.addrspaces.win32.Win32FileAddressSpace-class.html#__init__,Method rekall.plugins.core.DT.__init__()=rekall.plugins.core.DT-class.html#__init__,Method rekall.plugins.core.DirectoryDumperMixin.__init__()=rekall.plugins.core.DirectoryDumperMixin-class.html#__init__,Method rekall.plugins.core.DummyParser.__init__()=rekall.plugins.core.DummyParser-class.html#__init__,Method rekall.plugins.core.Dump.__init__()=rekall.plugins.core.Dump-class.html#__init__,Method rekall.plugins.core.Grep.__init__()=rekall.plugins.core.Grep-class.html#__init__,Method rekall.plugins.core.Info.__init__()=rekall.plugins.core.Info-class.html#__init__,Method rekall.plugins.core.LoadAddressSpace.__init__()=rekall.plugins.core.LoadAddressSpace-class.html#__init__,Method rekall.plugins.core.LoadPlugins.__init__()=rekall.plugins.core.LoadPlugins-class.html#__init__,Method rekall.plugins.core.MemmapMixIn.__init__()=rekall.plugins.core.MemmapMixIn-class.html#__init__,Method rekall.plugins.core.OutputFileMixin.__init__()=rekall.plugins.core.OutputFileMixin-class.html#__init__,Method rekall.plugins.core.Printer.__init__()=rekall.plugins.core.Printer-class.html#__init__,Method rekall.plugins.darwin.checks.CheckTrapTable.__init__()=rekall.plugins.darwin.checks.CheckTrapTable-class.html#__init__,Method rekall.plugins.darwin.checks.OIDInfo.__init__()=rekall.plugins.darwin.checks.OIDInfo-class.html#__init__,Method rekall.plugins.darwin.common.DarwinKASLRMixin.__init__()=rekall.plugins.darwin.common.DarwinKASLRMixin-class.html#__init__,Method rekall.plugins.darwin.common.DarwinProcessFilter.__init__()=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#__init__,Method rekall.plugins.darwin.common.KernelAddressCheckerMixIn.__init__()=rekall.plugins.darwin.common.KernelAddressCheckerMixIn-class.html#__init__,Method rekall.plugins.hypervisors.VMCSScanner.__init__()=rekall.plugins.hypervisors.VMCSScanner-class.html#__init__,Method rekall.plugins.hypervisors.VirtualMachine.__init__()=rekall.plugins.hypervisors.VirtualMachine-class.html#__init__,Method rekall.plugins.hypervisors.VmScan.__init__()=rekall.plugins.hypervisors.VmScan-class.html#__init__,Method rekall.plugins.imagecopy.ImageCopy.__init__()=rekall.plugins.imagecopy.ImageCopy-class.html#__init__,Method rekall.plugins.linux.arp.Arp.__init__()=rekall.plugins.linux.arp.Arp-class.html#__init__,Method rekall.plugins.linux.bash.BashHistory.__init__()=rekall.plugins.linux.bash.BashHistory-class.html#__init__,Method rekall.plugins.linux.bash.BashProfile32.__init__()=rekall.plugins.linux.bash.BashProfile32-class.html#__init__,Method rekall.plugins.linux.bash.BashProfile64.__init__()=rekall.plugins.linux.bash.BashProfile64-class.html#__init__,Method rekall.plugins.linux.check_afinfo.CheckAFInfo.__init__()=rekall.plugins.linux.check_afinfo.CheckAFInfo-class.html#__init__,Method rekall.plugins.linux.check_fops.CheckProcFops.__init__()=rekall.plugins.linux.check_fops.CheckProcFops-class.html#__init__,Method rekall.plugins.linux.common.HeapScannerMixIn.__init__()=rekall.plugins.linux.common.HeapScannerMixIn-class.html#__init__,Method rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__()=rekall.plugins.linux.common.KernelAddressCheckerMixIn-class.html#__init__,Method rekall.plugins.linux.common.LinProcessFilter.__init__()=rekall.plugins.linux.common.LinProcessFilter-class.html#__init__,Method rekall.plugins.linux.fs.Mfind.__init__()=rekall.plugins.linux.fs.Mfind-class.html#__init__,Method rekall.plugins.linux.fs.Mls.__init__()=rekall.plugins.linux.fs.Mls-class.html#__init__,Method rekall.plugins.linux.lsmod.KernelModule.__init__()=rekall.plugins.linux.lsmod.KernelModule-class.html#__init__,Method rekall.plugins.linux.lsmod.Lsmod.__init__()=rekall.plugins.linux.lsmod.Lsmod-class.html#__init__,Method rekall.plugins.linux.lsmod.Moddump.__init__()=rekall.plugins.linux.lsmod.Moddump-class.html#__init__,Method rekall.plugins.linux.netstat.PacketQueues.__init__()=rekall.plugins.linux.netstat.PacketQueues-class.html#__init__,Method rekall.plugins.linux.pas2kas.LinPas2Vas.__init__()=rekall.plugins.linux.pas2kas.LinPas2Vas-class.html#__init__,Method rekall.plugins.linux.yarascan.YaraScan.__init__()=rekall.plugins.linux.yarascan.YaraScan-class.html#__init__,Method rekall.plugins.overlays.basic.Enumeration.__init__()=rekall.plugins.overlays.basic.Enumeration-class.html#__init__,Method rekall.plugins.overlays.basic.Flags.__init__()=rekall.plugins.overlays.basic.Flags-class.html#__init__,Method rekall.plugins.overlays.basic.Function.__init__()=rekall.plugins.overlays.basic.Function-class.html#__init__,Method rekall.plugins.overlays.basic.IndexedArray.__init__()=rekall.plugins.overlays.basic.IndexedArray-class.html#__init__,Method rekall.plugins.overlays.basic.Ipv4Address.__init__()=rekall.plugins.overlays.basic.Ipv4Address-class.html#__init__,Method rekall.plugins.overlays.basic.Ipv6Address.__init__()=rekall.plugins.overlays.basic.Ipv6Address-class.html#__init__,Method rekall.plugins.overlays.basic.MacAddress.__init__()=rekall.plugins.overlays.basic.MacAddress-class.html#__init__,Method rekall.plugins.overlays.basic.Signature.__init__()=rekall.plugins.overlays.basic.Signature-class.html#__init__,Method rekall.plugins.overlays.basic.String.__init__()=rekall.plugins.overlays.basic.String-class.html#__init__,Method rekall.plugins.overlays.basic.UnicodeString.__init__()=rekall.plugins.overlays.basic.UnicodeString-class.html#__init__,Method rekall.plugins.overlays.basic.UnixTimeStamp.__init__()=rekall.plugins.overlays.basic.UnixTimeStamp-class.html#__init__,Method rekall.plugins.overlays.basic.WinFileTime.__init__()=rekall.plugins.overlays.basic.WinFileTime-class.html#__init__,Method rekall.plugins.overlays.darwin.macho.MACHO64Profile.__init__()=rekall.plugins.overlays.darwin.macho.MACHO64Profile-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfdump.DWARFParser.__init__()=rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DIETag.__init__()=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DWARFParser.__init__()=rekall.plugins.overlays.linux.dwarfparser.DWARFParser-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumeration_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_enumerator-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__()=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type-class.html#__init__,Method rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__()=rekall.plugins.overlays.linux.dwarfparser.DwarfParser-class.html#__init__,Method rekall.plugins.overlays.linux.elf.ELFProfile.__init__()=rekall.plugins.overlays.linux.elf.ELFProfile-class.html#__init__,Method rekall.plugins.overlays.linux.linux.timespec.__init__()=rekall.plugins.overlays.linux.linux.timespec-class.html#__init__,Method rekall.plugins.overlays.linux.vfs.File.__init__()=rekall.plugins.overlays.linux.vfs.File-class.html#__init__,Method rekall.plugins.overlays.linux.vfs.FileName.__init__()=rekall.plugins.overlays.linux.vfs.FileName-class.html#__init__,Method rekall.plugins.overlays.linux.vfs.Linux3VFS.__init__()=rekall.plugins.overlays.linux.vfs.Linux3VFS-class.html#__init__,Method rekall.plugins.overlays.linux.vfs.MountPoint.__init__()=rekall.plugins.overlays.linux.vfs.MountPoint-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.FLS.__init__()=rekall.plugins.overlays.windows.ntfs.FLS-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__()=rekall.plugins.overlays.windows.ntfs.FixupAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__()=rekall.plugins.overlays.windows.ntfs.MFT_ENTRY-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFS.__init__()=rekall.plugins.overlays.windows.ntfs.NTFS-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFSProfile.__init__()=rekall.plugins.overlays.windows.ntfs.NTFSProfile-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR.__init__()=rekall.plugins.overlays.windows.ntfs.NTFS_BOOT_SECTOR-class.html#__init__,Method rekall.plugins.overlays.windows.ntfs.RunListAddressSpace.__init__()=rekall.plugins.overlays.windows.ntfs.RunListAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.PE.__init__()=rekall.plugins.overlays.windows.pe_vtypes.PE-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace.__init__()=rekall.plugins.overlays.windows.pe_vtypes.PEFileAddressSpace-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.__init__()=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.__init__()=rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.SentinelArray.__init__()=rekall.plugins.overlays.windows.pe_vtypes.SentinelArray-class.html#__init__,Method rekall.plugins.overlays.windows.pe_vtypes.ThunkArray.__init__()=rekall.plugins.overlays.windows.pe_vtypes.ThunkArray-class.html#__init__,Method rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.__init__()=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin-class.html#__init__,Method rekall.plugins.overlays.windows.windows.Demangler.__init__()=rekall.plugins.overlays.windows.windows.Demangler-class.html#__init__,Method rekall.plugins.tools.ipython.Rekall.__init__()=rekall.plugins.tools.ipython.Rekall-class.html#__init__,Method rekall.plugins.tools.json_tools.JSONParser.__init__()=rekall.plugins.tools.json_tools.JSONParser-class.html#__init__,Method rekall.plugins.tools.json_tools.StructFormatter.__init__()=rekall.plugins.tools.json_tools.StructFormatter-class.html#__init__,Method rekall.plugins.tools.mspdb.FetchPDB.__init__()=rekall.plugins.tools.mspdb.FetchPDB-class.html#__init__,Method rekall.plugins.tools.mspdb.PDBParser.__init__()=rekall.plugins.tools.mspdb.PDBParser-class.html#__init__,Method rekall.plugins.tools.mspdb.PDBProfile.__init__()=rekall.plugins.tools.mspdb.PDBProfile-class.html#__init__,Method rekall.plugins.tools.mspdb.ParsePDB.__init__()=rekall.plugins.tools.mspdb.ParsePDB-class.html#__init__,Method rekall.plugins.tools.mspdb.StreamBasedAddressSpace.__init__()=rekall.plugins.tools.mspdb.StreamBasedAddressSpace-class.html#__init__,Method rekall.plugins.tools.mspdb.lfClass.__init__()=rekall.plugins.tools.mspdb.lfClass-class.html#__init__,Method rekall.plugins.tools.mspdb.lfNestType.__init__()=rekall.plugins.tools.mspdb.lfNestType-class.html#__init__,Method rekall.plugins.tools.profile_tool.BuildIndex.__init__()=rekall.plugins.tools.profile_tool.BuildIndex-class.html#__init__,Method rekall.plugins.tools.profile_tool.ConvertProfile.__init__()=rekall.plugins.tools.profile_tool.ConvertProfile-class.html#__init__,Method rekall.plugins.tools.profile_tool.ProfileConverter.__init__()=rekall.plugins.tools.profile_tool.ProfileConverter-class.html#__init__,Method rekall.plugins.tools.webconsole.FakeParser.__init__()=rekall.plugins.tools.webconsole.FakeParser-class.html#__init__,Method rekall.plugins.tools.webconsole.WebConsole.__init__()=rekall.plugins.tools.webconsole.WebConsole-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolIndex.__init__()=rekall.plugins.windows.common.CheckPoolIndex-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolSize.__init__()=rekall.plugins.windows.common.CheckPoolSize-class.html#__init__,Method rekall.plugins.windows.common.CheckPoolType.__init__()=rekall.plugins.windows.common.CheckPoolType-class.html#__init__,Method rekall.plugins.windows.common.MultiPoolTagCheck.__init__()=rekall.plugins.windows.common.MultiPoolTagCheck-class.html#__init__,Method rekall.plugins.windows.common.PoolScannerPlugin.__init__()=rekall.plugins.windows.common.PoolScannerPlugin-class.html#__init__,Method rekall.plugins.windows.common.PoolTagCheck.__init__()=rekall.plugins.windows.common.PoolTagCheck-class.html#__init__,Method rekall.plugins.windows.common.WinDTBScanner.__init__()=rekall.plugins.windows.common.WinDTBScanner-class.html#__init__,Method rekall.plugins.windows.common.WinFindDTB.__init__()=rekall.plugins.windows.common.WinFindDTB-class.html#__init__,Method rekall.plugins.windows.common.WinProcessFilter.__init__()=rekall.plugins.windows.common.WinProcessFilter-class.html#__init__,Method rekall.plugins.windows.crashinfo.Raw2Dump.__init__()=rekall.plugins.windows.crashinfo.Raw2Dump-class.html#__init__,Method rekall.plugins.windows.disassembler.Disassemble.__init__()=rekall.plugins.windows.disassembler.Disassemble-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanDriver.__init__()=rekall.plugins.windows.filescan.PoolScanDriver-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanFile.__init__()=rekall.plugins.windows.filescan.PoolScanFile-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanMutant.__init__()=rekall.plugins.windows.filescan.PoolScanMutant-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanProcess.__init__()=rekall.plugins.windows.filescan.PoolScanProcess-class.html#__init__,Method rekall.plugins.windows.filescan.PoolScanSymlink.__init__()=rekall.plugins.windows.filescan.PoolScanSymlink-class.html#__init__,Method rekall.plugins.windows.gui.atoms.AtomScan.__init__()=rekall.plugins.windows.gui.atoms.AtomScan-class.html#__init__,Method rekall.plugins.windows.gui.atoms.PoolScanAtom.__init__()=rekall.plugins.windows.gui.atoms.PoolScanAtom-class.html#__init__,Method rekall.plugins.windows.gui.clipboard.Clipboard.__init__()=rekall.plugins.windows.gui.clipboard.Clipboard-class.html#__init__,Method rekall.plugins.windows.gui.constants.FakeAtom.__init__()=rekall.plugins.windows.gui.constants.FakeAtom-class.html#__init__,Method rekall.plugins.windows.gui.userhandles.UserHandles.__init__()=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#__init__,Method rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__()=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#__init__,Method rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__()=rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin-class.html#__init__,Method rekall.plugins.windows.handles.Handles.__init__()=rekall.plugins.windows.handles.Handles-class.html#__init__,Method rekall.plugins.windows.index.GuessGUID.__init__()=rekall.plugins.windows.index.GuessGUID-class.html#__init__,Method rekall.plugins.windows.interactive.structs.AnalyzeStruct.__init__()=rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html#__init__,Method rekall.plugins.windows.kdbgscan.KDBGScan.__init__()=rekall.plugins.windows.kdbgscan.KDBGScan-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.Callbacks.__init__()=rekall.plugins.windows.malware.callbacks.Callbacks-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__()=rekall.plugins.windows.malware.callbacks.PoolScanPnp9-class.html#__init__,Method rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback.__init__()=rekall.plugins.windows.malware.callbacks.PoolScanShutdownCallback-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.CmdScan.__init__()=rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConHost64.__init__()=rekall.plugins.windows.malware.cmdhistory.ConHost64-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConHost86.__init__()=rekall.plugins.windows.malware.cmdhistory.ConHost86-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.ConsoleScanner.__init__()=rekall.plugins.windows.malware.cmdhistory.ConsoleScanner-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.Consoles.__init__()=rekall.plugins.windows.malware.cmdhistory.Consoles-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.HistoryScanner.__init__()=rekall.plugins.windows.malware.cmdhistory.HistoryScanner-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__()=rekall.plugins.windows.malware.cmdhistory.WinSrv64-class.html#__init__,Method rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__()=rekall.plugins.windows.malware.cmdhistory.WinSrv86-class.html#__init__,Method rekall.plugins.windows.malware.devicetree.DeviceTree.__init__()=rekall.plugins.windows.malware.devicetree.DeviceTree-class.html#__init__,Method rekall.plugins.windows.malware.devicetree.DriverIrp.__init__()=rekall.plugins.windows.malware.devicetree.DriverIrp-class.html#__init__,Method rekall.plugins.windows.malware.impscan.ImpScan.__init__()=rekall.plugins.windows.malware.impscan.ImpScan-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__()=rekall.plugins.windows.malware.svcscan.SvcHeaderScanner-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__()=rekall.plugins.windows.malware.svcscan.SvcRecordScanner-class.html#__init__,Method rekall.plugins.windows.malware.svcscan.SvcScan.__init__()=rekall.plugins.windows.malware.svcscan.SvcScan-class.html#__init__,Method rekall.plugins.windows.malware.yarascan.YaraScan.__init__()=rekall.plugins.windows.malware.yarascan.YaraScan-class.html#__init__,Method rekall.plugins.windows.misc.ObjectTree.__init__()=rekall.plugins.windows.misc.ObjectTree-class.html#__init__,Method rekall.plugins.windows.modscan.PoolScanModuleFast.__init__()=rekall.plugins.windows.modscan.PoolScanModuleFast-class.html#__init__,Method rekall.plugins.windows.modscan.PoolScanThreadFast.__init__()=rekall.plugins.windows.modscan.PoolScanThreadFast-class.html#__init__,Method rekall.plugins.windows.modules.Modules.__init__()=rekall.plugins.windows.modules.Modules-class.html#__init__,Method rekall.plugins.windows.modules.VersionScan.__init__()=rekall.plugins.windows.modules.VersionScan-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanTcpEndpoint.__init__()=rekall.plugins.windows.netscan.PoolScanTcpEndpoint-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanTcpListener.__init__()=rekall.plugins.windows.netscan.PoolScanTcpListener-class.html#__init__,Method rekall.plugins.windows.netscan.PoolScanUdpEndpoint.__init__()=rekall.plugins.windows.netscan.PoolScanUdpEndpoint-class.html#__init__,Method rekall.plugins.windows.pas2kas.WinPas2Vas.__init__()=rekall.plugins.windows.pas2kas.WinPas2Vas-class.html#__init__,Method rekall.plugins.windows.pfn.DTBScan.__init__()=rekall.plugins.windows.pfn.DTBScan-class.html#__init__,Method rekall.plugins.windows.pfn.PFNInfo.__init__()=rekall.plugins.windows.pfn.PFNInfo-class.html#__init__,Method rekall.plugins.windows.pfn.PTE.__init__()=rekall.plugins.windows.pfn.PTE-class.html#__init__,Method rekall.plugins.windows.pfn.PtoV.__init__()=rekall.plugins.windows.pfn.PtoV-class.html#__init__,Method rekall.plugins.windows.pfn.ValueEnumeration.__init__()=rekall.plugins.windows.pfn.ValueEnumeration-class.html#__init__,Method rekall.plugins.windows.pfn.VtoP.__init__()=rekall.plugins.windows.pfn.VtoP-class.html#__init__,Method rekall.plugins.windows.procdump.DLLDump.__init__()=rekall.plugins.windows.procdump.DLLDump-class.html#__init__,Method rekall.plugins.windows.procdump.PEDump.__init__()=rekall.plugins.windows.procdump.PEDump-class.html#__init__,Method rekall.plugins.windows.procdump.ProcExeDump.__init__()=rekall.plugins.windows.procdump.ProcExeDump-class.html#__init__,Method rekall.plugins.windows.procinfo.PEInfo.__init__()=rekall.plugins.windows.procinfo.PEInfo-class.html#__init__,Method rekall.plugins.windows.pstree.PSTree.__init__()=rekall.plugins.windows.pstree.PSTree-class.html#__init__,Method rekall.plugins.windows.registry.evtlogs.EvtLogs.__init__()=rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html#__init__,Method rekall.plugins.windows.registry.lsadump.HashDump.__init__()=rekall.plugins.windows.registry.lsadump.HashDump-class.html#__init__,Method rekall.plugins.windows.registry.lsadump.LSADump.__init__()=rekall.plugins.windows.registry.lsadump.LSADump-class.html#__init__,Method rekall.plugins.windows.registry.printkey.PrintKey.__init__()=rekall.plugins.windows.registry.printkey.PrintKey-class.html#__init__,Method rekall.plugins.windows.registry.registry.HiveAddressSpace.__init__()=rekall.plugins.windows.registry.registry.HiveAddressSpace-class.html#__init__,Method rekall.plugins.windows.registry.registry.HiveFileAddressSpace.__init__()=rekall.plugins.windows.registry.registry.HiveFileAddressSpace-class.html#__init__,Method rekall.plugins.windows.registry.registry.Pointer32.__init__()=rekall.plugins.windows.registry.registry.Pointer32-class.html#__init__,Method rekall.plugins.windows.registry.registry.Registry.__init__()=rekall.plugins.windows.registry.registry.Registry-class.html#__init__,Method rekall.plugins.windows.registry.registry.RegistryHive.__init__()=rekall.plugins.windows.registry.registry.RegistryHive-class.html#__init__,Method rekall.plugins.windows.registry.registry.RegistryPlugin.__init__()=rekall.plugins.windows.registry.registry.RegistryPlugin-class.html#__init__,Method rekall.plugins.windows.registry.userassist.UserAssist.__init__()=rekall.plugins.windows.registry.userassist.UserAssist-class.html#__init__,Method rekall.plugins.windows.taskmods.WinPsList.__init__()=rekall.plugins.windows.taskmods.WinPsList-class.html#__init__,Method rekall.plugins.windows.vadinfo.VAD.__init__()=rekall.plugins.windows.vadinfo.VAD-class.html#__init__,Method rekall.plugins.windows.vadinfo.VadScanner.__init__()=rekall.plugins.windows.vadinfo.VadScanner-class.html#__init__,Method rekall.plugins.yarascanner.BaseYaraASScanner.__init__()=rekall.plugins.yarascanner.BaseYaraASScanner-class.html#__init__,Method rekall.registry.MetaclassRegistry.__init__()=rekall.registry.MetaclassRegistry-class.html#__init__,Method rekall.scan.BaseScanner.__init__()=rekall.scan.BaseScanner-class.html#__init__,Method rekall.scan.MultiStringFinderCheck.__init__()=rekall.scan.MultiStringFinderCheck-class.html#__init__,Method rekall.scan.PointerScanner.__init__()=rekall.scan.PointerScanner-class.html#__init__,Method rekall.scan.RegexCheck.__init__()=rekall.scan.RegexCheck-class.html#__init__,Method rekall.scan.ScannerCheck.__init__()=rekall.scan.ScannerCheck-class.html#__init__,Method rekall.scan.ScannerGroup.__init__()=rekall.scan.ScannerGroup-class.html#__init__,Method rekall.scan.StringCheck.__init__()=rekall.scan.StringCheck-class.html#__init__,Method rekall.session.Configuration.__init__()=rekall.session.Configuration-class.html#__init__,Method rekall.session.InteractiveSession.__init__()=rekall.session.InteractiveSession-class.html#__init__,Method rekall.session.ProgressDispatcher.__init__()=rekall.session.ProgressDispatcher-class.html#__init__,Method rekall.session.Session.__init__()=rekall.session.Session-class.html#__init__,Method rekall.superposition.Superposition.__init__()=rekall.superposition.Superposition-class.html#__init__,Method rekall.testlib.RekallBaseUnitTestCase.__init__()=rekall.testlib.RekallBaseUnitTestCase-class.html#__init__,Method rekall.threadpool.ThreadPool.__init__()=rekall.threadpool.ThreadPool-class.html#__init__,Method rekall.threadpool.Worker.__init__()=rekall.threadpool.Worker-class.html#__init__,Method rekall.type_generator.Disassembler.__init__()=rekall.type_generator.Disassembler-class.html#__init__,Method rekall.ui.json_renderer.JsonDecoder.__init__()=rekall.ui.json_renderer.JsonDecoder-class.html#__init__,Method rekall.ui.json_renderer.JsonEncoder.__init__()=rekall.ui.json_renderer.JsonEncoder-class.html#__init__,Method rekall.ui.json_renderer.JsonRenderer.__init__()=rekall.ui.json_renderer.JsonRenderer-class.html#__init__,Method rekall.ui.renderer.BaseColumn.__init__()=rekall.ui.renderer.BaseColumn-class.html#__init__,Method rekall.ui.renderer.BaseRenderer.__init__()=rekall.ui.renderer.BaseRenderer-class.html#__init__,Method rekall.ui.renderer.BaseTable.__init__()=rekall.ui.renderer.BaseTable-class.html#__init__,Method rekall.ui.text.Colorizer.__init__()=rekall.ui.text.Colorizer-class.html#__init__,Method rekall.ui.text.Pager.__init__()=rekall.ui.text.Pager-class.html#__init__,Method rekall.ui.text.TestRenderer.__init__()=rekall.ui.text.TestRenderer-class.html#__init__,Method rekall.ui.text.TextColumn.__init__()=rekall.ui.text.TextColumn-class.html#__init__,Method rekall.ui.text.TextRenderer.__init__()=rekall.ui.text.TextRenderer-class.html#__init__,Method rekall.ui.text.TextTable.__init__()=rekall.ui.text.TextTable-class.html#__init__,Method rekall.ui.text.UnicodeWrapper.__init__()=rekall.ui.text.UnicodeWrapper-class.html#__init__,Method rekall.utils.AgeBasedCache.__init__()=rekall.utils.AgeBasedCache-class.html#__init__,Method rekall.utils.FastStore.__init__()=rekall.utils.FastStore-class.html#__init__,Method rekall.utils.FileLock.__init__()=rekall.utils.FileLock-class.html#__init__,Method rekall.utils.LinkedList.__init__()=rekall.utils.LinkedList-class.html#__init__,Method rekall.utils.Node.__init__()=rekall.utils.Node-class.html#__init__,Method rekall.utils.SortedCollection.__init__()=rekall.utils.SortedCollection-class.html#__init__"><a title="rekall.addrspace.AddrSpaceError.__init__
 rekall.addrspace.BaseAddressSpace.__init__
 rekall.addrspace.BufferAddressSpace.__init__
 rekall.addrspace.CachingAddressSpaceMixIn.__init__
 rekall.addrspace.RunBasedAddressSpace.__init__
 rekall.addrspace_test.CustomRunsAddressSpace.__init__
+rekall.args.RekallArgParser.__init__
 rekall.entity.Entity.__init__
 rekall.entity.EntityLookupTable.__init__
 rekall.entity.EntityManager.__init__
@@ -202,9 +203,14 @@ rekall.plugins.linux.check_fops.CheckProcFops.__init__
 rekall.plugins.linux.common.HeapScannerMixIn.__init__
 rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__
 rekall.plugins.linux.common.LinProcessFilter.__init__
+rekall.plugins.linux.fs.Mfind.__init__
+rekall.plugins.linux.fs.Mls.__init__
 rekall.plugins.linux.lsmod.KernelModule.__init__
 rekall.plugins.linux.lsmod.Lsmod.__init__
+rekall.plugins.linux.lsmod.Moddump.__init__
+rekall.plugins.linux.netstat.PacketQueues.__init__
 rekall.plugins.linux.pas2kas.LinPas2Vas.__init__
+rekall.plugins.linux.yarascan.YaraScan.__init__
 rekall.plugins.overlays.basic.Enumeration.__init__
 rekall.plugins.overlays.basic.Flags.__init__
 rekall.plugins.overlays.basic.Function.__init__
@@ -228,7 +234,11 @@ rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__
 rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__
 rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__
 rekall.plugins.overlays.linux.elf.ELFProfile.__init__
+rekall.plugins.overlays.linux.linux.timespec.__init__
+rekall.plugins.overlays.linux.vfs.File.__init__
 rekall.plugins.overlays.linux.vfs.FileName.__init__
+rekall.plugins.overlays.linux.vfs.Linux3VFS.__init__
+rekall.plugins.overlays.linux.vfs.MountPoint.__init__
 rekall.plugins.overlays.windows.ntfs.FLS.__init__
 rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__
 rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__
@@ -262,7 +272,6 @@ rekall.plugins.tools.webconsole.WebConsole.__init__
 rekall.plugins.windows.common.CheckPoolIndex.__init__
 rekall.plugins.windows.common.CheckPoolSize.__init__
 rekall.plugins.windows.common.CheckPoolType.__init__
-rekall.plugins.windows.common.KDBGMixin.__init__
 rekall.plugins.windows.common.MultiPoolTagCheck.__init__
 rekall.plugins.windows.common.PoolScannerPlugin.__init__
 rekall.plugins.windows.common.PoolTagCheck.__init__
@@ -271,7 +280,6 @@ rekall.plugins.windows.common.WinFindDTB.__init__
 rekall.plugins.windows.common.WinProcessFilter.__init__
 rekall.plugins.windows.crashinfo.Raw2Dump.__init__
 rekall.plugins.windows.disassembler.Disassemble.__init__
-rekall.plugins.windows.filescan.MutantScan.__init__
 rekall.plugins.windows.filescan.PoolScanDriver.__init__
 rekall.plugins.windows.filescan.PoolScanFile.__init__
 rekall.plugins.windows.filescan.PoolScanMutant.__init__
@@ -286,6 +294,7 @@ rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__
 rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__
 rekall.plugins.windows.handles.Handles.__init__
 rekall.plugins.windows.index.GuessGUID.__init__
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.__init__
 rekall.plugins.windows.kdbgscan.KDBGScan.__init__
 rekall.plugins.windows.malware.callbacks.Callbacks.__init__
 rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__
@@ -300,14 +309,12 @@ rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__
 rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__
 rekall.plugins.windows.malware.devicetree.DeviceTree.__init__
 rekall.plugins.windows.malware.devicetree.DriverIrp.__init__
-rekall.plugins.windows.malware.impscan.IDCRenderer.__init__
 rekall.plugins.windows.malware.impscan.ImpScan.__init__
-rekall.plugins.windows.malware.malfind.LdrModules.__init__
 rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__
 rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__
 rekall.plugins.windows.malware.svcscan.SvcScan.__init__
-rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__
 rekall.plugins.windows.malware.yarascan.YaraScan.__init__
+rekall.plugins.windows.misc.ObjectTree.__init__
 rekall.plugins.windows.modscan.PoolScanModuleFast.__init__
 rekall.plugins.windows.modscan.PoolScanThreadFast.__init__
 rekall.plugins.windows.modules.Modules.__init__
@@ -340,8 +347,8 @@ rekall.plugins.windows.registry.registry.RegistryPlugin.__init__
 rekall.plugins.windows.registry.userassist.UserAssist.__init__
 rekall.plugins.windows.taskmods.WinPsList.__init__
 rekall.plugins.windows.vadinfo.VAD.__init__
-rekall.plugins.windows.vadinfo.VADDump.__init__
 rekall.plugins.windows.vadinfo.VadScanner.__init__
+rekall.plugins.yarascanner.BaseYaraASScanner.__init__
 rekall.registry.MetaclassRegistry.__init__
 rekall.scan.BaseScanner.__init__
 rekall.scan.MultiStringFinderCheck.__init__
@@ -359,16 +366,19 @@ rekall.testlib.RekallBaseUnitTestCase.__init__
 rekall.threadpool.ThreadPool.__init__
 rekall.threadpool.Worker.__init__
 rekall.type_generator.Disassembler.__init__
+rekall.ui.json_renderer.JsonDecoder.__init__
+rekall.ui.json_renderer.JsonEncoder.__init__
+rekall.ui.json_renderer.JsonRenderer.__init__
 rekall.ui.renderer.BaseColumn.__init__
 rekall.ui.renderer.BaseRenderer.__init__
 rekall.ui.renderer.BaseTable.__init__
-rekall.ui.renderer.UnicodeWrapper.__init__
 rekall.ui.text.Colorizer.__init__
 rekall.ui.text.Pager.__init__
 rekall.ui.text.TestRenderer.__init__
 rekall.ui.text.TextColumn.__init__
 rekall.ui.text.TextRenderer.__init__
 rekall.ui.text.TextTable.__init__
+rekall.ui.text.UnicodeWrapper.__init__
 rekall.utils.AgeBasedCache.__init__
 rekall.utils.FastStore.__init__
 rekall.utils.FileLock.__init__
@@ -456,6 +466,7 @@ rekall.addrspace.BufferAddressSpace.__init__
 rekall.addrspace.CachingAddressSpaceMixIn.__init__
 rekall.addrspace.RunBasedAddressSpace.__init__
 rekall.addrspace_test.CustomRunsAddressSpace.__init__
+rekall.args.RekallArgParser.__init__
 rekall.entity.Entity.__init__
 rekall.entity.EntityLookupTable.__init__
 rekall.entity.EntityManager.__init__
@@ -534,9 +545,14 @@ rekall.plugins.linux.check_fops.CheckProcFops.__init__
 rekall.plugins.linux.common.HeapScannerMixIn.__init__
 rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__
 rekall.plugins.linux.common.LinProcessFilter.__init__
+rekall.plugins.linux.fs.Mfind.__init__
+rekall.plugins.linux.fs.Mls.__init__
 rekall.plugins.linux.lsmod.KernelModule.__init__
 rekall.plugins.linux.lsmod.Lsmod.__init__
+rekall.plugins.linux.lsmod.Moddump.__init__
+rekall.plugins.linux.netstat.PacketQueues.__init__
 rekall.plugins.linux.pas2kas.LinPas2Vas.__init__
+rekall.plugins.linux.yarascan.YaraScan.__init__
 rekall.plugins.overlays.basic.Enumeration.__init__
 rekall.plugins.overlays.basic.Flags.__init__
 rekall.plugins.overlays.basic.Function.__init__
@@ -560,7 +576,11 @@ rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__
 rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__
 rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__
 rekall.plugins.overlays.linux.elf.ELFProfile.__init__
+rekall.plugins.overlays.linux.linux.timespec.__init__
+rekall.plugins.overlays.linux.vfs.File.__init__
 rekall.plugins.overlays.linux.vfs.FileName.__init__
+rekall.plugins.overlays.linux.vfs.Linux3VFS.__init__
+rekall.plugins.overlays.linux.vfs.MountPoint.__init__
 rekall.plugins.overlays.windows.ntfs.FLS.__init__
 rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__
 rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__
@@ -594,7 +614,6 @@ rekall.plugins.tools.webconsole.WebConsole.__init__
 rekall.plugins.windows.common.CheckPoolIndex.__init__
 rekall.plugins.windows.common.CheckPoolSize.__init__
 rekall.plugins.windows.common.CheckPoolType.__init__
-rekall.plugins.windows.common.KDBGMixin.__init__
 rekall.plugins.windows.common.MultiPoolTagCheck.__init__
 rekall.plugins.windows.common.PoolScannerPlugin.__init__
 rekall.plugins.windows.common.PoolTagCheck.__init__
@@ -603,7 +622,6 @@ rekall.plugins.windows.common.WinFindDTB.__init__
 rekall.plugins.windows.common.WinProcessFilter.__init__
 rekall.plugins.windows.crashinfo.Raw2Dump.__init__
 rekall.plugins.windows.disassembler.Disassemble.__init__
-rekall.plugins.windows.filescan.MutantScan.__init__
 rekall.plugins.windows.filescan.PoolScanDriver.__init__
 rekall.plugins.windows.filescan.PoolScanFile.__init__
 rekall.plugins.windows.filescan.PoolScanMutant.__init__
@@ -618,6 +636,7 @@ rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__
 rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__
 rekall.plugins.windows.handles.Handles.__init__
 rekall.plugins.windows.index.GuessGUID.__init__
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.__init__
 rekall.plugins.windows.kdbgscan.KDBGScan.__init__
 rekall.plugins.windows.malware.callbacks.Callbacks.__init__
 rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__
@@ -632,14 +651,12 @@ rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__
 rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__
 rekall.plugins.windows.malware.devicetree.DeviceTree.__init__
 rekall.plugins.windows.malware.devicetree.DriverIrp.__init__
-rekall.plugins.windows.malware.impscan.IDCRenderer.__init__
 rekall.plugins.windows.malware.impscan.ImpScan.__init__
-rekall.plugins.windows.malware.malfind.LdrModules.__init__
 rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__
 rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__
 rekall.plugins.windows.malware.svcscan.SvcScan.__init__
-rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__
 rekall.plugins.windows.malware.yarascan.YaraScan.__init__
+rekall.plugins.windows.misc.ObjectTree.__init__
 rekall.plugins.windows.modscan.PoolScanModuleFast.__init__
 rekall.plugins.windows.modscan.PoolScanThreadFast.__init__
 rekall.plugins.windows.modules.Modules.__init__
@@ -672,8 +689,8 @@ rekall.plugins.windows.registry.registry.RegistryPlugin.__init__
 rekall.plugins.windows.registry.userassist.UserAssist.__init__
 rekall.plugins.windows.taskmods.WinPsList.__init__
 rekall.plugins.windows.vadinfo.VAD.__init__
-rekall.plugins.windows.vadinfo.VADDump.__init__
 rekall.plugins.windows.vadinfo.VadScanner.__init__
+rekall.plugins.yarascanner.BaseYaraASScanner.__init__
 rekall.registry.MetaclassRegistry.__init__
 rekall.scan.BaseScanner.__init__
 rekall.scan.MultiStringFinderCheck.__init__
@@ -691,16 +708,19 @@ rekall.testlib.RekallBaseUnitTestCase.__init__
 rekall.threadpool.ThreadPool.__init__
 rekall.threadpool.Worker.__init__
 rekall.type_generator.Disassembler.__init__
+rekall.ui.json_renderer.JsonDecoder.__init__
+rekall.ui.json_renderer.JsonEncoder.__init__
+rekall.ui.json_renderer.JsonRenderer.__init__
 rekall.ui.renderer.BaseColumn.__init__
 rekall.ui.renderer.BaseRenderer.__init__
 rekall.ui.renderer.BaseTable.__init__
-rekall.ui.renderer.UnicodeWrapper.__init__
 rekall.ui.text.Colorizer.__init__
 rekall.ui.text.Pager.__init__
 rekall.ui.text.TestRenderer.__init__
 rekall.ui.text.TextColumn.__init__
 rekall.ui.text.TextRenderer.__init__
 rekall.ui.text.TextTable.__init__
+rekall.ui.text.UnicodeWrapper.__init__
 rekall.utils.AgeBasedCache.__init__
 rekall.utils.FastStore.__init__
 rekall.utils.FileLock.__init__
@@ -759,6 +779,7 @@ rekall.addrspace.BufferAddressSpace.__init__
 rekall.addrspace.CachingAddressSpaceMixIn.__init__
 rekall.addrspace.RunBasedAddressSpace.__init__
 rekall.addrspace_test.CustomRunsAddressSpace.__init__
+rekall.args.RekallArgParser.__init__
 rekall.entity.Entity.__init__
 rekall.entity.EntityLookupTable.__init__
 rekall.entity.EntityManager.__init__
@@ -837,9 +858,14 @@ rekall.plugins.linux.check_fops.CheckProcFops.__init__
 rekall.plugins.linux.common.HeapScannerMixIn.__init__
 rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__
 rekall.plugins.linux.common.LinProcessFilter.__init__
+rekall.plugins.linux.fs.Mfind.__init__
+rekall.plugins.linux.fs.Mls.__init__
 rekall.plugins.linux.lsmod.KernelModule.__init__
 rekall.plugins.linux.lsmod.Lsmod.__init__
+rekall.plugins.linux.lsmod.Moddump.__init__
+rekall.plugins.linux.netstat.PacketQueues.__init__
 rekall.plugins.linux.pas2kas.LinPas2Vas.__init__
+rekall.plugins.linux.yarascan.YaraScan.__init__
 rekall.plugins.overlays.basic.Enumeration.__init__
 rekall.plugins.overlays.basic.Flags.__init__
 rekall.plugins.overlays.basic.Function.__init__
@@ -863,7 +889,11 @@ rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__
 rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__
 rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__
 rekall.plugins.overlays.linux.elf.ELFProfile.__init__
+rekall.plugins.overlays.linux.linux.timespec.__init__
+rekall.plugins.overlays.linux.vfs.File.__init__
 rekall.plugins.overlays.linux.vfs.FileName.__init__
+rekall.plugins.overlays.linux.vfs.Linux3VFS.__init__
+rekall.plugins.overlays.linux.vfs.MountPoint.__init__
 rekall.plugins.overlays.windows.ntfs.FLS.__init__
 rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__
 rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__
@@ -897,7 +927,6 @@ rekall.plugins.tools.webconsole.WebConsole.__init__
 rekall.plugins.windows.common.CheckPoolIndex.__init__
 rekall.plugins.windows.common.CheckPoolSize.__init__
 rekall.plugins.windows.common.CheckPoolType.__init__
-rekall.plugins.windows.common.KDBGMixin.__init__
 rekall.plugins.windows.common.MultiPoolTagCheck.__init__
 rekall.plugins.windows.common.PoolScannerPlugin.__init__
 rekall.plugins.windows.common.PoolTagCheck.__init__
@@ -906,7 +935,6 @@ rekall.plugins.windows.common.WinFindDTB.__init__
 rekall.plugins.windows.common.WinProcessFilter.__init__
 rekall.plugins.windows.crashinfo.Raw2Dump.__init__
 rekall.plugins.windows.disassembler.Disassemble.__init__
-rekall.plugins.windows.filescan.MutantScan.__init__
 rekall.plugins.windows.filescan.PoolScanDriver.__init__
 rekall.plugins.windows.filescan.PoolScanFile.__init__
 rekall.plugins.windows.filescan.PoolScanMutant.__init__
@@ -921,6 +949,7 @@ rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__
 rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__
 rekall.plugins.windows.handles.Handles.__init__
 rekall.plugins.windows.index.GuessGUID.__init__
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.__init__
 rekall.plugins.windows.kdbgscan.KDBGScan.__init__
 rekall.plugins.windows.malware.callbacks.Callbacks.__init__
 rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__
@@ -935,14 +964,12 @@ rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__
 rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__
 rekall.plugins.windows.malware.devicetree.DeviceTree.__init__
 rekall.plugins.windows.malware.devicetree.DriverIrp.__init__
-rekall.plugins.windows.malware.impscan.IDCRenderer.__init__
 rekall.plugins.windows.malware.impscan.ImpScan.__init__
-rekall.plugins.windows.malware.malfind.LdrModules.__init__
 rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__
 rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__
 rekall.plugins.windows.malware.svcscan.SvcScan.__init__
-rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__
 rekall.plugins.windows.malware.yarascan.YaraScan.__init__
+rekall.plugins.windows.misc.ObjectTree.__init__
 rekall.plugins.windows.modscan.PoolScanModuleFast.__init__
 rekall.plugins.windows.modscan.PoolScanThreadFast.__init__
 rekall.plugins.windows.modules.Modules.__init__
@@ -975,8 +1002,8 @@ rekall.plugins.windows.registry.registry.RegistryPlugin.__init__
 rekall.plugins.windows.registry.userassist.UserAssist.__init__
 rekall.plugins.windows.taskmods.WinPsList.__init__
 rekall.plugins.windows.vadinfo.VAD.__init__
-rekall.plugins.windows.vadinfo.VADDump.__init__
 rekall.plugins.windows.vadinfo.VadScanner.__init__
+rekall.plugins.yarascanner.BaseYaraASScanner.__init__
 rekall.registry.MetaclassRegistry.__init__
 rekall.scan.BaseScanner.__init__
 rekall.scan.MultiStringFinderCheck.__init__
@@ -994,16 +1021,19 @@ rekall.testlib.RekallBaseUnitTestCase.__init__
 rekall.threadpool.ThreadPool.__init__
 rekall.threadpool.Worker.__init__
 rekall.type_generator.Disassembler.__init__
+rekall.ui.json_renderer.JsonDecoder.__init__
+rekall.ui.json_renderer.JsonEncoder.__init__
+rekall.ui.json_renderer.JsonRenderer.__init__
 rekall.ui.renderer.BaseColumn.__init__
 rekall.ui.renderer.BaseRenderer.__init__
 rekall.ui.renderer.BaseTable.__init__
-rekall.ui.renderer.UnicodeWrapper.__init__
 rekall.ui.text.Colorizer.__init__
 rekall.ui.text.Pager.__init__
 rekall.ui.text.TestRenderer.__init__
 rekall.ui.text.TextColumn.__init__
 rekall.ui.text.TextRenderer.__init__
 rekall.ui.text.TextTable.__init__
+rekall.ui.text.UnicodeWrapper.__init__
 rekall.utils.AgeBasedCache.__init__
 rekall.utils.FastStore.__init__
 rekall.utils.FileLock.__init__
@@ -1081,17 +1111,19 @@ rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return do
 <a name="L133"></a><tt class="py-lineno"> 133</tt>  <tt class="py-line"><tt class="py-docstring">    in the overlay's offset field.</tt> </tt>
 <a name="L134"></a><tt class="py-lineno"> 134</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
 <a name="L135"></a><tt class="py-lineno"> 135</tt>  <tt class="py-line">    <tt class="py-keyword">def</tt> <tt class="py-def-name">get_offset</tt><tt class="py-op">(</tt><tt class="py-param">x</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-<a name="L136"></a><tt class="py-lineno"> 136</tt>  <tt class="py-line">        <tt id="link-67" class="py-name" targets="Variable rekall.ui.text.Colorizer.x=rekall.ui.text.Colorizer-class.html#x"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-67', 'x', 'link-67');">x</a></tt> <tt class="py-op">=</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt id="link-68" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-68', 'x', 'link-67');">x</a></tt><tt class="py-op">,</tt> <tt id="link-69" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.components.Named.name=rekall.components.Named-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.linux.common.KASLRHook.name=rekall.plugins.linux.common.KASLRHook-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKASLR.name=rekall.plugins.linux.common.LinuxFindKASLR-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
+<a name="L136"></a><tt class="py-lineno"> 136</tt>  <tt class="py-line">        <tt id="link-67" class="py-name" targets="Variable rekall.ui.text.Colorizer.x=rekall.ui.text.Colorizer-class.html#x"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-67', 'x', 'link-67');">x</a></tt> <tt class="py-op">=</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt id="link-68" class="py-name"><a title="rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-68', 'x', 'link-67');">x</a></tt><tt class="py-op">,</tt> <tt id="link-69" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.components.Named.name=rekall.components.Named-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.CatfishOffsetHook.name=rekall.plugins.darwin.common.CatfishOffsetHook-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.linux.common.KASLRHook.name=rekall.plugins.linux.common.KASLRHook-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKASLR.name=rekall.plugins.linux.common.LinuxFindKASLR-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.linux.vfs.File.name=rekall.plugins.overlays.linux.vfs.File-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name=rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.interactive.structs.AnalyzeStruct.name=rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.malware.yarascan.YaraScan.name=rekall.plugins.windows.malware.yarascan.YaraScan-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
 rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -1100,13 +1132,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -1611,8 +1646,8 @@ rekall.obj.Struct.m" class="py-name" href="#" onclick="return doclink('link-110'
 <a name="L588"></a><tt class="py-lineno"> 588</tt>  <tt class="py-line"><tt class="py-comment"># _IMAGE_OPTIONAL_HEADER64 is the same as _IMAGE_OPTIONAL_HEADER but offsets are</tt> </tt>
 <a name="L589"></a><tt class="py-lineno"> 589</tt>  <tt class="py-line"><tt class="py-comment"># different</tt> </tt>
 <a name="L590"></a><tt class="py-lineno"> 590</tt>  <tt class="py-line"><tt id="link-149" class="py-name"><a title="rekall.plugins.overlays.windows.pe_vtypes.pe_overlays" class="py-name" href="#" onclick="return doclink('link-149', 'pe_overlays', 'link-74');">pe_overlays</a></tt><tt class="py-op">[</tt><tt class="py-string">"_IMAGE_OPTIONAL_HEADER64"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt id="link-150" class="py-name"><a title="rekall.obj.Profile.copy
+rekall.plugins.common.profile_index.Index.copy
 rekall.plugins.overlays.windows.windows.BasicPEProfile.copy
-rekall.plugins.windows.index.Index.copy
 rekall.utils.SortedCollection.copy" class="py-name" href="#" onclick="return doclink('link-150', 'copy', 'link-0');">copy</a></tt><tt class="py-op">.</tt><tt class="py-name">deepcopy</tt><tt class="py-op">(</tt> </tt>
 <a name="L591"></a><tt class="py-lineno"> 591</tt>  <tt class="py-line">    <tt id="link-151" class="py-name"><a title="rekall.plugins.overlays.windows.pe_vtypes.pe_overlays" class="py-name" href="#" onclick="return doclink('link-151', 'pe_overlays', 'link-74');">pe_overlays</a></tt><tt class="py-op">[</tt><tt class="py-string">"_IMAGE_OPTIONAL_HEADER"</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
 <a name="_LDR_DATA_TABLE_ENTRY"></a><div id="_LDR_DATA_TABLE_ENTRY-def"><a name="L592"></a><tt class="py-lineno"> 592</tt>  <tt class="py-line"> </tt>
@@ -1674,8 +1709,7 @@ rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return do
 <a name="L628"></a><tt class="py-lineno"> 628</tt>  <tt class="py-line"> </tt>
 <a name="L629"></a><tt class="py-lineno"> 629</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">e_magic</tt> <tt class="py-op">!=</tt> <tt class="py-number">0x5a4d</tt><tt class="py-op">:</tt> </tt>
 <a name="L630"></a><tt class="py-lineno"> 630</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt id="link-156" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-156', 'obj', 'link-4');">obj</a></tt><tt class="py-op">.</tt><tt id="link-157" class="py-name" targets="Class rekall.obj.NoneObject=rekall.obj.NoneObject-class.html"><a title="rekall.obj.NoneObject" class="py-name" href="#" onclick="return doclink('link-157', 'NoneObject', 'link-157');">NoneObject</a></tt><tt class="py-op">(</tt> </tt>
-<a name="L631"></a><tt class="py-lineno"> 631</tt>  <tt class="py-line">                <tt class="py-string">'e_magic {0:04X} is not a valid DOS signature.'</tt><tt class="py-op">.</tt><tt id="link-158" class="py-name" targets="Method rekall.plugins.windows.malware.impscan.IDCRenderer.format()=rekall.plugins.windows.malware.impscan.IDCRenderer-class.html#format,Method rekall.ui.json_renderer.JsonRenderer.format()=rekall.ui.json_renderer.JsonRenderer-class.html#format,Method rekall.ui.renderer.BaseRenderer.format()=rekall.ui.renderer.BaseRenderer-class.html#format,Method rekall.ui.text.TextRenderer.format()=rekall.ui.text.TextRenderer-class.html#format"><a title="rekall.plugins.windows.malware.impscan.IDCRenderer.format
-rekall.ui.json_renderer.JsonRenderer.format
+<a name="L631"></a><tt class="py-lineno"> 631</tt>  <tt class="py-line">                <tt class="py-string">'e_magic {0:04X} is not a valid DOS signature.'</tt><tt class="py-op">.</tt><tt id="link-158" class="py-name" targets="Method rekall.ui.json_renderer.JsonRenderer.format()=rekall.ui.json_renderer.JsonRenderer-class.html#format,Method rekall.ui.renderer.BaseRenderer.format()=rekall.ui.renderer.BaseRenderer-class.html#format,Method rekall.ui.text.TextRenderer.format()=rekall.ui.text.TextRenderer-class.html#format"><a title="rekall.ui.json_renderer.JsonRenderer.format
 rekall.ui.renderer.BaseRenderer.format
 rekall.ui.text.TextRenderer.format" class="py-name" href="#" onclick="return doclink('link-158', 'format', 'link-158');">format</a></tt><tt class="py-op">(</tt> </tt>
 <a name="L632"></a><tt class="py-lineno"> 632</tt>  <tt class="py-line">                    <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">e_magic</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
@@ -1686,8 +1720,7 @@ rekall.ui.text.TextRenderer.format" class="py-name" href="#" onclick="return doc
 <a name="L637"></a><tt class="py-lineno"> 637</tt>  <tt class="py-line"> </tt>
 <a name="L638"></a><tt class="py-lineno"> 638</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">nt_header</tt><tt class="py-op">.</tt><tt id="link-160" class="py-name" targets="Class rekall.plugins.overlays.basic.Signature=rekall.plugins.overlays.basic.Signature-class.html"><a title="rekall.plugins.overlays.basic.Signature" class="py-name" href="#" onclick="return doclink('link-160', 'Signature', 'link-160');">Signature</a></tt> <tt class="py-op">!=</tt> <tt class="py-number">0x4550</tt><tt class="py-op">:</tt> </tt>
 <a name="L639"></a><tt class="py-lineno"> 639</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt id="link-161" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-161', 'obj', 'link-4');">obj</a></tt><tt class="py-op">.</tt><tt id="link-162" class="py-name"><a title="rekall.obj.NoneObject" class="py-name" href="#" onclick="return doclink('link-162', 'NoneObject', 'link-157');">NoneObject</a></tt><tt class="py-op">(</tt> </tt>
-<a name="L640"></a><tt class="py-lineno"> 640</tt>  <tt class="py-line">                <tt class="py-string">'NT header signature {0:04X} is not a valid'</tt><tt class="py-op">.</tt><tt id="link-163" class="py-name"><a title="rekall.plugins.windows.malware.impscan.IDCRenderer.format
-rekall.ui.json_renderer.JsonRenderer.format
+<a name="L640"></a><tt class="py-lineno"> 640</tt>  <tt class="py-line">                <tt class="py-string">'NT header signature {0:04X} is not a valid'</tt><tt class="py-op">.</tt><tt id="link-163" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.format
 rekall.ui.renderer.BaseRenderer.format
 rekall.ui.text.TextRenderer.format" class="py-name" href="#" onclick="return doclink('link-163', 'format', 'link-158');">format</a></tt><tt class="py-op">(</tt> </tt>
 <a name="L641"></a><tt class="py-lineno"> 641</tt>  <tt class="py-line">                    <tt class="py-name">nt_header</tt><tt class="py-op">.</tt><tt id="link-164" class="py-name"><a title="rekall.plugins.overlays.basic.Signature" class="py-name" href="#" onclick="return doclink('link-164', 'Signature', 'link-160');">Signature</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
@@ -1720,22 +1753,19 @@ rekall.obj.Struct.m" class="py-name" href="#" onclick="return doclink('link-165'
 <a name="L666"></a><tt class="py-lineno"> 666</tt>  <tt class="py-line">        <tt class="py-name">image_size</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-167" class="py-name"><a title="rekall.obj.BaseObject.obj_parent" class="py-name" href="#" onclick="return doclink('link-167', 'obj_parent', 'link-34');">obj_parent</a></tt><tt class="py-op">.</tt><tt class="py-name">OptionalHeader</tt><tt class="py-op">.</tt><tt class="py-name">SizeOfImage</tt> </tt>
 <a name="L667"></a><tt class="py-lineno"> 667</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">VirtualAddress</tt> <tt class="py-op">&gt;</tt> <tt class="py-name">image_size</tt><tt class="py-op">:</tt> </tt>
 <a name="L668"></a><tt class="py-lineno"> 668</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt class="py-string">'VirtualAddress {0:08x} is past the end of '</tt> </tt>
-<a name="L669"></a><tt class="py-lineno"> 669</tt>  <tt class="py-line">                             <tt class="py-string">'image.'</tt><tt class="py-op">.</tt><tt id="link-168" class="py-name"><a title="rekall.plugins.windows.malware.impscan.IDCRenderer.format
-rekall.ui.json_renderer.JsonRenderer.format
+<a name="L669"></a><tt class="py-lineno"> 669</tt>  <tt class="py-line">                             <tt class="py-string">'image.'</tt><tt class="py-op">.</tt><tt id="link-168" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.format
 rekall.ui.renderer.BaseRenderer.format
 rekall.ui.text.TextRenderer.format" class="py-name" href="#" onclick="return doclink('link-168', 'format', 'link-158');">format</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">VirtualAddress</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
 <a name="L670"></a><tt class="py-lineno"> 670</tt>  <tt class="py-line"> </tt>
 <a name="L671"></a><tt class="py-lineno"> 671</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">Misc</tt><tt class="py-op">.</tt><tt class="py-name">VirtualSize</tt> <tt class="py-op">&gt;</tt> <tt class="py-name">image_size</tt><tt class="py-op">:</tt> </tt>
 <a name="L672"></a><tt class="py-lineno"> 672</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt class="py-string">'VirtualSize {0:08x} is larger than image '</tt> </tt>
-<a name="L673"></a><tt class="py-lineno"> 673</tt>  <tt class="py-line">                             <tt class="py-string">'size.'</tt><tt class="py-op">.</tt><tt id="link-169" class="py-name"><a title="rekall.plugins.windows.malware.impscan.IDCRenderer.format
-rekall.ui.json_renderer.JsonRenderer.format
+<a name="L673"></a><tt class="py-lineno"> 673</tt>  <tt class="py-line">                             <tt class="py-string">'size.'</tt><tt class="py-op">.</tt><tt id="link-169" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.format
 rekall.ui.renderer.BaseRenderer.format
 rekall.ui.text.TextRenderer.format" class="py-name" href="#" onclick="return doclink('link-169', 'format', 'link-158');">format</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">Misc</tt><tt class="py-op">.</tt><tt class="py-name">VirtualSize</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
 <a name="L674"></a><tt class="py-lineno"> 674</tt>  <tt class="py-line"> </tt>
 <a name="L675"></a><tt class="py-lineno"> 675</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">SizeOfRawData</tt> <tt class="py-op">&gt;</tt> <tt class="py-name">image_size</tt><tt class="py-op">:</tt> </tt>
 <a name="L676"></a><tt class="py-lineno"> 676</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt class="py-string">'SizeOfRawData {0:08x} is larger than image '</tt> </tt>
-<a name="L677"></a><tt class="py-lineno"> 677</tt>  <tt class="py-line">                             <tt class="py-string">'size.'</tt><tt class="py-op">.</tt><tt id="link-170" class="py-name"><a title="rekall.plugins.windows.malware.impscan.IDCRenderer.format
-rekall.ui.json_renderer.JsonRenderer.format
+<a name="L677"></a><tt class="py-lineno"> 677</tt>  <tt class="py-line">                             <tt class="py-string">'size.'</tt><tt class="py-op">.</tt><tt id="link-170" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.format
 rekall.ui.renderer.BaseRenderer.format
 rekall.ui.text.TextRenderer.format" class="py-name" href="#" onclick="return doclink('link-170', 'format', 'link-158');">format</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">SizeOfRawData</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
 </div></div><a name="L678"></a><tt class="py-lineno"> 678</tt>  <tt class="py-line"> </tt>
@@ -1846,6 +1876,7 @@ rekall.addrspace.BufferAddressSpace.__init__
 rekall.addrspace.CachingAddressSpaceMixIn.__init__
 rekall.addrspace.RunBasedAddressSpace.__init__
 rekall.addrspace_test.CustomRunsAddressSpace.__init__
+rekall.args.RekallArgParser.__init__
 rekall.entity.Entity.__init__
 rekall.entity.EntityLookupTable.__init__
 rekall.entity.EntityManager.__init__
@@ -1924,9 +1955,14 @@ rekall.plugins.linux.check_fops.CheckProcFops.__init__
 rekall.plugins.linux.common.HeapScannerMixIn.__init__
 rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__
 rekall.plugins.linux.common.LinProcessFilter.__init__
+rekall.plugins.linux.fs.Mfind.__init__
+rekall.plugins.linux.fs.Mls.__init__
 rekall.plugins.linux.lsmod.KernelModule.__init__
 rekall.plugins.linux.lsmod.Lsmod.__init__
+rekall.plugins.linux.lsmod.Moddump.__init__
+rekall.plugins.linux.netstat.PacketQueues.__init__
 rekall.plugins.linux.pas2kas.LinPas2Vas.__init__
+rekall.plugins.linux.yarascan.YaraScan.__init__
 rekall.plugins.overlays.basic.Enumeration.__init__
 rekall.plugins.overlays.basic.Flags.__init__
 rekall.plugins.overlays.basic.Function.__init__
@@ -1950,7 +1986,11 @@ rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__
 rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__
 rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__
 rekall.plugins.overlays.linux.elf.ELFProfile.__init__
+rekall.plugins.overlays.linux.linux.timespec.__init__
+rekall.plugins.overlays.linux.vfs.File.__init__
 rekall.plugins.overlays.linux.vfs.FileName.__init__
+rekall.plugins.overlays.linux.vfs.Linux3VFS.__init__
+rekall.plugins.overlays.linux.vfs.MountPoint.__init__
 rekall.plugins.overlays.windows.ntfs.FLS.__init__
 rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__
 rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__
@@ -1984,7 +2024,6 @@ rekall.plugins.tools.webconsole.WebConsole.__init__
 rekall.plugins.windows.common.CheckPoolIndex.__init__
 rekall.plugins.windows.common.CheckPoolSize.__init__
 rekall.plugins.windows.common.CheckPoolType.__init__
-rekall.plugins.windows.common.KDBGMixin.__init__
 rekall.plugins.windows.common.MultiPoolTagCheck.__init__
 rekall.plugins.windows.common.PoolScannerPlugin.__init__
 rekall.plugins.windows.common.PoolTagCheck.__init__
@@ -1993,7 +2032,6 @@ rekall.plugins.windows.common.WinFindDTB.__init__
 rekall.plugins.windows.common.WinProcessFilter.__init__
 rekall.plugins.windows.crashinfo.Raw2Dump.__init__
 rekall.plugins.windows.disassembler.Disassemble.__init__
-rekall.plugins.windows.filescan.MutantScan.__init__
 rekall.plugins.windows.filescan.PoolScanDriver.__init__
 rekall.plugins.windows.filescan.PoolScanFile.__init__
 rekall.plugins.windows.filescan.PoolScanMutant.__init__
@@ -2008,6 +2046,7 @@ rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__
 rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__
 rekall.plugins.windows.handles.Handles.__init__
 rekall.plugins.windows.index.GuessGUID.__init__
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.__init__
 rekall.plugins.windows.kdbgscan.KDBGScan.__init__
 rekall.plugins.windows.malware.callbacks.Callbacks.__init__
 rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__
@@ -2022,14 +2061,12 @@ rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__
 rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__
 rekall.plugins.windows.malware.devicetree.DeviceTree.__init__
 rekall.plugins.windows.malware.devicetree.DriverIrp.__init__
-rekall.plugins.windows.malware.impscan.IDCRenderer.__init__
 rekall.plugins.windows.malware.impscan.ImpScan.__init__
-rekall.plugins.windows.malware.malfind.LdrModules.__init__
 rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__
 rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__
 rekall.plugins.windows.malware.svcscan.SvcScan.__init__
-rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__
 rekall.plugins.windows.malware.yarascan.YaraScan.__init__
+rekall.plugins.windows.misc.ObjectTree.__init__
 rekall.plugins.windows.modscan.PoolScanModuleFast.__init__
 rekall.plugins.windows.modscan.PoolScanThreadFast.__init__
 rekall.plugins.windows.modules.Modules.__init__
@@ -2062,8 +2099,8 @@ rekall.plugins.windows.registry.registry.RegistryPlugin.__init__
 rekall.plugins.windows.registry.userassist.UserAssist.__init__
 rekall.plugins.windows.taskmods.WinPsList.__init__
 rekall.plugins.windows.vadinfo.VAD.__init__
-rekall.plugins.windows.vadinfo.VADDump.__init__
 rekall.plugins.windows.vadinfo.VadScanner.__init__
+rekall.plugins.yarascanner.BaseYaraASScanner.__init__
 rekall.registry.MetaclassRegistry.__init__
 rekall.scan.BaseScanner.__init__
 rekall.scan.MultiStringFinderCheck.__init__
@@ -2081,16 +2118,19 @@ rekall.testlib.RekallBaseUnitTestCase.__init__
 rekall.threadpool.ThreadPool.__init__
 rekall.threadpool.Worker.__init__
 rekall.type_generator.Disassembler.__init__
+rekall.ui.json_renderer.JsonDecoder.__init__
+rekall.ui.json_renderer.JsonEncoder.__init__
+rekall.ui.json_renderer.JsonRenderer.__init__
 rekall.ui.renderer.BaseColumn.__init__
 rekall.ui.renderer.BaseRenderer.__init__
 rekall.ui.renderer.BaseTable.__init__
-rekall.ui.renderer.UnicodeWrapper.__init__
 rekall.ui.text.Colorizer.__init__
 rekall.ui.text.Pager.__init__
 rekall.ui.text.TestRenderer.__init__
 rekall.ui.text.TextColumn.__init__
 rekall.ui.text.TextRenderer.__init__
 rekall.ui.text.TextTable.__init__
+rekall.ui.text.UnicodeWrapper.__init__
 rekall.utils.AgeBasedCache.__init__
 rekall.utils.FastStore.__init__
 rekall.utils.FileLock.__init__
@@ -2300,12 +2340,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -2314,13 +2356,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -2340,12 +2385,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -2354,13 +2401,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -2380,12 +2430,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -2394,13 +2446,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -2435,12 +2490,14 @@ rekall.components.Named.name
 rekall.kb.ParameterHook.name
 rekall.plugin.Command.name
 rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
 rekall.plugins.guess_profile.KernelASHook.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.linux.common.KASLRHook.name
 rekall.plugins.linux.common.LinuxFindKASLR.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.vfs.File.name
 rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
 rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
@@ -2449,13 +2506,16 @@ rekall.plugins.tools.json_tools.JSONParser.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
 rekall.plugins.windows.gui.userhandles.Gahti.name
 rekall.plugins.windows.gui.userhandles.UserHandles.name
 rekall.plugins.windows.gui.userhandles.WinEventHooks.name
 rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
 rekall.plugins.windows.gui.win32k_core.Win32kHook.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.yarascan.YaraScan.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
@@ -2613,6 +2673,7 @@ rekall.addrspace.BufferAddressSpace.__init__
 rekall.addrspace.CachingAddressSpaceMixIn.__init__
 rekall.addrspace.RunBasedAddressSpace.__init__
 rekall.addrspace_test.CustomRunsAddressSpace.__init__
+rekall.args.RekallArgParser.__init__
 rekall.entity.Entity.__init__
 rekall.entity.EntityLookupTable.__init__
 rekall.entity.EntityManager.__init__
@@ -2691,9 +2752,14 @@ rekall.plugins.linux.check_fops.CheckProcFops.__init__
 rekall.plugins.linux.common.HeapScannerMixIn.__init__
 rekall.plugins.linux.common.KernelAddressCheckerMixIn.__init__
 rekall.plugins.linux.common.LinProcessFilter.__init__
+rekall.plugins.linux.fs.Mfind.__init__
+rekall.plugins.linux.fs.Mls.__init__
 rekall.plugins.linux.lsmod.KernelModule.__init__
 rekall.plugins.linux.lsmod.Lsmod.__init__
+rekall.plugins.linux.lsmod.Moddump.__init__
+rekall.plugins.linux.netstat.PacketQueues.__init__
 rekall.plugins.linux.pas2kas.LinPas2Vas.__init__
+rekall.plugins.linux.yarascan.YaraScan.__init__
 rekall.plugins.overlays.basic.Enumeration.__init__
 rekall.plugins.overlays.basic.Flags.__init__
 rekall.plugins.overlays.basic.Function.__init__
@@ -2717,7 +2783,11 @@ rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.__init__
 rekall.plugins.overlays.linux.dwarfparser.DW_TAG_subrange_type.__init__
 rekall.plugins.overlays.linux.dwarfparser.DwarfParser.__init__
 rekall.plugins.overlays.linux.elf.ELFProfile.__init__
+rekall.plugins.overlays.linux.linux.timespec.__init__
+rekall.plugins.overlays.linux.vfs.File.__init__
 rekall.plugins.overlays.linux.vfs.FileName.__init__
+rekall.plugins.overlays.linux.vfs.Linux3VFS.__init__
+rekall.plugins.overlays.linux.vfs.MountPoint.__init__
 rekall.plugins.overlays.windows.ntfs.FLS.__init__
 rekall.plugins.overlays.windows.ntfs.FixupAddressSpace.__init__
 rekall.plugins.overlays.windows.ntfs.MFT_ENTRY.__init__
@@ -2751,7 +2821,6 @@ rekall.plugins.tools.webconsole.WebConsole.__init__
 rekall.plugins.windows.common.CheckPoolIndex.__init__
 rekall.plugins.windows.common.CheckPoolSize.__init__
 rekall.plugins.windows.common.CheckPoolType.__init__
-rekall.plugins.windows.common.KDBGMixin.__init__
 rekall.plugins.windows.common.MultiPoolTagCheck.__init__
 rekall.plugins.windows.common.PoolScannerPlugin.__init__
 rekall.plugins.windows.common.PoolTagCheck.__init__
@@ -2760,7 +2829,6 @@ rekall.plugins.windows.common.WinFindDTB.__init__
 rekall.plugins.windows.common.WinProcessFilter.__init__
 rekall.plugins.windows.crashinfo.Raw2Dump.__init__
 rekall.plugins.windows.disassembler.Disassemble.__init__
-rekall.plugins.windows.filescan.MutantScan.__init__
 rekall.plugins.windows.filescan.PoolScanDriver.__init__
 rekall.plugins.windows.filescan.PoolScanFile.__init__
 rekall.plugins.windows.filescan.PoolScanMutant.__init__
@@ -2775,6 +2843,7 @@ rekall.plugins.windows.gui.userhandles.WinMessageHooks.__init__
 rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.__init__
 rekall.plugins.windows.handles.Handles.__init__
 rekall.plugins.windows.index.GuessGUID.__init__
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.__init__
 rekall.plugins.windows.kdbgscan.KDBGScan.__init__
 rekall.plugins.windows.malware.callbacks.Callbacks.__init__
 rekall.plugins.windows.malware.callbacks.PoolScanPnp9.__init__
@@ -2789,14 +2858,12 @@ rekall.plugins.windows.malware.cmdhistory.WinSrv64.__init__
 rekall.plugins.windows.malware.cmdhistory.WinSrv86.__init__
 rekall.plugins.windows.malware.devicetree.DeviceTree.__init__
 rekall.plugins.windows.malware.devicetree.DriverIrp.__init__
-rekall.plugins.windows.malware.impscan.IDCRenderer.__init__
 rekall.plugins.windows.malware.impscan.ImpScan.__init__
-rekall.plugins.windows.malware.malfind.LdrModules.__init__
 rekall.plugins.windows.malware.svcscan.SvcHeaderScanner.__init__
 rekall.plugins.windows.malware.svcscan.SvcRecordScanner.__init__
 rekall.plugins.windows.malware.svcscan.SvcScan.__init__
-rekall.plugins.windows.malware.yarascan.BaseYaraASScanner.__init__
 rekall.plugins.windows.malware.yarascan.YaraScan.__init__
+rekall.plugins.windows.misc.ObjectTree.__init__
 rekall.plugins.windows.modscan.PoolScanModuleFast.__init__
 rekall.plugins.windows.modscan.PoolScanThreadFast.__init__
 rekall.plugins.windows.modules.Modules.__init__
@@ -2829,8 +2896,8 @@ rekall.plugins.windows.registry.registry.RegistryPlugin.__init__
 rekall.plugins.windows.registry.userassist.UserAssist.__init__
 rekall.plugins.windows.taskmods.WinPsList.__init__
 rekall.plugins.windows.vadinfo.VAD.__init__
-rekall.plugins.windows.vadinfo.VADDump.__init__
 rekall.plugins.windows.vadinfo.VadScanner.__init__
+rekall.plugins.yarascanner.BaseYaraASScanner.__init__
 rekall.registry.MetaclassRegistry.__init__
 rekall.scan.BaseScanner.__init__
 rekall.scan.MultiStringFinderCheck.__init__
@@ -2848,16 +2915,19 @@ rekall.testlib.RekallBaseUnitTestCase.__init__
 rekall.threadpool.ThreadPool.__init__
 rekall.threadpool.Worker.__init__
 rekall.type_generator.Disassembler.__init__
+rekall.ui.json_renderer.JsonDecoder.__init__
+rekall.ui.json_renderer.JsonEncoder.__init__
+rekall.ui.json_renderer.JsonRenderer.__init__
 rekall.ui.renderer.BaseColumn.__init__
 rekall.ui.renderer.BaseRenderer.__init__
 rekall.ui.renderer.BaseTable.__init__
-rekall.ui.renderer.UnicodeWrapper.__init__
 rekall.ui.text.Colorizer.__init__
 rekall.ui.text.Pager.__init__
 rekall.ui.text.TestRenderer.__init__
 rekall.ui.text.TextColumn.__init__
 rekall.ui.text.TextRenderer.__init__
 rekall.ui.text.TextTable.__init__
+rekall.ui.text.UnicodeWrapper.__init__
 rekall.utils.AgeBasedCache.__init__
 rekall.utils.FastStore.__init__
 rekall.utils.FileLock.__init__
@@ -3024,14 +3094,14 @@ expandto(location.href);
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:23 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:38 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

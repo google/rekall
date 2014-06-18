@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -272,23 +272,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="render_profile_info"></a><span class="summary-sig-name">render_profile_info</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#Info.render_profile_info">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="render_general_info"></a><span class="summary-sig-name">render_general_info</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">renderer</span>)</span></td>
           <td align="right" valign="top">
@@ -375,7 +358,7 @@
       Return only the active commands based on config.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -391,10 +374,10 @@
         <tr>
           <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">parser</span>)</span><br />
-      Declare the command line args we need.
+      Declare the command line args this plugin needs.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -413,7 +396,7 @@
       Checks we are active.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.is_active">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -434,7 +417,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.core.Info-class.html#standard_options" class="summary-name">standard_options</a> = <code title="[('renderer', 'Use this renderer for the output.')]"><code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">renderer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Use this renderer for the ou</code><code class="variable-ellipsis">...</code></code>
+        <a name="standard_options"></a><span class="summary-name">standard_options</span> = <code title="[]"><code class="variable-group">[</code><code class="variable-group">]</code></code>
     </td>
   </tr>
 <tr>
@@ -449,15 +432,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+nalyzeStruct'&gt;,
+ 'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
  'BashHistory': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
  'BuildIndex': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;,
- 'Callbacks': &lt;class 'rekall.plugins.windows.malware.callbacks.Callbac\
-ks'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Arp</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.arp.Arp'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Ato</code><code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -465,15 +448,15 @@ ks'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
+AnalyzeStruct'&gt;,
+ 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'atomscan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
  'bash': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
  'boot_cmdline': &lt;class 'rekall.plugins.darwin.misc.DarwinBootParamete\
-rs'&gt;,
- 'build_index': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;\
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">arp</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.arp.Arp<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">analyze_struct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.wi<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -597,34 +580,6 @@ Args:
 </td></tr></table>
 </div>
 <br />
-<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
-<a name="section-ClassVariableDetails"></a>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td align="left" colspan="2" class="table-header">
-    <span class="table-header">Class Variable Details</span></td>
-</tr>
-</table>
-<a name="standard_options"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">standard_options</h3>
-  
-  <dl class="fields">
-  </dl>
-  <dl class="fields">
-    <dt>Value:</dt>
-      <dd><table><tr><td><pre class="variable">
-<code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">renderer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Use this renderer for the output.</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-group">]</code>
-</pre></td></tr></table>
-</dd>
-  </dl>
-</td></tr></table>
-</div>
-<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -649,14 +604,14 @@ Args:
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:16:59 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:19 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

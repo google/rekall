@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -186,8 +186,7 @@
 </div><div id="get_bootkey-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="get_bootkey-expanded"><a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">    <tt class="py-docstring">"""Derive the boot key by unscrambling the LSA."""</tt> </tt>
 <a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">    <tt class="py-name">cs</tt> <tt class="py-op">=</tt> <tt id="link-42" class="py-name" targets="Function rekall.plugins.windows.registry.hashdump.find_control_set()=rekall.plugins.windows.registry.hashdump-module.html#find_control_set"><a title="rekall.plugins.windows.registry.hashdump.find_control_set" class="py-name" href="#" onclick="return doclink('link-42', 'find_control_set', 'link-42');">find_control_set</a></tt><tt class="py-op">(</tt><tt class="py-name">sys_registry</tt><tt class="py-op">)</tt> </tt>
 <a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">    <tt class="py-name">bootkey</tt> <tt class="py-op">=</tt> <tt class="py-string">""</tt> </tt>
-<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">    <tt class="py-name">lsa_base</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"ControlSet{0:03}"</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name" targets="Method rekall.plugins.windows.malware.impscan.IDCRenderer.format()=rekall.plugins.windows.malware.impscan.IDCRenderer-class.html#format,Method rekall.ui.json_renderer.JsonRenderer.format()=rekall.ui.json_renderer.JsonRenderer-class.html#format,Method rekall.ui.renderer.BaseRenderer.format()=rekall.ui.renderer.BaseRenderer-class.html#format,Method rekall.ui.text.TextRenderer.format()=rekall.ui.text.TextRenderer-class.html#format"><a title="rekall.plugins.windows.malware.impscan.IDCRenderer.format
-rekall.ui.json_renderer.JsonRenderer.format
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">    <tt class="py-name">lsa_base</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"ControlSet{0:03}"</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name" targets="Method rekall.ui.json_renderer.JsonRenderer.format()=rekall.ui.json_renderer.JsonRenderer-class.html#format,Method rekall.ui.renderer.BaseRenderer.format()=rekall.ui.renderer.BaseRenderer-class.html#format,Method rekall.ui.text.TextRenderer.format()=rekall.ui.text.TextRenderer-class.html#format"><a title="rekall.ui.json_renderer.JsonRenderer.format
 rekall.ui.renderer.BaseRenderer.format
 rekall.ui.text.TextRenderer.format" class="py-name" href="#" onclick="return doclink('link-43', 'format', 'link-43');">format</a></tt><tt class="py-op">(</tt><tt class="py-name">cs</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-string">"Control"</tt><tt class="py-op">,</tt> <tt class="py-string">"Lsa"</tt><tt class="py-op">]</tt> </tt>
 <a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">    <tt class="py-name">lsa_keys</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"JD"</tt><tt class="py-op">,</tt> <tt class="py-string">"Skew1"</tt><tt class="py-op">,</tt> <tt class="py-string">"GBG"</tt><tt class="py-op">,</tt> <tt class="py-string">"Data"</tt><tt class="py-op">]</tt> </tt>
@@ -375,8 +374,7 @@ rekall.plugins.windows.registry.registry.Registry.Name" class="py-name" href="#"
 <a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line">                <tt class="py-name">lmhash</tt> <tt class="py-op">=</tt> <tt id="link-92" class="py-name"><a title="rekall.plugins.windows.registry.hashdump.empty_lm" class="py-name" href="#" onclick="return doclink('link-92', 'empty_lm', 'link-9');">empty_lm</a></tt> </tt>
 <a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">nthash</tt><tt class="py-op">:</tt> </tt>
 <a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line">                <tt class="py-name">nthash</tt> <tt class="py-op">=</tt> <tt id="link-93" class="py-name"><a title="rekall.plugins.windows.registry.hashdump.empty_nt" class="py-name" href="#" onclick="return doclink('link-93', 'empty_nt', 'link-10');">empty_nt</a></tt> </tt>
-<a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-string">"{0}:{1}:{2}:{3}:::"</tt><tt class="py-op">.</tt><tt id="link-94" class="py-name"><a title="rekall.plugins.windows.malware.impscan.IDCRenderer.format
-rekall.ui.json_renderer.JsonRenderer.format
+<a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-string">"{0}:{1}:{2}:{3}:::"</tt><tt class="py-op">.</tt><tt id="link-94" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.format
 rekall.ui.renderer.BaseRenderer.format
 rekall.ui.text.TextRenderer.format" class="py-name" href="#" onclick="return doclink('link-94', 'format', 'link-43');">format</a></tt><tt class="py-op">(</tt><tt id="link-95" class="py-name" targets="Function rekall.plugins.windows.registry.hashdump.get_user_name()=rekall.plugins.windows.registry.hashdump-module.html#get_user_name"><a title="rekall.plugins.windows.registry.hashdump.get_user_name" class="py-name" href="#" onclick="return doclink('link-95', 'get_user_name', 'link-95');">get_user_name</a></tt><tt class="py-op">(</tt><tt id="link-96" class="py-name"><a title="rekall.components.Process.user" class="py-name" href="#" onclick="return doclink('link-96', 'user', 'link-88');">user</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">int</tt><tt class="py-op">(</tt><tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-97" class="py-name"><a title="rekall.components.Process.user" class="py-name" href="#" onclick="return doclink('link-97', 'user', 'link-88');">user</a></tt><tt class="py-op">.</tt><tt id="link-98" class="py-name"><a title="rekall.plugins.tools.mspdb.lfEnum.Name
 rekall.plugins.windows.gui.win32k_core.tagWINDOWSTATION.Name
@@ -417,14 +415,14 @@ expandto(location.href);
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:21 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:42 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

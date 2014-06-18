@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -88,9 +88,27 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.linux.timespec-class.html#__add__" class="summary-sig-name">__add__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">other</span>)</span><br />
-      Properly normalize this object from sec and nsec.</td>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.linux.timespec-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      This must be instantiated with a dict of members.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#timespec.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__add__"></a><span class="summary-sig-name">__add__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#timespec.__add__">source&nbsp;code</a></span>
             
@@ -106,9 +124,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="getboottime"></a><span class="summary-sig-name">getboottime</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.linux.timespec-class.html#normalized_timespec" class="summary-sig-name">normalized_timespec</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Normalizes a timespec's secs and nsecs.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#timespec.getboottime">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#timespec.normalized_timespec">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -122,7 +141,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="as_timestamp"></a><span class="summary-sig-name">as_timestamp</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="as_timestamp"></a><span class="summary-sig-name">as_timestamp</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the time as a UnixTimestamp.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#timespec.as_timestamp">source&nbsp;code</a></span>
             
@@ -268,10 +288,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#__getstate__" class="summary-sig-name">__getstate__</a>(<span class="summary-sig-arg">self</span>)</span>
-      <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
+          <td><span class="summary-sig"><a name="__getstate__"></a><span class="summary-sig-name">__getstate__</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.__getstate__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.__getstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -308,27 +328,6 @@
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.__hash__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">members</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">struct_size</span>=<span class="summary-sig-default">0</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      This must be instantiated with a dict of members.
-      <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -455,7 +454,7 @@
       Sets the object's state.
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.__setstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -820,20 +819,6 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.overlays.linux.linux.timespec-class.html#wall_to_monotonic" class="summary-name">wall_to_monotonic</a>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.plugins.overlays.linux.linux.timespec-class.html#total_sleep_time" class="summary-name">total_sleep_time</a>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a href="rekall.obj.BaseObject-class.html#obj_end" class="summary-name">obj_end</a>
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em>
     </td>
@@ -864,63 +849,66 @@
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="__add__"></a>
+<a name="__init__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__add__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">other</span>)</span>
-    <br /><em class="fname">(Addition operator)</em>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#timespec.__add__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#timespec.__init__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Properly normalize this object from sec and nsec.</p>
-  <p>based on set_normalized_timespec function.</p>
+  <pre class="literalblock">
+This must be instantiated with a dict of members. The keys
+are the offsets, the values are Curried Object classes that
+will be instantiated when accessed.
+
+Args:
+   members: A dict of callables to use for retrieving each member. (Key
+     is member name, value is a callable). Normally these are populated
+     by the profile system
+
+   struct_size: The size of this struct if known (Can be None).
+
+</pre>
   <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
   </dl>
 </td></tr></table>
 </div>
-<br />
-<!-- ==================== PROPERTY DETAILS ==================== -->
-<a name="section-PropertyDetails"></a>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td align="left" colspan="2" class="table-header">
-    <span class="table-header">Property Details</span></td>
-</tr>
-</table>
-<a name="wall_to_monotonic"></a>
+<a name="normalized_timespec"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
-  <h3 class="epydoc">wall_to_monotonic</h3>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">normalized_timespec</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#timespec.normalized_timespec">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
   
+  <pre class="literalblock">
+Normalizes a timespec's secs and nsecs.
+
+Based on set_normalized_timespec:
+  http://lxr.free-electrons.com/source/kernel/time.c?v=3.11#L358
+
+</pre>
   <dl class="fields">
-    <dt>Get Method:</dt>
-    <dd class="value"><span class="summary-sig"><i>unreachable</i>.wall_to_monotonic(<span class="summary-sig-arg">self</span>)</span>
-    </dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="total_sleep_time"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">total_sleep_time</h3>
-  
-  <dl class="fields">
-    <dt>Get Method:</dt>
-    <dd class="value"><span class="summary-sig"><i>unreachable</i>.total_sleep_time(<span class="summary-sig-arg">self</span>)</span>
-    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -949,14 +937,14 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:04 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:24 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

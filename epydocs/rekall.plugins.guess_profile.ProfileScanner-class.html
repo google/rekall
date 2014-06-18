@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -237,14 +237,7 @@ not match.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.guess_profile.ProfileScanner-class.html#checks" class="summary-name">checks</a> = <code title="[('MultiStringFinderCheck',
-  {'needles': {'1456.1.26': '10.6.1',
-               '1486.2.11': '10.6.2',
-               '1504.15.3': '10.6.8',
-               '1504.3.12': '10.6.3',
-               '1504.7.4': '10.6.4',
-               '1504.9.17': '10.6.5',
-               '1504.9.26': '10.6.6',
-..."><code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">MultiStringFinderCheck</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">needles</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">1456.1.26</code><code class="variable-quote">'</code><code class="variable-op">:</code><code class="variable-ellipsis">...</code></code>
+  {'needles': ['RSDS', 'Catfish \x00\x00', 'Linux version ']})]"><code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">MultiStringFinderCheck</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">needles</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">RSDS</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Cat</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -260,13 +253,13 @@ not match.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.scan.BaseScanner-class.html#classes" class="summary-name">classes</a> = <code title="{'BaseScanner': &lt;class 'rekall.scan.BaseScanner'&gt;,
+ 'BaseYaraASScanner': &lt;class 'rekall.plugins.yarascanner.BaseYaraASSca\
+nner'&gt;,
  'CatfishScanner': &lt;class 'rekall.plugins.darwin.common.CatfishScanner\
 '&gt;,
  'CertScanner': &lt;class 'rekall.plugins.windows.dumpcerts.CertScanner'&gt;\
 ,
  'ConsoleScanner': &lt;class 'rekall.plugins.windows.malware.cmdhistory.C\
-onsoleScanner'&gt;,
- 'DiscontigScannerGroup': &lt;class 'rekall.scan.DiscontigScannerGroup'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.scan.BaseScanner'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em>
     </td>
@@ -275,7 +268,7 @@ onsoleScanner'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.scan.BaseScanner-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.hypervisors.VMCSScanner'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.hypervisors.VM<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.scan.BaseScanner-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.yarascanner.BaseYaraASScanner'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.yarascanner.Ba<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em>
     </td>
   </tr>
@@ -334,14 +327,7 @@ onsoleScanner'&gt;,
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 <code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">MultiStringFinderCheck</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-  <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">needles</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">1456.1.26</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">10.6.1</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-               <code class="variable-quote">'</code><code class="variable-string">1486.2.11</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">10.6.2</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-               <code class="variable-quote">'</code><code class="variable-string">1504.15.3</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">10.6.8</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-               <code class="variable-quote">'</code><code class="variable-string">1504.3.12</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">10.6.3</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-               <code class="variable-quote">'</code><code class="variable-string">1504.7.4</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">10.6.4</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-               <code class="variable-quote">'</code><code class="variable-string">1504.9.17</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">10.6.5</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-               <code class="variable-quote">'</code><code class="variable-string">1504.9.26</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">10.6.6</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-<code class="variable-ellipsis">...</code>
+  <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">needles</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">RSDS</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Catfish \x00\x00</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Linux version </code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">)</code><code class="variable-group">]</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -372,14 +358,14 @@ onsoleScanner'&gt;,
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:01 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:21 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

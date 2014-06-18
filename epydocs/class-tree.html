@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -330,6 +330,14 @@
     <li> <strong class="uidlink">exceptions.Exception</strong>:
       <em class="summary">Common base class for all non-exit exceptions.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.obj.Error-class.html">rekall.obj.Error</a></strong>:
+      <em class="summary">All object related exceptions come from this one.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.obj.ProfileError-class.html">rekall.obj.ProfileError</a></strong>:
+      <em class="summary">Errors in setting the profile.</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.Error-class.html">rekall.plugins.overlays.windows.ntfs.Error</a></strong>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.ParseError-class.html">rekall.plugins.overlays.windows.ntfs.ParseError</a></strong>
@@ -337,14 +345,6 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.NTFSParseError-class.html">rekall.plugins.overlays.windows.ntfs.NTFSParseError</a></strong>
     </li>
     </ul>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.obj.Error-class.html">rekall.obj.Error</a></strong>:
-      <em class="summary">All object related exceptions come from this one.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.obj.ProfileError-class.html">rekall.obj.ProfileError</a></strong>:
-      <em class="summary">Errors in setting the profile.</em>
     </li>
     </ul>
     </li>
@@ -391,6 +391,11 @@
     <ul>
     <li> <strong class="uidlink"><a href="exceptions.AssertionError-class.html">exceptions.AssertionError</a></strong>:
       <em class="summary">Assertion failed.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.addrspace.ASAssertionError-class.html">rekall.addrspace.ASAssertionError</a></strong>:
+      <em class="summary">The address space failed to instantiate.</em>
+    </li>
+    </ul>
     </li>
     <li> <strong class="uidlink">exceptions.EnvironmentError</strong>:
       <em class="summary">Base class for I/O related errors.</em>
@@ -414,7 +419,7 @@
     <li> <strong class="uidlink">exceptions.KeyError</strong>:
       <em class="summary">Mapping key not found.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.DecodingError-class.html">rekall.plugins.tools.json_tools.DecodingError</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.DecodingError-class.html">rekall.ui.json_renderer.DecodingError</a></strong>:
       <em class="summary">Raised if there is a decoding error.</em>
     </li>
     </ul>
@@ -477,6 +482,8 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.basic.Flags-class.html">rekall.plugins.overlays.basic.Flags</a></strong>:
       <em class="summary">This object decodes each flag into a string</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.InodePermission-class.html">rekall.plugins.overlays.linux.linux.InodePermission</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.PermissionFlags-class.html">rekall.plugins.overlays.linux.linux.PermissionFlags</a></strong>:
       <em class="summary">A Flags object for printing vm_area_struct permissions in a format 
         like rwx or r-x</em>
@@ -688,6 +695,9 @@
     <li> <strong class="uidlink"><a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a></strong>:
       <em class="summary">A more thorough scanner which checks every byte</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.yarascanner.BaseYaraASScanner-class.html">rekall.plugins.yarascanner.BaseYaraASScanner</a></strong>:
+      <em class="summary">An address space scanner for Yara signatures.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.common.CatfishScanner-class.html">rekall.plugins.darwin.common.CatfishScanner</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.dumpcerts.CertScanner-class.html">rekall.plugins.windows.dumpcerts.CertScanner</a></strong>:
@@ -865,7 +875,7 @@
       <em class="summary">Convert a profile from another program to the Rekall format.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.disassembler.Disassemble-class.html">rekall.plugins.windows.disassembler.Disassemble</a></strong>:
-      <em class="summary">Disassemble the given address space.</em>
+      <em class="summary">Disassemble the given offset.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.core.Dump-class.html">rekall.plugins.core.Dump</a></strong>:
       <em class="summary">Hexdump an object or memory location.</em>
@@ -1019,6 +1029,8 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.AbstractLinuxCommandPlugin-class.html">rekall.plugins.linux.common.AbstractLinuxCommandPlugin</a></strong>:
       <em class="summary">A base class for all linux based plugins.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.Hostname-class.html">rekall.plugins.linux.common.Hostname</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.LinuxFindDTB-class.html">rekall.plugins.linux.common.LinuxFindDTB</a></strong>:
       <em class="summary">A scanner for DTB values.</em>
     </li>
@@ -1058,7 +1070,7 @@
       <em class="summary">Checks tty devices for hooks.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.cpuinfo.CpuInfo-class.html">rekall.plugins.linux.cpuinfo.CpuInfo</a></strong>:
-      <em class="summary">prints info about each active processor</em>
+      <em class="summary">Prints information about each active processor.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.iomem.IOmem-class.html">rekall.plugins.linux.iomem.IOmem</a></strong>:
       <em class="summary">mimics /proc/iomem.</em>
@@ -1120,8 +1132,25 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsmod.Lsmod-class.html">rekall.plugins.linux.lsmod.Lsmod</a></strong>:
       <em class="summary">Gathers loaded kernel modules.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mfind-class.html">rekall.plugins.linux.fs.Mfind</a></strong>:
+      <em class="summary">Finds a file by name in memory.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mls-class.html">rekall.plugins.linux.fs.Mls</a></strong>:
+      <em class="summary">Lists the files in a mounted filesystem.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsmod.Moddump-class.html">rekall.plugins.linux.lsmod.Moddump</a></strong>:
+      <em class="summary">Dumps loaded kernel modules.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.mount.Mount-class.html">rekall.plugins.linux.mount.Mount</a></strong>:
+      <em class="summary">Lists the mount points.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.Netstat-class.html">rekall.plugins.linux.netstat.Netstat</a></strong>:
       <em class="summary">Print the active network connections.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.PacketQueues-class.html">rekall.plugins.linux.netstat.PacketQueues</a></strong>:
+      <em class="summary">Dumps the current packet queues for all known open sockets.</em>
     </li>
     </ul>
     </li>
@@ -1189,6 +1218,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html">rekall.plugins.windows.common.WindowsCommandPlugin</a></strong>:
       <em class="summary">A windows plugin which requires the kernel address space.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html">rekall.plugins.windows.interactive.structs.AnalyzeStruct</a></strong>:
+      <em class="summary">A plugin to analyze a memory location.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.atoms.Atoms-class.html">rekall.plugins.windows.gui.atoms.Atoms</a></strong>:
       <em class="summary">Print session and window station atom tables.</em>
     </li>
@@ -1297,6 +1329,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.modules.UnloadedModules-class.html">rekall.plugins.windows.modules.UnloadedModules</a></strong>:
       <em class="summary">Print a list of recently unloaded modules.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html">rekall.plugins.windows.gui.autodetect.Win32kAutodetect</a></strong>:
+      <em class="summary">Automatically detect win32k struct layout.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html">rekall.plugins.windows.gui.userhandles.WinMessageHooks</a></strong>:
       <em class="summary">List desktop and thread window message hooks.</em>
@@ -1699,6 +1734,9 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.vfs.File-class.html">rekall.plugins.overlays.linux.vfs.File</a></strong>:
+      <em class="summary">Represents a Linux file.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.utils.FileLock-class.html">rekall.utils.FileLock</a></strong>:
       <em class="summary">A self cleaning temporary directory.</em>
     </li>
@@ -1722,8 +1760,18 @@
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.impscan.IDCRenderer-class.html">rekall.plugins.windows.malware.impscan.IDCRenderer</a></strong>:
-      <em class="summary">A renderer for writing IDC files.</em>
+    <li> <strong class="uidlink">argparse.HelpFormatter</strong>:
+      <em class="summary">Formatter for generating usage messages and argument help strings.</em>
+    <ul>
+    <li> <strong class="uidlink">argparse.RawDescriptionHelpFormatter</strong>:
+      <em class="summary">Help message formatter which retains any formatting in 
+        descriptions.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.args.RekallHelpFormatter-class.html">rekall.args.RekallHelpFormatter</a></strong>
+    </li>
+    </ul>
+    </li>
+    </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a></strong>:
       <em class="summary">The baseclass for abstracted IO implementations.</em>
@@ -1758,6 +1806,16 @@
     <li> <strong class="uidlink"><a href="rekall.obj.ProfileLog.JSONEncoder-class.html">rekall.obj.ProfileLog.JSONEncoder</a></strong>
     </li>
     </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.JsonDecoder-class.html">rekall.ui.json_renderer.JsonDecoder</a></strong>:
+      <em class="summary">A Decoder for JSON encoded data.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.RendererDecoder-class.html">rekall.plugins.tools.json_tools.RendererDecoder</a></strong>:
+      <em class="summary">A decoder which produces proxy objects for the real thing.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.JsonEncoder-class.html">rekall.ui.json_renderer.JsonEncoder</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugin.KernelASMixin-class.html">rekall.plugin.KernelASMixin</a></strong>:
       <em class="summary">A mixin for those plugins which require a valid kernel address 
@@ -1848,18 +1906,185 @@
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.common.KDBGMixin-class.html">rekall.plugins.windows.common.KDBGMixin</a></strong>:
-      <em class="summary">A plugin mixin to make sure the kdbg is set correctly.</em>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.kdbgscan.KDBGScan-class.html">rekall.plugins.windows.kdbgscan.KDBGScan</a></strong>:
+      <em class="summary">Scan for possible _KDDEBUGGER_DATA64 structures.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.LinuxPlugin-class.html">rekall.plugins.linux.common.LinuxPlugin</a></strong>:
+      <em class="summary">Plugin which requires the kernel Address space to be loaded.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.arp.Arp-class.html">rekall.plugins.linux.arp.Arp</a></strong>:
+      <em class="summary">print the ARP table.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.cpuinfo.Banner-class.html">rekall.plugins.linux.cpuinfo.Banner</a></strong>:
+      <em class="summary">Prints the Linux banner information.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_afinfo.CheckAFInfo-class.html">rekall.plugins.linux.check_afinfo.CheckAFInfo</a></strong>:
+      <em class="summary">Verifies the operation function pointers of network protocols.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_idt.CheckIdt-class.html">rekall.plugins.linux.check_idt.CheckIdt</a></strong>:
+      <em class="summary">Checks if the IDT has been altered</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_modules.CheckModules-class.html">rekall.plugins.linux.check_modules.CheckModules</a></strong>:
+      <em class="summary">Compares module list to sysfs info, if available.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_fops.CheckProcFops-class.html">rekall.plugins.linux.check_fops.CheckProcFops</a></strong>:
+      <em class="summary">Checks the proc filesystem for hooked f_ops.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_fops.CheckTaskFops-class.html">rekall.plugins.linux.check_fops.CheckTaskFops</a></strong>:
+      <em class="summary">Check open files in tasks for f_ops modifications.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_syscall.CheckSyscall-class.html">rekall.plugins.linux.check_syscall.CheckSyscall</a></strong>:
+      <em class="summary">Checks if the system call table has been altered.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_tty.CheckTTY-class.html">rekall.plugins.linux.check_tty.CheckTTY</a></strong>:
+      <em class="summary">Checks tty devices for hooks.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.cpuinfo.CpuInfo-class.html">rekall.plugins.linux.cpuinfo.CpuInfo</a></strong>:
+      <em class="summary">Prints information about each active processor.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.iomem.IOmem-class.html">rekall.plugins.linux.iomem.IOmem</a></strong>:
+      <em class="summary">mimics /proc/iomem.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.ifconfig.Ifconfig-class.html">rekall.plugins.linux.ifconfig.Ifconfig</a></strong>:
+      <em class="summary">Gathers active interfaces.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pstree.LinPSTree-class.html">rekall.plugins.linux.pstree.LinPSTree</a></strong>:
+      <em class="summary">Shows the parent/child relationship between processes.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.LinProcessFilter-class.html">rekall.plugins.linux.common.LinProcessFilter</a></strong>:
+      <em class="summary">A class for filtering processes.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.bash.BashHistory-class.html">rekall.plugins.linux.bash.BashHistory</a></strong>:
+      <em class="summary">Scan the bash process for history.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_creds.CheckCreds-class.html">rekall.plugins.linux.check_creds.CheckCreds</a></strong>:
+      <em class="summary">Checks if any processes are sharing credential structures</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_fops.CheckTaskFops-class.html">rekall.plugins.linux.check_fops.CheckTaskFops</a></strong>:
+      <em class="summary">Check open files in tasks for f_ops modifications.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pslist.LinMemMap-class.html">rekall.plugins.linux.pslist.LinMemMap</a></strong>:
+      <em class="summary">Dumps the memory map for linux tasks.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pslist.LinMemDump-class.html">rekall.plugins.linux.pslist.LinMemDump</a></strong>:
+      <em class="summary">Dump the addressable memory for a process.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pas2kas.LinPas2Vas-class.html">rekall.plugins.linux.pas2kas.LinPas2Vas</a></strong>:
+      <em class="summary">Resolves a physical address to a virtual addrress in a process.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.proc_maps.LinVadDump-class.html">rekall.plugins.linux.proc_maps.LinVadDump</a></strong>:
+      <em class="summary">Dump the VMA memory for a process.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pslist.LinuxPsList-class.html">rekall.plugins.linux.pslist.LinuxPsList</a></strong>:
+      <em class="summary">Gathers active tasks by walking the task_struct-&gt;task list.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pslist.PidHashTable-class.html">rekall.plugins.linux.pslist.PidHashTable</a></strong>:
+      <em class="summary">List processes by enumerating the pid hash tables.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsof.Lsof-class.html">rekall.plugins.linux.lsof.Lsof</a></strong>:
+      <em class="summary">Lists open files.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.psaux.PSAux-class.html">rekall.plugins.linux.psaux.PSAux</a></strong>:
+      <em class="summary">Gathers processes along with full command line and start time.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.proc_maps.ProcMaps-class.html">rekall.plugins.linux.proc_maps.ProcMaps</a></strong>:
+      <em class="summary">Gathers process maps for linux.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.dmesg.LinuxDmesg-class.html">rekall.plugins.linux.dmesg.LinuxDmesg</a></strong>:
+      <em class="summary">Gathers dmesg buffer.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsmod.Lsmod-class.html">rekall.plugins.linux.lsmod.Lsmod</a></strong>:
+      <em class="summary">Gathers loaded kernel modules.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mfind-class.html">rekall.plugins.linux.fs.Mfind</a></strong>:
+      <em class="summary">Finds a file by name in memory.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mls-class.html">rekall.plugins.linux.fs.Mls</a></strong>:
+      <em class="summary">Lists the files in a mounted filesystem.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsmod.Moddump-class.html">rekall.plugins.linux.lsmod.Moddump</a></strong>:
+      <em class="summary">Dumps loaded kernel modules.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.mount.Mount-class.html">rekall.plugins.linux.mount.Mount</a></strong>:
+      <em class="summary">Lists the mount points.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.Netstat-class.html">rekall.plugins.linux.netstat.Netstat</a></strong>:
+      <em class="summary">Print the active network connections.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.PacketQueues-class.html">rekall.plugins.linux.netstat.PacketQueues</a></strong>:
+      <em class="summary">Dumps the current packet queues for all known open sockets.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.common.PoolScannerPlugin-class.html">rekall.plugins.windows.common.PoolScannerPlugin</a></strong>:
+      <em class="summary">A base class for all pool scanner plugins.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.atoms.AtomScan-class.html">rekall.plugins.windows.gui.atoms.AtomScan</a></strong>:
+      <em class="summary">Pool scanner for _RTL_ATOM_TABLE</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.connscan.ConnScan-class.html">rekall.plugins.windows.connscan.ConnScan</a></strong>:
+      <em class="summary">Scan Physical memory for _TCPT_OBJECT objects (tcp connections)</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.FileScan-class.html">rekall.plugins.windows.filescan.FileScan</a></strong>:
+      <em class="summary">Scan Physical memory for _FILE_OBJECT pool allocations</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.DriverScan-class.html">rekall.plugins.windows.filescan.DriverScan</a></strong>:
+      <em class="summary">Scan for driver objects _DRIVER_OBJECT</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.devicetree.DeviceTree-class.html">rekall.plugins.windows.malware.devicetree.DeviceTree</a></strong>:
+      <em class="summary">Show device tree.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.devicetree.DriverIrp-class.html">rekall.plugins.windows.malware.devicetree.DriverIrp</a></strong>:
+      <em class="summary">Driver IRP hook detection</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.modscan.ModScan-class.html">rekall.plugins.windows.modscan.ModScan</a></strong>:
+      <em class="summary">Scan Physical memory for _LDR_DATA_TABLE_ENTRY objects.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.modscan.ThrdScan-class.html">rekall.plugins.windows.modscan.ThrdScan</a></strong>:
+      <em class="summary">Scan physical memory for _ETHREAD objects</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.MutantScan-class.html">rekall.plugins.windows.filescan.MutantScan</a></strong>:
+      <em class="summary">Scan for mutant objects _KMUTANT</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.SymLinkScan-class.html">rekall.plugins.windows.filescan.SymLinkScan</a></strong>:
+      <em class="summary">Scan for symbolic link objects</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.PSScan-class.html">rekall.plugins.windows.filescan.PSScan</a></strong>:
       <em class="summary">Scan Physical memory for _EPROCESS pool allocations.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.netscan.WinNetscan-class.html">rekall.plugins.windows.netscan.WinNetscan</a></strong>:
+      <em class="summary">Scan a Vista, 2008 or Windows 7 image for connections and sockets</em>
+    </li>
+    </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.svcscan.SvcScan-class.html">rekall.plugins.windows.malware.svcscan.SvcScan</a></strong>:
       <em class="summary">Scan for Windows services</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.VtoP-class.html">rekall.plugins.windows.pfn.VtoP</a></strong>:
+      <em class="summary">Prints information about the virtual to physical translation.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html">rekall.plugins.windows.common.WindowsCommandPlugin</a></strong>:
       <em class="summary">A windows plugin which requires the kernel address space.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html">rekall.plugins.windows.interactive.structs.AnalyzeStruct</a></strong>:
+      <em class="summary">A plugin to analyze a memory location.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.atoms.Atoms-class.html">rekall.plugins.windows.gui.atoms.Atoms</a></strong>:
       <em class="summary">Print session and window station atom tables.</em>
     </li>
@@ -1968,6 +2193,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.modules.UnloadedModules-class.html">rekall.plugins.windows.modules.UnloadedModules</a></strong>:
       <em class="summary">Print a list of recently unloaded modules.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html">rekall.plugins.windows.gui.autodetect.Win32kAutodetect</a></strong>:
+      <em class="summary">Automatically detect win32k struct layout.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html">rekall.plugins.windows.gui.userhandles.WinMessageHooks</a></strong>:
       <em class="summary">List desktop and thread window message hooks.</em>
@@ -2102,165 +2330,10 @@
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.kdbgscan.KDBGScan-class.html">rekall.plugins.windows.kdbgscan.KDBGScan</a></strong>:
-      <em class="summary">Scan for possible _KDDEBUGGER_DATA64 structures.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.LinuxPlugin-class.html">rekall.plugins.linux.common.LinuxPlugin</a></strong>:
-      <em class="summary">Plugin which requires the kernel Address space to be loaded.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.arp.Arp-class.html">rekall.plugins.linux.arp.Arp</a></strong>:
-      <em class="summary">print the ARP table.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.cpuinfo.Banner-class.html">rekall.plugins.linux.cpuinfo.Banner</a></strong>:
-      <em class="summary">Prints the Linux banner information.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_afinfo.CheckAFInfo-class.html">rekall.plugins.linux.check_afinfo.CheckAFInfo</a></strong>:
-      <em class="summary">Verifies the operation function pointers of network protocols.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_idt.CheckIdt-class.html">rekall.plugins.linux.check_idt.CheckIdt</a></strong>:
-      <em class="summary">Checks if the IDT has been altered</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_modules.CheckModules-class.html">rekall.plugins.linux.check_modules.CheckModules</a></strong>:
-      <em class="summary">Compares module list to sysfs info, if available.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_fops.CheckProcFops-class.html">rekall.plugins.linux.check_fops.CheckProcFops</a></strong>:
-      <em class="summary">Checks the proc filesystem for hooked f_ops.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_fops.CheckTaskFops-class.html">rekall.plugins.linux.check_fops.CheckTaskFops</a></strong>:
-      <em class="summary">Check open files in tasks for f_ops modifications.</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_syscall.CheckSyscall-class.html">rekall.plugins.linux.check_syscall.CheckSyscall</a></strong>:
-      <em class="summary">Checks if the system call table has been altered.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_tty.CheckTTY-class.html">rekall.plugins.linux.check_tty.CheckTTY</a></strong>:
-      <em class="summary">Checks tty devices for hooks.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.cpuinfo.CpuInfo-class.html">rekall.plugins.linux.cpuinfo.CpuInfo</a></strong>:
-      <em class="summary">prints info about each active processor</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.iomem.IOmem-class.html">rekall.plugins.linux.iomem.IOmem</a></strong>:
-      <em class="summary">mimics /proc/iomem.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.ifconfig.Ifconfig-class.html">rekall.plugins.linux.ifconfig.Ifconfig</a></strong>:
-      <em class="summary">Gathers active interfaces.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pstree.LinPSTree-class.html">rekall.plugins.linux.pstree.LinPSTree</a></strong>:
-      <em class="summary">Shows the parent/child relationship between processes.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.LinProcessFilter-class.html">rekall.plugins.linux.common.LinProcessFilter</a></strong>:
-      <em class="summary">A class for filtering processes.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.bash.BashHistory-class.html">rekall.plugins.linux.bash.BashHistory</a></strong>:
-      <em class="summary">Scan the bash process for history.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_creds.CheckCreds-class.html">rekall.plugins.linux.check_creds.CheckCreds</a></strong>:
-      <em class="summary">Checks if any processes are sharing credential structures</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_fops.CheckTaskFops-class.html">rekall.plugins.linux.check_fops.CheckTaskFops</a></strong>:
-      <em class="summary">Check open files in tasks for f_ops modifications.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pslist.LinMemMap-class.html">rekall.plugins.linux.pslist.LinMemMap</a></strong>:
-      <em class="summary">Dumps the memory map for linux tasks.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pslist.LinMemDump-class.html">rekall.plugins.linux.pslist.LinMemDump</a></strong>:
-      <em class="summary">Dump the addressable memory for a process.</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pas2kas.LinPas2Vas-class.html">rekall.plugins.linux.pas2kas.LinPas2Vas</a></strong>:
-      <em class="summary">Resolves a physical address to a virtual addrress in a process.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.proc_maps.LinVadDump-class.html">rekall.plugins.linux.proc_maps.LinVadDump</a></strong>:
-      <em class="summary">Dump the VMA memory for a process.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pslist.LinuxPsList-class.html">rekall.plugins.linux.pslist.LinuxPsList</a></strong>:
-      <em class="summary">Gathers active tasks by walking the task_struct-&gt;task list.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.pslist.PidHashTable-class.html">rekall.plugins.linux.pslist.PidHashTable</a></strong>:
-      <em class="summary">List processes by enumerating the pid hash tables.</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsof.Lsof-class.html">rekall.plugins.linux.lsof.Lsof</a></strong>:
-      <em class="summary">Lists open files.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.psaux.PSAux-class.html">rekall.plugins.linux.psaux.PSAux</a></strong>:
-      <em class="summary">Gathers processes along with full command line and start time.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.proc_maps.ProcMaps-class.html">rekall.plugins.linux.proc_maps.ProcMaps</a></strong>:
-      <em class="summary">Gathers process maps for linux.</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.dmesg.LinuxDmesg-class.html">rekall.plugins.linux.dmesg.LinuxDmesg</a></strong>:
-      <em class="summary">Gathers dmesg buffer.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsmod.Lsmod-class.html">rekall.plugins.linux.lsmod.Lsmod</a></strong>:
-      <em class="summary">Gathers loaded kernel modules.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.Netstat-class.html">rekall.plugins.linux.netstat.Netstat</a></strong>:
-      <em class="summary">Print the active network connections.</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.common.PoolScannerPlugin-class.html">rekall.plugins.windows.common.PoolScannerPlugin</a></strong>:
-      <em class="summary">A base class for all pool scanner plugins.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.atoms.AtomScan-class.html">rekall.plugins.windows.gui.atoms.AtomScan</a></strong>:
-      <em class="summary">Pool scanner for _RTL_ATOM_TABLE</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.connscan.ConnScan-class.html">rekall.plugins.windows.connscan.ConnScan</a></strong>:
-      <em class="summary">Scan Physical memory for _TCPT_OBJECT objects (tcp connections)</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.FileScan-class.html">rekall.plugins.windows.filescan.FileScan</a></strong>:
-      <em class="summary">Scan Physical memory for _FILE_OBJECT pool allocations</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.DriverScan-class.html">rekall.plugins.windows.filescan.DriverScan</a></strong>:
-      <em class="summary">Scan for driver objects _DRIVER_OBJECT</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.devicetree.DeviceTree-class.html">rekall.plugins.windows.malware.devicetree.DeviceTree</a></strong>:
-      <em class="summary">Show device tree.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.devicetree.DriverIrp-class.html">rekall.plugins.windows.malware.devicetree.DriverIrp</a></strong>:
-      <em class="summary">Driver IRP hook detection</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.modscan.ModScan-class.html">rekall.plugins.windows.modscan.ModScan</a></strong>:
-      <em class="summary">Scan Physical memory for _LDR_DATA_TABLE_ENTRY objects.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.modscan.ThrdScan-class.html">rekall.plugins.windows.modscan.ThrdScan</a></strong>:
-      <em class="summary">Scan physical memory for _ETHREAD objects</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.MutantScan-class.html">rekall.plugins.windows.filescan.MutantScan</a></strong>:
-      <em class="summary">Scan for mutant objects _KMUTANT</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.SymLinkScan-class.html">rekall.plugins.windows.filescan.SymLinkScan</a></strong>:
-      <em class="summary">Scan for symbolic link objects</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.PSScan-class.html">rekall.plugins.windows.filescan.PSScan</a></strong>:
-      <em class="summary">Scan Physical memory for _EPROCESS pool allocations.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.netscan.WinNetscan-class.html">rekall.plugins.windows.netscan.WinNetscan</a></strong>:
-      <em class="summary">Scan a Vista, 2008 or Windows 7 image for connections and sockets</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.VtoP-class.html">rekall.plugins.windows.pfn.VtoP</a></strong>:
-      <em class="summary">Prints information about the virtual to physical translation.</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.KernelAddressCheckerMixIn-class.html">rekall.plugins.linux.common.KernelAddressCheckerMixIn</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.common.KernelAddressCheckerMixIn-class.html">rekall.plugins.darwin.common.KernelAddressCheckerMixIn</a></strong>:
       <em class="summary">A plugin mixin which does kernel address checks.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.common.KernelAddressCheckerMixIn-class.html">rekall.plugins.darwin.common.KernelAddressCheckerMixIn</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.KernelAddressCheckerMixIn-class.html">rekall.plugins.linux.common.KernelAddressCheckerMixIn</a></strong>:
       <em class="summary">A plugin mixin which does kernel address checks.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.kb.KernelModule-class.html">rekall.kb.KernelModule</a></strong>
@@ -2310,6 +2383,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.args.MockArgParser-class.html">rekall.args.MockArgParser</a></strong>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.vfs.MountPoint-class.html">rekall.plugins.overlays.linux.vfs.MountPoint</a></strong>:
+      <em class="summary">Represents a Linux mount point.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.NTFS-class.html">rekall.plugins.overlays.windows.ntfs.NTFS</a></strong>:
       <em class="summary">A class to manage the NTFS filesystem parser.</em>
     </li>
@@ -2341,6 +2417,8 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.basic.Flags-class.html">rekall.plugins.overlays.basic.Flags</a></strong>:
       <em class="summary">This object decodes each flag into a string</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.InodePermission-class.html">rekall.plugins.overlays.linux.linux.InodePermission</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.PermissionFlags-class.html">rekall.plugins.overlays.linux.linux.PermissionFlags</a></strong>:
       <em class="summary">A Flags object for printing vm_area_struct permissions in a format 
         like rwx or r-x</em>
@@ -2430,6 +2508,9 @@
     <li> <strong class="uidlink"><a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a></strong>:
       <em class="summary">A mechanism for automatically calculating a parameter.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.common.CatfishOffsetHook-class.html">rekall.plugins.darwin.common.CatfishOffsetHook</a></strong>:
+      <em class="summary">Find the actual offset of the _lowGlo struct.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.KASLRHook-class.html">rekall.plugins.linux.common.KASLRHook</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.common.KDBGHook-class.html">rekall.plugins.windows.common.KDBGHook</a></strong>:
@@ -2572,6 +2653,8 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.AbstractLinuxCommandPlugin-class.html">rekall.plugins.linux.common.AbstractLinuxCommandPlugin</a></strong>:
       <em class="summary">A base class for all linux based plugins.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.Hostname-class.html">rekall.plugins.linux.common.Hostname</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.LinuxFindDTB-class.html">rekall.plugins.linux.common.LinuxFindDTB</a></strong>:
       <em class="summary">A scanner for DTB values.</em>
     </li>
@@ -2611,7 +2694,7 @@
       <em class="summary">Checks tty devices for hooks.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.cpuinfo.CpuInfo-class.html">rekall.plugins.linux.cpuinfo.CpuInfo</a></strong>:
-      <em class="summary">prints info about each active processor</em>
+      <em class="summary">Prints information about each active processor.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.iomem.IOmem-class.html">rekall.plugins.linux.iomem.IOmem</a></strong>:
       <em class="summary">mimics /proc/iomem.</em>
@@ -2673,8 +2756,25 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsmod.Lsmod-class.html">rekall.plugins.linux.lsmod.Lsmod</a></strong>:
       <em class="summary">Gathers loaded kernel modules.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mfind-class.html">rekall.plugins.linux.fs.Mfind</a></strong>:
+      <em class="summary">Finds a file by name in memory.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mls-class.html">rekall.plugins.linux.fs.Mls</a></strong>:
+      <em class="summary">Lists the files in a mounted filesystem.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsmod.Moddump-class.html">rekall.plugins.linux.lsmod.Moddump</a></strong>:
+      <em class="summary">Dumps loaded kernel modules.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.mount.Mount-class.html">rekall.plugins.linux.mount.Mount</a></strong>:
+      <em class="summary">Lists the mount points.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.Netstat-class.html">rekall.plugins.linux.netstat.Netstat</a></strong>:
       <em class="summary">Print the active network connections.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.PacketQueues-class.html">rekall.plugins.linux.netstat.PacketQueues</a></strong>:
+      <em class="summary">Dumps the current packet queues for all known open sockets.</em>
     </li>
     </ul>
     </li>
@@ -2742,6 +2842,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html">rekall.plugins.windows.common.WindowsCommandPlugin</a></strong>:
       <em class="summary">A windows plugin which requires the kernel address space.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html">rekall.plugins.windows.interactive.structs.AnalyzeStruct</a></strong>:
+      <em class="summary">A plugin to analyze a memory location.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.atoms.Atoms-class.html">rekall.plugins.windows.gui.atoms.Atoms</a></strong>:
       <em class="summary">Print session and window station atom tables.</em>
     </li>
@@ -2850,6 +2953,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.modules.UnloadedModules-class.html">rekall.plugins.windows.modules.UnloadedModules</a></strong>:
       <em class="summary">Print a list of recently unloaded modules.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html">rekall.plugins.windows.gui.autodetect.Win32kAutodetect</a></strong>:
+      <em class="summary">Automatically detect win32k struct layout.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html">rekall.plugins.windows.gui.userhandles.WinMessageHooks</a></strong>:
       <em class="summary">List desktop and thread window message hooks.</em>
@@ -3124,7 +3230,7 @@
     <li> <strong class="uidlink"><a href="rekall.type_generator.DynamicProfile-class.html">rekall.type_generator.DynamicProfile</a></strong>:
       <em class="summary">A Dynamic profile which parses its overlays from $DYNAMIC_STRUCT.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.index.Index-class.html">rekall.plugins.windows.index.Index</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.plugins.common.profile_index.Index-class.html">rekall.plugins.common.profile_index.Index</a></strong>:
       <em class="summary">A profile which contains an index to locate other profiles.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.core.PluginHelp-class.html">rekall.plugins.core.PluginHelp</a></strong>:
@@ -3423,6 +3529,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.mspdb.TestFetchPDB-class.html">rekall.plugins.tools.mspdb.TestFetchPDB</a></strong>:
       <em class="summary">Disable this test.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.core.TestInfo-class.html">rekall.plugins.core.TestInfo</a></strong>:
+      <em class="summary">Disable the Info test.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.ipython.TestNoteBook-class.html">rekall.plugins.tools.ipython.TestNoteBook</a></strong>:
       <em class="summary">Disable the test for this command to avoid bringing up the 
         notebook.</em>
@@ -3436,6 +3545,10 @@
     <li> <strong class="uidlink"><a href="rekall.testlib.HashChecker-class.html">rekall.testlib.HashChecker</a></strong>:
       <em class="summary">A test comparing the hashes of all the files dumped in the tempdir.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.dumpcerts.TestCertScan-class.html">rekall.plugins.windows.dumpcerts.TestCertScan</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.dumpcerts.TestCertVadScan-class.html">rekall.plugins.windows.dumpcerts.TestCertVadScan</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.procdump_test.TestDLLDump-class.html">rekall.plugins.windows.procdump_test.TestDLLDump</a></strong>:
       <em class="summary">Test the dlldump module.</em>
     </li>
@@ -3455,11 +3568,12 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_test.JsonTest-class.html">rekall.plugins.tools.json_test.JsonTest</a></strong>:
+      <em class="summary">Test the Json encode/decoder.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.testlib.SimpleTestCase-class.html">rekall.testlib.SimpleTestCase</a></strong>:
       <em class="summary">A simple test which just compares with the baseline output.</em>
     <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.dumpcerts.TestCertVadScan-class.html">rekall.plugins.windows.dumpcerts.TestCertVadScan</a></strong>
-    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_fops.TestCheckProcFops-class.html">rekall.plugins.linux.check_fops.TestCheckProcFops</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.check_fops.TestCheckTaskFops-class.html">rekall.plugins.linux.check_fops.TestCheckTaskFops</a></strong>
@@ -3483,9 +3597,15 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.core_test.TestInfo-class.html">rekall.plugins.core_test.TestInfo</a></strong>:
       <em class="summary">Test the Info plugin.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.TestJSONParser-class.html">rekall.plugins.tools.json_tools.TestJSONParser</a></strong>:
+      <em class="summary">Test the JSON renderer/parser.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.malfind.TestLdrModules-class.html">rekall.plugins.windows.malware.malfind.TestLdrModules</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsof.TestLsof-class.html">rekall.plugins.linux.lsof.TestLsof</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods_test.TestMemmap-class.html">rekall.plugins.windows.taskmods_test.TestMemmap</a></strong>:
+      <em class="summary">Test the pslist module.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods_test.TestMemmapCoalesce-class.html">rekall.plugins.windows.taskmods_test.TestMemmapCoalesce</a></strong>:
       <em class="summary">Make sure that memmaps are coalesced properly.</em>
@@ -3506,6 +3626,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo_test.TestVadInfo-class.html">rekall.plugins.windows.vadinfo_test.TestVadInfo</a></strong>:
       <em class="summary">Test the vadinfo module.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.yarascan_test.TestYara-class.html">rekall.plugins.windows.malware.yarascan_test.TestYara</a></strong>:
+      <em class="summary">Test the yarascan module.</em>
     </li>
     </ul>
     </li>
@@ -3538,9 +3661,6 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.kdbgscan_test.TestKDBGScan-class.html">rekall.plugins.windows.kdbgscan_test.TestKDBGScan</a></strong>:
       <em class="summary">Test the kdbgscan module.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods_test.TestMemmap-class.html">rekall.plugins.windows.taskmods_test.TestMemmap</a></strong>:
-      <em class="summary">Test the pslist module.</em>
-    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.modules_test.TestModules-class.html">rekall.plugins.windows.modules_test.TestModules</a></strong>:
       <em class="summary">Test the Modules module.</em>
     </li>
@@ -3568,9 +3688,6 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo_test.TestVad-class.html">rekall.plugins.windows.vadinfo_test.TestVad</a></strong>:
       <em class="summary">Test the vad module.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.yarascan_test.TestYara-class.html">rekall.plugins.windows.malware.yarascan_test.TestYara</a></strong>:
-      <em class="summary">Test the yarascan module.</em>
-    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.addrspace_test.RunBasedTest-class.html">rekall.addrspace_test.RunBasedTest</a></strong>:
@@ -3580,7 +3697,7 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.threadpool.ThreadPool-class.html">rekall.threadpool.ThreadPool</a></strong>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.ui.renderer.UnicodeWrapper-class.html">rekall.ui.renderer.UnicodeWrapper</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.ui.text.UnicodeWrapper-class.html">rekall.ui.text.UnicodeWrapper</a></strong>:
       <em class="summary">A wrapper around a file like object which guarantees writes in 
         utf8.</em>
     </li>
@@ -3589,6 +3706,15 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.devicetree.DriverIrp-class.html">rekall.plugins.windows.malware.devicetree.DriverIrp</a></strong>:
       <em class="summary">Driver IRP hook detection</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html">rekall.plugins.windows.registry.evtlogs.EvtLogs</a></strong>:
+      <em class="summary">Extract Windows Event Logs (XP/2003 only)</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.malfind.LdrModules-class.html">rekall.plugins.windows.malware.malfind.LdrModules</a></strong>:
+      <em class="summary">Detect unlinked DLLs</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan.MutantScan-class.html">rekall.plugins.windows.filescan.MutantScan</a></strong>:
+      <em class="summary">Scan for mutant objects _KMUTANT</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.procinfo.PEInfo-class.html">rekall.plugins.windows.procinfo.PEInfo</a></strong>:
       <em class="summary">Print information about a PE binary.</em>
@@ -3733,8 +3859,6 @@ dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.pas2kas.ProcessMap-class.html">rekall.plugins.windows.pas2kas.ProcessMap</a></strong>
-    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.ewf.ewffile-class.html">rekall.plugins.addrspaces.ewf.ewffile</a></strong>:
@@ -3840,14 +3964,14 @@ dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:16:55 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:14 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

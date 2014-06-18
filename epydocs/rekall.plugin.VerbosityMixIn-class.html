@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -62,12 +62,15 @@
 <h1 class="epydoc">Class VerbosityMixIn</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugin-pysrc.html#VerbosityMixIn">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_verbositym" name="class_hierarchy_for_verbositym">
-<area shape="rect" id="node1" href="rekall.plugin.VerbosityMixIn-class.html" title="VerbosityMixIn" alt="" coords="539,5,629,32"/>
+<area shape="rect" id="node1" href="rekall.plugin.VerbosityMixIn-class.html" title="VerbosityMixIn" alt="" coords="891,5,981,32"/>
 <area shape="rect" id="node2" href="rekall.plugins.hypervisors.VmScan-class.html" title="plugins.hypervisors.VmScan" alt="" coords="5,61,160,88"/>
-<area shape="rect" id="node3" href="rekall.plugins.windows.gui.windowstations.WinDesktops-class.html" title="plugins.windows.gui.windowstations.WinDesktops" alt="" coords="184,61,440,88"/>
-<area shape="rect" id="node4" href="rekall.plugins.windows.malware.devicetree.DriverIrp-class.html" title="plugins.windows.malware.devicetree.DriverIrp" alt="" coords="464,61,704,88"/>
-<area shape="rect" id="node5" href="rekall.plugins.windows.procinfo.PEInfo-class.html" title="plugins.windows.procinfo.PEInfo" alt="" coords="728,61,901,88"/>
-<area shape="rect" id="node6" href="rekall.plugins.windows.taskmods.Threads-class.html" title="plugins.windows.taskmods.Threads" alt="" coords="925,61,1115,88"/>
+<area shape="rect" id="node3" href="rekall.plugins.windows.filescan.MutantScan-class.html" title="plugins.windows.filescan.MutantScan" alt="" coords="184,61,381,88"/>
+<area shape="rect" id="node4" href="rekall.plugins.windows.gui.windowstations.WinDesktops-class.html" title="plugins.windows.gui.windowstations.WinDesktops" alt="" coords="405,61,661,88"/>
+<area shape="rect" id="node5" href="rekall.plugins.windows.malware.devicetree.DriverIrp-class.html" title="plugins.windows.malware.devicetree.DriverIrp" alt="" coords="685,61,925,88"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.malware.malfind.LdrModules-class.html" title="plugins.windows.malware.malfind.LdrModules" alt="" coords="949,61,1187,88"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.procinfo.PEInfo-class.html" title="plugins.windows.procinfo.PEInfo" alt="" coords="1211,61,1384,88"/>
+<area shape="rect" id="node8" href="rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html" title="plugins.windows.registry.evtlogs.EvtLogs" alt="" coords="1408,61,1621,88"/>
+<area shape="rect" id="node9" href="rekall.plugins.windows.taskmods.Threads-class.html" title="plugins.windows.taskmods.Threads" alt="" coords="1645,61,1835,88"/>
 </map>
   <img src="class_hierarchy_for_verbositym.gif" alt='' usemap="#class_hierarchy_for_verbositym" ismap="ismap" class="graph-without-title" />
 </center>
@@ -90,7 +93,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugin.VerbosityMixIn-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">verbosity</span>=<span class="summary-sig-default">1</span>,
+        <span class="summary-sig-arg">*args</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
@@ -138,7 +141,7 @@
           <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">parser</span>)</span></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#VerbosityMixIn.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -180,7 +183,7 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">verbosity</span>=<span class="sig-default">1</span>,
+        <span class="sig-arg">*args</span>,
         <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -223,14 +226,14 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:16:59 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:19 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

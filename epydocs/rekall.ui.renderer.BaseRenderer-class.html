@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -114,9 +114,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">fd</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">pager</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.__init__">source&nbsp;code</a></span>
@@ -355,24 +353,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="color"></a><span class="summary-sig-name">color</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">target</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.color">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="report_error"></a><span class="summary-sig-name">report_error</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">message</span>)</span><br />
       Render the error in an appropriate way.</td>
@@ -392,8 +372,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="RenderProgress"></a><span class="summary-sig-name">RenderProgress</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">message</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"> %(spinner)s</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">*_</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Will be called to render a progress message to the user.</td>
           <td align="right" valign="top">
@@ -411,30 +390,13 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="ClearProgress"></a><span class="summary-sig-name">ClearProgress</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Delete the last progress message.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.ClearProgress">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="open"></a><span class="summary-sig-name">open</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">directory</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">filename</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">&quot;rb&quot;</span>)</span><br />
+        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">rb</code><code class="variable-quote">'</code></span>)</span><br />
       Opens a file for writing or reading.</td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.open">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -473,21 +435,6 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="isatty"></a><span class="summary-name">isatty</span> = <code title="False">False</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="paging_limit"></a><span class="summary-name">paging_limit</span> = <code title="None">None</code><br />
-      hash(x)
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a name="sort_key_func"></a><span class="summary-name">sort_key_func</span> = <code title="None">None</code><br />
       hash(x)
     </td>
@@ -512,13 +459,6 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="spinner"></a><span class="summary-name">spinner</span> = <code title="'/-\\|'"><code class="variable-quote">'</code><code class="variable-string">/-\\|</code><code class="variable-quote">'</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a name="last_spin_time"></a><span class="summary-name">last_spin_time</span> = <code title="0">0</code>
     </td>
   </tr>
@@ -526,22 +466,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="last_spin"></a><span class="summary-name">last_spin</span> = <code title="0">0</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="last_message_len"></a><span class="summary-name">last_message_len</span> = <code title="0">0</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="progress_fd"></a><span class="summary-name">progress_fd</span> = <code title="None">None</code><br />
-      hash(x)
+        <a name="last_gc_time"></a><span class="summary-name">last_gc_time</span> = <code title="0">0</code>
     </td>
   </tr>
 <tr>
@@ -573,13 +498,6 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="classes_by_name"></a><span class="summary-name">classes_by_name</span> = <code title="{None: &lt;class 'rekall.ui.text.TestRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.ui.text.TestRenderer'&gt;<code class="variable-group">}</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="last_gc_time"></a><span class="summary-name">last_gc_time</span> = <code title="0">0</code>
     </td>
   </tr>
 <tr>
@@ -623,9 +541,7 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">session</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">fd</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">pager</span>=<span class="sig-default">None</span>)</span>
+        <span class="sig-arg">session</span>=<span class="sig-default">None</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -851,14 +767,14 @@ Args:
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:14 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:34 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -34,7 +34,7 @@
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
@@ -71,7 +71,7 @@
 </center>
 </center>
 <hr />
-<p>Disassemble the given address space.</p>
+<p>Disassemble the given offset.</p>
 
 <!-- ==================== NESTED CLASSES ==================== -->
 <a name="section-NestedClasses"></a>
@@ -121,9 +121,8 @@
         <span class="summary-sig-arg">end</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">suppress_headers</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">target</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Dumps a disassembly of a location.</td>
+      The constructor for this command.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.disassembler-pysrc.html#Disassemble.__init__">source&nbsp;code</a></span>
             
@@ -277,7 +276,7 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.windows.disassembler.Disassemble-class.html#args" class="summary-sig-name">args</a>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">parser</span>)</span><br />
-      Declare the command line args we need.</td>
+      Declare the command line args this plugin needs.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.disassembler-pysrc.html#Disassemble.args">source&nbsp;code</a></span>
             
@@ -298,7 +297,7 @@
       Return only the active commands based on config.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -317,7 +316,7 @@
       Checks we are active.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.is_active">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -367,15 +366,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+nalyzeStruct'&gt;,
+ 'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
  'BashHistory': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
  'BuildIndex': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;,
- 'Callbacks': &lt;class 'rekall.plugins.windows.malware.callbacks.Callbac\
-ks'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Arp</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.arp.Arp'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Ato</code><code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -383,15 +382,15 @@ ks'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
+AnalyzeStruct'&gt;,
+ 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'atomscan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
  'bash': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
  'boot_cmdline': &lt;class 'rekall.plugins.darwin.misc.DarwinBootParamete\
-rs'&gt;,
- 'build_index': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;\
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">arp</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.linux.arp.Arp<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">analyze_struct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.wi<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -461,7 +460,7 @@ rs'&gt;,
     </td>
   </tr></table>
   
-  <p>Declare the command line args we need.</p>
+  <p>Declare the command line args this plugin needs.</p>
   <dl class="fields">
     <dt>Overrides:
         <a href="rekall.plugin.Command-class.html#args">plugin.Command.args</a>
@@ -484,7 +483,6 @@ rs'&gt;,
         <span class="sig-arg">end</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">mode</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">suppress_headers</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">target</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -494,21 +492,21 @@ rs'&gt;,
   </tr></table>
   
   <pre class="literalblock">
-Dumps a disassembly of a location.
+The constructor for this command.
+
+Commands can take arbitrary named args and have access to the running
+session.
 
 Args:
-  address_space: The address_space to read from.
-  offset: The offset to read from.
-  length: The number of instructions (lines) to disassemble.
-  mode: The mode (32/64 bit)- if not set taken from profile.
-  suppress_headers: If set we do not write headers.
-  target: An ObjBase instance. If specified we do not need the offset
-    and address_space.
+  session: The session we will use. Many options are taken from the
+    session by default, if not provided. This allows users to omit
+    specifying many options.
 
 </pre>
   <dl class="fields">
     <dt>Overrides:
         object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
 </td></tr></table>
@@ -599,14 +597,14 @@ mode is taken from the profile.
       <th class="navbar" align="right" width="100%">
         <table border="0" cellpadding="0" cellspacing="0">
           <tr><th class="navbar" align="center"
-            ><a class="navbar" target="_top" href="http://rekall.googlecode.com/">Rekall Memory Forensics</a></th>
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
           </tr></table></th>
   </tr>
 </table>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Jun 19 01:17:07 2014
+    Generated by Epydoc 3.0.1 on Thu Jun 19 01:26:28 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
