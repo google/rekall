@@ -26,6 +26,7 @@
 from rekall.plugins import core
 from rekall.plugins.windows import common
 from rekall import plugin
+from rekall.ui import text
 
 
 class WinPsList(common.WinProcessFilter):
@@ -56,7 +57,7 @@ class WinPsList(common.WinProcessFilter):
 
     def render(self, renderer):
 
-        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
+        renderer.table_header([("_EPROCESS", "offset_v", "[addrpad]"),
                                ("Name", "file_name", "20s"),
                                ("PID", "pid", ">6"),
                                ("PPID", "ppid", ">6"),
@@ -120,17 +121,37 @@ class WinMemMap(core.MemmapMixIn, common.WinProcessFilter):
     """Calculates the memory regions mapped by a process."""
     __name = "memmap"
 
+    def HighestAddress(self):
+        return self.profile.get_constant_object(
+            "MmHighestUserAddress", "unsigned long long")
+
 
 class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
     """Dump the addressable memory for a process"""
 
     __name = "memdump"
 
-    def dump_process(self, eprocess, fd):
+    def dump_process(self, eprocess, fd, index_fd):
         task_as = eprocess.get_process_address_space()
+        highest_address = self.HighestAddress()
 
-        for _, phys_address, length in task_as.get_available_addresses():
-            fd.write(self.physical_address_space.read(phys_address, length))
+        temp_renderer = text.TextRenderer(session=self.session,
+                                          fd=index_fd)
+        with temp_renderer.start():
+            temp_renderer.table_header([
+                ("File Address", "file_addr", "[addrpad]"),
+                ("Length", "length", "[addrpad]"),
+                ("Virtual Addr", "virtual", "[addrpad]")])
+
+            for _ in task_as.get_available_addresses():
+                virt_address, phys_address, length = _
+                if not self.all and virt_address > highest_address:
+                    break
+
+                data = self.physical_address_space.read(phys_address, length)
+
+                temp_renderer.table_row(fd.tell(), length, virt_address)
+                fd.write(data)
 
     def render(self, renderer):
         if self.dump_dir is None:
@@ -141,13 +162,16 @@ class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
             filename = u"{0}_{1:d}.dmp".format(
                 task.ImageFileName, task.UniqueProcessId)
 
-            renderer.format(u"Writing {0} {1:6} to {2}\n",
+            renderer.format(u"Writing {0} {1:#x} to {2}\n",
                             task.ImageFileName, task, filename)
 
             with renderer.open(directory=self.dump_dir,
                                filename=filename,
                                mode='wb') as fd:
-                self.dump_process(task, fd)
+                with renderer.open(directory=self.dump_dir,
+                                   filename=filename + ".idx",
+                                   mode='wb') as index_fd:
+                    self.dump_process(task, fd, index_fd)
 
 
 class Threads(plugin.VerbosityMixIn, common.WinProcessFilter):
@@ -155,7 +179,7 @@ class Threads(plugin.VerbosityMixIn, common.WinProcessFilter):
     name = "threads"
 
     def render(self, renderer):
-        headers = [("Offset", "offset", "[addrpad]"),
+        headers = [("_ETHREAD", "offset", "[addrpad]"),
                    ("PID", "pid", ">6"),
                    ("TID", "tid", ">6"),
                    ("Start Address", "start", "[addr]"),

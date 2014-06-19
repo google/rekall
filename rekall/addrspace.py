@@ -221,11 +221,7 @@ class BaseAddressSpace(object):
         return cls.classes.get(name)
 
     def __getstate__(self):
-        result = dict(
-            registry="BaseAddressSpace",
-            type=self.__class__.__name__,
-            )
-
+        result = {}
         if self.base is not self:
             result["base"] = self.base
 

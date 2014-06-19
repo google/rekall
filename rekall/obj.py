@@ -273,7 +273,6 @@ class NoneObject(object):
 
     def __getstate__(self):
         return dict(
-            type="NoneObject",
             reason=self.reason
             )
 
@@ -339,12 +338,10 @@ class BaseObject(object):
         self.obj_session = session
 
     def __getstate__(self):
-
         # This method should generally return all the parameters passed to the
-        # constructor as well as a registry parameter to describe the registered
-        # type of this hierarchy.
+        # constructor. The type parameter describes the full MRO for this
+        # object.
         return dict(
-            registry="BaseObject",
             offset=self.obj_offset,
             name=self.obj_name,
             type_name=self.obj_type,
@@ -2183,8 +2180,6 @@ class Profile(object):
 
     def __getstate__(self):
         return dict(
-            registry="Profile",
-            type=self.__class__.__name__,
             name=self.name
             )
 

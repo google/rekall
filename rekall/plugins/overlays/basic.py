@@ -337,7 +337,6 @@ class Enumeration(obj.NativeType):
     def __getstate__(self):
         result = super(Enumeration, self).__getstate__()
         result["repr"] = str(self)
-        result["type"] = "Enumeration"
 
         return result
 
@@ -561,7 +560,6 @@ class UnixTimeStamp(obj.NativeType):
 
     def __getstate__(self):
         state = super(UnixTimeStamp, self).__getstate__()
-        state["type"] = "DateTime"
         state["epoch"] = int(self.v())
         return state
 

@@ -471,7 +471,6 @@ class _UNICODE_STRING(obj.Struct):
     def __getstate__(self):
         result = super(_UNICODE_STRING, self).__getstate__()
         result["value"] = self.v()
-        result["type"] = "Literal"
 
         return result
 
@@ -861,6 +860,7 @@ class _OBJECT_HEADER(obj.Struct):
     # A mapping between the object type name and the struct name for it.
     type_lookup = dict(
         File="_FILE_OBJECT",
+        Driver="_DRIVER_OBJECT",
         Directory="_OBJECT_DIRECTORY",
         SymbolicLink="_OBJECT_SYMBOLIC_LINK",
         Mutant="_KMUTANT",

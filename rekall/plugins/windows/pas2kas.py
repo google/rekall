@@ -20,17 +20,13 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+# pylint: disable=protected-access
 
 import bisect
 
 from rekall import config
 from rekall import testlib
 from rekall.plugins.windows import common
-
-
-class ProcessMap(dict):
-    def __str__(self):
-        return "<process maps>"
 
 
 class WinPas2Vas(common.WinProcessFilter):
@@ -74,10 +70,10 @@ class WinPas2Vas(common.WinProcessFilter):
             self.physical_address = [offsets]
 
         # Cache the process maps in the session.
-        if self.session.process_maps is None:
-            self.session.process_maps = ProcessMap()
-
-        self.maps = self.session.process_maps
+        self.maps = self.session.GetParameter("process_maps")
+        if self.maps == None:
+            self.maps = {}
+            self.session.SetParameter("process_maps", self.maps)
 
     def BuildMaps(self):
         if "Kernel" not in self.maps:
@@ -92,21 +88,29 @@ class WinPas2Vas(common.WinProcessFilter):
             if task_as.dtb == self.kernel_address_space.dtb:
                 continue
 
-            if pid in self.session.process_maps:
+            if pid in self.maps:
                 continue
 
             self.session.report_progress("Enumerating memory for %s (%s)" % (
                 task.UniqueProcessId, task.ImageFileName))
 
-            self.build_address_map(task_as, pid, task)
+            self.build_address_map(task_as, pid, task.obj_offset)
 
     def build_address_map(self, virtual_address_space, pid, task):
         """Given the virtual_address_space, build the address map."""
         # This lookup map is sorted by the physical address. We then use
         # bisect to efficiently look up the physical page.
         tmp_lookup_map = []
+
+        highest_virtual_address = self.profile.get_constant_object(
+            "MmHighestUserAddress", "unsigned long long")
+
         for va, pa, length in virtual_address_space.get_available_addresses():
-            tmp_lookup_map.append((pa, length, va, task))
+            # Only consider userspace addresses for processes.
+            if task != "Kernel" and va > highest_virtual_address:
+                break
+
+            tmp_lookup_map.append([pa, length, va, task])
 
         tmp_lookup_map.sort()
         self.maps[pid] = tmp_lookup_map
@@ -133,7 +137,7 @@ class WinPas2Vas(common.WinProcessFilter):
             # This efficiently finds the entry in the map just below the
             # physical_address.
             lookup_pa, length, lookup_va, task = lookup_map[
-                bisect.bisect(lookup_map, (physical_address, 2**64, 0))-1]
+                bisect.bisect(lookup_map, [physical_address, 2**64, 0, 0])-1]
 
             if (lookup_pa <= physical_address and
                 lookup_pa + length > physical_address):
@@ -156,8 +160,10 @@ class WinPas2Vas(common.WinProcessFilter):
                     renderer.table_row(physical_address, virtual_address,
                                        0, 'Kernel')
                 else:
-                    renderer.table_row(physical_address, virtual_address,
-                                       task.UniqueProcessId, task.ImageFileName)
+                    task_obj = self.profile._EPROCESS(task)
+                    renderer.table_row(
+                        physical_address, virtual_address,
+                        task_obj.UniqueProcessId, task_obj.ImageFileName)
 
 
 class TestPas2Vas(testlib.SimpleTestCase):

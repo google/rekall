@@ -434,7 +434,7 @@ class AttributeDict(dict):
         return sorted(self)
 
     def __getstate__(self):
-        return dict(type="AttributeDict", data=dict(self))
+        return dict(data=dict(self))
 
     def __setstate__(self, state):
         self.clear()

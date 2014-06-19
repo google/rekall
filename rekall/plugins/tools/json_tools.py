@@ -88,29 +88,29 @@ class RendererDecoder(json_renderer.JsonDecoder):
     # should work for all "Struct" semantic types, while a different one should
     # be applied to "DateTime" semantic types.
     semantic_map = dict(
-        Literal=LiteralFormatter,
         Enumeration=EnumFormatter,
         Struct=StructFormatter,
         NativeType=LiteralFormatter,
         Pointer=LiteralFormatter,
-        AddressSpace=AddressSpaceFormatter,
+        BaseAddressSpace=AddressSpaceFormatter,
         NoneObject=NoneObjectFormatter,
-        DateTime=DatetimeFormatter,
+        UnixTimeStamp=DatetimeFormatter,
         )
 
-
     def Factory(self, state):
-        semantic_type = state.get("type")
-        if semantic_type is None:
-            return state
+        # Try to find a class to wrap the type with. We traverse the object's
+        # MRO and try to find a specialized formatter for each type.
+        mro = state.get("type")
+        for semantic_type in mro.split(","):
+            item_renderer = self.semantic_map.get(semantic_type)
+            if item_renderer is not None:
+                return item_renderer(state)
 
-        item_renderer = self.semantic_map.get(semantic_type)
-        if item_renderer is None:
-            raise json_renderer.DecodingError(
-                "Unsupported Semantic type %s" % semantic_type)
+        # If we get here we have no idea how to render this object. Maybe we
+        # should have a default renderer?
+        raise json_renderer.DecodingError(
+            "Unsupported Semantic type %s" % mro)
 
-        # Instantiate the BaseObject this refers to.
-        return item_renderer(state)
 
 
 class JSONParser(plugin.Command):

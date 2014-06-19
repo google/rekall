@@ -53,7 +53,7 @@ class JsonEncoder(object):
         self.lexicon_counter = 0
 
     def _encode_value(self, value):
-        if value.__class__ is dict:
+        if value.__class__ in [dict, list]:
             return self.Encode(value)
 
         # If value is a serializable object, we can store it by id in the
@@ -67,7 +67,8 @@ class JsonEncoder(object):
             if encoded_value_id is None:
                 # Create a new ID to encode the new object under.
                 encoded_value_id = self._get_encoded_id(value_id)
-                encoded_value = self.Encode(value.__getstate__())
+                state = value.__getstate__()
+                encoded_value = self.Encode(state)
 
                 # Store the object under this new ID.
                 self.reverse_lexicon[encoded_value_id] = encoded_value
@@ -102,6 +103,8 @@ class JsonEncoder(object):
         # lexicon.
         elif hasattr(item, "__getstate__"):
             state = item.__getstate__()
+            state["type"] = ",".join([x.__name__ for x in item.__class__.__mro__
+                                      if x is not object])
 
         # Encode json safe items literally.
         elif isinstance(item, (unicode, int, long, float)):
@@ -122,10 +125,13 @@ class JsonEncoder(object):
             raise RuntimeError("Unable to encode objects of type %s" %
                                type(item))
 
-        # Mark encoded dicts so we know they are encoded.
-        result = {"_": 1}
-        for k, v in state.items():
-            result[self._encode_value(k)] = self.Encode(v)
+        if "_" in state:
+            result = state
+        else:
+            # Mark encoded dicts so we know they are encoded.
+            result = {"_": 1}
+            for k, v in state.items():
+                result[self._encode_value(k)] = self.Encode(v)
 
         return result
 
@@ -149,17 +155,22 @@ class JsonDecoder(object):
     def Factory(self, state):
         """Parses the state dict into an object."""
         # Determine which registry it comes from.
-        registry = state.pop('registry', None)
-        obj_type = state.pop("type", None)
+        type_spec = state.pop("type", None)
 
         # If this has no type its just a regular encoded dict.
-        if not registry and not obj_type:
+        if not type_spec:
             return state
 
         result = _Empty(session=self.session)
 
+        # MRO is the list of object inheritance for each type. For example:
+        # FileAddressSpace,FDAddressSpace,BaseAddressSpace.
+        mro = type_spec.split(",")
+        obj_type = mro[0]
+        base_type = mro[-1]
+
         # This is an address space object.
-        if registry == "BaseAddressSpace":
+        if base_type == "BaseAddressSpace":
             cls = addrspace.BaseAddressSpace.classes[obj_type]
 
             # Change the type of the result to this class.
@@ -170,19 +181,19 @@ class JsonDecoder(object):
             result.__setstate__(state)
 
         # Structs are fetched from the profile.
-        elif registry == "BaseObject":
+        elif base_type == "BaseObject":
             state["profile"] = self.session.LoadProfile(state["profile"])
 
             result = state["profile"].Object(**state)
 
-        elif obj_type == "AttributeDict":
+        elif "AttributeDict" in mro:
             result = utils.AttributeDict()
             result.__setstate__(state)
 
-        elif registry == "Profile":
+        elif base_type == "Profile":
             result = self.session.LoadProfile(state["name"])
 
-        elif obj_type == "set":
+        elif "set" in mro:
             result = set(state["data"])
 
         elif obj_type == "NoneObject":
@@ -219,9 +230,12 @@ class JsonDecoder(object):
         if item.__class__ is dict:
             # Encoded dicts are marked with a key "_" so we can tell the
             # difference between an encoded dict and one that is not encoded.
-            if item.pop("_", None):
+            if "_" in item:
                 state = {}
                 for k, v in item.items():
+                    if k == "_":
+                        continue
+
                     decoded_key = self._decode_value(k)
                     decoded_value = self._decode_value(v)
                     if decoded_value.__class__ is dict:

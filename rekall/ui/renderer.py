@@ -152,6 +152,7 @@ class BaseRenderer(object):
     table_cls = None
 
     last_spin_time = 0
+    last_gc_time = 0
     progress_interval = 0.2
 
     # This is used to ensure that renderers are always called as context
@@ -356,9 +357,13 @@ class BaseRenderer(object):
         now = time.time()
         force = kwargs.get("force")
 
+        # GC is expensive so we need to do it less frequently.
+        if now > self.last_gc_time + 10:
+            gc.collect()
+            self.last_gc_time = now
+
         if force or now > self.last_spin_time + self.progress_interval:
             self.last_spin_time = now
-            gc.collect()
 
             # Signal that progress must be written.
             return True

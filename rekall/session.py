@@ -111,6 +111,9 @@ class Cache(utils.AttributeDict):
                 v = repr(v)
 
             value = "\n  ".join(str(v).splitlines())
+            if len(value) > 1000:
+                value = "%s ..." % value[:1000]
+
             result.append("  %s = %s" % (k, value))
 
         return "{\n" + "\n".join(sorted(result)) + "\n}"
@@ -357,7 +360,9 @@ class Session(object):
                 result = obj.NoneObject(
                     "Parameter %s could not be calculated." % name)
 
-            self.SetParameter(name, result)
+            with self:
+                self.SetParameter(name, result)
+
             return result
 
     def RunPlugin(self, plugin_obj, *pos_args, **kwargs):
@@ -641,10 +646,20 @@ Config:
             json.dump(self.Serialize(), fd)
 
     def LoadFromFile(self, filename):
-        lexicon, data = json.load(open(filename, "rb"))
-        logging.info("Loaded session from %s", filename)
+        try:
+            lexicon, data = json.load(open(filename, "rb"))
+            logging.info("Loaded session from %s", filename)
 
-        self.Unserialize(lexicon, data)
+            self.Unserialize(lexicon, data)
+
+        # decoding the session might fail un-expectantly - just discard the
+        # session in that case.
+        except Exception:
+            # If anything goes wrong, we break into a debugger here.
+            logging.error(traceback.format_exc())
+
+            if self.GetParameter("debug"):
+                pdb.post_mortem(sys.exc_info()[2])
 
     def Unserialize(self, lexicon, data):
         decoder = json_renderer.JsonDecoder(self)

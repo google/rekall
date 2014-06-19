@@ -873,7 +873,11 @@ class MemmapMixIn(object):
             "--coalesce", default=False, action="store_true",
             help="Merge contiguous pages into larger ranges.")
 
-    def __init__(self, coalesce=False, **kwargs):
+        parser.add_argument(
+            "--all", default=False, action="store_true",
+            help="Use the entire range of address space.")
+
+    def __init__(self, coalesce=False, all=False, **kwargs):
         """Calculates the memory regions mapped by a process or the kernel.
 
         If no process filtering directives are provided, enumerates the kernel
@@ -884,9 +888,10 @@ class MemmapMixIn(object):
              ranges.
         """
         self.coalesce = coalesce
+        self.all = all
         super(MemmapMixIn, self).__init__(**kwargs)
 
-    def _render_map(self, task_space, renderer):
+    def _render_map(self, task_space, renderer, highest_address):
         renderer.format(u"Dumping address space at DTB {0:#x}\n\n",
                         task_space.dtb)
 
@@ -900,11 +905,23 @@ class MemmapMixIn(object):
             ranges = task_space.get_available_addresses()
 
         for virtual_address, phys_address, length in ranges:
+            # When dumping out processes do not dump the kernel.
+            if not self.all and virtual_address > highest_address:
+                break
+
             renderer.table_row(virtual_address, phys_address, length)
+
+    def HighestAddress(self):
+        """Returns the highest process address to display.
+
+        This is operating system dependent.
+        """
+        return 2**64
 
     def render(self, renderer):
         if not self.filtering_requested:
-            return self._render_map(self.kernel_address_space, renderer)
+            # Dump the entire kernel address space.
+            return self._render_map(self.kernel_address_space, renderer, 2**64)
 
         for task in self.filter_processes():
             renderer.section()
@@ -918,7 +935,7 @@ class MemmapMixIn(object):
                 renderer.write("Unable to read pages for task.\n")
                 continue
 
-            self._render_map(task_space, renderer)
+            self._render_map(task_space, renderer, self.HighestAddress())
 
 
 class PluginHelp(obj.Profile):

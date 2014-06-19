@@ -19,6 +19,7 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 import logging
+import re
 
 # pylint: disable=protected-access
 from rekall import obj
@@ -445,6 +446,20 @@ class ObjectTree(common.WindowsCommandPlugin):
 
     name = "object_tree"
 
+    @classmethod
+    def args(cls, parser):
+        """Declare the command line args we need."""
+        super(ObjectTree, cls).args(parser)
+        parser.add_argument("--type_regex", default=".",
+                            help="Filter the type of objects shown.")
+
+    def __init__(self, type_regex=".", **kwargs):
+        super(ObjectTree, self).__init__(**kwargs)
+
+        if type_regex:
+            type_regex = re.compile(type_regex)
+        self.type_regex = type_regex
+
     def _render_directory(self, directory, renderer, seen, depth=0):
         for obj_header in directory.list():
             if obj_header in seen:
@@ -453,20 +468,21 @@ class ObjectTree(common.WindowsCommandPlugin):
 
             name = obj_header.NameInfo.Name
             name = "%s %s" % ("." * depth, name)
-            obj_type = obj_header.get_object_type()
+            obj_type = str(obj_header.get_object_type())
+
             if obj_type == "SymbolicLink":
                 name += "-> %s (%s)" % (obj_header.Object.LinkTarget,
                                         obj_header.Object.CreationTime)
 
-            renderer.table_row(
-                obj_header.Body, obj_type, name)
+            if self.type_regex is None or self.type_regex.search(obj_type):
+                renderer.table_row(obj_header, obj_type, name)
 
             if obj_type == "Directory":
                 self._render_directory(
                     obj_header.Object, renderer, seen, depth=depth+1)
 
     def render(self, renderer):
-        renderer.table_header([("Offset", "offset", "[addrpad]"),
+        renderer.table_header([("_OBJECT_HEADER", "offset", "[addrpad]"),
                                ("Type", "type", "20"),
                                ("Name", "name", "20"),
                                ])
