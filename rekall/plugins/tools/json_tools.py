@@ -74,12 +74,42 @@ class DatetimeFormatter(StructFormatter):
         return time.ctime(float(self.state["epoch"]))
 
 
+class RendererCombiner(object):
+    def __init__(self):
+        self.children = []
+
+    def AddRenderer(self, child):
+        self.children.append(child)
+
+    def _FirstOf(self, method):
+        # First child with the method wins.
+        for child in self.children:
+            try:
+                return getattr(child, method)()
+            except AttributeError:
+                continue
+
+    def __int__(self):
+        return self._FirstOf("__int__")
+
+    def __float__(self):
+        return self._FirstOf("__float__")
+
+    def __len__(self):
+        return len(self.children)
+
+    def __unicode__(self):
+        return self._FirstOf("__unicode__")
+
+
 class RendererDecoder(json_renderer.JsonDecoder):
     """A decoder which produces proxy objects for the real thing.
 
     This is suitable to be run with no access to the real image, we simply use
     the proxy objects to render the available data in a type specific way.
     """
+
+    COMBINER = RendererCombiner
 
     # This is a mapping between the semantic name of the BaseObject
     # serialization and a suitable Formatter. The idea is that the GUI framework
@@ -90,6 +120,7 @@ class RendererDecoder(json_renderer.JsonDecoder):
     semantic_map = dict(
         Enumeration=EnumFormatter,
         Struct=StructFormatter,
+        BaseObject=LiteralFormatter,
         NativeType=LiteralFormatter,
         Pointer=LiteralFormatter,
         BaseAddressSpace=AddressSpaceFormatter,
@@ -101,16 +132,22 @@ class RendererDecoder(json_renderer.JsonDecoder):
         # Try to find a class to wrap the type with. We traverse the object's
         # MRO and try to find a specialized formatter for each type.
         mro = state.get("type")
+        if not mro:
+            return state
+
+        result = self.COMBINER()
         for semantic_type in mro.split(","):
             item_renderer = self.semantic_map.get(semantic_type)
             if item_renderer is not None:
-                return item_renderer(state)
+                result.AddRenderer(item_renderer(state))
 
-        # If we get here we have no idea how to render this object. Maybe we
-        # should have a default renderer?
-        raise json_renderer.DecodingError(
-            "Unsupported Semantic type %s" % mro)
+        if not result:
+            # If we get here we have no idea how to render this object. Maybe we
+            # should have a default renderer?
+            raise json_renderer.DecodingError(
+                "Unsupported Semantic type %s" % mro)
 
+        return result
 
 
 class JSONParser(plugin.Command):

@@ -2169,7 +2169,7 @@ class Profile(object):
         else:
             # If we get here we have no idea what the type is supposed to be?
             return NoneObject("Cant find object {0} in profile {1}?".format(
-                    type_name, self))
+                type_name, self))
 
     def __unicode__(self):
         return u"<%s profile %s (%s)>" % (

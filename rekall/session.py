@@ -546,7 +546,43 @@ class Session(object):
         return ui_renderer
 
 
-class InteractiveSession(Session):
+class JsonSerializableSession(Session):
+    """A session which can serialize its state into a Json file."""
+
+    def SaveToFile(self, filename):
+        with open(filename, "wb") as fd:
+            logging.info("Saving session to %s", filename)
+            json.dump(self.Serialize(), fd)
+
+    def LoadFromFile(self, filename):
+        try:
+            lexicon, data = json.load(open(filename, "rb"))
+            logging.info("Loaded session from %s", filename)
+
+            self.Unserialize(lexicon, data)
+
+        # decoding the session might fail un-expectantly - just discard the
+        # session in that case.
+        except Exception:
+            # If anything goes wrong, we break into a debugger here.
+            logging.error(traceback.format_exc())
+
+            if self.GetParameter("debug"):
+                pdb.post_mortem(sys.exc_info()[2])
+
+    def Unserialize(self, lexicon, data):
+        decoder = json_renderer.JsonDecoder(self)
+        decoder.SetLexicon(lexicon)
+        self.state = Configuration(**decoder.Decode(data))
+        self.UpdateFromConfigObject()
+
+    def Serialize(self):
+        encoder = json_renderer.JsonEncoder()
+        data = encoder.Encode(self.state)
+        return encoder.GetLexicon(), data
+
+
+class InteractiveSession(JsonSerializableSession):
     """The session allows for storing of arbitrary values and configuration.
 
     This session contains a lot of convenience features which are useful for
@@ -640,34 +676,3 @@ Config:
         logging.error("Failed running plugin %s: %s",
                       plugin_cls.name, e)
 
-    def SaveToFile(self, filename):
-        with open(filename, "wb") as fd:
-            logging.info("Saving session to %s", filename)
-            json.dump(self.Serialize(), fd)
-
-    def LoadFromFile(self, filename):
-        try:
-            lexicon, data = json.load(open(filename, "rb"))
-            logging.info("Loaded session from %s", filename)
-
-            self.Unserialize(lexicon, data)
-
-        # decoding the session might fail un-expectantly - just discard the
-        # session in that case.
-        except Exception:
-            # If anything goes wrong, we break into a debugger here.
-            logging.error(traceback.format_exc())
-
-            if self.GetParameter("debug"):
-                pdb.post_mortem(sys.exc_info()[2])
-
-    def Unserialize(self, lexicon, data):
-        decoder = json_renderer.JsonDecoder(self)
-        decoder.SetLexicon(lexicon)
-        self.state = Configuration(**decoder.Decode(data))
-        self.UpdateFromConfigObject()
-
-    def Serialize(self):
-        encoder = json_renderer.JsonEncoder()
-        data = encoder.Encode(self.state)
-        return encoder.GetLexicon(), data
