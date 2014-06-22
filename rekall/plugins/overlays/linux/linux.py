@@ -37,6 +37,28 @@ from rekall.plugins.overlays.linux import vfs
 
 linux_overlay = {
     'task_struct' : [None, {
+        'state': [None, ['Flags', dict(
+            maskmap=utils.MaskMapFromDefines("""
+# From http://lxr.free-electrons.com/source/include/linux/sched.h#L207
+#define TASK_RUNNING            0
+#define TASK_INTERRUPTIBLE      1
+#define TASK_UNINTERRUPTIBLE    2
+#define TASK_STOPPED          4
+#define TASK_TRACED           8
+#define TASK_DEAD               64
+#define TASK_WAKEKILL           128
+#define TASK_WAKING             256
+#define TASK_PARKED             512
+#define TASK_STATE_MAX          1024
+"""))]],
+        'exit_state': [None, ['Flags', dict(
+            maskmap=utils.MaskMapFromDefines("""
+# From http://lxr.free-electrons.com/source/include/linux/sched.h#L207
+/* in tsk->exit_state */
+#define EXIT_ZOMBIE             16
+#define EXIT_DEAD               32
+/* in tsk->state again */
+"""))]],
         'name': lambda x: x.comm,
         'comm': [None, ['UnicodeString', dict(length=16)]],
         'uid': lambda x: x.m("uid") or x.cred.uid,
@@ -59,8 +81,8 @@ linux_overlay = {
         }],
 
     'kparam_array': [None, {
-            'getter_addr': lambda x: (x.m("get") or x.ops.get),
-            }],
+        'getter_addr': lambda x: (x.m("get") or x.ops.get),
+        }],
 
     'super_block' : [None, {
         's_id' : [None, ['UnicodeString', dict(length=32)]],
@@ -69,8 +91,8 @@ linux_overlay = {
         }],
 
     'net_device'  : [None, {
-            'flags': [None, ['Flags', dict(
-                        maskmap=utils.MaskMapFromDefines("""
+        'flags': [None, ['Flags', dict(
+            maskmap=utils.MaskMapFromDefines("""
 http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
 
 /* Standard interface flags (netdevice->flags). */
@@ -99,18 +121,18 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
  52
  53 #define IFF_ECHO        0x40000         /* echo sent packets            */
 """))]],
-            'name' : [None, ['UnicodeString', dict(length=16)]],
+        'name' : [None, ['UnicodeString', dict(length=16)]],
 
-            'mac_addr': lambda x: (x.perm_addr or x.dev_addr).cast(
-                "MacAddress"),
+        'mac_addr': lambda x: (x.perm_addr or x.dev_addr).cast(
+            "MacAddress"),
 
-            'ip_ptr': [None, ['Pointer', dict(target="in_device")]],
-            }],
+        'ip_ptr': [None, ['Pointer', dict(target="in_device")]],
+        }],
 
     'in_ifaddr': [None, {
-            'ifa_address': [None, ['Ipv4Address']],
-            'ifa_label': [None, ['String']],
-            }],
+        'ifa_address': [None, ['Ipv4Address']],
+        'ifa_label': [None, ['String']],
+        }],
 
     'sockaddr_un' : [None, {
         'sun_path'      : [None, ['UnicodeString', dict(length=108)]],
@@ -122,145 +144,144 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
         }],
 
     'module_sect_attr': [None, {
-            'name': [None, ['Pointer', dict(target='UnicodeString')]]
-            }],
+        'name': [None, ['Pointer', dict(target='UnicodeString')]]
+        }],
 
     # The size of the log record is stored in the len member.
     'log': [lambda x: x.m("len"), {
-            # The log message starts after the level member.
-            'message': [lambda x: x.flags.obj_offset + x.flags.size(),
-                        ['UnicodeString', dict(
-
+        # The log message starts after the level member.
+        'message': [lambda x: x.flags.obj_offset + x.flags.size(),
+                    ['UnicodeString', dict(
                         # The length of the message is the text and an optional
                         # dict.
                         length=lambda x: x.text_len + x.dict_len)]],
 
-            'level': [None, ['Enumeration', {
-                        'choices': {
-                            0: 'LOG_EMERG',
-                            1: 'LOG_ALERT',
-                            2: 'LOG_CRIT',
-                            3: 'LOG_ERR',
-                            4: 'LOG_WARNING',
-                            5: 'LOG_NOTICE',
-                            6: 'LOG_INFO',
-                            7: 'LOG_DEBUG'
-                            },
-                        'target': 'BitField',
-                        'target_args': dict(
-                            start_bit=0, end_bit=3),
-                        }]],
-            }],
+        'level': [None, ['Enumeration', {
+            'choices': {
+                0: 'LOG_EMERG',
+                1: 'LOG_ALERT',
+                2: 'LOG_CRIT',
+                3: 'LOG_ERR',
+                4: 'LOG_WARNING',
+                5: 'LOG_NOTICE',
+                6: 'LOG_INFO',
+                7: 'LOG_DEBUG'
+                },
+            'target': 'BitField',
+            'target_args': dict(
+                start_bit=0, end_bit=3),
+            }]],
+        }],
 
     "file": [None, {
-            "dentry": lambda x: x.m("f_dentry") or x.f_path.dentry,
-            "vfsmnt": lambda x: x.m("f_vfsmnt") or x.f_path.mnt,
-            }],
+        "dentry": lambda x: x.m("f_dentry") or x.f_path.dentry,
+        "vfsmnt": lambda x: x.m("f_vfsmnt") or x.f_path.mnt,
+        }],
 
     'vm_area_struct' : [None, {
-            'vm_flags' : [None, ['PermissionFlags', dict(
-                        bitmap={
-                            'r': 0,
-                            'w': 1,
-                            'x': 2
-                            }
-                        )]],
-            }],
+        'vm_flags' : [None, ['PermissionFlags', dict(
+            bitmap={
+                'r': 0,
+                'w': 1,
+                'x': 2
+                }
+            )]],
+        }],
 
     'dentry': [None, {
-            'd_flags': [None, ['Flags', dict(
-                        maskmap={
-                            # /* autofs: "under construction" */
-                            "DCACHE_AUTOFS_PENDING": 0x0001,
-                            #     /* this dentry has been "silly renamed" and
-                            #     has to be deleted on the last dput() */
-                            "DCACHE_NFSFS_RENAMED":  0x0002,
-                            "DCACHE_DISCONNECTED":  0x0004,
-                            #  /* Recently used, don't discard. */
-                            "DCACHE_REFERENCED": 0x0008,
-                            "DCACHE_UNHASHED": 0x0010,
-                            #  /* Parent inode is watched by inotify */
-                            "DCACHE_INOTIFY_PARENT_WATCHED": 0x0020,
-                            #  /* Parent inode is watched by some fsnotify
-                            #  listener */
-                            "DCACHE_FSNOTIFY_PARENT_WATCHED":  0x0080,
-                            },
-                        target="unsigned int",
-                        )]],
-            'is_root': lambda x: x == x.d_parent,
-            }],
+        'd_flags': [None, ['Flags', dict(
+            maskmap={
+                # /* autofs: "under construction" */
+                "DCACHE_AUTOFS_PENDING": 0x0001,
+                #     /* this dentry has been "silly renamed" and
+                #     has to be deleted on the last dput() */
+                "DCACHE_NFSFS_RENAMED":  0x0002,
+                "DCACHE_DISCONNECTED":  0x0004,
+                #  /* Recently used, don't discard. */
+                "DCACHE_REFERENCED": 0x0008,
+                "DCACHE_UNHASHED": 0x0010,
+                #  /* Parent inode is watched by inotify */
+                "DCACHE_INOTIFY_PARENT_WATCHED": 0x0020,
+                #  /* Parent inode is watched by some fsnotify
+                #  listener */
+                "DCACHE_FSNOTIFY_PARENT_WATCHED":  0x0080,
+                },
+            target="unsigned int",
+            )]],
+        'is_root': lambda x: x == x.d_parent,
+        }],
     'd_name': [None, {
-            'd_name': [None, ['Pointer', dict(
-                  target="String")]],
-            }],
+        'd_name': [None, ['Pointer', dict(
+            target="String")]],
+        }],
 
     'qstr': [None, {
-            'name': [None, ['Pointer', dict(
-                        target='UnicodeString',
-                        target_args=dict(
-                            # include/linux/limits.h
-                            length=lambda x: (x.m("len") or
-                                              x.m("u1.u1.len") or 255),
-                            )
-                        )]],
-            }],
+        'name': [None, ['Pointer', dict(
+            target='UnicodeString',
+            target_args=dict(
+                # include/linux/limits.h
+                length=lambda x: (x.m("len") or
+                                  x.m("u1.u1.len") or 255),
+                )
+            )]],
+        }],
 
     "files_struct": [None, {
-            # Version independent pointer to the fd table.
-            '_fd': lambda x: x.m("fdt").fd or x.fd,
+        # Version independent pointer to the fd table.
+        '_fd': lambda x: x.m("fdt").fd or x.fd,
 
-            # The fds table is an array of pointers to file structs. The index
-            # into the array is known in user space as a file descriptor. If the
-            # pointer in the array is invalid, the file descriptor is closed.
-            'fds': lambda x: x._fd.dereference_as(
-                "Array",
+        # The fds table is an array of pointers to file structs. The index
+        # into the array is known in user space as a file descriptor. If the
+        # pointer in the array is invalid, the file descriptor is closed.
+        'fds': lambda x: x._fd.dereference_as(
+            "Array",
+            target_args=dict(
+                target="Pointer",
                 target_args=dict(
-                    target="Pointer",
-                    target_args=dict(
-                        target="file"
-                        ),
-                    count=lambda x: x.m("fdt").max_fds or x.max_fds,
-                    )
+                    target="file"
+                    ),
+                count=lambda x: x.m("fdt").max_fds or x.max_fds,
                 )
-            }],
+            )
+        }],
     "proc_dir_entry": [None, {
-            'Name': lambda x: (
-                # 2.6 kernel.
-                x.name.cast("Pointer", target="String").deref() or
+        'Name': lambda x: (
+            # 2.6 kernel.
+            x.name.cast("Pointer", target="String").deref() or
 
-                # 3.x kernel.
-                x.name.cast("String")),
-            }],
+            # 3.x kernel.
+            x.name.cast("String")),
+        }],
 
     "kobject": [None, {
-            'name': [None, ["Pointer", dict(
-                        target="String",
-                        target_args=dict(length=32),
-                        )]],
-            }],
+        'name': [None, ["Pointer", dict(
+            target="String",
+            target_args=dict(length=32),
+            )]],
+        }],
 
     'gate_struct64': [None, {
-            'Address': lambda x: (x.offset_low |
-                                  x.offset_middle << 16 |
-                                  x.offset_high << 32),
-            'GateType': [5, ['Enumeration', {
-                        'choices': {
-                            5: '32-bit Task Gate',
-                            6: '16-bit Int Gate',
-                            7: '16-bit Trap Gate',
-                            14: '32-bit Int Gate',
-                            15: '32-bit Trap Gate',
-                            },
-                        'target': 'BitField',
-                        'target_args': dict(
-                            start_bit=0, end_bit=4),
-                        }]],
-            'DPL': [5, ['BitField', {
-                'target': 'unsigned int',
-                'start_bit': 45,
-                'end_bit': 46
-                }]],
-            }],
+        'Address': lambda x: (x.offset_low |
+                              x.offset_middle << 16 |
+                              x.offset_high << 32),
+        'GateType': [5, ['Enumeration', {
+            'choices': {
+                5: '32-bit Task Gate',
+                6: '16-bit Int Gate',
+                7: '16-bit Trap Gate',
+                14: '32-bit Int Gate',
+                15: '32-bit Trap Gate',
+                },
+            'target': 'BitField',
+            'target_args': dict(
+                start_bit=0, end_bit=4),
+            }]],
+        'DPL': [5, ['BitField', {
+            'target': 'unsigned int',
+            'start_bit': 45,
+            'end_bit': 46
+            }]],
+        }],
 
     'desc_struct': [None, {
         'Address': lambda x: ((x.u1.u1.b & 0xffff0000) |
@@ -285,122 +306,122 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
         }],
 
     'tty_driver': [None, {
+        "name": [None, ["Pointer", dict(
+            target="String"
+            )]],
 
-            "name": [None, ["Pointer", dict(
-                        target="String"
-                        )]],
-
-            "ttys": [None, ["Pointer", dict(
-                        target="Array",
-                        target_args=dict(
-                            count=lambda x: x.num,
-                            target="Pointer",
-                            target_args=dict(
-                                target="tty_struct"
-                                )
-                            )
-                        )]],
-            }],
+        "ttys": [None, ["Pointer", dict(
+            target="Array",
+            target_args=dict(
+                count=lambda x: x.num,
+                target="Pointer",
+                target_args=dict(
+                    target="tty_struct"
+                    )
+                )
+            )]],
+        }],
 
     'tty_struct': [None, {
-            'name': [None, ["String"]],
-            }],
+        'name': [None, ["String"]],
+        }],
 
     "resource": [None, {
-            "name": [None, ["Pointer", dict(
-                        target="String"
-                        )]],
-            }],
+        "name": [None, ["Pointer", dict(
+            target="String"
+            )]],
+        }],
     "sock": [None, {
-            # http://lxr.free-electrons.com/source/include/linux/net.h#L58
-            "sk_type": [None, ["Enumeration", dict(
-                        choices={1:"SOCK_STREAM",
-                                 2:"SOCK_DGRAM",
-                                 3:"SOCK_RAW",
-                                 4:"SOCK_RDM",
-                                 5:"SOCK_SEQPACKET",
-                                 6:"SOCK_DCCP",
-                                 10:"SOCK_PACKET",
-                                 },
-                        target="BitField",
-                        target_args=dict(
-                            start_bit=16, end_bit=32))]],
+        # http://lxr.free-electrons.com/source/include/linux/net.h#L58
+        "sk_type": [None, ["Enumeration", dict(
+            choices={
+                1:"SOCK_STREAM",
+                2:"SOCK_DGRAM",
+                3:"SOCK_RAW",
+                4:"SOCK_RDM",
+                5:"SOCK_SEQPACKET",
+                6:"SOCK_DCCP",
+                10:"SOCK_PACKET",
+                },
+            target="BitField",
+            target_args=dict(
+                start_bit=16, end_bit=32))]],
 
-            "sk_protocol": [None, ["Enumeration", dict(
-                        # http://lxr.free-electrons.com/source/include/uapi/linux/in.h?#L26
-                        choices={
-                            0:"IPPROTO_HOPOPT", # Dummy protocol forTCP
+        "sk_protocol": [None, ["Enumeration", dict(
+            # http://lxr.free-electrons.com/source/include/uapi/linux/in.h?#L26
+            choices={
+                0:"IPPROTO_HOPOPT", # Dummy protocol forTCP
 
-                            # Internet Control Message Protocol
-                            1:"IPPROTO_ICMP",
+                # Internet Control Message Protocol
+                1:"IPPROTO_ICMP",
 
-                            # Internet Group Management Protocol
-                            2:"IPPROTO_IGMP",
+                # Internet Group Management Protocol
+                2:"IPPROTO_IGMP",
 
-                            # IPIP tunnels (older KA9Q tunnels use 94)
-                            4:"IPPROTO_IPV4",
-                            6:"IPPROTO_TCP", # Transmission Control Protocol
-                            8:"IPPROTO_EGP", # Exterior Gateway Protocol
-                            12:"IPPROTO_PUP", # PUP protocol
-                            17:"IPPROTO_UDP", # User Datagram Protocol
-                            22:"IPPROTO_IDP", # XNS IDP protocol
-                            29:"IPPROTO_TP", # SO Transport Protocol Class 4
+                # IPIP tunnels (older KA9Q tunnels use 94)
+                4:"IPPROTO_IPV4",
+                6:"IPPROTO_TCP", # Transmission Control Protocol
+                8:"IPPROTO_EGP", # Exterior Gateway Protocol
+                12:"IPPROTO_PUP", # PUP protocol
+                17:"IPPROTO_UDP", # User Datagram Protocol
+                22:"IPPROTO_IDP", # XNS IDP protocol
+                29:"IPPROTO_TP", # SO Transport Protocol Class 4
 
-                            # Datagram Congestion Control Protocol
-                            33:"IPPROTO_DCCP",
-                            41:"IPPROTO_IPV6", # IPv6-in-IPv4 tunnelling
-                            46:"IPPROTO_RSVP", # RSVP Protocol
+                # Datagram Congestion Control Protocol
+                33:"IPPROTO_DCCP",
+                41:"IPPROTO_IPV6", # IPv6-in-IPv4 tunnelling
+                46:"IPPROTO_RSVP", # RSVP Protocol
 
-                            # Cisco GRE tunnels (rfc 1701",1702)
-                            47:"IPPROTO_GRE",
+                # Cisco GRE tunnels (rfc 1701",1702)
+                47:"IPPROTO_GRE",
 
-                            # Encapsulation Security Payload protocol
-                            50:"IPPROTO_ESP",
-                            51:"IPPROTO_AH", # Authentication Header protocol
+                # Encapsulation Security Payload protocol
+                50:"IPPROTO_ESP",
+                51:"IPPROTO_AH", # Authentication Header protocol
 
-                            # Multicast Transport Protocol
-                            92:"IPPROTO_MTP",
+                # Multicast Transport Protocol
+                92:"IPPROTO_MTP",
 
-                            # IP option pseudo header for BEET
-                            94:"IPPROTO_BEETPH",
-                            98:"IPPROTO_ENCAP", # Encapsulation Header
-                            103:"IPPROTO_PIM", # Protocol Independent Multicast
-                            108:"IPPROTO_COMP", # Compression Header Protocol
+                # IP option pseudo header for BEET
+                94:"IPPROTO_BEETPH",
+                98:"IPPROTO_ENCAP", # Encapsulation Header
+                103:"IPPROTO_PIM", # Protocol Independent Multicast
+                108:"IPPROTO_COMP", # Compression Header Protocol
 
-                            # Stream Control Transport Protocol
-                            132:"IPPROTO_SCTP",
-                            136:"IPPROTO_UDPLITE", # UDP-Lite (RFC 3828)
-                            255:"IPPROTO_RAW", # Raw IP packets
-                            },
-                        target="BitField",
-                        target_args=dict(
-                            start_bit=8, end_bit=16),
-                        )]],
-            }],
+                # Stream Control Transport Protocol
+                132:"IPPROTO_SCTP",
+                136:"IPPROTO_UDPLITE", # UDP-Lite (RFC 3828)
+                255:"IPPROTO_RAW", # Raw IP packets
+                },
+            target="BitField",
+            target_args=dict(
+                start_bit=8, end_bit=16),
+            )]],
+        }],
     "sock_common": [None, {
-            "skc_state": [None, ["Enumeration", dict(
-                        # http://lxr.free-electrons.com/source/include/net/tcp_states.h#L16
-                        # Because these states are not only used by AF_INET*
-                        # with TCP proto, we removed the TCP_ prefix to make
-                        # them more readable.
-                        choices={
-                            1:"ESTABLISHED",
-                            2:"SYN_SENT",
-                            3:"SYN_RECV",
-                            4:"FIN_WAIT1",
-                            5:"FIN_WAIT2",
-                            6:"TIME_WAIT",
-                            7:"CLOSE",
-                            8:"CLOSE_WAIT",
-                            9:"LAST_ACK",
-                            10:"LISTEN",
-                            11:"CLOSING",
-                            },
-                        target="unsigned char",
-                        )]],
+        "skc_state": [None, ["Enumeration", dict(
+            # http://lxr.free-electrons.com/source/include/net/tcp_states.h#L16
+            # Because these states are not only used by AF_INET*
+            # with TCP proto, we removed the TCP_ prefix to make
+            # them more readable.
+            choices={
+                1:"ESTABLISHED",
+                2:"SYN_SENT",
+                3:"SYN_RECV",
+                4:"FIN_WAIT1",
+                5:"FIN_WAIT2",
+                6:"TIME_WAIT",
+                7:"CLOSE",
+                8:"CLOSE_WAIT",
+                9:"LAST_ACK",
+                10:"LISTEN",
+                11:"CLOSING",
+                },
+            target="unsigned char",
+            )]],
 
-            "skc_family": [None, ["Enumeration", dict(
-                        choices=utils.EnumerationFromDefines("""
+        "skc_family": [None, ["Enumeration", dict(
+            choices=utils.EnumerationFromDefines("""
 http://lxr.free-electrons.com/source/include/linux/socket.h#L140
 
 /* Supported address families. */
@@ -448,80 +469,80 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
 182 #define AF_VSOCK        40      /* vSockets                     */
 183 #define AF_MAX          41      /* For now.. */
 """),
-                        target="short unsigned int"
-                        )]],
-            }],
+            target="short unsigned int"
+            )]],
+    }],
     "mount": [None, {
-            "mnt_devname": [None, ["Pointer", dict(target="String")]],
-            "mnt_root": lambda x: x.m("mnt_root") or x.m("mnt.mnt_root"),
-            }],
+        "mnt_devname": [None, ["Pointer", dict(target="String")]],
+        "mnt_root": lambda x: x.m("mnt_root") or x.m("mnt.mnt_root"),
+        }],
     "vfsmount": [None, {
-            "mnt_devname": [None, ["Pointer", dict(target="String")]],
-            "mnt_flags": [None, ["Flags", dict(
-                        maskmap={
-                            # include/linux/mount.h
-                            "nosuid": 0x01,
-                            "nodev": 0x02,
-                            "noexec": 0x04,
-                            "noatime": 0x08,
-                            "nodiratime": 0x10,
-                            "relatime": 0x20,
-                            "ro": 0x40,
-                            "shrinkable": 0x100,
-                            "writehold": 0x200,
-                            "shared": 0x1000,
-                            "unbindable": 0x2000,
-                          },
-                        target="unsigned int",
-                        )]],
-            "mnt": lambda x: x,
-            }],
+        "mnt_devname": [None, ["Pointer", dict(target="String")]],
+        "mnt_flags": [None, ["Flags", dict(
+            maskmap={
+                # include/linux/mount.h
+                "nosuid": 0x01,
+                "nodev": 0x02,
+                "noexec": 0x04,
+                "noatime": 0x08,
+                "nodiratime": 0x10,
+                "relatime": 0x20,
+                "ro": 0x40,
+                "shrinkable": 0x100,
+                "writehold": 0x200,
+                "shared": 0x1000,
+                "unbindable": 0x2000,
+                },
+            target="unsigned int",
+            )]],
+        "mnt": lambda x: x,
+    }],
 
     "file_system_type": [None, {
-            "name": [None, ["Pointer", dict(target="String")]],
-            }],
+        "name": [None, ["Pointer", dict(target="String")]],
+    }],
 
     "inode": [None, {
-            "i_mode": [None, ["InodePermission", dict(
-                target="unsigned int",
-                )]],
-            "type": lambda x: x.m("i_mode").cast(
-                "Enumeration", choices={
-                    1: "S_IFIFO",
-                    2: "S_IFCHR",
-                    4: "S_IFDIR",
-                    6: "S_IFBLK",
-                    8: "S_IFREG",
-                   10: "S_IFLNK",
-                   12: "S_IFSOCK",
-                   },
-                target="BitField",
-                target_args=dict(start_bit=12, end_bit=16),
-                ),
-            "mode": lambda x: x.m("i_mode").cast(
-                "Flags",
-                maskmap=utils.MaskMapFromDefines("""
-    # From http://lxr.free-electrons.com/source/include/uapi/linux/stat.h
- #define S_ISUID  0004000
- #define S_ISGID  0002000
- #define S_ISVTX  0001000
+        "i_mode": [None, ["InodePermission", dict(
+            target="unsigned int",
+            )]],
+        "type": lambda x: x.m("i_mode").cast(
+            "Enumeration", choices={
+                1: "S_IFIFO",
+                2: "S_IFCHR",
+                4: "S_IFDIR",
+                6: "S_IFBLK",
+                8: "S_IFREG",
+                10: "S_IFLNK",
+                12: "S_IFSOCK",
+                },
+            target="BitField",
+            target_args=dict(start_bit=12, end_bit=16),
+            ),
+        "mode": lambda x: x.m("i_mode").cast(
+            "Flags",
+            maskmap=utils.MaskMapFromDefines("""
+# From http://lxr.free-electrons.com/source/include/uapi/linux/stat.h
+#define S_ISUID  0004000
+#define S_ISGID  0002000
+#define S_ISVTX  0001000
 
- #define S_IRUSR 00400
- #define S_IWUSR 00200
- #define S_IXUSR 00100
+#define S_IRUSR 00400
+#define S_IWUSR 00200
+#define S_IXUSR 00100
 
- #define S_IRGRP 00040
- #define S_IWGRP 00020
- #define S_IXGRP 00010
+#define S_IRGRP 00040
+#define S_IWGRP 00020
+#define S_IXGRP 00010
 
- #define S_IROTH 00004
- #define S_IWOTH 00002
- #define S_IXOTH 00001
+#define S_IROTH 00004
+#define S_IWOTH 00002
+#define S_IXOTH 00001
 """),
-                target="BitField",
-                target_args=dict(start_bit=0, end_bit=12),
-                ),
-            }],
+            target="BitField",
+            target_args=dict(start_bit=0, end_bit=12),
+            ),
+        }],
     }
 
 
@@ -561,7 +582,7 @@ class inet_sock(obj.Struct):
             return (self.m("rcv_saddr") or self.m("inet_rcv_saddr") or
                     self.sk.m("__sk_common.u1.u1.skc_rcv_saddr") or
                     self.m("inet_saddr")).cast(
-                "Ipv4Address")
+                        "Ipv4Address")
 
         else:
             return self.pinet6.saddr.cast("Ipv6Address")
@@ -572,7 +593,7 @@ class inet_sock(obj.Struct):
             return (self.m("daddr") or self.m("inet_daddr") or
                     self.sk.m("__sk_common.u1.u1.skc_daddr") or
                     self.sk.m("__sk_common").m("skc_daddr")).cast(
-                "Ipv4Address")
+                        "Ipv4Address")
 
         else:
             return self.pinet6.daddr.cast("Ipv6Address")
@@ -773,6 +794,49 @@ class PermissionFlags(basic.Flags):
         return self.is_flag('w')
 
 
+class page(obj.Struct):
+    def physical_offset(self):
+        """The physical offset of the page represented by this page struct."""
+
+        # mem_map is used in 32-bit kernels.
+        mem_map = self.obj_profile.get_constant_object(
+            "mem_map", "Pointer")
+
+        if mem_map == None:
+            if self.obj_profile.get_constant("mem_section"):
+                # The VMEMMAP starts at this address in 64-bit kernels.
+                # arch/x86/include/asm/pgtable_64_types.h
+                mem_map = obj.Pointer.integer_to_address(0xffffea0000000000)
+            else:
+                logging.error("Unable to determine physical address of page. "
+                              "NUMA is not supported.")
+                return obj.NoneObject("NUMA is unsupported.")
+
+        # Linux stores an array of struct page starting at mem_map.
+        # To find the physical address of a given page, we need to find its
+        # index within the array which corresponds to the Page Frame Number
+        # and shift it left by the PAGE_SIZE.
+        pfn = (self.obj_offset - mem_map) / self.size()
+        phys_offset = pfn << 12
+        return phys_offset
+
+    def read(self, offset, size):
+        """Reads data from the physical page associated to this page entry.
+
+        It reads PAGE_SIZE at max.
+        """
+
+        phys_offset = self.physical_offset()
+        phys_as = self.obj_session.physical_address_space
+        to_read = max(0, self.obj_vm.PAGE_SIZE - offset)
+        to_read = min(size, to_read)
+        if to_read:
+            data = phys_as.read(phys_offset, to_read)
+        if to_read <= size:
+            data += "\x00" * (size - to_read)
+        return data
+
+
 class InodePermission(basic.Flags):
     def __getattr__(self, attr):
         mask = super(InodePermission, self).__getattr__(attr)
@@ -783,6 +847,7 @@ class InodePermission(basic.Flags):
             return (self.v() & 0xF000) == mask
         return self.v() & mask
 
+
 class Linux(basic.BasicClasses):
     METADATA = dict(
         os="linux",
@@ -792,13 +857,14 @@ class Linux(basic.BasicClasses):
     def Initialize(cls, profile):
         super(Linux, cls).Initialize(profile)
         profile.add_classes(dict(
-                list_head=list_head, hlist_head=hlist_head,
-                dentry=dentry,
-                task_struct=task_struct,
-                timespec=timespec, inet_sock=inet_sock,
-                PermissionFlags=PermissionFlags,
-                InodePermission=InodePermission,
-                ))
+            list_head=list_head, hlist_head=hlist_head,
+            dentry=dentry,
+            task_struct=task_struct,
+            timespec=timespec, inet_sock=inet_sock,
+            PermissionFlags=PermissionFlags,
+            InodePermission=InodePermission,
+            page=page,
+            ))
         profile.add_overlay(linux_overlay)
         profile.add_constants(default_text_encoding="utf8")
 
@@ -860,11 +926,11 @@ class Linux(basic.BasicClasses):
 
         Raises if no kernel configuration is present in the profile.
         """
-        if not self.kernel_config_options:
-            return obj.NoneObject(
-                "No kernel config options present in the profile.")
 
-        return self.kernel_config_options.get(config_option)
+        config_options = getattr(self, "kernel_config_options", obj.NoneObject(
+            "No kernel config options present in the profile."))
+
+        return config_options.get(config_option)
 
     def get_wall_to_monotonic(self, vm=None):
         wall_addr = self.get_constant("wall_to_monotonic")
@@ -901,6 +967,7 @@ class Linux(basic.BasicClasses):
         boottime.tv_sec = -boottime.tv_sec
         boottime.tv_nsec = -boottime.tv_nsec
         return boottime.normalized_timespec()
+
 
 # Legacy for old profiles
 class Linux32(Linux):

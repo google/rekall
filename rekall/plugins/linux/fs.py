@@ -15,12 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+"""This module implements filesystem-related plugins for Linux."""
 
 import logging
-import os
 
-from rekall import config
-from rekall import obj
+from rekall.plugins import core
 from rekall.plugins.linux import common
 from rekall.plugins.overlays.linux import vfs
 
@@ -67,19 +66,20 @@ def InodeToPermissionString(inode):
     if inode.mode.S_ISVTX:
         result.append("t" if inode.mode.S_IXOTH else "T")
 
-    return ''.join(result)
+    return "".join(result)
 
 
 class Mfind(common.LinuxPlugin):
     """Finds a file by name in memory."""
+
     __name = "mfind"
 
     @classmethod
     def args(cls, parser):
         """Declare the command line args we accept."""
         super(Mfind, cls).args(parser)
-        parser.add_argument("path", default="/",
-            help="Path to the file.")
+        parser.add_argument(
+            "path", default="/", help="Path to the file.")
         parser.add_argument(
             "--device", default=None,
             help="Name of the device to match.")
@@ -90,8 +90,8 @@ class Mfind(common.LinuxPlugin):
         self.device = device
 
     def find(self, path, device=None, mountpoint=None):
-        """Returns a list of files matching the path on the given mountpoint.
-        
+        """Yields a list of files matching the path on the given mountpoint.
+
         If no mountpoint is specified, all mountpoints are searched.
         This is akin to doing ls -ld, except that a list is returned because
         several mount points may hold files which are candidates for such path.
@@ -104,15 +104,16 @@ class Mfind(common.LinuxPlugin):
             mountpoints = [mountpoint]
 
         for mountpoint in mountpoints:
-            if (device and not device == mountpoint.device):
+            if device != None and mountpoint.device != device:
                 continue
 
-            if (path and not path.startswith(unicode(mountpoint.name))):
+            if path and not path.startswith(unicode(mountpoint.name)):
                 continue
 
             current_file = vfs.File(mountpoint=mountpoint,
                                     dentry=mountpoint.sb.s_root,
-                                    is_root=True)
+                                    is_root=True,
+                                    session=self.session)
 
             if path == unicode(mountpoint.name):
                 # Return a file for the mountpoint root
@@ -137,7 +138,6 @@ class Mfind(common.LinuxPlugin):
 
                     i += 1
 
-                # We've found the file 
                 if found:
                     yield current_file
 
@@ -151,7 +151,7 @@ class Mfind(common.LinuxPlugin):
                                    mountpoint=mountpoint))
 
             if files:
-                renderer.write("Files on device %s mounted at %s.\n" % (
+                renderer.format("Files on device %s mounted at %s.\n" % (
                     mountpoint.device, mountpoint.name))
 
                 self.render_file_header(renderer)
@@ -187,34 +187,32 @@ class Mfind(common.LinuxPlugin):
                            ctime_string, inode.i_ino, fullpath)
 
 
-
 class Mls(Mfind):
     """Lists the files in a mounted filesystem."""
+
     __name = "mls"
 
     @classmethod
     def args(cls, parser):
         """Declare the command line args we accept."""
         super(Mls, cls).args(parser)
-        parser.add_argument("-r", "--recursive", default=False,
-            action="store_true", help="Recursive listing")
-        parser.add_argument("-u", "--unallocated", default=False,
-                            action="store_true",
-                            help="Show files that have no inode information.")
+        parser.add_argument(
+            "-r", "--recursive", default=False, action="store_true",
+            help="Recursive listing")
+        parser.add_argument(
+            "-u", "--unallocated", default=False, action="store_true",
+            help="Show files that have no inode information.")
 
-    def __init__(self, unallocated=False, recursive=False, device=None,
-                 path="/", **kwargs):
+    def __init__(self, recursive=False, unallocated=False, **kwargs):
         super(Mls, self).__init__(**kwargs)
-        self.device = device
-        self.path = path
         self.recursive = recursive
         self.unallocated = unallocated
 
     def render(self, renderer):
         mfind_plugin = self.session.plugins.mfind(session=self.session)
         for entry in mfind_plugin.find(path=self.path, device=self.device):
-            renderer.write("Files on device %s mounted at %s.\n" % (
-                entry.mountpoint.device, entry.mountpoint.name))
+            renderer.format("Files on device %s mounted at %s.\n" % (
+                            entry.mountpoint.device, entry.mountpoint.name))
 
             self.render_file_header(renderer)
 
@@ -225,3 +223,60 @@ class Mls(Mfind):
                                         unallocated=self.unallocated):
                     self.render_file(renderer, file_)
             renderer.section()
+
+
+class Mcat(core.OutputFileMixin, Mfind):
+    """Returns the contents available in memory for a given file.
+
+    Ranges of the file that are not present in memory are returned blank.
+    """
+
+    __name = "mcat"
+
+    def render(self, renderer):
+        mfind_plugin = self.session.plugins.mfind(session=self.session)
+        files = list(mfind_plugin.find(path=self.path, device=self.device))
+
+        if not files:
+            renderer.format("ERROR: No files found.")
+
+        elif len(files) > 1:
+            logging.error(("%d files found. Please specify the device to "
+                           "target a single file."), len(files))
+
+        else:
+            renderer.table_header(
+                [("Range start", "start", ">12"),
+                 ("Range end", "end", ">12"),
+                ])
+
+            page_size = self.session.kernel_address_space.PAGE_SIZE
+            buffer_size = 1024*1024
+            buffer = ""
+            file_ = files[0]
+
+            # Write buffered output as a sparse file.
+            with renderer.open(filename=self.out_file,
+                               mode="wb") as fd:
+                for range_start, range_end in file_.extents:
+                    renderer.table_row(range_start, range_end)
+
+                    fd.seek(range_start)
+                    for offset in range(range_start, range_end, page_size):
+                        page_index = offset / page_size
+                        to_write = min(page_size, file_.size - offset)
+                        data = file_.GetPage(page_index)
+                        if data != None:
+                            buffer += data[:to_write]
+                        else:
+                            buffer += "\x00" * to_write
+
+                        # Dump the buffer when it's full.
+                        if len(buffer) >= buffer_size:
+                            fd.write(buffer)
+                            buffer = ""
+
+                    # Dump the remaining data in the buffer.
+                    if buffer != "":
+                        fd.write(buffer)
+                        buffer = ""

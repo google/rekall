@@ -229,7 +229,7 @@ class Info(plugin.Command):
         renderer.table_header([('Command', 'function', "20"),
                                ('Provider Class', 'provider', '20'),
                                ('Docs', 'docs', '[wrap:50]'),
-                               ])
+                              ])
 
         for cls, name, doc in sorted(self.plugins(), key=lambda x: x[1]):
             renderer.table_row(name, cls, doc)
@@ -836,7 +836,7 @@ class Grep(plugin.Command):
                                ("Hex", "hex", "^" + str(3 * self.context)),
                                ("Data", "data", "^" + str(self.context)),
                                ("Comment", "comment", "")]
-                              )
+                             )
 
         resolver = self.session.address_resolver
         offset = self.offset

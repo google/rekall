@@ -90,7 +90,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
 
     def proxied(self):
         """ Return an object to be proxied """
-        return self.v()
+        return str(self)
 
     def __str__(self):
         # Remove any null termination chars.
@@ -109,12 +109,6 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def __radd__(self, other):
         """Set up mappings for reverse concat"""
         return other + str(self)
-
-    def __eq__(self, other):
-        return unicode(self) == utils.SmartUnicode(other)
-
-    def __neq__(self, other):
-        return unicode(self) != utils.SmartUnicode(other)
 
     def size(self):
         """This is equivalent to strlen()."""
@@ -169,6 +163,9 @@ class UnicodeString(String):
             data = left + sep
 
         return data
+
+    def proxied(self):
+        return unicode(self)
 
     def __unicode__(self):
         return self.v().split("\x00")[0] or u""

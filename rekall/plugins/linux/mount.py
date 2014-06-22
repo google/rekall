@@ -19,7 +19,6 @@
 import logging
 import math
 
-from rekall import obj
 from rekall import session
 from rekall.plugins.linux import common
 from rekall.plugins.overlays.linux import vfs
@@ -80,11 +79,17 @@ class Mount(common.LinuxPlugin):
             vm=self.kernel_address_space,
             target="Pointer",
             target_args=dict(
-              target="Array",
+                target="Array",
                 target_args=dict(
                     count=hash_size,
                     target=mount_hashtable_target_type
                 )))
+
+        init_task = self.session.profile.get_constant_object(
+            "init_task", "task_struct", vm=self.kernel_address_space)
+        if not init_task:
+            logging.debug("Unable to obtain the init task. "
+                          "Mounted paths may be incorrect.")
 
         # Walk the hash table
         for hash in mount_hashtable:
@@ -106,8 +111,8 @@ class Mount(common.LinuxPlugin):
                 # The name of the filesystem
                 fs_type = sb.s_type.name.deref()
 
-                if (not devname.is_valid() or len(str(devname)) == 0
-                    or not fs_type.is_valid() or len(str(fs_type)) == 0):
+                if (not devname.is_valid() or len(str(devname)) == 0 or
+                    not fs_type.is_valid() or len(str(fs_type)) == 0):
                     continue
 
                 # http://lxr.free-electrons.com/source/fs/proc_namespace.c#L92
@@ -118,32 +123,26 @@ class Mount(common.LinuxPlugin):
                 # dentry->d_op->d_name() is not defined. We do not emulate the
                 # d_name() codepath, so the resolved mount paths may be a
                 # different in rekall than on a live system in these cases.
-                pslist_plugin = self.session.plugins.pslist()
-                task = None
-                for process in pslist_plugin.filter_processes():
-                    task = process
-                    break
 
-                if task:
-                    path_struct = session.Container()
-                    path_struct.dentry = mnt.mnt_root
-                    path_struct.mnt = vfsmount
-                    path = vfs.Linux3VFS(self.session.profile)._prepend_path(
-                        path_struct, task.fs.root)
-                    yield vfs.MountPoint(device=devname,
-                                         mount_path=path,
-                                         superblock=sb,
-                                         flags=vfsmount.mnt_flags)
+                path_struct = session.Container()
+                path_struct.dentry = mnt.mnt_root
+                path_struct.mnt = vfsmount
+                path = vfs.Linux3VFS(self.session.profile).prepend_path(
+                    path_struct, init_task.fs.root)
+                yield vfs.MountPoint(device=devname,
+                                     mount_path=path,
+                                     superblock=sb,
+                                     flags=vfsmount.mnt_flags,
+                                     session=self.session)
 
     def render(self, renderer):
         renderer.table_header([("Device", "virtual", "<50"),
                                ("Path", "path", "<50"),
                                ("Type", "type", "<14"),
                                ("flags", "flags", "<20"),
-                               ])
+                              ])
 
 
-        mount_points = self.get_mount_points()
         for mountpoint in self.get_mount_points():
             flags_string = str(mountpoint.flags)
 

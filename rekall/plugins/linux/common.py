@@ -133,6 +133,18 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
         else:
             raise RuntimeError("No profile architecture set.")
 
+    def VerifyHit(self, dtb):
+        """Returns a valid address_space if the dtb is valid."""
+        address_space = super(LinuxFindDTB, self).VerifyHit(dtb)
+        if address_space:
+            # Try to verify the profile by checking the linux_proc_banner.
+            # This is to discard kernel version strings found in memory we may
+            # know about but that don't really work with the current image.
+            linux_banner = address_space.session.profile.get_constant_object(
+                "linux_proc_banner", "String", vm=address_space)
+            if unicode(linux_banner).startswith(u"%s version %s"):
+                return address_space
+
     def dtb_hits(self):
         """Tries to locate the DTB."""
         PAGE_OFFSET = self.GetPageOffset(self.profile)
@@ -149,8 +161,7 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
                                ("Valid", "valid", "")])
 
         for dtb in self.dtb_hits():
-            address_space = self.VerifyHit(dtb)
-            renderer.table_row(dtb, address_space is not None)
+            renderer.table_row(dtb, self.VerifyHit(dtb) != None)
 
 
 class LinuxPlugin(plugin.KernelASMixin, AbstractLinuxCommandPlugin):
@@ -185,9 +196,12 @@ class LinProcessFilter(LinuxPlugin):
                             help="Use this as the first task to follow "
                             "the list.")
 
+        parser.add_argument(
+            "--method", choices=dict(cls.METHODS), nargs="+",
+            help="Method to list processes (Default uses all methods).")
 
     def __init__(self, pid=None, proc_regex=None, phys_task=None, task=None,
-                 task_head=None, **kwargs):
+                 task_head=None, method=None, **kwargs):
         """Filters processes by parameters.
 
         Args:
@@ -198,6 +212,8 @@ class LinProcessFilter(LinuxPlugin):
            pid: A single pid.
         """
         super(LinProcessFilter, self).__init__(**kwargs)
+
+        self.methods = method or sorted(dict(self.METHODS))
 
         if isinstance(phys_task, (int, long)):
             phys_task = [phys_task]
@@ -231,11 +247,6 @@ class LinProcessFilter(LinuxPlugin):
 
         self.proc_regex = proc_regex
 
-        # Without a specified task head, we use the init_task from the symbol
-        # table.
-        if task_head is None:
-            task_head = self.profile.get_constant("init_task")
-
         self.task_head = task_head
 
         # Sometimes its important to know if any filtering is specified at all.
@@ -243,11 +254,46 @@ class LinProcessFilter(LinuxPlugin):
                                     self.phys_task or self.task)
 
 
-    def list_tasks(self):
+    def list_from_task_head(self):
         task = self.profile.task_struct(
             offset=self.task_head, vm=self.kernel_address_space)
 
         return iter(task.tasks)
+
+    def list_from_init_task(self, seen=None):
+        task_head = self.profile.get_constant_object(
+            "init_task", "task_struct", vm=self.kernel_address_space)
+
+        for task in task_head.tasks:
+            if task.obj_offset not in seen:
+                seen.add(task.obj_offset)
+                yield task
+
+    def list_tasks(self):
+        self.cache = self.session.GetParameter("pslist_cache")
+        if not self.cache:
+            self.cache = {}
+            self.session.SetParameter("pslist_cache", self.cache)
+
+        seen = set()
+        for proc in self.list_from_task_head():
+            seen.add(proc.obj_offset)
+
+        for k, handler in self.METHODS:
+            if k in self.methods:
+                if k not in self.cache:
+                    self.cache[k] = set()
+                    for proc in handler(self, seen=seen):
+                        self.cache[k].add(proc.obj_offset)
+
+                logging.debug("Listed %s processes using %s",
+                              len(self.cache[k]), k)
+                seen.update(self.cache[k])
+
+        # Sort by pid so that the output ordering remains stable.
+        return sorted([self.profile.task_struct(x) for x in seen],
+                      key=lambda x: x.pid)
+
 
     def filter_processes(self):
         """Filters task list using phys_task and pids lists."""
@@ -295,6 +341,10 @@ class LinProcessFilter(LinuxPlugin):
 
         # Now we get the task_struct object from the list entry.
         return our_list_entry.dereference_as("task_struct", "tasks")
+
+    METHODS = [
+        ("InitTask", list_from_init_task),
+        ]
 
 
 class HeapScannerMixIn(object):

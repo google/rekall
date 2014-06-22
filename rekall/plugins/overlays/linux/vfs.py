@@ -22,6 +22,9 @@ This file encapsulates various virtual file system operations for supported
 linux versions. The code is basically copied from the kernel sources of the
 relevant versions.
 """
+
+import math
+
 from rekall import obj
 from rekall import utils
 from rekall.plugins.overlays import basic
@@ -31,7 +34,7 @@ class File(object):
     """Represents a Linux file."""
 
     def __init__(self, filename=None, mountpoint=None, dentry=None,
-                 is_root=False):
+                 is_root=False, session=None):
         if isinstance(filename, (basestring, basic.String)):
             self.filename = utils.SmartUnicode(filename).split("/")
         elif isinstance(filename, list):
@@ -43,6 +46,7 @@ class File(object):
         self.mountpoint = mountpoint or MountPoint()
         self.dentry = dentry
         self.is_root = is_root
+        self.session = session
 
     @property
     def fullpath(self):
@@ -50,7 +54,7 @@ class File(object):
             return self.mountpoint.name
         else:
             return '/'.join([self.mountpoint.name.rstrip("/"),
-                            '/'.join(self.filename)])
+                             '/'.join(self.filename)])
 
     @property
     def name(self):
@@ -59,32 +63,150 @@ class File(object):
         except IndexError:
             return obj.NoneObject()
 
+    @property
+    def size(self):
+        return self.dentry.d_inode.i_size
+
+    @property
+    def extents(self):
+        """Returns a list of ranges for which we have data in memory."""
+        page_size = self.session.kernel_address_space.PAGE_SIZE
+        range_start = None
+
+        index = 0
+        while index <= (self.size / page_size):
+            page = self._radix_tree_lookup(index)
+            if page:
+                # Start a new range if previously there was no data.
+                if range_start == None:
+                    range_start = index * page_size
+            else:
+                # Finish the current range if previously we had data.
+                if range_start != None:
+                    range_end = (index * page_size) -1
+                    range_end = min(self.size, range_end)
+                    yield (range_start, range_end)
+                    range_start = None
+            index += 1
+
+        # Close the last range, as if there was data in the tail of the file, we
+        # wouldn't have outputted it.
+        # Since we cannot guarantee that there won't be data in the last index+1
+        # of the radix tree we do an explicit check, instead of walking
+        # total_indexes+1 in the algorithm above.
+        if range_start != None:
+            range_end = (index * page_size) - 1
+            range_end = min(self.size, range_end)
+            yield (range_start, range_end)
+
+    def _radix_tree_is_indirect_ptr(self, ptr):
+        """See include/linux/radix-tree.h -> is_indirect_ptr()."""
+        return ptr & 1
+
+    def _radix_tree_indirect_to_ptr(self, node_p):
+        """See lib/radix-tree.c -> indirect_to_ptr()."""
+
+        return self.dentry.obj_profile.Object(
+            "Pointer", target="radix_tree_node",
+            value=node_p.v() & ~1,
+            profile=node_p.obj_profile,
+            vm=node_p.obj_vm)
+
+    def _radix_tree_lookup_element(self, index, is_slot):
+        """See lib/radix-tree.c -> radix_tree_lookup_element().
+
+        Searches either for the slot or the node of the index of a radix_tree.
+        """
+
+        root = self.dentry.d_inode.i_mapping.page_tree
+        node = root.rnode
+        if not node:
+            return obj.NoneObject()
+
+        # The RADIX_TREE_MAP_SIZE is the length of the node.slots array.
+        self.RADIX_TREE_MAP_SIZE = len(node.slots)
+        self.RADIX_TREE_MAP_SHIFT = int(
+            math.log(self.RADIX_TREE_MAP_SIZE) / math.log(2))
+        self.RADIX_TREE_MAP_MASK = self.RADIX_TREE_MAP_SIZE - 1
+
+        if not self._radix_tree_is_indirect_ptr(node):
+            if index > 0:
+                return obj.NoneObject()
+            if is_slot:
+                return node.reference()
+            else:
+                return node
+
+        node = self._radix_tree_indirect_to_ptr(node)
+        height = node.height
+        shift = (height - 1) * self.RADIX_TREE_MAP_SHIFT
+        slot = -1
+
+        while 1:
+            idx = (index >> shift) & self.RADIX_TREE_MAP_MASK
+            node = node.slots[idx]
+            node = node.cast("Pointer", target="radix_tree_node")
+            slot = node.reference()
+            shift -= self.RADIX_TREE_MAP_SHIFT
+            height -= 1
+            if height <= 0:
+                break
+
+        if slot == -1:
+            return obj.NoneObject()
+
+        if is_slot:
+            return slot
+        else:
+            return self._radix_tree_indirect_to_ptr(node)
+
+    def _radix_tree_lookup_slot(self, index):
+        """See lib/radix-tree.c ."""
+        return self._radix_tree_lookup_element(index, 1)
+
+    def _radix_tree_lookup(self, index):
+        """See lib/radix-tree.c ."""
+        return self._radix_tree_lookup_element(index, 0)
+
+    def GetPage(self, page_index):
+        page_size = self.session.kernel_address_space.PAGE_SIZE
+        page = self._radix_tree_lookup(page_index)
+        if page:
+            page = page.dereference_as("page")
+            return page.read(0, page_size)
+
     def walk(self, recursive=False, unallocated=False):
         if not self.dentry.d_inode.type.S_IFDIR:
             return
 
+        results = []
+
         for dentry in self.dentry.d_subdirs.list_of_type_fast("dentry", "d_u"):
-            filename = unicode(dentry.d_name.name.deref())
+            filename = dentry.d_name.name.deref()
             inode = dentry.d_inode
 
             # If we are the root pseudofile, we have no name.
             if self.is_root:
-                child_filename = filename
+                child_filename = unicode(filename)
             else:
-                child_filename = self.filename + [filename]
+                child_filename = self.filename + [unicode(filename)]
 
             new_file = File(filename=child_filename,
                             mountpoint=self.mountpoint,
-                            dentry=dentry)
+                            dentry=dentry,
+                            session=self.session)
 
-            if (unallocated or (filename and inode)):
-                yield new_file
+            if unallocated or (filename != None and inode):
+                results.append(new_file)
 
             if recursive and inode and inode.type.S_IFDIR:
                 if recursive and inode.type.S_IFDIR:
                     for sub_file in new_file.walk(recursive=recursive,
                                                   unallocated=unallocated):
-                        yield sub_file
+                        results.append(sub_file)
+
+        for file_ in sorted(results, key=lambda x: x.fullpath):
+            yield file_
 
     def __eq__(self, other):
         if isinstance(other, File):
@@ -102,11 +224,12 @@ class MountPoint(object):
 
     def __init__(self, device="(undefined device)",
                  mount_path="(undefined mount path)",
-                 superblock=None, flags=None):
+                 superblock=None, flags=None, session=None):
         self.device = device
         self.name = unicode(mount_path)
         self.sb = superblock
         self.flags = flags
+        self.session = session
 
     def walk(self, recursive=False, unallocated=False):
         """Yields Files for each file in this mountpoint."""
@@ -115,7 +238,8 @@ class MountPoint(object):
             # Create a dummy file for the root of the filesystem to walk it.
             root_file = File(mountpoint=self,
                              dentry=self.sb.s_root,
-                             is_root=True)
+                             is_root=True,
+                             session=self.session)
             for sub_file in root_file.walk(recursive=recursive,
                                            unallocated=unallocated):
                 yield sub_file
@@ -192,11 +316,11 @@ class Linux3VFS(object):
         # Autodetect kernel version
         self.profile = profile
         if self.profile.get_constant("set_mphash_entries"):
-            self._prepend_path = self._prepend_path314
+            self.prepend_path = self._prepend_path314
         elif self.profile.has_type("mount"):
-            self._prepend_path = self._prepend_path303
+            self.prepend_path = self._prepend_path303
         else:
-            self._prepend_path = self._prepend_path300
+            self.prepend_path = self._prepend_path300
 
     def get_path(self, task, filp):
         """Resolve the dentry, vfsmount relative to this task's chroot.
@@ -205,7 +329,7 @@ class Linux3VFS(object):
           An absolute path to the global filesystem mount. (I.e. we do not
           truncate the path at the chroot point as the kernel does).
         """
-        return self._prepend_path(filp.f_path, task.fs.root)
+        return self.prepend_path(filp.f_path, task.fs.root)
 
     def _real_mount(self, vfsmnt):
         """Return the mount container of the vfsmnt object."""

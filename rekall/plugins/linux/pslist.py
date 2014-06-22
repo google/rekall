@@ -22,11 +22,13 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+
 from rekall import plugin
 from rekall import testlib
 from rekall.plugins import core
 from rekall.plugins.linux import common
 from rekall.ui import text
+
 
 class LinuxPsList(common.LinProcessFilter):
     """Gathers active tasks by walking the task_struct->task list.
@@ -45,7 +47,7 @@ class LinuxPsList(common.LinProcessFilter):
                                ("GID", "gid", ">6"),
                                ("DTB", "dtb", "[addrpad]"),
                                ("Start Time", "start_time", ">24"),
-                               ])
+                              ])
 
         for task in self.filter_processes():
             start_time = task.start_time.as_timestamp()
@@ -88,10 +90,9 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
         max_memory = task.mm.task_size or max_task_size
 
         result = []
-        for virtual_address, phys_address, length in task_as.get_address_ranges(
-            end=max_memory):
-            result.append((fd.tell(), length, virtual_address))
-            fd.write(self.physical_address_space.read(phys_address, length))
+        for vaddr, paddr, length in task_as.get_address_ranges(end=max_memory):
+            result.append((fd.tell(), length, vaddr))
+            fd.write(self.physical_address_space.read(paddr, length))
 
         return result
 
@@ -121,7 +122,7 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
             filename = u"{0}_{1:d}.dmp".format(task.comm, task.pid)
 
             renderer.write(u"Writing {0} {1:6x} to {2}\n".format(
-                    task.comm, task, filename))
+                task.comm, task, filename))
 
             with renderer.open(directory=self.dump_dir,
                                filename=filename,

@@ -85,7 +85,7 @@ class ProfileHook(kb.ParameterHook):
     KERNEL_NAMES = win_common.KERNEL_NAMES
 
     LINUX_TEMPLATE = re.compile(
-        r"Linux version (\d+\.\d+\.\d+-\d+-[^ ]+)")
+        r"Linux version (\d+\.\d+\.\d+[^ ]+)")
 
 
     def VerifyDarwinProfile(self, profile_name):
@@ -99,13 +99,9 @@ class ProfileHook(kb.ParameterHook):
                                  self.session.profile)
 
     def VerifyLinuxProfile(self, profile_name):
-        try:
-            # Try to load this profile from the repository.
-            profile = self.session.LoadProfile(profile_name)
-        except ValueError:
-            return
-
-        return self.ApplyFindDTB(linux_common.LinuxFindDTB, profile)
+        profile = self.session.LoadProfile(profile_name)
+        if profile != None:
+            return self.ApplyFindDTB(linux_common.LinuxFindDTB, profile)
 
     def VerifyWinProfile(self, profile_name):
         """Check that this profile works with this image.
