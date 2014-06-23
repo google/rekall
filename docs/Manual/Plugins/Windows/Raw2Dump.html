@@ -81,9 +81,11 @@ ript>
          </ul>
          <form class="navbar-form navbar-right" role="search" action="/search.html">
            <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Search">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
            </div>
-           <button type="submit" class="btn btn-default">Search</button>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
          </form>
        </div> <!-- navbar-collapse -->
      </div> <!-- container-fluid -->
@@ -182,12 +184,6 @@ ript>
 </li>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/SetProcessContext.html' class="tree-link "  title="cc">
-      cc
-   </a>
-</li>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="tree-link "  title="desktops">
       desktops
    </a>
@@ -232,6 +228,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/SetProcessContext.html' class="tree-link "  title="cc">
+      cc
    </a>
 </li>
 
@@ -684,36 +686,6 @@ ript>
 
 <div class="abstract">
 <p>Convert the physical address space to a crash dump.</p>
-<p>The Windows debugger (Windbg) works only with memory dumps stored
-in the proprietary &lsquo;crashdump&rsquo; file format. This file format
-contains the following features:</p>
-<p>1) Physical memory ranges are stored in a sparse way - there is a
-   &lsquo;Runs&rsquo; table which specifies the mapping between the physical
-   offset and the file offset of each page. This allows the format
-   to omit unmapped regions (unlike raw format which must pad them
-   with zero to maintain alignment).</p>
-<p>2) The crash dump header contains metadata about the
-   image. Specifically, the header contain a copy of the Kernel
-   Debugger Data Block (AKA the KDBG). This data is used to
-   bootstrap the windows debugger by providing critical initial
-   hints to the debugger.</p>
-<p>Since the KDBG block is created at system boot and never used
-(until the crash dump is written) it is trivial for malware to
-overwrite it - making it really hard for responders since windbg
-will not be able to read the file. In later versions of windows,
-the kdbg is also obfuscated (See the function &ldquo;nt!KdCopyDataBlock&rdquo;
-which decrypts it.).</p>
-<p>Rekall itself does not use the KDBG block any more, although older
-memory forensic tools still do use it. Rekall instead relies on
-accurate debugging symbols to locate critical kernel data
-structures, reducing the level of trust we place on the image
-itself (so Rekall is more resilient to manipulation).</p>
-<p>In order to ensure that the windows debugger is able to read the
-produced crash dump, we recreate the kernel debugger block from
-the symbol information we already have.</p>
-<p>NOTE: The crashdump file format can be deduced by:</p>
-<p>dis &lsquo;nt!IoFillDumpHeader&rsquo;</p>
-<p>This is the reference for this plugin.</p>
 </div>
 
 
@@ -729,7 +701,52 @@ the symbol information we already have.</p>
 <a href="/epydocs/rekall.plugins.windows.crashinfo.Raw2Dump-class.html">View Source</a>
 
 
-
+<p>The Windows debugger (Windbg) works only with memory dumps stored
+in the proprietary &lsquo;crashdump&rsquo; file format. This file format
+contains the following features:</p>
+<ol>
+<li>
+<p>Physical memory ranges are stored in a sparse way - there is a
+   <code>Runs</code> table which specifies the mapping between the physical
+   offset and the file offset of each page. This allows the format
+   to omit unmapped regions (unlike raw format which must pad them
+   with zero to maintain alignment).</p>
+</li>
+<li>
+<p>The crash dump header contains metadata about the
+   image. Specifically, the header contain a copy of the Kernel
+   Debugger Data Block (AKA the <strong>KDBG</strong>). This data is used to
+   bootstrap the windows debugger by providing critical initial
+   hints to the debugger.</p>
+</li>
+</ol>
+<p>Since the <strong>KDBG</strong> block is created at system boot and never used (until the
+crash dump is written) it is trivial for malware to overwrite it - making it
+really hard for responders since windbg will not be able to read the file. In
+later versions of windows, the kdbg is also obfuscated (See the function
+<code>nt!KdCopyDataBlock</code> which decrypts it.).</p>
+<p>Rekall itself does not use the <strong>KDBG</strong> block any more, although older memory
+forensic tools still do use it. Rekall instead relies on accurate debugging
+symbols to locate critical kernel data structures, reducing the level of trust
+we place on the image itself (so Rekall is more resilient to manipulation).</p>
+<p>In order to ensure that the windows debugger is able to read the produced crash
+dump, we recreate the kernel debugger block from the symbol information we
+already have.</p>
+<h3>Notes:</h3>
+<ol>
+<li>
+<p>The crashdump file format can be deduced by:
+   <code>dis 'nt!IoFillDumpHeader'</code>
+   This is the reference for this plugin.</p>
+</li>
+<li>
+<p>This plugin is really only useful in order to produce an image compatible
+   with the windows debugger for the purpose of further investigation by the
+   debugger. If you find that the windows debugger has a useful feature that
+   Rekall does not have, please let up know so we can implement it in Rekall. We
+   intend to replace the use of the windows debugger in digital forensics.</p>
+</li>
+</ol>
 
 <p>
 

@@ -54,9 +54,11 @@ def navigation(page=None):
          </ul>
          <form class="navbar-form navbar-right" role="search" action="/search.html">
            <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Search">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
            </div>
-           <button type="submit" class="btn btn-default">Search</button>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
          </form>
        </div> <!-- navbar-collapse -->
      </div> <!-- container-fluid -->

@@ -36,7 +36,10 @@ Currently the following process listing methods are used:
   typically find the csrss.exe proces itself, nor system processes which were
   started before it.
 
-* PspCidTable:
+* PspCidTable: The PspCidTable is a handle table for process and thread client
+  IDs [Ref](http://uninformed.org/index.cgi?v=3&a=7&p=6). The process's pid is
+  the index into this table. This method enumerates the table in order to find
+  all processes. (Note a rootkit can easily remove a process from this table).
 
 * Sessions: This enumerates all the processes in all windows sessions
   (**SessionProcessLinks** member of **_MM_SESSION_SPACE** struct).

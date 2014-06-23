@@ -23,7 +23,7 @@ variety of information about it:
 * The export directory.
 * A version resource strings that might exist in the executable.
 
-*** Notes
+### Notes
 
 1. This plugin depends on having a valid mapped PE header into memory. Sometimes
    this is not the case, since under memory pressure the kernel will unmapped

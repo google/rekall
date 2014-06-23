@@ -81,9 +81,11 @@ ript>
          </ul>
          <form class="navbar-form navbar-right" role="search" action="/search.html">
            <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Search">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
            </div>
-           <button type="submit" class="btn btn-default">Search</button>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
          </form>
        </div> <!-- navbar-collapse -->
      </div> <!-- container-fluid -->
@@ -182,12 +184,6 @@ ript>
 </li>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/SetProcessContext.html' class="tree-link "  title="cc">
-      cc
-   </a>
-</li>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="tree-link "  title="desktops">
       desktops
    </a>
@@ -232,6 +228,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/SetProcessContext.html' class="tree-link "  title="cc">
+      cc
    </a>
 </li>
 
@@ -699,7 +701,56 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.malware.psxview.PsXview-class.html">View Source</a>
 
 
-
+<p>Rekall implements a number of methods for discovering processes. Malware
+attempts to hide processes by making them harder to detect. In order to easily
+see which method reveals which process, the <strong>psxview</strong> plugin lists all
+processes and the methods that reveals them.</p>
+<h3>Notes</h3>
+<ol>
+<li>Some processes are not seen by some methods and this is normal:</li>
+</ol>
+<ul>
+<li>
+<p>If a process is only seen by <strong>psscan</strong> it might have already
+     exited. PSScan has the ability to see already freed <strong>_EPROCESS</strong> objects.</p>
+</li>
+<li>
+<p>The <strong>csrss.exe</strong> is normally not seen using the <strong>CSRSS</strong> method (which
+     enumerates process handles in the <strong>csrss.exe</strong> process itself).</p>
+</li>
+<li>
+<p>The <strong>System</strong> process does not belong to any session, hence does not
+     appear in the list. That process also has no handles and so is not seen
+     using the <em>Handles</em> method.</p>
+</li>
+</ul>
+<h3>Sample output</h3>
+<pre class="highlight"><code>win7.elf 14:55:22&gt; psxview
+  Offset(V)    Name                    PID CSRSS Handles PSScan PsActiveProcessHead PspCidTable Sessions Thrdproc
+-------------- -------------------- ------ ----- ------- ------ ------------------- ----------- -------- --------
+0xfa80008959e0 System                    4 False False   True   True                True        False    True
+0xfa80024f85d0 svchost.exe             236 True  True    True   True                True        True     True
+0xfa8001994310 smss.exe                272 False True    True   True                True        False    True
+0xfa8002259060 csrss.exe               348 False True    True   True                True        True     True
+0xfa8000901060 wininit.exe             384 True  True    True   True                True        True     True
+0xfa8000900420 csrss.exe               396 False True    True   True                True        True     True
+0xfa8002282710 winlogon.exe            436 True  True    True   True                True        True     True
+0xfa800206d5f0 services.exe            480 True  True    True   True                True        True     True
+0xfa800183ab30 lsass.exe               496 True  True    True   True                True        True     True
+0xfa800239db30 lsm.exe                 504 True  True    True   True                True        True     True
+0xfa80028a1640 WmiPrvSE.exe            592 True  True    True   True                True        True     True
+0xfa80023f6770 svchost.exe             608 True  True    True   True                True        True     True
+0xfa8002522b30 svchost.exe             624 True  True    True   True                True        True     True
+0xfa8001903060 VBoxService.ex          664 True  True    True   True                True        True     True
+0xfa800242a350 svchost.exe             716 True  True    True   True                True        True     True
+0xfa80024589e0 svchost.exe             768 True  True    True   True                True        True     True
+0xfa80024a8790 svchost.exe             872 True  True    True   True                True        True     True
+0xfa80024aab30 svchost.exe             932 True  True    True   True                True        True     True
+0xfa800252bb30 spoolsv.exe            1056 True  True    True   True                True        True     True
+0xfa80025b4060 svchost.exe            1092 True  True    True   True                True        True     True
+0xfa8002635810 svchost.exe            1192 True  True    True   True                True        True     True
+0xfa8001fd9060 sppsvc.exe             1256 True  True    True   True                True        True     True
+0xfa800269b950 wlms.exe               1304 True  True    True   True                True        True</code></pre>
 
 <p>
 

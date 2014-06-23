@@ -81,9 +81,11 @@ ript>
          </ul>
          <form class="navbar-form navbar-right" role="search" action="/search.html">
            <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Search">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
            </div>
-           <button type="submit" class="btn btn-default">Search</button>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
          </form>
        </div> <!-- navbar-collapse -->
      </div> <!-- container-fluid -->
@@ -182,12 +184,6 @@ ript>
 </li>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/SetProcessContext.html' class="tree-link "  title="cc">
-      cc
-   </a>
-</li>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="tree-link "  title="desktops">
       desktops
    </a>
@@ -232,6 +228,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/SetProcessContext.html' class="tree-link "  title="cc">
+      cc
    </a>
 </li>
 
@@ -699,7 +701,38 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.malware.svcscan.SvcScan-class.html">View Source</a>
 
 
-
+<p>Windows uses services for long running processes. Serivces are managed by the
+&ldquo;services.exe&rdquo; process. The <strong>svcscan</strong> plugin scans the heap memory of the
+&ldquo;services.exe&rdquo; process for <strong>_SERVICE_RECORD</strong> records). These records describe
+the services which are loaded by the system, and even once the services are
+unloaded, we might find <strong>_SERVICE_RECORD</strong> records.</p>
+<h3>Notes</h3>
+<ol>
+<li>
+<p>Since loading kernel code is usually done by inserting a kernel driver, and
+   kernel drivers are loaded through a service, this plugin will also show
+   forensically significant kernel drivers loading.</p>
+</li>
+<li>
+<p>This plugin relies on memory scanning and so it is not all that
+   reliable. Often it will not reveal services which we know are
+   running. However, it might also reveal services which have been deleted.</p>
+</li>
+<li>
+<p>A better plugin is the <strong>services</strong> plugin which enumerates all services from
+   the registry.</p>
+</li>
+</ol>
+<h3>Sample output</h3>
+<p>The below example shows a kernel driver being loaded as a service.</p>
+<pre class="highlight"><code>Offset: 0x26f7d6a10
+Order: 402
+Process ID: -
+Service Name: WFPLWFS
+Display Name: Microsoft Windows Filtering Platform
+Service Type: SERVICE_KERNEL_DRIVER
+Service State: SERVICE_RUNNING
+Binary Path: \Driver\WFPLWFS</code></pre>
 
 <p>
 

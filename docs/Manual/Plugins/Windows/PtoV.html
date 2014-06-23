@@ -81,9 +81,11 @@ ript>
          </ul>
          <form class="navbar-form navbar-right" role="search" action="/search.html">
            <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Search">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
            </div>
-           <button type="submit" class="btn btn-default">Search</button>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
          </form>
        </div> <!-- navbar-collapse -->
      </div> <!-- container-fluid -->
@@ -182,12 +184,6 @@ ript>
 </li>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/SetProcessContext.html' class="tree-link "  title="cc">
-      cc
-   </a>
-</li>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="tree-link "  title="desktops">
       desktops
    </a>
@@ -232,6 +228,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/SetProcessContext.html' class="tree-link "  title="cc">
+      cc
    </a>
 </li>
 
@@ -699,7 +701,38 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.pfn.PtoV-class.html">View Source</a>
 
 
-
+<p>This plugin uses the <strong>PFN Database</strong> to convert a physical page to its virtual
+address. It is similar to the <strong>pas2vas</strong> plugin in this regard, but does not
+need to enumerate all address spaces prior to running (so it is a bit faster).</p>
+<h3>Notes</h3>
+<ol>
+<li>
+<p>The plugin currently only works for kernel addresses and for 4k pages. So for
+   example this will not work reliably for pool memory (since Pool is allocated
+   in 2mb pages).</p>
+</li>
+<li>
+<p>If this plugin does not work for a certain address, try to use the
+   <strong>pas2vas</strong> plugin.</p>
+</li>
+</ol>
+<h3>Sample output</h3>
+<pre class="highlight"><code>win7.elf 15:22:57&gt; vtop 0xfa8002635810
+-----------------&gt; vtop(0xfa8002635810)
+Virtual 0xfa8002635810 Page Directory 0x271ec000
+pml4e@ 0x271ecfa8 = 0x4000863
+pdpte@ 0x4000000 = 0x4001863
+pde@ 0x4001098 = 0x2ac009e3
+Large page mapped 0x2ae35810
+Physical Address 0x2ac35810
+win7.elf 15:23:05&gt; ptov 0x2ac35810
+-----------------&gt; ptov(0x2ac35810)
+Physical Address 0x2ac35810 =&gt; Virtual Address 0xf6fd40035810
+DTB @ 0x187000
+PML4E @ 0x187f68
+PDPTE @ 0x187fa8
+PDE @ 0x4000000
+PTE @ 0x40011a8</code></pre>
 
 <p>
 

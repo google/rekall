@@ -81,9 +81,11 @@ ript>
          </ul>
          <form class="navbar-form navbar-right" role="search" action="/search.html">
            <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Search">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
            </div>
-           <button type="submit" class="btn btn-default">Search</button>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
          </form>
        </div> <!-- navbar-collapse -->
      </div> <!-- container-fluid -->
@@ -182,12 +184,6 @@ ript>
 </li>
 
 <li>
-   <a href='/docs/Manual/Plugins/Windows/Win32_GUI/SetProcessContext.html' class="tree-link "  title="cc">
-      cc
-   </a>
-</li>
-
-<li>
    <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="tree-link "  title="desktops">
       desktops
    </a>
@@ -232,6 +228,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/SetProcessContext.html' class="tree-link "  title="cc">
+      cc
    </a>
 </li>
 
@@ -699,7 +701,47 @@ ript>
 <a href="/epydocs/rekall.plugins.windows.filescan.SymLinkScan-class.html">View Source</a>
 
 
+<p>A symbolic link is a kernel object which maps a device from one name in the
+kernel object tree to another name. Often a driver will set up a symbolic link
+to a &ldquo;dos device name&rdquo; to allow access to a kernel device from userspace.</p>
+<p>For example, the pmem driver makes a symbolic link from <strong>\GLOBAL??\pmem</strong> to
+<strong>\Devices\pmem</strong> so that a user space program can use the <strong>CreateFile</strong> API to
+open a handle to <strong>\.\pmem</strong>.</p>
+<p>This plugin scans for <strong>_OBJECT_SYMBOLIC_LINK</strong> objects using pool scanning techniques.</p>
+<h3>Notes</h3>
+<ol>
+<li>
+<p>Like other pool scanning plugins, this plugin may produce false positives
+   since it essentially carves <strong>_OBJECT_SYMBOLIC_LINK</strong> structures out of
+   memory. On the other hand, this plugin may reveal symlinks which have been
+   closed or freed.</p>
+</li>
+<li>
+<p>The interesting thing about a symlink is that it contains the timestamp of
+   when it was created. This can be significant when determining when the system
+   was compromised.</p>
+</li>
+<li>
+<p>Since the <em>symlinkscan</em> plugin carves out <strong>_OBJECT_SYMBOLIC_LINK</strong> objects
+   it has no context of where in the object tree the symlink exists. Hence it is
+   unable to show parent object directories. A better plugin to use is the
+   <a href="ObjectTree.html">object_tree</a> plugin.</p>
+</li>
+</ol>
+<h3>Sample output</h3>
+<p>Here we see the <strong>symlinkscan</strong> plugin detecting the pmem link.</p>
+<pre class="highlight"><code>    Offset(P)      #Ptr   #Hnd Creation time            From To
+- -------------- ------ ------ ------------------------ ---- ------------------------------------------------------------
+  0x00000010d470      3      2 2014-01-24 22:07:29+0000 HDAUDIO#FUNC_01&amp;VEN_8384&amp;DEV_7680&amp;SUBSYS_83847680&amp;REV_1034#4&amp;136d1aa0&amp;0&amp;0001#{65e8773e-8f56-11d0-a3b9-00a0c9223196} \Device\0000001e
 
+  0x00000040e940      1      0 2014-01-24 22:07:23+0000 Psched \Device\Psched
+  0x0000004e9490      2      1 2014-01-24 22:07:32+0000 DISPLAY#Default_Monitor#4&amp;d9dcf0b&amp;0&amp;UID0#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7} \Device\00000021
+...
+  0x00002be706f0      2      1 2014-01-24 22:07:32+0000 AppContainerNamedObjects \Sessions\1\AppContainerNamedObjects
+  0x00002bf89f20      2      1 2014-01-24 22:07:32+0000 Global \BaseNamedObjects
+  0x00002c0b8270      2      1 2014-01-24 22:07:32+0000 1 \Sessions\1\BaseNamedObjects
+  0x00002dbdbe00      1      0 2014-01-24 21:20:05+0000 pmem \Device\pmem
+  0x00002f2b7240      1      0 2014-01-24 22:07:26+0000 HCD0 \Device\USBFDO-0</code></pre>
 
 <p>
 
