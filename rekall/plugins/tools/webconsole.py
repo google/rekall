@@ -28,6 +28,7 @@ import StringIO
 import sys
 import webbrowser
 
+from rekall.ui import json_renderer
 from rekall import config
 from rekall import plugin
 from rekall import testlib
@@ -40,10 +41,12 @@ from manuskript import server as manuskript_server
 from manuskript import plugin as manuskript_plugin
 from manuskript import plugins as manuskript_plugins
 
+
 try:
     STATIC_PATH = os.path.join(sys._MEIPASS, "webconsole") # pylint: disable=protected-access
 except AttributeError:
     STATIC_PATH = os.path.join(os.path.dirname(__file__), "webconsole")
+
 
 class RekallPythonCall(manuskript_plugins.PythonCall):
     """PythonCall extension that inserts Rekall session into local context."""
@@ -118,11 +121,13 @@ class RekallWebConsole(manuskript_plugin.Plugin):
     ANGULAR_MODULE = "rekall.webconsole"
 
     JS_FILES = [
+        "/rekall-webconsole/jsonrenderer-service.js",
         "/rekall-webconsole/pluginregistry-service.js",
         "/rekall-webconsole/pluginarguments-directive.js",
         "/rekall-webconsole/runplugin-controller.js",
         "/rekall-webconsole/runplugin.js",
-        "/rekall-webconsole/webconsole.js"
+        "/rekall-webconsole/webconsole.js",
+        "/rekall-webconsole/third_party/python-format.js"
         ]
 
     CSS_FILES = [
@@ -193,17 +198,20 @@ class RekallWebConsole(manuskript_plugin.Plugin):
                 plugin_cls.args(parser)
                 kwargs = vars(parser.parse_args(cmdline_args))
 
-                rekall_session.RunPlugin(source["plugin"]["name"], **kwargs)
+                rekall_session.RunPlugin(source["plugin"]["name"],
+                                         **kwargs)
             finally:
                 sys.stdout = prev_stdout
                 sys.stderr = prev_stderr
 
+            json_output = stdout.getvalue()
             stdout_lines = (stdout.getvalue() and
                             stdout.getvalue().split("\n") or [])
             stderr_lines = (stderr.getvalue() and
                             stderr.getvalue().split("\n") or [])
 
-            response = jsonify(data=dict(stdout=stdout_lines,
+            response = jsonify(data=dict(json_output=json_output,
+                                         stdout=stdout_lines,
                                          stderr=stderr_lines))
             return response
 
@@ -254,6 +262,10 @@ class WebConsole(plugin.Command):
     def render(self, renderer):
         renderer.format("Starting Manuskript web console.")
         renderer.format("Press Ctrl-c to return to the interactive shell.")
+
+        with self.session:
+          self.session.SetParameter("renderer", "JsonRenderer")
+
         manuskript_server.RunServer(
             host=self.host, port=self.port, debug=self.debug,
             plugins=[manuskript_plugins.PlainText,

@@ -20,11 +20,13 @@
     <script src="static/bower_components/angular-resource/angular-resource.js"></script>
     <script src="static/bower_components/angular-animate/angular-animate.js"></script>
     <script src="static/bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="static/bower_components/angular-bindonce/bindonce.js"></script>
 
     <!-- internal dependencies -->
     <script src="static/components/core/nodepluginregistry-service.js"></script>
     <script src="static/components/core/addnode-dialog-controller.js"></script>
     <script src="static/components/core/codeeditor-directive.js"></script>
+    <script src="static/components/core/fastrepeat-directive.js"></script>
     <script src="static/components/core/fileinput-directive.js"></script>
     <script src="static/components/core/onaltenter-directive.js"></script>
     <script src="static/components/core/scrollto-directive.js"></script>
@@ -68,11 +70,13 @@
         </div>
 
         <div class="btn-group right-padded">
-            <button type="button" class="btn btn-default" ng-disabled="selection.node.state == 'edit'"
+            <button type="button" class="btn btn-default"
+                    ng-disabled="selection.node == null || selection.node.state == 'edit'"
                     ng-click="editNode(selection.node)">
               <span class="glyphicon glyphicon-edit"></span>
             </button>
-            <button type="button" ng-class="selection.node.state == 'edit' && 'btn btn-success' || 'btn btn-default'"
+            <button type="button"
+                    ng-class="selection.node.state == 'edit' && 'btn btn-success' || 'btn btn-default'"
                     ng-disabled="selection.node.state != 'edit'"
                     ng-click="saveNode()">
               <span class="glyphicon glyphicon-ok"></span>
@@ -81,9 +85,14 @@
 
         <div class="btn-group right-padded">
             <button type="button" class="btn btn-default" ng-disabled="!canMoveNodeUp(selection.node)"
-                    ng-click="moveNodeUp(selection.node)"><span class="glyphicon glyphicon-arrow-up"></span></button>
-            <button type="button" class="btn btn-default" ng-disabled="!canMoveNodeDown(selection.node)"
-                    ng-click="moveNodeDown(selection.node)"><span class="glyphicon glyphicon-arrow-down"></span></button>
+                    ng-click="moveNodeUp(selection.node)">
+              <span class="glyphicon glyphicon-arrow-up"></span>
+            </button>
+            <button type="button" class="btn btn-default"
+                    ng-disabled="!canMoveNodeDown(selection.node)"
+                    ng-click="moveNodeDown(selection.node)">
+              <span class="glyphicon glyphicon-arrow-down"></span>
+            </button>
         </div>
 
         <div class="btn-group">
@@ -116,7 +125,6 @@
         </div>
       </div>
     </nav>
-
 
     <!-- "Load File" dialog -->
     <div id="load-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">

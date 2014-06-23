@@ -2,6 +2,7 @@
 
   var module = angular.module('rekall.runplugin',
                               ['rekall.runplugin.controller',
+			       'rekall.runplugin.jsonRenderer.service',
                                'rekall.runplugin.pluginRegistry.service',
                                'manuskript.core']);
 

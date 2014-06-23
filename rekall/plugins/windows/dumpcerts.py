@@ -33,6 +33,7 @@ except ImportError:
 from rekall import plugin
 from rekall import scan
 from rekall import testlib
+from rekall import utils
 
 from rekall.plugins import core
 from rekall.plugins.windows import common
@@ -73,7 +74,7 @@ class CertScanner(scan.BaseScanner):
                 if X509:
                     try:
                         cert = X509.load_cert_der_string(data)
-                        description = cert.get_subject()
+                        description = utils.SmartStr(cert.get_subject())
                     except X509.X509Error:
                         pass
 

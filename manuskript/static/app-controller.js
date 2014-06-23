@@ -12,6 +12,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
   var module = angular.module('manuskript.app.controller', [
     'manuskript.core',
     'manuskript.load.controller',
+    'pasvaz.bindonce',
     'manuskript.configuration'].concat(manuskriptPluginsList));
 
   module.controller("ManuskriptAppController", function(

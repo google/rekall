@@ -1,5 +1,7 @@
 # Files to ignore by git
 
+*~
+
 # Generic auto-generated build files
 *.pyc
 *.pyo
@@ -30,3 +32,5 @@ test_data/*.hiber*
 test_data/*/Test*
 
 rekal.spec
+
+node_modules

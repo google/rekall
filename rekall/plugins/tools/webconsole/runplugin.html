@@ -29,7 +29,7 @@
           </table>
         </div>
 
-        <div class="panel panel-default" ng-show="node.source.plugin != null">
+        <div class="panel panel-default" ng-if="node.source.plugin != null">
           <div class="panel-heading">
             <h3 class="panel-title">Description</h3>
           </div>
@@ -43,7 +43,7 @@
       </div>
 
       <div class="col-sm-6">
-        <div class="panel panel-default" ng-show="node.source.plugin != null">
+        <div class="panel panel-default" ng-if="node.source.plugin != null">
           <div class="panel-heading">
             <h3 class="panel-title">{{node.source.plugin.name}} arguments</h3>
           </div>
@@ -93,12 +93,37 @@
   </div>
 
   <div ng-if="node.state == 'show'">
-    <div ng-if="node.rendered.stderr">
-      <code-editor language="plaintext" readonly="true" ng-model="node.rendered.stderr" split-list></code-editor>
+    <div ng-if="node.rendered.plugin_output">
+
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <div ng-repeat="element in node.rendered.plugin_output.elements">
+
+            <div ng-if="element.type == 'table'">
+              <table bindonce class="table table-condensed">
+                <thead>
+                  <tr>
+                    <th fast-repeat="column in element.header.columns" style="font-size: 90%">
+                      <span bo-text="column[0]"></span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr fast-repeat="row in element.rows">
+                    <td fast-repeat="item in row" style="font-size: 90%">
+                      <span bo-text="renderItem(item, element.header.columns[$index])"></span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div ng-if="node.rendered.stdout">
-      <code-editor language="plaintext" readonly="true" ng-model="node.rendered.stdout" split-list></code-editor>
+    <div ng-if="node.rendered.stderr">
+      <code-editor language="plaintext" readonly="true" ng-model="node.rendered.stderr" split-list></code-editor>
     </div>
 
     <div ng-if="node.rendered.error">

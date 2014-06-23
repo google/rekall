@@ -87,14 +87,15 @@ class Command(object):
             session by default, if not provided. This allows users to omit
             specifying many options.
         """
+        if kwargs:
+            raise InvalidArgs(unicode(kwargs.keys()))
+
         super(Command, self).__init__(**kwargs)
 
         if session is None:
             raise InvalidArgs("A session must be provided.")
 
         self.session = session
-        if kwargs:
-            raise InvalidArgs(unicode(kwargs.keys()))
 
     def get_plugin(self, name, **kwargs):
         """Returns an instance of the named plugin.

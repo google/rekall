@@ -3,6 +3,7 @@
     'manuskript.core.nodePluginRegistry.service',
     'manuskript.core.addNodeDialog.controller',
     'manuskript.core.codeEditor.directive',
+    'manuskript.core.fastRepeat.directive',
     'manuskript.core.fileInput.directive',
     'manuskript.core.onAltEnter.directive',
     'manuskript.core.scrollTo.directive',
