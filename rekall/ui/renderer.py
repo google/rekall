@@ -390,6 +390,7 @@ class BaseColumn(object):
 
         # How many places should addresses be padded?
         self.address_size = address_size
+        self.original_formatstring = formatstring
         self.parse_format(
             formatstring=formatstring,
             header_format=header_format,

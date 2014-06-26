@@ -15,8 +15,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 """
@@ -51,7 +51,7 @@ class CheckSyscall(common.LinuxPlugin):
                 cmpl $__NR_syscall_max,%eax
         #endif
 
-        - ret_from_sys_call function (with a small reiwnd):
+        - ret_from_sys_call function (with a small rewind):
         http://lxr.linux.no/linux+v2.6.26/arch/x86/kernel/entry_64.S#L249
 
         249        cmpq $__NR_syscall_max,%rax
@@ -68,7 +68,7 @@ class CheckSyscall(common.LinuxPlugin):
         260        /* edi: flagmask */
         """
         for func_name, rewind in [("system_call_fastpath", 0),
-                                   ("ret_from_sys_call", 40)]:
+                                  ("ret_from_sys_call", 40)]:
             func = self.profile.get_constant_object(
                 func_name, target="Function").Rewind(rewind)
 
@@ -136,14 +136,15 @@ class CheckSyscall(common.LinuxPlugin):
                 )
 
             for i, entry in enumerate(table):
-                yield table_name, i, entry, lsmod.ResolveSymbolName(entry.deref())
+                yield (table_name, i, entry,
+                       lsmod.ResolveSymbolName(entry.deref()))
 
     def render(self, renderer):
         renderer.table_header([
-                ("Table Name", "table", "6"),
-                ("Index", "index", "[addr]"),
-                ("Address", "address", "[addrpad]"),
-                ("Symbol", "symbol", "<30")])
+            ("Table Name", "table", "20"),
+            ("Index", "index", "[addr]"),
+            ("Address", "address", "[addrpad]"),
+            ("Symbol", "symbol", "<30")])
 
         for table_name, i, call_addr, sym_name in self.CheckSyscallTables():
             renderer.table_row(table_name, i, call_addr, sym_name or "Unknown",

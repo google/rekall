@@ -52,12 +52,21 @@ class Lsof(common.LinProcessFilter):
 
     def render(self, renderer):
 
-        renderer.table_header([("Pid", "pid", "8"),
-                               ("FD", "fd", "8"),
+        renderer.table_header([("Name", "name", "20s"),
+                               ("Pid", "pid", "8"),
+                               ("User", "uid", ">8"),
+                               ("FD", "fd", ">8"),
+                               ("Size", "size", ">12"),
+                               ("Offset", "offset", ">12"),
+                               ("Node", "node", ">8"),
                                ("Path", "path", "")])
 
         for (task, file_struct, fd) in self.lsof():
-            renderer.table_row(task.pid, fd, task.get_path(file_struct))
+            renderer.table_row(task.comm, task.pid, task.uid, fd,
+                               file_struct.m("f_path.dentry.d_inode.i_size"),
+                               file_struct.m("f_pos"),
+                               file_struct.m("f_path.dentry.d_inode.i_ino"),
+                               task.get_path(file_struct))
 
 
 class TestLsof(testlib.SimpleTestCase):

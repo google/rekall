@@ -20,8 +20,8 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 
 import logging
-import os
 
+from rekall import testlib
 from rekall.plugins.linux import common
 from rekall.plugins.overlays import basic
 
@@ -56,7 +56,9 @@ class Netstat(common.LinuxPlugin):
         for task, fd, sock, iaddr in self.sockets():
             inet_sock = sock.dereference_as("inet_sock")
 
-            if sock.sk_protocol not in ("IPPROTO_TCP", "IPPROTO_UDP", "IPPROTO_IPV4", "IPPROTO_IPV6", "IPPROTO_HOPOPT"):
+            if sock.sk_protocol not in ("IPPROTO_TCP", "IPPROTO_UDP",
+                                        "IPPROTO_IPV4", "IPPROTO_IPV6",
+                                        "IPPROTO_HOPOPT"):
                 continue
 
             sk_common = sock.m("__sk_common")
@@ -170,3 +172,9 @@ class PacketQueues(common.LinuxPlugin):
                 skipped_sockets_count += 1
         renderer.format("Skipped %d/%d sockets.", skipped_sockets_count,
                         len(all_sockets))
+
+
+class TestPacketQueues(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline="pkt_queues --dump-dir %(tempdir)s"
+        )

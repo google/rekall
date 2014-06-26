@@ -308,6 +308,14 @@ class TextColumn(renderer.BaseColumn):
         elif target is None or isinstance(target, obj.NoneObject):
             return ['-' * len(self.formatter.format_field(1, formatstring))]
 
+        # Convert address values to addresses.
+        if (self.original_formatstring == "[addr]" or
+            self.original_formatstring == "[addrpad]"):
+            try:
+                target = obj.Pointer.integer_to_address(target)
+            except ValueError:
+                pass
+
         # Simple formatting.
         result = self.formatter.format_field(target, formatstring).splitlines()
 

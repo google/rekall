@@ -19,6 +19,8 @@
 
 import logging
 
+from rekall import testlib
+
 from rekall.plugins import core
 from rekall.plugins.linux import common
 from rekall.plugins.overlays.linux import vfs
@@ -212,7 +214,7 @@ class Mls(Mfind):
         mfind_plugin = self.session.plugins.mfind(session=self.session)
         for entry in mfind_plugin.find(path=self.path, device=self.device):
             renderer.format("Files on device %s mounted at %s.\n" % (
-                            entry.mountpoint.device, entry.mountpoint.name))
+                entry.mountpoint.device, entry.mountpoint.name))
 
             self.render_file_header(renderer)
 
@@ -280,3 +282,21 @@ class Mcat(core.OutputFileMixin, Mfind):
                     if buffer != "":
                         fd.write(buffer)
                         buffer = ""
+
+
+class TestMfind(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline="mfind %(file)"
+        )
+
+
+class TestMls(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline="mls %(file)"
+        )
+
+
+class TestMcat(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline="mcat %(file) %(tempdir)s/mcat"
+        )

@@ -143,8 +143,9 @@ class ProfileHook(kb.ParameterHook):
             self.session.kernel_address_space = address_space
 
             # Start off with a default address space of the kernel.
-            self.session.SetParameter("default_address_space", address_space)
-            self.session.SetParameter("dtb", address_space.dtb)
+            with self.session as session:
+                session.SetParameter("default_address_space", address_space)
+                session.SetParameter("dtb", address_space.dtb)
 
             return profile
 

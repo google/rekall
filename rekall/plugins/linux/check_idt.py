@@ -91,7 +91,7 @@ class CheckIdt(common.LinuxPlugin):
         return self.CheckTable(idt_table)
 
     def render(self, renderer):
-        renderer.table_header([("Index", "index", "[addr]"),
+        renderer.table_header([("Index", "index", "#5x"),
                                ("Address", "address", "[addrpad]"),
                                ("Type", "type", ">18"),
                                ("DPL", "dpl", ">3"),
@@ -102,4 +102,5 @@ class CheckIdt(common.LinuxPlugin):
             if symbol == "Unknown":
                 highlight = "important"
 
-            renderer.table_row(i, idt_addr, gate_type, dpl, symbol, highlight=highlight)
+            renderer.table_row(i, idt_addr, gate_type, dpl, symbol,
+                               highlight=highlight)

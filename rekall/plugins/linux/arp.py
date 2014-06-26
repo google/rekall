@@ -120,10 +120,10 @@ class Arp(common.LinuxPlugin):
                 break
 
     def render(self, renderer):
-        renderer.table_header([("IP Address", "ip", ">10"),
+        renderer.table_header([("IP Address", "ip", ">45"),
                                ("MAC", "mac", ">20"),
-                               ("Device", "dev", ">24")
-                               ])
+                               ("Device", "dev", ">15")
+                              ])
 
         for ip, mac, devname in self.get_handle_tables():
             renderer.table_row(ip, mac, devname)

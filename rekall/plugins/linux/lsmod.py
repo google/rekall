@@ -24,7 +24,6 @@
 """
 import bisect
 import logging
-import os
 
 from rekall import obj
 from rekall.plugins.linux import common
@@ -216,8 +215,7 @@ class Lsmod(common.LinuxPlugin):
         renderer.table_header([("Virtual", "virtual", "[addrpad]"),
                                ("Core Start", "start", "[addrpad]"),
                                ("Total Size", "size", ">10"),
-                               ("Name", "name", "<20"),
-                               ("Section", "section", "<20")])
+                               ("Name", "name", "<20")])
 
         for module in self.get_module_list():
             renderer.table_row(module.obj_offset,
@@ -234,8 +232,8 @@ class Lsmod(common.LinuxPlugin):
             for module in self.get_module_list():
                 for section_attr in self.get_module_sections(module):
                     renderer.table_row(
-                    module.name, section_attr.name.deref(),
-                    section_attr.address)
+                        module.name, section_attr.name.deref(),
+                        section_attr.address)
 
         if self.render_parameters:
             renderer.section("Module Parameters")
