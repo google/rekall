@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <ftw.h>
 #include <getopt.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -236,8 +237,8 @@ static char *module_name = "pmem";
 static ELF_OBJ host_module;
 // Search this path for suitable host modules
 static const char *module_path = "/lib/modules/";
-// This one will have the current kernel version appended
-static char *specific_module_path = NULL;
+// This is the path of lp.ko inside the kernel module directory
+static const char *lp_path = "/kernel/drivers/char/lp.ko";
 // exceess to allocate for host module, defines how much data we can add
 // shouldn't be too small so we can inject our host module but shouldn't be too
 // large to minimize impact on target memory.
@@ -270,6 +271,47 @@ char *get_module_name(const char *module_path) {
   return module_name;
 }
 
+int elf_has_compatible_profile(ELF_OBJ *module, char *module_name,
+    size_t *profile_idx) {
+  // There are multiple compatible configurations, check them all
+  for (size_t i = 0; i < ARRAY_SIZE(injections); i++) {
+    int module_compatible = ELF_SUCCESS;
+    log_print(LL_DBG, "Testing for compatibility with profile '%s' (%d)",
+        injections[i].name, i);
+    // Module must contain a list of symbols
+    if (module->symbol_exist(module, injections[i].required_symbols,
+          injections[i].required_symbols_len) != ELF_SUCCESS) {
+      continue;
+    }
+    // Some of those are prefixed with it's name
+    if (module->symbol_exist_named_suffix(module, module_name,
+          injections[i].required_prefixed_symbols,
+          injections[i].required_prefixed_symbols_len ) != ELF_SUCCESS) {
+      continue;
+    }
+    // Module must have relocations to specific structs
+    for (size_t j = 0; j < injections[i].required_prefixed_rela_len; j++) {
+      if (module->relocation_exist_to_sym(module,
+              injections[i].required_prefixed_rela[j].container,
+              injections[i].required_prefixed_rela[j].symbol)
+          != ELF_SUCCESS) {
+        module_compatible = ELF_FAILURE;
+        break;
+      }
+      log_print(LL_DBG, "Found rela for symbol %s into struct %s",
+          injections[i].required_prefixed_rela[j].container,
+          injections[i].required_prefixed_rela[j].symbol);
+    }
+    if (module_compatible == ELF_SUCCESS) {
+      // All checks complete, module is compatible to config i
+      *profile_idx = i;
+      return EXIT_SUCCESS;
+    }
+  }
+  // If we end up here we didn't find any compatible configuration
+  return EXIT_FAILURE;
+}
+
 // Callback for ftw that determines if a file is a suitable. Be advised this
 // function allocates memory to host_path, so free it when youre done.
 int ftw_is_compatible_host(const char *fpath, const struct stat *sb,
@@ -278,71 +320,43 @@ int ftw_is_compatible_host(const char *fpath, const struct stat *sb,
   (void)sb; // We have to keep this for ftw but won't use it
   // Ignore Directories
   if (tflag != FTW_F) {
-    return 0;
+    goto incompatible;
   }
   // Ignore non kernel module files
   if (string_has_suffix(fpath, ".ko")) {
-    return 0;
+    goto incompatible;
+  }
+  // Ignore non-valid ELF files
+  if (elf_from_file(fpath, &host_module, 0) != ELF_SUCCESS) {
+    goto incompatible;
   }
   if ((module_name = get_module_name(fpath)) == NULL) {
     log_print(LL_ERR, "Failed to get name for module at %s", fpath);
-    return EXIT_FAILURE;
+    goto incompatible;
   }
-  // There are multiple compatible configurations, check them all
-  int module_compatible = ELF_SUCCESS;
-  for (size_t i = 0; i < ARRAY_SIZE(injections); i++) {
-    log_print(LL_DBG, "Testing for compatibility with profile '%s' (%d)",
-        injections[i].name, i);
-    if (elf_from_file(fpath, &host_module, 0) == ELF_SUCCESS) {
-      // Module must contain a list of symbols
-      if (host_module.symbol_exist(&host_module, injections[i].required_symbols,
-            injections[i].required_symbols_len) != ELF_SUCCESS) {
-        continue;
-      }
-      // Some of those are prefixed with it's name
-      if (host_module.symbol_exist_named_suffix(&host_module, module_name,
-            injections[i].required_prefixed_symbols,
-            injections[i].required_prefixed_symbols_len ) != ELF_SUCCESS) {
-        continue;
-      }
-      // Module must have relocations to specific structs
-      for (size_t j = 0; j < injections[i].required_prefixed_rela_len; j++) {
-        if (host_module.relocation_exist_to_sym(&host_module,
-                injections[i].required_prefixed_rela[j].container,
-                injections[i].required_prefixed_rela[j].symbol)
-            != ELF_SUCCESS) {
-          module_compatible = ELF_FAILURE;
-          break;
-        }
-        log_print(LL_DBG, "Found rela for symbol %s into struct %s",
-            injections[i].required_prefixed_rela[j].container,
-            injections[i].required_prefixed_rela[j].symbol);
-      }
-      if (module_compatible != ELF_SUCCESS) {
-        // Configuration doesn't fit, try next one
-        continue;
-      }
-      args.host_path_len = strlen(fpath);
-      args.host_path = (char *)malloc(args.host_path_len + 1);
-      log_print(LL_LOG, "Found suitable host %s", fpath);
-      // If we're just searching for suitable modules continue
-      if (args.mode != WM_FIND) {
-        memcpy(args.host_path, fpath, args.host_path_len);
-        args.host_path[args.host_path_len] = 0x00;
-        // Need to store which injection config we use on this module
-        log_print(LL_LOG, "Using %s relocation hooking method (%d)",
-                  injections[i].name, i);
-        args.injection_idx = i;
-        return 1;
-      } else {
-        // continue searching but dont bother with the other configurations,
-        // we already found one that works
-        break;
-      }
-    }
+  if (elf_has_compatible_profile(&host_module, module_name, &args.injection_idx)
+        != EXIT_SUCCESS) {
+    goto incompatible_name;
   }
+  args.host_path_len = strlen(fpath);
+  args.host_path = (char *)malloc(args.host_path_len + 1);
+  log_print(LL_LOG, "Found suitable host %s", fpath);
+  // If we're just searching for suitable modules continue
+  if (args.mode != WM_FIND) {
+    memcpy(args.host_path, fpath, args.host_path_len);
+    args.host_path[args.host_path_len] = 0x00;
+    // Need to store which injection config we use on this module
+    log_print(LL_LOG, "Using %s relocation hooking method (%d)",
+              injections[args.injection_idx].name, args.injection_idx);
+    free(module_name);
+    return 1;
+  }
+incompatible_name:
+  free(module_name);
+incompatible:
   return 0;
 }
+
 
 void usage(char *prog_path) {
     log_print(LL_MSG, "LMAP version %d.%d: Loads an embedded memory "
@@ -484,35 +498,109 @@ int init_elf_objs(void) {
   return EXIT_SUCCESS;
 }
 
-// Walk the filesystem starting from search_path and put the path of a kernel
-// module into host that is suited for infection by the minpmem module.
-int find_compatible_host(void) {
+// Finds path to the kernel modules compatible with the current kernel
+//
+// Returns:
+//  Pointer to the allocated string with the path if found(free it yourself),
+//  NULL if the path could not be found or an error occured.
+//
+char *find_specific_module_path(void) {
   struct utsname utsbuf;
+  char *specific_module_path = NULL;
+  size_t specific_module_path_len = 0;
 
   if (args.lib_path == NULL) {
     if (uname(&utsbuf)) {
-      log_print(LL_ERR, "Can't determine kernel version, searching for modules"
+      log_print(LL_ERR, "Can't determine kernel version, searching for modules "
           "can't work reliably");
-      return EXIT_FAILURE;
+      return NULL;
     } else {
       log_print(LL_DBG, "Kernel version is '%s'", utsbuf.release);
     }
-    specific_module_path = (char *)malloc(strlen(module_path) +
-        strlen(utsbuf.release));
-    strcpy(specific_module_path, module_path);
-    strcat(specific_module_path, utsbuf.release);
+    specific_module_path_len = strlen(module_path) + strlen(utsbuf.release) + 1;
+    if (specific_module_path_len >= BUFSIZ) {
+      log_print(LL_ERR, "Module path too long, doesn't fit buffer");
+      return NULL;
+    }
+    specific_module_path = (char *)malloc(BUFSIZ);
+    if (specific_module_path == NULL) {
+      log_print(LL_ERR, "Can't find module path, out of memory");
+      return NULL;
+    }
+    strncpy(specific_module_path, module_path, specific_module_path_len);
+    strncat(specific_module_path, utsbuf.release, specific_module_path_len);
   } else {
     // manual lib/modules path specified
-    specific_module_path = args.lib_path;
+    specific_module_path = (char *)malloc(strlen(args.lib_path) + 1);
+    if (specific_module_path == NULL) {
+      log_print(LL_ERR, "Can't find module path, out of memory");
+      return NULL;
+    }
+    strcpy(specific_module_path, args.lib_path);
+  }
+  return specific_module_path;
+}
+
+// Walk the filesystem starting from search_path and put the path of a kernel
+// module into host that is suited for infection by the minpmem module.
+int find_compatible_host(void) {
+  int status = EXIT_FAILURE;
+  char *specific_module_path = find_specific_module_path();
+
+  if (specific_module_path == NULL) {
+    log_print(LL_ERR, "Could not find path to kernel modules");
+    goto error_malloc;
   }
   log_print(LL_LOG, "Scanning modules in %s for suitable host",
       specific_module_path);
   if (ftw(specific_module_path, ftw_is_compatible_host, 20) == 0 &&
       args.mode != WM_FIND) {
     log_print(LL_ERR, "No suitable host modules found");
-    return EXIT_FAILURE;
+    goto error;
   }
-  return EXIT_SUCCESS;
+  status = EXIT_SUCCESS;
+error:
+  free(specific_module_path);
+error_malloc:
+  return status;
+}
+
+// Tries to locate the lp.ko module compatible with the running kernel.
+//
+// Returns:
+//  Pointer to a string containing the path to lp. NULL on error.
+//  Caller needs to free the string after use.
+//
+char *find_lp(void) {
+  char *specific_module_path = find_specific_module_path();
+  size_t module_path_len = strlen(specific_module_path);
+  size_t lp_path_len = strlen(lp_path);
+  size_t lp_specific_path_len = lp_path_len + module_path_len;
+  struct stat stbuf;
+
+  if (specific_module_path == NULL) {
+    log_print(LL_ERR, "Could not find path to kernel modules");
+    goto error;
+  }
+  if (lp_specific_path_len > BUFSIZ) {
+    log_print(LL_ERR, "Can't find lp.ko, path too long for buffer");
+    goto error_size;
+  }
+  strncat(specific_module_path, lp_path, lp_path_len);
+  if (stat(specific_module_path, &stbuf) == -1) {
+    log_print(LL_DBG, "Can't find lp.ko, file does not exist in %s",
+      specific_module_path);
+    goto error_notfound;
+  }
+  return specific_module_path;
+
+error_size:
+error_notfound:
+  free(specific_module_path);
+  return NULL;
+
+error:
+  return NULL;
 }
 
 int hook_prefixed_rela(char *mod_name) {
@@ -663,6 +751,7 @@ unsigned int write_segment(MEMORY_RANGE *segment, int mem_dev, int dump_file,
     }
     if (read(mem_dev, page_buf, PAGE_SIZE) != PAGE_SIZE) {
       log_print(LL_ERR, "Failed to read page");
+      perror("[-] error: ");
       return EXIT_FAILURE;
     }
     // Copy the page to the indicated offset in the mach-o file
@@ -758,13 +847,11 @@ error_headers:
   return status;
 }
 
-
 // Will read the memory runs specified in mm from the device file and
 // write an ELF memory dump into the output file.
 ELF_ERROR acquire_memory(char *in_path, char *out_path) {
   ELF_ERROR status = ELF_FAILURE;
   MEMORY_MAP mm;
-  int pmem_major;
   int mem_dev = -1;
   int dump_file = -1;
 
@@ -776,20 +863,14 @@ ELF_ERROR acquire_memory(char *in_path, char *out_path) {
     log_print(LL_ERR, "Can't get map of physical memory");
     goto error_mmap;
   }
-  if (load_module(&host_module) != EXIT_SUCCESS) {
+  if (load_module(&host_module, "pmem") != EXIT_SUCCESS) {
     log_print(LL_ERR, "Unable to load memory driver, aborting");
     goto error_insmod;
   }
-  if (pmem_get_major(&pmem_major) != EXIT_SUCCESS) {
-    log_print(LL_ERR, "Can't get pmem drivers major number");
-    goto error_insmod;
-  }
-  if (pmem_mknod(pmem_dev_file, pmem_major) != EXIT_SUCCESS) {
-    log_print(LL_ERR, "Unable to create /dev device file (mknod failed)");
-    goto error_mknod;
-  }
-  if ((mem_dev = open(in_path, O_RDONLY)) == -1) {
+  mem_dev = open(in_path, O_RDONLY);
+  if (mem_dev == -1) {
     log_print(LL_ERR, "Error opening physical memory device");
+    perror("[-] error: ");
     goto error_memdev;
   }
   if ((dump_file =
@@ -809,12 +890,7 @@ error:
 error_dumpfile:
   close(mem_dev);
 error_memdev:
-  if (pmem_rmnod(pmem_dev_file) != EXIT_SUCCESS) {
-    log_print(LL_ERR, "Failed to remove pmem device file in /dev");
-    status = EXIT_FAILURE;
-  }
-error_mknod:
-  if (unload_module(args.host_name) == EXIT_FAILURE) {
+  if (unload_module(module_name) == EXIT_FAILURE) {
     log_print(LL_ERR, "Failed to unload pmem kernel module");
     status = EXIT_FAILURE;
   }
@@ -860,9 +936,21 @@ int main (int argc, char **argv) {
   }
   // Only search for a target if the user didn't supply one manually
   if (args.host_path == NULL) {
-    if (find_compatible_host() != EXIT_SUCCESS) {
-      log_print(LL_ERR, "Can't continue without host, aborting");
-      return EXIT_FAILURE;
+    args.host_path = find_lp();
+    // We prefer lp.ko because it's tested.
+    bool lp_found = false;
+    if (args.host_path != NULL) {
+      if (ftw_is_compatible_host(args.host_path, NULL, FTW_F) == 0) {
+        log_print(LL_DBG, "lp found in %s but incompatible", args.host_path);
+      } else {
+        lp_found = true;
+      }
+    }
+    if (lp_found != true) {
+      if (find_compatible_host() != EXIT_SUCCESS) {
+        log_print(LL_ERR, "Can't continue without host, aborting");
+        return EXIT_FAILURE;
+      }
     }
   } else {
     // If the user supplied a target we still have to check if it's compatible
@@ -921,7 +1009,7 @@ int main (int argc, char **argv) {
       break;
 
     case WM_LOAD:
-      if (load_module(&host_module) != EXIT_SUCCESS) {
+      if (load_module(&host_module, "pmem") != EXIT_SUCCESS) {
         log_print(LL_ERR, "Failed to load pmem kernel module");
         return EXIT_FAILURE;
       }

@@ -95,15 +95,22 @@ int pmem_mknod(char *path, int major) {
   log_print(LL_DBG, "Making device node at %s for major %d", path, major);
   if (mknod(path, S_IFCHR | 0400, dev) != 0) {
     log_print(LL_ERR, "Failed to create device file for major %d", major);
+    perror("[-] error: ");
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }
 
-// Removes a device file from the file system
-int pmem_rmnod(char *path) {
-  if (unlink(path) != 0) {
-    log_print(LL_ERR, "Failed to remove device file %s", path);
+// Removes the device file for a module
+int pmem_rmnod(char *name) {
+  char dev_path[256];
+
+  strcpy(dev_path, "/dev/");
+  strncat(dev_path, name, sizeof(dev_path) - strlen(dev_path));
+
+  if (unlink(dev_path) != 0) {
+    log_print(LL_ERR, "Failed to remove device file %s", dev_path);
+    perror("[-] error: ");
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
@@ -111,40 +118,65 @@ int pmem_rmnod(char *path) {
 
 // Calls delete_module to remove a module from the kernel
 int unload_module(char *name) {
+  // We don't care if this doesn't work, just try to clean up
+  pmem_rmnod(name);
+  // now that the device node should be gone we can unload
   if (delete_module(name, O_NONBLOCK) != 0) {
     log_print(LL_ERR, "Failed to unload module %s");
-    perror("unload error: ");
+    perror("[-] error: ");
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }
 
 // Calls init_module to load a module into the kernel
-int load_module(ELF_OBJ *module) {
+int load_module(ELF_OBJ *module, char *name) {
   int err;
+  int major;
+  char dev_path[256];
 
   if ((err = init_module(module->data, module->size, "")) != 0) {
     switch (err) {
       case ENOEXEC:
         log_print(LL_ERR, "Invalid module format");
-        break;
+        return EXIT_FAILURE;
       case ENOENT:
         log_print(LL_ERR, "Unknown symbol in module");
-        break;
+        return EXIT_FAILURE;
       case ESRCH:
         log_print(LL_ERR, "Module has wrong symbol version");
-        break;
+        return EXIT_FAILURE;
       case EINVAL:
         log_print(LL_ERR, "Invalid parameters");
+        return EXIT_FAILURE;
+      case EEXIST:
+        log_print(LL_LOG, "Module already loaded");
         break;
       default:
-        perror("[-] Failed to load module: ");
+        perror("WARNING: Module load reported unknown error, "
+            "module might not work as intended, check your dmesg/syslog");
     }
-    return EXIT_FAILURE;
-  } else {
-    log_print(LL_LOG, "Injected pmem module has been loaded");
   }
+  log_print(LL_LOG, "Injected pmem module has been loaded");
+  // Now find the major number and make a node in /dev
+  if (pmem_get_major(&major) != EXIT_SUCCESS) {
+    log_print(LL_ERR, "Unable to get module major number");
+    return EXIT_FAILURE;
+  }
+  strcpy(dev_path, "/dev/");
+  strncat(dev_path, name, sizeof(dev_path) - strlen(dev_path));
+  if (pmem_mknod(dev_path, major) != EXIT_SUCCESS) {
+    log_print(LL_ERR, "Unable to create device node %s", dev_path);
+    goto error;
+  }
+  log_print(LL_LOG, "Created device node %s", dev_path);
   return EXIT_SUCCESS;
+
+error:
+  if (unload_module(name) != EXIT_SUCCESS) {
+    log_print(LL_ERR, "Unable to unload module %s", name);
+  }
+  return EXIT_FAILURE;
 }
 
 

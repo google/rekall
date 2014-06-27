@@ -15,7 +15,7 @@
 #include "elf_sections.c"
 #include "elf_symbols.h"
 
-static const int MODULE_NAME_LEN = 64 - sizeof(unsigned long);
+static const unsigned int MODULE_NAME_LEN = 64 - sizeof(unsigned long);
 static const char *THIS_MODULE_SECTION = ".gnu.linkonce.this_module";
 
 // Checks if a pointer is actually inside an elf object

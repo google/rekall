@@ -22,6 +22,7 @@
 #include <linux/vmalloc.h>
 #include <linux/slab.h>
 
+#include "debug.h"
 #include "pte_mmap_linux.h"
 
 /* Dummy buffer for pte remapping. This has to be 2 pages so we are guaranteed
@@ -122,14 +123,14 @@ static void pte_log_print(PTE_MMAP_OBJ *self, PTE_LOGLEVEL loglevel,
     return;
   }
   if (loglevel == PTE_ERR) {
-      printk("PTE MMAP Error: ");
+      DEBUG_LOG("PTE MMAP Error: ");
   }
   if (arg) {
-    printk(fmt, arg);
+    DEBUG_LOG(fmt, arg);
   } else {
-    printk(fmt);
+    DEBUG_LOG(fmt);
   }
-  printk("\n");
+  DEBUG_LOG("\n");
 }
 
 // Initializer that fills an operating system specific vtable,

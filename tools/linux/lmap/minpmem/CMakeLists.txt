@@ -2,7 +2,9 @@ cmake_minimum_required (VERSION 2.8)
 
 set(MODULE_NAME pmem_pte)
 set(PACKAGED_NAME packaged_pmem)
-set(MODULE_SOURCE_FILES pmem.c
+set(MODULE_SOURCE_FILES
+  pmem.c
+  debug.h
   pte_mmap.c
   pte_mmap.h
   pte_mmap_linux.c

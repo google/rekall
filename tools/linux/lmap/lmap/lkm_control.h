@@ -27,6 +27,6 @@ int pmem_rmnod(char *path);
 // Calls delete_module to remove a module from the kernel
 int unload_module(char *name);
 // Calls init_module to load a module into the kernel
-int load_module(ELF_OBJ *module);
+int load_module(ELF_OBJ *module, char *name);
 
 #endif // _REKALL_TOOL_ELF_LKM_CONTROL_H_

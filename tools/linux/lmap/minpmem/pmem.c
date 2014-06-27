@@ -55,6 +55,7 @@
 #include <linux/highmem.h>
 #include <asm/mmzone.h>
 
+#include "debug.h"
 #include "pte_mmap_linux.h"
 
 MODULE_LICENSE("GPL");
@@ -119,7 +120,7 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
   /* Manually remap the rogue page to the target offset */
   if (pte_mmap->remap_page(pte_mmap, page_physaddr) !=
       PTE_SUCCESS) {
-    printk(KERN_ERR "Failed to remap rogue page to %#016lx", page_physaddr);
+    DEBUG_LOG("Failed to remap rogue page to %#016lx", page_physaddr);
     goto invalid_page;
   }
 
@@ -127,7 +128,7 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
   if (_copy_to_user(
       buf, (void *)((pte_mmap->rogue_page.value + page_offset)),
                    to_read)) {
-    printk(KERN_ERR "Failed to copy page %#016llx to user space", *poff);
+    DEBUG_LOG("Failed to copy page %#016llx to user space", *poff);
     goto error_copy;
   }
 
@@ -138,9 +139,9 @@ error_copy:
   return to_read;
 
 invalid_page:
-  printk(KERN_NOTICE "%016llx is invalid, zero padding...", *poff);
+  DEBUG_LOG("%016llx is invalid, zero padding...", *poff);
   if (_copy_to_user(buf, (const void *)zero_page, to_read)) {
-    printk(KERN_ERR "Failed to copy zero page for adress %#016llx to user "
+    DEBUG_LOG("Failed to copy zero page for adress %#016llx to user "
             "space.", *poff);
   }
   /* Increment the file offset. */
@@ -176,13 +177,13 @@ struct file_operations pmem_fops = {
 int __init pmem_init(void) {
   pte_mmap = pte_mmap_linux_new();
   if (pte_mmap == NULL) {
-    printk(KERN_NOTICE "Failed to initialize pte mmap, unloading module\n");
+    DEBUG_LOG("Failed to initialize pte mmap, unloading module\n");
     return -EFAULT;
   }
-  printk("pmem driver initialized\n");
+  DEBUG_LOG("pmem driver initialized\n");
   major = register_chrdev(0, "pmem", &pmem_fops);
   if (major) {
-    printk("pmem major number is %d\n", major);
+    DEBUG_LOG("pmem major number is %d\n", major);
     return 0;
   } else {
     // We need a registered major number to communicate with user space
@@ -192,11 +193,7 @@ int __init pmem_init(void) {
 
 void __exit pmem_cleanup(void) {
   pte_mmap_linux_delete(pte_mmap);
-  printk("pmem driver unloading\n");
+  DEBUG_LOG("pmem driver unloading\n");
   unregister_chrdev(major, "pmem");
 }
 
-/*
-module_init(pmem_init);
-module_exit(pmem_cleanup_module);
-*/
