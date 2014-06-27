@@ -28,22 +28,22 @@ from rekall.plugins.linux import common
 
 arp_overlay = {
     'neigh_table': [None, {
-            # From /include/linux/socket.h
-            'family': [None, ['Enumeration', dict(
-                        choices={
-                            0: "AF_UNSPEC",
-                            1: "AF_UNIX",
-                            2: "AF_INET",
-                            10: "AF_INET6",
-                            },
-                        target="unsigned int",
-                        )]]
-            }],
+        # From /include/linux/socket.h
+        'family': [None, ['Enumeration', dict(
+            choices={
+                0: "AF_UNSPEC",
+                1: "AF_UNIX",
+                2: "AF_INET",
+                10: "AF_INET6",
+                },
+            target="unsigned int",
+            )]]
+        }],
     'neighbour': [None, {
-            "ha": [None, ["Array", dict(
-                        target="byte",
-                        count=lambda x: x.dev.addr_len)]],
-            }],
+        "ha": [None, ["Array", dict(
+            target="byte",
+            count=lambda x: x.dev.addr_len)]],
+        }],
     }
 
 
@@ -92,29 +92,29 @@ class Arp(common.LinuxPlugin):
 
         for neighbour in buckets:
             if neighbour:
-                for x in self.walk_neighbor(neighbour.deref()):
+                for x in self.walk_neighbour(neighbour.deref()):
                     yield x
 
-    def walk_neighbor(self, neighbor):
+    def walk_neighbour(self, neighbour):
         while 1:
             # get the family from each neighbour in order to work with IPv4 and
             # IPv6.
-            family = neighbor.tbl.family
+            family = neighbour.tbl.family
 
             if family == "AF_INET":
-                ip = neighbor.primary_key.cast("Ipv4Address")
+                ip = neighbour.primary_key.cast("Ipv4Address")
 
             elif family == "AF_INET6":
-                ip = neighbor.primary_key.cast("Ipv6Address")
+                ip = neighbour.primary_key.cast("Ipv6Address")
             else:
                 ip = '?'
 
-            mac = ":".join(["%.02x" % x for x in neighbor.ha])
-            devname = neighbor.dev.name
+            mac = ":".join(["%.02x" % x for x in neighbour.ha])
+            devname = neighbour.dev.name
 
             yield ip, mac, devname
 
-            neighbour = neighbor.next.deref()
+            neighbour = neighbour.next.deref()
 
             if not neighbour:
                 break
