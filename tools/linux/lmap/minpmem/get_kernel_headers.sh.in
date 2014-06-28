@@ -1,0 +1,18 @@
+#usr/bin/env bash
+
+RELEASE=@KERNEL_VERSION@
+KBUILD="/lib/modules/$RELEASE/build";
+NEW_KBUILD=@KERNEL_HEADERS@
+
+# link all contents of kbuild, but copy config
+for FILE in `ls -AHL $KBUILD`
+do
+  if [ $FILE == ".config" ]
+  then
+    # Copy the config, we need to modify this later
+    cp $KBUILD/$FILE $NEW_KBUILD
+  else
+    ln -s $KBUILD/$FILE $NEW_KBUILD
+  fi
+done
+

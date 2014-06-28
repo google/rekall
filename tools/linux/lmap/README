@@ -1,9 +1,6 @@
 ===================================================
 LMAP - Linux Physical Memory acquisition tool
 ===================================================
-
-Version: RC1
-
 Author: Johannes Stuettgen (johannes.stuettgen@gmail.com)
 
 Summary:
@@ -33,21 +30,42 @@ Available Tools:
 
 Usage:
 ======
-lmap can be used by simply executing the binary on the target system. It will
-automatically search for a compatible host, load it into memory, inject the
-memory driver and load it.
+See the README file in 'release/' for details (generated during build).
 
 Compatibility:
 ==============
 The entire tool suite is only compatible with x86-64 processors and binaries.
+32 Bit x86 and ARM support is still in development.
 
 Building from Source:
 =====================
-Use CMake to generate a makefile in the 'build' directory by changing to it
-('cd build') and calling 'cmake ..'. Then just call 'make' and it will build all
-the binaries and the driver. There are no external dependencies except the
-kernel headers, gcc, cmake, make and libc. On Ubuntu systems you need to install
-the packages 'build-essential', 'cmake' and 'linux-headers-`uname -r`'.
+The 'build.sh' file automates the build process for your convenience. It
+creates a CMake build environment in 'build/' and builds all relevant drivers
+and libraries. It then generates the lmap binary and places it in the 'release/'
+folder together with the generated documentation.
+
+You can also manually create and modify the build environment with CMake.
+1. Change to the 'build/' directory and verify it is empty.
+  (You can always 'rm -r *' in 'build/' to clean it up.)
+2 Use CMake to generate a makefile in the 'build' directory by calling
+  'cmake ..'.
+3. Call 'make' and it will build all the binaries and place them into their
+  respective subfolders in 'build/'.
+  
+There are no external dependencies except the kernel headers, gcc, cmake, make
+and libc. On Ubuntu systems you need to install the packages 'build-essential',
+'cmake' and 'linux-headers-`uname -r`'.
+
+IMPORTANT:
+==========
+Never build LMAP with ftrace enabled in your build environment. This will
+introduce a symbol dependency on certain ftrace symbols and the resulting
+module will not be loadable on non-ftrace kernels.
+
+The CMake scripts create a copy of your kernel headers and config in
+'build/kernel_headers'. Any FTRACE options enabled in your original kernel
+config will be disabled there and the pmem module will be compiled with this
+config to guarantee an FTRACE free build.
 
 References:
 ===========

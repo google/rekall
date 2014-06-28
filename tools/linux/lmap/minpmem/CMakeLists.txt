@@ -13,6 +13,38 @@ set(MODULE_SOURCE_FILES
 set(MODULE_OUTPUT_DIR ${CMAKE_BINARY_DIR}/modules)
 set(MODULE_FILE ${MODULE_NAME}.ko)
 set(PACKAGED_FILE ${PACKAGED_NAME}.o)
+
+# Prepare the build scripts
+set(KERNEL_VERSION ${CMAKE_SYSTEM_VERSION})
+set(KERNEL_HEADERS ${CMAKE_BINARY_DIR}/kernel_headers)
+configure_file(
+  "${PROJECT_SOURCE_DIR}/minpmem/get_kernel_headers.sh.in"
+  "${PROJECT_BINARY_DIR}/kernel_headers/get_kernel_headers.sh"
+)
+file(MAKE_DIRECTORY "${KERNEL_HEADERS}")
+# Create copy of kernel headers in build dir
+execute_process(
+  WORKING_DIRECTORY ${KERNEL_HEADERS}
+  COMMAND bash get_kernel_headers.sh
+)
+# Now disable any FTRACE options in the config
+set(FTRACE_OPTIONS
+  "CONFIG_HAVE_DYNAMIC_FTRACE"
+  "CONFIG_HAVE_FTRACE_MCOUNT_RECORD"
+  "CONFIG_FTRACE"
+  "CONFIG_FTRACE_SYSCALLS"
+  "CONFIG_DYNAMIC_FTRACE"
+  "CONFIG_FTRACE_MCOUNT_RECORD"
+)
+file(READ ${KERNEL_HEADERS}/.config KERNEL_CONFIG)
+foreach(FTRACE_OPTION ${FTRACE_OPTIONS})
+  string(
+    REPLACE "${FTRACE_OPTION}=y" "${FTRACE_OPTION}=n"
+    KERNEL_CONFIG
+    ${KERNEL_CONFIG})
+endforeach(FTRACE_OPTION)
+file(WRITE ${KERNEL_HEADERS}/.config ${KERNEL_CONFIG})
+
 # Drop Kbuild file in build directory
 configure_file(Kbuild.in ${MODULE_OUTPUT_DIR}/Kbuild)
 # Copy module sources to build directory
@@ -24,13 +56,11 @@ foreach(MODULE_SOURCE_FILE ${MODULE_SOURCE_FILES})
   )
 endforeach(MODULE_SOURCE_FILE)
 
-set(KERNEL_DIR "/lib/modules/${CMAKE_SYSTEM_VERSION}/build" )
-
 # Invoke Kbuild
 add_custom_command(
   OUTPUT ${MODULE_OUTPUT_DIR}/${MODULE_FILE}
   COMMAND ${CMAKE_MAKE_PROGRAM}
-          -C ${KERNEL_DIR}
+          -C ${KERNEL_HEADERS}
           M=${MODULE_OUTPUT_DIR}
           modules
   WORKING_DIRECTORY ${MODULE_OUTPUT_DIR}

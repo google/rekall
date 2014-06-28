@@ -20,7 +20,11 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/lmap/lmap_config.h.in"
   "${PROJECT_BINARY_DIR}/lmap_config.h"
 )
-
+# Prepare the README for release
+configure_file(
+  "${PROJECT_SOURCE_DIR}/lmap/README.in"
+  "${PROJECT_BINARY_DIR}/lmap/README"
+)
 # Now do actual build
 # ===================
 # Enable make to find the configured header file
