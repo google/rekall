@@ -157,18 +157,24 @@ class ThrdScan(ModScan):
                                ("Symbol", "symbol", ""),
                                ])
 
-        for thread in self.generate_hits():
-            # Resolve the thread back to an owning process if possible.
-            task = thread.Tcb.ApcState.Process.dereference_as(
-                "_EPROCESS", vm=self.session.kernel_address_space)
+        with self.session.plugins.cc() as cc:
+            for thread in self.generate_hits():
+                # Resolve the thread back to an owning process if possible.
+                task = thread.Tcb.ApcState.Process.dereference_as(
+                    "_EPROCESS", vm=self.session.kernel_address_space)
 
-            renderer.table_row(thread.obj_offset,
-                               thread.Cid.UniqueProcess,
-                               thread.Cid.UniqueThread,
-                               thread.StartAddress,
-                               thread.CreateTime,
-                               thread.ExitTime,
-                               task.ImageFileName,
-                               self.session.address_resolver.format_address(
-                                   thread.StartAddress.v()),
-                               )
+                try:
+                    cc.SwitchProcessContext(task)
+                except KeyError:
+                    cc.SwitchProcessContext()
+
+                renderer.table_row(thread.obj_offset,
+                                   thread.Cid.UniqueProcess,
+                                   thread.Cid.UniqueThread,
+                                   thread.Win32StartAddress,
+                                   thread.CreateTime,
+                                   thread.ExitTime,
+                                   task.ImageFileName,
+                                   self.session.address_resolver.format_address(
+                                       thread.Win32StartAddress.v()),
+                                   )

@@ -88,7 +88,7 @@ class SetProcessContext(common.WinProcessFilter):
                                       process.get_process_address_space())
 
         # Reset the address resolver for the new context.
-        self.session.address_resolver.Reset()
+        self.session.address_resolver.SwitchContext(process)
         self.session.SetParameter("process_context", process)
         logging.debug(message)
 

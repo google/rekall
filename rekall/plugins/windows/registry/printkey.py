@@ -352,3 +352,73 @@ class Users(registry.RegistryPlugin):
 
             for field in f.members:
                 renderer.table_row(field, getattr(f, field))
+
+
+class Services(registry.RegistryPlugin):
+    """Enumerate all services."""
+    name = "services"
+
+    # http://msdn.microsoft.com/en-us/library/windows/desktop/ms682450(v=vs.85).aspx
+    # CreateService function.
+    SERVICE_TYPE = {
+        0x00000004: 'SERVICE_ADAPTER',
+        0x00000002: 'SERVICE_FILE_SYSTEM_DRIVER',
+        0x00000001: 'SERVICE_KERNEL_DRIVER',
+        0x00000008: 'SERVICE_RECOGNIZER_DRIVER',
+        0x00000010: 'SERVICE_WIN32_OWN_PROCESS',
+        0x00000020: 'SERVICE_WIN32_SHARE_PROCESS'
+        }
+
+    START_TYPE = {
+        0x00000002: 'SERVICE_AUTO_START',
+        0x00000000: 'SERVICE_BOOT_START',
+        0x00000003: 'SERVICE_DEMAND_START',
+        0x00000004: 'SERVICE_DISABLED',
+        0x00000001: 'SERVICE_SYSTEM_START'
+        }
+
+    ERROR_CONTROL = {
+        0x00000003: 'SERVICE_ERROR_CRITICAL',
+        0x00000000: 'SERVICE_ERROR_IGNORE',
+        0x00000001: 'SERVICE_ERROR_NORMAL',
+        0x00000002: 'SERVICE_ERROR_SEVERE'
+        }
+
+    def GenerateServices(self):
+        for hive_offset in self.hive_offsets:
+            reg = registry.RegistryHive(
+                profile=self.profile, session=self.session,
+                kernel_address_space=self.kernel_address_space,
+                hive_offset=hive_offset)
+
+            for service in reg.CurrentControlSet().open_subkey(
+                "Services").subkeys():
+                yield service
+
+    def render(self, renderer):
+        for service in self.GenerateServices():
+            renderer.section(service.Name.v())
+            renderer.table_header([("Key", "key", "20"),
+                                   ("Value", "value", "[wrap:60]")],
+                                  suppress_headers=True)
+
+            for value in service.values():
+                k = value.Name.v()
+                v = value.DecodedData
+                if value.Type == "REG_BINARY":
+                    continue
+
+                if isinstance(v, list):
+                    v = ",".join([x for x in v if x])
+
+                if k == "Type":
+                    v = self.SERVICE_TYPE.get(v, v)
+
+                if k == "Start":
+                    v = self.START_TYPE.get(v, v)
+
+                if k == "ErrorControl":
+                    v = self.ERROR_CONTROL.get(v, v)
+
+                renderer.table_row(k, v)
+

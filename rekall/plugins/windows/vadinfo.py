@@ -29,8 +29,6 @@
 # the following reference:
 # "The VAD Tree: A Process-Eye View of Physical Memory," Brendan Dolan-Gavitt
 
-import os.path
-
 from rekall import scan
 from rekall import utils
 from rekall.plugins import core
@@ -67,7 +65,7 @@ class VADInfo(common.WinProcessFilter):
                 renderer.write("\n")
 
             self.session.report_progress("Pid %s: %s Vads" % (
-                    task.UniqueProcessId, count))
+                task.UniqueProcessId, count))
 
     def write_vad_short(self, renderer, vad):
         """Renders a text version of a Short Vad"""
@@ -223,45 +221,6 @@ class VADWalk(VADInfo):
                         vad.End,
                         vad.Tag)
 
-class VADDump(core.DirectoryDumperMixin, VADInfo):
-    """Dumps out the vad sections to a file"""
-
-    __name = "vaddump"
-
-    def render(self, renderer):
-        for task in self.filter_processes():
-            renderer.section()
-            renderer.format("Pid: {0:6}\n", task.UniqueProcessId)
-
-            # Get the task and all process specific information
-            task_space = task.get_process_address_space()
-
-            name = task.ImageFileName
-            offset = task_space.vtop(task.obj_offset)
-            if offset is None:
-                renderer.format(
-                    "Process does not have a valid address space.\n")
-                continue
-
-            for vad in task.RealVadRoot.traverse():
-                # Ignore Vads with bad tags
-                if vad.obj_type == "_MMVAD":
-                    continue
-
-                # Find the start and end range
-                start = vad.Start
-                end = vad.End
-
-                filename = "{0}.{1:x}.{2:08x}-{3:08x}.dmp".format(
-                    name, offset, start, end)
-
-                with renderer.open(directory=self.dump_dir,
-                                   filename=filename,
-                                   mode='wb') as fd:
-                    self.session.report_progress("Dumping %s" % filename)
-                    self.CopyToFile(task_space, start, end + 1, fd)
-
-
 class VAD(common.WinProcessFilter):
     """Concise dump of the VAD.
 
@@ -342,6 +301,51 @@ class VAD(common.WinProcessFilter):
                             task.ImageFileName)
             renderer.RenderProgress("Pid: %s" % task.UniqueProcessId)
             self.render_vadroot(renderer, task.RealVadRoot)
+
+
+class VADDump(core.DirectoryDumperMixin, VAD):
+    """Dumps out the vad sections to a file"""
+
+    __name = "vaddump"
+
+    def render(self, renderer):
+        for task in self.filter_processes():
+            renderer.section("{0:6} ({1:2})".format(
+                task.name, task.UniqueProcessId))
+
+            renderer.table_header([
+                ("Start", "start", "[addrpad]"),
+                ("End", "end", "[addrpad]"),
+                ("Length", "length", "[addr]"),
+                ("Filename", "filename", "60s"),
+                ("Comment", "comment", "")])
+
+            # Get the task and all process specific information
+            task_space = task.get_process_address_space()
+
+            name = task.ImageFileName
+            offset = task_space.vtop(task.obj_offset)
+            if offset is None:
+                renderer.format(
+                    "Process does not have a valid address space.\n")
+                continue
+
+            for vad in task.RealVadRoot.traverse():
+                # Find the start and end range
+                start = vad.Start
+                end = vad.End
+
+                filename = "{0}.{1:x}.{2:08x}-{3:08x}.dmp".format(
+                    name, offset, start, end)
+
+                with renderer.open(directory=self.dump_dir,
+                                   filename=filename,
+                                   mode='wb') as fd:
+                    self.session.report_progress("Dumping %s" % filename)
+                    self.CopyToFile(task_space, start, end + 1, fd)
+                    renderer.table_row(
+                        start, end, end-start, filename,
+                        self._get_filename(vad))
 
 
 class VadScanner(scan.BaseScanner):

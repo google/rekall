@@ -44,8 +44,7 @@ The Rekall Memory Forensic framework %s.
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License.
 
-
-Type 'help' to get started.
+See http://www.rekall-forensic.com/docs/Manual/tutorial.html to get started.
 ----------------------------------------------------------------------------
 """ % VERSION
 

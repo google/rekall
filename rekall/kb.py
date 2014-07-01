@@ -140,6 +140,8 @@ class AddressResolver(object):
         self.session = session
         self.vad = None
         self.profiles = {}
+        self.context_cache = {}
+        self.context = None
         self.Reset()
 
     def _NormalizeModuleName(self, module):
@@ -148,6 +150,8 @@ class AddressResolver(object):
         except AttributeError:
             module_name = module
 
+        module_name = module_name.split("/")[-1]
+        module_name = module_name.split("\\")[-1]
         result = unicode(module_name).split(".")[0]
         if result == "ntoskrnl":
             result = "nt"
@@ -198,6 +202,17 @@ class AddressResolver(object):
         self.modules = state["modules"]
         self.modules_by_name = state["modules_by_name"]
         self.profiles = state["profiles"]
+
+    def SwitchContext(self, process):
+        """Switch the address resolver to the process context."""
+        # Store the current state in the context cache.
+        self.context_cache[self.context] = self.GetState()
+        self.context = process
+
+        try:
+            self.SetState(self.context_cache[process])
+        except KeyError:
+            self.Reset()
 
     def Reset(self):
         """Flush all caches and reset the resolver."""
@@ -516,6 +531,7 @@ class AddressResolver(object):
             vad_desc = self._FindProcessVad(address)
             if vad_desc:
                 start, _, full_name = vad_desc
+                module_name = self._NormalizeModuleName(full_name)
                 nearest_offset = start
                 profile = self.LoadProfileForDll(start, full_name)
 
