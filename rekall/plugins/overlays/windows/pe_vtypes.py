@@ -143,203 +143,203 @@ def AlignAfter(name):
 
 pe_overlays = {
     "_IMAGE_OPTIONAL_HEADER": [None, {
-            'Subsystem' : [None, ['Enumeration', {
-                        'choices': {
-                            0: 'IMAGE_SUBSYSTEM_UNKNOWN',
-                            1: 'IMAGE_SUBSYSTEM_NATIVE',
-                            2: 'IMAGE_SUBSYSTEM_WINDOWS_GUI',
-                            3: 'IMAGE_SUBSYSTEM_WINDOWS_CUI',
-                            5: 'IMAGE_SUBSYSTEM_OS2_CUI',
-                            7: 'IMAGE_SUBSYSTEM_POSIX_CUI',
-                            9: 'IMAGE_SUBSYSTEM_WINDOWS_CE_GUI',
-                            10:'IMAGE_SUBSYSTEM_EFI_APPLICATION',
-                            11:'IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER',
-                            12:'IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER',
-                            13:'IMAGE_SUBSYSTEM_EFI_ROM',
-                            14:'IMAGE_SUBSYSTEM_XBOX'},
-                        'target': 'unsigned short'}]],
+        'Subsystem' : [None, ['Enumeration', {
+            'choices': {
+                0: 'IMAGE_SUBSYSTEM_UNKNOWN',
+                1: 'IMAGE_SUBSYSTEM_NATIVE',
+                2: 'IMAGE_SUBSYSTEM_WINDOWS_GUI',
+                3: 'IMAGE_SUBSYSTEM_WINDOWS_CUI',
+                5: 'IMAGE_SUBSYSTEM_OS2_CUI',
+                7: 'IMAGE_SUBSYSTEM_POSIX_CUI',
+                9: 'IMAGE_SUBSYSTEM_WINDOWS_CE_GUI',
+                10:'IMAGE_SUBSYSTEM_EFI_APPLICATION',
+                11:'IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER',
+                12:'IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER',
+                13:'IMAGE_SUBSYSTEM_EFI_ROM',
+                14:'IMAGE_SUBSYSTEM_XBOX'},
+            'target': 'unsigned short'}]],
 
-            'DataDirectory' : [None, ['IndexedArray', {
-                        'count': 16,
-                        'index_table': {
-                            'IMAGE_DIRECTORY_ENTRY_EXPORT':        0,
-                            'IMAGE_DIRECTORY_ENTRY_IMPORT':        1,
-                            'IMAGE_DIRECTORY_ENTRY_RESOURCE':      2,
-                            'IMAGE_DIRECTORY_ENTRY_EXCEPTION':     3,
-                            'IMAGE_DIRECTORY_ENTRY_SECURITY':      4,
-                            'IMAGE_DIRECTORY_ENTRY_BASERELOC':     5,
-                            'IMAGE_DIRECTORY_ENTRY_DEBUG':         6,
-                            'IMAGE_DIRECTORY_ENTRY_COPYRIGHT':     7,
-                            'IMAGE_DIRECTORY_ENTRY_GLOBALPTR':     8,
-                            'IMAGE_DIRECTORY_ENTRY_TLS':           9,
-                            'IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG':   10,
-                            'IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT':  11,
-                            'IMAGE_DIRECTORY_ENTRY_IAT':           12,
-                            'IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT':  13,
-                            'IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR':14,
-                            'IMAGE_DIRECTORY_ENTRY_RESERVED':      15,
-                            },
-                        'target': '_IMAGE_DATA_DIRECTORY'}]],
-            }],
+        'DataDirectory' : [None, ['IndexedArray', {
+            'count': 16,
+            'index_table': {
+                'IMAGE_DIRECTORY_ENTRY_EXPORT':        0,
+                'IMAGE_DIRECTORY_ENTRY_IMPORT':        1,
+                'IMAGE_DIRECTORY_ENTRY_RESOURCE':      2,
+                'IMAGE_DIRECTORY_ENTRY_EXCEPTION':     3,
+                'IMAGE_DIRECTORY_ENTRY_SECURITY':      4,
+                'IMAGE_DIRECTORY_ENTRY_BASERELOC':     5,
+                'IMAGE_DIRECTORY_ENTRY_DEBUG':         6,
+                'IMAGE_DIRECTORY_ENTRY_COPYRIGHT':     7,
+                'IMAGE_DIRECTORY_ENTRY_GLOBALPTR':     8,
+                'IMAGE_DIRECTORY_ENTRY_TLS':           9,
+                'IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG':   10,
+                'IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT':  11,
+                'IMAGE_DIRECTORY_ENTRY_IAT':           12,
+                'IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT':  13,
+                'IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR':14,
+                'IMAGE_DIRECTORY_ENTRY_RESERVED':      15,
+                },
+            'target': '_IMAGE_DATA_DIRECTORY'}]],
+        }],
     "_IMAGE_FILE_HEADER": [None, {
-            'Machine' : [None, ['Enumeration', {
-                        'choices': {
-                            0x0000: 'IMAGE_FILE_MACHINE_UNKNOWN',
-                            0x01d3: 'IMAGE_FILE_MACHINE_AM33',
-                            0x8664: 'IMAGE_FILE_MACHINE_AMD64',
-                            0x01c0: 'IMAGE_FILE_MACHINE_ARM',
-                            0x0ebc: 'IMAGE_FILE_MACHINE_EBC',
-                            0x014c: 'IMAGE_FILE_MACHINE_I386',
-                            0x0200: 'IMAGE_FILE_MACHINE_IA64',
-                            0x9041: 'IMAGE_FILE_MACHINE_MR32',
-                            0x0266: 'IMAGE_FILE_MACHINE_MIPS16',
-                            0x0366: 'IMAGE_FILE_MACHINE_MIPSFPU',
-                            0x0466: 'IMAGE_FILE_MACHINE_MIPSFPU16',
-                            0x01f0: 'IMAGE_FILE_MACHINE_POWERPC',
-                            0x01f1: 'IMAGE_FILE_MACHINE_POWERPCFP',
-                            0x0166: 'IMAGE_FILE_MACHINE_R4000',
-                            0x01a2: 'IMAGE_FILE_MACHINE_SH3',
-                            0x01a3: 'IMAGE_FILE_MACHINE_SH3DSP',
-                            0x01a6: 'IMAGE_FILE_MACHINE_SH4',
-                            0x01a8: 'IMAGE_FILE_MACHINE_SH5',
-                            0x01c2: 'IMAGE_FILE_MACHINE_THUMB',
-                            0x0169: 'IMAGE_FILE_MACHINE_WCEMIPSV2'},
-                        'target': 'unsigned short'
-                        }]],
+        'Machine' : [None, ['Enumeration', {
+            'choices': {
+                0x0000: 'IMAGE_FILE_MACHINE_UNKNOWN',
+                0x01d3: 'IMAGE_FILE_MACHINE_AM33',
+                0x8664: 'IMAGE_FILE_MACHINE_AMD64',
+                0x01c0: 'IMAGE_FILE_MACHINE_ARM',
+                0x0ebc: 'IMAGE_FILE_MACHINE_EBC',
+                0x014c: 'IMAGE_FILE_MACHINE_I386',
+                0x0200: 'IMAGE_FILE_MACHINE_IA64',
+                0x9041: 'IMAGE_FILE_MACHINE_MR32',
+                0x0266: 'IMAGE_FILE_MACHINE_MIPS16',
+                0x0366: 'IMAGE_FILE_MACHINE_MIPSFPU',
+                0x0466: 'IMAGE_FILE_MACHINE_MIPSFPU16',
+                0x01f0: 'IMAGE_FILE_MACHINE_POWERPC',
+                0x01f1: 'IMAGE_FILE_MACHINE_POWERPCFP',
+                0x0166: 'IMAGE_FILE_MACHINE_R4000',
+                0x01a2: 'IMAGE_FILE_MACHINE_SH3',
+                0x01a3: 'IMAGE_FILE_MACHINE_SH3DSP',
+                0x01a6: 'IMAGE_FILE_MACHINE_SH4',
+                0x01a8: 'IMAGE_FILE_MACHINE_SH5',
+                0x01c2: 'IMAGE_FILE_MACHINE_THUMB',
+                0x0169: 'IMAGE_FILE_MACHINE_WCEMIPSV2'},
+            'target': 'unsigned short'
+            }]],
 
-            'Characteristics' : [None, ['Flags', {
-                        'maskmap': {
-                            'IMAGE_FILE_RELOCS_STRIPPED': 0x0001,
-                            'IMAGE_FILE_EXECUTABLE_IMAGE': 0x0002,
-                            'IMAGE_FILE_LINE_NUMS_STRIPPED': 0x0004,
-                            'IMAGE_FILE_LOCAL_SYMS_STRIPPED': 0x0008,
-                            'IMAGE_FILE_AGGRESIVE_WS_TRIM': 0x0010,
-                            'IMAGE_FILE_LARGE_ADDRESS_AWARE': 0x0020,
-                            'IMAGE_FILE_16BIT_MACHINE': 0x0040,
-                            'IMAGE_FILE_BYTES_REVERSED_LO': 0x0080,
-                            'IMAGE_FILE_32BIT_MACHINE': 0x0100,
-                            'IMAGE_FILE_DEBUG_STRIPPED': 0x0200,
-                            'IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP': 0x0400,
-                            'IMAGE_FILE_NET_RUN_FROM_SWAP': 0x0800,
-                            'IMAGE_FILE_SYSTEM': 0x1000,
-                            'IMAGE_FILE_DLL': 0x2000,
-                            'IMAGE_FILE_UP_SYSTEM_ONLY': 0x4000,
-                            'IMAGE_FILE_BYTES_REVERSED_HI': 0x8000,
-                            },
-                        'target': 'unsigned short'}]],
-            'TimeDateStamp' : [None, ['UnixTimeStamp', {}]],
-            }],
+        'Characteristics' : [None, ['Flags', {
+            'maskmap': {
+                'IMAGE_FILE_RELOCS_STRIPPED': 0x0001,
+                'IMAGE_FILE_EXECUTABLE_IMAGE': 0x0002,
+                'IMAGE_FILE_LINE_NUMS_STRIPPED': 0x0004,
+                'IMAGE_FILE_LOCAL_SYMS_STRIPPED': 0x0008,
+                'IMAGE_FILE_AGGRESIVE_WS_TRIM': 0x0010,
+                'IMAGE_FILE_LARGE_ADDRESS_AWARE': 0x0020,
+                'IMAGE_FILE_16BIT_MACHINE': 0x0040,
+                'IMAGE_FILE_BYTES_REVERSED_LO': 0x0080,
+                'IMAGE_FILE_32BIT_MACHINE': 0x0100,
+                'IMAGE_FILE_DEBUG_STRIPPED': 0x0200,
+                'IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP': 0x0400,
+                'IMAGE_FILE_NET_RUN_FROM_SWAP': 0x0800,
+                'IMAGE_FILE_SYSTEM': 0x1000,
+                'IMAGE_FILE_DLL': 0x2000,
+                'IMAGE_FILE_UP_SYSTEM_ONLY': 0x4000,
+                'IMAGE_FILE_BYTES_REVERSED_HI': 0x8000,
+                },
+            'target': 'unsigned short'}]],
+        'TimeDateStamp' : [None, ['UnixTimeStamp', {}]],
+        }],
 
     "_IMAGE_SECTION_HEADER": [None, {
-            'Name' : [None, ['String', {'length': 8, 'term': None}]],
-            'Characteristics' : [None, ['Flags', {
-                        'maskmap': {
-                            'IMAGE_SCN_CNT_CODE':                  0x00000020,
-                            'IMAGE_SCN_CNT_INITIALIZED_DATA':      0x00000040,
-                            'IMAGE_SCN_CNT_UNINITIALIZED_DATA':    0x00000080,
-                            'IMAGE_SCN_LNK_OTHER':                 0x00000100,
-                            'IMAGE_SCN_LNK_INFO':                  0x00000200,
-                            'IMAGE_SCN_LNK_REMOVE':                0x00000800,
-                            'IMAGE_SCN_LNK_COMDAT':                0x00001000,
-                            'IMAGE_SCN_MEM_FARDATA':               0x00008000,
-                            'IMAGE_SCN_MEM_PURGEABLE':             0x00020000,
-                            'IMAGE_SCN_MEM_16BIT':                 0x00020000,
-                            'IMAGE_SCN_MEM_LOCKED':                0x00040000,
-                            'IMAGE_SCN_MEM_PRELOAD':               0x00080000,
-                            'IMAGE_SCN_ALIGN_1BYTES':              0x00100000,
-                            'IMAGE_SCN_ALIGN_2BYTES':              0x00200000,
-                            'IMAGE_SCN_ALIGN_4BYTES':              0x00300000,
-                            'IMAGE_SCN_ALIGN_8BYTES':              0x00400000,
-                            'IMAGE_SCN_ALIGN_16BYTES':             0x00500000,
-                            'IMAGE_SCN_ALIGN_32BYTES':             0x00600000,
-                            'IMAGE_SCN_ALIGN_64BYTES':             0x00700000,
-                            'IMAGE_SCN_ALIGN_128BYTES':            0x00800000,
-                            'IMAGE_SCN_ALIGN_256BYTES':            0x00900000,
-                            'IMAGE_SCN_ALIGN_512BYTES':            0x00A00000,
-                            'IMAGE_SCN_ALIGN_1024BYTES':           0x00B00000,
-                            'IMAGE_SCN_ALIGN_2048BYTES':           0x00C00000,
-                            'IMAGE_SCN_ALIGN_4096BYTES':           0x00D00000,
-                            'IMAGE_SCN_ALIGN_8192BYTES':           0x00E00000,
-                            'IMAGE_SCN_ALIGN_MASK':                0x00F00000,
-                            'IMAGE_SCN_LNK_NRELOC_OVFL':           0x01000000,
-                            'IMAGE_SCN_MEM_DISCARDABLE':           0x02000000,
-                            'IMAGE_SCN_MEM_NOT_CACHED':            0x04000000,
-                            'IMAGE_SCN_MEM_NOT_PAGED':             0x08000000,
-                            'IMAGE_SCN_MEM_SHARED':                0x10000000,
-                            'IMAGE_SCN_MEM_EXECUTE':               0x20000000,
-                            'IMAGE_SCN_MEM_READ':                  0x40000000,
-                            'IMAGE_SCN_MEM_WRITE':                 0x80000000L},
-                        'target': 'unsigned long'}]],
-            }],
+        'Name' : [None, ['String', {'length': 8, 'term': None}]],
+        'Characteristics' : [None, ['Flags', {
+            'maskmap': {
+                'IMAGE_SCN_CNT_CODE':                  0x00000020,
+                'IMAGE_SCN_CNT_INITIALIZED_DATA':      0x00000040,
+                'IMAGE_SCN_CNT_UNINITIALIZED_DATA':    0x00000080,
+                'IMAGE_SCN_LNK_OTHER':                 0x00000100,
+                'IMAGE_SCN_LNK_INFO':                  0x00000200,
+                'IMAGE_SCN_LNK_REMOVE':                0x00000800,
+                'IMAGE_SCN_LNK_COMDAT':                0x00001000,
+                'IMAGE_SCN_MEM_FARDATA':               0x00008000,
+                'IMAGE_SCN_MEM_PURGEABLE':             0x00020000,
+                'IMAGE_SCN_MEM_16BIT':                 0x00020000,
+                'IMAGE_SCN_MEM_LOCKED':                0x00040000,
+                'IMAGE_SCN_MEM_PRELOAD':               0x00080000,
+                'IMAGE_SCN_ALIGN_1BYTES':              0x00100000,
+                'IMAGE_SCN_ALIGN_2BYTES':              0x00200000,
+                'IMAGE_SCN_ALIGN_4BYTES':              0x00300000,
+                'IMAGE_SCN_ALIGN_8BYTES':              0x00400000,
+                'IMAGE_SCN_ALIGN_16BYTES':             0x00500000,
+                'IMAGE_SCN_ALIGN_32BYTES':             0x00600000,
+                'IMAGE_SCN_ALIGN_64BYTES':             0x00700000,
+                'IMAGE_SCN_ALIGN_128BYTES':            0x00800000,
+                'IMAGE_SCN_ALIGN_256BYTES':            0x00900000,
+                'IMAGE_SCN_ALIGN_512BYTES':            0x00A00000,
+                'IMAGE_SCN_ALIGN_1024BYTES':           0x00B00000,
+                'IMAGE_SCN_ALIGN_2048BYTES':           0x00C00000,
+                'IMAGE_SCN_ALIGN_4096BYTES':           0x00D00000,
+                'IMAGE_SCN_ALIGN_8192BYTES':           0x00E00000,
+                'IMAGE_SCN_ALIGN_MASK':                0x00F00000,
+                'IMAGE_SCN_LNK_NRELOC_OVFL':           0x01000000,
+                'IMAGE_SCN_MEM_DISCARDABLE':           0x02000000,
+                'IMAGE_SCN_MEM_NOT_CACHED':            0x04000000,
+                'IMAGE_SCN_MEM_NOT_PAGED':             0x08000000,
+                'IMAGE_SCN_MEM_SHARED':                0x10000000,
+                'IMAGE_SCN_MEM_EXECUTE':               0x20000000,
+                'IMAGE_SCN_MEM_READ':                  0x40000000,
+                'IMAGE_SCN_MEM_WRITE':                 0x80000000L},
+            'target': 'unsigned long'}]],
+        }],
 
     "_IMAGE_IMPORT_DESCRIPTOR": [None, {
-            'Name': [None, ['RVAPointer', dict(
-                        target="String",
-                        target_args=dict(length=128))]],
+        'Name': [None, ['RVAPointer', dict(
+            target="String",
+            target_args=dict(length=128))]],
 
-            'TimeDateStamp': [None, ['UnixTimeStamp', {}]],
+        'TimeDateStamp': [None, ['UnixTimeStamp', {}]],
 
-            # This is an RVA pointer to an array of _IMAGE_THUNK_DATA32 structs.
-            'FirstThunk': [None, ['RVAPointer', dict(target="ThunkArray")]],
+        # This is an RVA pointer to an array of _IMAGE_THUNK_DATA32 structs.
+        'FirstThunk': [None, ['RVAPointer', dict(target="ThunkArray")]],
 
-            # This is a copy of the original IAT in memory.
-            'OriginalFirstThunk': [None, ['RVAPointer', dict(
-                        target="ThunkArray"
-                        )]],
-            }],
+        # This is a copy of the original IAT in memory.
+        'OriginalFirstThunk': [None, ['RVAPointer', dict(
+            target="ThunkArray"
+            )]],
+        }],
 
     "_IMAGE_EXPORT_DIRECTORY": [None, {
-            'Name': [None, ['RVAPointer', dict(
-                        target="String",
-                        target_args=dict(length=128)
-                        )]],
+        'Name': [None, ['RVAPointer', dict(
+            target="String",
+            target_args=dict(length=128)
+            )]],
 
-            'AddressOfFunctions': [None, ['RVAPointer', dict(
-                        target="Array",
-                        target_args=dict(
-                            target="RVAPointer",
-                            target_args=dict(target="Function"),
-                            count=lambda x: x.NumberOfFunctions,
-                            )
-                        )]],
+        'AddressOfFunctions': [None, ['RVAPointer', dict(
+            target="Array",
+            target_args=dict(
+                target="RVAPointer",
+                target_args=dict(target="Function"),
+                count=lambda x: x.NumberOfFunctions,
+                )
+            )]],
 
-            'AddressOfNames': [None, ["RVAPointer", dict(
-                        target="Array",
-                        target_args=dict(
-                            target="RVAPointer",
-                            target_args=dict(target="String"),
-                            count=lambda x: x.NumberOfNames,
-                            )
-                        )]],
+        'AddressOfNames': [None, ["RVAPointer", dict(
+            target="Array",
+            target_args=dict(
+                target="RVAPointer",
+                target_args=dict(target="String"),
+                count=lambda x: x.NumberOfNames,
+                )
+            )]],
 
-            'AddressOfNameOrdinals': [None, ['RVAPointer', dict(
-                        target="Array",
-                        target_args=dict(
-                            target="unsigned short int",
-                            count=lambda x: x.NumberOfFunctions)
-                        )]],
-            }],
+        'AddressOfNameOrdinals': [None, ['RVAPointer', dict(
+            target="Array",
+            target_args=dict(
+                target="unsigned short int",
+                count=lambda x: x.NumberOfFunctions)
+            )]],
+        }],
 
     "_IMAGE_THUNK_DATA32": [None, {
-            'AddressOfData' : [0x0, ['RVAPointer', dict(
-                        target="_IMAGE_IMPORT_BY_NAME"
-                        )]],
-            }],
+        'AddressOfData' : [0x0, ['RVAPointer', dict(
+            target="_IMAGE_IMPORT_BY_NAME"
+            )]],
+        }],
 
     "_IMAGE_NT_HEADERS": [None, {
-            # This is a psuedo member to give access to the sections.
-            "Sections": [
-                # The sections start immediately after the OptionalHeader:
-                lambda x: (x.FileHeader.SizeOfOptionalHeader +
-                           x.OptionalHeader.obj_offset),
+        # This is a psuedo member to give access to the sections.
+        "Sections": [
+            # The sections start immediately after the OptionalHeader:
+            lambda x: (x.FileHeader.SizeOfOptionalHeader +
+                       x.OptionalHeader.obj_offset),
 
-                # The sections are an array of _IMAGE_SECTION_HEADER structs.
-                # The number of sections is found in the FileHeader
-                ['Array', dict(
-                        target="_IMAGE_SECTION_HEADER",
-                        count=lambda x: x.FileHeader.NumberOfSections,
-                        )]],
-            }],
+            # The sections are an array of _IMAGE_SECTION_HEADER structs.
+            # The number of sections is found in the FileHeader
+            ['Array', dict(
+                target="_IMAGE_SECTION_HEADER",
+                count=lambda x: x.FileHeader.NumberOfSections,
+                )]],
+        }],
 
     "_IMAGE_RESOURCE_DIRECTORY": [None, {
         "Entries": [0x10, ["Array", dict(
@@ -350,212 +350,212 @@ pe_overlays = {
         }],
 
     "_IMAGE_RESOURCE_DIRECTORY_ENTRY": [None, {
-            "Name": [None, ['ResourcePointer', dict(target="PrefixedString")]],
-            "Type": [0, ["Enumeration", dict(choices={
-                            1:    'RT_CURSOR',
-                            2:    'RT_BITMAP',
-                            3:    'RT_ICON',
-                            4:    'RT_MENU',
-                            5:    'RT_DIALOG',
-                            6:    'RT_STRING',
-                            7:    'RT_FONTDIR',
-                            8:    'RT_FONT',
-                            9:    'RT_ACCELERATOR',
-                            10:   'RT_RCDATA',
-                            11:   'RT_MESSAGETABLE',
-                            12:   'RT_GROUP_CURSOR',
-                            14:   'RT_GROUP_ICON',
-                            16:   'RT_VERSION',
-                            17:   'RT_DLGINCLUDE',
-                            19:   'RT_PLUGPLAY',
-                            20:   'RT_VXD',
-                            21:   'RT_ANICURSOR',
-                            22:   'RT_ANIICON',
-                            23:   'RT_HTML',
-                            24:   'RT_MANIFEST'})]],
+        "Name": [None, ['ResourcePointer', dict(target="PrefixedString")]],
+        "Type": [0, ["Enumeration", dict(choices={
+            1:    'RT_CURSOR',
+            2:    'RT_BITMAP',
+            3:    'RT_ICON',
+            4:    'RT_MENU',
+            5:    'RT_DIALOG',
+            6:    'RT_STRING',
+            7:    'RT_FONTDIR',
+            8:    'RT_FONT',
+            9:    'RT_ACCELERATOR',
+            10:   'RT_RCDATA',
+            11:   'RT_MESSAGETABLE',
+            12:   'RT_GROUP_CURSOR',
+            14:   'RT_GROUP_ICON',
+            16:   'RT_VERSION',
+            17:   'RT_DLGINCLUDE',
+            19:   'RT_PLUGPLAY',
+            20:   'RT_VXD',
+            21:   'RT_ANICURSOR',
+            22:   'RT_ANIICON',
+            23:   'RT_HTML',
+            24:   'RT_MANIFEST'})]],
 
-            # This is true when we need to use the Name field.
-            "OffsetToDataInt": [0x04, ['unsigned int']],
-            "OffsetToData": [0x04, ['ResourcePointer', dict(
-                        target="_IMAGE_RESOURCE_DATA_ENTRY",
-                        )]],
-            "Entry": [0x04, ['ResourcePointer', dict(
-                        target="_IMAGE_RESOURCE_DIRECTORY")]],
+        # This is true when we need to use the Name field.
+        "OffsetToDataInt": [0x04, ['unsigned int']],
+        "OffsetToData": [0x04, ['ResourcePointer', dict(
+            target="_IMAGE_RESOURCE_DATA_ENTRY",
+            )]],
+        "Entry": [0x04, ['ResourcePointer', dict(
+            target="_IMAGE_RESOURCE_DIRECTORY")]],
 
-            # If this is set the child is another
-            # _IMAGE_RESOURCE_DIRECTORY_ENTRY
-            "ChildIsEntry": [0x04, ['BitField', dict(
-                        start_bit=31,
-                        end_bit=32,
-                        )]],
-            }],
+        # If this is set the child is another
+        # _IMAGE_RESOURCE_DIRECTORY_ENTRY
+        "ChildIsEntry": [0x04, ['BitField', dict(
+            start_bit=31,
+            end_bit=32,
+            )]],
+        }],
 
     'PrefixedString' : [0x02, {
-            'Length' : [0x0, ['unsigned short']],
-            'Buffer' : [0x2, ['UnicodeString', dict(
-                        length=lambda x: x.Length * 2 + 1,
-                        )]],
-            }],
+        'Length' : [0x0, ['unsigned short']],
+        'Buffer' : [0x2, ['UnicodeString', dict(
+            length=lambda x: x.Length * 2 + 1,
+            )]],
+        }],
 
     '_IMAGE_RESOURCE_DATA_ENTRY': [0x10, {
-            'OffsetToData': [0x00, ['RVAPointer', dict(
-                        target="String",
-                        target_args=dict(length=lambda x: x.Size))]],
-            'Size': [0x04, ['unsigned int']],
-            'CodePage': [0x08, ['unsigned int']],
-            }],
+        'OffsetToData': [0x00, ['RVAPointer', dict(
+            target="String",
+            target_args=dict(length=lambda x: x.Size))]],
+        'Size': [0x04, ['unsigned int']],
+        'CodePage': [0x08, ['unsigned int']],
+        }],
 
     '_IMAGE_IMPORT_BY_NAME' : [None, {
-            'Name' : [None, ['String', dict(length=128)]],
-            }],
+        'Name' : [None, ['String', dict(length=128)]],
+        }],
 
     '_IMAGE_DATA_DIRECTORY' : [None, {
-            'VirtualAddress' : [None, ['RVAPointer', dict(
-                        target='unsigned int'
-                        )]],
-            }],
+        'VirtualAddress' : [None, ['RVAPointer', dict(
+            target='unsigned int'
+            )]],
+        }],
 
     '_IMAGE_DEBUG_DIRECTORY': [None, {
-            "AddressOfRawData": [20, ["RVAPointer", dict(
-                        # We only support CV_RSDS_HEADER for XP+
-                        target="CV_RSDS_HEADER",
-                        )]],
-            "TimeDateStamp": [0x4, ["UnixTimeStamp"]],
-            "Type": [12, ["Enumeration", dict(
-                        choices={
-                            0: "IMAGE_DEBUG_TYPE_UNKNOWN",
-                            1: "IMAGE_DEBUG_TYPE_COFF",
-                            2: "IMAGE_DEBUG_TYPE_CODEVIEW",
-                            3: "IMAGE_DEBUG_TYPE_FPO",
-                            4: "IMAGE_DEBUG_TYPE_MISC",
-                            5: "IMAGE_DEBUG_TYPE_EXCEPTION",
-                            6: "IMAGE_DEBUG_TYPE_FIXUP",
-                            7: "IMAGE_DEBUG_TYPE_OMAP_TO_SRC",
-                            8: "IMAGE_DEBUG_TYPE_OMAP_FROM_SRC",
-                            9: "IMAGE_DEBUG_TYPE_BORLAND",
-                            10: "IMAGE_DEBUG_TYPE_RESERVED",
-                            },
-                        target="unsigned int",
-                        )]],
-            }],
+        "AddressOfRawData": [20, ["RVAPointer", dict(
+            # We only support CV_RSDS_HEADER for XP+
+            target="CV_RSDS_HEADER",
+            )]],
+        "TimeDateStamp": [0x4, ["UnixTimeStamp"]],
+        "Type": [12, ["Enumeration", dict(
+            choices={
+                0: "IMAGE_DEBUG_TYPE_UNKNOWN",
+                1: "IMAGE_DEBUG_TYPE_COFF",
+                2: "IMAGE_DEBUG_TYPE_CODEVIEW",
+                3: "IMAGE_DEBUG_TYPE_FPO",
+                4: "IMAGE_DEBUG_TYPE_MISC",
+                5: "IMAGE_DEBUG_TYPE_EXCEPTION",
+                6: "IMAGE_DEBUG_TYPE_FIXUP",
+                7: "IMAGE_DEBUG_TYPE_OMAP_TO_SRC",
+                8: "IMAGE_DEBUG_TYPE_OMAP_FROM_SRC",
+                9: "IMAGE_DEBUG_TYPE_BORLAND",
+                10: "IMAGE_DEBUG_TYPE_RESERVED",
+                },
+            target="unsigned int",
+            )]],
+        }],
 
     "_GUID": [16, {
-            "Data4": [8, ["String", dict(length=8, term=None)]],
-            "AsString": lambda x: ("%08x%04x%04x%s" % (
-                x.Data1, x.Data2, x.Data3, x.Data4.v().encode('hex'))).upper(),
-            }],
+        "Data4": [8, ["String", dict(length=8, term=None)]],
+        "AsString": lambda x: ("%08x%04x%04x%s" % (
+            x.Data1, x.Data2, x.Data3, x.Data4.v().encode('hex'))).upper(),
+        }],
 
     # This struct is reversed.
     'CV_RSDS_HEADER': [None, {
-            "Signature": [0, ["String", dict(length=4)]],
-            "GUID": [4, ["_GUID"]],
-            "GUID_AGE": lambda x: "%s%X" % (x.GUID.AsString, x.Age),
-            "Age": [20, ["unsigned int"]],
-            "Filename": [24, ["String"]],
-            }],
+        "Signature": [0, ["String", dict(length=4)]],
+        "GUID": [4, ["_GUID"]],
+        "GUID_AGE": lambda x: "%s%X" % (x.GUID.AsString, x.Age),
+        "Age": [20, ["unsigned int"]],
+        "Filename": [24, ["String"]],
+        }],
 
     '_IMAGE_THUNK_DATA64' : [None, {
-            'AddressOfData' : [0, ['RVAPointer', dict(
-                        target="_IMAGE_IMPORT_BY_NAME"
-                        )]],
+        'AddressOfData' : [0, ['RVAPointer', dict(
+            target="_IMAGE_IMPORT_BY_NAME"
+            )]],
 
-            # Fake member for testing if the highest bit is set
-            'OrdinalBit' : [0, ['BitField', dict(
-                        start_bit=63,
-                        end_bit=64
-                        )]],
+        # Fake member for testing if the highest bit is set
+        'OrdinalBit' : [0, ['BitField', dict(
+            start_bit=63,
+            end_bit=64
+            )]],
 
-            }],
+        }],
 
     'tagVS_FIXEDFILEINFO': [None, {
-            "dwFileOS": [None, ["Flags", dict(
-                        maskmap={
-                            "VOS_DOS": 0x00010000,
-                            "VOS_NT": 0x00040000,
-                            "VOS__WINDOWS16": 0x00000001,
-                            "VOS__WINDOWS32": 0x00000004,
-                            },
-                        target='unsigned int')]],
-            "dwFileType": [None, ['Enumeration', dict(
-                        choices={
-                            1: "VFT_APP (Application)",
-                            2: "VFT_DLL (DLL)",
-                            3: "VFT_DRV (Driver)",
-                            4: "VFT_FORT (Font)",
-                            5: "VFT_VXD",
-                            7: "VFT_STATIC_LIB",
-                            },
-                        target='unsigned int')]],
-            "dwFileDate": [lambda x: x.m("dwFileDateLS").obj_offset,
-                           ['WinFileTime', {}]],
-            }],
+        "dwFileOS": [None, ["Flags", dict(
+            maskmap={
+                "VOS_DOS": 0x00010000,
+                "VOS_NT": 0x00040000,
+                "VOS__WINDOWS16": 0x00000001,
+                "VOS__WINDOWS32": 0x00000004,
+                },
+            target='unsigned int')]],
+        "dwFileType": [None, ['Enumeration', dict(
+            choices={
+                1: "VFT_APP (Application)",
+                2: "VFT_DLL (DLL)",
+                3: "VFT_DRV (Driver)",
+                4: "VFT_FORT (Font)",
+                5: "VFT_VXD",
+                7: "VFT_STATIC_LIB",
+                },
+            target='unsigned int')]],
+        "dwFileDate": [lambda x: x.m("dwFileDateLS").obj_offset,
+                       ['WinFileTime', {}]],
+        }],
 
     # The size of this is given by the Length member.
     "StringFileInfo": [lambda x: RoundUpToWordAlignment(x.Length), {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ['unsigned short int']],
+        "Length": [0x00, ['unsigned short int']],
+        "ValueLength": [0x02, ['unsigned short int']],
+        "Type": [0x04, ['unsigned short int']],
 
-            # Must be "StringFileInfo"
-            "Key": [0x06, ['UnicodeString', dict(length=28)]],
+        # Must be "StringFileInfo"
+        "Key": [0x06, ['UnicodeString', dict(length=28)]],
 
-            "Children": [AlignAfter("Key"), ['ListArray', dict(
-                        target='StringTable',
-                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
-            }],
+        "Children": [AlignAfter("Key"), ['ListArray', dict(
+            target='StringTable',
+            maximum_offset=lambda x: x.Length + x.obj_offset)]],
+        }],
 
     # The size of this is given by the Length member.
     "VarFileInfo": [lambda x: RoundUpToWordAlignment(x.Length), {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ['unsigned short int']],
+        "Length": [0x00, ['unsigned short int']],
+        "ValueLength": [0x02, ['unsigned short int']],
+        "Type": [0x04, ['unsigned short int']],
 
-            # Must be "VarFileInfo"
-            "Key": [0x06, ['UnicodeString', dict(length=24)]],
+        # Must be "VarFileInfo"
+        "Key": [0x06, ['UnicodeString', dict(length=24)]],
 
-            "Children": [AlignAfter("Key"), ['ListArray', dict(
-                        target='Var',
-                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
-            }],
+        "Children": [AlignAfter("Key"), ['ListArray', dict(
+            target='Var',
+            maximum_offset=lambda x: x.Length + x.obj_offset)]],
+        }],
 
     # Round up the size of the struct to word alignment.
     "Var": [lambda x: RoundUpToWordAlignment(x.Length), {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ['unsigned short int']],
+        "Length": [0x00, ['unsigned short int']],
+        "ValueLength": [0x02, ['unsigned short int']],
+        "Type": [0x04, ['unsigned short int']],
 
-            # This is exactly Translation
-            "Key": [0x06, ['UnicodeString', dict(length=24)]],
+        # This is exactly Translation
+        "Key": [0x06, ['UnicodeString', dict(length=24)]],
 
-            "Value": [AlignAfter("Key"), ['String', dict(
-                        length=lambda x: x.ValueLength, term=None)]],
-            }],
+        "Value": [AlignAfter("Key"), ['String', dict(
+            length=lambda x: x.ValueLength, term=None)]],
+        }],
 
     "StringTable": [lambda x: RoundUpToWordAlignment(x.Length), {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ['unsigned short int']],
+        "Length": [0x00, ['unsigned short int']],
+        "ValueLength": [0x02, ['unsigned short int']],
+        "Type": [0x04, ['unsigned short int']],
 
-            # In MSDN this is called szKey.
-            "LangID": [0x06, ['UnicodeString', dict(length=16, term=None)]],
+        # In MSDN this is called szKey.
+        "LangID": [0x06, ['UnicodeString', dict(length=16, term=None)]],
 
-            "Children": [AlignAfter("LangID"), ['ListArray', dict(
-                        target='ResourceString',
-                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
-            }],
+        "Children": [AlignAfter("LangID"), ['ListArray', dict(
+            target='ResourceString',
+            maximum_offset=lambda x: x.Length + x.obj_offset)]],
+        }],
 
     # Round up the size of the struct to word alignment.
     "ResourceString": [lambda x: RoundUpToWordAlignment(x.Length), {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ['unsigned short int']],
+        "Length": [0x00, ['unsigned short int']],
+        "ValueLength": [0x02, ['unsigned short int']],
+        "Type": [0x04, ['unsigned short int']],
 
-            # This is a null terminated unicode string representing the key.
-            "Key": [0x06, ['UnicodeString', dict(length=1024)]],
+        # This is a null terminated unicode string representing the key.
+        "Key": [0x06, ['UnicodeString', dict(length=1024)]],
 
-            "Value": [AlignAfter("Key"), ['UnicodeString', dict(
-                        length=lambda x: x.ValueLength * 2)]],
-            }],
+        "Value": [AlignAfter("Key"), ['UnicodeString', dict(
+            length=lambda x: x.ValueLength * 2)]],
+        }],
 
     # Note this is a problematic structure due to the alignment
     # requirements. Its not too much of a problem for the Rekall Memory
@@ -563,26 +563,26 @@ pe_overlays = {
 
     # http://msdn.microsoft.com/en-us/library/windows/desktop/ms647001(v=vs.85).aspx
     'VS_VERSIONINFO': [0x06, {
-            "Length": [0x00, ['unsigned short int']],
-            "ValueLength": [0x02, ['unsigned short int']],
-            "Type": [0x04, ["Enumeration", dict(
-                        choices={
-                            0: "Binary",
-                            1: "Text",
-                            },
-                        target='unsigned short int')]],
+        "Length": [0x00, ['unsigned short int']],
+        "ValueLength": [0x02, ['unsigned short int']],
+        "Type": [0x04, ["Enumeration", dict(
+            choices={
+                0: "Binary",
+                1: "Text",
+                },
+            target='unsigned short int')]],
 
-            # Must be VS_VERSION_INFO\x00 in utf16
-            "szKey": [0x06, ["UnicodeString", dict(length=32)]],
+        # Must be VS_VERSION_INFO\x00 in utf16
+        "szKey": [0x06, ["UnicodeString", dict(length=32)]],
 
-            # The member is 32bit aligned after the szKey member.
-            "Value": [AlignAfter("szKey"), ["tagVS_FIXEDFILEINFO"]],
+        # The member is 32bit aligned after the szKey member.
+        "Value": [AlignAfter("szKey"), ["tagVS_FIXEDFILEINFO"]],
 
-            # This member is also aligned after the Value member.
-            "Children": [AlignAfter("Value"), ['ListArray', dict(
-                        target="StringFileInfo",
-                        maximum_offset=lambda x: x.Length + x.obj_offset)]],
-            }],
+        # This member is also aligned after the Value member.
+        "Children": [AlignAfter("Value"), ['ListArray', dict(
+            target="StringFileInfo",
+            maximum_offset=lambda x: x.Length + x.obj_offset)]],
+        }],
     }
 
 # _IMAGE_OPTIONAL_HEADER64 is the same as _IMAGE_OPTIONAL_HEADER but offsets are
@@ -811,6 +811,9 @@ class PE(object):
         # Use the session to load the pe profile.
         self.profile = self.session.LoadProfile("pe")
 
+        if address_space is None:
+            address_space = self.session.GetParameter("default_address_space")
+
         if filename is None and address_space is None:
             raise IOError("Filename or address_space not specified.")
 
@@ -839,7 +842,7 @@ class PE(object):
     def RSDS(self):
         return self.nt_header.OptionalHeader.DataDirectory[
             "IMAGE_DIRECTORY_ENTRY_DEBUG"].VirtualAddress.dereference_as(
-            "_IMAGE_DEBUG_DIRECTORY").AddressOfRawData
+                "_IMAGE_DEBUG_DIRECTORY").AddressOfRawData
 
     def ImportDirectory(self):
         """A generator over the import directory.
@@ -877,7 +880,7 @@ class PE(object):
         for directory in import_directory:
             dll = directory.Name.dereference()
             for thunk in directory.FirstThunk.dereference():
-                function = thunk.u1.Function
+                function = thunk.u1.Function.cast("Pointer")
 
                 yield dll, function, thunk.u1.Ordinal
 

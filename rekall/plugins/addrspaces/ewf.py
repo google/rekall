@@ -127,13 +127,25 @@ class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
     __image = True
 
     def __init__(self, base=None, filename=None, session=None, **kwargs):
-        self.as_assert(base != None, "No base address space provided")
+        if filename is None:
+            self.as_assert(base != None, "No base address space provided")
 
-        self.as_assert(base.read(0, 6) == "\x45\x56\x46\x09\x0D\x0A",
-                       "EWF signature not present")
+            self.as_assert(base.read(0, 6) == "\x45\x56\x46\x09\x0D\x0A",
+                           "EWF signature not present")
 
-        path = session.GetParameter("filename") or filename
-        fhandle = ewf_open([path])
+            filename = base.fname
+
+        self.filename = filename
+        fhandle = ewf_open([self.filename])
 
         super(EWFAddressSpace, self).__init__(
             fhandle=fhandle, session=session, **kwargs)
+
+    def __getstate__(self):
+        state = super(EWFAddressSpace, self).__getstate__()
+        state["filename"] = self.filename
+
+        return state
+
+    def __setstate__(self, state):
+        self.__init__(session=self.session, filename=state["filename"])

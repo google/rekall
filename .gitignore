@@ -5,6 +5,7 @@
 # Generic auto-generated build files
 *.pyc
 *.pyo
+*.o
 
 # Specific auto-generated build files
 /py27

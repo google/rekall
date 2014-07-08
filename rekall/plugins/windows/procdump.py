@@ -33,7 +33,7 @@ from rekall import config
 from rekall import utils
 
 
-class PEDump(common.WinProcessFilter):
+class PEDump(common.WindowsCommandPlugin):
     """Dump a PE binary from memory."""
 
     __name = "pedump"

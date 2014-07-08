@@ -339,13 +339,13 @@ class NTFS_ATTRIBUTE(obj.Struct):
             return addrspace.BufferAddressSpace(
                 data=self.obj_vm.read(
                     self.obj_offset + self.content_offset,
-                    self.content_size))
+                    self.content_size), session=self.obj_session)
         else:
             # Create a defragmented address space.
             address_space = RunListAddressSpace(
                 run_list=list(self.RunList()),
-                base=self.session.physical_address_space,
-                session=self.session)
+                base=self.obj_session.physical_address_space,
+                session=self.obj_session)
 
             return address_space
 

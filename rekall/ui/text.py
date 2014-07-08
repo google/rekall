@@ -291,6 +291,15 @@ class TextColumn(renderer.BaseColumn):
             length = (length - 3) / 2
             return string[:length + even] + "..." + string[-length:]
 
+    def _wrap_cell(self, line, width):
+        # Expand the line into a list of lines wrapped at the width.
+        lines = []
+        for wrapped_line in textwrap.wrap(line, width=width):
+            # Pad the line to the width
+            lines.append(wrapped_line + " " * (width - len(wrapped_line)))
+
+        return lines
+
     def render_cell(self, target, formatstring=None, elide=None):
         """Renders obj according to the format string."""
         if formatstring is None:
@@ -324,7 +333,7 @@ class TextColumn(renderer.BaseColumn):
             old_result = result
             result = []
             for line in old_result:
-                result.extend(textwrap.wrap(line, self.wrap))
+                result.extend(self._wrap_cell(line, self.wrap))
 
         elif elide is None:
             elide = self.table.elide

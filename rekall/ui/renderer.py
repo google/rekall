@@ -111,11 +111,13 @@ class Formatter(string.Formatter):
         except AttributeError:
             result = utils.SmartUnicode(value)
 
+        padding = int(fields.get('width') or 1)
+
         # None objects get a -.
         if result is None or isinstance(result, obj.NoneObject):
-            return "-" * int(fields['width'] or "1")
+            return "-" * (padding - 1)
 
-        return result
+        return result + " " * (padding - len(result))
 
     def format_type_x(self, value, fields):
         _ = fields
@@ -442,8 +444,8 @@ class BaseColumn(object):
         # Look for the wrap specifier.
         m = re.match(r"\[wrap:([^\]]+)\]", formatstring)
         if m:
-            self.formatstring = "s"
             self.wrap = int(m.group(1))
+            self.formatstring = "<%ss" % self.wrap
             self.header_format = "<%ss" % self.wrap
             return
 

@@ -82,8 +82,8 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
                 to_read = max(1000000, int(section.p_filesz))
                 data = self.base.read(section.p_offset, to_read)
                 data = data.split("\x00")[0]
-
-                self.LoadMetadata(data)
+                if data:
+                    self.LoadMetadata(data)
 
     def check_file(self):
         """Checks the base file handle for sanity."""
@@ -99,7 +99,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         """Load the WinPmem metadata from the elf file."""
         try:
             self.metadata.update(yaml.safe_load(data))
-        except yaml.YAMLError as e:
+        except (yaml.YAMLError, TypeError) as e:
             logging.error("Invalid file metadata, skipping: %s" % e)
             return
 

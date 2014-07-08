@@ -144,15 +144,15 @@ class AddressResolver(object):
         self.context = None
         self.Reset()
 
-    def _NormalizeModuleName(self, module):
+    def NormalizeModuleName(self, module):
         try:
             module_name = module.name
         except AttributeError:
             module_name = module
 
-        module_name = module_name.split("/")[-1]
-        module_name = module_name.split("\\")[-1]
-        result = unicode(module_name).split(".")[0]
+        module_name = unicode(module_name)
+        module_name = re.split(r"[/\\]", module_name)[-1]
+        result = module_name.split(".")[0]
         if result == "ntoskrnl":
             result = "nt"
 
@@ -167,7 +167,7 @@ class AddressResolver(object):
                 if not module:
                     raise TypeError("Module name not specified.")
 
-                capture["module"] = self._NormalizeModuleName(module)
+                capture["module"] = self.NormalizeModuleName(module)
 
             if capture["op"] and not (capture["symbol"] or
                                       capture["address"] or
@@ -192,6 +192,32 @@ class AddressResolver(object):
         task = self.session.GetParameter("process_context")
         if task and self.vad:
             return self.vad.find_file_in_task(address, task)
+
+    def FindContainingModule(self, address):
+        """Finds the name of the module containing the specified address.
+
+        Returns:
+          A tuple of start address, end address, name
+          """
+        self._EnsureInitialized()
+
+        # The address may be in kernel space or user space.
+        containing_module = self._FindContainingModule(address)
+
+        if containing_module:
+            name = self.NormalizeModuleName(containing_module.name)
+            return containing_module.base, containing_module.size, name
+
+        # Maybe the address is in userspace.
+        containing_VAD = self._FindProcessVad(address)
+
+        # We find the vad and it
+        if containing_VAD:
+            start, end, name = containing_VAD
+            return start, end, self.NormalizeModuleName(name)
+
+        # If we dont know anything about the address just return Nones.
+        return None, None, None
 
     def GetState(self):
         return dict(modules=self.modules,
@@ -241,7 +267,7 @@ class AddressResolver(object):
             try:
                 self.modules = self.session.plugins.modules()
                 for module in self.modules.lsmod():
-                    module_name = self._NormalizeModuleName(module)
+                    module_name = self.NormalizeModuleName(module)
                     self.modules_by_name[module_name] = module
 
                     # Update the image base of our profiles.
@@ -263,7 +289,7 @@ class AddressResolver(object):
     def _LoadProfile(self, module_name, profile):
         self._EnsureInitialized()
         try:
-            module_name = self._NormalizeModuleName(module_name)
+            module_name = self.NormalizeModuleName(module_name)
             # Try to get the profile directly from the local cache.
             if module_name in self.profiles:
                 return self.profiles[module_name]
@@ -320,7 +346,7 @@ class AddressResolver(object):
         result = None
         module_base = module.base
 
-        module_name = self._NormalizeModuleName(module)
+        module_name = self.NormalizeModuleName(module)
         if module_name in self.profiles:
             return self.profiles[module_name]
 
@@ -483,7 +509,7 @@ class AddressResolver(object):
         address = obj.Pointer.integer_to_address(address)
         containing_module = self._FindContainingModule(address)
         if containing_module:
-            module_name = self._NormalizeModuleName(containing_module)
+            module_name = self.NormalizeModuleName(containing_module)
             module_profile = self.LoadProfileForName(module_name)
 
             if module_profile:
@@ -511,7 +537,7 @@ class AddressResolver(object):
         containing_module = self._FindContainingModule(address)
         if containing_module:
             nearest_offset = containing_module.base
-            full_name = module_name = self._NormalizeModuleName(
+            full_name = module_name = self.NormalizeModuleName(
                 containing_module)
 
             # Try to load the module profile.
@@ -531,7 +557,7 @@ class AddressResolver(object):
             vad_desc = self._FindProcessVad(address)
             if vad_desc:
                 start, _, full_name = vad_desc
-                module_name = self._NormalizeModuleName(full_name)
+                module_name = self.NormalizeModuleName(full_name)
                 nearest_offset = start
                 profile = self.LoadProfileForDll(start, full_name)
 

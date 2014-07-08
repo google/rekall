@@ -29,6 +29,9 @@
 # the following reference:
 # "The VAD Tree: A Process-Eye View of Physical Memory," Brendan Dolan-Gavitt
 
+import re
+
+from rekall import config
 from rekall import scan
 from rekall import utils
 from rekall.plugins import core
@@ -229,11 +232,24 @@ class VAD(common.WinProcessFilter):
 
     __name = "vad"
 
-    PAGE_SIZE = 12
+    @classmethod
+    def args(cls, parser):
+        super(VAD, cls).args(parser)
+        parser.add_argument(
+            "--regex", default=None,
+            help="A regular expression to filter VAD filenames.")
+
+        parser.add_argument(
+            "--offset", default=None, type=config.IntParser,
+            help="Only print the vad corresponding to this offset.")
 
     def __init__(self, *args, **kwargs):
-        super(VAD, self).__init__(*args, **kwargs)
+        self.regex = kwargs.pop("regex", None)
+        self.offset = kwargs.pop("offset", None)
         self._cache = {}
+
+        # Pass positional args to the WinProcessFilter constructor.
+        super(VAD, self).__init__(*args, **kwargs)
 
     def find_file(self, addr):
         """Finds the file mapped at this address."""
@@ -274,9 +290,9 @@ class VAD(common.WinProcessFilter):
 
     def render_vadroot(self, renderer, vad_root):
         renderer.table_header([('VAD', 'offset', '[addrpad]'),
-                               ('lev', 'depth', '<2'),
-                               ('start', 'start_pfn', '[addr]'),
-                               ('end', 'end_pfn', '[addr]'),
+                               ('lev', 'depth', '>3'),
+                               ('Start Addr', 'start_pfn', '[addrpad]'),
+                               ('End Addr', 'end_pfn', '[addrpad]'),
                                ('com', 'com', '!>4'),
                                ('', 'type', '7'),
                                ('', 'executable', '6'),
@@ -284,10 +300,19 @@ class VAD(common.WinProcessFilter):
                                ('Filename', 'filename', '')])
 
         for vad in vad_root.traverse():
+            # Apply filters if needed.
+            if self.regex and not re.search(
+                self.regex, self._get_filename(vad)):
+                continue
+
+            if (self.offset is not None and
+                not vad.Start < self.offset < vad.End):
+                continue
+
             renderer.table_row(
                 vad, vad.obj_context.get('depth', 0),
-                vad.Start >> self.PAGE_SIZE,
-                vad.End >> self.PAGE_SIZE,
+                vad.Start,
+                vad.End,
                 vad.CommitCharge if vad.CommitCharge < 0x7fffffff else -1,
                 "Private" if vad.u.VadFlags.PrivateMemory > 0 else "Mapped",
                 "Exe" if "EXECUTE" in str(vad.u.VadFlags.ProtectionEnum) else "",

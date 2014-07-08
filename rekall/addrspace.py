@@ -292,6 +292,8 @@ class CachingAddressSpaceMixIn(object):
         self._cache = utils.FastStore(self.CACHE_SIZE)
 
     def read(self, addr, length):
+        addr, length = int(addr), int(length)
+
         result = ""
         while length > 0:
             data = self.read_partial(addr, length)

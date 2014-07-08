@@ -88,7 +88,7 @@ class ProfileLog(object):
         try:
             with utils.FileLock(open(self.filename, "rb")) as fd:
                 self._MergeData(json.loads(
-                        fd.read(), object_hook=self.JSONEncoder.as_set))
+                    fd.read(), object_hook=self.JSONEncoder.as_set))
 
                 with open(self.filename, "wb") as fd:
                     fd.write(json.dumps(self.data, cls=self.JSONEncoder))
@@ -323,7 +323,7 @@ class BaseObject(object):
         """
         if kwargs:
             logging.error("Unknown keyword args {0} for {1}".format(
-                    kwargs, self.__class__.__name__))
+                kwargs, self.__class__.__name__))
 
         self.obj_type = type_name
 
@@ -336,6 +336,10 @@ class BaseObject(object):
         self.obj_profile = profile
         self.obj_context = context or {}
         self.obj_session = session
+
+        if profile is None:
+            logging.critical("Profile must be provided to %s" % self)
+            raise RuntimeError("Profile must be provided")
 
     def __getstate__(self):
         # This method should generally return all the parameters passed to the
@@ -428,7 +432,7 @@ class BaseObject(object):
     def dereference(self, vm=None):
         _ = vm
         return NoneObject("Can't dereference {0}".format(
-                self.obj_name), self.obj_profile)
+            self.obj_name), self.obj_profile)
 
     def reference(self):
         """Produces a pointer to this object.
@@ -453,7 +457,7 @@ class BaseObject(object):
         """
         _ = vm
         return NoneObject("No value for {0}".format(
-                self.obj_name), self.obj_profile)
+            self.obj_name), self.obj_profile)
 
     def __str__(self):
         return utils.SmartStr(self)
@@ -571,7 +575,7 @@ class NativeType(BaseObject, NumericProxyMixIn):
         data = self.obj_vm.read(self.obj_offset, self.size())
         if not data:
             return NoneObject("Unable to read {0} bytes from {1}".format(
-                    self.size(), self.obj_offset))
+                self.size(), self.obj_offset))
 
         (val,) = struct.unpack(self.format_string, data)
 
@@ -1227,7 +1231,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
             offset, cls = element
         else:
             return NoneObject(u"Struct {0} has no member {1}".format(
-                    self.obj_name, attr))
+                self.obj_name, attr))
 
         if callable(offset):
             ## If offset is specified as a callable its an absolute
@@ -2182,6 +2186,17 @@ class Profile(object):
         return dict(
             name=self.name
             )
+
+class TestProfile(Profile):
+    def _SetupProfileFromData(self, data):
+        """Let the test manipulate the data json object directly."""
+        self.data = data
+
+    def copy(self):
+        result = super(TestProfile, self).copy()
+        result.data = self.data
+
+        return result
 
 
 PROFILE_CACHE = utils.FastStore()

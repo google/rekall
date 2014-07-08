@@ -40,6 +40,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import argparse
 import json
 import gzip
+import pdb
 import os
 import traceback
 import multiprocessing
@@ -61,6 +62,9 @@ PARSER.add_argument('--rebuild', default=False, action='store_true',
 
 PARSER.add_argument('--generate_help', default=False, action='store_true',
                     help='Regenerate the help profile')
+
+PARSER.add_argument('--debug', default=False, action='store_true',
+                    help='Break on exception')
 
 
 NUMBER_OF_CORES = multiprocessing.cpu_count()
@@ -175,6 +179,13 @@ def RebuildHelp():
 
 
 def RebuildInventory():
+    old_inventory = {}
+    try:
+        with gzip.GzipFile(filename="inventory.gz", mode="rb") as outfd:
+            old_inventory = json.load(outfd)["$INVENTORY"]
+    except IOError:
+        pass
+
     inventory = {}
     metadata = dict(Type="Inventory",
                     ProfileClass="Inventory")
@@ -186,23 +197,35 @@ def RebuildInventory():
         for filename in files:
             if filename.endswith(".gz"):
                 path = os.path.join(root, filename)
-                session.report_progress("Adding %s to inventory", path)
-                with gzip.GzipFile(filename=path, mode="rb") as fd:
-                    data = json.load(fd)
+                profile_name = os.path.join(root[2:], filename[:-3])
 
-                    profile_name = os.path.join(root[2:], filename[:-3])
-                    inventory[profile_name] = data["$METADATA"]
+                file_modified_time = os.stat(path).st_mtime
+                try:
+                    last_modified = old_inventory[profile_name]["LastModified"]
+                    # If the current file is not fresher than the old file, we
+                    # just copy the metadata from the old profile.
+                    if file_modified_time >= last_modified:
+                        inventory[profile_name] = old_inventory[profile_name]
+
+                except KeyError:
+                    session.report_progress("Adding %s to inventory", path)
+                    with gzip.GzipFile(filename=path, mode="rb") as fd:
+                        data = json.load(fd)
+
+                        inventory[profile_name] = data["$METADATA"]
+                        inventory[profile_name][
+                            "LastModified"] = file_modified_time
+
 
     with gzip.GzipFile(filename="inventory.gz", mode="wb") as outfd:
         outfd.write(utils.PPrint(result))
 
 
-if __name__ == "__main__":
+def main():
     # Get a renderer for our own output.
     renderer = session.renderer(session=session)
     renderer.start()
 
-    FLAGS = PARSER.parse_args()
     changes = BuildAllProfiles(FLAGS.path_to_guids, rebuild=FLAGS.rebuild)
 
     # If the files have changed, rebuild the indexes.
@@ -224,3 +247,13 @@ if __name__ == "__main__":
         RebuildHelp()
 
     RebuildInventory()
+
+
+FLAGS = PARSER.parse_args()
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        if FLAGS.debug:
+            pdb.post_mortem()

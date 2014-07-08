@@ -38,7 +38,6 @@ from rekall import obj
 from rekall import testlib
 from rekall import utils
 
-
 class DummyParser(object):
     """A dummy object used to collect all defined args."""
 

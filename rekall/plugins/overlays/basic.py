@@ -74,7 +74,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         self.length = int(length)
 
     def startswith(self, other):
-        return str(self).startswith(other)
+        return self.v().startswith(other)
 
     def v(self, vm=None):
         vm = vm or self.obj_vm
@@ -648,6 +648,8 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         else:
             raise RuntimeError("Invalid mode %s" % self.mode)
 
+        self.decompose_cache = []
+
     def __int__(self):
         return self.obj_offset
 
@@ -655,9 +657,14 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         return self.obj_offset + hash(self.obj_vm)
 
     def __unicode__(self):
+        if self.mode == "AMD64":
+            format_string = "%0#14x  %s"
+        else:
+            format_string = "%0#10x  %s"
+
         result = []
-        for data in self.Disassemble():
-            result.append("0x%08X %20s %s" % data)
+        for offset, _, instruction in self.Disassemble():
+            result.append(format_string % (offset, instruction))
 
         return "\n".join(result)
 
@@ -730,18 +737,20 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
           size: Stop after decoding this much data. If specified we ignore
             the instructions parameter.
         """
-        overlap = 0x1000
+        if len(self.decompose_cache) < instructions:
+            self.decompose_cache = list(self._Decompose(
+                instructions=instructions, size=size))
+
+        return self.decompose_cache
+
+    def _Decompose(self, instructions=10, size=None):
+        overlap = 0x100
         data = ''
         offset = self.obj_offset
         count = 0
 
         while 1:
             data = self.obj_vm.read(offset, overlap)
-
-            # This could happen if we hit an unmapped page - we just
-            # abort.
-            if not data:
-                return
 
             op = obj.NoneObject()
             for op in distorm3.Decompose(offset, data, self.distorm_mode):

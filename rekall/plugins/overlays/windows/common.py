@@ -29,16 +29,15 @@ from rekall import obj
 from rekall import utils
 
 from rekall.plugins.overlays.windows import pe_vtypes
-from rekall.plugins.overlays import basic
 
 
 windows_overlay = {
     '_UNICODE_STRING': [None, {
-            'Buffer': [None, ['Pointer', dict(
-                        target='UnicodeString',
-                        target_args=dict(length=lambda x: x.Length)
-                        )]],
-            }],
+        'Buffer': [None, ['Pointer', dict(
+            target='UnicodeString',
+            target_args=dict(length=lambda x: x.Length)
+            )]],
+        }],
 
     '_EPROCESS' : [None, {
         # Some standard fields for windows processes.
@@ -55,81 +54,81 @@ windows_overlay = {
         }],
 
     '_ETHREAD' : [None, {
-            'CreateTime' : [None, ['ThreadCreateTimeStamp', {}]],
-            'ExitTime' : [None, ['WinFileTime', {}]],
-            }],
+        'CreateTime' : [None, ['ThreadCreateTimeStamp', {}]],
+        'ExitTime' : [None, ['WinFileTime', {}]],
+        }],
 
     '_OBJECT_SYMBOLIC_LINK' : [None, {
-            'CreationTime' : [None, ['WinFileTime', {}]],
-            }],
+        'CreationTime' : [None, ['WinFileTime', {}]],
+        }],
 
     '_KUSER_SHARED_DATA' : [None, {
-            'SystemTime' : [None, ['WinFileTime', dict(is_utc=True)]],
+        'SystemTime' : [None, ['WinFileTime', dict(is_utc=True)]],
 
-            # When the system license activation must occur.
-            'SystemExpirationDate': [None, ['WinFileTime', {}]],
+        # When the system license activation must occur.
+        'SystemExpirationDate': [None, ['WinFileTime', {}]],
 
-            "NtSystemRoot": [None, ["UnicodeString"]],
-            }],
+        "NtSystemRoot": [None, ["UnicodeString"]],
+        }],
 
     '_KPCR': [None, {
-            # The processor block has varying names between windows versions so
-            # we just make them synonyms.
-            'ProcessorBlock': lambda x: x.m("Prcb") or x.m("PrcbData"),
-            'IDT': lambda x: x.m("IDT") or x.m("IdtBase"),
-            'GDT': lambda x: x.m("GDT") or x.m("GdtBase"),
-            'KdVersionBlock': [None, ['Pointer', dict(
-                        target='_KDDEBUGGER_DATA64')]],
-            }],
+        # The processor block has varying names between windows versions so
+        # we just make them synonyms.
+        'ProcessorBlock': lambda x: x.m("Prcb") or x.m("PrcbData"),
+        'IDT': lambda x: x.m("IDT") or x.m("IdtBase"),
+        'GDT': lambda x: x.m("GDT") or x.m("GdtBase"),
+        'KdVersionBlock': [None, ['Pointer', dict(
+            target='_KDDEBUGGER_DATA64')]],
+        }],
 
     '_KPRCB': [None, {
-            'CurrentThread': [None, ['Pointer', dict(
-                        target='_ETHREAD')]],
-            'IdleThread': [None, ['Pointer', dict(
-                        target='_ETHREAD')]],
-            'NextThread': [None, ['Pointer', dict(
-                        target='_ETHREAD')]],
-            'VendorString': [None, ['String', dict(length=13)]],
+        'CurrentThread': [None, ['Pointer', dict(
+            target='_ETHREAD')]],
+        'IdleThread': [None, ['Pointer', dict(
+            target='_ETHREAD')]],
+        'NextThread': [None, ['Pointer', dict(
+            target='_ETHREAD')]],
+        'VendorString': [None, ['String', dict(length=13)]],
 
-            }],
+        }],
 
     # The DTB is really an array of 2 ULONG_PTR but we only need the first one
     # which is the value loaded into CR3. The second one, according to procobj.c
     # of the wrk-v1.2, contains the PTE that maps something called hyper space.
     '_KPROCESS' : [None, {
-            'DirectoryTableBase' : [None, ['unsigned long']],
+        'DirectoryTableBase' : [None, ['unsigned long']],
     }],
 
     '_HANDLE_TABLE_ENTRY' : [None, {
-            'Object' : [None, ['_EX_FAST_REF']],
-            }],
+        'Object' : [None, ['_EX_FAST_REF']],
+        }],
 
     '_OBJECT_HEADER': [None, {
         'GrantedAccess': lambda x: x.obj_parent.GrantedAccess
         }],
 
     '_IMAGE_SECTION_HEADER' : [None, {
-            'Name' : [0x0, ['String', dict(length=8)]],
-            }],
+        'Name' : [0x0, ['String', dict(length=8)]],
+        }],
 
     'PO_MEMORY_IMAGE' : [None, {
-            'Signature':   [None, ['String', dict(length=4)]],
-            'SystemTime' : [None, ['WinFileTime', {}]],
-            }],
+        'Signature':   [None, ['String', dict(length=4)]],
+        'SystemTime' : [None, ['WinFileTime', {}]],
+        }],
 
     '_DBGKD_GET_VERSION64' : [None, {
-            'DebuggerDataList' : [None, ['pointer', ['unsigned long']]],
-            }],
+        'DebuggerDataList' : [None, ['pointer', ['unsigned long']]],
+        }],
 
     '_TOKEN' : [None, {
-            'UserAndGroups' : [None, ['Pointer', dict(
-                        target='Array',
-                        target_args=dict(
-                            count=lambda x: x.UserAndGroupCount,
-                            target='_SID_AND_ATTRIBUTES'
-                            )
-                        )]],
-            }],
+        'UserAndGroups' : [None, ['Pointer', dict(
+            target='Array',
+            target_args=dict(
+                count=lambda x: x.UserAndGroupCount,
+                target='_SID_AND_ATTRIBUTES'
+                )
+            )]],
+        }],
 
     '_SID_AND_ATTRIBUTES': [None, {
         'Sid': [None, ['Pointer', dict(
@@ -138,75 +137,77 @@ windows_overlay = {
         }],
 
     '_SID' : [None, {
-            'SubAuthority' : [None, ['Array', dict(
-                        count=lambda x: x.SubAuthorityCount,
-                        target='unsigned long')]],
-            }],
+        'SubAuthority' : [None, ['Array', dict(
+            count=lambda x: x.SubAuthorityCount,
+            target='unsigned long')]],
+        }],
 
     '_CLIENT_ID': [None, {
-            'UniqueProcess' : [None, ['unsigned int']],
-            'UniqueThread' : [None, ['unsigned int']],
-            }],
+        'UniqueProcess' : [None, ['unsigned int']],
+        'UniqueThread' : [None, ['unsigned int']],
+        }],
 
     '_MMVAD_FLAGS': [None, {
-            # Vad Protections. Also known as page protections. The
-            # _MMVAD_FLAGS.Protection, 3-bits, is an index into
-            # nt!MmProtectToValue (the following list).
-            'ProtectionEnum': lambda x: basic.Enumeration(
-                choices={
-                    0: 'NOACCESS',
-                    1: 'READONLY',
-                    2: 'EXECUTE',
-                    3: 'EXECUTE_READ',
-                    4: 'READWRITE',
-                    5: 'WRITECOPY',
-                    6: 'EXECUTE_READWRITE',
-                    7: 'EXECUTE_WRITECOPY',
-                    8: 'NOACCESS',
-                    9: 'NOCACHE | READONLY',
-                    10:'NOCACHE | EXECUTE',
-                    11:'NOCACHE | EXECUTE_READ',
-                    12:'NOCACHE | READWRITE',
-                    13:'NOCACHE | WRITECOPY',
-                    14:'NOCACHE | EXECUTE_READWRITE',
-                    15:'NOCACHE | EXECUTE_WRITECOPY',
-                    16:'NOACCESS',
-                    17:'GUARD | READONLY',
-                    18:'GUARD | EXECUTE',
-                    19:'GUARD | EXECUTE_READ',
-                    20:'GUARD | READWRITE',
-                    21:'GUARD | WRITECOPY',
-                    22:'GUARD | EXECUTE_READWRITE',
-                    23:'GUARD | EXECUTE_WRITECOPY',
-                    24:'NOACCESS',
-                    25:'WRITECOMBINE | READONLY',
-                    26:'WRITECOMBINE | EXECUTE',
-                    27:'WRITECOMBINE | EXECUTE_READ',
-                    28:'WRITECOMBINE | READWRITE',
-                    29:'WRITECOMBINE | WRITECOPY',
-                    30:'WRITECOMBINE | EXECUTE_READWRITE',
-                    31:'WRITECOMBINE | EXECUTE_WRITECOPY',
-                    },
-                value=x.m("Protection"), name=x.obj_name, type_name=x.obj_type),
+        # Vad Protections. Also known as page protections. The
+        # _MMVAD_FLAGS.Protection, 3-bits, is an index into
+        # nt!MmProtectToValue (the following list).
+        'ProtectionEnum': lambda x: x.cast(
+            "Enumeration",
+            choices={
+                0: 'NOACCESS',
+                1: 'READONLY',
+                2: 'EXECUTE',
+                3: 'EXECUTE_READ',
+                4: 'READWRITE',
+                5: 'WRITECOPY',
+                6: 'EXECUTE_READWRITE',
+                7: 'EXECUTE_WRITECOPY',
+                8: 'NOACCESS',
+                9: 'NOCACHE | READONLY',
+                10:'NOCACHE | EXECUTE',
+                11:'NOCACHE | EXECUTE_READ',
+                12:'NOCACHE | READWRITE',
+                13:'NOCACHE | WRITECOPY',
+                14:'NOCACHE | EXECUTE_READWRITE',
+                15:'NOCACHE | EXECUTE_WRITECOPY',
+                16:'NOACCESS',
+                17:'GUARD | READONLY',
+                18:'GUARD | EXECUTE',
+                19:'GUARD | EXECUTE_READ',
+                20:'GUARD | READWRITE',
+                21:'GUARD | WRITECOPY',
+                22:'GUARD | EXECUTE_READWRITE',
+                23:'GUARD | EXECUTE_WRITECOPY',
+                24:'NOACCESS',
+                25:'WRITECOMBINE | READONLY',
+                26:'WRITECOMBINE | EXECUTE',
+                27:'WRITECOMBINE | EXECUTE_READ',
+                28:'WRITECOMBINE | READWRITE',
+                29:'WRITECOMBINE | WRITECOPY',
+                30:'WRITECOMBINE | EXECUTE_READWRITE',
+                31:'WRITECOMBINE | EXECUTE_WRITECOPY',
+                },
+            value=x.m("Protection")),
 
-            # Vad Types. The _MMVAD_SHORT.u.VadFlags (_MMVAD_FLAGS) struct on XP
-            # has individual flags, 1-bit each, for these types. The
-            # _MMVAD_FLAGS for all OS after XP has a member of the
-            # _MMVAD_FLAGS.VadType, 3-bits, which is an index into the following
-            # enumeration.
-            "VadTypeEnum": lambda x: basic.Enumeration(
-                choices={
-                    0: 'VadNone',
-                    1: 'VadDevicePhysicalMemory',
-                    2: 'VadImageMap',
-                    3: 'VadAwe',
-                    4: 'VadWriteWatch',
-                    5: 'VadLargePages',
-                    6: 'VadRotatePhysical',
-                    7: 'VadLargePageSection',
-                    },
-                value=x.m("VadType"), name=x.obj_name, type_name=x.obj_type),
-            }],
+        # Vad Types. The _MMVAD_SHORT.u.VadFlags (_MMVAD_FLAGS) struct on XP
+        # has individual flags, 1-bit each, for these types. The
+        # _MMVAD_FLAGS for all OS after XP has a member of the
+        # _MMVAD_FLAGS.VadType, 3-bits, which is an index into the following
+        # enumeration.
+        "VadTypeEnum": lambda x: x.cast(
+            "Enumeration",
+            choices={
+                0: 'VadNone',
+                1: 'VadDevicePhysicalMemory',
+                2: 'VadImageMap',
+                3: 'VadAwe',
+                4: 'VadWriteWatch',
+                5: 'VadLargePages',
+                6: 'VadRotatePhysical',
+                7: 'VadLargePageSection',
+                },
+            value=x.m("VadType")),
+        }],
 
     # The environment is a null termionated _UNICODE_STRING array. Print with
     # list(eprocess.Peb.ProcessParameters.Environment)
@@ -220,126 +221,124 @@ windows_overlay = {
         }],
 
     '_DEVICE_OBJECT': [None, {
-            'DeviceType': [None, ['Enumeration', dict(choices={
-                            0x00000027 : 'FILE_DEVICE_8042_PORT',
-                            0x00000032 : 'FILE_DEVICE_ACPI',
-                            0x00000029 : 'FILE_DEVICE_BATTERY',
-                            0x00000001 : 'FILE_DEVICE_BEEP',
-                            0x0000002a : 'FILE_DEVICE_BUS_EXTENDER',
-                            0x00000002 : 'FILE_DEVICE_CD_ROM',
-                            0x00000003 : 'FILE_DEVICE_CD_ROM_FILE_SYSTEM',
-                            0x00000030 : 'FILE_DEVICE_CHANGER',
-                            0x00000004 : 'FILE_DEVICE_CONTROLLER',
-                            0x00000005 : 'FILE_DEVICE_DATALINK',
-                            0x00000006 : 'FILE_DEVICE_DFS',
-                            0x00000035 : 'FILE_DEVICE_DFS_FILE_SYSTEM',
-                            0x00000036 : 'FILE_DEVICE_DFS_VOLUME',
-                            0x00000007 : 'FILE_DEVICE_DISK',
-                            0x00000008 : 'FILE_DEVICE_DISK_FILE_SYSTEM',
-                            0x00000033 : 'FILE_DEVICE_DVD',
-                            0x00000009 : 'FILE_DEVICE_FILE_SYSTEM',
-                            0x0000003a : 'FILE_DEVICE_FIPS',
-                            0x00000034 : 'FILE_DEVICE_FULLSCREEN_VIDEO',
-                            0x0000000a : 'FILE_DEVICE_INPORT_PORT',
-                            0x0000000b : 'FILE_DEVICE_KEYBOARD',
-                            0x0000002f : 'FILE_DEVICE_KS',
-                            0x00000039 : 'FILE_DEVICE_KSEC',
-                            0x0000000c : 'FILE_DEVICE_MAILSLOT',
-                            0x0000002d : 'FILE_DEVICE_MASS_STORAGE',
-                            0x0000000d : 'FILE_DEVICE_MIDI_IN',
-                            0x0000000e : 'FILE_DEVICE_MIDI_OUT',
-                            0x0000002b : 'FILE_DEVICE_MODEM',
-                            0x0000000f : 'FILE_DEVICE_MOUSE',
-                            0x00000010 : 'FILE_DEVICE_MULTI_UNC_PROVIDER',
-                            0x00000011 : 'FILE_DEVICE_NAMED_PIPE',
-                            0x00000012 : 'FILE_DEVICE_NETWORK',
-                            0x00000013 : 'FILE_DEVICE_NETWORK_BROWSER',
-                            0x00000014 : 'FILE_DEVICE_NETWORK_FILE_SYSTEM',
-                            0x00000028 : 'FILE_DEVICE_NETWORK_REDIRECTOR',
-                            0x00000015 : 'FILE_DEVICE_NULL',
-                            0x00000016 : 'FILE_DEVICE_PARALLEL_PORT',
-                            0x00000017 : 'FILE_DEVICE_PHYSICAL_NETCARD',
-                            0x00000018 : 'FILE_DEVICE_PRINTER',
-                            0x00000019 : 'FILE_DEVICE_SCANNER',
-                            0x0000001c : 'FILE_DEVICE_SCREEN',
-                            0x00000037 : 'FILE_DEVICE_SERENUM',
-                            0x0000001a : 'FILE_DEVICE_SERIAL_MOUSE_PORT',
-                            0x0000001b : 'FILE_DEVICE_SERIAL_PORT',
-                            0x00000031 : 'FILE_DEVICE_SMARTCARD',
-                            0x0000002e : 'FILE_DEVICE_SMB',
-                            0x0000001d : 'FILE_DEVICE_SOUND',
-                            0x0000001e : 'FILE_DEVICE_STREAMS',
-                            0x0000001f : 'FILE_DEVICE_TAPE',
-                            0x00000020 : 'FILE_DEVICE_TAPE_FILE_SYSTEM',
-                            0x00000038 : 'FILE_DEVICE_TERMSRV',
-                            0x00000021 : 'FILE_DEVICE_TRANSPORT',
-                            0x00000022 : 'FILE_DEVICE_UNKNOWN',
-                            0x0000002c : 'FILE_DEVICE_VDM',
-                            0x00000023 : 'FILE_DEVICE_VIDEO',
-                            0x00000024 : 'FILE_DEVICE_VIRTUAL_DISK',
-                            0x00000025 : 'FILE_DEVICE_WAVE_IN',
-                            0x00000026 : 'FILE_DEVICE_WAVE_OUT',
-                            })]],
-            }],
+        'DeviceType': [None, ['Enumeration', dict(choices={
+            0x00000027 : 'FILE_DEVICE_8042_PORT',
+            0x00000032 : 'FILE_DEVICE_ACPI',
+            0x00000029 : 'FILE_DEVICE_BATTERY',
+            0x00000001 : 'FILE_DEVICE_BEEP',
+            0x0000002a : 'FILE_DEVICE_BUS_EXTENDER',
+            0x00000002 : 'FILE_DEVICE_CD_ROM',
+            0x00000003 : 'FILE_DEVICE_CD_ROM_FILE_SYSTEM',
+            0x00000030 : 'FILE_DEVICE_CHANGER',
+            0x00000004 : 'FILE_DEVICE_CONTROLLER',
+            0x00000005 : 'FILE_DEVICE_DATALINK',
+            0x00000006 : 'FILE_DEVICE_DFS',
+            0x00000035 : 'FILE_DEVICE_DFS_FILE_SYSTEM',
+            0x00000036 : 'FILE_DEVICE_DFS_VOLUME',
+            0x00000007 : 'FILE_DEVICE_DISK',
+            0x00000008 : 'FILE_DEVICE_DISK_FILE_SYSTEM',
+            0x00000033 : 'FILE_DEVICE_DVD',
+            0x00000009 : 'FILE_DEVICE_FILE_SYSTEM',
+            0x0000003a : 'FILE_DEVICE_FIPS',
+            0x00000034 : 'FILE_DEVICE_FULLSCREEN_VIDEO',
+            0x0000000a : 'FILE_DEVICE_INPORT_PORT',
+            0x0000000b : 'FILE_DEVICE_KEYBOARD',
+            0x0000002f : 'FILE_DEVICE_KS',
+            0x00000039 : 'FILE_DEVICE_KSEC',
+            0x0000000c : 'FILE_DEVICE_MAILSLOT',
+            0x0000002d : 'FILE_DEVICE_MASS_STORAGE',
+            0x0000000d : 'FILE_DEVICE_MIDI_IN',
+            0x0000000e : 'FILE_DEVICE_MIDI_OUT',
+            0x0000002b : 'FILE_DEVICE_MODEM',
+            0x0000000f : 'FILE_DEVICE_MOUSE',
+            0x00000010 : 'FILE_DEVICE_MULTI_UNC_PROVIDER',
+            0x00000011 : 'FILE_DEVICE_NAMED_PIPE',
+            0x00000012 : 'FILE_DEVICE_NETWORK',
+            0x00000013 : 'FILE_DEVICE_NETWORK_BROWSER',
+            0x00000014 : 'FILE_DEVICE_NETWORK_FILE_SYSTEM',
+            0x00000028 : 'FILE_DEVICE_NETWORK_REDIRECTOR',
+            0x00000015 : 'FILE_DEVICE_NULL',
+            0x00000016 : 'FILE_DEVICE_PARALLEL_PORT',
+            0x00000017 : 'FILE_DEVICE_PHYSICAL_NETCARD',
+            0x00000018 : 'FILE_DEVICE_PRINTER',
+            0x00000019 : 'FILE_DEVICE_SCANNER',
+            0x0000001c : 'FILE_DEVICE_SCREEN',
+            0x00000037 : 'FILE_DEVICE_SERENUM',
+            0x0000001a : 'FILE_DEVICE_SERIAL_MOUSE_PORT',
+            0x0000001b : 'FILE_DEVICE_SERIAL_PORT',
+            0x00000031 : 'FILE_DEVICE_SMARTCARD',
+            0x0000002e : 'FILE_DEVICE_SMB',
+            0x0000001d : 'FILE_DEVICE_SOUND',
+            0x0000001e : 'FILE_DEVICE_STREAMS',
+            0x0000001f : 'FILE_DEVICE_TAPE',
+            0x00000020 : 'FILE_DEVICE_TAPE_FILE_SYSTEM',
+            0x00000038 : 'FILE_DEVICE_TERMSRV',
+            0x00000021 : 'FILE_DEVICE_TRANSPORT',
+            0x00000022 : 'FILE_DEVICE_UNKNOWN',
+            0x0000002c : 'FILE_DEVICE_VDM',
+            0x00000023 : 'FILE_DEVICE_VIDEO',
+            0x00000024 : 'FILE_DEVICE_VIRTUAL_DISK',
+            0x00000025 : 'FILE_DEVICE_WAVE_IN',
+            0x00000026 : 'FILE_DEVICE_WAVE_OUT',
+            })]],
+        }],
     '_DRIVER_OBJECT': [None, {
-            'MajorFunction': [None, ['IndexedArray', dict(
-                        index_table={
-                            'IRP_MJ_CREATE': 0,
-                            'IRP_MJ_CREATE_NAMED_PIPE': 1,
-                            'IRP_MJ_CLOSE': 2,
-                            'IRP_MJ_READ': 3,
-                            'IRP_MJ_WRITE': 4,
-                            'IRP_MJ_QUERY_INFORMATION': 5,
-                            'IRP_MJ_SET_INFORMATION': 6,
-                            'IRP_MJ_QUERY_EA': 7,
-                            'IRP_MJ_SET_EA': 8,
-                            'IRP_MJ_FLUSH_BUFFERS': 9,
-                            'IRP_MJ_QUERY_VOLUME_INFORMATION': 10,
-                            'IRP_MJ_SET_VOLUME_INFORMATION': 11,
-                            'IRP_MJ_DIRECTORY_CONTROL': 12,
-                            'IRP_MJ_FILE_SYSTEM_CONTROL': 13,
-                            'IRP_MJ_DEVICE_CONTROL': 14,
-                            'IRP_MJ_INTERNAL_DEVICE_CONTROL': 15,
-                            'IRP_MJ_SHUTDOWN': 16,
-                            'IRP_MJ_LOCK_CONTROL': 17,
-                            'IRP_MJ_CLEANUP': 18,
-                            'IRP_MJ_CREATE_MAILSLOT': 19,
-                            'IRP_MJ_QUERY_SECURITY': 20,
-                            'IRP_MJ_SET_SECURITY': 21,
-                            'IRP_MJ_POWER': 22,
-                            'IRP_MJ_SYSTEM_CONTROL': 23,
-                            'IRP_MJ_DEVICE_CHANGE': 24,
-                            'IRP_MJ_QUERY_QUOTA': 25,
-                            'IRP_MJ_SET_QUOTA': 26,
-                            'IRP_MJ_PNP': 27
-                            },
-                        target="Pointer",
-                        target_args=dict(target="Function"),
-                        )]],
-            }],
+        'MajorFunction': [None, ['IndexedArray', dict(
+            index_table={
+                'IRP_MJ_CREATE': 0,
+                'IRP_MJ_CREATE_NAMED_PIPE': 1,
+                'IRP_MJ_CLOSE': 2,
+                'IRP_MJ_READ': 3,
+                'IRP_MJ_WRITE': 4,
+                'IRP_MJ_QUERY_INFORMATION': 5,
+                'IRP_MJ_SET_INFORMATION': 6,
+                'IRP_MJ_QUERY_EA': 7,
+                'IRP_MJ_SET_EA': 8,
+                'IRP_MJ_FLUSH_BUFFERS': 9,
+                'IRP_MJ_QUERY_VOLUME_INFORMATION': 10,
+                'IRP_MJ_SET_VOLUME_INFORMATION': 11,
+                'IRP_MJ_DIRECTORY_CONTROL': 12,
+                'IRP_MJ_FILE_SYSTEM_CONTROL': 13,
+                'IRP_MJ_DEVICE_CONTROL': 14,
+                'IRP_MJ_INTERNAL_DEVICE_CONTROL': 15,
+                'IRP_MJ_SHUTDOWN': 16,
+                'IRP_MJ_LOCK_CONTROL': 17,
+                'IRP_MJ_CLEANUP': 18,
+                'IRP_MJ_CREATE_MAILSLOT': 19,
+                'IRP_MJ_QUERY_SECURITY': 20,
+                'IRP_MJ_SET_SECURITY': 21,
+                'IRP_MJ_POWER': 22,
+                'IRP_MJ_SYSTEM_CONTROL': 23,
+                'IRP_MJ_DEVICE_CHANGE': 24,
+                'IRP_MJ_QUERY_QUOTA': 25,
+                'IRP_MJ_SET_QUOTA': 26,
+                'IRP_MJ_PNP': 27
+                },
+            target="Pointer",
+            target_args=dict(target="Function"),
+            )]],
+        }],
 
     # This defines _PSP_CID_TABLE as an alias for _HANDLE_TABLE.
     "_PSP_CID_TABLE": "_HANDLE_TABLE",
 
     "_LDR_DATA_TABLE_ENTRY": [None, {
-            "TimeDateStamp": [None, ["WinFileTime"]],
-            "LoadReason": lambda x: x.m("LoadReason") or x.m("LoadCount")
-            }],
+        "TimeDateStamp": [None, ["WinFileTime"]],
+        "LoadReason": lambda x: x.m("LoadReason") or x.m("LoadCount")
+        }],
 
     '_PHYSICAL_MEMORY_DESCRIPTOR' : [None, {
-            'Run' : [None, ['Array', dict(
-                count=lambda x: x.NumberOfRuns,
-                max_count=100,
-                target='_PHYSICAL_MEMORY_RUN')]],
-            }],
+        'Run' : [None, ['Array', dict(
+            count=lambda x: x.NumberOfRuns,
+            max_count=100,
+            target='_PHYSICAL_MEMORY_RUN')]],
+        }],
 
     '_POOL_HEADER': [None, {
         # Wrap the pool type in an enumeration.
-        'PoolType': lambda x: basic.Enumeration(
-            enum_name="_POOL_TYPE", profile=x.obj_profile,
-            offset=x.obj_offset,
-            name=x.obj_name, parent=x.obj_parent, type_name=x.obj_type,
-            value=x.m("PoolType")),
+        'PoolType': lambda x: x.cast("Enumeration",
+                                     enum_name="_POOL_TYPE",
+                                     value=x.m("PoolType")),
         'Tag': lambda x: str(x.PoolTag.cast("String", length=4)),
         }],
 
@@ -379,11 +378,12 @@ windows_overlay = {
 
 
         # Virtual field to provide a shortcut to the next entry.
-        'NextEntry': lambda x: x.obj_profile.Pointer(
+        'NextEntry': lambda x: x.cast(
+            "Pointer",
             target="_HEAP_ENTRY",
             value=(x.obj_offset +
                    x.Size * x.obj_profile.get_obj_size("_HEAP_ENTRY")),
-            vm=x.obj_vm)
+            )
         }],
 
     '_DISPATCHER_HEADER': [None, {
@@ -524,7 +524,7 @@ class _EPROCESS(obj.Struct):
         it. This method ensure this happens automatically.
         """
         return self.m("Peb").cast("Pointer", target="_PEB",
-            vm=self.get_process_address_space())
+                                  vm=self.get_process_address_space())
 
     @property
     def IsWow64(self):
@@ -945,7 +945,7 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
         if self.DeviceObject:
             object_hdr = self.obj_profile._OBJECT_HEADER(
                 offset=(self.DeviceObject.v() - self.obj_profile.get_obj_offset(
-                        "_OBJECT_HEADER", "Body")),
+                    "_OBJECT_HEADER", "Body")),
                 vm=self.obj_vm)
 
             if object_hdr.NameInfo:
