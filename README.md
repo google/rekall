@@ -1,6 +1,4 @@
-================================
-Rekall Memory Forensic Framework
-================================
+# Rekall Memory Forensic Framework
 
 The Rekall Framework is a completely open collection of tools, implemented in
 Python under the GNU General Public License, for the extraction of digital
@@ -12,59 +10,56 @@ digital artifacts from volatile memory samples and provide a platform for
 further work into this exciting area of research.
 
 The Rekall distribution is available from:
-https://code.google.com/p/rekall/
+[https://code.google.com/p/rekall/](https://code.google.com/p/rekall/
+)
 
 Rekall should run on any platform that supports
-Python (http://www.python.org)
+[Python](http://www.python.org)
 
 Rekall supports investigations of the following x86 bit memory images:
 
-* Microsoft Windows XP Service Pack 2 and 3
-* Microsoft Windows 7 Service Pack 0 and 1
-* Microsoft Windows 8 and 8.1
-* Linux Kernels 2.6.24 to 3.10.
-* OSX 10.6-10.9.x.
+- Microsoft Windows XP Service Pack 2 and 3
+- Microsoft Windows 7 Service Pack 0 and 1
+- Microsoft Windows 8 and 8.1
+- Linux Kernels 2.6.24 to 3.10.
+- OSX 10.6-10.9.x.
 
 Rekall also provides a complete memory sample acquisition capability for all
 major operating systems (see the tools directory).
 
-Quick start
-===========
+## Quick start
 
 Rekall is available as a python package installable via the pip package
 manager. Simply type (for example on Linux):
 
-sudo pip install rekall
+```sudo pip install rekall```
 
 You might need to specifically allow pre-release software to be included (until
 Rekall makes a major stable release):
 
-sudo pip install --pre rekall
+```sudo pip install --pre rekall```
 
 To have all the dependencies installed. You still need to have python and pip
 installed first.
 
 To be able to run the ipython notebook, the following are also required:
 
-pip install Jinja2 MarkupSafe Pygments astroid pyzmq tornado wsgiref
+```pip install Jinja2 MarkupSafe Pygments astroid pyzmq tornado wsgiref```
 
-If you want to use the yarascan plugin, install yara and yara-python
-(http://plusvic.github.io/yara/).
+If you want to use the yarascan plugin, install [yara and yara-python](http://plusvic.github.io/yara/).
 
 For windows, Rekall is also available as a self contained installer
 package. Please check the download page for the most appropriate installer to
-use (http://www.rekall-forensic.com/)
+use [Rekall-Forensic.com](http://www.rekall-forensic.com/)
 
-Mailing Lists
-=============
+## Mailing Lists
 
 Mailing lists to support the users and developers of Rekall
 can be found at the following address:
 
     rekall-discuss@googlegroups.com
 
-Licensing and Copyright
-=======================
+## Licensing and Copyright
 
 Copyright (C) 2007-2011 Volatile Systems
 Copyright 2013 Google Inc. All Rights Reserved.
@@ -87,8 +82,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
 
 
-Bugs and Support
-================
+## Bugs and Support
+
 There is no support provided with Rekall. There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE.
@@ -106,8 +101,7 @@ please include the following information when filing a bug:
 * The suspected operating system of the memory image
 * The complete command line you used to run rekall
 
-History
-=======
+## History
 
 In December 2011, a new branch within the Volatility project was created to
 explore how to make the code base more modular, improve performance, and
@@ -134,8 +128,7 @@ the best algorithms currently available and a complete memory acquisition and
 analysis solution for at least Windows, OSX and Linux.
 
 
-More documentation
-==================
+## More documentation
 
 Further documentation is available at
 http://www.rekall-forensic.com/
