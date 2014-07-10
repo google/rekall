@@ -182,6 +182,7 @@ class BaseRenderer(object):
         """
         _ = plugin_name
         _ = kwargs
+        self._started = True
 
         # This handles the progress messages from rekall for the duration of
         # the rendering.

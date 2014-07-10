@@ -545,21 +545,6 @@ class TextRenderer(renderer.BaseRenderer):
 
         return int(os.environ.get("COLUMNS", 80))
 
-
-    def start(self, plugin_name=None, kwargs=None):
-        super(TextRenderer, self).start(plugin_name=plugin_name, kwargs=kwargs)
-        if self.output:
-            # Remove values which are None.
-            if kwargs:
-                for k, v in kwargs.items():
-                    if v is None:
-                        kwargs.pop(k)
-
-            if plugin_name:
-                self.section("%s %s" % (plugin_name, kwargs or ""))
-
-        return self
-
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
         if super(TextRenderer, self).RenderProgress(**kwargs):
             self.last_spin += 1

@@ -171,7 +171,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
                 data = urllib2.urlopen(request).read()
                 renderer.format("Received {0} bytes\n", len(data))
 
-                output_file = os.path.join(self.dump_dir, "%s.pd_" % basename)
+                output_file = "%s.pd_" % basename
                 with renderer.open(filename=output_file,
                                    directory=self.dump_dir,
                                    mode="wb") as fd:

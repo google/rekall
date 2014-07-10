@@ -347,7 +347,7 @@ def inet_ntop(address_family, packed_ip):
         # Replace a run of 0x00s with None
         numlen = [(k, len(list(g))) for k, g in itertools.groupby(words)]
         max_zero_run = sorted(sorted(
-                numlen, key=lambda x: x[1], reverse=True),
+            numlen, key=lambda x: x[1], reverse=True),
                               key=lambda x: x[0])[0]
         words = []
         for k, l in numlen:
@@ -370,7 +370,7 @@ def inet_ntop(address_family, packed_ip):
             words += [None]
         # Join up everything we've got using :s
         return (":".join(
-                ["{0:x}".format(w) if w is not None else "" for w in words]) +
+            ["{0:x}".format(w) if w is not None else "" for w in words]) +
                 encapsulated)
 
     if address_family == socket.AF_INET:

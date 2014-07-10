@@ -171,10 +171,10 @@ class Configuration(Cache):
         self.update(**kwargs)
 
         # Can not update the configuration object any more.
-        self._lock = True
+        self._lock = 1
 
     def Set(self, attr, value):
-        if self._lock:
+        if self._lock > 0:
             raise ValueError(
                 "Can only update configuration using the context manager.")
 
@@ -182,14 +182,14 @@ class Configuration(Cache):
 
     def __enter__(self):
         # Allow us to update the context manager.
-        self._lock = False
+        self._lock -= 1
         return self
 
     def __exit__(self, exc_type, exc_value, trace):
         if self.session:
             self.session.UpdateFromConfigObject()
 
-        self._lock = True
+        self._lock += 1
 
 
 class ProgressDispatcher(object):
@@ -376,43 +376,62 @@ class Session(object):
           **kwargs: kwargs passed to the plugin if it is not an instance.
         """
         flags = kwargs.pop("flags", None)
+        output = kwargs.pop("output", None)
 
-        # When passed as a string this specifies a plugin name.
         if isinstance(plugin_obj, basestring):
             plugin_name = plugin_obj
-            plugin_cls = getattr(self.plugins, plugin_obj, None)
-            if plugin_cls is None:
-                logging.error("Plugin %s is not active. Is it supported with "
-                              "this profile?", plugin_name)
-                return
-
-            # If the args came from the command line parse them now:
-            if flags:
-                kwargs = args.MockArgParser().build_args_dict(plugin_cls, flags)
-
-            plugin_obj = plugin_cls(*pos_args, **kwargs)
-
         elif isinstance(plugin_obj, plugin.Command):
             plugin_name = plugin_obj.name
-
         else:
             raise TypeError(
                 "First parameter should be a plugin name or instance.")
 
-        ui_renderer = self.GetRenderer()
-        with ui_renderer.start(plugin_name=plugin_name, kwargs=kwargs):
+        # When passed as a string this specifies a plugin name.
+        if isinstance(plugin_obj, basestring):
+            plugin_cls = getattr(self.plugins, plugin_obj, None)
+            if plugin_cls is None:
+                logging.error(
+                    "Plugin %s is not active. Is it supported with "
+                    "this profile?", plugin_name)
+                return
 
-            # Start the renderer before instantiating the plugin to allow
-            # rendering of reported progress in the constructor.
-            kwargs['session'] = self
+            # If the args came from the command line parse them now:
+            if flags:
+                kwargs = args.MockArgParser().build_args_dict(
+                    plugin_cls, flags)
 
+            # Instantiate the plugin object.
+            plugin_obj = plugin_cls(*pos_args, **kwargs)
+
+        # Do we need to redirect output?
+        if output is not None:
+            with self:
+                # Do not lose the global output redirection.
+                old_output = self.GetParameter("output") or None
+                self.SetParameter("output", output)
+                try:
+                    return self._RunPlugin(plugin_obj, **kwargs)
+                finally:
+                    self.SetParameter("output", old_output)
+
+        else:
+            return self._RunPlugin(plugin_obj, **kwargs)
+
+    def _RunPlugin(self, plugin_obj, **kwargs):
+        ui_renderer = kwargs.pop("renderer", None)
+        if ui_renderer is None:
+            ui_renderer = self.GetRenderer()
+
+        # Start the renderer before instantiating the plugin to allow
+        # rendering of reported progress in the constructor.
+        with ui_renderer.start(plugin_name=plugin_obj.name, kwargs=kwargs):
             try:
                 plugin_obj.render(ui_renderer)
                 return plugin_obj
 
             except plugin.InvalidArgs as e:
                 logging.error("Invalid Args (Try 'info plugins.%s'): %s",
-                              plugin_cls.name, e)
+                              plugin_obj.name, e)
 
             except plugin.PluginError as e:
                 ui_renderer.report_error(str(e))
@@ -430,7 +449,7 @@ class Session(object):
 
                 raise
 
-        return plugin_obj
+            return plugin_obj
 
     def LoadProfile(self, filename, use_cache=True):
         """Try to load a profile directly from a filename.

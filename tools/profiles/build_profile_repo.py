@@ -38,6 +38,7 @@ If that file does not exist.
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import argparse
+import logging
 import json
 import gzip
 import pdb
@@ -55,10 +56,10 @@ PARSER = argparse.ArgumentParser(
     description='Rebuild the profile repository.')
 
 PARSER.add_argument('path_to_guids',
-                   help='Path to the GUIDs file.')
+                    help='Path to the GUIDs file.')
 
 PARSER.add_argument('--rebuild', default=False, action='store_true',
-                   help='Rebuild all profiles.')
+                    help='Rebuild all profiles.')
 
 PARSER.add_argument('--generate_help', default=False, action='store_true',
                     help='Regenerate the help profile')
@@ -223,7 +224,7 @@ def RebuildInventory():
 
 def main():
     # Get a renderer for our own output.
-    renderer = session.renderer(session=session)
+    renderer = session.GetRenderer()
     renderer.start()
 
     changes = BuildAllProfiles(FLAGS.path_to_guids, rebuild=FLAGS.rebuild)
@@ -234,8 +235,8 @@ def main():
         output_filename = os.path.join(change, "index")
         session.RunPlugin(
             "build_index",
-            spec=os.path.join(change, "index.yaml"),
-            output=output_filename)
+            output=output_filename,
+            spec=os.path.join(change, "index.yaml"))
 
         # Gzip the output
         with gzip.GzipFile(filename=output_filename+".gz", mode="wb") as out:
