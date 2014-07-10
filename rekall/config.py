@@ -115,7 +115,17 @@ def MergeConfigOptions(state):
 
 def DeclareOption(short_name=None, name=None, default=None, group=None,
                   **kwargs):
-    """Record the options."""
+    """Declare a config option for command line and config file.
+
+    Arguments:
+        short_name: The one-letter name of the flag (like -v).
+        name: The long name of the flag (like --verbose).
+        default: The default value.
+        group: Arguments from the same group are rendered together.
+
+        The remaining keyword arguments are passed on to the argument parser
+        (see RekallArgParser).
+    """
     if name is None:
         name = short_name
         short_name = None

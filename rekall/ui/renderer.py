@@ -39,13 +39,12 @@ config.DeclareOption(
     "JsonRenderer).")
 
 config.DeclareOption(
-    "--logging", default="error", choices=[
-        "debug", "info", "warning", "critical", "error"],
-    help="Logging level to show messages.")
+    "-v", "--verbose", default=False, action="store_true",
+    help="Set logging to debug level.", group="Output control")
 
 config.DeclareOption(
-    "-v", "--verbose", default=False, action="store_true",
-    help="Set logging to debug level.")
+    "-q", "--quiet", default=False, action="store_true",
+    help="Turn off logging to stderr.", group="Output control")
 
 config.DeclareOption(
     "--debug", default=False, action="store_true",

@@ -197,9 +197,20 @@ def LoadProfileIntoSession(parser, argv, user_session):
     argv = argv or sys.argv
     known_args, _ = parser.parse_known_args(args=_TruncateARGV(argv))
 
-    # Force debug level logging with the verbose flag.
-    if getattr(known_args, "verbose", None):
-        known_args.logging = "DEBUG"
+    # Enforce the appropriate logging level if user supplies the --verbose or
+    # --quiet command line flags.
+    verbose_flag = getattr(known_args, "verbose", None)
+    quiet_flag = getattr(known_args, "quiet", None)
+
+    if verbose_flag and quiet_flag:
+        raise ValueError("Cannot set both --verbose and --quiet!")
+
+    if verbose_flag:
+        known_args.logging = "debug"
+    elif quiet_flag:
+        known_args.logging = "critical"
+    else:
+        known_args.logging = "warn"
 
     with user_session.state as state:
         config.MergeConfigOptions(state)
@@ -225,7 +236,7 @@ def parse_args(argv=None, user_session=None):
         description=constants.BANNER,
         conflict_handler='resolve',
         add_help=False,
-        epilog='When no module is provided, drops into interactive mode',
+        epilog="When no module is provided, drops into interactive mode",
         formatter_class=RekallHelpFormatter)
 
     config.RegisterArgParser(parser)
@@ -237,7 +248,7 @@ def parse_args(argv=None, user_session=None):
     # Add module specific args.
     subparsers = parser.add_subparsers(
         description="The following plugins can be selected.",
-        metavar='Plugin',
+        metavar="Plugin",
         )
 
     parsers = {}

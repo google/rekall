@@ -141,8 +141,8 @@ class Cache(utils.AttributeDict):
         if level is None:
             return
 
-        logging.info("Logging level set to %s", value)
         logging.getLogger().setLevel(int(level))
+        logging.info("Logging level set to %s", value)
 
     def Set(self, attr, value):
         hook = getattr(self, "_set_%s" % attr, None)
@@ -483,6 +483,17 @@ class Session(object):
             # Add the last supported repository as the last fallback path.
             for path in profile_path:
                 path = "%s/%s" % (path, constants.PROFILE_REPOSITORY_VERSION)
+
+                # For now, print a warning when the user has an out of date
+                # config file. TODO: Remove this in a future version.
+                if "profiles.rekall.googlecode.com" in path:
+                    logging.warn(
+                        "Rekall profiles have moved to %s, but your .rekallrc "
+                        "file still points to %s. You should update your "
+                        "config file.",
+                        constants.PROFILE_REPOSITORIES[0],
+                        path)
+
                 try:
                     manager = io_manager.Factory(path)
                     try:
