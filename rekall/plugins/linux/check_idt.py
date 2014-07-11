@@ -50,7 +50,7 @@ class CheckIdt(common.LinuxPlugin):
 
         for i in check_indexes:
             entry = table[i]
-            idt_addr = entry.Address
+            idt_addr = entry.address
 
             # Try to resolve the address from the profile.
             name = (self.profile.get_constant_by_address(idt_addr) or
@@ -61,7 +61,7 @@ class CheckIdt(common.LinuxPlugin):
                     # We really dont know where this is going.
                     "Unknown")
 
-            yield i, idt_addr, entry.GateType, entry.DPL, name
+            yield i, entry, name
 
 
     def CheckIDTTables(self):
@@ -94,13 +94,14 @@ class CheckIdt(common.LinuxPlugin):
         renderer.table_header([("Index", "index", "#5x"),
                                ("Address", "address", "[addrpad]"),
                                ("Type", "type", ">18"),
+                               ("Present", "present", ">7"),
                                ("DPL", "dpl", ">3"),
                                ("Symbol", "symbol", "<30")])
 
-        for (i, idt_addr, gate_type, dpl, symbol) in self.CheckIDTTables():
+        for (i, entry, symbol) in self.CheckIDTTables():
             highlight = None
             if symbol == "Unknown":
                 highlight = "important"
 
-            renderer.table_row(i, idt_addr, gate_type, dpl, symbol,
-                               highlight=highlight)
+            renderer.table_row(i, entry.address, entry.gate_type,
+                               entry.present, entry.dpl, symbol, highlight=highlight)

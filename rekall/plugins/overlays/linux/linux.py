@@ -261,10 +261,10 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
         }],
 
     'gate_struct64': [None, {
-        'Address': lambda x: (x.offset_low |
+        'address': lambda x: (x.offset_low |
                               x.offset_middle << 16 |
                               x.offset_high << 32),
-        'GateType': [5, ['Enumeration', {
+        'gate_type': [5, ['Enumeration', {
             'choices': {
                 5: '32-bit Task Gate',
                 6: '16-bit Int Gate',
@@ -276,17 +276,13 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
             'target_args': dict(
                 start_bit=0, end_bit=4),
             }]],
-        'DPL': [5, ['BitField', {
-            'target': 'unsigned int',
-            'start_bit': 45,
-            'end_bit': 46
-            }]],
+        'present': lambda x: x.m("p"),
         }],
 
     'desc_struct': [None, {
-        'Address': lambda x: ((x.u1.u1.b & 0xffff0000) |
+        'address': lambda x: ((x.u1.u1.b & 0xffff0000) |
                               (x.u1.u1.a & 0x0000ffff)),
-        'GateType': [5, ['Enumeration', {
+        'gate_type': [5, ['Enumeration', {
             'choices': {
                 5: '32-bit Task Gate',
                 6: '16-bit Int Gate',
@@ -298,11 +294,8 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
             'target_args': dict(
                 start_bit=0, end_bit=4),
             }]],
-        'DPL': [5, ['BitField', {
-            'target': 'unsigned int',
-            'start_bit': 45,
-            'end_bit': 46
-            }]],
+        'dpl': lambda x: x.m("u1.u2.dpl"),
+        'present': lambda x: x.m("u1.u2.p"),
         }],
 
     'tty_driver': [None, {
