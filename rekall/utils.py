@@ -269,8 +269,14 @@ class FastStore(object):
         return item
 
     @Synchronized
-    def __contains__(self, item):
-        return item in self._hash
+    def __contains__(self, key):
+        result = key in self._hash
+        if result:
+            node, _ = self._hash[key]
+            self._age.Unlink(node)
+            self._age.AppendNode(node)
+
+        return result
 
     @Synchronized
     def __getitem__(self, key):
@@ -425,20 +431,24 @@ class AttributeDict(dict):
 
     def Set(self, attr, value):
         self.dirty = True
-        self[attr] = value
+
+        # Setting a key to None means to remove it from the cache. NOTE! This
+        # must be exactly None not a NoneObject() since it should be possible to
+        # cache a NoneObject() as the value of some key.
+        if value is None:
+            self.pop(attr, None)
+        else:
+            self[attr] = value
 
     def __getattr__(self, attr):
+        # Do not allow private attributes to be set.
+        if attr.startswith("_"):
+            raise AttributeError(attr)
+
         return self.get(attr)
 
     def __dir__(self):
         return sorted(self)
-
-    def __getstate__(self):
-        return dict(data=dict(self))
-
-    def __setstate__(self, state):
-        self.clear()
-        self.update(state.get("data"))
 
 
 def FormatIPAddress(family, value):

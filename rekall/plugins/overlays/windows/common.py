@@ -468,12 +468,6 @@ class _UNICODE_STRING(obj.Struct):
         self.Buffer.dereference().write(string)
         self.Length = len(string) * 2
 
-    def __getstate__(self):
-        result = super(_UNICODE_STRING, self).__getstate__()
-        result["value"] = self.v()
-
-        return result
-
 
 class _SID(obj.Struct):
     """SID Structure.

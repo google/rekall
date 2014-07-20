@@ -35,3 +35,5 @@ test_data/*/Test*
 rekal.spec
 
 node_modules
+emacs.desktop
+lock

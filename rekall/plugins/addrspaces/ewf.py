@@ -52,7 +52,7 @@ class ewffile(object):
                                          ctypes.c_int(len(volumes)),
                                          ctypes.c_int(1))
         if self.handle == 0:
-            raise RuntimeError("Unable to open ewf file")
+            raise IOError("Unable to open ewf file")
 
         self.readptr = 0
         size_p = ctypes.pointer(ctypes.c_ulonglong(0))
@@ -135,17 +135,8 @@ class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
 
             filename = base.fname
 
-        self.filename = filename
+        self.name = self.filename = filename
         fhandle = ewf_open([self.filename])
 
         super(EWFAddressSpace, self).__init__(
             fhandle=fhandle, session=session, **kwargs)
-
-    def __getstate__(self):
-        state = super(EWFAddressSpace, self).__getstate__()
-        state["filename"] = self.filename
-
-        return state
-
-    def __setstate__(self, state):
-        self.__init__(session=self.session, filename=state["filename"])

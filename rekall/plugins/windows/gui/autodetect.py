@@ -77,6 +77,8 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
                 except RuntimeError:
                     continue
 
+        return overlay
+
     def wndstation(self):
         return self.temp_profile.get_constant_object(
             "grpWinStaList",

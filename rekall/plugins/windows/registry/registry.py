@@ -303,7 +303,7 @@ class _CM_KEY_NODE(obj.Struct):
                 return subkey
 
         return obj.NoneObject("Couldn't find subkey {0} of {1}".format(
-                subkey_name, self.Name))
+            subkey_name, self.Name))
 
     def open_value(self, value_name):
         """Opens our direct child."""
@@ -312,7 +312,7 @@ class _CM_KEY_NODE(obj.Struct):
                 return value
 
         return obj.NoneObject("Couldn't find subkey {0} of {1}".format(
-                value_name, self.Name))
+            value_name, self.Name))
 
     def subkeys(self):
         """Enumeate all subkeys of this key.

@@ -22,24 +22,14 @@
 
 """pstree example file"""
 
+from rekall import plugin
 from rekall.plugins.windows import common
 
 
-class PSTree(common.WinProcessFilter):
+class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
     """Print process list as a tree"""
 
     __name = "pstree"
-
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(PSTree, cls).args(parser)
-        parser.add_argument("-v", "--verbose", default=False,
-                            action="store_true", help="Show more details.")
-
-    def __init__(self, verbose=False, **kwargs):
-        super(PSTree, self).__init__(**kwargs)
-        self.verbose = verbose
 
     def _find_root(self, pid_dict, pid):
         # Prevent circular loops.
@@ -60,12 +50,14 @@ class PSTree(common.WinProcessFilter):
         return result
 
     def render(self, renderer):
-        renderer.table_header([("Name", "file_name", "<40"),
-                               ("Pid", "pid", ">6"),
-                               ("PPid", "ppid", ">6"),
-                               ("Thds", "thd_count", ">6"),
-                               ("Hnds", "hnd_count", ">6"),
-                               ("Time", "process_create_time", "24")])
+        renderer.table_header([
+            dict(name="Name", type="TreeNode", max_depth=5, child=dict(
+                type="_EPROCESS", style="light")),
+            ("Pid", "pid", ">6"),
+            ("PPid", "ppid", ">6"),
+            ("Thds", "thd_count", ">6"),
+            ("Hnds", "hnd_count", ">6"),
+            ("Time", "process_create_time", "24")])
 
         process_dict = self._make_process_dict()
 
@@ -76,16 +68,14 @@ class PSTree(common.WinProcessFilter):
                     continue
 
                 renderer.table_row(
-                    u"{0} 0x{1:08X}:{2:20}".format(
-                        "." * pad, task.obj_offset,
-                        task.ImageFileName or "UNKNOWN"),
+                    task,
                     task.UniqueProcessId,
                     task.InheritedFromUniqueProcessId,
                     task.ActiveThreads,
                     task.ObjectTable.HandleCount,
-                    task.CreateTime)
+                    task.CreateTime, depth=pad, parent=pid)
 
-                if self.verbose:
+                if self.verbosity > 1:
                     try:
                         process_params = task.Peb.ProcessParameters
                         renderer.format(u"{0}    cmd: {1}\n",

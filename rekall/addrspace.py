@@ -216,20 +216,6 @@ class BaseAddressSpace(object):
         return "<%s @ %#x %s>" % (
             self.__class__.__name__, hash(self), self.name)
 
-    @classmethod
-    def GetPlugin(cls, name):
-        return cls.classes.get(name)
-
-    def __getstate__(self):
-        result = {}
-        if self.base is not self:
-            result["base"] = self.base
-
-        return result
-
-    def __setstate__(self, state):
-        self.__init__(session=self.session, base=state.get("base"))
-
 
 ## This is a specialised AS for use internally - Its used to provide
 ## transparent support for a string buffer so types can be

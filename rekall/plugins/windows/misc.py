@@ -84,8 +84,9 @@ class SetProcessContext(common.WinProcessFilter):
                        "(Pid {1}@{2:#x})").format(
                            process.name, process.pid, process)
 
-            self.session.SetParameter("default_address_space",
-                                      process.get_process_address_space())
+            self.session.SetParameter(
+                "default_address_space",
+                process.get_process_address_space() or None)
 
         # Reset the address resolver for the new context.
         self.session.address_resolver.SwitchContext(process)
@@ -466,8 +467,7 @@ class ObjectTree(common.WindowsCommandPlugin):
                 continue
             seen.add(obj_header)
 
-            name = obj_header.NameInfo.Name
-            name = "%s %s" % ("." * depth, name)
+            name = unicode(obj_header.NameInfo.Name)
             obj_type = str(obj_header.get_object_type())
 
             if obj_type == "SymbolicLink":
@@ -475,7 +475,7 @@ class ObjectTree(common.WindowsCommandPlugin):
                                         obj_header.Object.CreationTime)
 
             if self.type_regex is None or self.type_regex.search(obj_type):
-                renderer.table_row(obj_header, obj_type, name)
+                renderer.table_row(obj_header, obj_type, name, depth=depth)
 
             if obj_type == "Directory":
                 self._render_directory(
@@ -484,7 +484,7 @@ class ObjectTree(common.WindowsCommandPlugin):
     def render(self, renderer):
         renderer.table_header([("_OBJECT_HEADER", "offset", "[addrpad]"),
                                ("Type", "type", "20"),
-                               ("Name", "name", "20"),
+                               dict(name="Name", type="TreeNode"),
                                ])
 
         root = self.profile.get_constant_object(

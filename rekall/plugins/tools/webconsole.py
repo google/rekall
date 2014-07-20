@@ -185,8 +185,8 @@ class RekallWebConsole(manuskript_plugin.Plugin):
             sys.stderr = stderr
 
             try:
-                plugin_cls = plugin.Command.classes_by_name[
-                    source["plugin"]["name"]]
+                plugin_cls = plugin.Command.ImplementationByClass(
+                    source["plugin"]["name"])
 
                 cmdline_args = []
                 for arg_key, arg_value in source["arguments"].iteritems():

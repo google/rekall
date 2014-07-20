@@ -43,6 +43,7 @@ from rekall import io_manager
 from rekall import kb
 from rekall import obj
 from rekall import plugin
+from rekall import registry
 from rekall import utils
 
 from rekall.ui import renderer
@@ -80,29 +81,27 @@ config.DeclareOption(
 class Container(object):
     """Just a container."""
 
+    def __str__(self):
+        return str(self.__dict__.keys())
+
 
 class Cache(utils.AttributeDict):
+    def Get(self, item, default=None):
+        if default is None:
+            default = obj.NoneObject("%s not found in cache.", item)
 
-    def _CheckCorrectType(self, value):
-        """Ensure that the configuration remains json serializable."""
-        if value is None:
-            return True
+        return super(Cache, self).Get(item) or default
 
-        # Supports the extended pickle protocol.
-        if hasattr(value, "__getstate__"):
-            return True
+    def __getattr__(self, attr):
+        # Do not allow private attributes to be set.
+        if attr.startswith("_"):
+            raise AttributeError(attr)
 
-        if isinstance(value, (int, long, basestring, float)):
-            return True
+        res = self.get(attr)
+        if res is None:
+            return obj.NoneObject("%s not set in cache", attr)
 
-        if isinstance(value, (list, tuple)):
-            return all((self._CheckCorrectType(x) for x in value))
-
-        if isinstance(value, dict):
-            return (self._CheckCorrectType(value.keys()) and
-                    self._CheckCorrectType(value.values()))
-
-        return False
+        return res
 
     def __str__(self):
         result = []
@@ -118,45 +117,6 @@ class Cache(utils.AttributeDict):
 
         return "{\n" + "\n".join(sorted(result)) + "\n}"
 
-    def __repr__(self):
-        return "<Configuration Object>"
-
-    def _set_filename(self, filename):
-        if filename:
-            self['filename'] = filename
-            self['base_filename'] = os.path.basename(filename)
-
-            self.session.Reset()
-
-    def _set_profile_path(self, profile_path):
-        # Flush the profile cache if we change the profile path.
-        self['profile_path'] = profile_path
-        self.session.profile_cache = {}
-
-    def _set_logging(self, value):
-        level = value
-        if isinstance(value, basestring):
-            level = getattr(logging, value.upper(), logging.INFO)
-
-        if level is None:
-            return
-
-        logging.getLogger().setLevel(int(level))
-        logging.info("Logging level set to %s", value)
-
-    def Set(self, attr, value):
-        hook = getattr(self, "_set_%s" % attr, None)
-        if hook:
-            hook(value)
-
-        else:
-            if not self._CheckCorrectType(value):
-                raise ValueError(
-                    "Configuration parameters must be simple types, not %r." %
-                    value)
-
-            super(Cache, self).Set(attr, value)
-
 
 class Configuration(Cache):
     # The session which owns this configuration object.
@@ -164,32 +124,77 @@ class Configuration(Cache):
 
     # This holds a write lock on the configuration object.
     _lock = False
+    _pending_hooks = None
 
     def __init__(self, session=None, **kwargs):
         super(Configuration, self).__init__(**kwargs)
         self.session = session
         self.update(**kwargs)
+        self._pending_hooks = []
 
         # Can not update the configuration object any more.
         self._lock = 1
+
+
+    def __repr__(self):
+        return "<Configuration Object>"
+
+    def _set_filename(self):
+        self['filename'] = self.filename
+        self['base_filename'] = os.path.basename(self.filename)
+        if self.session:
+            self.session.Reset()
+            self.session.UpdateFromConfigObject()
+
+    def _set_profile_path(self):
+        # Flush the profile cache if we change the profile path.
+        self['profile_path'] = self.profile_path
+        self.session.profile_cache = {}
+        self.session.UpdateFromConfigObject()
+
+    def _set_profile(self):
+        profile = self.Get("profile")
+        if isinstance(profile, basestring):
+            self.Set("profile", self.session.LoadProfile(profile))
+
+        self.session.UpdateFromConfigObject()
+
+    def _set_logging(self):
+        level = self.logging
+        if isinstance(level, basestring):
+            level = getattr(logging, level.upper(), logging.INFO)
+
+        if level == None:
+            return
+
+        logging.info("Logging level set to %s", level)
+        logging.getLogger().setLevel(int(level))
 
     def Set(self, attr, value):
         if self._lock > 0:
             raise ValueError(
                 "Can only update configuration using the context manager.")
 
+        hook = getattr(self, "_set_%s" % attr, None)
+        if hook:
+            self._pending_hooks.append(hook)
+
         super(Configuration, self).Set(attr, value)
 
     def __enter__(self):
         # Allow us to update the context manager.
+        self._pending_hooks = []
         self._lock -= 1
+
         return self
 
     def __exit__(self, exc_type, exc_value, trace):
-        if self.session:
-            self.session.UpdateFromConfigObject()
-
         self._lock += 1
+
+        # Run all the hooks _after_ all the parameters have been set.
+        if self._lock == 1:
+            for hook in reversed(self._pending_hooks):
+                hook()
 
 
 class ProgressDispatcher(object):
@@ -211,7 +216,7 @@ class ProgressDispatcher(object):
         self.callbacks[key] = callback
 
     def UnRegister(self, key):
-        del self.callbacks[key]
+        self.callbacks.pop(key, 0)
 
     def Broadcast(self, message, *args, **kwargs):
         for handler in self.callbacks.values():
@@ -224,8 +229,16 @@ class Session(object):
     This session contains the bare minimum to use rekall.
     """
 
+    __metaclass__ = registry.MetaclassRegistry
+
     def __init__(self, **kwargs):
         self._parameter_hooks = {}
+
+        # Store user configurable attributes here. These will be read/written to
+        # the configuration file.
+        kwargs.setdefault("cache", Cache())
+        self.state = Configuration(self, **kwargs)
+
         self.progress = ProgressDispatcher()
         self.profile = obj.NoneObject("Set this to a valid profile "
                                       "(e.g. type profiles. and tab).")
@@ -237,22 +250,9 @@ class Session(object):
 
         self.entities = entity.EntityManager(session=self)
 
-        # Store user configurable attributes here. These will be read/written to
-        # the configuration file.
-        kwargs.setdefault("cache", Cache())
-        self.state = Configuration(self, **kwargs)
         self.inventories = {}
         self.UpdateFromConfigObject()
-
-    def __getstate__(self):
-        return self.state.__getstate__()
-
-    def __setstate__(self, state):
-        self.__init__()
-        for k, v in state.iteritems():
-            self.SetParameter(k, v)
-
-        self.UpdateFromConfigObject()
+        self._configuration_parameters = [x[2] for x in config.OPTIONS]
 
     def __enter__(self):
         # Allow us to update the context manager.
@@ -263,6 +263,7 @@ class Session(object):
         self.state.__exit__(exc_type, exc_value, trace)
 
     def Reset(self):
+        self.profile_cache = {}
         self.physical_address_space = None
         self.kernel_address_space = None
         self.state.cache.clear()
@@ -309,7 +310,7 @@ class Session(object):
 
     def __getattr__(self, attr):
         """This will only get called if the attribute does not exist."""
-        return None
+        return obj.NoneObject("Attribute not set")
 
     def GetParameter(self, item, default=obj.NoneObject()):
         """Retrieves a stored parameter.
@@ -330,9 +331,11 @@ class Session(object):
         # The state holds user configuration from ~/.rekallrc.
         result = self.state.Get(item)
         if result == None:
-            # self.state.cache holds cached parameters.
-            result = self.state.cache.Get(item)
-            if result == None:
+            # self.state.cache holds cached parameters. If the item is already
+            # in the cache just return it, otherwise run the parameter hook.
+            if item in self.state.cache:
+                result = self.state.cache[item]
+            else:
                 result = self._RunParameterHook(item)
 
         if result == None:
@@ -341,7 +344,9 @@ class Session(object):
         return result
 
     def SetParameter(self, item, value):
-        if self.state.has_key(item):
+        # Configuration parameters go in the state object, everything else goes
+        # in the cache.
+        if item in self._configuration_parameters:
             self.state.Set(item, value)
 
         else:
@@ -351,15 +356,6 @@ class Session(object):
         hook = self._parameter_hooks.get(name)
         if hook:
             result = hook.calculate()
-            if result is None:
-                # Set a NoneObject here so that the hook does not get called
-                # again - this effectively caches the failure of the hook in
-                # returning anything useful. If you want to force the hook to
-                # run again, actively store None for this parameters
-                # (e.g. session.SetParameter("kdbg", None).
-                result = obj.NoneObject(
-                    "Parameter %s could not be calculated." % name)
-
             with self:
                 self.SetParameter(name, result)
 
@@ -476,9 +472,10 @@ class Session(object):
             if use_cache:
                 cached_profile = self.profile_cache[canonical_name]
                 if cached_profile:
-                    return cached_profile.copy()
+                    return cached_profile
+
                 else:
-                    raise ValueError(
+                    return obj.NoneObject(
                         "Unable to load profile %s from any repository." %
                         filename)
 
@@ -568,12 +565,22 @@ class Session(object):
 
         We instantiate the renderer specified in self.GetParameter("renderer").
         """
-        ui_renderer = self.GetParameter("renderer", "TextRenderer")
+        ui_renderer = self.GetParameter("renderer", "text")
         if isinstance(ui_renderer, basestring):
-            ui_renderer_cls = renderer.BaseRenderer.classes[ui_renderer]
+            ui_renderer_cls = renderer.BaseRenderer.ImplementationByName(
+                ui_renderer)
             ui_renderer = ui_renderer_cls(session=self)
 
         return ui_renderer
+
+    @property
+    def profile(self):
+        res = self.state.Get("profile")
+        return res
+
+    @profile.setter
+    def profile(self, value):
+        super(Configuration, self.state).Set("profile", value)
 
 
 class JsonSerializableSession(Session):
@@ -601,13 +608,16 @@ class JsonSerializableSession(Session):
                 pdb.post_mortem(sys.exc_info()[2])
 
     def Unserialize(self, lexicon, data):
-        decoder = json_renderer.JsonDecoder(self)
+        json_renderer_obj = json_renderer.JsonRenderer(session=self)
+        decoder = json_renderer.JsonDecoder(self, json_renderer_obj)
         decoder.SetLexicon(lexicon)
         self.state = Configuration(**decoder.Decode(data))
         self.UpdateFromConfigObject()
 
     def Serialize(self):
-        encoder = json_renderer.JsonEncoder()
+        encoder = json_renderer.JsonEncoder(
+            session=self, renderer="JsonRenderer")
+
         data = encoder.Encode(self.state)
         return encoder.GetLexicon(), data
 
@@ -632,19 +642,23 @@ class InteractiveSession(JsonSerializableSession):
         # Fill the session with helpful defaults.
         self.pager = obj.NoneObject("Set this to your favourite pager.")
 
+        self.help_profile = None
+
         super(InteractiveSession, self).__init__(**kwargs)
 
     def _update_runners(self):
         super(InteractiveSession, self)._update_runners()
 
-        help_profile = self.LoadProfile("help_doc")
+        if not self.help_profile:
+            self.help_profile = self.LoadProfile("help_doc")
 
         self._locals['plugins'] = Container()
         for cls in plugin.Command.GetActiveClasses(self):
             default_args, doc = "", ""
-            if help_profile:
-                default_args = help_profile.ParametersForPlugin(cls.__name__)
-                doc = help_profile.DocsForPlugin(cls.__name__)
+            if self.help_profile:
+                default_args = self.help_profile.ParametersForPlugin(
+                    cls.__name__)
+                doc = self.help_profile.DocsForPlugin(cls.__name__)
 
             name = cls.name
             if name:
@@ -693,7 +707,7 @@ class InteractiveSession(JsonSerializableSession):
 
 Config:
 %s
-""" % (time.ctime(self.start_time), self.state)
+""" % (time.ctime(self._start_time), self.state)
         return result
 
     def __dir__(self):

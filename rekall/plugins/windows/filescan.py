@@ -79,9 +79,7 @@ class FileScan(common.PoolScannerPlugin):
                                ('#Ptr', "ptr_count", '>6'),
                                ('#Hnd', "hnd_count", '>3'),
                                ('Access', "access", '6'),
-                               ('Owner', "owner", '[addrpad]'),
-                               ('Owner Pid', "owner_pid", '>4'),
-                               ('Owner Name', "owner_name", '16'),
+                               dict(name='Owner', type="_EPROCESS"),
                                ('Name', "path", '')
                                ])
 
@@ -97,9 +95,7 @@ class FileScan(common.PoolScannerPlugin):
                 object_obj.PointerCount,
                 object_obj.HandleCount,
                 file_obj.AccessString,
-                owner_process.obj_offset,
-                owner_process.UniqueProcessId,
-                owner_process.ImageFileName,
+                owner_process,
                 file_obj.FileName.v(vm=self.kernel_address_space))
 
 
@@ -110,15 +106,15 @@ class PoolScanDriver(PoolScanFile):
         super(PoolScanDriver, self).__init__(**kwargs)
         self.checks = [
             ('PoolTagCheck', dict(
-                    tag=self.profile.get_constant("DRIVER_POOLTAG"))),
+                tag=self.profile.get_constant("DRIVER_POOLTAG"))),
 
             # Must be large enough to hold the driver object.
             ('CheckPoolSize', dict(
-                    condition=lambda x: x > self.profile.get_obj_size(
-                        "_DRIVER_OBJECT"))),
+                condition=lambda x: x > self.profile.get_obj_size(
+                    "_DRIVER_OBJECT"))),
 
             ('CheckPoolType', dict(
-                    paged=True, non_paged=True, free=True)),
+                paged=True, non_paged=True, free=True)),
 
             ('CheckPoolIndex', dict(value=0)),
             ]
@@ -184,10 +180,10 @@ class PoolScanSymlink(PoolScanFile):
         super(PoolScanSymlink, self).__init__(**kwargs)
         self.checks = [
             ('PoolTagCheck', dict(
-                    tag=self.profile.get_constant("SYMLINK_POOLTAG"))),
+                tag=self.profile.get_constant("SYMLINK_POOLTAG"))),
 
             ('CheckPoolSize', dict(
-                    min_size=self.profile.get_obj_size(
+                min_size=self.profile.get_obj_size(
                         "_OBJECT_SYMBOLIC_LINK"))),
 
             ('CheckPoolType', dict(paged=True, non_paged=True, free=True)),
@@ -245,13 +241,13 @@ class PoolScanMutant(PoolScanDriver):
         super(PoolScanMutant, self).__init__(**kwargs)
         self.checks = [
             ('PoolTagCheck', dict(tag=self.profile.get_constant(
-                        "MUTANT_POOLTAG"))),
+                "MUTANT_POOLTAG"))),
 
             ('CheckPoolSize', dict(
-                    min_size=self.profile.get_obj_size("_KMUTANT"))),
+                min_size=self.profile.get_obj_size("_KMUTANT"))),
 
             ('CheckPoolType', dict(
-                    paged=True, non_paged=True, free=True)),
+                paged=True, non_paged=True, free=True)),
 
             ('CheckPoolIndex', dict(value=0)),
             ]
@@ -332,14 +328,14 @@ class PoolScanProcess(common.PoolScanner):
         self.checks = [
             # Must have the right pool tag.
             ('PoolTagCheck', dict(
-                    tag=self.profile.get_constant("EPROCESS_POOLTAG"))),
+                tag=self.profile.get_constant("EPROCESS_POOLTAG"))),
 
             # Must be large enough for an _EPROCESS.
             ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
-                        "_EPROCESS"))),
+                "_EPROCESS"))),
 
             ('CheckPoolType', dict(
-                    paged=True, non_paged=True, free=True)),
+                paged=True, non_paged=True, free=True)),
 
             ('CheckPoolIndex', dict(value=0)),
             ]
@@ -401,17 +397,15 @@ class PSScan(common.PoolScannerPlugin):
             known_eprocess.add(task)
             known_pids.add(task.UniqueProcessId)
 
-        renderer.table_header([(' ', 'allocated', '1'),
-                               ('Offset', "offset_p", '[addrpad]'),
-                               ('Offset(V)', "offset_v", '[addrpad]'),
-                               ('Name', "file_name", '16'),
-                               ('PID', "pid", '>6'),
-                               ('PPID', "ppid", '>6'),
-                               ('PDB', "pdb", '[addrpad]'),
-                               ('Stat', 'stat', "4"),
-                               ('Time created', "process_create_time", '24'),
-                               ('Time exited', "process_exit_time", '24')]
-                               )
+        renderer.table_header([
+            (' ', 'allocated', '1'),
+            dict(name='_EPROCESS (P)', cname="offset_p", type="_EPROCESS"),
+            ('Offset(V)', "offset_v", '[addrpad]'),
+            ('PPID', "ppid", '>6'),
+            ('PDB', "pdb", '[addrpad]'),
+            ('Stat', 'stat', "4"),
+            ('Time created', "process_create_time", '24'),
+            ('Time exited', "process_exit_time", '24')])
 
         for pool_obj, eprocess in self.scan_processes():
             # Switch address space from physical to virtual.
@@ -428,9 +422,7 @@ class PSScan(common.PoolScannerPlugin):
             renderer.table_row(
                 'F' if pool_obj.FreePool else "",
                 eprocess,
-                virtual_eprocess,
-                eprocess.ImageFileName,
-                eprocess.UniqueProcessId,
+                virtual_eprocess.obj_offset,
                 eprocess.InheritedFromUniqueProcessId,
                 eprocess.Pcb.DirectoryTableBase,
                 known,

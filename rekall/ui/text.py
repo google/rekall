@@ -31,13 +31,14 @@ except Exception:  # curses sometimes raises weird exceptions.
 import logging
 import re
 import os
+import string
 import subprocess
 import sys
 import tempfile
 import textwrap
 
 from rekall import config
-from rekall import obj
+from rekall import registry
 from rekall import utils
 
 from rekall.ui import renderer
@@ -61,6 +62,183 @@ HIGHLIGHT_SCHEME = dict(
     good=("GREEN", None),
     neutral=(None, None),
 )
+
+
+class Formatter(string.Formatter):
+    """A formatter which supports extended formating specs."""
+    # This comes from http://docs.python.org/library/string.html
+    # 7.1.3.1. Format Specification Mini-Language
+    standard_format_specifier_re = re.compile(r"""
+(?P<fill>[^{}<>=^bcdeEfFgGnLosxX0-9])?  # The fill parameter. This can not be a
+                                        # format string or it is ambiguous.
+(?P<align>[<>=^])?     # The alignment.
+(?P<sign>[+\- ])?      # Sign extension.
+(?P<hash>\#)?          # Hash means to preceed the whole thing with 0x.
+(?P<zerofill>0)?       # Should numbers be zero filled.
+(?P<width>\d+)?        # The minimum width.
+(?P<comma>,)?
+(?P<precision>.\d+)?   # Precision
+(?P<type>[bcdeEfFgGnosxXL%])?  # The format string (Not all are supported).
+""", re.X)
+
+    def __init__(self, session=None):
+        super(Formatter, self).__init__()
+        self.session = session
+        self._calculate_address_size()
+
+    def _calculate_address_size(self):
+        self.address_size = 14
+        if self.session.profile.metadata("arch") == "I386":
+            self.address_size = 10
+
+    def parse_extended_format(self, value, formatstring="", header=False,
+                              **options):
+        """Parse the format string into the format specification.
+
+        We support some extended forms of format string which we process
+        especially here:
+
+        [addrpad] - This is a padded address to width renderer.address_size.
+        [addr] - This is a non padded address.
+        [wrap:width] - This wraps a stringified version of the target in the
+           cell.
+
+        Args:
+          formatstring: The formatstring we parse.
+          options: An options dict. We may populate it with some options which
+             are encoded in the extended format.
+
+        Returns:
+          A Cell instance.
+        """
+        extended_format = None
+
+        # This means unlimited and uncontrolled width.
+        if formatstring == "":
+            extended_format = "s"
+
+        if formatstring == "[addrpad]":
+            if header:
+                extended_format = "^%ss" % self.address_size
+            else:
+                extended_format = "#0%sx" % self.address_size
+
+            if value == None:
+                extended_format = "<%ss" % self.address_size
+
+        elif formatstring == "[addr]":
+            if header:
+                extended_format = "^%ss" % self.address_size
+            else:
+                extended_format = ">#%sx" % self.address_size
+
+        # Look for the wrap specifier.
+        m = re.match(r"\[wrap:([^\]]+)\]", formatstring)
+        if m:
+            width = int(m.group(1))
+            return Cell.wrap(utils.SmartUnicode(value), width)
+
+        if extended_format is not None:
+            return Cell.FromString(
+                self.format_field(value, extended_format))
+
+    def format_cell(self, value, formatstring="", header=False, **options):
+        """Format the value into a Cell instance.
+
+        This also support extended formatting directives.
+
+        Returns:
+          A Cell instance.
+        """
+        res = self.parse_extended_format(
+            value, formatstring=formatstring, header=header, **options)
+
+        if res:
+            return res
+
+        if header:
+            formatstring = formatstring.replace("#", "")
+            formatstring = formatstring.replace("<", "")
+            formatstring = formatstring.replace(">", "")
+            formatstring = formatstring.replace("x", "s")
+            if not formatstring.startswith("^"):
+                formatstring = "^" + formatstring
+
+        return Cell.FromString(
+            self.format_field(value, formatstring=formatstring))
+
+    def format_field(self, value, formatstring="", header=False, **_):
+        """Format the value using the format_spec.
+
+        The aim of this function is to remove the delegation to __format__() on
+        the object. For our needs we do not want the object to be responsible
+        for its own formatting since it is not aware of the renderer itself.
+
+        A rekall.obj.BaseObject instance must support the following
+        formatting operations:
+
+        __unicode__
+        __str__
+        __repr__
+        and may also support __int__ (for formatting in hex).
+        """
+        m = self.standard_format_specifier_re.match(formatstring)
+        if not m:
+            raise re.error("Invalid regex")
+
+        fields = m.groupdict()
+
+        if header:
+            fields["align"] = "^"
+
+        # Format the value according to the basic type.
+        type = fields["type"] or "s"
+        try:
+            value = getattr(
+                self, "format_type_%s" % type)(value, fields)
+        except AttributeError:
+            raise re.error("No formatter for type %s" % type)
+
+        try:
+            return format(value, formatstring)
+        except ValueError:
+            return str(value)
+
+    def format_type_s(self, value, fields):
+        try:
+            # This is required to allow BaseObject to pass non unicode returns
+            # from __unicode__ (e.g. NoneObject).
+            result = value.__unicode__()
+        except AttributeError:
+            result = utils.SmartUnicode(value)
+
+        formatstring = (u"{0:" + (fields.get("align") or "") +
+                        (fields.get("width") or "") + "s}")
+        return formatstring.format(result)
+
+    def format_type_x(self, value, fields):
+        _ = fields
+        return int(value)
+
+    def format_type_X(self, value, fields):
+        _ = fields
+        return int(value)
+
+    def format_type_r(self, value, fields):
+        _ = fields
+        return repr(value)
+
+    def format_type_f(self, value, fields):
+        _ = fields
+        if isinstance(value, (float, int, long)):
+            return float(value)
+
+        return value
+
+    def format_type_L(self, value, fields):
+        """Support extended list format."""
+        _ = fields
+        return ", ".join([utils.SmartUnicode(x) for x in value])
 
 
 class Pager(object):
@@ -232,12 +410,12 @@ class Colorizer(object):
             logging.debug("Unable to set tparm: %s" % e)
             return ""
 
-    def Render(self, string, foreground=None, background=None):
+    def Render(self, target, foreground=None, background=None):
         """Decorate the string with the ansii escapes for the color."""
         if (not self.terminal_capable or
             foreground not in self.COLOR_MAP or
             foreground not in self.COLOR_MAP):
-            return utils.SmartUnicode(string)
+            return utils.SmartUnicode(target)
 
         escape_seq = ""
         if background:
@@ -248,23 +426,41 @@ class Colorizer(object):
             escape_seq += self.tparm(
                 ["setf", "setaf"], self.COLOR_MAP[foreground])
 
-        return (escape_seq + utils.SmartUnicode(string) +
+        return (escape_seq + utils.SmartUnicode(target) +
                 self.tparm(["sgr0"]))
 
 
-class TextColumn(renderer.BaseColumn):
-    """Implementation for text (mostly CLI) tables."""
+class ObjectRenderer(renderer.ObjectRenderer):
+    """Baseclass for all TestRenderer object renderers."""
+
+    # Fall back renderer for all objects.
+    renders_type = "object"
+    renderers = ["TextRenderer", "WideTextRenderer"]
+
+    __metaclass__ = registry.MetaclassRegistry
 
     def __init__(self, *args, **kwargs):
-        super(TextColumn, self).__init__(*args, **kwargs)
+        super(ObjectRenderer, self).__init__(*args, **kwargs)
+        self.formatter = Formatter(session=self.session)
 
-        self.name = self.name or "-"
-        self.cname = self.cname or "-"
+    def render_header(self, name=None, **options):
+        """This should be overloaded to return the header Cell.
 
-    def render_header(self):
-        """Renders the cell header."""
-        header_cell = self.render_cell(
-            self.name, formatstring=self.header_format, elide=False)
+        Note that typically the same ObjectRenderer instance will be used to
+        render all Cells in the same column.
+
+        Args:
+          name: The name of the Column.
+          options: The options of the column (i.e. the dict which defines the
+            column).
+
+        Return:
+          A Cell instance containing the formatted Column header.
+        """
+        formatstring = options.get("formatstring", "")
+        header_cell = self.formatter.format_cell(
+            name, formatstring, header=True)
+
         self.header_width = max([len(line) for line in header_cell])
 
         # Append a dashed line as a table header separator.
@@ -272,87 +468,206 @@ class TextColumn(renderer.BaseColumn):
 
         return header_cell
 
-    def elide_string(self, string, length):
-        """Elides the middle of a string if it is longer than length."""
-        if length == -1:
-            return string
+    def render_row(self, target, **options):
+        """Render the target suitably.
 
-        if len(string) < length:
-            return (" " * (length - len(string))) + string
+        Args:
+          target: The object to be rendered.
 
-        elif len(string) == length:
-            return string
+          options: A dict containing rendering options. The options are created
+            from the column options, overriden by the row options and finally
+            the cell options.  It is ok for an instance to ignore some or all of
+            the options. Some options only make sense in certain Renderer
+            contexts.
+
+        Returns:
+          A Cell instance containing the rendering of target.
+        """
+        return self.formatter.format_cell(target, **options)
+
+
+class CellRenderer(ObjectRenderer):
+    """This renders a Cell object into a Cell object.
+
+    i.e. it is just a passthrough object renderer for Cell objects. This is
+    useful for rendering nested tables.
+    """
+    renders_type = "Cell"
+
+    def render_row(self, target, **_):
+        return Cell.Strip(target)
+
+
+class Cell(object):
+    """A Cell represents a single entry in a table.
+
+    Cells always have a fixed number of characters in width and may have
+    arbitrary number of characters (lines) for a height.
+
+    The TextTable consists of an array of Cells:
+
+    Cell Cell Cell Cell  <----- Headers.
+    Cell Cell Cell Cell  <----- Table rows.
+
+    The ObjectRenderer is responsible for turning an arbitrary object into a
+    Cell object.
+    """
+
+    def __init__(self):
+        self.lines = []
+
+    def Justify(self, width=None):
+        """Fix up the width of all lines so they are the same."""
+        if width is None:
+            width = self.width
+
+        for i in range(len(self.lines)):
+            line = self.lines[i]
+            self.lines[i] = line + " " * (width - len(line))
+
+        return self
+
+    @property
+    def width(self):
+        """Return the maximum width of this Cell in characters."""
+        return max(0, 0, *[len(x) for x in self.lines])
+
+    @property
+    def height(self):
+        """The number of chars this Cell takes in height."""
+        return len(self.lines)
+
+    @classmethod
+    def wrap(cls, value, width):
+        """A constructor which creates a Cell by wrapping a long string."""
+        result = cls()
+
+        # Expand the line into a list of lines wrapped at the width.
+        for wrapped_line in textwrap.wrap(value, width=width):
+            # Pad the line to the required width.
+            result.lines.append(
+                wrapped_line + " " * (width - len(wrapped_line)))
+
+        result.Justify()
+        return result
+
+    @classmethod
+    def Strip(cls, cell):
+        result = cls()
+        for line in cell:
+            result.append(line.strip())
+
+        result.Justify()
+        return result
+
+    @classmethod
+    def FromString(cls, value):
+        result = cls()
+        for line in value.splitlines():
+            result.lines.append(line)
+
+        return result
+
+    @classmethod
+    def Join(cls, *cells, **kwargs):
+        """Construct a new Cell which is the result of combining Cells."""
+        tablesep = kwargs.pop("tablesep", " ")
+        if kwargs:
+            raise AttributeError("Unsupported args %s" % kwargs)
+
+        # Ensure that all the cells are the same width.
+        cell_widths = []
+        max_height = 0
+        for cell in cells:
+            cell.Justify()
+            cell_widths.append(cell.width)
+            max_height = max(max_height, cell.height)
+
+        # Make a new cell to receive the output.
+        result = cls()
+        for line in range(max_height):
+            line_components = []
+            for i in range(len(cells)):
+                try:
+                    line_components.append(cells[i].lines[line])
+                except IndexError:
+                    line_components.append(" " * cell_widths[i])
+
+            result.lines.append(tablesep.join(line_components))
+
+        return result
+
+    def __iter__(self):
+        self.Justify()
+        return iter(self.lines)
+
+    def append(self, value):
+        self.lines.append(value)
+        return self
+
+
+class TextColumn(object):
+    """Implementation for text (mostly CLI) tables."""
+
+    # The object renderer used for this column.
+    object_renderer = None
+
+    def __init__(self, table=None, renderer=None, session=None, type=None,
+                 **options):
+        self.session = session
+        self.table = table
+        self.wrap = None
+        self.renderer = renderer
+        # Arbitrary column options to be passed to ObjectRenderer() instances.
+        # This allows a plugin to influence the output somewhat in different
+        # output contexts.
+        self.options = options
+
+        # For columns which do not explicitly set their type, we can not
+        # determine the type until the first row has been written. NOTE: It is
+        # not supported to change the type of a column after the first row has
+        # been written.
+        if type:
+            self.object_renderer = self.renderer.get_object_renderer(
+                type=type, **options)
+
+    def render_header(self):
+        """Renders the cell header.
+
+        Returns a Cell instance for this column header.
+        """
+        # If there is a customized object renderer for this column we use that.
+        if self.object_renderer:
+            header = self.object_renderer.render_header(**self.options)
 
         else:
-            if length < 5:
-                logging.error("Cannot elide a string to length less than 5")
+            # Otherwise we just use the default.
+            object_renderer = ObjectRenderer(self.renderer, self.session)
 
-            even = ((length + 1) % 2)
-            length = (length - 3) / 2
-            return string[:length + even] + "..." + string[-length:]
+            header = object_renderer.render_header(**self.options)
 
-    def _wrap_cell(self, line, width):
-        # Expand the line into a list of lines wrapped at the width.
-        lines = []
-        for wrapped_line in textwrap.wrap(line, width=width):
-            # Pad the line to the width
-            lines.append(wrapped_line + " " * (width - len(wrapped_line)))
+        self.header_width = header.width
+        return header
 
-        return lines
+    def render_row(self, target, **options):
+        """Renders the current row for the target.
+        """
+        # We merge the row options and the column options. This allows a call to
+        # table_row() to override options.
+        merged_opts = self.options.copy()
+        merged_opts.update(options)
 
-    def render_cell(self, target, formatstring=None, elide=None):
-        """Renders obj according to the format string."""
-        if formatstring is None:
-            formatstring = self.formatstring
+        if self.object_renderer is None:
+            self.object_renderer = self.table.renderer.get_object_renderer(
+                target, type=merged_opts.get("type"), **options)
 
-        if isinstance(target, Colorizer):
-            result = []
-            for x in self.render_cell(target.target, formatstring=formatstring,
-                                      elide=elide):
-                result.append(target.Render(x))
-            return result
-
-        # For NoneObjects we just render dashes. (Other renderers might want to
-        # actually record the error, we ignore it here.).
-        elif target is None or isinstance(target, obj.NoneObject):
-            return ['-' * len(self.formatter.format_field(1, formatstring))]
-
-        # Convert address values to addresses.
-        if (self.original_formatstring == "[addr]" or
-            self.original_formatstring == "[addrpad]"):
-            try:
-                target = obj.Pointer.integer_to_address(target)
-            except ValueError:
-                pass
-
-        # Simple formatting.
-        result = self.formatter.format_field(target, formatstring).splitlines()
-
-        # Support line wrapping.
-        if self.wrap:
-            old_result = result
-            result = []
-            for line in old_result:
-                result.extend(self._wrap_cell(line, self.wrap))
-
-        elif elide is None:
-            elide = self.table.elide
-
-        if elide:
-            # we take the header width as the maximum width of this column.
-            result = [
-                self.elide_string(line, self.header_width) for line in result]
-
-        if isinstance(target, bool):
-            color = "GREEN" if target else "RED"
-            result = [
-                self.table.renderer.colorizer.Render(
-                    x, foreground=color) for x in result]
-
-        return result or [""]
+        result = self.object_renderer.render_row(target, **merged_opts)
+        if result.width < self.header_width:
+            result.Justify(width=self.header_width)
+        return result
 
 
-class TextTable(renderer.BaseTable):
+class TextTable(object):
     """A table is a collection of columns.
 
     This table formats all its cells using proportional text font.
@@ -360,11 +675,27 @@ class TextTable(renderer.BaseTable):
 
     column_class = TextColumn
 
-    def __init__(self, tablesep=" ", elide=False, **kwargs):
-        super(TextTable, self).__init__(**kwargs)
-
+    def __init__(self, columns=None, renderer=None, suppress_headers=False,
+                 session=None, tablesep=" ", **options):
+        self.session = session
         self.tablesep = tablesep
-        self.elide = elide
+        self.renderer = renderer
+        self.options = options
+        self.columns = []
+
+        for args in columns:
+            # Old style column specification are a tuple. The new way is a dict
+            # which is more expressive but more verbose.
+            if isinstance(args, (tuple, list)):
+                args = dict(name=args[0],
+                            cname=args[1],
+                            formatstring=args[2])
+
+            self.columns.append(self.column_class(
+                session=self.session, table=self, renderer=self.renderer,
+                **args))
+
+        self.suppress_headers = suppress_headers
 
     def write_row(self, cells, highlight=False):
         """Writes a row of the table.
@@ -376,46 +707,36 @@ class TextTable(renderer.BaseTable):
         foreground, background = HIGHLIGHT_SCHEME.get(
             highlight, (None, None))
 
-        # Ensure that all the cells are the same width.
-        justified_cells = []
-        cell_widths = []
-        max_height = 0
-        for cell in cells:
-            max_width = max([len(line) for line in cell])
-            max_height = max(max_height, len(cell))
-            justified_cell = []
-            for line in cell:
-                justified_cell.append(line + (' ' * (max_width-len(line))))
-
-            justified_cells.append(justified_cell)
-            cell_widths.append(max_width)
-
-        for line in range(max_height):
-            line_components = []
-            for i in range(len(justified_cells)):
-                try:
-                    line_components.append(justified_cells[i][line])
-                except IndexError:
-                    line_components.append(" " * cell_widths[i])
-
+        # Iterate over all lines in the row and write it out.
+        for line in Cell.Join(cells, tablesep=self.tablesep):
             self.renderer.write(
                 self.renderer.colorizer.Render(
-                    self.tablesep.join(line_components),
-                    foreground=foreground, background=background) + "\n")
+                    line, foreground=foreground, background=background) + "\n")
 
     def render_header(self):
-        # The headers must always be calculated so we can work out the column
-        # widths.
-        headers = [c.render_header() for c in self.columns]
+        """Returns a Cell formed by joining all the column headers."""
+        # Get each column to write its own header and then we join them all up.
+        return Cell.Join(*[c.render_header() for c in self.columns],
+                          tablesep=self.tablesep)
 
-        if not self.suppress_headers:
-            self.write_row(headers)
+    def get_row(self, *row, **options):
+        """Format the row into a single Cell spanning all output columns.
 
-    def render_row(self, row=None, highlight=None):
-        # pylint: disable=arguments-differ
-        self.write_row(
-            [c.render_cell(x) for c, x in zip(self.columns, row)],
-            highlight=highlight)
+        Args:
+          *row: A list of objects to render in the same order as columns are
+             defined.
+
+        Returns:
+          A single Cell object spanning the entire row.
+        """
+        return Cell.Join(
+            *[c.render_row(x, **options) for c, x in zip(self.columns, row)],
+             tablesep=self.tablesep)
+
+    def render_row(self, row=None, highlight=None, **options):
+        """Write the row to the output."""
+        return self.write_row(self.get_row(*row, **options),
+                              highlight=highlight)
 
 
 class UnicodeWrapper(object):
@@ -446,13 +767,10 @@ class UnicodeWrapper(object):
 
 class TextRenderer(renderer.BaseRenderer):
     """Renderer for the command line that supports paging, colors and progress.
-
-    Args:
-      elide: Causes words to be shortened in the middle if they're longer than
-        format spec.
     """
+    name = "text"
+
     tablesep = " "
-    elide = False
     paging_limit = None
     table_cls = TextTable
     progress_fd = None
@@ -462,8 +780,8 @@ class TextRenderer(renderer.BaseRenderer):
     last_spin = 0
     last_message_len = 0
 
-    def __init__(self, tablesep=" ", elide=False, output=None, mode="a+b",
-                 fd=None, **kwargs):
+    def __init__(self, tablesep=" ", output=None, mode="a+b", fd=None,
+                 **kwargs):
         super(TextRenderer, self).__init__(**kwargs)
 
         # Allow the user to dump all output to a file.
@@ -474,10 +792,10 @@ class TextRenderer(renderer.BaseRenderer):
             # recorded in the output file.
             fd = open(self.output, mode)
 
-        if fd is None:
+        if fd == None:
             fd = self.session.fd
 
-        if fd is None:
+        if fd == None:
             try:
                 fd = Pager(session=self.session)
             except AttributeError:
@@ -485,10 +803,9 @@ class TextRenderer(renderer.BaseRenderer):
 
         # Make sure that our output is unicode safe.
         self.fd = UnicodeWrapper(fd)
-        self.formatter = renderer.Formatter()
+        self.formatter = Formatter(session=self.session)
 
         self.tablesep = tablesep
-        self.elide = elide
 
         # We keep the data that we produce in memory for while.
         self.data = []
@@ -504,12 +821,14 @@ class TextRenderer(renderer.BaseRenderer):
         )
 
     def format(self, formatstring, *data):
+        super(TextRenderer, self).format(formatstring, *data)
+
         # Only clear the progress if we share the same output stream as the
         # progress.
         if self.fd is self.progress_fd:
             self.ClearProgress()
 
-        super(TextRenderer, self).format(formatstring, *data)
+        self.write(self.formatter.format(formatstring, *data))
 
     def write(self, data):
         self.fd.write(data)
@@ -519,16 +838,19 @@ class TextRenderer(renderer.BaseRenderer):
         self.ClearProgress()
         self.fd.flush()
 
-    def table_header(self, *args, **kwargs):
-        """Text table header also takes elide and tablesep arguments.
+    def table_header(self, *args, **options):
+        self.options = options
+        suppress_headers = options.pop("suppress_headers", False)
+        super(TextRenderer, self).table_header(*args, **options)
 
-        The rest of this is the same as BaseRenderer.table_header."""
-        return super(TextRenderer, self).table_header(
-            *args,
-            elide=self.elide,
-            tablesep=self.tablesep,
-            **kwargs
-        )
+        self.table = self.table_cls(
+            renderer=self, session=self.session, tablesep=self.tablesep,
+            *args, **options
+            )
+
+        for line in self.table.render_header():
+            if not suppress_headers:
+                self.write(line + "\n")
 
     def table_row(self, *args, **kwargs):
         """Outputs a single row of a table.
@@ -537,7 +859,14 @@ class TextRenderer(renderer.BaseRenderer):
           highlight: Highlights this raw according to the color scheme (e.g.
           important, good...)
         """
-        return super(TextRenderer, self).table_row(*args, **kwargs)
+        super(TextRenderer, self).table_row(*args, **kwargs)
+        self.RenderProgress(message=None)
+
+        if self.deferred_rows is not None:
+            # Table rendering is being deferred for sorting.
+            self.deferred_rows.append((args, kwargs))
+        else:
+            self.table.render_row(row=args, **kwargs)
 
     def _GetColumns(self):
         if curses:
@@ -608,9 +937,94 @@ class TextRenderer(renderer.BaseRenderer):
         return open(filename, mode)
 
 
-
 class TestRenderer(TextRenderer):
     """A special renderer which makes parsing the output of tables easier."""
+    name = "test"
 
     def __init__(self, **kwargs):
         super(TestRenderer, self).__init__(tablesep="||", **kwargs)
+
+
+class WideTextRenderer(TextRenderer):
+    """A Renderer which explodes tables into wide formatted records."""
+
+    name = "wide"
+
+    def __init__(self, **kwargs):
+        super(WideTextRenderer, self).__init__(**kwargs)
+
+        self.delegate_renderer = TextRenderer(**kwargs)
+
+    def __enter__(self):
+        self.delegate_renderer.__enter__()
+        self.delegate_renderer.table_header(
+            [("Key", "key", "[wrap:15]"),
+             ("Value", "Value", "[wrap:80]")],
+            )
+
+        return super(WideTextRenderer, self).__enter__()
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.delegate_renderer.__exit__(exc_type, exc_value, trace)
+        return super(WideTextRenderer, self).__exit__(
+            exc_type, exc_value, trace)
+
+    def table_header(self, *args, **options):
+        options["suppress_headers"] = True
+        super(WideTextRenderer, self).table_header(*args, **options)
+
+    def table_row(self, *row, **options):
+        self.section()
+        values = [c.render_row(x) for c, x in zip(self.table.columns, row)]
+
+        for c, item in zip(self.table.columns, values):
+            column_name = (getattr(c.object_renderer, "name", None) or
+                           c.options.get("name"))
+            self.delegate_renderer.table_row(column_name, item, **options)
+
+
+class TreeNodeObjectRenderer(ObjectRenderer):
+    renders_type = "TreeNode"
+
+
+    def __init__(self, renderer=None, session=None, **options):
+        self.max_depth = options.pop("max_depth", 10)
+        child_spec = options.pop("child", None)
+        if child_spec:
+            child_type = child_spec.get("type")
+
+            self.child = self.ByName(child_type, renderer)(
+                renderer, session=session, **child_spec)
+
+            if not self.child:
+                raise AttributeError("Child %s of TreeNode was not found." %
+                                     child_type)
+        else:
+            self.child = None
+
+        super(TreeNodeObjectRenderer, self).__init__(
+            renderer, session=session, **options)
+
+    def render_header(self, **options):
+        if self.child:
+            padding = Cell.FromString(" " * self.max_depth)
+            heading = Cell.Join(self.child.render_header(**options), padding)
+        else:
+            heading = super(TreeNodeObjectRenderer, self).render_header(
+                **options)
+
+        self.heading_width = heading.width
+        return heading
+
+    def render_row(self, target, depth=0, **options):
+        if self.child:
+            child_cell = self.child.render_row(target, **options)
+        else:
+            child_cell = super(TreeNodeObjectRenderer, self).render_row(
+                target, **options)
+
+        padding = Cell.FromString("." * depth)
+        result = Cell.Join(padding, child_cell)
+        result.Justify(width=self.heading_width)
+
+        return result

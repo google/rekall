@@ -17,19 +17,80 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""This module implements a text based render.
+"""This module implements the Rekall renderer API.
 
-A renderer is used by plugins to produce formatted output.
+Rekall has a pluggable rendering system. At the top level we have renderers
+which are reponsible for converting the output of plugins into something usable
+for the user (whatever that means).
+
+A Rekall plugin uses the renderer to produce output by providing it with a bunch
+of objects which are derived from the analysis stage. The renderer is then
+responsible for rendering these special objects using pluaggable
+ObjectRenderer() classes.
+
+1. The framework creates a BaseRenderer implementation (e.g. TextRenderer or
+   JsonRenderer)
+
+2. This is passed to a plugin's render() method.
+
+3. The Plugin provides various objects to the renderer via its table_row(),
+   format() etc methods.
+
+4. The renderer than uses specialized ObjectRenderer() instances to render the
+   objects that the plugin gave it.
+
+For example, by default the renderer used is an instance of TextRenderer. The
+PSList() plugin in its render() method, calls renderer.table_row() passing a
+WinFileTime() instance as the "Create Time" cell of the table.
+
+The TextRenderer plugin aims to layout the output into the text terminal. For
+this to happen it must convert the WinFileTime() instance to a rendering
+primitive, specific to the TextRenderer - in this case a Cell() instance. This
+conversion is done using an ObjectRenderer instance.
+
+The TextRenderer therefore selects an ObjectRenderer instance based on two
+criteria:
+
+- The ObjectRenderer claims to support the WinFileTime() object, or any of its
+  base classes in order (using the ObjectRenderer.renders_type attribute).
+
+- The ObjectRenderer claims to support the specific renderer
+  (i.e. TextRenderer) using its `renderers` attribute.
+
+The TextRenderer searches for an ObjectRenderer() by traversing the
+WinFileTime's __mro__ (i.e. inheritance hierarchy) for a plugin capable of
+rendering it. This essentially goes from most specialized to the least
+specialized renderer:
+
+- WinFileTime
+- UnixTimeStamp   <-- Specialized object renderer for unix times.
+- NativeType
+- BaseObject
+- object          <--- Generic renderer for all objects.
+
+Once a renderer is found, it is used to output the cell value.
+
+## NOTES
+
+1. A specialized object renderer is written specifically for the renderer. This
+   means that it is possible to have a specialized _EPROCESS object renderer for
+   TextRenderer but when using the JsonRenderer a more general renderer may be
+   chosen (say at the BaseObject level).
+
+2. The ObjectRenderer.render_row() method actually returns something which makes
+   sense to the supported renderer. There is no API specification for the return
+   value. For example the TextRenderer needs a Cell instance but the
+   JsonRenderer requires just a dict. Since ObjectRenderer instances are only
+   used within the renderer they only need to cooperate with the renderer class
+   they support.
 """
+import collections
 import gc
+import inspect
 import logging
 import time
-import re
-import string
 
 from rekall import config
-from rekall import obj
-from rekall import utils
 from rekall import registry
 
 
@@ -51,106 +112,153 @@ config.DeclareOption(
     help="If set we break into the debugger on error conditions.")
 
 
-class Formatter(string.Formatter):
-    """A formatter which supports extended formating specs."""
-    # This comes from http://docs.python.org/library/string.html
-    # 7.1.3.1. Format Specification Mini-Language
-    standard_format_specifier_re = re.compile(r"""
-(?P<fill>[^{}<>=^bcdeEfFgGnLosxX])?   # The fill parameter. This can not be a
-                                     # format string or it is ambiguous.
-(?P<align>[<>=^])?     # The alignment.
-(?P<sign>[+\- ])?      # Sign extension.
-(?P<hash>\#)?          # Hash means to preceed the whole thing with 0x.
-(?P<zerofill>0)?       # Should numbers be zero filled.
-(?P<width>\d+)?        # The minimum width.
-(?P<comma>,)?
-(?P<precision>.\d+)?   # Precision
-(?P<type>[bcdeEfFgGnosxXL%])?  # The format string (Not all are supported).
-""", re.X)
+class ObjectRenderer(object):
+    """Baseclass for all TestRenderer object renderers."""
 
-    def format_field(self, value, format_spec):
-        """Format the value using the format_spec.
+    # Fall back renderer for all objects.
+    renders_type = "object"
 
-        The aim of this function is to remove the delegation to __format__() on
-        the object. For our needs we do not want the object to be responsible
-        for its own formatting since it is not aware of the renderer itself.
-
-        A rekall.obj.BaseObject instance must support the following
-        formatting operations:
-
-        __unicode__
-        __str__
-        __repr__
-        and may also support __int__ (for formatting in hex).
-        """
-        m = self.standard_format_specifier_re.match(format_spec)
-        if not m:
-            raise re.error("Invalid regex")
-
-        fields = m.groupdict()
-
-        # Format the value according to the basic type.
-        type = fields["type"] or "s"
-        try:
-            value = getattr(
-                self, "format_type_%s" % type)(value, fields)
-        except AttributeError:
-            raise re.error("No formatter for type %s" % type)
-
-        try:
-            return format(value, format_spec)
-        except ValueError:
-            return str(value)
-
-    def format_type_s(self, value, fields):
-        try:
-            # This is required to allow BaseObject to pass non unicode returns
-            # from __unicode__ (e.g. NoneObject).
-            result = value.__unicode__()
-        except AttributeError:
-            result = utils.SmartUnicode(value)
-
-        padding = int(fields.get('width') or 1)
-
-        # None objects get a -.
-        if result is None or isinstance(result, obj.NoneObject):
-            return "-" * (padding - 1)
-
-        return result + " " * (padding - len(result))
-
-    def format_type_x(self, value, fields):
-        _ = fields
-        return int(value)
-
-    def format_type_X(self, value, fields):
-        _ = fields
-        return int(value)
-
-    def format_type_r(self, value, fields):
-        _ = fields
-        return repr(value)
-
-    def format_type_f(self, value, fields):
-        _ = fields
-        if isinstance(value, (float, int, long)):
-            return float(value)
-
-        return value
-
-    def format_type_L(self, value, fields):
-        """Support extended list format."""
-        _ = fields
-        return ", ".join([utils.SmartUnicode(x) for x in value])
-
-
-class BaseRenderer(object):
-    """All renderers inherit from this."""
+    # These are the renderers supported by this object renderer.
+    renderers = []
 
     __metaclass__ = registry.MetaclassRegistry
 
+    # A cache of Renderer, MRO mappings.
+    _RENDERER_CACHE = None
+
+    def __init__(self, renderer=None, session=None, **options):
+        self.renderer = renderer
+        self.session = session
+        self.options = options
+
+    @staticmethod
+    def get_mro(item):
+        """Return the MRO of an item."""
+        # Allow the item to override its MRO. This is useful for objects which
+        # want to be a standin replacement for another object.
+        get_mro = getattr(item, "get_mro", None)
+        if get_mro:
+            return item.get_mro()
+
+        if not inspect.isclass(item):
+            item = item.__class__
+
+        # Remove duplicated class names from the MRO (The current implementation
+        # uses the flat class name to select the ObjectRenderer so we can get
+        # duplicates but they dont matter).
+        return list(collections.OrderedDict.fromkeys(
+            [x.__name__ for x in item.__mro__]))
+
+    @classmethod
+    def ByName(cls, name, renderer):
+        """A constructor for an ObjectRenderer by name."""
+        cls._BuildRendererCache()
+
+        if isinstance(renderer, basestring):
+            renderer = BaseRenderer.classes[renderer]
+
+        # Find the object renderer which works for this name.
+        for renderer_cls in ObjectRenderer.get_mro(renderer):
+            result = cls._RENDERER_CACHE.get((name, renderer_cls))
+            if result:
+                return result
+
+    @classmethod
+    def _BuildRendererCache(cls):
+        # Build the cache if needed.
+        if cls._RENDERER_CACHE is None:
+            cls._RENDERER_CACHE = {}
+            for object_renderer_cls in cls.classes.values():
+                for impl_renderer in object_renderer_cls.renderers:
+                    key = (object_renderer_cls.renders_type, impl_renderer)
+                    cls._RENDERER_CACHE[key] = object_renderer_cls
+
+    @classmethod
+    def ForTarget(cls, target, renderer):
+        """Get the best ObjectRenderer for this target.
+
+        ObjectRenderer instances are chosen based on both the taget and the
+        renderer they implement.
+
+        Args:
+          taget: The target object to render. We walk the MRO to select the best
+            renderer. This is a python object to be rendered.
+
+          renderer: The renderer that will be used. This can be a string
+             (e.g. "TextRenderer") or a renderer instance.
+
+        Returns:
+          An ObjectRenderer class which is best suited for rendering the target.
+        """
+        cls._BuildRendererCache()
+
+        if isinstance(renderer, basestring):
+            renderer = BaseRenderer.classes[renderer]
+
+        # Search for a handler which supports both the renderer and the object
+        # type.
+        for mro_cls in cls.get_mro(target):
+            for renderer_cls in cls.get_mro(renderer):
+                handler = cls._RENDERER_CACHE.get((mro_cls, renderer_cls))
+                if handler:
+                    return handler
+
+    @classmethod
+    def cache_key(cls, item):
+        """Return a suitable cache key."""
+        return repr(item)
+
+    def render_header(self, name=None, **options):
+        """This should be overloaded to return the header Cell.
+
+        Note that typically the same ObjectRenderer instance will be used to
+        render all Cells in the same column.
+
+        Args:
+          name: The name of the Column.
+          options: The options of the column (i.e. the dict which defines the
+            column).
+
+        Return:
+          A Cell instance containing the formatted Column header.
+        """
+
+    def render_row(self, target, **options):
+        """Render the target suitably.
+
+        Args:
+          target: The object to be rendered.
+
+          options: A dict containing rendering options. The options are created
+            from the column options, overriden by the row options and finally
+            the cell options.  It is ok for an instance to ignore some or all of
+            the options. Some options only make sense in certain Renderer
+            contexts.
+
+        Returns:
+          A Cell instance containing the rendering of target.
+        """
+
+
+
+class BaseRenderer(object):
+    """All renderers inherit from this.
+
+    This class defines the only public interface for the rendering system. This
+    is the API which should be used by Rekall plugins to render the
+    output. Derived classes can add additional methods, but these should not be
+    directly used by the plugins - otherwise plugins will fail when being
+    rendered with different renderer implementations.
+    """
+
+    __metaclass__ = registry.MetaclassRegistry
+
+    # The user friendly name of this renderer. This is used for selection from
+    # command line etc.
+    name = None
+
     sort_key_func = None
     deferred_rows = None
-    table_cls = None
 
     last_spin_time = 0
     last_gc_time = 0
@@ -204,6 +312,7 @@ class BaseRenderer(object):
 
         self.flush()
 
+    # DEPRECATED
     def write(self, data):
         """Renderer should write some data."""
         pass
@@ -214,19 +323,17 @@ class BaseRenderer(object):
         Sections are used to separate distinct entries (e.g. reports of
         different files).
         """
-
         if self.deferred_rows is not None:
             # Table is sorted. Print deferred rows from last section now.
             self.flush_table(keep_sort=keep_sort)
 
         if name is None:
-            self.write("*" * width + "\n")
-            return
+            self.format("*" * width + "\n")
+        else:
+            pad_len = width - len(name) - 2  # 1 space on each side.
+            padding = "*" * (pad_len / 2)  # Name is centered.
 
-        pad_len = width - len(name) - 2  # 1 space on each side.
-        padding = "*" * (pad_len / 2)  # Name is centered.
-
-        self.write("{} {} {}\n".format(padding, name, padding))
+            self.format("{0}", "\n{0} {1} {2}\n".format(padding, name, padding))
 
     def format(self, formatstring, *data):
         """Write formatted data.
@@ -237,17 +344,16 @@ class BaseRenderer(object):
 
         By default we just call the format string directly.
         """
+        _ = formatstring
+        _ = data
         if not self._started:
             raise RuntimeError("Writing to a renderer that is not started.")
-
-        self.write(self.formatter.format(formatstring, *data))
 
     def flush(self):
         """Renderer should flush data."""
         pass
 
-    def table_header(self, columns=None, suppress_headers=None, name=None,
-                     sort=None, **kwargs):
+    def table_header(self, columns=None, name=None, sort=None):
         """Table header renders the title row of a table.
 
         This also stores the header types to ensure everything is formatted
@@ -267,27 +373,20 @@ class BaseRenderer(object):
           sorting is on, rendering of table rows will be deferred either
           until next call to table_header (or section) or until the plugin
           render function ends.
+
+          **options: Arbitrary options to pass to the table
+            implementations. These depend on the specific
+            implementation. Options which do not make sense for the
+            implementation will be ignored.
         """
         _ = name
-
+        self.columns = columns
         if not self._started:
             raise RuntimeError("Renderer is used without a context manager.")
 
         if self.deferred_rows is not None:
             # Previous table we rendered was sorted. Do deferred rendering now.
             self.flush_table()
-
-        address_size = 14
-        if (self.session and self.session.profile and
-            self.session.profile.metadata("arch") == "I386"):
-            address_size = 10
-
-        self.table = self.table_cls(
-            renderer=self, columns=columns, suppress_headers=suppress_headers,
-            address_size=address_size, **kwargs
-        )
-
-        self.table.render_header()
 
         if sort:
             self.sort_key_func = self._build_sort_key_function(
@@ -310,13 +409,6 @@ class BaseRenderer(object):
 
     def table_row(self, *args, **kwargs):
         """Outputs a single row of a table."""
-        self.RenderProgress(message=None)
-
-        if self.deferred_rows is not None:
-            # Table rendering is being deferred for sorting.
-            self.deferred_rows.append((args, kwargs))
-        else:
-            self.table.render_row(row=args, **kwargs)
 
     def flush_table(self, keep_sort=False):
         """If sorting is on, this will trigger deferred rendering."""
@@ -333,19 +425,6 @@ class BaseRenderer(object):
         else:
             self.deferred_rows = None
             self.sort_key_func = None
-
-    def record(self, record_data):
-        """Writes a single complete record.
-
-        A record consists of one object of related fields.
-
-        Args:
-          data: A list of tuples (name, short_name, formatstring, data)
-        """
-        for name, _, formatstring, data in record_data:
-            self.format("%s: %s\n" % (name, formatstring), data)
-
-        self.format("\n")
 
     def report_error(self, message):
         """Render the error in an appropriate way."""
@@ -379,100 +458,22 @@ class BaseRenderer(object):
         _ = mode
         raise IOError("Renderer does not support writing to files.")
 
+    def get_object_renderer(self, target=None, type=None, **options):
+        if type is not None:
+            result = ObjectRenderer.ByName(type, self)(
+                self, session=self.session, **options)
 
-class BaseColumn(object):
-    """Things that all columnae have in common."""
+            if result is None:
+                raise TypeError(
+                    "No renderer found for %s which was explicitly forced." %
+                    type)
 
-    def __init__(self, name=None, cname=None, formatstring="s",
-                 address_size=14, header_format=None, table=None):
-        self.name = name or "-"
-        self.cname = cname or "-"
-        self.table = table
-        self.wrap = None
+            return result
 
-        # How many places should addresses be padded?
-        self.address_size = address_size
-        self.original_formatstring = formatstring
-        self.parse_format(
-            formatstring=formatstring,
-            header_format=header_format,
-        )
+        handler = ObjectRenderer.ForTarget(target, self)
+        if handler:
+            return handler(renderer=self, session=self.session, **options)
 
-        # The format specifications are a dict.
-        self.formatter = Formatter()
-        self.header_width = 0
-
-    def parse_format(self, formatstring=None, header_format=None):
-        """Parse the format string into the format specification.
-
-        We support some extended forms of format string which we process
-        especially here:
-
-        [addrpad] - This is a padded address to width self.address_size.
-        [addr] - This is a non padded address.
-        [wrap:width] - This wraps a stringified version of the target in the
-           cell.
-        """
-        # Leading ! turns off eliding.
-        if formatstring.startswith("!"):
-            self.table.elide = True
-            formatstring = formatstring[1:]
-
-        # This means unlimited width.
-        if formatstring == "":
-            self.header_format = self.formatstring = ""
-
-            # Eliding is not possible without column width limits.
-            self.table.elide = False
-            return
-
-        m = re.match(r"\[addrpad\]", formatstring)
-        if m:
-            self.formatstring = "#0%sx" % self.address_size
-            self.header_format = "^%ss" % self.address_size
-            # Never elide addresses - makes them unreadable.
-            self.table.elide = False
-            return
-
-        m = re.match(r"\[addr\]", formatstring)
-        if m:
-            self.formatstring = ">#%sx" % self.address_size
-            self.header_format = "^%ss" % self.address_size
-            self.table.elide = False
-            return
-
-        # Look for the wrap specifier.
-        m = re.match(r"\[wrap:([^\]]+)\]", formatstring)
-        if m:
-            self.wrap = int(m.group(1))
-            self.formatstring = "<%ss" % self.wrap
-            self.header_format = "<%ss" % self.wrap
-            return
-
-        # Fall through to a simple format specifier.
-        self.formatstring = formatstring
-
-        if header_format is None:
-            self.header_format = re.sub("[Xx]", "s", formatstring)
-
-
-class BaseTable(object):
-    """Things that all tables have in common."""
-
-    column_class = BaseColumn
-
-    def __init__(self, columns=None, renderer=None, address_size=14,
-                 suppress_headers=False):
-        self.columns = [
-            self.column_class(*args, address_size=address_size, table=self)
-            for args in columns
-        ]
-
-        self.renderer = renderer
-        self.suppress_headers = suppress_headers
-
-    def render_header(self):
-        pass
-
-    def render_row(self, row=None):
-        pass
+        # This should never happen if the renderer installs a handler for
+        # object().
+        raise RuntimeError("Unable to render object")

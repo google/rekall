@@ -119,7 +119,7 @@ def Shell(user_session):
     shell.set_custom_completer(RekallCompleter, 0)
 
     # Do we need to pre-run something?
-    if user_session.run is not None:
+    if user_session.run != None:
         execfile(user_session.run, user_session._locals)
 
     # Workaround for completer bug.

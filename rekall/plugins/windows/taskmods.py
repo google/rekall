@@ -57,22 +57,18 @@ class WinPsList(common.WinProcessFilter):
 
     def render(self, renderer):
 
-        renderer.table_header([("_EPROCESS", "offset_v", "[addrpad]"),
-                               ("Name", "file_name", "20s"),
-                               ("PID", "pid", ">6"),
-                               ("PPID", "ppid", ">6"),
-                               ("Thds", "thread_count", ">6"),
-                               ("Hnds", "handle_count", ">8"),
-                               ("Sess", "session_id", ">6"),
-                               ("Wow64", "wow64", ">6"),
-                               ("Start", "process_create_time", "24"),
-                               ("Exit", "process_exit_time", "24")]
-                              )
+        renderer.table_header([
+            dict(type="_EPROCESS"),
+            ("PPID", "ppid", ">6"),
+            ("Thds", "thread_count", ">6"),
+            ("Hnds", "handle_count", ">8"),
+            ("Sess", "session_id", ">6"),
+            ("Wow64", "wow64", ">6"),
+            ("Start", "process_create_time", "24"),
+            ("Exit", "process_exit_time", "24")])
 
         for task in self.filter_processes():
             renderer.table_row(task,
-                               task.ImageFileName,
-                               task.UniqueProcessId,
                                task.InheritedFromUniqueProcessId,
                                task.ActiveThreads,
                                task.ObjectTable.m("HandleCount"),
@@ -114,7 +110,7 @@ class WinDllList(common.WinProcessFilter):
                     renderer.table_row(m.DllBase, m.SizeOfImage,
                                        m.LoadReason, m.FullDllName)
             else:
-                renderer.write("Unable to read PEB for task.\n")
+                renderer.format("Unable to read PEB for task.\n")
 
 
 class WinMemMap(core.MemmapMixIn, common.WinProcessFilter):

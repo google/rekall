@@ -22,7 +22,6 @@
 import json
 import logging
 
-from rekall import session
 from rekall import testlib
 from rekall.ui import json_renderer
 
@@ -31,11 +30,32 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
     """Test the Json encode/decoder."""
     PLUGIN = "json_render"
 
-    def testProperSerialization(self):
-        self.session = session.Session()
-        self.encoder = json_renderer.JsonEncoder()
-        self.decoder = json_renderer.JsonDecoder(self.session)
+    def setUp(self):
+        self.session = self.MakeUserSession()
+        self.renderer = json_renderer.JsonRenderer(session=self.session)
+        self.encoder = self.renderer.encoder
+        self.decoder = self.renderer.decoder
 
+    def testObjectRenderer(self):
+        cases = [
+            ('\xff\xff\x00\x00', ['+', u'//8AAA==']),
+            ("hello", ['*', u'hello']),  # A string is converted into base64
+                                         # encoding.
+            (1, 1),     # Ints are already JSON serializable.
+            (dict(foo=2), {'foo': 2}),
+            ]
+
+        for case in cases:
+            self.assertEqual(self.encoder.Encode(case[0]), case[1])
+
+    def testProperSerialization(self):
+        """Test that serializing simple python objects with json works.
+
+        NOTE: Json is not intrinsically a fully functional serialization format
+        - it is unable to serialize many common python primitives (e.g. strings,
+        dicts with numeric keys etc). This tests that our wrapping around the
+        json format allows the correct serialization of python primitives.
+        """
         for case in [
             [1, 2],
             [1, "hello"],
@@ -44,8 +64,7 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
             "hello",
             u'Gr\xfcetzi',
             dict(a="hello"),
-            dict(b=dict(a="hello")),
-            {1: 2}
+            dict(b=dict(a="hello")), # Nested dict.
             ]:
             self.encoder.flush()
             data = self.encoder.Encode(case)
@@ -66,10 +85,6 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
         Having the objects identical allows us to dereference object members
         seamlessly.
         """
-        self.session = self.MakeUserSession()
-        self.encoder = json_renderer.JsonEncoder()
-        self.decoder = json_renderer.JsonDecoder(self.session)
-
         for task in self.session.plugins.pslist().filter_processes():
             self.encoder.flush()
             data = self.encoder.Encode(task)

@@ -115,11 +115,6 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         # The length is really determined by the terminator here.
         return len(self.v())
 
-    def __getstate__(self):
-        result = super(String, self).__getstate__()
-        result["value"] = str(self)
-
-        return result
 
 
 class Signature(String):
@@ -331,12 +326,6 @@ class Enumeration(obj.NativeType):
         return "%s (%s)" % (super(Enumeration, self).__repr__(),
                             self.__str__())
 
-    def __getstate__(self):
-        result = super(Enumeration, self).__getstate__()
-        result["repr"] = str(self)
-
-        return result
-
     def __getattr__(self, attr):
         if self.reverse_choices is None:
             self.reverse_choices = {v: int(k) for k, v in self.choices.items()}
@@ -466,7 +455,7 @@ class ListMixIn(object):
         """
         result = self.m(self._forward).dereference_as(
             self.obj_type, vm=vm).m(self._backward).dereference_as(
-            self.obj_type)
+                self.obj_type)
 
         if not result:
             return obj.NoneObject("Flink not valid.")
@@ -554,11 +543,6 @@ class UnixTimeStamp(obj.NativeType):
             return obj.NoneObject("Datetime conversion failure: " + str(e))
 
         return dt
-
-    def __getstate__(self):
-        state = super(UnixTimeStamp, self).__getstate__()
-        state["epoch"] = int(self.v())
-        return state
 
 
 class timeval(UnixTimeStamp, obj.Struct):
@@ -896,14 +880,14 @@ class ProfileLP64(obj.Profile):
 
 common_overlay = {
     'LIST_ENTRY32' : [0x8, {
-            'Flink' : [0x0, ['pointer', ['LIST_ENTRY32']]],
-            'Blink' : [0x4, ['pointer', ['LIST_ENTRY32']]],
-            }],
+        'Flink' : [0x0, ['pointer', ['LIST_ENTRY32']]],
+        'Blink' : [0x4, ['pointer', ['LIST_ENTRY32']]],
+        }],
 
     'LIST_ENTRY64' : [0x10, {
-            'Flink' : [0x0, ['pointer', ['LIST_ENTRY64']]],
-            'Blink' : [0x8, ['pointer', ['LIST_ENTRY64']]],
-            }]}
+        'Flink' : [0x0, ['pointer', ['LIST_ENTRY64']]],
+        'Blink' : [0x8, ['pointer', ['LIST_ENTRY64']]],
+        }]}
 
 
 class BasicClasses(obj.Profile):

@@ -36,8 +36,6 @@ step, as soon as a module is imported, the plugin is registered.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import abc
-
 
 class classproperty(property):
     """A property that can be called on classes."""
@@ -45,11 +43,30 @@ class classproperty(property):
         return self.fget(owner)
 
 
-class MetaclassRegistry(abc.ABCMeta):
+class UniqueObjectIdMetaclass(type):
+    """Give each object a unique ID.
+
+    unlike id() this number will not be reused when the objects are destroyed,
+    hence it can be used to identify identical objects without keeping these
+    around.
+    """
+    ID = 0
+
+    def __call__(cls, *args, **kwargs):
+        res = super(UniqueObjectIdMetaclass, cls).__call__(*args, **kwargs)
+        res._object_id = UniqueObjectIdMetaclass.ID  # pylint: disable=protected-access
+        UniqueObjectIdMetaclass.ID += 1
+
+        return res
+
+
+class MetaclassRegistry(UniqueObjectIdMetaclass):
     """Automatic Plugin Registration through metaclasses."""
 
     def __init__(cls, name, bases, env_dict):
-        abc.ABCMeta.__init__(cls, name, bases, env_dict)
+        super(MetaclassRegistry, cls).__init__(name, bases, env_dict)
+
+        cls._install_constructors(cls)
 
         # Attach the classes dict to the baseclass and have all derived classes
         # use the same one:
@@ -88,3 +105,19 @@ class MetaclassRegistry(abc.ABCMeta):
         cls_initializer = getattr(cls, "_class_init", None)
         if cls_initializer:
             cls_initializer()
+
+
+    @classmethod
+    def _install_constructors(mcs, cls):
+        def ByName(self, name):
+            for impl in self.classes.values():
+                if getattr(impl, "name", None) == name:
+                    return impl
+
+        cls.ImplementationByName = classmethod(ByName)
+
+
+        def ByClass(self, name):
+            return self.classes.get(name)
+
+        cls.ImplementationByClass = classmethod(ByClass)

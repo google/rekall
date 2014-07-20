@@ -107,7 +107,7 @@ class WinPas2Vas(common.WinProcessFilter):
 
         for va, pa, length in virtual_address_space.get_available_addresses():
             # Only consider userspace addresses for processes.
-            if task != "Kernel" and va > highest_virtual_address:
+            if pid != "Kernel" and va > highest_virtual_address:
                 break
 
             tmp_lookup_map.append([pa, length, va, task])

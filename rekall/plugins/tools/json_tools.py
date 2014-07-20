@@ -20,136 +20,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""Tools for manipulating json output."""
+"""Tools for manipulating json output.
+
+When decoding json output, the decoder may not have access to the original
+image. Therefore we can not simply recreate the original encoded objects
+(because they will need to read from the original image). We must therefore
+create a standin for these objects which looks similar to the original but is
+able to be used directly - i.e. without reading the original image.
+"""
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import json
-import time
 from rekall import plugin
 from rekall import testlib
-from rekall import utils
-
 
 from rekall.ui import json_renderer
-
-
-class StructFormatter(object):
-    def __init__(self, state):
-        self.state = state
-
-    def __int__(self):
-        return self.state["offset"]
-
-
-class LiteralFormatter(StructFormatter):
-    def __unicode__(self):
-        return utils.SmartUnicode(self.state["value"])
-
-    def __int__(self):
-        return self.state["value"]
-
-    def __float__(self):
-        return float(self.state["value"])
-
-
-class EnumFormatter(StructFormatter):
-    def __unicode__(self):
-        return utils.SmartUnicode(self.state["repr"])
-
-    def __int__(self):
-        return self.state["value"]
-
-
-class AddressSpaceFormatter(StructFormatter):
-    def __unicode__(self):
-        return self.state["name"]
-
-
-class NoneObjectFormatter(StructFormatter):
-    def __unicode__(self):
-        return "-"
-
-
-class DatetimeFormatter(StructFormatter):
-    def __unicode__(self):
-        return time.ctime(float(self.state["epoch"]))
-
-
-class RendererCombiner(object):
-    def __init__(self):
-        self.children = []
-
-    def AddRenderer(self, child):
-        self.children.append(child)
-
-    def _FirstOf(self, method):
-        # First child with the method wins.
-        for child in self.children:
-            try:
-                return getattr(child, method)()
-            except AttributeError:
-                continue
-
-    def __int__(self):
-        return self._FirstOf("__int__")
-
-    def __float__(self):
-        return self._FirstOf("__float__")
-
-    def __len__(self):
-        return len(self.children)
-
-    def __unicode__(self):
-        return self._FirstOf("__unicode__")
-
-
-class RendererDecoder(json_renderer.JsonDecoder):
-    """A decoder which produces proxy objects for the real thing.
-
-    This is suitable to be run with no access to the real image, we simply use
-    the proxy objects to render the available data in a type specific way.
-    """
-
-    COMBINER = RendererCombiner
-
-    # This is a mapping between the semantic name of the BaseObject
-    # serialization and a suitable Formatter. The idea is that the GUI framework
-    # can identify semantically similar objects and map them to a rendering
-    # class suitable for that specific type. For example, the same renderer
-    # should work for all "Struct" semantic types, while a different one should
-    # be applied to "DateTime" semantic types.
-    semantic_map = dict(
-        Enumeration=EnumFormatter,
-        Struct=StructFormatter,
-        BaseObject=LiteralFormatter,
-        NativeType=LiteralFormatter,
-        Pointer=LiteralFormatter,
-        BaseAddressSpace=AddressSpaceFormatter,
-        NoneObject=NoneObjectFormatter,
-        UnixTimeStamp=DatetimeFormatter,
-        )
-
-    def Factory(self, state):
-        # Try to find a class to wrap the type with. We traverse the object's
-        # MRO and try to find a specialized formatter for each type.
-        mro = state.get("type")
-        if not mro:
-            return state
-
-        result = self.COMBINER()
-        for semantic_type in mro.split(","):
-            item_renderer = self.semantic_map.get(semantic_type)
-            if item_renderer is not None:
-                result.AddRenderer(item_renderer(state))
-
-        if not result:
-            # If we get here we have no idea how to render this object. Maybe we
-            # should have a default renderer?
-            raise json_renderer.DecodingError(
-                "Unsupported Semantic type %s" % mro)
-
-        return result
 
 
 class JSONParser(plugin.Command):
@@ -178,35 +64,42 @@ class JSONParser(plugin.Command):
 
     def __init__(self, file=None, fd=None, **kwargs):
         super(JSONParser, self).__init__(**kwargs)
-        self.decoder = RendererDecoder(session=self.session)
+
+        # Make a json renderer to decode the json stream with.
+        self.json_renderer = json_renderer.JsonRenderer(session=self.session)
+
         self.file = file
         self.fd = fd
 
     def RenderStatement(self, statement, renderer):
         """Renders one json decoded data command at a time."""
         command = statement[0]
+        options = {}
         if command == "l":
-            self.decoder.SetLexicon(statement[1])
+            self.json_renderer.decoder.SetLexicon(statement[1])
 
         elif command == "m":
             renderer.section("Plugin %s" % statement[1]["plugin_name"])
 
         elif command == "s":
-            renderer.section(**self.decoder.Decode(statement[1]))
+            renderer.section(
+                **self.json_renderer.decoder.Decode(statement[1], options))
 
         elif command == "e":
             renderer.report_error(statement[1])
 
         elif command == "f":
-            args = [self.decoder.Decode(x) for x in statement[1:]]
+            args = [self.json_renderer.decoder.Decode(x, options)
+                    for x in statement[1:]]
             renderer.format(*args)
 
         elif command == "t":
             renderer.table_header(**statement[1])
 
         elif command == "r":
-            renderer.table_row(
-                *[self.decoder.Decode(x) for x in statement[1]])
+            row = [self.json_renderer.decoder.Decode(x, options)
+                   for x in statement[1]]
+            renderer.table_row(*row, **options)
 
     def render(self, renderer):
         """Renders the stored JSON file using the default renderer.

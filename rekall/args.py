@@ -197,26 +197,26 @@ def LoadProfileIntoSession(parser, argv, user_session):
     argv = argv or sys.argv
     known_args, _ = parser.parse_known_args(args=_TruncateARGV(argv))
 
-    # Enforce the appropriate logging level if user supplies the --verbose or
-    # --quiet command line flags.
-    verbose_flag = getattr(known_args, "verbose", None)
-    quiet_flag = getattr(known_args, "quiet", None)
-
-    if verbose_flag and quiet_flag:
-        raise ValueError("Cannot set both --verbose and --quiet!")
-
-    if verbose_flag:
-        known_args.logging = "debug"
-    elif quiet_flag:
-        known_args.logging = "critical"
-    else:
-        known_args.logging = "warn"
-
     with user_session.state as state:
         config.MergeConfigOptions(state)
 
-        for arg, value in known_args.__dict__.items():
+        for arg, value in vars(known_args).items():
             state.Set(arg, value)
+
+        # Enforce the appropriate logging level if user supplies the --verbose
+        # or --quiet command line flags.
+        verbose_flag = getattr(known_args, "verbose", None)
+        quiet_flag = getattr(known_args, "quiet", None)
+
+        if verbose_flag and quiet_flag:
+            raise ValueError("Cannot set both --verbose and --quiet!")
+
+        if verbose_flag:
+            state.Set("logging", "debug")
+        elif quiet_flag:
+            state.Set("logging", "critical")
+        else:
+            state.Set("logging", "warn")
 
     # Now load the third party user plugins. These may introduce additional
     # plugins with args.
@@ -226,6 +226,13 @@ def LoadProfileIntoSession(parser, argv, user_session):
     if session_filename:
         try:
             user_session.LoadFromFile(session_filename)
+
+            # Set the command line args once again, in case they override
+            # something in the stored session.
+            with user_session.state as state:
+                for arg, value in known_args.__dict__.items():
+                    state.Set(arg, value)
+
         except IOError:
             pass
 

@@ -156,6 +156,8 @@ class NoneObject(object):
 
     Instantiate with the reason for the error.
     """
+    __metaclass__ = registry.UniqueObjectIdMetaclass
+
     def __init__(self, reason="None Object", *args, **kwargs):
         # Often None objects are instantiated on purpose so its not really that
         # important to see their reason.
@@ -181,17 +183,21 @@ class NoneObject(object):
 
         return "-"
 
-    def __repr__(self):
+    def FormatReason(self):
         if "%" in self.reason:
-            reason = self.reason % self.args
+            return self.reason % self.args
         else:
-            reason = self.reason.format(*self.args)
+            return self.reason.format(*self.args)
 
-        return "<%s>" % reason
+    def __repr__(self):
+        return "<%s>" % self.FormatReason()
 
-    def __format__(self, _):
+    def __format__(self, formatstring):
         """We suppress output for all format operators."""
-        return ""
+        formatstring = formatstring.replace("d", "s")
+        formatstring = formatstring.replace("x", "s")
+        formatstring = formatstring.replace("#", "")
+        return ("{0:%s}" % formatstring).format("-")
 
     def write(self, _):
         """Write procedure only ever returns False"""
@@ -271,11 +277,6 @@ class NoneObject(object):
     dereference_as = __call__
     __getitem__ = __call__
 
-    def __getstate__(self):
-        return dict(
-            reason=self.reason
-            )
-
 
 class Error(Exception):
     """All object related exceptions come from this one."""
@@ -286,6 +287,8 @@ class ProfileError(Error):
 
 
 class BaseObject(object):
+    __metaclass__ = registry.UniqueObjectIdMetaclass
+
     obj_parent = NoneObject("No parent")
     obj_name = NoneObject("No name")
 
@@ -341,24 +344,6 @@ class BaseObject(object):
             logging.critical("Profile must be provided to %s" % self)
             raise RuntimeError("Profile must be provided")
 
-    def __getstate__(self):
-        # This method should generally return all the parameters passed to the
-        # constructor. The type parameter describes the full MRO for this
-        # object.
-        return dict(
-            offset=self.obj_offset,
-            name=self.obj_name,
-            type_name=self.obj_type,
-            vm=self.obj_vm,
-            profile=self.obj_profile.name
-            )
-
-    def __setstate__(self, state):
-        """Sets the object's state."""
-        # Unless this object does something unusual we should just call the
-        # constructor with the saved data.
-        self.__init__(**state)
-
     @property
     def obj_end(self):
         return self.obj_offset + self.size()
@@ -408,9 +393,6 @@ class BaseObject(object):
             (self.__class__ == other.__class__) and
             (self.obj_offset == other.obj_offset) and
             (self.obj_vm == other.obj_vm))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     def __hash__(self):
         # This needs to be the same as the object we proxy so that we can mix
@@ -529,23 +511,29 @@ class NumericProxyMixIn(object):
         '__float__', '__oct__', '__hex__',
 
         ## Comparisons
-        '__lt__', '__le__', '__eq__', '__ne__', '__ge__', '__gt__', '__index__',
+        '__lt__', '__le__', '__eq__', '__ge__', '__gt__', '__index__',
         ]
 
+    def __ne__(self, other):
+        return not self == other
 
 class StringProxyMixIn(object):
     """This MixIn implements proxying for strings."""
     _specials = [
         ## Comparisons
-        '__lt__', '__le__', '__eq__', '__ne__', '__ge__', '__gt__', '__index__',
+        '__lt__', '__le__', '__eq__', '__ge__', '__gt__', '__index__',
         ]
+
+    def __ne__(self, other):
+        return not self == other
+
 
 
 CreateMixIn(NumericProxyMixIn)
 CreateMixIn(StringProxyMixIn)
 
 
-class NativeType(BaseObject, NumericProxyMixIn):
+class NativeType(NumericProxyMixIn, BaseObject):
     def __init__(self, value=None, format_string=None, **kwargs):
         super(NativeType, self).__init__(**kwargs)
         self.format_string = format_string
@@ -591,14 +579,6 @@ class NativeType(BaseObject, NumericProxyMixIn):
         except ValueError:
             return " [{0}:{1}]: {2}".format(self.obj_type, self.obj_name,
                                             repr(self.v()))
-
-    def __getstate__(self):
-        state = super(NativeType, self).__getstate__()
-
-        # Just cache the value so we do not need to actually read it.
-        state["value"] = self.v()
-
-        return state
 
 
 class Bool(NativeType):
@@ -822,13 +802,6 @@ class Pointer(NativeType):
         """Addresses only use 48 bits."""
         return 0xffffffffffff & int(value)
 
-    def __getstate__(self):
-        state = super(Pointer, self).__getstate__()
-        state["target"] = self.target
-        state["target_args"] = self.target_args
-
-        return state
-
 
 class Void(Pointer):
     def __init__(self, **kwargs):
@@ -990,14 +963,6 @@ class Array(BaseObject):
 
     def __len__(self):
         return self.count
-
-    def __getstate__(self):
-        state = super(Array, self).__getstate__()
-        state["target"] = self.target
-        state["target_args"] = self.target_args
-        state["count"] = self.count
-
-        return state
 
 
 class ListArray(Array):
@@ -1362,7 +1327,7 @@ class Profile(object):
             if profile_type == "Symlink":
                 return session.LoadProfile(metadata.get("Target"))
 
-            profile_cls = cls.classes.get(metadata["ProfileClass"])
+            profile_cls = cls.ImplementationByClass(metadata["ProfileClass"])
 
             if profile_cls is None:
                 logging.warn("No profile implementation class %s" %
@@ -1435,7 +1400,7 @@ class Profile(object):
 
         self._metadata.update(metadata or {})
 
-        self.name = name
+        self.name = unicode(name)
         self.session = session
         if session is None:
             raise RuntimeError("Session must be specified.")
@@ -1517,7 +1482,7 @@ class Profile(object):
         self.constants.update(other.constants)
         self.object_classes.update(other.object_classes)
         self.flush_cache()
-        self.name = "%s + %s" % (self.name, other.name)
+        self.name = u"%s + %s" % (self.name, other.name)
 
         # Merge in the other's profile metadata which is not in this profile.
         metadata = other._metadata.copy()  # pylint: disable=protected-access
@@ -2182,10 +2147,6 @@ class Profile(object):
     def __repr__(self):
         return unicode(self)
 
-    def __getstate__(self):
-        return dict(
-            name=self.name
-            )
 
 class TestProfile(Profile):
     def _SetupProfileFromData(self, data):

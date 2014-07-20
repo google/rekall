@@ -454,7 +454,7 @@ class LoadAddressSpace(plugin.Command):
                     logging.debug("Succeeded instantiating %s", base_as)
                     found = True
                     break
-                except (AssertionError, addrspace.ASAssertionError), e:
+                except (AssertionError, addrspace.ASAssertionError, IOError), e:
                     logging.debug("Failed instantiating %s: %s",
                                   cls.__name__, e)
                     error.append_reason(cls.__name__, e)
@@ -845,7 +845,9 @@ class Grep(plugin.Command):
                 for dump_offset, hexdata, translated_data in utils.Hexdump(
                     data[idx-20:idx+20], width=self.context):
                     comment = ""
-                    nearest_offset, symbol = resolver.get_nearest_constant_by_address(offset + idx)
+                    nearest_offset, symbol = (
+                        resolver.get_nearest_constant_by_address(offset + idx))
+
                     if symbol:
                         comment = "%s+0x%X" % (
                             symbol, offset + idx - nearest_offset)

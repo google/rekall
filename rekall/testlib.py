@@ -86,7 +86,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
     @classmethod
     def is_active(cls, session):
         delegate_plugin = (
-            plugin.Command.classes.get(cls.PLUGIN) or
+            plugin.Command.ImplementationByClass(cls.PLUGIN) or
             getattr(session.plugins, cls.CommandName() or "", None))
 
         if delegate_plugin:

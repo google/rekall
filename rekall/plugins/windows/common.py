@@ -578,7 +578,8 @@ class WinProcessFilter(WindowsCommandPlugin):
                 if k not in self.cache:
                     self.cache[k] = set()
                     for proc in handler(self, seen=seen):
-                        self.cache[k].add(proc.obj_offset)
+                        if proc:
+                            self.cache[k].add(proc.obj_offset)
 
                 logging.debug("Listed %s processes using %s",
                               len(self.cache[k]), k)

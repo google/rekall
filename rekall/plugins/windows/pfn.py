@@ -659,18 +659,17 @@ class DTBScan(common.WinProcessFilter):
 
         renderer.table_header([("DTB", "dtb", "[addrpad]"),
                                ("VAddr", "vaddr", "[addrpad]"),
-                               ("_EPROCESS", "task", "[addrpad]"),
-                               ("Image Name", "filename", "<20"),
+                               dict(type="_EPROCESS"),
                                ("Known", "known", "")])
 
         seen_dtbs = set()
 
         # Now scan all the physical address space for DTBs.
         for _ in self.physical_address_space.get_available_addresses():
-            start, phys_start, length = _
+            start, _, length = _
             for page in range(start, start + length, 0x1000):
                 self.session.report_progress("Scanning 0x%08X (%smb)" % (
-                        page, page/1024/1024))
+                    page, page/1024/1024))
 
                 # Quit early if requested to.
                 if self.limit and page > self.limit:
@@ -686,16 +685,10 @@ class DTBScan(common.WinProcessFilter):
                         # KernelStackOwner for the pfn of this dtb.
                         task = pfn_plugin.pfn_record(
                             dtb >> 12).u1.Flink.cast(
-                            "Pointer", target="_EPROCESS").deref()
-
-                        if not task:
-                            task = obj.NoneObject("Invalid")
-                            filename = "Process not Found!"
-                        else:
-                            filename = task.ImageFileName
+                                "Pointer", target="_EPROCESS").deref()
 
                         va, _ = ptov.ptov(dtb)
-                        renderer.table_row(dtb, va, task, filename,
+                        renderer.table_row(dtb, va, task,
                                            task.obj_offset in known_tasks)
 
 class TestDTBScan(testlib.SimpleTestCase):

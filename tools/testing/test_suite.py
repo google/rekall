@@ -246,7 +246,7 @@ exit 0
         config.set(None, "executable", self.FLAGS.executable)
 
         # Extra options to be used for testing.
-        config.set(None, "--renderer", "TestRenderer")
+        config.set(None, "--renderer", "test")
 
         return config
 
@@ -424,7 +424,7 @@ exit 0
                     self.RunTestCase(config_options, plugin_cls, baseline_data)
                 else:
                     self.threadpool.AddTask(self.RunTestCase, [
-                            config_options, plugin_cls, baseline_data])
+                        config_options, plugin_cls, baseline_data])
 
     def RunTestCase(self, config_options, plugin_cls, baseline_data):
         if baseline_data['options'].get('aborted'):

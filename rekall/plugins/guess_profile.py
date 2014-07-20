@@ -228,6 +228,7 @@ class ProfileHook(kb.ParameterHook):
         if best_match == 0:
             logging.error(
                 "No profiles match this image. Try specifying manually.")
+
         elif best_match < threshold:
             logging.error(
                 "Best match for profile is %s with %.0f%%, which is too low " +
@@ -236,6 +237,7 @@ class ProfileHook(kb.ParameterHook):
                 best_profile.name,
                 best_match * 100,
                 threshold * 100)
+
         else:
             logging.info(
                 "Profile %s matched with %.0f%% confidence.",
