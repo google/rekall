@@ -266,20 +266,21 @@ structure:</p>
    data: Data that should be found in the image.</li>
 </ul>
 <p>Example:</p>
-<pre class="highlight"><code>repository_root: ./
-path: win32k.sys
-symbols:
-  -
-    # The name of the symbol we test for.
-    name: &quot;??_C@_1BO@KLKIFHLC@?$AAG?$AAU?$AAI?$AAF?$AAo?$AAn?$AAt?$AA?4?$AAH?$AAe?$AAi?$AAg?$AAh?$AAt?$AA?$AA@&quot;
+<div class="highlight"><pre><span class="nl">repository_root:</span> <span class="p">.</span><span class="o">/</span>
+<span class="nl">path:</span> <span class="n">win32k</span><span class="p">.</span><span class="n">sys</span>
+<span class="nl">symbols:</span>
+  <span class="o">-</span>
+    <span class="err">#</span> <span class="n">The</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">symbol</span> <span class="n">we</span> <span class="n">test</span> <span class="k">for</span><span class="p">.</span>
+    <span class="nl">name:</span> <span class="s">&quot;??_C@_1BO@KLKIFHLC@?$AAG?$AAU?$AAI?$AAF?$AAo?$AAn?$AAt?$AA?4?$AAH?$AAe?$AAi?$AAg?$AAh?$AAt?$AA?$AA@&quot;</span>
 
-    # The data we expect to find at that offset.
-    data: &quot;47005500490046006f006e0074002e00480065006900670068007400&quot;
+    <span class="err">#</span> <span class="n">The</span> <span class="n">data</span> <span class="n">we</span> <span class="n">expect</span> <span class="n">to</span> <span class="n">find</span> <span class="n">at</span> <span class="n">that</span> <span class="n">offset</span><span class="p">.</span>
+    <span class="nl">data:</span> <span class="s">&quot;47005500490046006f006e0074002e00480065006900670068007400&quot;</span>
 
-  -
-    name: &quot;wcschr&quot;
-    shift: -1
-    data: &quot;90&quot;</code></pre>
+  <span class="o">-</span>
+    <span class="nl">name:</span> <span class="s">&quot;wcschr&quot;</span>
+    <span class="nl">shift:</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="nl">data:</span> <span class="s">&quot;90&quot;</span>
+</pre></div>
 
 
 <p>The result is an index profile. This has an $INDEX section which is a dict,

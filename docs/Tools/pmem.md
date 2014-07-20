@@ -5,9 +5,6 @@ title: The Pmem Memory acquisition suite.
 author: Michael Cohen <scudette@gmail.com>
 ---
 
-The Pmem Memory acquisition suite.
-==================================
-
 Memory acquisition is the first step in memory analysis. Before any analysis can
 be done, we need to acquire the memory in the first place. There are a number of
 commercial solutions to acquire memory, but sadly open source solutions have

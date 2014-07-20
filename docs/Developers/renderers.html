@@ -1,0 +1,684 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/treeview.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
+       <div class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/downloads.html">
+            Downloads
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
+         </ul>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
+           </div>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
+   </nav>
+
+<div class="container-fluid">
+<div class="row">
+  <div class="col-md-2">
+    
+ <a href="/docs/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> docs
+ </a>
+
+ <a href='/docs/Developers/index.html' class="btn btn-default btn-lg btn-block">
+   Developers
+ </a>
+ <p>
+ <div class='css-treeview'>
+   <ul class='nav nav-stacked'>
+<li>
+   <a href='/docs/Developers/how_to_contribute.html' class="tree-link activate_tooltip"  title="Code review workflow for Rekall.">
+      Code review wor ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Developers/epydocs.html' class="tree-link activate_tooltip"  title="Generated API Docs.">
+      Generated API D ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Developers/development.html' class="tree-link activate_tooltip"  title="The Rekall Memory Forensic Framework API.">
+      The Rekall Memo ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Developers/renderers.html' class="tree-link activate_tooltip"  title="The Rekall Rendering framework.">
+      The Rekall Rend ...
+   </a>
+</li>
+</ul>
+ </div>
+
+  </div>
+
+  <div class="col-md-8">
+    
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Developers/development.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         The Rekall Memory Forensic Framework API.
+       </a>
+    </li>
+  </ul>
+
+
+</nav>
+
+
+<h1>The Rekall Rendering framework.</h1>
+
+<div class="abstract">
+
+</div>
+
+
+
+
+
+<p>One of Rekall&rsquo;s primary goals is to provide an API so that external tools may
+use it as a library. To this end, Rekall aims to provide a flexible output
+mechanism which is custimizable by external code, while remaining easy to use.</p>
+<p>Most of Rekall&rsquo;s functionality comes about through the use of plugins. A
+plugin&rsquo;s output is designed to be viewable in a wide range of scenarios, without
+burdening the plugin itself with the task of customizing output for different
+scenarios.</p>
+<p>For example, consider running the <code>pslist</code> plugin. This plugin produces a
+tabular output in the TextRenderer. However, when viewed using the Web Console,
+the output is formatted using stylized HTML. Furthermore, the web console UI is
+able to interact with the table in a more natural way - for example, right
+clicking brings up further context sensitive menus.</p>
+<p>Another example is the storage and transmission of plugin results using external
+sources. In previous versions of the software, the only way to capture the
+output of the plugin was to parse the textual output. This is error prone and
+usually requires specialized parsers to be written for each Rekall plugin. Using
+the current model, it is possible to store, and later recreate, precisely all
+the objects within the Rekall session. This allows the Rekall session to be
+permanently stored and many items can be cached within it.</p>
+<p>The main motivation of the Rekall renderer design is the separation of data and
+visualization. The plugin provides raw data to the rendering layer, which is
+responsible for rendering the data. This is a similar idea to the separation of
+content and layout which occurs in HTML/CSS designs. Having the freedom to
+custimize the layout independently from the data allows for much more powerful
+visualization frameworks.</p>
+<h2>Renderer architecture overview.</h2>
+<p>These are the main components of the Rekall renderer design:</p>
+<ol>
+<li>
+<p>The Rekall plugin is a class which extends <code>rekall.plugin.Command()</code>. The
+   plugin contains the code which performs the analysis. The framework is
+   responsible for instantiating the plugin with user provided parameters.</p>
+</li>
+<li>
+<p>The plugin is provided with a &ldquo;renderer&rdquo; - which is a class extending
+   <code>rekall.ui.renderer.BaseRenderer()</code>. The renderer is responsible for layout
+   and visualization of the data. Hence this forms a natural separation between
+   data (produced by the plugin) and layout (provided by the renderer).</p>
+<p>Note that the plugin sends the renderer arbitrary objects - the plugin must
+ not perform any formatting by itself. So for example, the plugin must send
+ the renderer an <code>_EPROCESS()</code> instance rather than the integer offset
+ (<code>proc.obj_offset</code>)</p>
+</li>
+<li>
+<p>Finally, the renderer delegates specific visualization of objects to an
+   instance of <code>ObjectRenderer()</code>. The ObjectRenderer is a special class which
+   knows how to format a specific object using a specific renderer.</p>
+</li>
+</ol>
+<p>Let us consider each of these types with an example.</p>
+<h3>The Renderer interface.</h3>
+<p>The renderer API is defined in the class <code>BaseRenderer()</code>. The plugin produces
+output by calling methods on the renderer.</p>
+<p>Consider the <code>pslist</code> plugin. This is the default output (using the
+TextRenderer):</p>
+<div class="highlight"><pre><span class="n">_EPROCESS</span>          <span class="n">Name</span>          <span class="n">PID</span>   <span class="n">PPID</span>   <span class="n">Thds</span>    <span class="n">Hnds</span>    <span class="n">Sess</span>  <span class="n">Wow64</span>           <span class="n">Start</span>                     <span class="n">Exit</span>
+<span class="o">----------</span> <span class="o">--------------------</span> <span class="o">-----</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------------------------</span> <span class="o">------------------------</span>
+<span class="mh">0x823c8a00</span> <span class="n">System</span>               <span class="mi">4</span>          <span class="mi">0</span>     <span class="mi">57</span>      <span class="mi">671</span>      <span class="o">-</span>  <span class="n">False</span> <span class="o">-</span>                        <span class="o">-</span>
+<span class="mh">0x82129370</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">364</span>      <span class="mi">744</span>      <span class="mi">4</span>       <span class="mi">88</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2010</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mo">02</span> <span class="mi">12</span><span class="o">:</span><span class="mi">25</span><span class="o">:</span><span class="mi">33</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0x82189530</span> <span class="n">prl_tools_servi</span>      <span class="mi">436</span>      <span class="mi">744</span>      <span class="mi">3</span>       <span class="mi">78</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2010</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mo">02</span> <span class="mi">12</span><span class="o">:</span><span class="mi">25</span><span class="o">:</span><span class="mi">36</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0x82089558</span> <span class="n">jqs</span><span class="p">.</span><span class="n">exe</span>              <span class="mi">472</span>      <span class="mi">744</span>      <span class="mi">5</span>      <span class="mi">146</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2010</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mo">02</span> <span class="mi">12</span><span class="o">:</span><span class="mi">25</span><span class="o">:</span><span class="mi">33</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0x8208abf0</span> <span class="n">sqlservr</span><span class="p">.</span><span class="n">exe</span>         <span class="mi">488</span>      <span class="mi">744</span>     <span class="mi">25</span>      <span class="mi">306</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2010</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mo">02</span> <span class="mi">12</span><span class="o">:</span><span class="mi">25</span><span class="o">:</span><span class="mi">33</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0x82077da0</span> <span class="n">coherence</span><span class="p">.</span><span class="n">exe</span>        <span class="mi">572</span>      <span class="mi">744</span>      <span class="mi">4</span>       <span class="mi">51</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2010</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mo">02</span> <span class="mi">12</span><span class="o">:</span><span class="mi">25</span><span class="o">:</span><span class="mi">36</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0x82292da0</span> <span class="n">smss</span><span class="p">.</span><span class="n">exe</span>             <span class="mi">596</span>        <span class="mi">4</span>      <span class="mi">3</span>       <span class="mi">19</span>      <span class="o">-</span>  <span class="n">False</span> <span class="mi">2010</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mo">02</span> <span class="mi">12</span><span class="o">:</span><span class="mi">25</span><span class="o">:</span><span class="mi">18</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+</pre></div>
+
+
+<p>and this is the code which produces this output:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21</pre></div></td><td class="code"><div class="highlight"><pre>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">):</span>
+        <span class="n">renderer</span><span class="o">.</span><span class="n">table_header</span><span class="p">([</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;_EPROCESS&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s">&quot;_EPROCESS&quot;</span><span class="p">),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;PPID&quot;</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="s">&quot;ppid&quot;</span><span class="p">,</span> <span class="n">formatstring</span><span class="o">=</span><span class="s">&quot;&gt;6&quot;</span><span class="p">),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;Thds&quot;</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="s">&quot;thread_count&quot;</span><span class="p">,</span> <span class="n">formatstring</span><span class="o">=</span><span class="s">&quot;&gt;6&quot;</span><span class="p">),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;Hnds&quot;</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="s">&quot;handle_count&quot;</span><span class="p">,</span> <span class="n">formatstring</span><span class="o">=</span><span class="s">&quot;&gt;8&quot;</span><span class="p">),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;Sess&quot;</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="s">&quot;session_id&quot;</span><span class="p">,</span> <span class="n">formatstring</span><span class="o">=</span><span class="s">&quot;&gt;6&quot;</span><span class="p">),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;Wow64&quot;</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="s">&quot;wow64&quot;</span><span class="p">,</span> <span class="n">formatstring</span><span class="o">=</span><span class="s">&quot;&gt;6&quot;</span><span class="p">),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;Start&quot;</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="s">&quot;process_create_time&quot;</span><span class="p">,</span> <span class="n">formatstring</span><span class="o">=</span><span class="s">&quot;24&quot;</span><span class="p">),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;Exit&quot;</span><span class="p">,</span> <span class="n">cname</span><span class="o">=</span><span class="s">&quot;process_exit_time&quot;</span><span class="p">,</span> <span class="n">formatstring</span><span class="o">=</span><span class="s">&quot;24&quot;</span><span class="p">)])</span>
+
+        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_processes</span><span class="p">():</span>
+            <span class="n">renderer</span><span class="o">.</span><span class="n">table_row</span><span class="p">(</span><span class="n">task</span><span class="p">,</span>
+                               <span class="n">task</span><span class="o">.</span><span class="n">InheritedFromUniqueProcessId</span><span class="p">,</span>
+                               <span class="n">task</span><span class="o">.</span><span class="n">ActiveThreads</span><span class="p">,</span>
+                               <span class="n">task</span><span class="o">.</span><span class="n">ObjectTable</span><span class="o">.</span><span class="n">m</span><span class="p">(</span><span class="s">&quot;HandleCount&quot;</span><span class="p">),</span>
+                               <span class="n">task</span><span class="o">.</span><span class="n">SessionId</span><span class="p">,</span>
+                               <span class="n">task</span><span class="o">.</span><span class="n">IsWow64</span><span class="p">,</span>
+                               <span class="n">task</span><span class="o">.</span><span class="n">CreateTime</span><span class="p">,</span>
+                               <span class="n">task</span><span class="o">.</span><span class="n">ExitTime</span><span class="p">,</span>
+                               <span class="p">)</span>
+</pre></div>
+</td></tr></table>
+
+<p>The plugin receives a renderer object and calls the <code>table_header()</code> method on
+it. This effectively defines a record format for the plugin output, with each
+column representing a field.</p>
+<p>The first field is named <code>_EPROCESS</code> and will receive an <code>_EPROCESS</code> object (the
+task). The type of this field is also declared in the column header.</p>
+<p>Additionally the column definition contains a number of options. Options can
+influence the rendering of each column, depending on which renderer is used. For
+example, the &ldquo;formatstring&rdquo; option is only meaningful to the TextRenderer, and
+specifies the width of each column in characters (it is not meaningful for the
+JsonRenderer for example, and it is ignored if the JsonRenderer is used).</p>
+<p>After defining the table headers, the plugin then goes on to populate each row
+in the table using the <code>render_row()</code> method. Each row represents a single
+record of data. Note that the plugin provides a complete object for each cell
+and does not attempt to format the data in any way.</p>
+<h3>Object renderers.</h3>
+<p>You might also notice that there is a discrepancy between the code and the
+output above. The output contains 3 columns which are not provided by the
+code. We can see that the TextRenderer displays a column named &ldquo;_EPROCESS&rdquo;,
+&ldquo;Name&rdquo; and &ldquo;PID&rdquo;, but the code only declares a single column. What is going on?</p>
+<p>Since the renderer receives python objects for each field, but must emit
+renderer specific output, there must be a way to convert from a python object to
+renderer specific output. For example, for the TextRenderer, the _EPROCESS()
+object must be converted to some text representation which can be rendered in
+the table.</p>
+<p>The TextRenderer itself does not have any specific knowledge of how to render an
+_EPROCESS object. To do this, the TextRenderer must delegate rendering to an
+<code>ObjectRenderer()</code> class.</p>
+<p>Here is what the <code>EPROCESS_ObjectRenderer()</code> class looks like:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">class</span> <span class="nc">EPROCESS_ObjectRenderer</span><span class="p">(</span><span class="n">renderer</span><span class="o">.</span><span class="n">ObjectRenderer</span><span class="p">):</span>
+    <span class="n">renders_type</span> <span class="o">=</span> <span class="s">&quot;_EPROCESS&quot;</span>
+    <span class="n">renderers</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;TextRenderer&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;We make a sub table for rendering the _EPROCESS.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">EPROCESS_ObjectRenderer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">TextTable</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span>
+                <span class="p">(</span><span class="s">&quot;_EPROCESS&quot;</span><span class="p">,</span> <span class="s">&quot;eprocess&quot;</span><span class="p">,</span> <span class="s">&quot;[addrpad]&quot;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s">&quot;Name&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="s">&quot;20s&quot;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s">&quot;PID&quot;</span><span class="p">,</span> <span class="s">&quot;pid&quot;</span><span class="p">,</span> <span class="s">&quot;5s&quot;</span><span class="p">)],</span>
+            <span class="n">renderer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">renderer</span><span class="p">,</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">render_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">render_header</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">render_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+        <span class="n">cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">get_row</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">obj_offset</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">pid</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Join</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span>
+</pre></div>
+</td></tr></table>
+
+<p>In the above code, lines 2 and 3 declare this <code>ObjectRenderer</code> as being
+responsible for rendering an &ldquo;_EPROCESS&rdquo; object under the &ldquo;TextRenderer&rdquo;
+renderer. Note that the ObjectRenderer acts specifically on both the object type
+<em>and</em> the renderer.</p>
+<p>The <code>EPROCESS_ObjectRenderer()</code> goes on to create a subtable with three columns,
+and then provides two methods - one to render the headers and another to render
+each row. This is how three columns appear to describe a single _EPROCESS
+column. Note that this particular layout is specific to the TextRenderer
+only. This is the output using the <code>WideTextRenderer()</code> renderer (A renderer
+which displays each record in a 2 column display):</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre>_EPROCESS       csrss.exe Pid: 668 (@0x821f2978)
+PPID            596
+Thds            14
+Hnds            471
+Sess            0
+Wow64            False
+Start           2010-09-02 12:25:21+0000
+Exit            -
+</pre></div>
+</td></tr></table>
+
+<p>We see that in this example, the <code>_EPROCESS</code> field is described using a format
+string with interpolated values containing the name, pid and offset. To achieve
+this effect we must define a specific <code>EPROCESS_WideTextObjectRenderer()</code>:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">class</span> <span class="nc">EPROCESS_WideTextObjectRenderer</span><span class="p">(</span><span class="n">renderer</span><span class="o">.</span><span class="n">ObjectRenderer</span><span class="p">):</span>
+    <span class="n">renders_type</span> <span class="o">=</span> <span class="s">&quot;_EPROCESS&quot;</span>
+    <span class="n">renderers</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;WideTextRenderer&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">render_row</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="o">**</span><span class="n">_</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">FromString</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{0:s} Pid: {1:s} (@{2:#x})&quot;</span><span class="p">,</span>
+                                  <span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">pid</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+</pre></div>
+</td></tr></table>
+
+<h3>Object Renderer selection.</h3>
+<p>We saw in the last section, that the Renderer delegates the conversion of a
+python object to an ObjectRenderer class. The ObjectRenderer chosen is specific
+both to the Renderer used, and the object type to be rendered.</p>
+<p>However, it would be extremely tedious if we had to define a new
+<code>ObjectRenderer()</code> class for each possible object type and renderer type. In
+order to make this more efficient, we must consider exactly how the renderer
+chooses the correct ObjectRenderer() class to use.</p>
+<p>When a Renderer needs to convert from a python object to a renderer specific
+output, it searches for an ObjectRenderer along the inheritance tree of both the
+python object to be rendered and the renderer class itself (in python speak, the
+inheritance tree is called the MRO - method resolution order). Here is the code
+that does it:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre>        <span class="c"># Search for a handler which supports both the renderer and the object</span>
+        <span class="c"># type.</span>
+        <span class="k">for</span> <span class="n">mro_cls</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">get_mro</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">renderer_cls</span> <span class="ow">in</span> <span class="n">cls</span><span class="o">.</span><span class="n">get_mro</span><span class="p">(</span><span class="n">renderer</span><span class="p">):</span>
+                <span class="n">handler</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">_RENDERER_CACHE</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">mro_cls</span><span class="p">,</span> <span class="n">renderer_cls</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">handler</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">handler</span>
+</pre></div>
+</td></tr></table>
+
+<p>For example, consider rendering the &ldquo;Start&rdquo; column which contains the process start time:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">zeus2x4</span><span class="o">.</span><span class="n">vmem</span><span class="o">.</span><span class="n">E01</span> <span class="mo">02</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mi">30</span><span class="o">&gt;</span> <span class="kn">from</span> <span class="nn">rekall.ui</span> <span class="kn">import</span>  <span class="n">renderer</span>
+<span class="n">zeus2x4</span><span class="o">.</span><span class="n">vmem</span><span class="o">.</span><span class="n">E01</span> <span class="mo">02</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mi">32</span><span class="o">&gt;</span> <span class="n">task</span> <span class="o">=</span> <span class="n">profile</span><span class="o">.</span><span class="n">_EPROCESS</span><span class="p">(</span><span class="mh">0x8208abf0</span><span class="p">)</span>
+<span class="n">zeus2x4</span><span class="o">.</span><span class="n">vmem</span><span class="o">.</span><span class="n">E01</span> <span class="mo">02</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mi">32</span><span class="o">&gt;</span> <span class="n">task</span><span class="o">.</span><span class="n">CreateTime</span>
+                    <span class="n">Out</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span>  <span class="p">[</span><span class="n">WinFileTime</span><span class="p">:</span><span class="n">CreateTime</span><span class="p">]:</span> <span class="mh">0x4C7F97BD</span> <span class="p">(</span><span class="mi">2010</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mo">02</span> <span class="mi">12</span><span class="p">:</span><span class="mi">25</span><span class="p">:</span><span class="mi">33</span><span class="o">+</span><span class="mo">0000</span><span class="p">)</span>
+
+<span class="n">zeus2x4</span><span class="o">.</span><span class="n">vmem</span><span class="o">.</span><span class="n">E01</span> <span class="mo">02</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mi">39</span><span class="o">&gt;</span> <span class="n">renderer</span><span class="o">.</span><span class="n">ObjectRenderer</span><span class="o">.</span><span class="n">ForTarget</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">CreateTime</span><span class="p">,</span> <span class="s">&quot;TextRenderer&quot;</span><span class="p">)</span>
+                    <span class="n">Out</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;</span> <span class="n">rekall</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">renderers</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">UnixTimestampObjectRenderer</span>
+<span class="n">zeus2x4</span><span class="o">.</span><span class="n">vmem</span><span class="o">.</span><span class="n">E01</span> <span class="mo">02</span><span class="p">:</span><span class="mi">21</span><span class="p">:</span><span class="mi">56</span><span class="o">&gt;</span> <span class="n">task</span><span class="o">.</span><span class="n">CreateTime</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__mro__</span>
+                    <span class="n">Out</span><span class="o">&lt;</span><span class="mi">5</span><span class="o">&gt;</span>
+<span class="p">(</span><span class="n">rekall</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">overlays</span><span class="o">.</span><span class="n">basic</span><span class="o">.</span><span class="n">WinFileTime</span><span class="p">,</span>
+ <span class="n">rekall</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">overlays</span><span class="o">.</span><span class="n">basic</span><span class="o">.</span><span class="n">UnixTimeStamp</span><span class="p">,</span>
+ <span class="n">rekall</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">NativeType</span><span class="p">,</span>
+ <span class="n">rekall</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">NumericProxyMixIn</span><span class="p">,</span>
+ <span class="n">rekall</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">BaseObject</span><span class="p">,</span>
+ <span class="nb">object</span><span class="p">)</span>
+</pre></div>
+</td></tr></table>
+
+<p>As we can see the <code>task.CreateTime</code> member is an instance of the <code>WinFileTime()</code>
+class. However, the object renderer chosen is <code>UnixTimestampObjectRenderer()</code>
+since it is used to render a <code>UnixTimeStamp()</code> instance.</p>
+<p>The <code>ObjectRenderer()</code> are essentially chosen from in the most specific to least
+specific order.</p>
+<h3>The JsonRenderer</h3>
+<p>As an example, let us examine the JsonRenderer. This renderer is designed to
+store objects in a json stream in such a way that they can be decoded and
+restored at a later time. At a later time, we re-create the object using the
+same memory image, address spaces etc.</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>rekall -v --de -f zeus2x4.vmem.E01 --renderer JsonRenderer pslist | json_pp
+   <span class="o">{</span>
+....
+            <span class="s2">&quot;vm&quot;</span> : <span class="o">{</span>
+               <span class="s2">&quot;base&quot;</span> : <span class="o">{</span>
+                  <span class="s2">&quot;filename&quot;</span> : <span class="o">[</span>
+                     <span class="s2">&quot;*&quot;</span>,
+                     <span class="s2">&quot;zeus2x4.vmem.E01&quot;</span>
+                  <span class="o">]</span>,
+                  <span class="s2">&quot;id&quot;</span> : 7131,
+                  <span class="s2">&quot;type&quot;</span> : <span class="s2">&quot;EWFAddressSpace,CachingAddressSpaceMixIn,FDAddressSpace,BaseAddressSpace,object&quot;</span>
+               <span class="o">}</span>,
+               <span class="s2">&quot;dtb&quot;</span> : 233472,
+               <span class="s2">&quot;id&quot;</span> : 7158,
+               <span class="s2">&quot;type&quot;</span> : <span class="s2">&quot;IA32PagedMemory,PagedReader,BaseAddressSpace,object&quot;</span>
+            <span class="o">}</span>,
+            <span class="s2">&quot;type_name&quot;</span> : <span class="s2">&quot;_EPROCESS&quot;</span>,
+            <span class="s2">&quot;profile&quot;</span> : <span class="o">{</span>
+               <span class="s2">&quot;name&quot;</span> : <span class="s2">&quot;nt/GUID/1B2D0DFE2FB942758D615C901BE046922&quot;</span>,
+               <span class="s2">&quot;id&quot;</span> : 740,
+               <span class="s2">&quot;type&quot;</span> : <span class="s2">&quot;Nt,Ntoskrnl,BasicPEProfile,RelativeOffsetMixin,BasicClasses,Profile,object&quot;</span>
+            <span class="o">}</span>,
+            <span class="s2">&quot;name&quot;</span> : <span class="s2">&quot;_EPROCESS&quot;</span>,
+            <span class="s2">&quot;id&quot;</span> : 54334,
+            <span class="s2">&quot;type&quot;</span> : <span class="s2">&quot;_EPROCESS,Struct,BaseAddressComparisonMixIn,BaseObject,object&quot;</span>,
+            <span class="s2">&quot;offset&quot;</span> : 2185005568
+         <span class="o">}</span>,
+...
+</pre></div>
+</td></tr></table>
+
+<p>The code above shows the JSON output for a single <code>_EPROCESS()</code> object. We store
+the offset, and the full MRO for the <code>_EPROCESS()</code> object, as well as the full
+profile name, address space etc. Using the information above we are able to
+exactly reconstruct the <code>_EPROCESS()</code> instance.</p>
+<p>The JsonRenderer uses specialized <code>ObjectRenderer()</code> classes to control
+serializing and unserializing a python object into JSON format. For example,
+this is how we serialize a <code>BaseObject()</code> instance (which _EPROCESS subclasses):</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">class</span> <span class="nc">BaseObjectRenderer</span><span class="p">(</span><span class="n">StateBasedObjectRenderer</span><span class="p">):</span>
+    <span class="n">renders_type</span> <span class="o">=</span> <span class="s">&quot;BaseObject&quot;</span>
+    <span class="n">renderers</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;JsonRenderer&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">DecodeFromJsonSafe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">BaseObjectRenderer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">DecodeFromJsonSafe</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="n">profile</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&quot;profile&quot;</span><span class="p">)</span>
+        <span class="n">value</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">profile</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="o">**</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">GetState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">obj_offset</span><span class="p">,</span>
+                    <span class="n">type_name</span><span class="o">=</span><span class="nb">unicode</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">obj_type</span><span class="p">),</span>
+                    <span class="n">name</span><span class="o">=</span><span class="nb">unicode</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">obj_name</span><span class="p">),</span>
+                    <span class="n">vm</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">obj_vm</span><span class="p">,</span>
+                    <span class="n">profile</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">obj_profile</span>
+                    <span class="p">)</span>
+</pre></div>
+</td></tr></table>
+
+<p>Since JSON can only handle dicts of simple objects, the <code>GetState()</code> method
+creates a dict capturing the essence of a <code>BaseObject()</code> (i.e. all that is
+required to instantiate it - the offset, address space and profile).</p>
+<p>The <code>DecodeFromJsonSafe()</code> method is then used to convert from a pure Json safe
+dictionary to a <code>BaseObject()</code> instance. In this case, we need to instantiate it
+through the profile object.</p>
+<p>The JsonRenderer is used to serialize the session when specifying the <code>-s</code>
+parameter. In this case, the session&rsquo;s internal caches are all saved to disk and
+restored at a later time. This makes startup times much faster and provides a
+mechanism for plugins to store intermediate cached data.</p>
+<h2>The data export renderer.</h2>
+<p>While the purpose of the <code>JsonRenderer</code> was to be able to exactly recreate the
+serialized objects upon deserialization - this is not always desired. In order
+to recreate the same <code>BaseObject()</code> instance, one needs to have access to the
+same address space, and therefore the original image.</p>
+<p>When Rekall is used as a library, often callers require the data to be exported
+in a tool neutral way. The data export renderer does just that - it attempts to
+produce meaningful output from the exported data. This necessarily means that
+the exported data can not be re-imported into Rekall to produce the same
+objects!</p>
+<p>The <code>DataExportRenderer()</code> simply extends the JsonRenderer, and can be specified
+on the command line using the &ldquo;-r data&rdquo; flag. This renderer employs the
+<code>ObjectRenderer</code> mechanism above to ensure suitable exported objects are
+produced for the various objects Rekall creates.</p>
+<p>For example, here is an exported <code>_EPROCESS()</code> object:</p>
+<div class="highlight"><pre><span class="cp">[</span>
+      <span class="s2">&quot;r&quot;</span><span class="p">,</span>
+      <span class="p">{</span>
+         <span class="s2">&quot;session_id&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+         <span class="s2">&quot;wow64&quot;</span> <span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+         <span class="s2">&quot;thread_count&quot;</span> <span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+         <span class="s2">&quot;_EPROCESS&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;vm&quot;</span> <span class="p">:</span> <span class="s2">&quot;IA32PagedMemory@0x00039000 (Kernel AS@0x39000)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;type_name&quot;</span> <span class="p">:</span> <span class="s2">&quot;_EPROCESS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;_EPROCESS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Cybox&quot;</span> <span class="p">:</span> <span class="p">{</span>
+               <span class="s2">&quot;Image_Info&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                  <span class="s2">&quot;Path&quot;</span> <span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\\</span><span class="s2">WINDOWS</span><span class="se">\\</span><span class="s2">system32</span><span class="se">\\</span><span class="s2">wuauclt.exe&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;File_Name&quot;</span> <span class="p">:</span>
+<span class="s2">&quot;</span><span class="se">\\</span><span class="s2">Device</span><span class="se">\\</span><span class="s2">HarddiskVolume1</span><span class="se">\\</span><span class="s2">WINDOWS</span><span class="se">\\</span><span class="s2">system32</span><span class="se">\\</span><span class="s2">wuauclt.exe&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;ProcessObj:ImageInfoType&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;Command_Line&quot;</span> <span class="p">:</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">C:</span><span class="se">\\</span><span class="s2">WINDOWS</span><span class="se">\\</span><span class="s2">system32</span><span class="se">\\</span><span class="s2">wuauclt.exe</span><span class="se">\&quot;</span><span class="s2"></span>
+<span class="s2">/RunStoreAsComServer Local</span><span class="se">\\</span><span class="s2">[43c]SUSDS82f0c54ad7b58b46a717b19ec999e73f&quot;</span>
+               <span class="p">},</span>
+               <span class="s2">&quot;PID&quot;</span> <span class="p">:</span> <span class="mi">3984</span><span class="p">,</span>
+               <span class="s2">&quot;Parent_PID&quot;</span> <span class="p">:</span> <span class="mi">1084</span><span class="p">,</span>
+               <span class="s2">&quot;Creation_Time&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                  <span class="s2">&quot;type_name&quot;</span> <span class="p">:</span> <span class="s2">&quot;UnixTimeStamp&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;value&quot;</span> <span class="p">:</span> <span class="mi">1284061965</span><span class="p">,</span>
+                  <span class="s2">&quot;string_value&quot;</span> <span class="p">:</span> <span class="s2">&quot;2010-09-09 19:52:45+0000&quot;</span>
+               <span class="p">},</span>
+               <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;ProcessObj:ProcessObjectType&quot;</span><span class="p">,</span>
+               <span class="s2">&quot;Name&quot;</span> <span class="p">:</span> <span class="s2">&quot;wuauclt.exe&quot;</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;offset&quot;</span> <span class="p">:</span> <span class="mi">2179642104</span>
+         <span class="p">},</span>
+         <span class="s2">&quot;process_create_time&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type_name&quot;</span> <span class="p">:</span> <span class="s2">&quot;UnixTimeStamp&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span> <span class="p">:</span> <span class="mi">1284061965</span><span class="p">,</span>
+            <span class="s2">&quot;string_value&quot;</span> <span class="p">:</span> <span class="s2">&quot;2010-09-09 19:52:45+0000&quot;</span>
+         <span class="p">},</span>
+         <span class="s2">&quot;process_exit_time&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type_name&quot;</span> <span class="p">:</span> <span class="s2">&quot;UnixTimeStamp&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;string_value&quot;</span> <span class="p">:</span> <span class="s2">&quot;-&quot;</span>
+         <span class="p">},</span>
+         <span class="s2">&quot;handle_count&quot;</span> <span class="p">:</span> <span class="mi">325</span><span class="p">,</span>
+         <span class="s2">&quot;ppid&quot;</span> <span class="p">:</span> <span class="mi">1084</span>
+      <span class="p">}</span>
+   <span class="cp">]</span>
+</pre></div>
+
+
+<p>We can see that the data rendering system recognizes the <code>_EPROCESS</code> object
+specifically and creates a &ldquo;Cybox&rdquo; like object to represent it. We expect in
+future to support standardized representations of exporting memory artifacts,
+such as the Cybox effort.</p>
+
+<p>
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Developers/development.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         The Rekall Memory Forensic Framework API.
+       </a>
+    </li>
+  </ul>
+
+
+</nav>
+
+
+  </div>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
+
+
+  </div>
+</div>
+</div>
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
+  </body>
+</html>
+
