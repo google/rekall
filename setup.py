@@ -44,7 +44,7 @@ setup(
     name="rekall",
     version=constants.VERSION,
     description=rekall_description,
-    long_description=open("README.txt").read(),
+    long_description=open("README.md").read(),
     license="GPL",
     url="https://code.google.com/p/rekall/",
     author="The Rekall team",

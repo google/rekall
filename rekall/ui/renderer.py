@@ -95,11 +95,6 @@ from rekall import registry
 
 
 config.DeclareOption(
-    "--renderer", default="TextRenderer", group="Interface",
-    help="The renderer to use. e.g. (TextRenderer, "
-    "JsonRenderer).")
-
-config.DeclareOption(
     "-v", "--verbose", default=False, action="store_true",
     help="Set logging to debug level.", group="Output control")
 
@@ -333,7 +328,8 @@ class BaseRenderer(object):
             pad_len = width - len(name) - 2  # 1 space on each side.
             padding = "*" * (pad_len / 2)  # Name is centered.
 
-            self.format("{0}", "\n{0} {1} {2}\n".format(padding, name, padding))
+            self.format("{0}", "\n{0} {1} {2}\n".format(padding, name,
+                        padding))
 
     def format(self, formatstring, *data):
         """Write formatted data.
@@ -353,7 +349,7 @@ class BaseRenderer(object):
         """Renderer should flush data."""
         pass
 
-    def table_header(self, columns=None, name=None, sort=None):
+    def table_header(self, columns=None, name=None, sort=None, **options):
         """Table header renders the title row of a table.
 
         This also stores the header types to ensure everything is formatted
@@ -363,9 +359,6 @@ class BaseRenderer(object):
         Args:
           columns: A list of (name, cname, formatstring) tuples describing
             the table headers.
-
-          suppress_headers: If True table headers will not be written (still
-            useful for formatting).
 
           name: The name of this table.
 
@@ -387,6 +380,12 @@ class BaseRenderer(object):
         if self.deferred_rows is not None:
             # Previous table we rendered was sorted. Do deferred rendering now.
             self.flush_table()
+
+        self.table = self.table_cls(
+            renderer=self, session=self.session, columns=columns, **options
+        )
+
+        self.table.render_header()
 
         if sort:
             self.sort_key_func = self._build_sort_key_function(

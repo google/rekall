@@ -58,7 +58,7 @@ class WinPsList(common.WinProcessFilter):
     def render(self, renderer):
 
         renderer.table_header([
-            dict(type="_EPROCESS"),
+            dict(type="_EPROCESS", cname="_EPROCESS"),
             ("PPID", "ppid", ">6"),
             ("Thds", "thread_count", ">6"),
             ("Hnds", "handle_count", ">8"),

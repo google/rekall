@@ -23,6 +23,7 @@ A renderer is used by plugins to produce formatted output.
 
 This code is tested in plugins/tools/render_test.py
 """
+
 import json
 import logging
 import sys
@@ -308,12 +309,14 @@ class JsonEncoder(object):
 
     def Encode(self, item, type=None, **options):
         """Convert item to a json safe object."""
-        if type is None:
-            object_renderer_cls = JsonObjectRenderer.ForTarget(
-                item, self.renderer)
-        else:
+        object_renderer_cls = None
+        if type:
             object_renderer_cls = JsonObjectRenderer.ByName(
                 type, self.renderer)
+
+        if object_renderer_cls is None:
+            object_renderer_cls = JsonObjectRenderer.ForTarget(
+                item, self.renderer)
 
         if not object_renderer_cls:
             raise EncodingError("Unable to find ObjectRenderer class.")
@@ -534,14 +537,20 @@ class JsonRenderer(renderer_module.BaseRenderer):
         self.SendMessage(["e", message])
 
     def table_header(self, columns=None, **kwargs):
+        self.columns = []
+
         # TODO: Remove this when all calls are done with kwargs.
         kwargs["columns"] = columns
         self.object_renderers = [None] * len(columns)
         for i, column in enumerate(columns):
-            if isinstance(column, dict):
-                self.object_renderers[i] = column.get("type")
-            else:
-                self.object_renderers[i] = None
+            # Convert the column specification to the standard dict
+            # notation. TODO: Deprecate this form of table headers.
+            if isinstance(column, (tuple, list)):
+                column = dict(name=column[0], cname=column[1],
+                              formatstring=column[2])
+
+            self.object_renderers[i] = column.get("type")
+            self.columns.append(column)
 
         self.SendMessage(["t", kwargs])
 

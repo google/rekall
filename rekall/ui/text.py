@@ -614,6 +614,9 @@ class TextColumn(object):
 
     def __init__(self, table=None, renderer=None, session=None, type=None,
                  **options):
+        if session is None:
+            raise RuntimeError("A session must be provided.")
+
         self.session = session
         self.table = table
         self.wrap = None

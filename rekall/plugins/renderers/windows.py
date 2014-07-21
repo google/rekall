@@ -18,9 +18,48 @@
 
 """This module implements renderers specific to windows structures."""
 
-
+from rekall import utils
 from rekall.ui import renderer
 from rekall.ui import text
+from rekall.plugins.renderers import data_export
+
+
+class EPROCESSDataExport(data_export.DataExportBaseObjectRenderer):
+    renders_type = "_EPROCESS"
+
+    def EncodeToJsonSafe(self, task, **_):
+        result = super(EPROCESSDataExport, self).EncodeToJsonSafe(task)
+        process_params = task.Peb.ProcessParameters
+        result["Cybox"] = dict(
+            type=u"ProcessObj:ProcessObjectType",
+            Name=task.name,
+            PID=task.pid,
+            Creation_Time=task.CreateTime,
+            Parent_PID=task.InheritedFromUniqueProcessId,
+            Image_Info=dict(
+                type=u"ProcessObj:ImageInfoType",
+                Path=process_params.ImagePathName,
+                Command_Line=process_params.CommandLine,
+                File_Name=task.SeAuditProcessCreationInfo.ImageFileName.Name,
+                )
+            )
+
+        return self.renderer.encoder.Encode(result)
+
+
+class UNICODE_STRINGDataExport(data_export.DataExportBaseObjectRenderer):
+    renders_type = "_UNICODE_STRING"
+
+    def EncodeToJsonSafe(self, item, **_):
+        return unicode(item)
+
+
+class STRINGDataExport(UNICODE_STRINGDataExport):
+    renders_type = "String"
+
+    def EncodeToJsonSafe(self, item, **_):
+        return utils.SmartStr(item)
+
 
 
 class EPROCESS_TextObjectRenderer(text.ObjectRenderer):
