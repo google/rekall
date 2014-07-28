@@ -307,7 +307,7 @@ class Pager(object):
             return self.fd
 
         # Make a temporary filename to store output in.
-        self.fd = tempfile.NamedTemporaryFile(prefix="rekall")
+        self.fd = tempfile.NamedTemporaryFile(prefix="rekall", delete=False)
 
         return self.fd
 
@@ -364,6 +364,10 @@ class Pager(object):
             else:
                 pager_command = self.pager_command + " %s" % self.fd.name
 
+            # On windows the file must be closed before the subprocess
+            # can open it.
+            self.fd.close()
+
             subprocess.call(pager_command, shell=True)
 
         # Allow the user to break out from waiting for the command.
@@ -371,8 +375,11 @@ class Pager(object):
             pass
 
         finally:
-            # This will delete the temp file.
-            self.fd.close()
+            try:
+                # This will delete the temp file.
+                os.unlink(self.fd.name)
+            except Exception:
+                pass
 
 
 class Colorizer(object):

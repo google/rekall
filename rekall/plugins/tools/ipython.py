@@ -88,9 +88,12 @@ class Rekall(plugin.Command):
 
     def render(self, renderer):
         renderer.format("Initializing Rekall session.\n")
-        with self.session.state as state:
+        with self.session as s:
             for k, v in self.kwargs.items():
-                state.Set(k, v)
+                s.SetParameter(k, v)
+
+            s.UpdateFromConfigObject()
+
 
         renderer.format("Done!\n")
 

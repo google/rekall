@@ -68,7 +68,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
             try:
                 # First open for write in case the driver is in write mode.
                 self._OpenFileForWrite(path)
-            except pywintypes.error:
+            except IOError:
                 self._OpenFileForRead(path)
 
             self.ParseMemoryRuns()
@@ -79,24 +79,30 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
             self.runs.insert((0, 0, win32file.GetFileSize(self.fhandle)))
 
     def _OpenFileForRead(self, path):
-        self.fhandle = win32file.CreateFile(
-            path,
-            win32file.GENERIC_READ,
-            win32file.FILE_SHARE_READ,
-            None,
-            win32file.OPEN_EXISTING,
-            win32file.FILE_ATTRIBUTE_NORMAL,
-            None)
-
+        try:
+            self.fhandle = win32file.CreateFile(
+                path,
+                win32file.GENERIC_READ,
+                win32file.FILE_SHARE_READ,
+                None,
+                win32file.OPEN_EXISTING,
+                win32file.FILE_ATTRIBUTE_NORMAL,
+                None)
+        except pywintypes.error as e:
+            raise IOError("Unable to open %s: %s" % (path, e))
+        
     def _OpenFileForWrite(self, path):
-        self.fhandle = win32file.CreateFile(
-            path,
-            win32file.GENERIC_READ | win32file.GENERIC_WRITE,
-            win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
-            None,
-            win32file.OPEN_EXISTING,
-            win32file.FILE_ATTRIBUTE_NORMAL,
-            None)
+        try:
+            self.fhandle = win32file.CreateFile(
+                path,
+                win32file.GENERIC_READ | win32file.GENERIC_WRITE,
+                win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
+                None,
+                win32file.OPEN_EXISTING,
+                win32file.FILE_ATTRIBUTE_NORMAL,
+                None)
+        except pywintypes.error as e:
+            raise IOError("Unable to open %s: %s" % (path, e))
 
     FIELDS = (["CR3", "NtBuildNumber", "KernBase", "KDBG"] +
               ["KPCR%02d" % i for i in xrange(32)] +

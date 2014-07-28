@@ -1,6 +1,5 @@
 import inspect
 
-from rekall import config
 from rekall import ipython_support
 
 # Load all the plugins to register them.
@@ -30,9 +29,7 @@ def ImportEnvironment(**kwargs):
     # Run the pslist command rendering to stdout.
     print pslist()
     """
-    isession = session.InteractiveSession(**kwargs)
-    with isession.state as state:
-        config.MergeConfigOptions(state)
+    isession = session.InteractiveSession(use_config_file=True, **kwargs)
 
     stack = inspect.stack()
     # pylint: disable=protected-access

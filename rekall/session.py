@@ -257,7 +257,9 @@ class Session(object):
         self.entities = entity.EntityManager(session=self)
 
         self.inventories = {}
-        self.UpdateFromConfigObject()
+        with self:
+            self.UpdateFromConfigObject()
+
         self._configuration_parameters = [x[2] for x in config.OPTIONS]
 
     def __enter__(self):
@@ -293,6 +295,15 @@ class Session(object):
 
                 # The profile has just changed, we need to update the runners.
                 self.UpdateRunners()
+
+            with self.state:
+                if self.physical_address_space == None:
+                    logging.critical(
+                        "Unable to load image file %s. Does the file exist?",
+                        filename)
+                    self.state.Set("base_filename", None)
+                else:
+                    self.state.Set("base_filename", os.path.basename(filename))
 
         # Set the renderer.
         self.renderer = renderer.BaseRenderer.classes.get(
@@ -357,7 +368,8 @@ class Session(object):
         # Configuration parameters go in the state object, everything else goes
         # in the cache.
         if item in self._configuration_parameters:
-            self.state.Set(item, value)
+            with self:
+                self.state.Set(item, value)
 
         else:
             self.state.cache.Set(item, value)
@@ -646,7 +658,20 @@ class InteractiveSession(JsonSerializableSession):
     interactive use.
     """
 
-    def __init__(self, env=None, **kwargs):
+    def __init__(self, env=None, use_config_file=True, **kwargs):
+        """Creates an interactive session.
+
+        Args:
+          env: If passed we use this dict as the local environment.
+
+          use_config_file: If True we merge the system's config file into the
+             session. This helps set the correct profile paths for example.
+
+          kwargs: Arbitrary parameters to store in the session.
+
+        Returns:
+          an interactive session object.
+        """
         self._locals = env or {}
 
         # These are the command plugins which we exported to the local
@@ -661,7 +686,15 @@ class InteractiveSession(JsonSerializableSession):
 
         self.help_profile = None
 
-        super(InteractiveSession, self).__init__(**kwargs)
+        super(InteractiveSession, self).__init__()
+        with self:
+            if use_config_file:
+                config.MergeConfigOptions(self.state)
+
+            for k, v in kwargs.items():
+                self.SetParameter(k, v)
+
+            self.UpdateFromConfigObject()
 
     def UpdateRunners(self):
         super(InteractiveSession, self).UpdateRunners()

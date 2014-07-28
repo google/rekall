@@ -6,8 +6,8 @@ Source: C:\Windows\system32\MSVCR100.dll; DestDir: {app}
 Source: C:\Windows\system32\MSVCP100.dll; DestDir: {app}
 
 ; Winpmem tool
-Source: ..\..\..\rekall.downloads\WinPmem\winpmem_1.5.5.exe; DestDir: {app}
-Source: ..\..\..\rekall.downloads\WinPmem\winpmem_write_1.5.5.exe; DestDir: {app}
+Source: ..\..\..\rekall.downloads\WinPmem\winpmem_1.6.0.exe; DestDir: {app}
+Source: ..\..\..\rekall.downloads\WinPmem\winpmem_write_1.6.0.exe; DestDir: {app}
 
 ; PyInstaller files.
 DestDir: {app}; Source: ..\..\dist\rekal\*; Excludes: "_MEI"; Flags: recursesubdirs
@@ -22,9 +22,9 @@ AppCopyright=GPLv2
 AppPublisher=Rekall Team
 AppPublisherURL=http://www.rekall-forensic.com/
 AppName=Rekall
-AppVerName=Rekall v1.0RC9
+AppVerName=Rekall v1.0.1 Albis
 DefaultDirName={pf}\Rekall
-VersionInfoVersion=1.0
+VersionInfoVersion=1.0.1
 ; ArchitecturesAllowed=x86
 VersionInfoCompany=Rekall Inc.
 VersionInfoDescription=Rekall Memory Forensic Framework
@@ -33,9 +33,9 @@ VersionInfoProductName=Rekall Memory Forensic Framework
 MinVersion=5.01.2600sp1
 PrivilegesRequired=poweruser
 TimeStampsInUTC=true
-OutputBaseFilename=Rekall_1.0RC9_x86
+OutputBaseFilename=Rekall_1.0.1_Albis_x86
 VersionInfoTextVersion=Rekall Memory Forensic Framework
-InfoAfterFile=..\..\README.txt
+InfoAfterFile=..\..\README.md
 LicenseFile=..\..\LICENSE.txt
 AllowNoIcons=true
 AlwaysUsePersonalGroup=true
