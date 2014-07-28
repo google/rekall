@@ -122,6 +122,9 @@ class ObjectRenderer(object):
     _RENDERER_CACHE = None
 
     def __init__(self, renderer=None, session=None, **options):
+        if renderer is None:
+            raise RuntimeError("Renderer must be provided.")
+
         self.renderer = renderer
         self.session = session
         self.options = options
@@ -142,21 +145,37 @@ class ObjectRenderer(object):
         # uses the flat class name to select the ObjectRenderer so we can get
         # duplicates but they dont matter).
         return list(collections.OrderedDict.fromkeys(
-            [x.__name__ for x in item.__mro__]))
+            [unicode(x.__name__) for x in item.__mro__]))
 
     @classmethod
     def ByName(cls, name, renderer):
         """A constructor for an ObjectRenderer by name."""
         cls._BuildRendererCache()
 
-        if isinstance(renderer, basestring):
-            renderer = BaseRenderer.classes[renderer]
+        if not isinstance(renderer, basestring):
+            renderer = renderer.__class__.__name__
 
         # Find the object renderer which works for this name.
-        for renderer_cls in ObjectRenderer.get_mro(renderer):
-            result = cls._RENDERER_CACHE.get((name, renderer_cls))
-            if result:
-                return result
+        return cls._RENDERER_CACHE.get((name, renderer))
+
+    @classmethod
+    def FromMRO(cls, mro, renderer):
+        """Get the best object renderer class from the MRO."""
+        cls._BuildRendererCache()
+
+        if not isinstance(renderer, basestring):
+            renderer = renderer.__class__.__name__
+
+        # MRO is the list of object inheritance for each type. For example:
+        # FileAddressSpace,FDAddressSpace,BaseAddressSpace.  We try to match the
+        # object renderer from most specific to least specific (or more
+        # general).
+        for class_name in mro:
+            object_renderer_cls = cls._RENDERER_CACHE.get(
+                (class_name, renderer))
+
+            if object_renderer_cls:
+                return object_renderer_cls
 
     @classmethod
     def _BuildRendererCache(cls):
@@ -170,7 +189,7 @@ class ObjectRenderer(object):
 
     @classmethod
     def ForTarget(cls, target, renderer):
-        """Get the best ObjectRenderer for this target.
+        """Get the best ObjectRenderer to encode this target.
 
         ObjectRenderer instances are chosen based on both the taget and the
         renderer they implement.
@@ -187,16 +206,15 @@ class ObjectRenderer(object):
         """
         cls._BuildRendererCache()
 
-        if isinstance(renderer, basestring):
-            renderer = BaseRenderer.classes[renderer]
+        if not isinstance(renderer, basestring):
+            renderer = renderer.__class__.__name__
 
         # Search for a handler which supports both the renderer and the object
         # type.
         for mro_cls in cls.get_mro(target):
-            for renderer_cls in cls.get_mro(renderer):
-                handler = cls._RENDERER_CACHE.get((mro_cls, renderer_cls))
-                if handler:
-                    return handler
+            handler = cls._RENDERER_CACHE.get((mro_cls, renderer))
+            if handler:
+                return handler
 
     @classmethod
     def cache_key(cls, item):
@@ -235,6 +253,30 @@ class ObjectRenderer(object):
         """
 
 
+class BaseTable(object):
+    """Renderers contain tables."""
+    def __init__(self, session=None, renderer=None, columns=None, **options):
+        self.session = session
+        self.renderer = renderer
+        self.options = options
+        self.column_specs = []
+
+        # For now support the legacy column specification and normalized to a
+        # column_spec dict.
+        for column in columns:
+            # Old style column specification are a tuple. The new way is a dict
+            # which is more expressive but more verbose.
+            if isinstance(column, (tuple, list)):
+                column = dict(name=column[0],
+                              cname=column[1],
+                              formatstring=column[2])
+
+            self.column_specs.append(column)
+
+    def flush(self):
+        pass
+
+
 
 class BaseRenderer(object):
     """All renderers inherit from this.
@@ -252,9 +294,6 @@ class BaseRenderer(object):
     # command line etc.
     name = None
 
-    sort_key_func = None
-    deferred_rows = None
-
     last_spin_time = 0
     last_gc_time = 0
     progress_interval = 0.2
@@ -262,6 +301,11 @@ class BaseRenderer(object):
     # This is used to ensure that renderers are always called as context
     # managers. This guarantees we call start() and end() automatically.
     _started = False
+
+    # Currently used table.
+    table = None
+
+    table_class = BaseTable
 
     def __init__(self, session=None):
         self.session = session
@@ -297,9 +341,6 @@ class BaseRenderer(object):
     def end(self):
         """Tells the renderer that we finished using it for a while."""
         self._started = False
-        if self.deferred_rows is not None:
-            # Table was sorted. Render deferred rows now.
-            self.flush_table()
 
         # Remove the progress handler from the session.
         if self.session:
@@ -312,24 +353,20 @@ class BaseRenderer(object):
         """Renderer should write some data."""
         pass
 
-    def section(self, name=None, width=50, keep_sort=False):
+    def section(self, name=None, width=50):
         """Start a new section.
 
         Sections are used to separate distinct entries (e.g. reports of
         different files).
         """
-        if self.deferred_rows is not None:
-            # Table is sorted. Print deferred rows from last section now.
-            self.flush_table(keep_sort=keep_sort)
-
         if name is None:
             self.format("*" * width + "\n")
         else:
             pad_len = width - len(name) - 2  # 1 space on each side.
             padding = "*" * (pad_len / 2)  # Name is centered.
 
-            self.format("{0}", "\n{0} {1} {2}\n".format(padding, name,
-                        padding))
+            self.format("{0}", "\n{0} {1} {2}\n".format(
+                padding, name, padding))
 
     def format(self, formatstring, *data):
         """Write formatted data.
@@ -347,83 +384,30 @@ class BaseRenderer(object):
 
     def flush(self):
         """Renderer should flush data."""
-        pass
+        if self.table:
+            self.table.flush()
+            self.table = None
 
-    def table_header(self, columns=None, name=None, sort=None, **options):
+    def table_header(self, columns=None, **options):
         """Table header renders the title row of a table.
 
         This also stores the header types to ensure everything is formatted
         appropriately.  It must be a list of tuples rather than a dict for
         ordering purposes.
-
-        Args:
-          columns: A list of (name, cname, formatstring) tuples describing
-            the table headers.
-
-          name: The name of this table.
-
-          sort: Optional - tuple of cnames of columns to sort by. If sorting
-          sorting is on, rendering of table rows will be deferred either
-          until next call to table_header (or section) or until the plugin
-          render function ends.
-
-          **options: Arbitrary options to pass to the table
-            implementations. These depend on the specific
-            implementation. Options which do not make sense for the
-            implementation will be ignored.
         """
-        _ = name
-        self.columns = columns
         if not self._started:
             raise RuntimeError("Renderer is used without a context manager.")
 
-        if self.deferred_rows is not None:
-            # Previous table we rendered was sorted. Do deferred rendering now.
-            self.flush_table()
+        # Ensure the previous table is flushed.
+        if self.table:
+            self.table.flush()
 
-        self.table = self.table_cls(
-            renderer=self, session=self.session, columns=columns, **options
-        )
+        self.table = self.table_class(session=self.session, renderer=self,
+                                      columns=columns, **options)
 
-        self.table.render_header()
-
-        if sort:
-            self.sort_key_func = self._build_sort_key_function(
-                sort_cnames=sort,
-                columns=columns,
-            )
-            self.deferred_rows = []
-
-    @staticmethod
-    def _build_sort_key_function(sort_cnames, columns):
-        """Builds a function that takes a row and returns keys to sort on."""
-        cnames_to_indices = {}
-        for idx, (_, cname, _) in enumerate(columns):
-            cnames_to_indices[cname] = idx
-
-        sort_indices = [cnames_to_indices[x] for x in sort_cnames]
-
-        # Row is a tuple of (values, kwargs) - hence row[0][index].
-        return lambda row: [row[0][index] for index in sort_indices]
-
-    def table_row(self, *args, **kwargs):
+    def table_row(self, *row, **kwargs):
         """Outputs a single row of a table."""
-
-    def flush_table(self, keep_sort=False):
-        """If sorting is on, this will trigger deferred rendering."""
-        self.deferred_rows.sort(key=self.sort_key_func)
-
-        for row, kwargs in self.deferred_rows:
-            self.table.render_row(
-                row=row,
-                **kwargs
-            )
-
-        if keep_sort:
-            self.deferred_rows = []
-        else:
-            self.deferred_rows = None
-            self.sort_key_func = None
+        self.table.render_row(row=row, **kwargs)
 
     def report_error(self, message):
         """Render the error in an appropriate way."""

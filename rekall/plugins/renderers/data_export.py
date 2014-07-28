@@ -45,10 +45,10 @@ class DataExportRenderer(json_renderer.JsonRenderer):
     def table_row(self, *args, **options):
         result = {}
         for i, arg in enumerate(args):
-            column = self.columns[i]
+            column_spec = self.table.column_specs[i]
             object_renderer = self.object_renderers[i]
 
-            column_name = column.get("cname", column.get("name"))
+            column_name = column_spec.get("cname", column_spec.get("name"))
             if column_name:
                 result[column_name] = self.encoder.Encode(
                     arg, type=object_renderer, **options)
@@ -56,31 +56,55 @@ class DataExportRenderer(json_renderer.JsonRenderer):
         self.SendMessage(["r", result])
 
 
-
-class DataExportObjectRenderer(json_renderer.JsonObjectRenderer):
+class NativeDataExportObjectRenderer(json_renderer.JsonObjectRenderer):
     renderers = ["DataExportRenderer"]
+
+    def Summary(self, item, formatstring=None, header=False, **options):
+        """Returns a short summary of the object.
+
+        The summary is a short human readable string, describing the object.
+        """
+        if formatstring == "[addrpad]" and not header:
+            return "%#014x" % item
+
+        return item
+
+
+class DataExportObjectRenderer(json_renderer.StateBasedObjectRenderer):
+    renderers = ["DataExportRenderer"]
+
 
 class DataExportBaseObjectRenderer(DataExportObjectRenderer):
     renders_type = "BaseObject"
 
-    def EncodeToJsonSafe(self, item, **_):
-        return dict(offset=item.obj_offset,
-                    type_name=unicode(item.obj_type),
-                    name=unicode(item.obj_name),
-                    vm=unicode(item.obj_vm),
-                    )
+    def EncodeToJsonSafe(self, item, **options):
+        result = super(DataExportBaseObjectRenderer, self).EncodeToJsonSafe(
+            item, **options)
+
+        result.update(offset=item.obj_offset,
+                      type_name=unicode(item.obj_type),
+                      name=unicode(item.obj_name),
+                      vm=unicode(item.obj_vm),
+                      )
+
+        return result
 
 
-class DataExportPointerObjectRenderer(DataExportObjectRenderer):
+class DataExportPointerObjectRenderer(DataExportBaseObjectRenderer):
     renders_type = "Pointer"
 
-    def EncodeToJsonSafe(self, item, **_):
-        return dict(offset=item.obj_offset,
-                    type_name=unicode(item.obj_type),
-                    name=unicode(item.obj_name),
-                    vm=unicode(item.obj_vm),
-                    target=item.v()
-                    )
+    def Summary(self, item, **options):
+        """Returns the object formatted according to the column_spec."""
+        item = item["target"]
+        return self.FromEncoded(item, "DataExportRenderer")(
+            self.renderer).Summary(item, **options)
+
+    def EncodeToJsonSafe(self, item, **options):
+        result = super(DataExportPointerObjectRenderer, self).EncodeToJsonSafe(
+            item, **options)
+        result["target"] = item.v()
+
+        return result
 
 
 class DataExportNativeTypeRenderer(DataExportObjectRenderer):
@@ -90,11 +114,25 @@ class DataExportNativeTypeRenderer(DataExportObjectRenderer):
         return item.v()
 
 
+class DataExportEnumerationRenderer(DataExportObjectRenderer):
+    """For enumerations store both their value and the enum name."""
+    renders_type = "Enumeration"
+
+    def GetState(self, item, **_):
+        return dict(enum=unicode(item),
+                    value=int(item))
+
+    def Summary(self, item, **_):
+        return item.get("enum", "")
+
+
 class DataExportUnixTimestampObjectRenderer(DataExportObjectRenderer):
     renders_type = "UnixTimeStamp"
 
-    def EncodeToJsonSafe(self, item, **_):
-        return dict(type_name="UnixTimeStamp",
-                    value=item.v(),
-                    string_value=unicode(item))
+    def Summary(self, item, **_):
+        return item.get("string_value", "")
 
+    def GetState(self, item, **_):
+        return dict(type_name="UnixTimeStamp",
+                    epoch=item.v(),
+                    string_value=unicode(item))

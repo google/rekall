@@ -53,7 +53,6 @@ class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
         renderer.table_header([
             dict(name="Name", type="TreeNode", max_depth=5, child=dict(
                 type="_EPROCESS", style="light")),
-            ("Pid", "pid", ">6"),
             ("PPid", "ppid", ">6"),
             ("Thds", "thd_count", ">6"),
             ("Hnds", "hnd_count", ">6"),
@@ -69,7 +68,6 @@ class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
 
                 renderer.table_row(
                     task,
-                    task.UniqueProcessId,
                     task.InheritedFromUniqueProcessId,
                     task.ActiveThreads,
                     task.ObjectTable.HandleCount,

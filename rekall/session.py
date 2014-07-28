@@ -140,11 +140,13 @@ class Configuration(Cache):
         return "<Configuration Object>"
 
     def _set_filename(self):
-        self['filename'] = self.filename
+        if self.get('filename') != self.filename:
+            self['filename'] = self.filename
+            if self.session:
+                self.session.Reset()
+                self.session.UpdateFromConfigObject()
+
         self['base_filename'] = os.path.basename(self.filename)
-        if self.session:
-            self.session.Reset()
-            self.session.UpdateFromConfigObject()
 
     def _set_profile_path(self):
         # Flush the profile cache if we change the profile path.
@@ -155,9 +157,13 @@ class Configuration(Cache):
     def _set_profile(self):
         profile = self.Get("profile")
         if isinstance(profile, basestring):
-            self.Set("profile", self.session.LoadProfile(profile))
+            loaded_profile = self.session.LoadProfile(profile)
+            if loaded_profile:
+                with self:
+                    self.Set("profile", loaded_profile)
 
-        self.session.UpdateFromConfigObject()
+        # The profile has changed - update the active plugin list.
+        self.session.UpdateRunners()
 
     def _set_logging(self):
         level = self.logging
@@ -273,7 +279,7 @@ class Session(object):
 
         We are expected to re-check the config and re-initialize this session.
         """
-        self._update_runners()
+        self.UpdateRunners()
 
         filename = self.state.filename
         if filename:
@@ -286,7 +292,7 @@ class Session(object):
                     raise ValueError(self.profile.reason)
 
                 # The profile has just changed, we need to update the runners.
-                self._update_runners()
+                self.UpdateRunners()
 
         # Set the renderer.
         self.renderer = renderer.BaseRenderer.classes.get(
@@ -295,7 +301,11 @@ class Session(object):
         # Make a new address resolver.
         self.address_resolver = kb.AddressResolver(self)
 
-    def _update_runners(self):
+    def UpdateRunners(self):
+        """Updates the plugins container with active plugins.
+
+        Active plugins may change based on the profile/filename etc.
+        """
         self.plugins = Container()
         for cls in plugin.Command.GetActiveClasses(self):
             name = cls.name
@@ -373,6 +383,7 @@ class Session(object):
         """
         flags = kwargs.pop("flags", None)
         output = kwargs.pop("output", None)
+        renderer = kwargs.pop("renderer", None)
 
         if isinstance(plugin_obj, basestring):
             plugin_name = plugin_obj
@@ -411,7 +422,7 @@ class Session(object):
                     self.SetParameter("output", old_output)
 
         else:
-            return self._RunPlugin(plugin_obj, **kwargs)
+            return self._RunPlugin(plugin_obj, renderer=renderer, **kwargs)
 
     def _RunPlugin(self, plugin_obj, **kwargs):
         ui_renderer = kwargs.pop("renderer", None)
@@ -466,7 +477,13 @@ class Session(object):
 
         # We only want to deal with unix paths.
         filename = filename.replace("\\", "/")
-        canonical_name = os.path.splitext(filename)[0]
+
+        # Only strip the extension if it is one of the recognized
+        # extensions. Otherwise ignore it - this allows the profile name to have
+        # . characters in it (e.g. Linux-3.1.13).
+        canonical_name, extension = os.path.splitext(filename)
+        if extension not in [".gz", ".json"]:
+            canonical_name = filename
 
         try:
             if use_cache:
@@ -646,8 +663,8 @@ class InteractiveSession(JsonSerializableSession):
 
         super(InteractiveSession, self).__init__(**kwargs)
 
-    def _update_runners(self):
-        super(InteractiveSession, self)._update_runners()
+    def UpdateRunners(self):
+        super(InteractiveSession, self).UpdateRunners()
 
         if not self.help_profile:
             self.help_profile = self.LoadProfile("help_doc")
@@ -687,7 +704,7 @@ class InteractiveSession(JsonSerializableSession):
         self._locals['v'] = session.v
 
         # Add all plugins to the local namespace and to their own container.
-        self._update_runners()
+        self.UpdateRunners()
 
         # Some useful modules which should be available always.
         self._locals["sys"] = sys
@@ -719,4 +736,3 @@ Config:
         """Swallow the error but report it."""
         logging.error("Failed running plugin %s: %s",
                       plugin_cls.name, e)
-

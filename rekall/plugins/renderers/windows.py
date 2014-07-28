@@ -21,6 +21,7 @@
 from rekall import utils
 from rekall.ui import renderer
 from rekall.ui import text
+from rekall.ui import json_renderer
 from rekall.plugins.renderers import data_export
 
 
@@ -44,7 +45,11 @@ class EPROCESSDataExport(data_export.DataExportBaseObjectRenderer):
                 )
             )
 
-        return self.renderer.encoder.Encode(result)
+        return json_renderer.JsonObjectRenderer.EncodeToJsonSafe(self, result)
+
+    def Summary(self, item, **_):
+        return "%s (%s)" % (item.get("Cybox", {}).get("Name", ""),
+                            item.get("Cybox", {}).get("PID", ""))
 
 
 class UNICODE_STRINGDataExport(data_export.DataExportBaseObjectRenderer):
@@ -62,9 +67,9 @@ class STRINGDataExport(UNICODE_STRINGDataExport):
 
 
 
-class EPROCESS_TextObjectRenderer(text.ObjectRenderer):
+class EPROCESS_TextObjectRenderer(text.TextObjectRenderer):
     renders_type = "_EPROCESS"
-    renderers = ["TextRenderer"]
+    renderers = ["TextRenderer", "TestRenderer"]
 
     def __init__(self, *args, **options):
         """We make a sub table for rendering the _EPROCESS."""
@@ -74,9 +79,10 @@ class EPROCESS_TextObjectRenderer(text.ObjectRenderer):
         super(EPROCESS_TextObjectRenderer, self).__init__(*args, **options)
         self.table = text.TextTable(
             columns=[
-                (self.name, "eprocess", "[addrpad]"),
-                ("Name", "name", "20s"),
-                ("PID", "pid", "5s")],
+                dict(name=self.name, cname="eprocess",
+                     formatstring="[addrpad]"),
+                dict(name="Name", cname="name", width=20),
+                dict(name="PID", cname="pid", width=5, align="r")],
             renderer=self.renderer,
             session=self.session)
 
@@ -85,7 +91,7 @@ class EPROCESS_TextObjectRenderer(text.ObjectRenderer):
             return self.table.render_header()
         else:
             result = text.Cell.FromString(
-                self.formatter.format_field(self.name, "^32s"))
+                self.formatter.format_field(self.name, "^40s"))
             result.append("-" * result.width)
 
             return result
@@ -113,9 +119,9 @@ class EPROCESS_WideTextObjectRenderer(EPROCESS_TextObjectRenderer):
                                   target.name, target.pid, target))
 
 
-class BoolRenderer(text.ObjectRenderer):
+class BoolRenderer(text.TextObjectRenderer):
     renders_type = "bool"
-    renderers = ["TextRenderer", "WideTextRenderer"]
+    renderers = ["TextRenderer", "WideTextRenderer", "TestRenderer"]
 
     def render_row(self, target, **options):
         color = "GREEN" if target else "RED"
@@ -147,8 +153,7 @@ class NoneRendererText(renderer.ObjectRenderer):
     renderers = ["TextRenderer"]
 
     def render_header(self, **options):
-        return text.Cell.FromString("-")
+        return text.Cell.FromString("-", **options)
 
-    def render_row(self, target, **_):
-        return text.Cell.FromString("-")
-
+    def render_row(self, _, **options):
+        return text.Cell.FromString("-", **options)

@@ -59,13 +59,13 @@ class WinPsList(common.WinProcessFilter):
 
         renderer.table_header([
             dict(type="_EPROCESS", cname="_EPROCESS"),
-            ("PPID", "ppid", ">6"),
-            ("Thds", "thread_count", ">6"),
-            ("Hnds", "handle_count", ">8"),
-            ("Sess", "session_id", ">6"),
-            ("Wow64", "wow64", ">6"),
-            ("Start", "process_create_time", "24"),
-            ("Exit", "process_exit_time", "24")])
+            dict(name="PPID", cname="ppid", width=6, align="r"),
+            dict(name="Thds", cname="thread_count", width=6, align="r"),
+            dict(name="Hnds", cname="handle_count", width=8, align="r"),
+            dict(name="Sess", cname="session_id", width=6, align="r"),
+            dict(name="Wow64", cname="wow64", width=6, align="r"),
+            dict(name="Start", cname="process_create_time", width=24),
+            dict(name="Exit", cname="process_exit_time", width=24)])
 
         for task in self.filter_processes():
             renderer.table_row(task,

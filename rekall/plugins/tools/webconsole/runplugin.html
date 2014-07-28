@@ -98,20 +98,27 @@
       <div class="panel panel-default">
         <div class="panel-body">
           <div ng-repeat="element in node.rendered.plugin_output.elements">
+            <div ng-if="element.type == 'error'">
+               <pre bindonce class="alert alert-danger" role="alert"
+                    bo-text="element.message">
+               </pre>
+            </div>
 
             <div ng-if="element.type == 'table'">
               <table bindonce class="table table-condensed">
                 <thead>
                   <tr>
-                    <th fast-repeat="column in element.header.columns" style="font-size: 90%">
-                      <span bo-text="column[0]"></span>
+                    <th fast-repeat="column in element.header"
+                        style="font-size: 90%">
+                      <span bo-text="column.name"></span>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr fast-repeat="row in element.rows">
                     <td fast-repeat="item in row" style="font-size: 90%">
-                      <span bo-text="renderItem(item, element.header.columns[$index])"></span>
+                      <span bo-text="renderItem(item, element.header[$index])">
+                      </span>
                     </td>
                   </tr>
                 </tbody>

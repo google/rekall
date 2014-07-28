@@ -213,13 +213,13 @@ class KernelASMixin(object):
             # Try to load the AS from the session if possible.
             self.kernel_address_space = self.session.kernel_address_space
 
-        if self.kernel_address_space is None:
+        if self.kernel_address_space == None:
             # Try to guess the AS
             self.session.plugins.load_as().GetVirtualAddressSpace()
 
             self.kernel_address_space = self.session.kernel_address_space
 
-        if self.kernel_address_space is None:
+        if self.kernel_address_space == None:
             raise PluginError("kernel_address_space not specified.")
 
 
@@ -246,12 +246,12 @@ class PhysicalASMixin(object):
 
         self.physical_address_space = self.session.physical_address_space
 
-        if self.physical_address_space is None:
+        if not self.physical_address_space:
             # Try to guess the AS
             self.session.plugins.load_as().GetPhysicalAddressSpace()
             self.physical_address_space = self.session.physical_address_space
 
-        if self.physical_address_space is None:
+        if not self.physical_address_space:
             raise PluginError("Physical address space is not set. "
                               "(Try plugins.load_as)")
 

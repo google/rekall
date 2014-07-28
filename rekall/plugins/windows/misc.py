@@ -253,7 +253,7 @@ class ImageInfo(common.WindowsCommandPlugin):
                                ("Value", "value", "")])
 
         renderer.table_row(
-            "Kernel DTB", "%#x" % self.session.kernel_address_space.dtb)
+            "Kernel DTB", "%#x" % self.kernel_address_space.dtb)
 
         for desc, name, type in (
             ("NT Build", "NtBuildLab", "String"),
@@ -380,7 +380,7 @@ class Pools(common.WindowsCommandPlugin):
             ("Size", "total_bytes", ">10"),
             ("Start", "start", "[addrpad]"),
             ("End", "end", "[addrpad]"),
-            ("Comment", "comment", "")])
+            ("Comment", "comment", "s")])
 
         for desc in sorted(descriptors):
             renderer.table_row(
@@ -389,7 +389,7 @@ class Pools(common.WindowsCommandPlugin):
                 desc.m("TotalBytes") or desc.TotalPages * 0x1000,
                 desc.PoolStart,
                 desc.PoolEnd,
-                getattr(desc, "Comment", None))
+                getattr(desc, "Comment", ""))
 
 
 class PoolTracker(common.WindowsCommandPlugin):

@@ -165,15 +165,16 @@ class VADTree(VADInfo):
             renderer.section()
             renderer.format(u"Pid: {0:6}\n", task.UniqueProcessId)
 
-            renderer.table_header([("indent", "indent", ""),
-                                   ("Start", "Start", "[addrpad]"),
-                                   ("-", "-", ""),
-                                   ("End", "End", "[addrpad]")
-                                   ], suppress_headers=True)
+            renderer.table_header([
+                dict(name="", type="TreeNode", width=1),
+                ("Start", "start", "[addrpad]"),
+                ("-", "-", ""),
+                ("End", "End", "[addrpad]")
+                ], suppress_headers=True)
 
             for vad in task.RealVadRoot.traverse():
                 level = vad.obj_context.get('depth', 0)
-                renderer.table_row(u" " * level, vad.Start, "->", vad.End)
+                renderer.table_row("", vad.Start, "->", vad.End, depth=level)
 
     def render_dot(self, outfd):
         for task in self.filter_processes():

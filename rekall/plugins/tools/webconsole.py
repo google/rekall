@@ -24,14 +24,15 @@ __author__ = "Mikhail Bushkov <mbushkov@google.com>"
 
 import argparse
 import os
-import StringIO
 import sys
+import traceback
 import webbrowser
 
-from rekall.ui import json_renderer
 from rekall import config
 from rekall import plugin
 from rekall import testlib
+
+from rekall.plugins.renderers import data_export
 
 from flask import Blueprint
 from flask import jsonify
@@ -46,6 +47,37 @@ try:
     STATIC_PATH = os.path.join(sys._MEIPASS, "webconsole") # pylint: disable=protected-access
 except AttributeError:
     STATIC_PATH = os.path.join(os.path.dirname(__file__), "webconsole")
+
+
+
+class WebConsoleRenderer(data_export.DataExportRenderer):
+    # This renderer is private to the web console.
+    name = None
+
+    def __init__(self, message_queue, *args, **kwargs):
+        self.message_queue = message_queue
+        super(WebConsoleRenderer, self).__init__(*args, **kwargs)
+
+    def write_data_stream(self):
+        if self.data:
+            self.message_queue.extend(self.data)
+
+
+class WebConsoleObjectRenderer(data_export.NativeDataExportObjectRenderer):
+    renders_type = "object"
+    renderers = ["WebConsoleRenderer"]
+
+    def _GetDelegateObjectRenderer(self, item):
+        return self.FromEncoded(item, "DataExportRenderer")(
+            renderer=self.renderer)
+
+    def EncodeToJsonSafe(self, item, **options):
+        return self._GetDelegateObjectRenderer(item).EncodeToJsonSafe(
+            item, **options)
+
+    def DecodeFromJsonSafe(self, value, options):
+        return self._GetDelegateObjectRenderer(value).DecodeFromJsonSafe(
+            value, options)
 
 
 class RekallPythonCall(manuskript_plugins.PythonCall):
@@ -177,43 +209,53 @@ class RekallWebConsole(manuskript_plugin.Plugin):
             rekall_session = app.config["rekall_session"]
             source = request.get_json()["source"]
 
-            stdout = StringIO.StringIO()
-            stderr = StringIO.StringIO()
-            prev_stdout = sys.stdout
-            prev_stderr = sys.stderr
-            sys.stdout = stdout
-            sys.stderr = stderr
+            message_queue = []
 
-            try:
-                plugin_cls = plugin.Command.ImplementationByClass(
-                    source["plugin"]["name"])
+            data_renderer = WebConsoleRenderer(
+                message_queue, session=rekall_session)
 
-                cmdline_args = []
-                for arg_key, arg_value in source["arguments"].iteritems():
-                    if arg_value == "":
-                        continue
-                    cmdline_args.extend(["--" + arg_key, arg_value])
+            with data_renderer.start():
+                try:
+                    args = _parse_args(source["arguments"], source["plugin"])
 
-                parser = argparse.ArgumentParser()
-                plugin_cls.args(parser)
-                kwargs = vars(parser.parse_args(cmdline_args))
+                    rekall_session.RunPlugin(
+                        source["plugin"]["name"], renderer=data_renderer,
+                        **args)
+                except Exception:
+                    data_renderer.report_error(traceback.format_exc())
 
-                rekall_session.RunPlugin(source["plugin"]["name"],
-                                         **kwargs)
-            finally:
-                sys.stdout = prev_stdout
-                sys.stderr = prev_stderr
-
-            json_output = stdout.getvalue()
-            stdout_lines = (stdout.getvalue() and
-                            stdout.getvalue().split("\n") or [])
-            stderr_lines = (stderr.getvalue() and
-                            stderr.getvalue().split("\n") or [])
-
-            response = jsonify(data=dict(json_output=json_output,
-                                         stdout=stdout_lines,
-                                         stderr=stderr_lines))
+            response = jsonify(dict(json_output=message_queue))
             return response
+
+
+
+def _parse_args(args, plugin_metadata):
+    """Parses the args returned by the form.
+
+    The WebConsole form returns everything as strings, however Rekall's plugins
+    require some parameters as integers etc.
+
+    This function converts the strings returned by the browser into the required
+    types.
+    """
+    result = {}
+    for k, v in args.items():
+        if v == "":
+            continue
+
+        for arg in plugin_metadata["arguments"]:
+            if arg["name"] == k:
+                k = k.replace("-", "_")
+
+                if arg["type"] == "int":
+                    result[k] = int(v)
+                else:
+                    result[k] = v
+
+                break
+
+
+    return result
 
 
 class WebConsole(plugin.Command):
@@ -264,7 +306,7 @@ class WebConsole(plugin.Command):
         renderer.format("Press Ctrl-c to return to the interactive shell.")
 
         with self.session:
-          self.session.SetParameter("renderer", "JsonRenderer")
+            self.session.SetParameter("renderer", "DataExportRenderer")
 
         manuskript_server.RunServer(
             host=self.host, port=self.port, debug=self.debug,

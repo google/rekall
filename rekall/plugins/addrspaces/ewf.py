@@ -48,9 +48,13 @@ class ewffile(object):
             volumes = [volumes, ]
 
         volume_array = ctypes.c_char_p * len(volumes)
-        self.handle = libewf.libewf_open(volume_array(*volumes),
-                                         ctypes.c_int(len(volumes)),
-                                         ctypes.c_int(1))
+        try:
+            self.handle = libewf.libewf_open(volume_array(*volumes),
+                                             ctypes.c_int(len(volumes)),
+                                             ctypes.c_int(1))
+        except Exception as e:
+            raise IOError(e)
+
         if self.handle == 0:
             raise IOError("Unable to open ewf file")
 

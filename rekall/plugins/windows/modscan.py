@@ -171,7 +171,7 @@ class ThrdScan(ModScan):
                 renderer.table_row(thread.obj_offset,
                                    thread.Cid.UniqueProcess,
                                    thread.Cid.UniqueThread,
-                                   thread.Win32StartAddress,
+                                   thread.Win32StartAddress.v(),
                                    thread.CreateTime,
                                    thread.ExitTime,
                                    task.ImageFileName,

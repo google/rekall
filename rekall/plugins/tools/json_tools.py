@@ -43,7 +43,7 @@ class JSONParser(plugin.Command):
 
     The output of any plugin can be stored to a JSON file using:
 
-    rekall -f img.dd --renderer JsonRenderer plugin_name --output test.json
+    rekall -f img.dd --renderer json plugin_name --output test.json
 
     Then it can be rendered again using:
 
@@ -94,7 +94,7 @@ class JSONParser(plugin.Command):
             renderer.format(*args)
 
         elif command == "t":
-            renderer.table_header(**statement[1])
+            renderer.table_header(columns=statement[1])
 
         elif command == "r":
             row = [self.json_renderer.decoder.Decode(x, options)
@@ -133,7 +133,7 @@ class TestJSONParser(testlib.SimpleTestCase):
         # We want to actually run the plugin first with JsonRenderer, then run
         # json_render on its json output - That will be the baseline.
         config_options["commandline"] = (
-            "--renderer JsonRenderer --output %(tempdir)s_output.json " +
+            "--renderer json --output %(tempdir)s_output.json " +
             config_options["commandline"])
 
         baseline = super(TestJSONParser, self).BuildBaselineData(config_options)

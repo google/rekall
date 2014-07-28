@@ -167,17 +167,30 @@ class NoneObjectRenderer(json_renderer.StateBasedObjectRenderer):
         return dict(reason=item.FormatReason())
 
     def DecodeFromJsonSafe(self, state, options):
+        state = super(NoneObjectRenderer, self).DecodeFromJsonSafe(
+            state, options)
+
         return obj.NoneObject(state.get("reason"))
 
 
-class PointerObjectRenderer(json_renderer.StateBasedObjectRenderer):
+class UnixTimestampJsonObjectRenderer(json_renderer.StateBasedObjectRenderer):
+    renders_type = "UnixTimeStamp"
+
+    def GetState(self, item, **_):
+        return dict(epoch=item.v())
+
+    def DecodeFromJsonSafe(self, state, options):
+        return self.session.profile.UnixTimeStamp(value=state.get("epoch", 0))
+
+
+class PointerObjectRenderer(json_renderer.BaseObjectRenderer):
     """Encode a Pointer."""
     renders_type = "Pointer"
 
     def GetState(self, item, **options):
         state = super(PointerObjectRenderer, self).GetState(item, **options)
-        state["target"] = self.target
-        state["target_args"] = self.target_args
+        state["target"] = item.target
+        state["target_args"] = item.target_args
 
         return state
 
@@ -187,6 +200,6 @@ class ArrayObjectRenderer(PointerObjectRenderer):
 
     def GetState(self, item, **options):
         state = super(ArrayObjectRenderer, self).GetState(item, **options)
-        state["count"] = self.count
+        state["count"] = item.count
 
         return state

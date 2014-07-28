@@ -91,7 +91,7 @@ class Formatter(string.Formatter):
         if self.session.profile.metadata("arch") == "I386":
             self.address_size = 10
 
-    def parse_extended_format(self, value, formatstring="", header=False,
+    def parse_extended_format(self, value, formatstring=None, header=False,
                               **options):
         """Parse the format string into the format specification.
 
@@ -111,19 +111,22 @@ class Formatter(string.Formatter):
         Returns:
           A Cell instance.
         """
+        _ = options
         extended_format = None
 
         # This means unlimited and uncontrolled width.
-        if formatstring == "":
+        if not formatstring:
             extended_format = "s"
 
-        if formatstring == "[addrpad]":
+        elif formatstring == "[addrpad]":
             if header:
                 extended_format = "^%ss" % self.address_size
             else:
                 extended_format = "#0%sx" % self.address_size
 
             if value == None:
+                import pdb; pdb.set_trace()
+
                 extended_format = "<%ss" % self.address_size
 
         elif formatstring == "[addr]":
@@ -132,17 +135,18 @@ class Formatter(string.Formatter):
             else:
                 extended_format = ">#%sx" % self.address_size
 
-        # Look for the wrap specifier.
-        m = re.match(r"\[wrap:([^\]]+)\]", formatstring)
-        if m:
-            width = int(m.group(1))
-            return Cell.wrap(utils.SmartUnicode(value), width)
+        else:
+            # Look for the wrap specifier.
+            m = re.match(r"\[wrap:([^\]]+)\]", formatstring)
+            if m:
+                width = int(m.group(1))
+                return Cell.wrap(utils.SmartUnicode(value), width)
 
         if extended_format is not None:
             return Cell.FromString(
                 self.format_field(value, extended_format))
 
-    def format_cell(self, value, formatstring="", header=False, **options):
+    def format_cell(self, value, formatstring="s", header=False, **options):
         """Format the value into a Cell instance.
 
         This also support extended formatting directives.
@@ -165,7 +169,7 @@ class Formatter(string.Formatter):
                 formatstring = "^" + formatstring
 
         return Cell.FromString(
-            self.format_field(value, formatstring=formatstring))
+            self.format_field(value, formatstring=formatstring), **options)
 
     def format_field(self, value, formatstring="", header=False, **_):
         """Format the value using the format_spec.
@@ -218,11 +222,17 @@ class Formatter(string.Formatter):
 
     def format_type_x(self, value, fields):
         _ = fields
-        return int(value)
+        try:
+            return int(value)
+        except ValueError:
+            return ""
 
     def format_type_X(self, value, fields):
         _ = fields
-        return int(value)
+        try:
+            return int(value)
+        except ValueError:
+            return ""
 
     def format_type_r(self, value, fields):
         _ = fields
@@ -430,17 +440,17 @@ class Colorizer(object):
                 self.tparm(["sgr0"]))
 
 
-class ObjectRenderer(renderer.ObjectRenderer):
-    """Baseclass for all TestRenderer object renderers."""
+class TextObjectRenderer(renderer.ObjectRenderer):
+    """Baseclass for all TextRenderer object renderers."""
 
     # Fall back renderer for all objects.
     renders_type = "object"
-    renderers = ["TextRenderer", "WideTextRenderer"]
+    renderers = ["TextRenderer", "WideTextRenderer", "TestRenderer"]
 
     __metaclass__ = registry.MetaclassRegistry
 
     def __init__(self, *args, **kwargs):
-        super(ObjectRenderer, self).__init__(*args, **kwargs)
+        super(TextObjectRenderer, self).__init__(*args, **kwargs)
         self.formatter = Formatter(session=self.session)
 
     def render_header(self, name=None, **options):
@@ -457,11 +467,9 @@ class ObjectRenderer(renderer.ObjectRenderer):
         Return:
           A Cell instance containing the formatted Column header.
         """
-        formatstring = options.get("formatstring", "")
-        header_cell = self.formatter.format_cell(
-            name, formatstring, header=True)
+        header_cell = self.formatter.format_cell(name, header=True, **options)
 
-        self.header_width = max([len(line) for line in header_cell])
+        self.header_width = header_cell.width
 
         # Append a dashed line as a table header separator.
         header_cell.append("-" * self.header_width)
@@ -486,7 +494,7 @@ class ObjectRenderer(renderer.ObjectRenderer):
         return self.formatter.format_cell(target, **options)
 
 
-class CellRenderer(ObjectRenderer):
+class CellRenderer(TextObjectRenderer):
     """This renders a Cell object into a Cell object.
 
     i.e. it is just a passthrough object renderer for Cell objects. This is
@@ -496,6 +504,18 @@ class CellRenderer(ObjectRenderer):
 
     def render_row(self, target, **_):
         return Cell.Strip(target)
+
+
+class NoneObjectTextRenderer(TextObjectRenderer):
+    """NoneObjects will be rendered with a single dash '-'."""
+    renders_type = "NoneObject"
+
+    def render_row(self, target, **_):
+        return Cell.FromString("-")
+
+
+class NoneTextRenderer(NoneObjectTextRenderer):
+    renders_type = "NoneType"
 
 
 class Cell(object):
@@ -516,14 +536,21 @@ class Cell(object):
     def __init__(self):
         self.lines = []
 
-    def Justify(self, width=None):
+    def Justify(self, width=None, align="l"):
         """Fix up the width of all lines so they are the same."""
         if width is None:
             width = self.width
 
         for i in range(len(self.lines)):
             line = self.lines[i]
-            self.lines[i] = line + " " * (width - len(line))
+            if align == "l":
+                self.lines[i] = line + " " * (width - len(line))
+            elif align == "r":
+                self.lines[i] = " " * (width - len(line)) + line
+            elif align == "c":
+                spacing = " " * (width - len(line))/2
+                line = spacing + line + spacing
+                self.lines[i] = line + " " * (width - len(line))
 
         return self
 
@@ -561,12 +588,12 @@ class Cell(object):
         return result
 
     @classmethod
-    def FromString(cls, value):
+    def FromString(cls, value, width=0, align="l", **_):
         result = cls()
         for line in value.splitlines():
             result.lines.append(line)
 
-        return result
+        return result.Justify(width=width, align=align)
 
     @classmethod
     def Join(cls, *cells, **kwargs):
@@ -621,6 +648,8 @@ class TextColumn(object):
         self.table = table
         self.wrap = None
         self.renderer = renderer
+        self.header_width = 0
+
         # Arbitrary column options to be passed to ObjectRenderer() instances.
         # This allows a plugin to influence the output somewhat in different
         # output contexts.
@@ -645,7 +674,7 @@ class TextColumn(object):
 
         else:
             # Otherwise we just use the default.
-            object_renderer = ObjectRenderer(self.renderer, self.session)
+            object_renderer = TextObjectRenderer(self.renderer, self.session)
 
             header = object_renderer.render_header(**self.options)
 
@@ -660,45 +689,54 @@ class TextColumn(object):
         merged_opts = self.options.copy()
         merged_opts.update(options)
 
-        if self.object_renderer is None:
-            self.object_renderer = self.table.renderer.get_object_renderer(
+        if self.object_renderer is not None:
+            object_renderer = self.object_renderer
+        else:
+            object_renderer = self.table.renderer.get_object_renderer(
                 target, type=merged_opts.get("type"), **options)
 
-        result = self.object_renderer.render_row(target, **merged_opts)
+        result = object_renderer.render_row(target, **merged_opts)
         if result.width < self.header_width:
             result.Justify(width=self.header_width)
         return result
 
 
-class TextTable(object):
+class TextTable(renderer.BaseTable):
     """A table is a collection of columns.
 
     This table formats all its cells using proportional text font.
     """
 
     column_class = TextColumn
+    deferred_rows = None
 
-    def __init__(self, columns=None, renderer=None, suppress_headers=False,
-                 session=None, tablesep=" ", **options):
-        self.session = session
-        self.tablesep = tablesep
-        self.renderer = renderer
-        self.options = options
+    def __init__(self, **options):
+        super(TextTable, self).__init__(**options)
+
+        # Parse the column specs into column class implementations.
         self.columns = []
 
-        for args in columns:
-            # Old style column specification are a tuple. The new way is a dict
-            # which is more expressive but more verbose.
-            if isinstance(args, (tuple, list)):
-                args = dict(name=args[0],
-                            cname=args[1],
-                            formatstring=args[2])
-
-            self.columns.append(self.column_class(
+        for column_specs in self.column_specs:
+            self.columns.append(TextColumn(
                 session=self.session, table=self, renderer=self.renderer,
-                **args))
+                **column_specs))
 
-        self.suppress_headers = suppress_headers
+        sort_order = options.get("sort")
+        if sort_order:
+            self.deferred_rows = []
+            self.sort_key_func = self._build_sort_key_function(
+                sort_order)
+
+    def _build_sort_key_function(self, sort_cnames):
+        """Builds a function that takes a row and returns keys to sort on."""
+        cnames_to_indices = {}
+        for idx, column_spec in enumerate(self.column_specs):
+            cnames_to_indices[column_spec["cname"]] = idx
+
+        sort_indices = [cnames_to_indices[x] for x in sort_cnames]
+
+        # Row is a tuple of (values, kwargs) - hence row[0][index].
+        return lambda row: [row[0][index] for index in sort_indices]
 
     def write_row(self, cells, highlight=False):
         """Writes a row of the table.
@@ -711,7 +749,7 @@ class TextTable(object):
             highlight, (None, None))
 
         # Iterate over all lines in the row and write it out.
-        for line in Cell.Join(cells, tablesep=self.tablesep):
+        for line in Cell.Join(cells, tablesep=self.options.get("tablesep")):
             self.renderer.write(
                 self.renderer.colorizer.Render(
                     line, foreground=foreground, background=background) + "\n")
@@ -720,7 +758,7 @@ class TextTable(object):
         """Returns a Cell formed by joining all the column headers."""
         # Get each column to write its own header and then we join them all up.
         return Cell.Join(*[c.render_header() for c in self.columns],
-                          tablesep=self.tablesep)
+                          tablesep=self.options.get("tablesep", " "))
 
     def get_row(self, *row, **options):
         """Format the row into a single Cell spanning all output columns.
@@ -734,12 +772,22 @@ class TextTable(object):
         """
         return Cell.Join(
             *[c.render_row(x, **options) for c, x in zip(self.columns, row)],
-             tablesep=self.tablesep)
+             tablesep=self.options.get("tablesep", " "))
 
     def render_row(self, row=None, highlight=None, **options):
         """Write the row to the output."""
-        return self.write_row(self.get_row(*row, **options),
-                              highlight=highlight)
+        if self.deferred_rows is None:
+            return self.write_row(self.get_row(*row, **options),
+                                  highlight=highlight)
+        else:
+            self.deferred_rows.append((row, options))
+
+    def flush(self):
+        if self.deferred_rows:
+            self.deferred_rows.sort(key=self.sort_key_func)
+
+            for row, options in self.deferred_rows:
+                self.write_row(self.get_row(*row, **options))
 
 
 class UnicodeWrapper(object):
@@ -775,13 +823,16 @@ class TextRenderer(renderer.BaseRenderer):
 
     tablesep = " "
     paging_limit = None
-    table_cls = TextTable
     progress_fd = None
+
+    deferred_rows = None
 
     # Render progress with a spinner.
     spinner = r"/-\|"
     last_spin = 0
     last_message_len = 0
+
+    table_class = TextTable
 
     def __init__(self, tablesep=" ", output=None, mode="a+b", fd=None,
                  **kwargs):
@@ -837,22 +888,17 @@ class TextRenderer(renderer.BaseRenderer):
         self.fd.write(data)
 
     def flush(self):
+        super(TextRenderer, self).flush()
         self.data = []
         self.ClearProgress()
         self.fd.flush()
 
     def table_header(self, *args, **options):
-        self.options = options
-        suppress_headers = options.pop("suppress_headers", False)
+        options["tablesep"] = self.tablesep
         super(TextRenderer, self).table_header(*args, **options)
 
-        self.table = self.table_cls(
-            renderer=self, session=self.session, tablesep=self.tablesep,
-            *args, **options
-            )
-
         for line in self.table.render_header():
-            if not suppress_headers:
+            if not self.table.options.get("suppress_headers"):
                 self.write(line + "\n")
 
     def table_row(self, *args, **kwargs):
@@ -864,12 +910,6 @@ class TextRenderer(renderer.BaseRenderer):
         """
         super(TextRenderer, self).table_row(*args, **kwargs)
         self.RenderProgress(message=None)
-
-        if self.deferred_rows is not None:
-            # Table rendering is being deferred for sorting.
-            self.deferred_rows.append((args, kwargs))
-        else:
-            self.table.render_row(row=args, **kwargs)
 
     def _GetColumns(self):
         if curses:
@@ -986,9 +1026,8 @@ class WideTextRenderer(TextRenderer):
             self.delegate_renderer.table_row(column_name, item, **options)
 
 
-class TreeNodeObjectRenderer(ObjectRenderer):
+class TreeNodeObjectRenderer(TextObjectRenderer):
     renders_type = "TreeNode"
-
 
     def __init__(self, renderer=None, session=None, **options):
         self.max_depth = options.pop("max_depth", 10)

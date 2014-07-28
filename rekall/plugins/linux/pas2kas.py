@@ -69,7 +69,11 @@ class LinPas2Vas(common.LinProcessFilter):
         if self.session.process_maps is None:
             self.session.process_maps = {}
 
-        self.maps = self.session.process_maps
+        # Cache the process maps in the session.
+        self.maps = self.session.GetParameter("process_maps")
+        if self.maps == None:
+            self.maps = {}
+            self.session.SetParameter("process_maps", self.maps)
 
         self.memmap = self.session.plugins.memmap(session=self.session)
         if "Kernel" not in self.maps:

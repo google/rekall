@@ -83,6 +83,7 @@
   };
 
   var errorHandler = function(data, state) {
+    state.elements.push({type: "error", message: data});
   };
 
   var tableHandler = function(data, state) {
@@ -102,8 +103,11 @@
     }
 
     var row = [];
-    for (var i = 0; i < data.length; ++i) {
-      row.push(decode(data[i], state));
+
+    for (var i = 0; i < lastElement.header.length; ++i) {
+      var column = lastElement.header[i];
+      var column_name = column.cname || column.name;
+      row.push(data[column_name]);
     }
     lastElement.rows.push(row);
   };
@@ -121,7 +125,9 @@
   var serviceImplementation = function($http) {
     this.createEmptyState = function() {
       return {
-	elements: []
+        elements: [],
+        metadata: {},
+        lexicon: {}
       };
     };
 

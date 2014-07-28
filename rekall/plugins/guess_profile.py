@@ -243,6 +243,7 @@ class ProfileHook(kb.ParameterHook):
                 "Profile %s matched with %.0f%% confidence.",
                 best_profile.name,
                 best_match * 100)
+
             return best_profile
 
     def calculate(self):
@@ -256,4 +257,3 @@ class ProfileHook(kb.ParameterHook):
         # Only do something only if we are allowed to autodetect profiles.
         if not self.session.GetParameter("no_autodetect"):
             return self.ScanProfiles()
-

@@ -153,5 +153,6 @@ class Mount(common.LinuxPlugin):
                 else:
                     additional_flag = "rw"
                 flags_string = ', '.join([additional_flag, flags_string])
+
             renderer.table_row(mountpoint.device, mountpoint.name,
                                mountpoint.fstype, flags_string)

@@ -176,7 +176,7 @@ function format(format) {
         }
         identifier = identifier || ++position
         arg = values[identifier]
-        
+
         // Yes, I'm using .replace() for side effects. If you want,
         // show me why this is bad idea... it looks like good hack.
         attributes.replace(/\.(\w+)|\[([^\]]*)\]/g, function (match, m1, m2) {
@@ -184,7 +184,7 @@ function format(format) {
             arg = arg[m1 || m2]
         })
         if (arg == null) throw error
-        
+
         // Ducktyping
         if (!arg.toExponential) {
             if (type && type != 's')

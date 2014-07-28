@@ -49,6 +49,19 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
     """
     renderers = ["JsonRenderer"]
 
+    @classmethod
+    def FromEncoded(cls, item, renderer):
+        """Get an JsonObjectRenderer class to parse the encoded item."""
+        if isinstance(item, dict):
+            if "obj_renderer" in item:
+                return cls.ImplementationByClass(item["obj_renderer"])
+
+            elif "mro" in item:
+                mro = item["mro"]
+                return cls.FromMRO(mro, renderer)
+
+        return cls.ForTarget(item, renderer)
+
     def _encode_value(self, item, **options):
         object_renderer_cls = self.ForTarget(item, self.renderer)
 
@@ -59,6 +72,12 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
     def render_row(self, item, **options):
         """The Json object renderer returns a json safe object for encoding."""
         self.EncodeToJsonSafe(item, **options)
+
+    def Summary(self, item, **options):
+        """Returns the object formatted as a string."""
+        _ = item
+        _ = options
+        return ""
 
     def EncodeToJsonSafe(self, item, **options):
         """Convert the item into a JSON safe item.
@@ -103,9 +122,12 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
                 # If the string happens to be unicode safe we dont need to
                 # encode it, but we still must mark it with a "*" to ensure the
                 # decoder replaces it with a plain string.
-                return ["*", unicode(item)]
+                return ["*", unicode(item, "utf8")]
             except UnicodeError:
+                # If we failed to encode it into utf8 we must base64 encode it.
                 b64 = unicode(item.encode("base64")).rstrip("\n")
+
+                # A leading "+" indicates base64 encoded content.
                 return ["+", self._encode_value(b64)]
 
         # Special encoding for sets.
@@ -120,6 +142,7 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
         # objects but we want to ensure we can serialize the session (albeit
         # with the loss of some of the attributes).
         logging.error("Unable to encode objects of type %s", type(item))
+
         return None
 
     def DecodeFromJsonSafe(self, value, options):
@@ -191,17 +214,20 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
                 "%s.GetState method must return a plain dict." %
                 self.__class__.__name__)
 
-        # Store both the class of the ObjectRenderer and the class name of the
-        # item.
-        state["type"] = unicode(self.__class__.__name__)
+        # Store the mro of the item.
+        state["mro"] = self.get_mro(item)
 
+        # Store an object ID for this item to ensure that the decoded can re-use
+        # objects if possible. The ID is globally unique for this object and
+        # does not change.
         try:
             object_id = item._object_id # pylint: disable=protected-access
             state["id"] = object_id
         except AttributeError:
             pass
 
-        return self._encode_value(state)
+        return super(StateBasedObjectRenderer, self).EncodeToJsonSafe(
+            state, **options)
 
 
 class BaseObjectRenderer(StateBasedObjectRenderer):
@@ -212,7 +238,6 @@ class BaseObjectRenderer(StateBasedObjectRenderer):
             value, options)
 
         profile = value.pop("profile")
-        value.pop("type")
 
         return profile.Object(**value)
 
@@ -251,7 +276,6 @@ class JSTreeNodeRenderer(StateBasedObjectRenderer):
         state = super(JSTreeNodeRenderer, self).DecodeFromJsonSafe(
             state, options)
 
-        state.pop("type")
         result = state.pop("child")
         options.update(state)
 
@@ -260,6 +284,7 @@ class JSTreeNodeRenderer(StateBasedObjectRenderer):
     def GetState(self, item, **options):
         result = options
         result["child"] = item
+        result["type_name"] = u"TreeNode"
 
         return result
 
@@ -307,22 +332,10 @@ class JsonEncoder(object):
 
         return encoded_id
 
-    def Encode(self, item, type=None, **options):
+    def Encode(self, item, **options):
         """Convert item to a json safe object."""
-        object_renderer_cls = None
-        if type:
-            object_renderer_cls = JsonObjectRenderer.ByName(
-                type, self.renderer)
-
-        if object_renderer_cls is None:
-            object_renderer_cls = JsonObjectRenderer.ForTarget(
-                item, self.renderer)
-
-        if not object_renderer_cls:
-            raise EncodingError("Unable to find ObjectRenderer class.")
-
         # Get a Json Safe item.
-        object_renderer = object_renderer_cls(
+        object_renderer = JsonObjectRenderer.ForTarget(item, self.renderer)(
             session=self.session, renderer=self.renderer)
 
         json_safe_item = object_renderer.EncodeToJsonSafe(item, **options)
@@ -395,28 +408,25 @@ class JsonDecoder(object):
 
         return item
 
-    def ObjectRendererFromMRO(self, mro):
-        """Get the best object renderer class from the MRO."""
-        # MRO is the list of object inheritance for each type. For example:
-        # FileAddressSpace,FDAddressSpace,BaseAddressSpace.
-        for class_name in mro.split(","):
-            object_renderer_cls = JsonObjectRenderer.ByName(
-                class_name, self.renderer)
-
-            if object_renderer_cls:
-                return object_renderer_cls
-
     def Decode(self, item, options=None):
         if options is None:
             options = {}
 
         # Find the correct ObjectRenderer that we can use to decode this item.
-        if isinstance(item, dict) and "type" in item:
-            # object_renderer_cls = self.ObjectRendererFromMRO(item["type"])
-            object_renderer_cls = JsonObjectRenderer.classes[item["type"]]
-        else:
+        object_renderer_cls = None
+        if isinstance(item, dict):
+            if "obj_renderer" in item:
+                object_renderer_cls = JsonObjectRenderer.ImplementationByClass(
+                    item["obj_renderer"])
+
+            elif "mro" in item:
+                mro = item.pop("mro")
+                object_renderer_cls = JsonObjectRenderer.FromMRO(
+                    mro, self.renderer)
+
+        if object_renderer_cls is None:
             object_renderer_cls = JsonObjectRenderer.ForTarget(
-                item, "JsonRenderer")
+                item, self.renderer)
 
         object_renderer = object_renderer_cls(
             session=self.session,
@@ -429,7 +439,11 @@ class JsonDecoder(object):
         try:
             result = self.renderer.cache.Get(key)
         except KeyError:
-            result = object_renderer.DecodeFromJsonSafe(item, options)
+            try:
+                result = object_renderer.DecodeFromJsonSafe(item, options)
+            except Exception:
+                result = None
+
             self.renderer.cache.Put(key, result)
 
         return result
@@ -536,23 +550,14 @@ class JsonRenderer(renderer_module.BaseRenderer):
     def report_error(self, message):
         self.SendMessage(["e", message])
 
-    def table_header(self, columns=None, **kwargs):
-        self.columns = []
+    def table_header(self, columns=None, **options):
+        super(JsonRenderer, self).table_header(columns=columns, **options)
 
-        # TODO: Remove this when all calls are done with kwargs.
-        kwargs["columns"] = columns
-        self.object_renderers = [None] * len(columns)
-        for i, column in enumerate(columns):
-            # Convert the column specification to the standard dict
-            # notation. TODO: Deprecate this form of table headers.
-            if isinstance(column, (tuple, list)):
-                column = dict(name=column[0], cname=column[1],
-                              formatstring=column[2])
+        self.object_renderers = [None] * len(self.table.column_specs)
+        for i, column_spec in enumerate(self.table.column_specs):
+            self.object_renderers[i] = column_spec.get("type")
 
-            self.object_renderers[i] = column.get("type")
-            self.columns.append(column)
-
-        self.SendMessage(["t", kwargs])
+        self.SendMessage(["t", self.table.column_specs, options])
 
     def table_row(self, *args, **kwargs):
         result = []
@@ -581,4 +586,10 @@ class JsonRenderer(renderer_module.BaseRenderer):
 
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
         if super(JsonRenderer, self).RenderProgress(**kwargs):
-            self.SendMessage(["p", message, args, kwargs])
+            for i in range(len(args)):
+                if callable(args[i]):
+                    args[i] = args[i]()
+
+            self.SendMessage(["p", message,
+                              self.encoder.Encode(args),
+                              self.encoder.Encode(kwargs)])

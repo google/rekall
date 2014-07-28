@@ -129,16 +129,20 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
                                mode='wb') as fd:
                 maps = self.dump_process(task, fd)
 
-            temp_renderer = text.TextRenderer(session=self.session,
-                                              output=filename + ".idx",
-                                              mode="wb")
-            with temp_renderer.start():
-                temp_renderer.table_header([
-                    ("File Address", "file_addr", "[addrpad]"),
-                    ("Length", "length", "[addrpad]"),
-                    ("Virtual Addr", "virtual", "[addrpad]")])
+            # Make an index file.
+            with renderer.open(directory=self.dump_dir,
+                               filename=filename + ".idx",
+                               mode='wb') as fd:
+                temp_renderer = text.TextRenderer(session=self.session,
+                                                  fd=fd, mode="wb")
 
-                self.write_index(temp_renderer, maps)
+                with temp_renderer.start():
+                    temp_renderer.table_header([
+                        ("File Address", "file_addr", "[addrpad]"),
+                        ("Length", "length", "[addrpad]"),
+                        ("Virtual Addr", "virtual", "[addrpad]")])
+
+                    self.write_index(temp_renderer, maps)
 
 
 class TestLinMemDump(testlib.HashChecker):
