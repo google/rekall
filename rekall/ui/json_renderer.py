@@ -553,9 +553,8 @@ class JsonRenderer(renderer_module.BaseRenderer):
     def table_header(self, columns=None, **options):
         super(JsonRenderer, self).table_header(columns=columns, **options)
 
-        self.object_renderers = [None] * len(self.table.column_specs)
-        for i, column_spec in enumerate(self.table.column_specs):
-            self.object_renderers[i] = column_spec.get("type")
+        self.object_renderers = [
+            column_spec.get("type") for column_spec in self.table.column_specs]
 
         self.SendMessage(["t", self.table.column_specs, options])
 

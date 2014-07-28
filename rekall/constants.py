@@ -18,7 +18,8 @@
 #
 import time
 
-VERSION = "1.0rc11"
+VERSION = "1.0"
+CODENAME = "Albis"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
 PROFILE_REPOSITORIES = [
@@ -37,7 +38,7 @@ PROFILE_REPOSITORY_VERSION = "v1.0"
 
 BANNER = """
 ----------------------------------------------------------------------------
-The Rekall Memory Forensic framework %s.
+The Rekall Memory Forensic framework %s (%s).
 
 "We can remember it for you wholesale!"
 
@@ -46,7 +47,7 @@ the terms of the GNU General Public License.
 
 See http://www.rekall-forensic.com/docs/Manual/tutorial.html to get started.
 ----------------------------------------------------------------------------
-""" % VERSION
+""" % (VERSION, CODENAME)
 
 QUOTES = [
     "Baby, you make me wish I had three hands.",
