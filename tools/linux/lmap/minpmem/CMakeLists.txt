@@ -23,28 +23,11 @@ configure_file(
 )
 file(MAKE_DIRECTORY "${KERNEL_HEADERS}")
 # Create copy of kernel headers in build dir
+# This will modify the Makefile to never build with FTRACE
 execute_process(
   WORKING_DIRECTORY ${KERNEL_HEADERS}
   COMMAND bash get_kernel_headers.sh
 )
-# Now disable any FTRACE options in the config
-set(FTRACE_OPTIONS
-  "CONFIG_HAVE_DYNAMIC_FTRACE"
-  "CONFIG_HAVE_FTRACE_MCOUNT_RECORD"
-  "CONFIG_FTRACE"
-  "CONFIG_FTRACE_SYSCALLS"
-  "CONFIG_DYNAMIC_FTRACE"
-  "CONFIG_FTRACE_MCOUNT_RECORD"
-)
-file(READ ${KERNEL_HEADERS}/.config KERNEL_CONFIG)
-foreach(FTRACE_OPTION ${FTRACE_OPTIONS})
-  string(
-    REPLACE "${FTRACE_OPTION}=y" "${FTRACE_OPTION}=n"
-    KERNEL_CONFIG
-    ${KERNEL_CONFIG})
-endforeach(FTRACE_OPTION)
-file(WRITE ${KERNEL_HEADERS}/.config ${KERNEL_CONFIG})
-
 # Drop Kbuild file in build directory
 configure_file(Kbuild.in ${MODULE_OUTPUT_DIR}/Kbuild)
 # Copy module sources to build directory
