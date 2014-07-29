@@ -44,9 +44,9 @@ setup(
     name="rekall",
     version=constants.VERSION,
     description=rekall_description,
-    long_description=open("README.md").read(),
+    long_description=open("README.rst").read(),
     license="GPL",
-    url="https://code.google.com/p/rekall/",
+    url="https://www.rekall-forensic.com/",
     author="The Rekall team",
     author_email="rekall-discuss@googlegroups.com",
     classifiers=[

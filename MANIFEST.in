@@ -1,6 +1,9 @@
-include AUTHORS.txt CREDITS.txt LEGAL.txt LICENSE.txt README.txt
+include AUTHORS.txt CREDITS.txt LEGAL.txt LICENSE.txt README.rst README.md
 exclude .gitignore
 exclude *.pyc
+exclude .git
+exclude build
+
 #recursive-include contrib *
 recursive-include docs *
 recursive-include resources *
