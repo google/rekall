@@ -1,0 +1,127 @@
+---
+title: LMAP - Linux Physical Memory acquisition tool
+downloads:
+  lmap-0.4: The LMAP advanced Linux acquisition tool (Precompiled Binary).
+---
+
+Author: Johannes Stuettgen (johannes.stuettgen@gmail.com)
+
+Summary:
+--------
+This is a collection of tools to load a memory acquisition driver without having
+to build anything on the target system.
+
+Available Tools:
+----------------
+1. lmap:
+  This is the end-user tool. It works by injecting a minimal acquisition driver
+  into a compatible kernel module on the running system and then loading that.
+  It is statically linked and should work on any Linux x86-64 system from kernel
+  2.6 to 3.X [1].
+2. elfrelink:
+  The functionality of lmap requires relinking and modification of ELF64 files,
+  as well as their relocation and symbol tables. Elfrelink is the library that
+  provides this functionality.
+3. kohook:
+  The kohook program allows use of the elfrelink library from the command line.
+  It is meant to allow users to script the relinking functionality from the
+  shell or even a make-file. Check the build target "hooked_pmem" for an
+  example.
+4. minpmem:
+  The minpmem kernel module is a stripped down version of the Linux pmem driver,
+  utilizing pte remapping to access physical memory [2].
+
+Usage:
+------
+See the README file in 'release/' for details (generated during build).
+
+Compatibility:
+--------------
+The entire tool suite is only compatible with x86-64 processors and binaries.
+32 Bit x86 and ARM support is still in development.
+
+Building from Source:
+---------------------
+The 'build.sh' file automates the build process for your convenience. It
+creates a CMake build environment in 'build/' and builds all relevant drivers
+and libraries. It then generates the lmap binary and places it in the 'release/'
+folder together with the generated documentation.
+
+You can also manually create and modify the build environment with CMake.
+1. Change to the 'build/' directory and verify it is empty.
+  (You can always 'rm -r *' in 'build/' to clean it up.)
+2 Use CMake to generate a makefile in the 'build' directory by calling
+  'cmake ..'.
+3. Call 'make' and it will build all the binaries and place them into their
+  respective subfolders in 'build/'.
+
+There are no external dependencies except the kernel headers, gcc, cmake, make
+and libc. On Ubuntu systems you need to install the packages 'build-essential',
+'cmake' and 'linux-headers-`uname -r`'.
+
+IMPORTANT:
+----------
+Never build LMAP with ftrace enabled in your build environment. This will
+introduce a symbol dependency on certain ftrace symbols and the resulting
+module will not be loadable on non-ftrace kernels.
+
+The CMake scripts create a copy of your kernel headers and config in
+'build/kernel_headers'. Any FTRACE options enabled in your original kernel
+config will be disabled there and the pmem module will be compiled with this
+config to guarantee an FTRACE free build.
+
+You can check the symbol dependencies of your built pmem driver using the
+`readelf` program:
+
+--------------------------------------------------------------------------
+~/rekall/tools/linux/lmap$ readelf -s build/modules/pmem_pte.ko
+
+Symbol table '.symtab' contains 29 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    7
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    8
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT   11
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    9
+     8: 0000000000001020   184 OBJECT  GLOBAL DEFAULT   11 self
+     9: 0000000000000008     8 OBJECT  GLOBAL DEFAULT   11 pte_mmap
+    10: 0000000000000000    45 FUNC    GLOBAL DEFAULT    1 pmem_llseek
+    11: 0000000000000870   160 FUNC    GLOBAL DEFAULT    1 pte_virt_find_phys
+    12: 0000000000000b00    73 FUNC    GLOBAL DEFAULT    1 pte_mmap_init
+    13: 0000000000000c80     7 FUNC    GLOBAL DEFAULT    1 pte_disable_interrupts
+    14: 0000000000000c90     7 FUNC    GLOBAL DEFAULT    1 pte_enable_interrupts
+    15: 0000000000000c60    15 FUNC    GLOBAL DEFAULT    1 pte_get_cr4
+    16: 0000000000000000    43 FUNC    GLOBAL DEFAULT    5 pmem_cleanup
+    17: 0000000000000000     4 OBJECT  GLOBAL DEFAULT   11 major
+    18: 0000000000000030   198 FUNC    GLOBAL DEFAULT    1 pmem_read
+    19: 0000000000000e40    11 FUNC    GLOBAL DEFAULT    1 pte_mmap_linux_delete
+    20: 0000000000000b50    67 FUNC    GLOBAL DEFAULT    1 pte_mmap_cleanup
+    21: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND _copy_to_user
+    22: 0000000000000c10    66 FUNC    GLOBAL DEFAULT    1 pte_busy_wait
+    23: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND __register_chrdev
+    24: 0000000000000000    70 FUNC    GLOBAL DEFAULT    3 pmem_init
+    25: 0000000000000c70    12 FUNC    GLOBAL DEFAULT    1 pte_set_cr4
+    26: 0000000000000cc0   384 FUNC    GLOBAL DEFAULT    1 pte_mmap_linux_new
+    27: 0000000000000000   216 OBJECT  GLOBAL DEFAULT    9 pmem_fops
+    28: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND __unregister_chrdev
+--------------------------------------------------------------------------
+
+You should only see these limited external dependecies `_copy_to_user`,
+`__register_chrdev` and `__unregister_chrdev`. You should definitely not see the
+`__fentry__` above since that if an ftrace dependency. Generally the fewer
+dependencies here the more reliable the parasite will be.
+
+
+References:
+-----------
+[1] Stüttgen, Johannes, and Michael Cohen.
+  "Robust Linux Memory Acquisition with Minimal Target Impact"
+  Digital Investigation 11 (2014): P112-P119.
+
+[2] Stüttgen, Johannes, and Michael Cohen.
+  "Anti-forensic resilient memory acquisition"
+  Digital Investigation 10 (2013): P105-P115.
+

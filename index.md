@@ -33,7 +33,8 @@ operating systems (see the tools directory).
 
 # News
 
-* Check out the new release candidate [v1.0rc11](downloads.html).
+* Check out the new Rekall release [v1.0](downloads.html), code named
+  [Albis](http://en.wikipedia.org/wiki/Albis).
 
 ## Browse the project on github.
 

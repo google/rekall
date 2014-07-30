@@ -1,5 +1,6 @@
 ---
 title: WinPMEM - A Windows Memory Acquisition Tool.
+release: v1.0rc11
 downloads:
    winpmem_1.6.0.exe: Signed Official WinPmem Acquisition tool
    winpmem_write_1.6.0.exe: Test WinPmem Acquisition tool with write support.

@@ -382,8 +382,13 @@ def _MakeDownloadPageContentTable(page, release=None):
 <tbody>
 """
     for name, desc in page.downloads.items():
-        url = "https://github.com/google/rekall/releases/download/"
-        url += (page.release or release) + "/" + name
+        if name.startswith("http"):
+            url = name
+            name = os.path.basename(name)
+        else:
+            url = "https://github.com/google/rekall/releases/download/"
+            url += (page.release or release) + "/" + name
+
         result += """
 <tr>
   <td><a href='{url}'>{name}</a></td>
@@ -404,7 +409,8 @@ def downloads(page=None):
     readme_files = []
     for root, _, files in os.walk(page.root_path, topdown=True):
         for x in files:
-            if x in ["README.md", "README.adoc"]:
+            _, ext = os.path.splitext(x)
+            if ext in [".md", ".adoc"]:
                 readme_files.append(
                     utils.ParsePage(os.path.join(root, x)))
 
@@ -414,7 +420,7 @@ def downloads(page=None):
             subpage, release)
 
         subpage.tag = sha.sha(subpage.filename).hexdigest()
-        result += """
+        result += u"""
   <div class='panel panel-default'>
     <div class="panel-heading">
       <h4 class="panel-title">
@@ -442,7 +448,7 @@ def downloads(page=None):
 
 
 def redirect(page=None):
-    return """
+    return u"""
 <html><head>
 <meta http-equiv="refresh" content="0; url={page.target}" />
 </head>
