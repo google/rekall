@@ -106,54 +106,84 @@ ript>
 <div class="sect1">
 <h2 id="_summary">Summary:</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This is a collection of tools to load a memory acquisition driver without having
-to build anything on the target system.</p></div>
+<div class="paragraph"><p>LMAP is a binary linux memory acquisition tool that works on any kernel and
+distribution without having to build anything on the target system.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_available_tools">Available Tools:</h2>
+<h2 id="_how_it_works">How it works:</h2>
 <div class="sectionbody">
-<div class="olist arabic"><ol class="arabic">
-<li>
-<p>
-lmap:
-  This is the end-user tool. It works by injecting a minimal acquisition driver
-  into a compatible kernel module on the running system and then loading that.
-  It is statically linked and should work on any Linux x86-64 system from kernel
-  2.6 to 3.X [1].
-</p>
-</li>
-<li>
-<p>
-elfrelink:
-  The functionality of lmap requires relinking and modification of ELF64 files,
-  as well as their relocation and symbol tables. Elfrelink is the library that
-  provides this functionality.
-</p>
-</li>
-<li>
-<p>
-kohook:
-  The kohook program allows use of the elfrelink library from the command line.
-  It is meant to allow users to script the relinking functionality from the
-  shell or even a make-file. Check the build target "hooked_pmem" for an
-  example.
-</p>
-</li>
-<li>
-<p>
-minpmem:
-  The minpmem kernel module is a stripped down version of the Linux pmem driver,
-  utilizing pte remapping to access physical memory [2].
-</p>
-</li>
-</ol></div>
+<div class="paragraph"><p>Memory acquisition on Linux requires loading a kernel module. For stability
+reasons, this has to be compiled on the system where it will be loaded. LMAP
+avoids this requirement by bringing along a minimal memory acquisition kernel
+module that doesn&#8217;t use the kernel and thus is compatible with most kernel
+versions.</p></div>
+<div class="paragraph"><p>To ensure compatibility and stability on the target system LMAP borrows a
+compatible kernel module from the current system (it searches /lib/modules) as
+a host. LMAP then injects it&#8217;s code and data into a copy of the host in memory
+and loads the result into the kernel.</p></div>
+<div class="paragraph"><p>The integrated kernel module is kernel-independent and works on any Linux
+x86-64 system from kernel 2.6 to 3.X [2]. The usermode <em>lmap</em> binary is
+statically linked to avoid libc version dependencies. You can find further
+technical details in our paper published at DFRWS EU [1].</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_usage">Usage:</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>See the README file in <em>release/</em> for details (generated during build).</p></div>
+<div class="paragraph"><p>Copy the <em>lmap</em> binary to a Linux system where memory should be acquired.</p></div>
+<div class="paragraph"><p>LMAP can dump memory directly and create an ELF coredump file using the <em>-a</em>
+option. It can also load the pmem module with the <em>-l</em> option, then acquire
+memory by reading from the created <em>/dev/pmem</em> device file (e.g. with <em>dd</em>).</p></div>
+<div class="paragraph"><p>There are multiple other options, a complete list can be found here or by
+running <em>lmap</em> without any options:</p></div>
+<div class="paragraph"><p>modes of operation:
+  -a dumpfile  Main use case. Find a suitable host module, use it to load pmem
+               and then dump memory into an ELF core dump file.
+  -l           Find a host, use it to load the acquisition module. The pmem
+               module can be used by seeking and reading the file <em>/dev/pmem</em>.
+  -d           Find a host and inject pmem, then dump the generated module
+               to the filesystem as <em>infected_module.ko</em>.
+  -f           Scan for and list suitable hosts, don&#8217;t inject or load anything.</p></div>
+<div class="paragraph"><p>optional arguments:
+  -o outfile   The output file for <em>-d</em> (default: infected_module.ko).
+  -i inputfile Don&#8217;t inject the bundled pmem module, use this one instead.
+  -h module    Don&#8217;t search for a suitable host module, use this one instead.
+  -p path      Path to kernel modules to scan for hosts.
+  -m           Print the systems physical memory map.
+  -v           Verbose, produces detailed debug logging.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_limitations">Limitations:</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>LMAP relies on finding a valid kernel module on the target system that serves
+as a host for it&#8217;s pmem module. Not every module satisfies the requirements,
+so it might be possible that no suitable host module exists on the target. In
+that case you will have to compile a module (e.g. pmem) on the target itself,
+or on a build system with identical kernel version and config.</p></div>
+<div class="paragraph"><p>Also, some modules might be suitable hosts, but require other modules to
+function. For example the <em>pg.ko</em> and <em>pt.ko</em> modules import symbols from
+<em>paride.ko</em>. If LMAP fails to load it&#8217;s module and your <em>dmesg</em> output shows
+missing symbols, try another host by first scanning with <em>-f</em> and then selecting
+it with the <em>-h</em> option.</p></div>
+<div class="paragraph"><p>Ftrace is a kernel feature that patches all kernel and module functions with
+calls to certain tracing functions to enable debugging and performance
+monitoring. This is partially done at compile- and run-time. LMAP should always
+be built without ftrace, as it introduces symbol dependencies to ftrace and the
+generated module won&#8217;t be loadable into kernels compiled without ftrace. If the
+target system runs ftrace, LMAP is still able to load it&#8217;s module. However,
+ftrace will complain about not being able to hook into the module. This results
+in a warning in the targets kernel debug buffer:
+  <em>WARNING: CPU: &#8230; at &#8230; ftrace_bug &#8230;</em>
+This is normal and does not compromise lmap, the module or the acquisition
+process in any way. Note that ftrace shuts down after that, so you will need to
+reboot the machine if you intend to use ftrace for debugging after running LMAP.</p></div>
+<div class="paragraph"><p>If you&#8217;re using the <em>build.sh</em> script to build LMAP the CMake scripts will
+create a copy of your kernel headers and config in <em>build/kernel_headers</em>.
+Any FTRACE options enabled in your original kernel config will be disabled there
+and the pmem module will be compiled with this config to guarantee an FTRACE
+free build.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -166,74 +196,7 @@ minpmem:
 <div class="sect1">
 <h2 id="_building_from_source">Building from Source:</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>The <em>build.sh</em> file automates the build process for your convenience. It
-creates a CMake build environment in <em>build/</em> and builds all relevant drivers
-and libraries. It then generates the lmap binary and places it in the <em>release/</em>
-folder together with the generated documentation.</p></div>
-<div class="paragraph"><p>You can also manually create and modify the build environment with CMake.
-1. Change to the <em>build/</em> directory and verify it is empty.
-  (You can always <em>rm -r *</em> in <em>build/</em> to clean it up.)
-2 Use CMake to generate a makefile in the <em>build</em> directory by calling
-  <em>cmake ..</em>.
-3. Call <em>make</em> and it will build all the binaries and place them into their
-  respective subfolders in <em>build/</em>.</p></div>
-<div class="paragraph"><p>There are no external dependencies except the kernel headers, gcc, cmake, make
-and libc. On Ubuntu systems you need to install the packages <em>build-essential</em>,
-<em>cmake</em> and <em>linux-headers-<tt>uname -r</tt></em>.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_important">IMPORTANT:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Never build LMAP with ftrace enabled in your build environment. This will
-introduce a symbol dependency on certain ftrace symbols and the resulting
-module will not be loadable on non-ftrace kernels.</p></div>
-<div class="paragraph"><p>The CMake scripts create a copy of your kernel headers and config in
-<em>build/kernel_headers</em>. Any FTRACE options enabled in your original kernel
-config will be disabled there and the pmem module will be compiled with this
-config to guarantee an FTRACE free build.</p></div>
-<div class="paragraph"><p>You can check the symbol dependencies of your built pmem driver using the
-<tt>readelf</tt> program:</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><tt>~/rekall/tools/linux/lmap$ readelf -s build/modules/pmem_pte.ko
-
-Symbol table '.symtab' contains 29 entries:
-   Num:    Value          Size Type    Bind   Vis      Ndx Name
-     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
-     1: 0000000000000000     0 SECTION LOCAL  DEFAULT    1
-     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    7
-     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    8
-     4: 0000000000000000     0 SECTION LOCAL  DEFAULT   11
-     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    3
-     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    5
-     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    9
-     8: 0000000000001020   184 OBJECT  GLOBAL DEFAULT   11 self
-     9: 0000000000000008     8 OBJECT  GLOBAL DEFAULT   11 pte_mmap
-    10: 0000000000000000    45 FUNC    GLOBAL DEFAULT    1 pmem_llseek
-    11: 0000000000000870   160 FUNC    GLOBAL DEFAULT    1 pte_virt_find_phys
-    12: 0000000000000b00    73 FUNC    GLOBAL DEFAULT    1 pte_mmap_init
-    13: 0000000000000c80     7 FUNC    GLOBAL DEFAULT    1 pte_disable_interrupts
-    14: 0000000000000c90     7 FUNC    GLOBAL DEFAULT    1 pte_enable_interrupts
-    15: 0000000000000c60    15 FUNC    GLOBAL DEFAULT    1 pte_get_cr4
-    16: 0000000000000000    43 FUNC    GLOBAL DEFAULT    5 pmem_cleanup
-    17: 0000000000000000     4 OBJECT  GLOBAL DEFAULT   11 major
-    18: 0000000000000030   198 FUNC    GLOBAL DEFAULT    1 pmem_read
-    19: 0000000000000e40    11 FUNC    GLOBAL DEFAULT    1 pte_mmap_linux_delete
-    20: 0000000000000b50    67 FUNC    GLOBAL DEFAULT    1 pte_mmap_cleanup
-    21: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND _copy_to_user
-    22: 0000000000000c10    66 FUNC    GLOBAL DEFAULT    1 pte_busy_wait
-    23: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND __register_chrdev
-    24: 0000000000000000    70 FUNC    GLOBAL DEFAULT    3 pmem_init
-    25: 0000000000000c70    12 FUNC    GLOBAL DEFAULT    1 pte_set_cr4
-    26: 0000000000000cc0   384 FUNC    GLOBAL DEFAULT    1 pte_mmap_linux_new
-    27: 0000000000000000   216 OBJECT  GLOBAL DEFAULT    9 pmem_fops
-    28: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND __unregister_chrdev</tt></pre>
-</div></div>
-<div class="paragraph"><p>You should only see these limited external dependecies <tt>_copy_to_user</tt>,
-<tt>__register_chrdev</tt> and <tt>__unregister_chrdev</tt>. You should definitely not see the
-<tt>__fentry__</tt> above since that if an ftrace dependency. Generally the fewer
-dependencies here the more reliable the parasite will be.</p></div>
+<div class="paragraph"><p>See the README in the projects root (<em>tools/linux/lmap</em>).</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -251,7 +214,7 @@ dependencies here the more reliable the parasite will be.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-07-30 03:10:47 CEST
+Last updated 2014-08-05 00:29:53 CEST
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>
