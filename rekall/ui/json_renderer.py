@@ -164,8 +164,8 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
 
         if value.__class__ is dict:
             result = dict()
-            for k, v in value.items():
-                result[k] = self.renderer.decoder.Decode(v, options)
+            for k, v in value.iteritems():
+                result[k] = self.DecodeFromJsonSafe(v, options)
 
             return result
 

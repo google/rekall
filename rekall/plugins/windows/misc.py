@@ -471,8 +471,8 @@ class ObjectTree(common.WindowsCommandPlugin):
             obj_type = str(obj_header.get_object_type())
 
             if obj_type == "SymbolicLink":
-                name += "-> %s (%s)" % (obj_header.Object.LinkTarget,
-                                        obj_header.Object.CreationTime)
+                name += u"-> %s (%s)" % (obj_header.Object.LinkTarget,
+                                         obj_header.Object.CreationTime)
 
             if self.type_regex is None or self.type_regex.search(obj_type):
                 renderer.table_row(obj_header, obj_type, name, depth=depth)
