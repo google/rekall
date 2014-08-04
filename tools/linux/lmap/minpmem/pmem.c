@@ -68,6 +68,7 @@ MODULE_LICENSE("GPL");
 
 /* Empty page for zero padding. */
 static unsigned char zero_page[PAGE_SIZE];
+static loff_t physical_offset = 0;
 /* pte_mmap implementation */
 PTE_MMAP_OBJ *pte_mmap;
 /* Driver ID for unregistering */
@@ -80,12 +81,12 @@ int major;
 loff_t pmem_llseek(struct file *file, loff_t offset, int whence) {
   switch (whence) {
   case 0: {
-    file->f_pos = offset;
+    physical_offset = offset;
     break;
   };
 
   case 1: {
-    file->f_pos += offset;
+    physical_offset += offset;
     break;
   };
 
@@ -99,7 +100,7 @@ loff_t pmem_llseek(struct file *file, loff_t offset, int whence) {
     return -EINVAL;
   }
 
-  return file->f_pos;
+  return physical_offset;
 }
 
 /* This function reads as much of the page as possible - it may return
@@ -112,7 +113,6 @@ static ssize_t pmem_read_partial(struct file *file, char *buf, size_t count,
   unsigned long page_offset = *poff % PAGE_SIZE;
   unsigned long page_physaddr = *poff & PAGE_MASK;
   size_t to_read = min(PAGE_SIZE - page_offset, count);
-
   /* disable preemption to make sure we stay on the cpu where the page is
    * remapped. If we don't do this we risk being preempted and scheduled on
    * another cpu with an invalid mapping, returning wrong data. */
@@ -156,7 +156,6 @@ invalid_page:
 ssize_t pmem_read(struct file *file, char *buf, size_t count,
                          loff_t *poff) {
   size_t to_read, remaining;
-
   to_read = count;
   remaining = to_read;
   /* Just keep going until the full buffer is copied. Due to the null
@@ -164,7 +163,7 @@ ssize_t pmem_read(struct file *file, char *buf, size_t count,
   */
   while(remaining > 0) {
     remaining -= pmem_read_partial(file, buf + (to_read - remaining),
-                                   remaining, poff);
+                                   remaining, &physical_offset);
   };
   return to_read;
 }

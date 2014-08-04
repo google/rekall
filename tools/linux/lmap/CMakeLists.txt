@@ -11,7 +11,7 @@ set(MODULE_OUTPUT_DIR ${CMAKE_BINARY_DIR}/modules)
 string(REGEX REPLACE "/" "_" ESCAPED_OUTPUT_DIR ${MODULE_OUTPUT_DIR})
 # Set up versioning
 set(LMAP_VERSION_MAJOR 0)
-set(LMAP_VERSION_MINOR 4)
+set(LMAP_VERSION_MINOR 5)
 # Set the symbol names for embedded minpmem
 set(MINPMEM_START _binary_${ESCAPED_OUTPUT_DIR}_pmem_pte_ko_start)
 set(MINPMEM_END _binary_${ESCAPED_OUTPUT_DIR}_pmem_pte_ko_end)

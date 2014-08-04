@@ -69,6 +69,12 @@ function. For example the 'pg.ko' and 'pt.ko' modules import symbols from
 missing symbols, try another host by first scanning with '-f' and then selecting
 it with the '-h' option.
 
+LMAP only supports one open file descriptor at once. If you open() the device
+file multiple times simultaneously, seek() and read() on one fd will change the
+file position on all other fds. This is not an issue when operating lmap in it's
+intended mode with the '-a' switch, but you might run into it if you're loading
+the module manually with '-l'.
+
 Ftrace is a kernel feature that patches all kernel and module functions with
 calls to certain tracing functions to enable debugging and performance
 monitoring. This is partially done at compile- and run-time. LMAP should always
