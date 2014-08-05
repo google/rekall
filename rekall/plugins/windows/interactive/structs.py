@@ -21,6 +21,8 @@
 This file contains a bunch of plugins which are useful when interactively
 examining a memory image.
 """
+import itertools
+
 # pylint: disable=protected-access
 from rekall import config
 from rekall import obj
@@ -58,7 +60,11 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
         pool_alignment = self.profile.get_constant("PoolAlignment")
         offset = int(offset) - offset % pool_alignment
 
-        for o in xrange(offset, offset-search, -pool_alignment):
+        # Cant use xrange() on windows since it must fit into a long.
+        for o in itertools.count(offset, -pool_alignment):
+            if o < offset-search:
+                break
+
             pool_header = self.profile._POOL_HEADER(o)
 
             # If this is the pool header for this allocation it must be big

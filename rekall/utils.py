@@ -424,7 +424,8 @@ class AttributeDict(dict):
 
             return object.__setattr__(self, attr, value)
         except AttributeError:
-            self.Set(attr, value)
+            with self:
+                self.Set(attr, value)
 
     def Get(self, item, default=None):
         return self.get(item, default)
@@ -453,6 +454,9 @@ class AttributeDict(dict):
 
 def FormatIPAddress(family, value):
     """Formats a value as an ascii IP address determined by family."""
+    if value == None:
+        return value
+
     return socket.inet_ntop(
         getattr(socket, str(family)),
         value.obj_vm.read(value.obj_offset, value.size()))

@@ -22,7 +22,7 @@ This file encapsulates various virtual file system operations for supported
 linux versions. The code is basically copied from the kernel sources of the
 relevant versions.
 """
-
+import posixpath
 import math
 
 from rekall import obj
@@ -329,7 +329,7 @@ class Linux3VFS(object):
           An absolute path to the global filesystem mount. (I.e. we do not
           truncate the path at the chroot point as the kernel does).
         """
-        return self.prepend_path(filp.f_path, task.fs.root)
+        return posixpath.normpath(self.prepend_path(filp.f_path, task.fs.root))
 
     def _real_mount(self, vfsmnt):
         """Return the mount container of the vfsmnt object."""

@@ -88,7 +88,8 @@ def MergeConfigOptions(state):
     """Read the config file and apply the config options to the session."""
     # First apply the defaults:
     for _, _, name, default, _ in OPTIONS:
-        state.Set(name, default)
+        if default is not None:
+            state.Set(name, default)
 
     config_data = GetConfigFile()
     # An empty configuration file - we try to initialize a new one.

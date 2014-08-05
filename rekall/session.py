@@ -126,6 +126,8 @@ class Configuration(Cache):
     _lock = False
     _pending_hooks = None
 
+    _loaded_filename = None
+
     def __init__(self, session=None, **kwargs):
         super(Configuration, self).__init__(**kwargs)
         self.session = session
@@ -140,13 +142,43 @@ class Configuration(Cache):
         return "<Configuration Object>"
 
     def _set_filename(self):
-        if self.get('filename') != self.filename:
-            self['filename'] = self.filename
+        """Callback for when a filename is set in the session.
+
+        When the user changes the filename parameter we must reboot the session:
+
+        - Reset the cache.
+        - Update the filename
+        - Reload the profile and possibly autodetect it.
+        """
+        filename = self.get('filename')
+        if self.get('filename') != self._loaded_filename:
+            self._loaded_filename = filename
             if self.session:
                 self.session.Reset()
-                self.session.UpdateFromConfigObject()
 
-        self['base_filename'] = os.path.basename(self.filename)
+                load_as = self.session.plugins.load_as()
+                if load_as.GetPhysicalAddressSpace():
+                    self['base_filename'] = os.path.basename(filename)
+                    # We just loaded a new image, reset the session and try to
+                    # load the profile.
+
+                    # This may fire off the profile auto-detection code if a
+                    # profile was not provided by the user.
+                    profile_parameter = self.session.GetParameter("profile")
+                    if profile_parameter:
+                        self.session.profile = self.session.LoadProfile(
+                            profile_parameter)
+                        if self.session.profile == None:
+                            raise ValueError(repr(self.profile))
+
+                    # The profile has just changed, we need to update the
+                    # runners.
+                    self.UpdateRunners()
+
+                else:
+                    raise IOError(
+                        "Unable to load image file %s (Does the file exist?)" %
+                        filename)
 
     def _set_profile_path(self):
         # Flush the profile cache if we change the profile path.
@@ -160,7 +192,10 @@ class Configuration(Cache):
             loaded_profile = self.session.LoadProfile(profile)
             if loaded_profile:
                 with self:
-                    self.Set("profile", loaded_profile)
+                    self.Set("profile_obj", loaded_profile)
+
+            else:
+                raise RuntimeError(loaded_profile.reason)
 
         # The profile has changed - update the active plugin list.
         self.session.UpdateRunners()
@@ -199,7 +234,8 @@ class Configuration(Cache):
 
         # Run all the hooks _after_ all the parameters have been set.
         if self._lock == 1:
-            for hook in reversed(self._pending_hooks):
+            pending_hooks = list(reversed(self._pending_hooks))
+            for hook in pending_hooks:
                 hook()
 
 
@@ -282,28 +318,6 @@ class Session(object):
         We are expected to re-check the config and re-initialize this session.
         """
         self.UpdateRunners()
-
-        filename = self.state.filename
-        if filename:
-            # This may fire off the profile auto-detection code if a profile was
-            # not provided by the user.
-            profile_parameter = self.GetParameter("profile")
-            if profile_parameter:
-                self.profile = self.LoadProfile(profile_parameter)
-                if self.profile == None:
-                    raise ValueError(self.profile.reason)
-
-                # The profile has just changed, we need to update the runners.
-                self.UpdateRunners()
-
-            with self.state:
-                if self.physical_address_space == None:
-                    logging.critical(
-                        "Unable to load image file %s. Does the file exist?",
-                        filename)
-                    self.state.Set("base_filename", None)
-                else:
-                    self.state.Set("base_filename", os.path.basename(filename))
 
         # Set the renderer.
         self.renderer = renderer.BaseRenderer.classes.get(
@@ -552,6 +566,9 @@ class Session(object):
                         inventory = self.inventories[path]["$INVENTORY"]
                         if (filename not in inventory and
                             filename + ".gz" not in inventory):
+                            logging.debug(
+                                "Skipped profile %s from %s (Not in inventory)",
+                                filename, path)
                             continue
 
                     # No inventory in that repository - just try anyway.
@@ -604,12 +621,12 @@ class Session(object):
 
     @property
     def profile(self):
-        res = self.state.Get("profile")
+        res = self.state.Get("profile_obj")
         return res
 
     @profile.setter
     def profile(self, value):
-        super(Configuration, self.state).Set("profile", value)
+        super(Configuration, self.state).Set("profile_obj", value)
 
 
 class JsonSerializableSession(Session):

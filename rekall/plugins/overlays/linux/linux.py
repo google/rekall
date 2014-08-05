@@ -787,6 +787,16 @@ class PermissionFlags(basic.Flags):
         return self.is_flag('w')
 
 
+class kgid_t(obj.Struct):
+    """Newer kernels use this struct instead of an int."""
+    def __unicode__(self):
+        return unicode(self.val)
+
+
+class kuid_t(kgid_t):
+    """Newer kernels use this struct instead of an int."""
+
+
 class page(obj.Struct):
     def physical_offset(self):
         """The physical offset of the page represented by this page struct."""
@@ -856,7 +866,7 @@ class Linux(basic.BasicClasses):
             timespec=timespec, inet_sock=inet_sock,
             PermissionFlags=PermissionFlags,
             InodePermission=InodePermission,
-            page=page,
+            page=page, kgid_t=kgid_t, kuid_t=kuid_t,
             ))
         profile.add_overlay(linux_overlay)
         profile.add_constants(default_text_encoding="utf8")

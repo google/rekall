@@ -145,10 +145,11 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
             if unicode(linux_banner).startswith(u"%s version %s"):
                 return address_space
 
+            logging.debug("Failed to verify dtb @ %#x" % dtb)
+
     def dtb_hits(self):
         """Tries to locate the DTB."""
         PAGE_OFFSET = self.GetPageOffset(self.profile)
-
         if self.profile.metadata("arch") == "I386":
             yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
 

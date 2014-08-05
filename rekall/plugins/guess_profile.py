@@ -211,6 +211,9 @@ class ProfileHook(kb.ParameterHook):
                     if "Ubuntu" in guess:
                         distribution = "Ubuntu"
 
+                    if "Debian" in guess:
+                        distribution = "Debian"
+
                     profile_name = "%s/%s" % (distribution, m.group(1))
                     profile = self.VerifyLinuxProfile(profile_name)
                     if profile:

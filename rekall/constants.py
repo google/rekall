@@ -18,7 +18,7 @@
 #
 import time
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 CODENAME = "Albis"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 

@@ -44,8 +44,12 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
         self.as_assert(fhandle is not None, 'file handle must be provided')
 
         self.fhandle = fhandle
-        self.fhandle.seek(0, 2)
-        self.fsize = self.fhandle.tell()
+        try:
+            self.fhandle.seek(0, 2)
+            self.fsize = self.fhandle.tell()
+        except IOError:
+            self.fsize = 0
+
         self.offset = 0
 
         super(FDAddressSpace, self).__init__(**kwargs)
@@ -66,14 +70,12 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
         return longval
 
     def get_available_addresses(self):
-        # Since the second parameter is the length of the run
-        # not the end location, it must be set to fsize, not fsize - 1
         yield (0, 0, self.fsize)
 
     def is_valid_address(self, addr):
         if addr == None:
             return False
-        return addr <= self.fsize
+        return True
 
     def close(self):
         self.fhandle.close()
