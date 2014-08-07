@@ -31,20 +31,22 @@ LARGE_INTEGER CR3;
 DRIVER_UNLOAD IoUnload;
 VOID IoUnload(IN PDRIVER_OBJECT DriverObject) {
   UNICODE_STRING DeviceLinkUnicodeString;
-  PDEVICE_OBJECT pDeviceObject = DriverObject->DeviceObject;
-  PDEVICE_EXTENSION ext=(PDEVICE_EXTENSION)pDeviceObject->DeviceExtension;
+  PDEVICE_OBJECT pDeviceObject = NULL;
+  PDEVICE_EXTENSION ext= NULL;
+  
+  if (DriverObject == NULL)
+    return;
 
-  RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\DosDevices\\"
-			PMEM_DEVICE_NAME);
+  pDeviceObject = DriverObject->DeviceObject;
+  ext=(PDEVICE_EXTENSION)pDeviceObject->DeviceExtension;
+
+  RtlInitUnicodeString (&DeviceLinkUnicodeString, L"\\DosDevices\\" PMEM_DEVICE_NAME);
   IoDeleteSymbolicLink (&DeviceLinkUnicodeString);
 
-  if (DriverObject != NULL) {
-    IoDeleteDevice(pDeviceObject);
-  }
-
-  if(ext->pte_mmapper) {
+  if(ext->pte_mmapper)
     pte_mmap_windows_delete(ext->pte_mmapper);
-  };
+  
+  IoDeleteDevice(pDeviceObject);
 }
 
 
