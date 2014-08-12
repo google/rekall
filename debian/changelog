@@ -1,6 +1,6 @@
-rekall-forensic (1.0.2) UNRELEASED; urgency=low
+rekall-forensic (1.0.3) RELEASED; urgency=low
 
   [ Rekall Team ]
-  * Release 1.0.2 Albis.
+  * Release 1.0.3 Albis.
 
- -- Rekall Team <rekall-dev@googlegroups.com>  Tue, 29 Jul 2014 02:19:02 +0200
+ -- Rekall Team <rekall-dev@googlegroups.com>  Wed, 6 Aug 2014 16:46:37 +0200

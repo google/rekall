@@ -393,6 +393,8 @@ class LoadAddressSpace(plugin.Command):
         # If we know the DTB, just build the address space.
         # Otherwise, delegate to a find_dtb plugin.
         find_dtb = self.session.plugins.find_dtb()
+        if find_dtb == None:
+            return find_dtb
 
         if dtb:
             self.session.kernel_address_space = find_dtb.CreateAS(dtb)

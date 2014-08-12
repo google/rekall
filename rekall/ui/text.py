@@ -125,8 +125,6 @@ class Formatter(string.Formatter):
                 extended_format = "#0%sx" % self.address_size
 
             if value == None:
-                import pdb; pdb.set_trace()
-
                 extended_format = "<%ss" % self.address_size
 
         elif formatstring == "[addr]":
@@ -639,6 +637,10 @@ class Cell(object):
         self.lines.append(value)
         return self
 
+    def __unicode__(self):
+        self.Justify()
+        return u"\n".join(self.lines)
+
 
 class TextColumn(object):
     """Implementation for text (mostly CLI) tables."""
@@ -668,7 +670,7 @@ class TextColumn(object):
         # been written.
         if type:
             self.object_renderer = self.renderer.get_object_renderer(
-                type=type, **options)
+                type=type, target_renderer="TextRenderer", **options)
 
     def render_header(self):
         """Renders the cell header.
@@ -700,12 +702,17 @@ class TextColumn(object):
             object_renderer = self.object_renderer
         else:
             object_renderer = self.table.renderer.get_object_renderer(
-                target, type=merged_opts.get("type"), **options)
+                target, type=merged_opts.get("type"),
+                target_renderer="TextRenderer", **options)
 
         result = object_renderer.render_row(target, **merged_opts)
         if result.width < self.header_width:
             result.Justify(width=self.header_width)
         return result
+
+    @property
+    def name(self):
+        return self.options.get("name") or self.options.get("cname", "")
 
 
 class TextTable(renderer.BaseTable):
@@ -724,7 +731,7 @@ class TextTable(renderer.BaseTable):
         self.columns = []
 
         for column_specs in self.column_specs:
-            self.columns.append(TextColumn(
+            self.columns.append(self.column_class(
                 session=self.session, table=self, renderer=self.renderer,
                 **column_specs))
 

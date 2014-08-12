@@ -1037,6 +1037,9 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
             vm=self, offset=self.image_base,
             context=dict(image_base=self.image_base)).NTHeader
 
+    def __str__(self):
+        return "<PEFileAddressSpace @ %#x >" % self.image_base
+
     def read(self, addr, length):
         # Not a particularly efficient algorithm, but probably fast enough since
         # usually there are not too many sections.

@@ -178,7 +178,12 @@ class DW_TAG_structure_type(DIETag):
 
 
 class DW_TAG_union_type(DW_TAG_structure_type):
-    pass
+    @property
+    def name(self):
+        if "DW_AT_name" in self.attributes:
+            return self.attributes["DW_AT_name"].value
+        else:
+            return "__unnamed_%s" % self.die.offset
 
 
 class DW_TAG_pointer_type(DIETag):

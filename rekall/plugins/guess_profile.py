@@ -31,6 +31,7 @@ from rekall import scan
 from rekall.plugins.darwin import common as darwin_common
 from rekall.plugins.linux import common as linux_common
 from rekall.plugins.windows import common as win_common
+from rekall.plugins.overlays.windows import pe_vtypes
 
 OSX_NEEDLE = "Catfish \x00\x00"
 
@@ -154,6 +155,13 @@ class ProfileHook(kb.ParameterHook):
         address_space = self.session.physical_address_space
         best_profile = None
         best_match = 0
+
+        # If the file is a PE file, we simply return the PE address space.
+        if pe_profile._IMAGE_DOS_HEADER(vm=address_space).NTHeader:
+            self.session.kernel_address_space = pe_vtypes.PEFileAddressSpace(
+                base=address_space, profile=pe_profile)
+
+            return pe_profile
 
         for hit in ProfileScanner(address_space=address_space,
                                   session=self.session).scan():

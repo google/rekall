@@ -64,7 +64,7 @@ class CheckTTY(common.LinuxPlugin):
         renderer.table_header([
                 ("Name", "name", "<16"),
                 ("Address", "address", "[addrpad]"),
-                ("Symbol", "<30")])
+                ("Symbol", "symbol", "<30")])
 
         for name, call_addr, sym_name in self.CheckTTYs():
             renderer.table_row(name, call_addr, sym_name or "Unknown",

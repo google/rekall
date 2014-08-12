@@ -81,6 +81,9 @@ config.DeclareOption(
 class Container(object):
     """Just a container."""
 
+    def __getattr__(self, attr):
+        return obj.NoneObject("Attribute %s not found", attr)
+
     def __str__(self):
         return str(self.__dict__.keys())
 

@@ -273,6 +273,9 @@ class BaseTable(object):
 
             self.column_specs.append(column)
 
+    def render_row(self, *row, **options):
+        """Render the row suitably."""
+
     def flush(self):
         pass
 
@@ -441,19 +444,22 @@ class BaseRenderer(object):
         _ = mode
         raise IOError("Renderer does not support writing to files.")
 
-    def get_object_renderer(self, target=None, type=None, **options):
+    def get_object_renderer(self, target=None, type=None, target_renderer=None,
+                            **options):
+        if target_renderer is None:
+            target_renderer = self
+
         if type is not None:
-            result = ObjectRenderer.ByName(type, self)(
-                self, session=self.session, **options)
+            result = ObjectRenderer.ByName(type, target_renderer)
 
             if result is None:
                 raise TypeError(
                     "No renderer found for %s which was explicitly forced." %
                     type)
 
-            return result
+            return result(self, session=self.session, **options)
 
-        handler = ObjectRenderer.ForTarget(target, self)
+        handler = ObjectRenderer.ForTarget(target, target_renderer)
         if handler:
             return handler(renderer=self, session=self.session, **options)
 

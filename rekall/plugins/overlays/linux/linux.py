@@ -566,9 +566,9 @@ class inet_sock(obj.Struct):
 
     @property
     def dst_port(self):
-        return (self.m("dport") or self.m("inet_dport")).cast(
-            "unsigned be short") or self.sk.m("__sk_common").u3.u1.skc_dport
-
+        return ((self.m("dport") or self.m("inet_dport")).cast(
+            "unsigned be short") or self.sk.m("__sk_common.u3.u1.skc_dport") or
+                self.sk.m("__sk_common.u3.skc_dport"))
     @property
     def src_addr(self):
         if self.sk.m("__sk_common").skc_family == "AF_INET":
@@ -578,18 +578,19 @@ class inet_sock(obj.Struct):
                         "Ipv4Address")
 
         else:
-            return self.pinet6.saddr.cast("Ipv6Address")
+            return self.m("pinet6.saddr").cast("Ipv6Address")
 
     @property
     def dst_addr(self):
         if self.sk.m("__sk_common").skc_family == "AF_INET":
             return (self.m("daddr") or self.m("inet_daddr") or
                     self.sk.m("__sk_common.u1.u1.skc_daddr") or
-                    self.sk.m("__sk_common").m("skc_daddr")).cast(
+                    self.sk.m("__sk_common.skc_daddr")).cast(
                         "Ipv4Address")
 
         else:
-            return self.pinet6.daddr.cast("Ipv6Address")
+            return (self.m("pinet6.daddr").cast("Ipv6Address") or
+                    self.m("pinet6.daddr_cache").cast("Ipv6Address"))
 
 
 class files_struct(obj.Struct):
