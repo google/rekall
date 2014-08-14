@@ -260,6 +260,10 @@ vtypes64 = {
         'KdSecondaryVersion' : [0x104d, ['unsigned char']],
         'Unused' : [0x104e, ['array', 2, ['unsigned char']]],
         '_reserved0' : [0x1050, ['array', 4016, ['unsigned char']]],
+
+        # If the dump is a BMP dump, this is the location of the
+        # _BMP_DUMP_HEADER.
+        'BMPHeader': [0x2000, ["_BMP_DUMP_HEADER"]],
     }],
 
     '_PHYSICAL_MEMORY_DESCRIPTOR' : [0x20, {
@@ -282,6 +286,39 @@ vtypes64 = {
         '__unusedAlignment' : [0x1c, ['unsigned long']],
         'ExceptionInformation' : [0x20, ['array', 15, ['unsigned long long']]],
     }],
+
+    # NOTE: The following struct is reversed by looking the a crash dump
+    # file. Therefore the names are probably not consistent with the windows
+    # source code.
+    '_BMP_DUMP_HEADER': [0x38, {
+        # Should be FDMP
+        'Signature': [0x0, ['String', dict(
+            length=4,
+            term=None,
+            )]],
+
+        # Should be DUMP
+        'ValidDump': [0x4, ['String', dict(
+            length=4,
+            term=None,
+            )]],
+
+        # The offset of the first page in the file.
+        'FirstPage': [0x20, ['unsigned long long']],
+
+        # Total number of pages present in the bitmap.
+        'TotalPresentPages': [0x28, ['unsigned long long']],
+
+        # Total number of pages in image. This dictates the total size of the
+        # bitmap. This is not the same as the TotalPresentPages which is only
+        # the sum of the bits set to 1.
+        'Pages': [0x30, ['unsigned long long']],
+
+        'Bitmap': [0x38, ['Array', dict(
+            count=lambda x: x.Pages/32 + 1,
+            target="unsigned int",
+            )]],
+        }],
 }
 
 
@@ -296,6 +333,7 @@ overlays = {
             'choices': {
                 1: "Full Dump",
                 2: "Kernel Dump",
+                5: "BMP Dump",
             },
             'target': 'unsigned int'}]],
     }],

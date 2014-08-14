@@ -27,6 +27,8 @@ import logging
 from rekall import addrspace
 from rekall.plugins.overlays.windows import crashdump
 
+# pylint: disable=protected-access
+
 
 class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
     """ This Address Space supports windows Crash Dump format """
@@ -118,10 +120,10 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
 
         # The following error is fatal - abort the voting mechanism.
 
-        # Unfortunately trunk Volatility does not set this field correctly, so
-        # we do not make it a fatal error. It can lead to problems if we try to
-        # parse other crash dump formats, (Especially Win8 ones - see below) so
-        # we might consider making this a fatal error in future.
+        # Unfortunately Volatility does not set this field correctly, so we do
+        # not make it a fatal error. It can lead to problems if we try to parse
+        # other crash dump formats, (Especially Win8 ones - see below) so we
+        # might consider making this a fatal error in future.
         if self.header.DumpType != "Full Dump":
             logging.warning("This is not a full memory crash dump. "
                             "Kernel crash dumps are not supported.")
@@ -133,3 +135,72 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
             raise RuntimeError(
                 "This crashdump file format is not supported. Rekall does not "
                 "currently support crashdumps using the Win8 format.")
+
+
+class WindowsCrashBMP(addrspace.RunBasedAddressSpace):
+    """This Address Space supports the new windows Crash Dump format.
+
+    This format first appeared in Windows 8 x64 versions. We reversed this
+    format by examining the Crash dump file from a Windows 8 system.
+
+    Alternative implementations:
+      Volatility 2.4: crashbmp.py (not working at time of writing.).
+    """
+    # Must try this before the old Crashdump format.
+    order = 25
+
+    PAGE_SIZE = 0x1000
+
+    # Participate in Address Space voting.
+    __image = True
+
+    def __init__(self, **kwargs):
+        super(WindowsCrashBMP, self).__init__(**kwargs)
+
+        self.as_assert(self.base, "Must stack on another address space")
+
+        ## Must start with the magic PAGEDU64
+        self.as_assert((self.base.read(0, 8) == 'PAGEDU64'),
+                       "Header signature invalid")
+
+        self.profile = crashdump.CrashDump64Profile(
+            session=self.session)
+
+        self.header = self.profile.Object("_DMP_HEADER64", vm=self.base)
+        self.as_assert(
+            self.header.DumpType == "BMP Dump", "Only BMP dumps supported.")
+
+        self.bmp_header = self.header.BMPHeader
+        PAGE_SIZE = 0x1000
+
+        # The first page is located immediately after the header.
+        first_page = self.bmp_header.FirstPage.v()
+        last_run = [0, first_page, 0]
+
+        for pfn, present in enumerate(self._generate_bitmap()):
+            if present:
+                if pfn * PAGE_SIZE == last_run[0] + last_run[2]:
+                    last_run[2] += PAGE_SIZE
+
+                else:
+                    # Dump the last run only if it is non zero.
+                    if last_run[2] > 0:
+                        self.runs.insert(last_run)
+
+                    # The next run starts here.
+                    last_run = [
+                        pfn*PAGE_SIZE, last_run[1]+last_run[2], PAGE_SIZE]
+
+        # Flush the last run if needed.
+        if last_run[2] > 0:
+            self.runs.insert(last_run)
+
+    def _generate_bitmap(self):
+        """Generate Present/Not Present for each page in the dump."""
+        # The bitmap is an array of 32 bit integers. Each bit in each int
+        # represents a single memory page.
+        for value in self.bmp_header.Bitmap:
+            # This is kind of lame but in python it is way faster than bit
+            # manipulations.
+            for bit in reversed("{0:032b}".format((value.v()))):
+                yield bit == "1"

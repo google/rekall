@@ -73,6 +73,10 @@ class String(obj.StringProxyMixIn, obj.NativeType):
 
         self.length = int(length)
 
+    @property
+    def obj_end(self):
+        return self.obj_offset + self.length
+
     def startswith(self, other):
         return self.v().startswith(other)
 

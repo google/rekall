@@ -176,24 +176,6 @@ class VADTree(VADInfo):
                 level = vad.obj_context.get('depth', 0)
                 renderer.table_row("", vad.Start, "->", vad.End, depth=level)
 
-    def render_dot(self, outfd):
-        for task in self.filter_processes():
-            outfd.write(u"/" + "*" * 72 + "/\n")
-            outfd.write(u"/* Pid: {0:6} */\n".format(task.UniqueProcessId))
-            outfd.write(u"digraph processtree {\n")
-            outfd.write(u"graph [rankdir = \"TB\"];\n")
-            for vad in task.RealVadRoot.traverse():
-                if vad.Parent and vad.Parent.dereference():
-                    outfd.write(u"vad_{0:08x} -> vad_{1:08x}\n".format(
-                            vad.Parent.v() or 0, vad.obj_offset))
-
-                outfd.write(
-                    u"vad_{0:08x} [label = \"{{ {1}\\n{2:08x} - {3:08x} }}\""
-                    "shape = \"record\" color = \"blue\"];\n".format(
-                        vad.obj_offset, vad.Tag, vad.Start, vad.End))
-
-            outfd.write(u"}\n")
-
 
 class VADWalk(VADInfo):
     """Walk the VAD tree"""

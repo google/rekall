@@ -39,9 +39,11 @@ def TagOffset(x):
 # simply casts all objects to an _MM_AVL_NODE without caring what they actually
 # are, then depending on the vad tag, they get casted to different structs.
 
-# Additionally there are new fields StartingVpnHigh and EndingVpnHigh which are
-# chars representing the high part of the PFN. Therefore the real PFN is
-# (StartingVpnHigh << 32) | StartingVpn.
+# Additionally in windows 8.1 there are new fields StartingVpnHigh and
+# EndingVpnHigh which are chars representing the high part of the PFN. Therefore
+# the real PFN is (StartingVpnHigh << 32) | StartingVpn. The below overlay
+# gracefully falls back to the old profiles (where StartingVpnHigh does not
+# exist).
 win8_overlays = {
     '_EPROCESS': [None, {
         # A symbolic link to the real vad root.
@@ -59,10 +61,10 @@ win8_overlays = {
     '_MMVAD_SHORT': [None, {
             'Tag': [TagOffset, ['String', dict(length=4)]],
             'Start': lambda x: (
-                x.StartingVpn + (x.StartingVpnHigh<<32)) << 12,
+                x.StartingVpn + ((x.m("StartingVpnHigh") or 0) << 32)) << 12,
 
             'End': lambda x: (
-                ((x.EndingVpn + (x.EndingVpnHigh<<32)) + 1) << 12) - 1,
+                (x.EndingVpn + ((x.m("EndingVpnHigh") or 0) << 32))<<12)+0xFFF,
 
             'Length': lambda x: x.End - x.Start + 1,
             'CommitCharge': lambda x: x.u1.VadFlags1.CommitCharge,

@@ -14,6 +14,7 @@ from rekall.plugins.addrspaces import macho
 from rekall.plugins.addrspaces import mmap_address_space
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.addrspaces import vboxelf
+from rekall.plugins.addrspaces import vmem
 
 try:
     import rekall.plugins.addrspaces.accelerated

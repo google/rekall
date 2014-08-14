@@ -625,11 +625,10 @@ class _IMAGE_DOS_HEADER(obj.Struct):
     @property
     def NTHeader(self):
         """Get the NT header"""
-
         if self.e_magic != 0x5a4d:
             return obj.NoneObject(
                 'e_magic {0:04X} is not a valid DOS signature.'.format(
-                    self.e_magic))
+                    self.e_magic or 0))
 
         nt_header = self.obj_profile._IMAGE_NT_HEADERS(
             offset=self.e_lfanew + self.obj_offset,
@@ -638,7 +637,7 @@ class _IMAGE_DOS_HEADER(obj.Struct):
         if nt_header.Signature != 0x4550:
             return obj.NoneObject(
                 'NT header signature {0:04X} is not a valid'.format(
-                    nt_header.Signature))
+                    nt_header.Signature or 0))
 
         return nt_header
 
