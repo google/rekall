@@ -1,3 +1,4 @@
+'use strict';
 (function() {
 
   var module = angular.module('rekall.webconsole', ['manuskript.configuration', 'rekall.runplugin']);

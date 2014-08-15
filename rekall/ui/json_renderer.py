@@ -491,8 +491,10 @@ class JsonRenderer(renderer_module.BaseRenderer):
     # written to the json file.
     data = None
 
-    def __init__(self, output=None, **kwargs):
+    def __init__(self, output=None, send_message_callback=None, **kwargs):
         super(JsonRenderer, self).__init__(**kwargs)
+
+        self.send_message_callback = send_message_callback
 
         # Allow the user to dump all output to a file.
         self.output = output or self.session.GetParameter("output")
@@ -503,8 +505,11 @@ class JsonRenderer(renderer_module.BaseRenderer):
 
         fd = None
         if self.output:
-            # This overwrites the output file with a new json message.
-            fd = open(self.output, "wb")
+            if hasattr(self.output, "write") and hasattr(self.output, "flush"):
+                fd = self.output
+            else:
+                # This overwrites the output file with a new json message.
+                fd = open(self.output, "wb")
 
         if fd == None:
             fd = self.session.fd
@@ -533,6 +538,8 @@ class JsonRenderer(renderer_module.BaseRenderer):
         return self
 
     def SendMessage(self, statement):
+        if self.send_message_callback is not None:
+            self.send_message_callback(statement, self.encoder)
         self.data.append(statement)
 
     def format(self, formatstring, *args):
@@ -579,12 +586,16 @@ class JsonRenderer(renderer_module.BaseRenderer):
         # We store the data here.
         self.data = []
 
-        # NOTE: The lexicon will continue to be modified, but will be sent as
-        # part of the first statement.
-        self.SendMessage(["l", self.encoder.GetLexicon()])
+    def end(self):
+        # Send a special message marking end of the rendering sequence.
+        self.SendMessage(["x"])
+
+        super(JsonRenderer, self).end()
+        self.flush()
 
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
         if super(JsonRenderer, self).RenderProgress(**kwargs):
+            args = list(args)
             for i in range(len(args)):
                 if callable(args[i]):
                     args[i] = args[i]()

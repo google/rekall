@@ -22,7 +22,7 @@
                   ng-class="node.source.plugin === plugin && 'info scroll-anchor cursor-pointer'">
                 <td>
                   {{plugin.name}}<br/>
-                  <span class="plugin-1line-description">{{firstLineOnly(plugin.description)}}</span>
+                  <span class="plugin-1line-description">{{plugin.short_description}}</span>
                 </td>
               </tr>
             </tbody>
@@ -49,7 +49,7 @@
           </div>
           <div class="panel-body">
             <div class="row-fluid" ng-if="requiredArguments">
-              <h5 class=""><span class="glyphicon glyphicon-link"></span> Optional arguments</h5>
+              <h5 class=""><span class="glyphicon glyphicon-link"></span> Required arguments</h5>
               <rekall-plugin-arguments arguments="requiredArguments"
                                        filled-arguments="node.source.arguments" />
             </div>
@@ -69,7 +69,7 @@
   </div>
 
   <div ng-if="node.state != 'edit'" ng-dblclick="editNode(node)">
-    <h3>{{node.source.plugin.name}} <small>{{firstLineOnly(node.source.plugin.description)}}</small></h3>
+    <h3>{{node.source.plugin.name}} <small>{{node.source.plugin.short_description}}</small></h3>
     <div ng-if="node.source.arguments">
       <table class="table table-condensed">
         <tr ng-repeat="(key, value) in node.source.arguments">
@@ -84,49 +84,58 @@
     </div>
   </div>
 
-  <div ng-if="node.state == 'render'" class="vertically-padded-xl">
-    <div class="progress progress-striped active">
-      <div class="progress-bar"  role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
-        <span class="sr-only">Loading...</span>
+  <div ng-if="node.state == 'show' || node.state == 'render'">
+    <div scroll-to=".scroll-anchor" class="progress progress-striped active scroll-anchor"
+         ng-if="node.state == 'render'">
+      <div class="progress-bar"  role="progressbar"
+           aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+        <span>{{node.rendered.plugin_output.progress}}</span>
       </div>
     </div>
-  </div>
 
-  <div ng-if="node.state == 'show'">
     <div ng-if="node.rendered.plugin_output">
+      <rekall-context-menu>
 
-      <div class="panel panel-default">
-        <div class="panel-body">
-          <div ng-repeat="element in node.rendered.plugin_output.elements">
-            <div ng-if="element.type == 'error'">
-               <pre bindonce class="alert alert-danger" role="alert"
-                    bo-text="element.message">
-               </pre>
-            </div>
+        <div class="panel panel-default" bindonce>
+          <div class="panel-body">
+            <div fast-repeat="element in node.rendered.plugin_output.elements" preserve-scope>
 
-            <div ng-if="element.type == 'table'">
-              <table bindonce class="table table-condensed">
-                <thead>
-                  <tr>
-                    <th fast-repeat="column in element.header"
-                        style="font-size: 90%">
-                      <span bo-text="column.name"></span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr fast-repeat="row in element.rows">
-                    <td fast-repeat="item in row" style="font-size: 90%">
-                      <span bo-text="renderItem(item, element.header[$index])">
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div ng-if="element.type == 'section'">
+                <h3 class="lead" bo-text="element.name" bo-if="element.name"></h3>
+              </div>
+
+              <div ng-if="element.type == 'format'">
+                <div class="freeFormat"><rekall-free-format element="element" /></div>
+              </div>
+
+              <div ng-if="element.type == 'error'">
+                <pre class="bg-danger">{{element.data}}</pre>
+              </div>
+
+              <div ng-if="element.type == 'table'">
+                <table class="table table-condensed">
+                  <thead>
+                    <tr>
+                      <th fast-repeat="column in element.header" no-watch style="font-size: 90%">
+                        <span bo-text="column.name"></span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr fast-repeat="row in element.rows">
+                      <td fast-repeat="item in row" no-watch style="font-size: 90%">
+                        <rekall-table-cell element="item" />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
+
+        </rekall-context-menu>
       </div>
+
     </div>
 
     <div ng-if="node.rendered.stderr">

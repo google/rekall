@@ -1,15 +1,14 @@
+'use strict';
 (function() {
 
   var module = angular.module('rekall.runplugin',
                               ['rekall.runplugin.controller',
-			       'rekall.runplugin.jsonRenderer.service',
-                               'rekall.runplugin.pluginRegistry.service',
                                'manuskript.core']);
 
   module.run(function(manuskriptCoreNodePluginRegistryService) {
     manuskriptCoreNodePluginRegistryService.registerPlugin('rekallplugin', {
       description: 'Rekall Plugin',
-      templateUrl: '/rekall-webconsole/runplugin.html',
+      templateUrl: '/rekall-webconsole/components/runplugin/runplugin.html',
       defaultNode: function() {
         return {
           type: 'rekallplugin',
@@ -19,7 +18,7 @@
           rendered: {
             stderr: [],
             stdout: [],
-            result: ""
+            result: ''
           }
         };
       }

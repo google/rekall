@@ -1,0 +1,1 @@
+[["m",{"tool_name":"rekall","plugin_name":"render_sample","tool_version":"1.0.3"}],["t",[{"cname":"parameter","name":"Parameter","formatstring":"30"},{"cname":"doc","name":" Documentation","formatstring":"70"}],{}],["r",{"doc":42,"parameter":["*","important-parameter"]}],["x"]]

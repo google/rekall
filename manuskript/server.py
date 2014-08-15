@@ -30,9 +30,7 @@ class WebconsoleWSGIServer(serving.BaseWSGIServer):
             self.post_activate_callback(self)
 
 
-def RunServer(host="localhost", port=0, debug=False, plugins=None,
-              config=None, post_activate_callback=None):
-    # Port number 0 will cause the system to bind a random port.
+def InitializeApp(plugins=None, config=None):
     if not plugins:
         plugins = DEFAULT_PLUGINS
 
@@ -69,6 +67,13 @@ def RunServer(host="localhost", port=0, debug=False, plugins=None,
 
     for k, v in config.items():
         app.config[k] = v
+
+    return app
+
+def RunServer(host="localhost", port=0, debug=False, plugins=None,
+              config=None, post_activate_callback=None):
+    # Port number 0 will cause the system to bind a random port.
+    app = InitializeApp(plugins=plugins, config=config)
 
     if debug:
         app.run(host=host, port=port, debug=debug)

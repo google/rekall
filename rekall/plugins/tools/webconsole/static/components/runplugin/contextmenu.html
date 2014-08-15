@@ -1,0 +1,7 @@
+<ul class="dropdown-menu context-menu" role="menu" ng-show="menu.visible" ng-style="menu.style">
+  <li role="presentation" ng-repeat="item in menu.items">
+    <a href="#" ng-click="callItem(item, $event)">{{item.title}}</a>
+  </li>
+</ul>
+
+<div ng-transclude></div>

@@ -16,7 +16,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     'manuskript.configuration'].concat(manuskriptPluginsList));
 
   module.controller("ManuskriptAppController", function(
-      $scope, $modal, $timeout,
+      $scope, $modal, $timeout, $sce,
       manuskriptCoreNodePluginRegistryService,
       manuskriptConfiguration) {
 
@@ -117,6 +117,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       modalInstance.result.then(function(typeKey) {
 	var node = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
             typeKey);
+
 	$scope.nodes.splice(beforeNodeIndex, 0, node);
 	$scope.editNode(node);
       });
@@ -262,9 +263,9 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     $scope.getIncludedFile = function(node) {
       var pluginDescriptor = manuskriptCoreNodePluginRegistryService.getPlugin(node.type);
       if (pluginDescriptor.templateUrl) {
-        return pluginDescriptor.templateUrl;
+        return $sce.trustAsResourceUrl(pluginDescriptor.templateUrl);
       } else {
-        return "static/components/" + node.type + "/" + node.type + ".html";
+        return $sce.trustAsResourceUrl("static/components/" + node.type + "/" + node.type + ".html");
       }
     };
 

@@ -1,6 +1,7 @@
+'use strict';
+
 // Karma configuration
 // Generated on Thu May 08 2014 14:59:13 GMT+0200 (CEST)
-
 module.exports = function(config) {
   config.set({
 
@@ -15,9 +16,10 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      '../../../../manuskript/static/bower_components/angular/angular.js',
-      '../../../../manuskript/static/bower_components/angular-mocks/angular-mocks.js',
+      '../../../../../manuskript/static/bower_components/angular/angular.js',
+      '../../../../../manuskript/static/bower_components/angular-mocks/angular-mocks.js',
       '*.js',
+      'components/**/*.js',
       'tests/*.js',
 
       // fixtures

@@ -19,3 +19,21 @@
     font-size: 70%;
     color: #999;
 }
+
+.runplugin .freeFormat {
+    font-family: monospace;
+    white-space: pre;
+}
+
+.runplugin .interactiveTableCell, .runplugin .freeFormatArgument {
+    background-color: #efefef;
+}
+
+.runplugin .interactiveTableCell:hover, .runplugin .freeFormatArgument:hover {
+    background-color: #cecece;
+}
+
+.runplugin ul.context-menu {
+    position: absolute;
+    display: block;
+}
