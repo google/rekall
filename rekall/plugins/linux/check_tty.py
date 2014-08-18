@@ -47,8 +47,7 @@ class CheckTTY(common.LinuxPlugin):
         drivers_list = self.profile.get_constant_object(
             "tty_drivers", target="list_head", vm=self.kernel_address_space)
 
-        lsmod = self.session.plugins.lsmod(session=self.session)
-
+        resolver = self.session.address_resolver
         for driver in drivers_list.list_of_type("tty_driver", "tty_drivers"):
             for tty in driver.ttys:
                 if not tty:
@@ -58,13 +57,13 @@ class CheckTTY(common.LinuxPlugin):
                 # inside the tty driver.
                 recv_buf = tty.ldisc.ops.receive_buf
 
-                yield tty.name, recv_buf, lsmod.ResolveSymbolName(recv_buf)
+                yield tty.name, recv_buf, resolver.format_address(recv_buf)
 
     def render(self, renderer):
         renderer.table_header([
-                ("Name", "name", "<16"),
-                ("Address", "address", "[addrpad]"),
-                ("Symbol", "symbol", "<30")])
+            ("Name", "name", "<16"),
+            ("Address", "address", "[addrpad]"),
+            ("Symbol", "symbol", "<30")])
 
         for name, call_addr, sym_name in self.CheckTTYs():
             renderer.table_row(name, call_addr, sym_name or "Unknown",

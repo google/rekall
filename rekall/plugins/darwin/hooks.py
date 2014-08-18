@@ -28,12 +28,12 @@ class DarwinNotifiers(common.DarwinPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-                ("Notify Type", "notify_type", "25"),
-                ("Handler", "handler", "[addrpad]"),
-                ("Match Key", "match_key", "20"),
-                ("Match Value", "match_value", "30"),
-                ("Symbol", "symbol", "20"),
-                ])
+            ("Notify Type", "notify_type", "25"),
+            ("Handler", "handler", "[addrpad]"),
+            ("Match Key", "match_key", "20"),
+            ("Match Value", "match_value", "30"),
+            ("Symbol", "symbol", "20"),
+            ])
 
         gnotifications = self.profile.get_constant_cpp_object(
             "gNotifications",
@@ -43,13 +43,12 @@ class DarwinNotifiers(common.DarwinPlugin):
                 )
             )
 
-        lsmod = self.session.plugins.lsmod(session=self.session)
-
+        resolver = self.session.address_resolver
         # The notification dictionary contains sets of _IOServiceNotifier
         # handlers.
         for key, value in gnotifications.items("OSOrderedSet"):
             for notifier in value.list_of_type("_IOServiceNotifier"):
-                symbol = lsmod.ResolveSymbolName(notifier.handler)
+                symbol = resolver.format_address(notifier.handler)
 
                 for match_key, match_value in notifier.matching.items(
                     "OSString"):

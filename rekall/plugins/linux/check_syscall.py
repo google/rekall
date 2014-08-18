@@ -135,9 +135,10 @@ class CheckSyscall(common.LinuxPlugin):
                     )
                 )
 
+            resolver = self.session.address_resolver
             for i, entry in enumerate(table):
                 yield (table_name, i, entry,
-                       lsmod.ResolveSymbolName(entry.deref()))
+                       resolver.format_address(entry.deref()))
 
     def render(self, renderer):
         renderer.table_header([

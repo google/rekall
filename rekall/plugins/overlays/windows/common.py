@@ -650,7 +650,7 @@ class _POOL_HEADER(obj.Struct):
         return size_of_obj
 
     def end(self):
-        return self.obj_offset + self.size()
+        return self.obj_offset + self.obj_size
 
     def GetObject(self, type=None):
         """Return the first object header found."""
@@ -666,7 +666,7 @@ class _POOL_HEADER(obj.Struct):
 
         # Operate on a cached version of the next page.
         # We use a temporary buffer for the object to save reads of the image.
-        cached_data = self.obj_vm.read(self.obj_offset + self.size(),
+        cached_data = self.obj_vm.read(self.obj_offset + self.obj_size,
                                        allocation_size)
         cached_vm = addrspace.BufferAddressSpace(
             data=cached_data, session=self.obj_session)
@@ -696,7 +696,7 @@ class _POOL_HEADER(obj.Struct):
                     continue
 
                 yield self.obj_profile._OBJECT_HEADER(
-                    offset=i + self.obj_offset + self.size(),
+                    offset=i + self.obj_offset + self.obj_size,
                     vm=self.obj_vm, parent=self)
 
     @property
@@ -884,7 +884,8 @@ class _OBJECT_HEADER(obj.Struct):
             struct_name, offset=self.obj_offset - header_offset,
             vm=self.obj_vm, parent=self)
 
-    def size(self):
+    @property
+    def obj_size(self):
         """The size of the object header is actually the position of the Body
         element."""
         return self.obj_profile.get_obj_offset("_OBJECT_HEADER", "Body")

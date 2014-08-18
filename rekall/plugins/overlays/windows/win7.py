@@ -278,7 +278,7 @@ class _POOL_HEADER(common._POOL_HEADER):
 
         # Operate on a cached version of the next page.
         # We use a temporary buffer for the object to save reads of the image.
-        cached_data = self.obj_vm.read(self.obj_offset + self.size(),
+        cached_data = self.obj_vm.read(self.obj_offset + self.obj_size,
                                        allocation_size)
         cached_vm = addrspace.BufferAddressSpace(
             data=cached_data, session=self.obj_session)
@@ -321,7 +321,7 @@ class _POOL_HEADER(common._POOL_HEADER):
                     continue
 
                 yield self.obj_profile._OBJECT_HEADER(
-                    offset=i + self.obj_offset + self.size(),
+                    offset=i + self.obj_offset + self.obj_size,
                     vm=self.obj_vm, parent=self)
 
 

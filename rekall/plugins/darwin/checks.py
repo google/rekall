@@ -41,10 +41,10 @@ class DarwinCheckSysCalls(common.DarwinPlugin):
             )
 
         # Resolve which kernel module or symbol the entry point is to.
-        lsmod = self.session.plugins.lsmod(session=self.session)
+        resolver = self.session.address_resolver
         for entry in sysenter:
             call = entry.sy_call.deref()
-            yield entry, call, lsmod.ResolveSymbolName(call)
+            yield entry, call, resolver.format_address(call)
 
     def render(self, renderer):
         renderer.table_header(
@@ -58,10 +58,10 @@ class DarwinCheckSysCalls(common.DarwinPlugin):
 
 
 class OIDInfo(object):
-    def __init__(self, oidp, names=[], numbers=[]):
+    def __init__(self, oidp, names=None, numbers=None):
         self.oidp = oidp
-        self._names = names
-        self._numbers = numbers
+        self._names = names or []
+        self._numbers = numbers or []
         self.handler = None
 
     def __iter__(self):
@@ -174,10 +174,10 @@ class DarwinSysctl(common.DarwinPlugin):
              ("Module", "symbol", "30"),
              ("Value", "value", "")])
 
-        lsmod = self.session.plugins.lsmod(session=self.session)
+        resolver = self.session.address_resolver
 
         for oid in self.CheckSysctl():
-            handler = lsmod.ResolveSymbolName(oid.oidp.oid_handler)
+            handler = resolver.format_address(oid.oidp.oid_handler)
 
             # Format the value nicely.
             value = oid.arg
@@ -229,16 +229,14 @@ class CheckTrapTable(common.DarwinPlugin):
             offset = 8
 
         self.profile.add_types({
-                "mach_trap": [16, {
-                        "mach_trap_function": [offset, ["Pointer", dict(
-                                    target="Function"
-                                    )]]
-                        }],
-                })
+            "mach_trap": [16, {
+                "mach_trap_function": [offset, ["Pointer", dict(
+                    target="Function"
+                    )]]
+                }],
+            })
 
     def CheckTrapTables(self):
-        lsmod = self.session.plugins.lsmod(session=self.session)
-
         # The trap table is simply an array of pointers to functions.
         table = self.profile.get_constant_object(
             "_mach_trap_table",
@@ -250,16 +248,17 @@ class CheckTrapTable(common.DarwinPlugin):
                 )
             )
 
+        resolver = self.session.address_resolver
         for i, entry in enumerate(table):
             call = entry.mach_trap_function.deref()
-            yield i, entry, call, lsmod.ResolveSymbolName(call)
+            yield i, entry, call, resolver.format_address(call)
 
     def render(self, renderer):
         renderer.table_header([
-                ("Index", "index", "[addr]"),
-                ("Address", "address", "[addrpad]"),
-                ("Target", "target", "[addrpad]"),
-                ("Symbol", "symbol", "<30")])
+            ("Index", "index", "[addr]"),
+            ("Address", "address", "[addrpad]"),
+            ("Target", "target", "[addrpad]"),
+            ("Symbol", "symbol", "<30")])
 
         for i, entry, call, sym_name in self.CheckTrapTables():
             renderer.table_row(i, entry, call, sym_name or "Unknown",

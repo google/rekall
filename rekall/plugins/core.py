@@ -767,14 +767,9 @@ class Dump(plugin.Command):
         for offset, hexdata, translated_data in utils.Hexdump(
             data, width=self.width):
 
-            nearest_offset, name = resolver.get_nearest_constant_by_address(
-                offset + self.offset)
-
-            relative_offset = offset + self.offset - nearest_offset
-            if relative_offset < 10:
-                comment = "%s + %s" % (name, relative_offset)
-            else:
-                comment = ""
+            # Add a symbol name for the start of each row.
+            comment = resolver.format_address(
+                offset+self.offset, max_distance=10)
 
             renderer.table_row(self.offset + offset, hexdata,
                                "".join(translated_data), comment)

@@ -52,8 +52,8 @@ class SentinelArray(obj.Array):
     def __iter__(self):
         """Break when the sentinel is reached."""
         for member in super(SentinelArray, self).__iter__():
-            data = member.obj_vm.read(member.obj_offset, member.size())
-            if data == "\x00" * member.size():
+            data = member.obj_vm.read(member.obj_offset, member.obj_size)
+            if data == "\x00" * member.obj_size:
                 break
 
             yield member
@@ -134,7 +134,7 @@ def AlignAfter(name):
     """
     def get_offset(x):
         x = getattr(x, name)
-        end_of_object = x.obj_offset + x.size()
+        end_of_object = x.obj_offset + x.obj_size
 
         return RoundUpToWordAlignment(end_of_object)
 

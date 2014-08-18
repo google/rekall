@@ -47,7 +47,7 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
         # Check the file for sanity.
         self.check_file()
 
-        file_offset = self.header.size()
+        file_offset = self.header.obj_size
 
         for run in self.header.PhysicalMemoryBlockBuffer.Run:
             self.runs.insert((int(run.BasePage) * self.PAGE_SIZE,
@@ -173,7 +173,7 @@ class WindowsCrashBMP(addrspace.RunBasedAddressSpace):
         self.bmp_header = self.header.BMPHeader
         PAGE_SIZE = 0x1000
 
-        # The first page is located immediately after the header.
+        # First run [Physical Offset, File Offset, Run length]
         first_page = self.bmp_header.FirstPage.v()
         last_run = [0, first_page, 0]
 
@@ -183,7 +183,7 @@ class WindowsCrashBMP(addrspace.RunBasedAddressSpace):
                     last_run[2] += PAGE_SIZE
 
                 else:
-                    # Dump the last run only if it is non zero.
+                    # Dump the last run only if it has non zero length.
                     if last_run[2] > 0:
                         self.runs.insert(last_run)
 

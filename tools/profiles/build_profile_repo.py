@@ -38,7 +38,6 @@ If that file does not exist.
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import argparse
-import logging
 import json
 import gzip
 import pdb
@@ -60,6 +59,12 @@ PARSER.add_argument('path_to_guids',
 
 PARSER.add_argument('--rebuild', default=False, action='store_true',
                     help='Rebuild all profiles.')
+
+PARSER.add_argument('--index', default=False, action='store_true',
+                    help='Rebuild all indexes.')
+
+PARSER.add_argument('--inventory', default=False, action='store_true',
+                    help='Rebuild repository inventory.')
 
 PARSER.add_argument('--generate_help', default=False, action='store_true',
                     help='Regenerate the help profile')
@@ -109,7 +114,7 @@ def BuildProfile(pdb_filename, profile_path, metadata):
         os.unlink(profile_path)
 
 
-def BuildAllProfiles(guidfile_path, rebuild=False):
+def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
     changed_files = set()
     pool = multiprocessing.Pool(NUMBER_OF_CORES)
     for line in open(guidfile_path):
@@ -148,6 +153,9 @@ def BuildAllProfiles(guidfile_path, rebuild=False):
             pool.apply_async(
                 BuildProfile,
                 (pdb_out_filename, profile_path, metadata))
+
+        if reindex:
+            changed_files.add(PDB_TO_SYS[pdb_filename])
 
     # Wait here until all the pool workers are done.
     pool.close()
@@ -203,19 +211,23 @@ def RebuildInventory():
                 file_modified_time = os.stat(path).st_mtime
                 try:
                     last_modified = old_inventory[profile_name]["LastModified"]
+
                     # If the current file is not fresher than the old file, we
                     # just copy the metadata from the old profile.
                     if file_modified_time >= last_modified:
                         inventory[profile_name] = old_inventory[profile_name]
+                        continue
 
                 except KeyError:
-                    session.report_progress("Adding %s to inventory", path)
-                    with gzip.GzipFile(filename=path, mode="rb") as fd:
-                        data = json.load(fd)
+                    pass
 
-                        inventory[profile_name] = data["$METADATA"]
-                        inventory[profile_name][
-                            "LastModified"] = file_modified_time
+                session.report_progress("Adding %s to inventory", path)
+                with gzip.GzipFile(filename=path, mode="rb") as fd:
+                    data = json.load(fd)
+
+                    inventory[profile_name] = data["$METADATA"]
+                    inventory[profile_name][
+                        "LastModified"] = file_modified_time
 
 
     with gzip.GzipFile(filename="inventory.gz", mode="wb") as outfd:
@@ -227,7 +239,12 @@ def main():
     renderer = session.GetRenderer()
     renderer.start()
 
-    changes = BuildAllProfiles(FLAGS.path_to_guids, rebuild=FLAGS.rebuild)
+    if FLAGS.inventory:
+        RebuildInventory()
+        return
+
+    changes = BuildAllProfiles(FLAGS.path_to_guids, rebuild=FLAGS.rebuild,
+                               reindex=FLAGS.index)
 
     # If the files have changed, rebuild the indexes.
     for change in changes:

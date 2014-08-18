@@ -66,13 +66,11 @@ class SetProcessContext(common.WinProcessFilter):
         losing its current state and makes switching contexts much faster.
         """
         self.process_context = self.session.GetParameter("process_context")
-        self.address_resolver_state = self.session.address_resolver.GetState()
         return self
 
     def __exit__(self, unused_type, unused_value, unused_traceback):
         # Restore the process context.
         self.SwitchProcessContext(self.process_context)
-        self.session.address_resolver.SetState(self.address_resolver_state)
 
     def SwitchProcessContext(self, process=None):
         if process is None:
@@ -89,7 +87,6 @@ class SetProcessContext(common.WinProcessFilter):
                 process.get_process_address_space() or None)
 
         # Reset the address resolver for the new context.
-        self.session.address_resolver.SwitchContext(process)
         self.session.SetParameter("process_context", process)
         logging.debug(message)
 

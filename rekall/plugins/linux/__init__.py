@@ -1,3 +1,7 @@
+# Load the linux modules.
+# pylint: disable=unused-import
+
+from rekall.plugins.linux import address_resolver
 from rekall.plugins.linux import arp
 from rekall.plugins.linux import bash
 from rekall.plugins.linux import check_afinfo

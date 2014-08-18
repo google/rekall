@@ -53,9 +53,10 @@ class CpuInfo(common.LinuxPlugin):
             raise AttributeError("Unable to determine number of online CPUs "
                                  "for memory capture")
 
-        bmap = self.profile.Object("unsigned long", offset=cpus, vm=self.kernel_address_space)
+        bmap = self.profile.Object(
+            "unsigned long", offset=cpus, vm=self.kernel_address_space)
 
-        for i in xrange(0, bmap.size()):
+        for i in xrange(0, bmap.obj_size):
             if bmap & (1 << i):
                 yield i
 

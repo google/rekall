@@ -69,7 +69,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
         super(PEInfo, self).__init__(**kwargs)
         if executable is None:
             # Resolve the correct address space. This allows the address space
-            # to be specified from the command line (e.g.
+            # to be specified from the command line (e.g. "P")
             load_as = self.session.plugins.load_as(session=self.session)
             address_space = load_as.ResolveAddressSpace(address_space)
 
@@ -135,10 +135,22 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
         if self.verbosity >= 1:
             renderer.format("\nImport Directory (Original):\n")
             renderer.table_header([('Name', 'name', '<50'),
+                                   ('Mapped Function', 'function', '60'),
                                    ('Ord', 'ord', '5')])
 
-            for dll, name, ordinal in self.pe_helper.ImportDirectory():
-                renderer.table_row(u"%s!%s" % (dll, name or ""), ordinal)
+            resolver = self.session.address_resolver
+            # Merge the results from both the Import table and the
+            # IAT. Sometimes the original Import Table is no longer mapped into
+            # memory (since its usually only used by the loader in order to
+            # build the IAT). In this case we can show something sensible using
+            # the address resolver.
+            for (dll, name, ordinal), (_, func, _) in zip(
+                self.pe_helper.ImportDirectory(),
+                self.pe_helper.IAT()):
+                renderer.table_row(
+                    u"%s!%s" % (dll, name or ""),
+                    resolver.format_address(func.v()),
+                    ordinal)
 
             if self.verbosity >= 2:
                 renderer.format("\nImport Address Table:\n")

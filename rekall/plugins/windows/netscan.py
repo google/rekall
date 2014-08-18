@@ -113,7 +113,7 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
             address_space=self.address_space)
 
         for pool_obj in scanner.scan():
-            pool_header_end = pool_obj.obj_offset + pool_obj.size()
+            pool_header_end = pool_obj.obj_offset + pool_obj.obj_size
             tcpentry = self.tcpip_profile._TCP_LISTENER(
                 vm=self.address_space, offset=pool_header_end)
 
@@ -135,7 +135,7 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
             address_space=self.address_space)
 
         for pool_obj in scanner.scan():
-            pool_header_end = pool_obj.obj_offset + pool_obj.size()
+            pool_header_end = pool_obj.obj_offset + pool_obj.obj_size
             tcpentry = self.tcpip_profile._TCP_ENDPOINT(
                 vm=self.address_space, offset=pool_header_end)
 
@@ -168,7 +168,7 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
             address_space=self.address_space)
 
         for pool_obj in scanner.scan():
-            pool_header_end = pool_obj.obj_offset + pool_obj.size()
+            pool_header_end = pool_obj.obj_offset + pool_obj.obj_size
             udpentry = self.tcpip_profile._UDP_ENDPOINT(
                 vm=self.address_space, offset=pool_header_end)
 

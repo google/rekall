@@ -244,7 +244,7 @@ class PointerScanner(BaseScanner):
             tmp = self.profile.address()
             tmp.write(address)
 
-            self.needles.append(tmp.obj_vm.read(0, tmp.size()))
+            self.needles.append(tmp.obj_vm.read(0, tmp.obj_size))
 
         # The common string between all the needles.
         self.checks = [

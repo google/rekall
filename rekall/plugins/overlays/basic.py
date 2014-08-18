@@ -114,7 +114,8 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         """Set up mappings for reverse concat"""
         return other + str(self)
 
-    def size(self):
+    @property
+    def obj_size(self):
         """This is equivalent to strlen()."""
         # The length is really determined by the terminator here.
         return len(self.v())
@@ -179,7 +180,8 @@ class UnicodeString(String):
         return "%s (%s%s)" % (super(UnicodeString, self).__repr__(),
                               value, elide)
 
-    def size(self):
+    @property
+    def obj_size(self):
         return len(self.v()) * 2
         # This will only work if the encoding and decoding are equivalent.
         # return len(self.v().encode(self.encoding, 'ignore'))
@@ -207,8 +209,9 @@ class Flags(obj.NativeType):
             target, offset=self.obj_offset, vm=self.obj_vm,
             context=self.obj_context, **(target_args or {}))
 
-    def size(self):
-        return self.target_obj.size()
+    @property
+    def obj_size(self):
+        return self.target_obj.obj_size
 
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
@@ -292,8 +295,9 @@ class Enumeration(obj.NativeType):
                 vm=self.obj_vm, context=self.obj_context,
                 **(target_args or {}))
 
-    def size(self):
-        return self.target_obj.size()
+    @property
+    def obj_size(self):
+        return self.target_obj.obj_size
 
     def is_valid(self):
         return str(self.v()) in self.choices

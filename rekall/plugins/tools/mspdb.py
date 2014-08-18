@@ -272,170 +272,170 @@ SYM_ENUM_TO_SYM = dict(
 mspdb_overlays = {
     # The file header. We only support newer versions.
     "_PDB_HEADER_700": [None, {
-            "abSignature": [None, ["Signature", dict(
-                        value="Microsoft C/C++ MSF 7.00\r\n\x1ADS\0\0\0"
-                        )]],
+        "abSignature": [None, ["Signature", dict(
+            value="Microsoft C/C++ MSF 7.00\r\n\x1ADS\0\0\0"
+            )]],
 
-            # Total number of pages in the root stream.
-            "root_pages": lambda x: Pages(x.dRootBytes, x.dPageBytes),
+        # Total number of pages in the root stream.
+        "root_pages": lambda x: Pages(x.dRootBytes, x.dPageBytes),
 
-            # This is an array of page indexes which make up the page list of
-            # the root stream.
-            "adIndexPages": [None, ["Array", dict(
-                        target="unsigned int",
-                        # The root page list is stored in the index stream. Each
-                        # page index is 4 bytes.
-                        count=lambda x: Pages(4 * x.root_pages, x.dPageBytes),
-                        )]],
-            }],
+        # This is an array of page indexes which make up the page list of
+        # the root stream.
+        "adIndexPages": [None, ["Array", dict(
+            target="unsigned int",
+            # The root page list is stored in the index stream. Each
+            # page index is 4 bytes.
+            count=lambda x: Pages(4 * x.root_pages, x.dPageBytes),
+            )]],
+        }],
 
     # The header of the root stream (This applies once we reconstruct the root
     # stream). It defines the page indexes of all the streams in this file.
     "_PDB_ROOT_700": [lambda x: (x.dStreams + 1) * 4, {
-            "adStreamBytes": [None, ["Array", dict(
-                        count=lambda x: x.dStreams,
-                        target="unsigned int",
-                        )]],
-            }],
+        "adStreamBytes": [None, ["Array", dict(
+            count=lambda x: x.dStreams,
+            target="unsigned int",
+            )]],
+        }],
 
     # A modifier adds some flags to its modified_type.
     "_lfModifier": [None, {
-            "modified_type": [2, ["unsigned int"]],
-            "modifier": [6, ["Flags", dict(
-                        bitmap=dict(
-                            unaligned=2,
-                            volatile=1,
-                            const=0
-                            ),
-                        target="unsigned short int",
-                        )]],
-            }],
+        "modified_type": [2, ["unsigned int"]],
+        "modifier": [6, ["Flags", dict(
+            bitmap=dict(
+                unaligned=2,
+                volatile=1,
+                const=0
+                ),
+            target="unsigned short int",
+            )]],
+        }],
 
     # The size of the SubRecord itself is the size of the value. (ie. depends on
     # the _LEAF_ENUM_e). We must calculate the exact size because SubRecords (of
     # variable size) are stored back to back in the lfFieldList.
-    "_lfSubRecord": [lambda x: x.value.size(), {
-            "leaf": [None, ["Enumeration", dict(
-                        enum_name="_LEAF_ENUM_e",
-                        target="unsigned short int")]],
+    "_lfSubRecord": [lambda x: x.value.obj_size, {
+        "leaf": [None, ["Enumeration", dict(
+            enum_name="_LEAF_ENUM_e",
+            target="unsigned short int")]],
 
-            # This psuedo value automatically selects the correct member of the
-            # union based on the leaf value.
-            "value": lambda x: x.m(
-                LEAF_ENUM_TO_SUBRECORD.get(str(x.leaf), ""))
-            }],
+        # This psuedo value automatically selects the correct member of the
+        # union based on the leaf value.
+        "value": lambda x: x.m(
+            LEAF_ENUM_TO_SUBRECORD.get(str(x.leaf), ""))
+        }],
 
     "_lfEnum": [None, {
-            # The name of the enum element.
-            "Name": [None, ["String"]],
-            }],
+        # The name of the enum element.
+        "Name": [None, ["String"]],
+        }],
 
     "_lfNestType": [None, {
-            # The name of the enum element.
-            "Name": [None, ["String"]],
-            }],
+        # The name of the enum element.
+        "Name": [None, ["String"]],
+        }],
 
     # A lfFieldList holds a back to back variable length array of SubRecords.
     "_lfFieldList": [None, {
-            "SubRecord": [None, ["ListArray", dict(
-                        target="_lfSubRecord",
+        "SubRecord": [None, ["ListArray", dict(
+            target="_lfSubRecord",
 
-                        # Total length is determined by the size of the
-                        # container.
-                        maximum_size=lambda x: x.obj_parent.length - 2,
-                        )]],
-            }],
+            # Total length is determined by the size of the
+            # container.
+            maximum_size=lambda x: x.obj_parent.length - 2,
+            )]],
+        }],
 
     # Arg list for a function.
     "_lfArgList": [None, {
-            # This is a list of _TYPE_ENUM_e, or an index reference into the TPI
-            # stream.
-            "arg": [None, ["Array", dict(
-                        target="Enumeration",
-                        target_args=dict(
-                            enum_name="_TYPE_ENUM_e",
-                            target="unsigned short int",
-                            ),
-                        count=lambda x: x.count
-                        )]],
-            }],
+        # This is a list of _TYPE_ENUM_e, or an index reference into the TPI
+        # stream.
+        "arg": [None, ["Array", dict(
+            target="Enumeration",
+            target_args=dict(
+                enum_name="_TYPE_ENUM_e",
+                target="unsigned short int",
+                ),
+            count=lambda x: x.count
+            )]],
+        }],
 
     # A helper type to select the correct implementation.
     "TypeContainer": [lambda x: x.length+2, {
-            "length": [0, ["unsigned short int"]],
+        "length": [0, ["unsigned short int"]],
 
-            # Depending on the value of this enum, this field must be cast to
-            # the correct struct.
-            "type_enum": [2, ["Enumeration", dict(
-                        enum_name="_LEAF_ENUM_e",
-                        target="unsigned short int"
-                        )]],
+        # Depending on the value of this enum, this field must be cast to
+        # the correct struct.
+        "type_enum": [2, ["Enumeration", dict(
+            enum_name="_LEAF_ENUM_e",
+            target="unsigned short int"
+            )]],
 
-            # Depending on the enumeration above, the type_enum field must be
-            # cast into one of these structs.
-            "type": lambda x: x.type_enum.cast(
-                LEAF_ENUM_TO_TYPE.get(str(x.type_enum), "unsigned int"))
-            }],
+        # Depending on the enumeration above, the type_enum field must be
+        # cast into one of these structs.
+        "type": lambda x: x.type_enum.cast(
+            LEAF_ENUM_TO_TYPE.get(str(x.type_enum), "unsigned int"))
+        }],
 
     # This is the TPI stream header. It is followed by a list of TypeContainers
     # for all the types in this stream.
     "_HDR": [None, {
-            "types": [lambda x: x.size(),
-                      ["ListArray", dict(
-                        target="TypeContainer",
-                        count=lambda x: x.tiMac - x.tiMin,
-                        maximum_size=lambda x: x.cbGprec,
-                        )]],
-            }],
+        "types": [lambda x: x.obj_size,
+                  ["ListArray", dict(
+                      target="TypeContainer",
+                      count=lambda x: x.tiMac - x.tiMin,
+                      maximum_size=lambda x: x.cbGprec,
+                      )]],
+        }],
 
     "_GUID": [16, {
-            "Data1": [0, ["unsigned long", {}]],
-            "Data2": [4, ["unsigned short", {}]],
-            "Data3": [6, ["unsigned short", {}]],
-            "Data4": [8, ["String", dict(length=8, term=None)]],
-            "AsString": lambda x: ("%08x%04x%04x%s" % (
-                x.Data1, x.Data2, x.Data3, str(x.Data4).encode('hex'))).upper(),
-            }],
+        "Data1": [0, ["unsigned long", {}]],
+        "Data2": [4, ["unsigned short", {}]],
+        "Data3": [6, ["unsigned short", {}]],
+        "Data4": [8, ["String", dict(length=8, term=None)]],
+        "AsString": lambda x: ("%08x%04x%04x%s" % (
+            x.Data1, x.Data2, x.Data3, str(x.Data4).encode('hex'))).upper(),
+        }],
 
     "Info": [None, {
-            "Version": [0, ["unsigned long int"]],
-            "TimeDateStamp": [4, ["UnixTimeStamp"]],
-            "Age": [8, ["unsigned long int"]],
-            "GUID": [12, ["_GUID"]],
-            }],
+        "Version": [0, ["unsigned long int"]],
+        "TimeDateStamp": [4, ["UnixTimeStamp"]],
+        "Age": [8, ["unsigned long int"]],
+        "GUID": [12, ["_GUID"]],
+        }],
 
     # The record length does not include the tag.
     "_ALIGNSYM": [lambda x: x.reclen+2, {
-            "rectyp": [None, ["Enumeration", dict(
-                        enum_name="_SYM_ENUM_e",
-                        target="unsigned short int")]],
+        "rectyp": [None, ["Enumeration", dict(
+            enum_name="_SYM_ENUM_e",
+            target="unsigned short int")]],
 
-            # The real record type depends on the _SYM_ENUM_e.
-            "value": lambda x: x.cast(
-                SYM_ENUM_TO_SYM.get(str(x.rectyp), ""))
+        # The real record type depends on the _SYM_ENUM_e.
+        "value": lambda x: x.cast(
+            SYM_ENUM_TO_SYM.get(str(x.rectyp), ""))
 
-            }],
+        }],
 
     "_PUBSYM32": [None, {
-            "name": [None, ["String"]],
-            }],
+        "name": [None, ["String"]],
+        }],
 
     "DBI": [None, {
-            "DBIHdr": [0, ["_NewDBIHdr"]],
-            "ExHeaders": [64, ["ListArray", dict(
-                        maximum_size=lambda x: x.DBIHdr.cbGpModi,
-                        target="DBIExHeaders")]],
-            }],
+        "DBIHdr": [0, ["_NewDBIHdr"]],
+        "ExHeaders": [64, ["ListArray", dict(
+            maximum_size=lambda x: x.DBIHdr.cbGpModi,
+            target="DBIExHeaders")]],
+        }],
 
     "DBIExHeaders": [None, {
-            "modName": [64, ["String"]],
-            "objName": [lambda x: x.modName.obj_offset + x.modName.size(),
-                        ["String"]],
-            }],
+        "modName": [64, ["String"]],
+        "objName": [lambda x: x.modName.obj_offset + x.modName.obj_size,
+                    ["String"]],
+        }],
 
     "IMAGE_SECTION_HEADER": [None, {
-            "Name": [None, ["String"]],
-            }],
+        "Name": [None, ["String"]],
+        }],
 
     }
 
@@ -449,7 +449,8 @@ class lfClass(obj.Struct):
         super(lfClass, self).__init__(**kwargs)
         self._DecodeVariableData()
 
-    def size(self):
+    @property
+    def obj_size(self):
         """Our size is the end of the object plus any padding."""
         return pe_vtypes.RoundUpToWordAlignment(
             self.obj_end - self.obj_offset)
@@ -471,18 +472,18 @@ class lfClass(obj.Struct):
         parsing all the components.
         """
 
-        obj_end = self.obj_offset + super(lfClass, self).size()
+        obj_end = self.obj_offset + super(lfClass, self).obj_size
         field_type = self.obj_profile.Object(
             "unsigned short int", offset=obj_end, vm=self.obj_vm)
 
-        obj_end += field_type.size()
+        obj_end += field_type.obj_size
 
         if field_type < 0x8000:
             self.value_ = field_type
             self.name = self.obj_profile.String(
                 offset=obj_end, vm=self.obj_vm)
 
-            obj_end += self.name.size()
+            obj_end += self.name.obj_size
 
         else:
             # The field type is an LF_ENUM which determines which struct this
@@ -497,10 +498,10 @@ class lfClass(obj.Struct):
 
             # The name follows the value.
             self.name = self.obj_profile.String(
-                offset=self.value_.obj_offset + self.value_.size(),
+                offset=self.value_.obj_offset + self.value_.obj_size,
                 vm=self.obj_vm)
 
-            obj_end += self.value_.size() + self.name.size()
+            obj_end += self.value_.obj_size + self.name.obj_size
 
         # Record the end of the object
         self._obj_end = obj_end
@@ -552,10 +553,11 @@ class lfNestType(obj.Struct):
         if m:
             self.name = m.group(1)
 
-    def size(self):
+    @property
+    def obj_size(self):
         """Our size is the end of the object plus any padding."""
         return pe_vtypes.RoundUpToWordAlignment(
-            self.Name.obj_offset + self.Name.size())
+            self.Name.obj_offset + self.Name.obj_size)
 
     def Definition(self, tpi):
         return tpi.DefinitionByIndex(self.index)
@@ -614,8 +616,9 @@ class lfPointer(lfClass):
         target, target_args = tpi.DefinitionByIndex(target_index)
 
         return ["Pointer", dict(
-                target=target,
-                target_args=target_args)]
+            target=target,
+            target_args=target_args
+            )]
 
 
 class lfProc(lfClass):
@@ -646,9 +649,9 @@ class lfArray(lfClass):
         # of the elements. The post processing step will convert the size into a
         # count.
         definition = ["Array", dict(
-                target=target, target_args=target_args,
-                size=int(self.value_),
-                )]
+            target=target, target_args=target_args,
+            size=int(self.value_),
+            )]
 
         tpi.RegisterFixUp(definition)
 
@@ -684,7 +687,7 @@ class _PDB_ROOT_700(obj.Struct):
 
     def _GetStreams(self):
         """Read all the streams in the file."""
-        offset_of_index_list = self.obj_offset + self.size()
+        offset_of_index_list = self.obj_offset + self.obj_size
         page_size = self.obj_context["page_size"]
 
         for stream_size in self.adStreamBytes:
@@ -696,7 +699,7 @@ class _PDB_ROOT_700(obj.Struct):
                 count=Pages(stream_size, page_size),
                 target="unsigned int")
 
-            offset_of_index_list += page_list.size()
+            offset_of_index_list += page_list.obj_size
 
             yield StreamBasedAddressSpace(
                 base=self.obj_vm.base, page_size=page_size,
@@ -710,9 +713,10 @@ class _PDB_ROOT_700(obj.Struct):
 
 
 class DBIExHeaders(obj.Struct):
-    def size(self):
+    @property
+    def obj_size(self):
         return (pe_vtypes.RoundUpToWordAlignment(
-                self.objName.obj_offset + self.objName.size()) -
+                self.objName.obj_offset + self.objName.obj_size) -
                 self.obj_offset)
 
 
@@ -722,7 +726,7 @@ class DBI(obj.Struct):
         # Skip over all these sections which we dont care about until we get to
         # the debug header at the end.
         header_offset = (self.obj_offset +
-                         DBIHdr.size() +
+                         DBIHdr.obj_size +
                          DBIHdr.cbGpModi +
                          DBIHdr.cbSC +
                          DBIHdr.cbSecMap +
@@ -750,16 +754,16 @@ class PDBProfile(basic.Profile32Bits, basic.BasicClasses):
         super(PDBProfile, self).__init__(**kwargs)
         self.add_overlay(mspdb_overlays)
         self.add_classes({
-                "_PDB_HEADER_700": _PDB_HEADER_700,
-                "_PDB_ROOT_700": _PDB_ROOT_700,
-                "_lfClass": lfClass, "_lfArray": lfArray,
-                "_lfMember": lfMember, "_lfPointer": lfPointer,
-                "_lfProc": lfProc, "_lfEnum": lfEnum,
-                "_lfModifier": lfModifier, "_lfUnion": lfUnion,
-                "_lfBitfield": lfBitfield, "_lfEnumerate": lfEnumerate,
-                "_lfNestType": lfNestType, "DBIExHeaders": DBIExHeaders,
-                "DBI": DBI
-                })
+            "_PDB_HEADER_700": _PDB_HEADER_700,
+            "_PDB_ROOT_700": _PDB_ROOT_700,
+            "_lfClass": lfClass, "_lfArray": lfArray,
+            "_lfMember": lfMember, "_lfPointer": lfPointer,
+            "_lfProc": lfProc, "_lfEnum": lfEnum,
+            "_lfModifier": lfModifier, "_lfUnion": lfUnion,
+            "_lfBitfield": lfBitfield, "_lfEnumerate": lfEnumerate,
+            "_lfNestType": lfNestType, "DBIExHeaders": DBIExHeaders,
+            "DBI": DBI
+            })
 
 
 class PDBParser(object):
@@ -925,7 +929,7 @@ class PDBParser(object):
         """Parse the symbol records stream."""
         stream = self.root_stream_header.GetStream(stream_id)
         for container in self.profile.ListArray(target="_ALIGNSYM", vm=stream,
-                                             maximum_size=stream.size):
+                                                maximum_size=stream.size):
 
             if container.reclen == 0:
                 break

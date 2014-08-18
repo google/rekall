@@ -345,8 +345,12 @@ class BaseObject(object):
             raise RuntimeError("Profile must be provided")
 
     @property
+    def obj_size(self):
+        return 0
+
+    @property
     def obj_end(self):
-        return self.obj_offset + self.size()
+        return self.obj_offset + self.obj_size
 
     @property
     def parents(self):
@@ -553,17 +557,18 @@ class NativeType(NumericProxyMixIn, BaseObject):
     def __rsub__(self, other):
         return long(other) - self.v()
 
-    def size(self):
+    @property
+    def obj_size(self):
         return struct.calcsize(self.format_string)
 
     def v(self, vm=None):
         if self.value is not None:
             return self.value
 
-        data = self.obj_vm.read(self.obj_offset, self.size())
+        data = self.obj_vm.read(self.obj_offset, self.obj_size)
         if not data:
             return NoneObject("Unable to read {0} bytes from {1}".format(
-                self.size(), self.obj_offset))
+                self.obj_size, self.obj_offset))
 
         (val,) = struct.unpack(self.format_string, data)
 
@@ -605,8 +610,9 @@ class BitField(NativeType):
         self.start_bit = start_bit
         self.end_bit = end_bit
 
-    def size(self):
-        return self._proxy.size()
+    @property
+    def obj_size(self):
+        return self._proxy.obj_size
 
     def v(self, vm=None):
         i = self._proxy.v()
@@ -649,8 +655,9 @@ class Pointer(NativeType):
         self.target_size = 0
         self.kwargs = kwargs
 
-    def size(self):
-        return self._proxy.size()
+    @property
+    def obj_size(self):
+        return self._proxy.obj_size
 
     def v(self, vm=None):
         # 64 bit addresses are always sign extended so we need to clear the top
@@ -703,7 +710,8 @@ class Pointer(NativeType):
 
             return result
         else:
-            return NoneObject("Pointer {0} invalid".format(self.obj_name))
+            return NoneObject("Pointer {0} @ {1} invalid".format(
+                self.obj_name, self.v()))
 
     def __dir__(self):
         return dir(self.dereference())
@@ -736,7 +744,7 @@ class Pointer(NativeType):
         """
         # Find out our target size for pointer arithmetics.
         self.target_size = (self.target_size or
-                            self.obj_profile.Object(self.target).size())
+                            self.obj_profile.Object(self.target).obj_size)
 
         offset = self.obj_offset + int(other) * self.target_size
         if not self.obj_vm.is_valid_address(offset):
@@ -753,7 +761,7 @@ class Pointer(NativeType):
 
     def __iadd__(self, other):
         # Increment our own offset.
-        self.target_size = (self.target_size or self.target().size())
+        self.target_size = (self.target_size or self.target().obj_size)
         self.obj_offset += self.target_size * other
 
     def __repr__(self):
@@ -814,7 +822,8 @@ class Void(Pointer):
     def dereference(self, vm=None):
         return NoneObject("Void reference")
 
-    def size(self):
+    @property
+    def obj_size(self):
         logging.warning("Void objects have no size! Are you doing pointer "
                         "arithmetic on a pointer to void?")
         return 1
@@ -880,12 +889,13 @@ class Array(BaseObject):
             self.target_size = self.obj_profile.Object(
                 self.target, offset=self.obj_offset, vm=self.obj_vm,
                 profile=self.obj_profile, parent=self,
-                **self.target_args).size()
+                **self.target_args).obj_size
 
         if size > 0:
             self.count = size / self.target_size
 
-    def size(self):
+    @property
+    def obj_size(self):
         """The size of the entire array."""
         return self.target_size * self.count
 
@@ -1002,7 +1012,8 @@ class ListArray(Array):
         """It is generally too expensive to rely on the count of this array."""
         raise NotImplementedError
 
-    def size(self):
+    @property
+    def obj_size(self):
         """It is generally too expensive to rely on the size of this array."""
         raise NotImplementedError
 
@@ -1031,7 +1042,7 @@ class ListArray(Array):
                 name="{0}[{1}] ".format(self.obj_name, count),
                 **self.target_args)
 
-            item_size = item.size()
+            item_size = item.obj_size
             if item_size <= 0:
                 break
 
@@ -1126,11 +1137,12 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         considered part of the object. Note that in that case the size of the
         object includes the preamble_size - hence
 
-        object_end = obj_offset + obj.size() - obj.preamble_size()
+        object_end = obj_offset + obj_size - obj.preamble_size()
         """
         return 0
 
-    def size(self):
+    @property
+    def obj_size(self):
         if callable(self.struct_size):
             return self.struct_size(self)
 
@@ -1812,7 +1824,7 @@ class Profile(object):
     def get_obj_size(self, name):
         """Returns the size of a struct"""
         tmp = self._get_dummy_obj(name)
-        return tmp.size()
+        return tmp.obj_size
 
     def obj_has_member(self, name, member):
         """Returns whether an object has a certain member"""

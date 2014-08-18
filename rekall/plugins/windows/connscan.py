@@ -67,7 +67,7 @@ class ConnScan(tcpip_vtypes.TcpipPluginMixin,
             # The struct is allocated out of the pool (i.e. its not an object).
             yield self.tcpip_profile._TCPT_OBJECT(
                 vm=self.address_space,
-                offset=pool_obj.obj_offset + pool_obj.size())
+                offset=pool_obj.obj_offset + pool_obj.obj_size)
 
     def render(self, renderer):
         renderer.table_header([("Offset(P)", "offset_p", "[addrpad]"),

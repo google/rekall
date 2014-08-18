@@ -95,17 +95,17 @@ class Disassemble(plugin.Command):
         else:
             self.distorm_mode = distorm3.Decode64Bits
 
-        self.resolver = self.session.address_resolver
-
     def disassemble(self, offset):
         """Disassemble the number of instructions required.
 
         Returns:
           A tuple of (Address, Opcode, Instructions).
         """
+        resolver = self.session.address_resolver
+
         # Allow the offset to be specified as a symbol name.
         if isinstance(offset, basestring):
-            offset = self.resolver.get_address_by_name(offset)
+            offset = resolver.get_address_by_name(offset)
 
         # Normalize the offset to an address.
         offset = obj.Pointer.integer_to_address(offset)
@@ -143,8 +143,9 @@ class Disassemble(plugin.Command):
         target = self.session.profile.Object(
             "address", offset=operand, vm=self.address_space).v()
 
-        target_name = self.resolver.format_address(target)
-        operand_name = self.resolver.format_address(operand)
+        resolver = self.session.address_resolver
+        target_name = resolver.format_address(target)
+        operand_name = resolver.format_address(operand)
 
         if target_name:
             return "0x%x %s -> %s" % (target, operand_name, target_name)
@@ -168,7 +169,9 @@ class Disassemble(plugin.Command):
         match = self.SIMPLE_REFERENCE.search(instruction)
         if match:
             operand = int(match.group(0), 16)
-            return self.resolver.format_address(operand) or ""
+            resolver = self.session.address_resolver
+
+            return resolver.format_address(operand) or ""
 
         return ""
 
@@ -199,23 +202,26 @@ class Disassemble(plugin.Command):
         offset = 0
         for offset, size, hexdump, instruction in self.disassemble(
             self.offset):
-            (func_offset,
-             func_name) = self.resolver.get_nearest_constant_by_address(
-                offset)
+            relative = ""
+            comment = ""
 
-            if offset - func_offset == 0:
-                renderer.format("------ %s ------\n" % func_name)
+            resolver = self.session.address_resolver
+            if resolver:
+                (f_offset, f_name) = resolver.get_nearest_constant_by_address(
+                    offset)
 
-            comment = self.find_reference(offset, size, instruction)
-            relative = "%x" % (offset - func_offset)
-            if offset - func_offset > 0x1000:
-                relative = ""
+                self.session.report_progress(
+                    "Disassembled %s: 0x%x", f_name, offset)
+
+                if offset - f_offset == 0:
+                    renderer.format("------ %s ------\n" % f_name)
+
+                comment = self.find_reference(offset, size, instruction)
+                if offset - f_offset < 0x1000:
+                    relative = "%x" % (offset - f_offset)
 
             renderer.table_row(
                 offset, relative, hexdump, instruction, comment)
-
-            self.session.report_progress(
-                "Disassembled %s: 0x%x", func_name, offset)
 
         # Continue from where we left off when the user calls us again with the
         # v() plugin.

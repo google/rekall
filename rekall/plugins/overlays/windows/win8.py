@@ -51,54 +51,54 @@ win8_overlays = {
         }],
 
     '_MM_AVL_NODE': [None, {
-            'Tag': [TagOffset, ['String', dict(length=4)]],
-            }],
+        'Tag': [TagOffset, ['String', dict(length=4)]],
+        }],
 
     '_RTL_BALANCED_NODE': [None, {
-            'Tag': [TagOffset, ['String', dict(length=4)]],
-            }],
+        'Tag': [TagOffset, ['String', dict(length=4)]],
+        }],
 
     '_MMVAD_SHORT': [None, {
-            'Tag': [TagOffset, ['String', dict(length=4)]],
-            'Start': lambda x: (
-                x.StartingVpn + ((x.m("StartingVpnHigh") or 0) << 32)) << 12,
+        'Tag': [TagOffset, ['String', dict(length=4)]],
+        'Start': lambda x: (
+            x.StartingVpn + ((x.m("StartingVpnHigh") or 0) << 32)) << 12,
 
-            'End': lambda x: (
-                (x.EndingVpn + ((x.m("EndingVpnHigh") or 0) << 32))<<12)+0xFFF,
+        'End': lambda x: (
+            (x.EndingVpn + ((x.m("EndingVpnHigh") or 0) << 32))<<12)+0xFFF,
 
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.u1.VadFlags1.CommitCharge,
-            'LeftChild': lambda x: x.VadNode.Left,
-            'RightChild': lambda x: x.VadNode.Right,
-            }],
+        'Length': lambda x: x.End - x.Start + 1,
+        'CommitCharge': lambda x: x.u1.VadFlags1.CommitCharge,
+        'LeftChild': lambda x: x.VadNode.Left,
+        'RightChild': lambda x: x.VadNode.Right,
+        }],
 
     '_MMVAD': [None, {
-            'Tag': [TagOffset, ['String', dict(length=4)]],
-            'ControlArea': lambda x: x.Subsection.ControlArea,
+        'Tag': [TagOffset, ['String', dict(length=4)]],
+        'ControlArea': lambda x: x.Subsection.ControlArea,
 
-            # The following members proxy the embedded _MMVAD_SHORT in .Core.
-            'Start': lambda x: x.Core.Start,
-            'End': lambda x: x.Core.End,
-            'Length': lambda x: x.Core.Length,
-            'CommitCharge': lambda x: x.Core.CommitCharge,
-            'u': lambda x: x.Core.u,
-            'LeftChild': lambda x: x.Core.LeftChild,
-            'RightChild': lambda x: x.Core.RightChild,
-            }],
+        # The following members proxy the embedded _MMVAD_SHORT in .Core.
+        'Start': lambda x: x.Core.Start,
+        'End': lambda x: x.Core.End,
+        'Length': lambda x: x.Core.Length,
+        'CommitCharge': lambda x: x.Core.CommitCharge,
+        'u': lambda x: x.Core.u,
+        'LeftChild': lambda x: x.Core.LeftChild,
+        'RightChild': lambda x: x.Core.RightChild,
+        }],
 
     '_MMVAD_LONG': [None, {
-            'Tag': [TagOffset, ['String', dict(length=4)]],
-            'ControlArea': lambda x: x.Subsection.ControlArea,
+        'Tag': [TagOffset, ['String', dict(length=4)]],
+        'ControlArea': lambda x: x.Subsection.ControlArea,
 
-            # The following members proxy the embedded _MMVAD_SHORT in .Core.
-            'Start': lambda x: x.Core.Start,
-            'End': lambda x: x.Core.End,
-            'Length': lambda x: x.Core.Length,
-            'CommitCharge': lambda x: x.Core.CommitCharge,
-            'u': lambda x: x.Core.u,
-            'LeftChild': lambda x: x.Core.LeftChild,
-            'RightChild': lambda x: x.Core.RightChild,
-            }],
+        # The following members proxy the embedded _MMVAD_SHORT in .Core.
+        'Start': lambda x: x.Core.Start,
+        'End': lambda x: x.Core.End,
+        'Length': lambda x: x.Core.Length,
+        'CommitCharge': lambda x: x.Core.CommitCharge,
+        'u': lambda x: x.Core.u,
+        'LeftChild': lambda x: x.Core.LeftChild,
+        'RightChild': lambda x: x.Core.RightChild,
+        }],
 
     "_CONTROL_AREA": [None, {
         'FilePointer': [None, ['_EX_FAST_REF', dict(
@@ -139,8 +139,8 @@ win8_1_overlays = {
         }],
 
     '_HANDLE_TABLE': [None, {
-      'HandleCount': lambda x: obj.NoneObject("Unknown")
-      }],
+        'HandleCount': lambda x: obj.NoneObject("Unknown")
+        }],
     }
 
 win8_undocumented_amd64 = {
@@ -149,15 +149,15 @@ win8_undocumented_amd64 = {
     # ...
     # 0xf802d314345a   5E 48897b20             MOV [RBX+0x20], RDI
     '_IMAGE_ENTRY_IN_SESSION': [None, {
-      'Address': [0x20, ["Pointer"]],
-      }],
-}
+        'Address': [0x20, ["Pointer"]],
+        }],
+    }
 
 win8_undocumented_i386 = {
     '_IMAGE_ENTRY_IN_SESSION': [None, {
-      'Address': [0x10, ["Pointer"]],
-      }],
-}
+        'Address': [0x10, ["Pointer"]],
+        }],
+    }
 
 
 class ObpInfoMaskToOffsetHook(kb.ParameterHook):

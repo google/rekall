@@ -70,7 +70,9 @@ darwin_overlay = {
     }],
 
     "kmod_info": [None, {
-        "name": [None, ["String"]],
+        "name": lambda x: utils.SmartUnicode(x.m("name").cast("UnicodeString")),
+        "base": lambda x: x.address.v(),
+        "end": lambda x: x.base + x.size,
         "version": [None, ["String"]],
 
         # Starting address of the kernel module.

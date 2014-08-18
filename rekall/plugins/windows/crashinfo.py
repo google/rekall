@@ -135,11 +135,11 @@ class Raw2Dump(common.WindowsCommandPlugin):
             vm=crash_as)
 
         # Clear the old data just in case.
-        crash_as.write(kdbg_physical_address, "\x00" * kdbg.size())
+        crash_as.write(kdbg_physical_address, "\x00" * kdbg.obj_size)
 
         # The KDBG header.
         kdbg.Header.OwnerTag = "KDBG"
-        kdbg.Header.Size = kdbg.size()
+        kdbg.Header.Size = kdbg.obj_size
         kdbg.Header.List.Flink = kdbg.Header.List.Blink = (
             kdbg_virtual_address | 0xFFFFF00000000000)
 
@@ -148,7 +148,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
         # _KTHREAD offsets.
         kthread = self.profile._KTHREAD()
         ethread = self.profile._ETHREAD()
-        kdbg.SizeEThread = ethread.size()
+        kdbg.SizeEThread = ethread.obj_size
         kdbg.OffsetKThreadNextProcessor = kthread.NextProcessor.obj_offset
 
         kdbg.OffsetKThreadTeb = kthread.Teb.obj_offset
@@ -160,7 +160,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
         # _EPROCESS offsets.
         eprocess = self.profile._EPROCESS()
-        kdbg.SizeEProcess = eprocess.size()
+        kdbg.SizeEProcess = eprocess.obj_size
         kdbg.OffsetEprocessPeb = eprocess.m("Peb").obj_offset
         kdbg.OffsetEprocessParentCID = (
             eprocess.InheritedFromUniqueProcessId.obj_offset)
@@ -169,7 +169,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
         # _KPRCB offsets.
         prcb = self.profile._KPRCB()
-        kdbg.SizePrcb = prcb.size()
+        kdbg.SizePrcb = prcb.obj_size
         kdbg.OffsetPrcbDpcRoutine = prcb.DpcRoutineActive.obj_offset
         kdbg.OffsetPrcbCurrentThread = prcb.CurrentThread.obj_offset
         kdbg.OffsetPrcbMhz = prcb.MHz.obj_offset
@@ -186,7 +186,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
         # _KPCR offsets.
         pcr = self.profile._KPCR()
-        kdbg.SizePcr = pcr.size()
+        kdbg.SizePcr = pcr.obj_size
         kdbg.OffsetPcrSelfPcr = pcr.Self.obj_offset
         kdbg.OffsetPcrCurrentPrcb = pcr.CurrentPrcb.obj_offset
         kdbg.OffsetPcrContainedPrcb = pcr.Prcb.obj_offset
@@ -260,12 +260,12 @@ class Raw2Dump(common.WindowsCommandPlugin):
         # Pad the header area with PAGE pattern:
         if self.profile.metadata("arch") == "AMD64":
             header = self.profile._DMP_HEADER64(vm=out_as)
-            out_as.write(0, "PAGE" * (header.size() / 4))
+            out_as.write(0, "PAGE" * (header.obj_size / 4))
             out_as.write(4, "DU64")
         else:
             # 32 bit systems use a smaller structure.
             header = self.profile._DMP_HEADER(vm=out_as)
-            out_as.write(0, "PAGE" * (header.size() / 4))
+            out_as.write(0, "PAGE" * (header.obj_size / 4))
             out_as.write(4, "DUMP")
 
             # PEA address spaces.
@@ -336,7 +336,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
         header.BugCheckCodeParameter[3] = 0x00000000
 
         # Set the sample run information
-        header.RequiredDumpSpace = number_of_pages + header.size() / PAGE_SIZE
+        header.RequiredDumpSpace = number_of_pages + header.obj_size / PAGE_SIZE
         header.DumpType = 1
 
         # Zero out the remaining non-essential fields from ContextRecordOffset
@@ -350,7 +350,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
                      "Created with Rekall Memory Forensics\x00")
 
         # Now copy the physical address space to the output file.
-        output_offset = header.size()
+        output_offset = header.obj_size
         for start, _, length in (
             self.physical_address_space.get_available_addresses()):
 
@@ -359,7 +359,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
             length = length / PAGE_SIZE
 
             renderer.write("\nRun [0x%08X, 0x%08X] \n" % (
-                    start, length))
+                start, length))
             data_length = length * PAGE_SIZE
             start_offset = start * PAGE_SIZE
             offset = 0

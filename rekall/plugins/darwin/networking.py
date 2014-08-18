@@ -190,7 +190,7 @@ class DarwinIFConfig(common.DarwinPlugin):
             for address in interface.if_addrhead.tqh_first.walk_list(
                 "ifa_link.tqe_next"):
                 name = "%s%d" % (interface.if_name.deref(),
-                                      interface.if_unit)
+                                 interface.if_unit)
 
                 renderer.table_row(
                     name, address.ifa_addr.deref())
@@ -203,13 +203,12 @@ class DarwinIPFilters(common.DarwinPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-                ("Context", "context", "10"),
-                ("Filter", "filter", "16"),
-                ("Handler", "handler", "[addrpad]"),
-                ("Symbol", "symbol", "20")])
+            ("Context", "context", "10"),
+            ("Filter", "filter", "16"),
+            ("Handler", "handler", "[addrpad]"),
+            ("Symbol", "symbol", "20")])
 
-        lsmod = self.session.plugins.lsmod(session=self.session)
-
+        resolver = self.session.address_resolver
         for list_name in ["_ipv4_filters", "_ipv6_filters"]:
             filter_list = self.profile.get_constant_object(
                 list_name, target="ipfilter_list")
@@ -219,15 +218,15 @@ class DarwinIPFilters(common.DarwinPlugin):
                 name = filter.name.deref()
                 handler = filter.ipf_input.deref()
                 renderer.table_row("INPUT", name, handler,
-                                   lsmod.ResolveSymbolName(handler))
+                                   resolver.format_address(handler))
 
                 handler = filter.ipf_output.deref()
                 renderer.table_row("OUTPUT", name, handler,
-                                   lsmod.ResolveSymbolName(handler))
+                                   resolver.format_address(handler))
 
                 handler = filter.ipf_detach.deref()
                 renderer.table_row("DETACH", name, handler,
-                                   lsmod.ResolveSymbolName(handler))
+                                   resolver.format_address(handler))
 
 
 class DarwinNetstat(lsof.DarwinLsof):

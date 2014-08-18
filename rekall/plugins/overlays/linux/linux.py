@@ -67,7 +67,11 @@ linux_overlay = {
         }],
 
     'module' : [None, {
-        'name': [None, ['UnicodeString', dict(length=60)]],
+        'name': lambda x: utils.SmartUnicode(
+            x.m("name").cast('UnicodeString', length=60)),
+        'base': lambda x: x.module_core.v(),
+        'size': lambda x: x.core_size,
+        'end': lambda x: x.base + x.core_size,
         'kp': [None, ['Pointer', dict(
             target='Array',
             target_args=dict(
@@ -150,7 +154,7 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
     # The size of the log record is stored in the len member.
     'log': [lambda x: x.m("len"), {
         # The log message starts after the level member.
-        'message': [lambda x: x.flags.obj_offset + x.flags.size(),
+        'message': [lambda x: x.flags.obj_offset + x.flags.obj_size,
                     ['UnicodeString', dict(
                         # The length of the message is the text and an optional
                         # dict.
@@ -820,7 +824,7 @@ class page(obj.Struct):
         # To find the physical address of a given page, we need to find its
         # index within the array which corresponds to the Page Frame Number
         # and shift it left by the PAGE_SIZE.
-        pfn = (self.obj_offset - mem_map) / self.size()
+        pfn = (self.obj_offset - mem_map) / self.obj_size
         phys_offset = pfn << 12
         return phys_offset
 

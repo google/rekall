@@ -276,6 +276,9 @@ class Session(object):
 
     __metaclass__ = registry.MetaclassRegistry
 
+    # The currently active address resolver.
+    _address_resolver = None
+
     def __init__(self, **kwargs):
         self._parameter_hooks = {}
 
@@ -301,6 +304,12 @@ class Session(object):
 
         self._configuration_parameters = [x[2] for x in config.OPTIONS]
 
+        # When the session switches process context we store various things in
+        # this cache, so we can restore the context quickly. The cache is
+        # indexed by the current process_context which can be found from
+        # session.GetParameter("process_context").
+        self.context_cache = {}
+
     def __enter__(self):
         # Allow us to update the context manager.
         self.state.__enter__()
@@ -310,6 +319,7 @@ class Session(object):
         self.state.__exit__(exc_type, exc_value, trace)
 
     def Reset(self):
+        self.context_cache = {}
         self.profile_cache = {}
         self.physical_address_space = None
         self.kernel_address_space = None
@@ -326,8 +336,25 @@ class Session(object):
         self.renderer = renderer.BaseRenderer.classes.get(
             self.GetParameter("renderer"), "TextRenderer")
 
-        # Make a new address resolver.
-        self.address_resolver = kb.AddressResolver(self)
+    @property
+    def address_resolver(self):
+        """A convenience accessor for the address resolver implementation.
+
+        Note that the correct address resolver implementation depends on the
+        profile. For example, windows has its own address resolver, while Linux
+        and OSX have a different one.
+        """
+        # Get the current process context.
+        current_context = repr(self.GetParameter("process_context") or "Kernel")
+
+        # Get the resolver from the cache.
+        address_resolver = self.context_cache.get(current_context)
+        if address_resolver == None:
+            # Make a new address resolver.
+            address_resolver = self.plugins.address_resolver()
+            self.context_cache[current_context] = address_resolver
+
+        return address_resolver
 
     def UpdateRunners(self):
         """Updates the plugins container with active plugins.

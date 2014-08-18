@@ -29,29 +29,6 @@ from rekall import obj
 from rekall.plugins.linux import common
 
 
-class KernelModule(object):
-    """A Fake object which makes the kernel look like a module.
-
-    This removes the need to treat kernel addresses any different from module
-    addresses, and allows them to be resolved by this module.
-    """
-
-    def __init__(self, session):
-        self.session = session
-
-        # Check if the address appears in the kernel binary.
-        self.kernel_start = self.session.profile.get_constant("_text")
-        self.kernel_end = self.session.profile.get_constant("_etext")
-
-        self.module_core = session.profile.Pointer(
-            value=self.kernel_start, vm=session.kernel_address_space)
-
-        self.obj_offset = obj.NoneObject("Kernel Module")
-        self.init_size = 0
-        self.core_size = self.kernel_end - self.kernel_start
-        self.name = "Kernel"
-
-
 class Lsmod(common.LinuxPlugin):
     '''Gathers loaded kernel modules.'''
     __name = "lsmod"
@@ -165,19 +142,6 @@ class Lsmod(common.LinuxPlugin):
 
         # The start addresses in sorted order.
         self.modlist = sorted(self.mod_lookup.keys())
-
-    def ResolveSymbolName(self, addr):
-        """Resolve a pointer into a name.
-
-        If the symbol name is known we return that, otherwise we try to find the
-        containing module, or else we return None of we dont know its name..
-        """
-
-        # Try to resolve the address from the profile.
-        return (self.profile.get_constant_by_address(addr) or
-
-                # Search for a module which contains this address.
-                self.find_module(addr).name)
 
     def find_module(self, addr):
         """Returns the module which contains this address.

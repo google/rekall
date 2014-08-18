@@ -40,103 +40,103 @@ import ntpath
 # for more information on Event Log structures see WFA 2E pg 260-263 by Harlan
 # Carvey
 evt_log_types = {
-    'EVTLogHeader' : [ 0x30, {
-        'HeaderSize' : [ 0x0, ['unsigned int']],
-        'Magic' : [ 0x4, ['String', dict(length=4)]],  # LfLe
+    'EVTLogHeader' : [0x30, {
+        'HeaderSize' : [0x0, ['unsigned int']],
+        'Magic' : [0x4, ['String', dict(length=4)]],  # LfLe
 
         # Offset of oldest record.
-        'OffsetOldest' : [ 0x10, ['int']],
+        'OffsetOldest' : [0x10, ['int']],
 
         # Offset of next record to be written.
-        'OffsetNextToWrite' : [ 0x14, ['int']],
-        'NextID' : [ 0x18, ['int']],  # Next event record ID.
-        'OldestID' : [ 0x1c, ['int']], # Oldest event record ID.
+        'OffsetNextToWrite' : [0x14, ['int']],
+        'NextID' : [0x18, ['int']],  # Next event record ID.
+        'OldestID' : [0x1c, ['int']], # Oldest event record ID.
 
         # Maximum size of event record (from registry).
-        'MaxSize' : [ 0x20, ['int']],
+        'MaxSize' : [0x20, ['int']],
 
         # Retention time of records (from registry).
-        'RetentionTime' : [ 0x28, ['int']],
+        'RetentionTime' : [0x28, ['int']],
 
         # Size of the record (repeat of DWORD at offset 0).
-        'RecordSize' : [ 0x2c, ['int']],
-    } ],
+        'RecordSize' : [0x2c, ['int']],
+        }],
 
-    'EVTRecordStruct' : [ 0x38, {
-        'RecordLength' : [ 0x0, ['int']],
-        'Magic' : [ 0x4, ['String', dict(length=4)]],  # LfLe
-        'RecordNumber' : [ 0x8, ['int']],
+    'EVTRecordStruct' : [0x38, {
+        'RecordLength' : [0x0, ['int']],
+        'Magic' : [0x4, ['String', dict(length=4)]],  # LfLe
+        'RecordNumber' : [0x8, ['int']],
 
-        'TimeGenerated' : [ 0xc, ['UnixTimeStamp']],
-        'TimeWritten' : [ 0x10, ['UnixTimeStamp']],
+        'TimeGenerated' : [0xc, ['UnixTimeStamp']],
+        'TimeWritten' : [0x10, ['UnixTimeStamp']],
 
         # Specific to event source and uniquely identifies the event.
-        'EventID' : [ 0x14, ['unsigned short']],
-        'EventType' : [ 0x18, ['Enumeration', dict(
-                        target = 'unsigned short',
-                        choices = {0x01: "Error",
-                                   0x02: "Warning",
-                                   0x04: "Info",
-                                   0x08: "Success",
-                                   0x10: "Failure"})]],
+        'EventID' : [0x14, ['unsigned short']],
+        'EventType' : [0x18, ['Enumeration', dict(
+            target='unsigned short',
+            choices={0x01: "Error",
+                     0x02: "Warning",
+                     0x04: "Info",
+                     0x08: "Success",
+                     0x10: "Failure"})]],
 
         # Number of description strings in event message.
-        'NumStrings' : [ 0x1a, ['unsigned short']],
-        'EventCategory' : [ 0x1c, ['unsigned short']],
-        'ReservedFlags' : [ 0x1e, ['unsigned short']],
-        'ClosingRecordNum' : [ 0x20, ['int']],
+        'NumStrings' : [0x1a, ['unsigned short']],
+        'EventCategory' : [0x1c, ['unsigned short']],
+        'ReservedFlags' : [0x1e, ['unsigned short']],
+        'ClosingRecordNum' : [0x20, ['int']],
 
         # Offset w/in record of description strings.
-        'StringOffset' : [ 0x24, ['int']],
+        'StringOffset' : [0x24, ['int']],
 
         # Length of SID: if 0 no SID is present.
-        'SidLength' : [ 0x28, ['int']],
+        'SidLength' : [0x28, ['int']],
 
         # Offset w/in record to start of SID (if present).
-        'SidOffset' : [ 0x2c, ['int']],
+        'SidOffset' : [0x2c, ['int']],
 
         # Length of binary data of record.
-        'DataLength' : [ 0x30, ['int']],
+        'DataLength' : [0x30, ['int']],
 
         # Offset of data w/in record.
-        'DataOffset' : [ 0x34, ['int']],
+        'DataOffset' : [0x34, ['int']],
 
         'Source': [0x38, ['UnicodeString', dict(
-                        length=lambda x: x.RecordLength)]],
+            length=lambda x: x.RecordLength)]],
 
         # The computer name is right after the Source.
-        'Computer': [lambda x: x.Source.obj_offset + x.Source.size(),
+        'Computer': [lambda x: x.Source.obj_offset + x.Source.obj_size,
                      ['UnicodeString', dict(
-                        length=lambda x: x.RecordLength)]],
+                         length=lambda x: x.RecordLength)]],
 
         'Sid': [lambda x: x.obj_offset + x.SidOffset.v(), ['_SID']],
 
         'Data':[lambda x: x.obj_offset + x.StringOffset.v(), [
-                    "ListArray", dict(
-                        target="UnicodeString",
-                        target_args=dict(encoding="utf16"),
-                        maximum_size=lambda x: x.RecordLength,
-                        count=lambda x: x.NumStrings)]],
-    } ],
+            "ListArray", dict(
+                target="UnicodeString",
+                target_args=dict(encoding="utf16"),
+                maximum_size=lambda x: x.RecordLength,
+                count=lambda x: x.NumStrings)]],
+        }],
 
     "_SID": [None, {
-            "IdentifierAuthority": [None, ["Enumeration", dict(
-                        choices={
-                            "\x00\x00\x00\x00\x00\x00": "Null Authority",
-                            "\x00\x00\x00\x00\x00\x01": "World Authority",
-                            "\x00\x00\x00\x00\x00\x02": "Local Authority",
-                            "\x00\x00\x00\x00\x00\x03": "Creator Authority",
-                            "\x00\x00\x00\x00\x00\x04": "NonUnique Authority",
-                            "\x00\x00\x00\x00\x00\x05": "NT Authority",
-                            },
-                        target="String",
-                        target_args=dict(length=6, term=None)
-                        )]],
-            "NumericIdentifier": [0x4, ["unsigned be int"]],
-            "SubAuthority": [None, ["Array", dict(
-                        target="unsigned long",
-                        count=lambda x: x.SubAuthorityCount)]],
-            }],
+        "IdentifierAuthority": [None, ["Enumeration", dict(
+            choices={
+                "\x00\x00\x00\x00\x00\x00": "Null Authority",
+                "\x00\x00\x00\x00\x00\x01": "World Authority",
+                "\x00\x00\x00\x00\x00\x02": "Local Authority",
+                "\x00\x00\x00\x00\x00\x03": "Creator Authority",
+                "\x00\x00\x00\x00\x00\x04": "NonUnique Authority",
+                "\x00\x00\x00\x00\x00\x05": "NT Authority",
+                },
+            target="String",
+            target_args=dict(length=6, term=None)
+            )]],
+        "NumericIdentifier": [0x4, ["unsigned be int"]],
+        "SubAuthority": [None, ["Array", dict(
+            target="unsigned long",
+            count=lambda x: x.SubAuthorityCount)]],
+        }],
     }
 
 
@@ -144,7 +144,8 @@ evt_log_types = {
 class _SID(obj.Struct):
     """A Pretty printing implementation of sids.
 
-    Reference: http://www.sekchek.com/downloads/white-papers/windows-about-sids.pdf
+    Reference:
+    http://www.sekchek.com/downloads/white-papers/windows-about-sids.pdf
     """
     def __unicode__(self):
         """Format the Sid using SDDL Notation."""

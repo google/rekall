@@ -18,9 +18,7 @@
 """Enumerate all kernel modules."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
-import bisect
 
-from rekall import obj
 from rekall.plugins.darwin import common
 
 
@@ -31,50 +29,6 @@ class DarwinLsmod(common.DarwinPlugin):
 
     modlist = None
     mod_lookup = None
-
-    def ResolveSymbolName(self, addr):
-        """Resolve a pointer into a name.
-
-        If the symbol name is known we return that, otherwise we try to find the
-        containing module, or else we return None of we dont know its name..
-        """
-        # Try to resolve the address from the profile.
-        return (self.profile.get_constant_by_address(addr) or
-
-                # Search for a module which contains this address.
-                self.find_module(addr).name)
-
-    def find_module(self, addr):
-        """Returns the module which contains this address.
-
-        If the address does not exist in any module, returns a NoneObject.
-        """
-        if self.modlist is None:
-            self._make_cache()
-
-        addr = obj.Pointer.integer_to_address(addr)
-        pos = bisect.bisect_right(self.modlist, addr) - 1
-        if pos == -1:
-            return obj.NoneObject("Unknown address")
-
-        # Get the module.
-        module = self.mod_lookup[self.modlist[pos]]
-        start = int(module.address)
-
-        if (addr >= start and
-            addr < start + module.m("size")):
-            return module
-
-        return obj.NoneObject("Unknown address")
-
-    def _make_cache(self):
-        self.mod_lookup = {}
-
-        for module in self.get_module_list():
-            self.mod_lookup[int(module.address.deref())] = module
-
-        # The start addresses in sorted order.
-        self.modlist = sorted(self.mod_lookup.keys())
 
     def get_module_list(self):
         # The kernel is also included in the module list to make it easier to
@@ -94,10 +48,8 @@ class DarwinLsmod(common.DarwinPlugin):
             vm=self.kernel_address_space)
 
         # walk the modules list
-        while module:
-            yield module
-
-            module = module.next
+        for m in module.walk_list("next", True):
+            yield m
 
     def render(self, renderer):
         renderer.table_header([("Address", "address", "[addrpad]"),
