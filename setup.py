@@ -58,7 +58,7 @@ setup(
     scripts=["rekall/rekal.py"],
     package_dir={'rekall': 'rekall'},
     packages=find_packages('.'),
-    package_data={},
+    include_package_data=True,
 
     entry_points={
         "console_scripts": [
@@ -78,6 +78,7 @@ setup(
         "acora >= 1.8",
         "codegen >= 1.0",
         "Flask >= 0.10.1",
+	"Flask-Sockets >= 0",
         "gevent >= 1.0.1",
         "gevent-websocket >= 0.9.3"
         ],
