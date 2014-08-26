@@ -388,14 +388,8 @@ class RunBasedAddressSpace(PagedReader):
 
         # Mapping not valid. We need to pad until the next run.
         if file_offset is None:
-            pad_length = length
-            try:
-                virt_addr, file_address, file_length = self.runs.find_gt(addr)
-                pad_length = min(length, (virt_addr - addr))
-            except ValueError:
-                # If there's no next run, we need to add length padding.
-                pass
-            return "\x00" * pad_length
+            return "\x00" * min(length, available_length)
+
         else:
             return self.base.read(file_offset, min(length, available_length))
 
@@ -414,11 +408,12 @@ class RunBasedAddressSpace(PagedReader):
         address where this page can be found.
 
         Returns:
-          A tuple of (physical_offset, available_length). The physical_offset
-          can be None to signify that the address is not valid.
+          A tuple of (physical_offset, available_length). The
+          physical_offset can be None to signify that the address is not
+          valid. In this case the available_length signifies the number of
+          bytes until the next available run.
         """
         addr = int(addr)
-
         try:
             virt_addr, file_address, file_length = self.runs.find_le(addr)
             available_length = file_length - (addr - virt_addr)
@@ -426,10 +421,23 @@ class RunBasedAddressSpace(PagedReader):
 
             if available_length > 0:
                 return physical_offset, min(length, available_length)
+
         except ValueError:
             pass
 
-        return None, 0
+        try:
+            # Addr is outside any run, we need to find the next available
+            # run and return the number of bytes we need to skip until then.
+            virt_addr, _, _ = self.runs.find_ge(addr)
+
+            return None, virt_addr - addr
+
+        except ValueError:
+            pass
+
+        # A physical_offset of None means the address is not valid. If we get
+        # here we dont have a next valid range.
+        return None, 0xfffffffffffff
 
     def is_valid_address(self, addr):
         return self.vtop(addr) is not None

@@ -56,7 +56,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         super(Win32FileAddressSpace, self).__init__(**kwargs)
 
         path = filename or (self.session and self.session.GetParameter(
-                "filename"))
+            "filename"))
 
         self.as_assert(path, "Filename must be specified in session (e.g. "
                        "session.GetParameter('filename', 'MyFile.raw').")
@@ -90,7 +90,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
                 None)
         except pywintypes.error as e:
             raise IOError("Unable to open %s: %s" % (path, e))
-        
+
     def _OpenFileForWrite(self, path):
         try:
             self.fhandle = win32file.CreateFile(
@@ -116,7 +116,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
 
         fmt_string = "Q" * len(self.FIELDS)
         self.memory_parameters = dict(zip(self.FIELDS, struct.unpack_from(
-                    fmt_string, result)))
+            fmt_string, result)))
 
         self.dtb = self.memory_parameters["CR3"]
         self.session.SetParameter("dtb", int(self.dtb))
@@ -127,8 +127,16 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
             self.runs.insert((start, start, length))
 
+        # Get the kernel base directly from the winpmem driver if that is
+        # available.
+        kernel_base = self.memory_parameters["KernBase"]
+        if kernel_base > 0:
+            self.session.SetParameter("kernel_base", kernel_base)
+
     def _read_chunk(self, addr, length):
         offset, available_length = self._get_available_buffer(addr, length)
+
+        # Offset is pointing into invalid range, pad until the next range.
         if offset is None:
             return "\x00" * min(length, available_length)
 
@@ -142,6 +150,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         length = len(data)
         offset, available_length = self._get_available_buffer(addr, length)
         if offset is None:
+            # Do not allow writing to reserved areas.
             return
 
         to_write = min(len(data), available_length)
