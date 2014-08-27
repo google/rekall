@@ -21,8 +21,12 @@
  * rootkit subversion.
  */
 #define SILENT_OPERATION 0
+
+// Really verbose debugging.
+#define VERBOSE_DEBUG 0
+
 #define PMEM_DEVICE_NAME L"pmem"
-#define PMEM_VERSION "v1.6.0"
+#define PMEM_VERSION "v1.6.1"
 #define PMEM_POOL_TAG 0x4d454d50
 
 // In order to enable writing this must be set to 1 and the
@@ -139,6 +143,12 @@ struct PmemMemoryControl {
 #else
 #define WinDbgPrint DbgPrint
 #define vWinDbgPrintEx vDbgPrintEx
+#endif
+
+# if VERBOSE_DEBUG == 1
+#define WinDbgPrintDebug DbgPrint
+# else
+#define WinDbgPrintDebug(fmt, ...)
 #endif
 
 // Add verbose debugging to PCI code.

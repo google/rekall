@@ -21,11 +21,12 @@ windows system:
 If you install these in different locations be sure to adjust the constants
 below.
 """
+import re
 import os
 import subprocess
 import shutil
 
-VERSION = "1.6.0"
+VERSION = "1.6.1"
 PATH_TO_DDK = r"C:\WinDDK\7600.16385.1"
 PATH_TO_VS = r"C:\Program Files\Microsoft SDKs\Windows\v7.1"
 
@@ -101,9 +102,11 @@ def BuildDriver(arch, target, principal="test", store=None, signtool_params=""):
 
     output_path = r"release/%(arch2)s/winpmem.sys" % args
 
+    with open(output_path, "rb") as fd:
+        driver_data = fd.read()
+
     # Before we proceed we need to make sure the binaries have no write support.
-    if ("test" not in principal and
-        "Write Supported" in open(output_path, "rb").read()):
+    if ("test" not in principal and "Write Supported" in driver_data):
         raise RuntimeError("Tried to sign binaries with write support!!!!!")
 
     pipe = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)

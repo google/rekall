@@ -20,6 +20,8 @@
 #ifndef _REKALL_DRIVER_PTE_MMAP_H_
 #define _REKALL_DRIVER_PTE_MMAP_H_
 
+#define PAGE_MASK (~(PAGE_SIZE-1))
+
 #define PFN_TO_PAGE(pfn) (pfn << PAGE_SHIFT)
 #define PAGE_TO_PFN(pfn) (pfn >> PAGE_SHIFT)
 
@@ -161,8 +163,6 @@ typedef struct PTE_MMAP_OBJ_ {
   PTE_STATUS (*find_pte_)(struct PTE_MMAP_OBJ_ *self, void *vaddr, PTE **pte);
   void (*flush_tlbs_page_)(void *page);
   PTE_CR3 (*get_cr3_)(void);
-  void (*log_print_)(struct PTE_MMAP_OBJ_ *self, PTE_LOGLEVEL loglevel,
-                     const char *fmt, ...);
   void (*print_pte_)(struct PTE_MMAP_OBJ_ *self, PTE_LOGLEVEL loglevel,
                      PTE *pte);
   // Internal Attributes

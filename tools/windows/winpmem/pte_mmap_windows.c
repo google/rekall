@@ -95,20 +95,6 @@ static PTE_CR3 pte_get_cr3(void) {
   return result;
 }
 
-// Print messages to the kernel msg ring buffer.
-static void pte_log_print(PTE_MMAP_OBJ *self, PTE_LOGLEVEL loglevel,
-                          const char *fmt, ...) {
-  va_list argptr;
-
-  if (self->loglevel < loglevel) {
-    return;
-  }
-
-  va_start(argptr, fmt);
-  vWinDbgPrintEx(DPFLTR_IHVDRIVER_ID, 14, fmt, argptr);
-  va_end(argptr);
-}
-
 
 // Will reset the page table entry for the rogue page and free the object.
 void pte_mmap_windows_delete(PTE_MMAP_OBJ *self) {
@@ -137,20 +123,18 @@ PTE_MMAP_OBJ *pte_mmap_windows_new(void) {
   self->phys_to_virt_ = pte_phys_to_virt;
   self->flush_tlbs_page_ = pte_flush_all_tlbs_page;
   self->get_cr3_ = pte_get_cr3;
-  self->log_print_ = pte_log_print;
 
 
   // Initialize attributes that rely on memory allocation
   self->rogue_page.pointer = self->get_rogue_page_();
-  self->log_print_(self, PTE_DEBUG, "Looking up PTE for rogue page: %p",
+  WinDbgPrintDebug("Looking up PTE for rogue page: %p",
                    self->rogue_page);
   if (self->find_pte_(self, self->rogue_page.pointer, &self->rogue_pte)) {
-    self->log_print_(self, PTE_ERR,
-                     "Failed to find the PTE for the rogue page, "
-                     "might be inside huge page, aborting...");
+    WinDbgPrint("Failed to find the PTE for the rogue page, "
+                "might be inside huge page, aborting...");
     goto error;
   }
-  self->log_print_(self, PTE_DEBUG, "Found rogue pte at %p", self->rogue_pte);
+  WinDbgPrintDebug("Found rogue pte at %p", self->rogue_pte);
 
   // Back up the address this pte points to for cleaning up later.
   self->original_addr = PFN_TO_PAGE(self->rogue_pte->page_frame);
