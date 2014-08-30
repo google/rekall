@@ -82,10 +82,10 @@ before submitting your code:
 
 ## Step 8: Submit your changes
 
-We use git-cl also to submit. We use 'git cl push', to squash all commits from
+We use git-cl also to submit. We use 'git cl land', to squash all commits from
 the branch into a single commit in git.
 
-    > git cl push origin/master
+    > git cl land origin/master
 
 This command will close the issue in Rietveld and submit your code directly on
 master.
@@ -113,7 +113,7 @@ The reviewer should run the following:
 
     > git cl patch <code review issue number>
     > git commit --amend -s --author="$AUTHOR_NAME <$AUTHOR_EMAIL>"
-    > git cl push -c
+    > git cl land -c
 
 ## Git pull requests.
 
