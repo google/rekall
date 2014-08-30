@@ -60,8 +60,75 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module renderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.ui.renderer-pysrc.html">source&nbsp;code</a></span></p>
-<p>This module implements a text based render.</p>
-  <p>A renderer is used by plugins to produce formatted output.</p>
+<pre class="literalblock">
+This module implements the Rekall renderer API.
+
+Rekall has a pluggable rendering system. At the top level we have renderers
+which are reponsible for converting the output of plugins into something usable
+for the user (whatever that means).
+
+A Rekall plugin uses the renderer to produce output by providing it with a bunch
+of objects which are derived from the analysis stage. The renderer is then
+responsible for rendering these special objects using pluaggable
+ObjectRenderer() classes.
+
+1. The framework creates a BaseRenderer implementation (e.g. TextRenderer or
+   JsonRenderer)
+
+2. This is passed to a plugin's render() method.
+
+3. The Plugin provides various objects to the renderer via its table_row(),
+   format() etc methods.
+
+4. The renderer than uses specialized ObjectRenderer() instances to render the
+   objects that the plugin gave it.
+
+For example, by default the renderer used is an instance of TextRenderer. The
+PSList() plugin in its render() method, calls renderer.table_row() passing a
+WinFileTime() instance as the &quot;Create Time&quot; cell of the table.
+
+The TextRenderer plugin aims to layout the output into the text terminal. For
+this to happen it must convert the WinFileTime() instance to a rendering
+primitive, specific to the TextRenderer - in this case a Cell() instance. This
+conversion is done using an ObjectRenderer instance.
+
+The TextRenderer therefore selects an ObjectRenderer instance based on two
+criteria:
+
+- The ObjectRenderer claims to support the WinFileTime() object, or any of its
+  base classes in order (using the ObjectRenderer.renders_type attribute).
+
+- The ObjectRenderer claims to support the specific renderer
+  (i.e. TextRenderer) using its `renderers` attribute.
+
+The TextRenderer searches for an ObjectRenderer() by traversing the
+WinFileTime's __mro__ (i.e. inheritance hierarchy) for a plugin capable of
+rendering it. This essentially goes from most specialized to the least
+specialized renderer:
+
+- WinFileTime
+- UnixTimeStamp   &lt;-- Specialized object renderer for unix times.
+- NativeType
+- BaseObject
+- object          &lt;--- Generic renderer for all objects.
+
+Once a renderer is found, it is used to output the cell value.
+
+## NOTES
+
+1. A specialized object renderer is written specifically for the renderer. This
+   means that it is possible to have a specialized _EPROCESS object renderer for
+   TextRenderer but when using the JsonRenderer a more general renderer may be
+   chosen (say at the BaseObject level).
+
+2. The ObjectRenderer.render_row() method actually returns something which makes
+   sense to the supported renderer. There is no API specification for the return
+   value. For example the TextRenderer needs a Cell instance but the
+   JsonRenderer requires just a dict. Since ObjectRenderer instances are only
+   used within the renderer they only need to cooperate with the renderer class
+   they support.
+
+</pre>
 
 <!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
@@ -75,8 +142,16 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.renderer.Formatter-class.html" class="summary-name">Formatter</a><br />
-      A formatter which supports extended formating specs.
+        <a href="rekall.ui.renderer.ObjectRenderer-class.html" class="summary-name">ObjectRenderer</a><br />
+      Baseclass for all TestRenderer object renderers.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.ui.renderer.BaseTable-class.html" class="summary-name">BaseTable</a><br />
+      Renderers contain tables.
     </td>
   </tr>
 <tr>
@@ -85,22 +160,6 @@
     </td><td class="summary">
         <a href="rekall.ui.renderer.BaseRenderer-class.html" class="summary-name">BaseRenderer</a><br />
       All renderers inherit from this.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.ui.renderer.BaseColumn-class.html" class="summary-name">BaseColumn</a><br />
-      Things that all columnae have in common.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.ui.renderer.BaseTable-class.html" class="summary-name">BaseTable</a><br />
-      Things that all tables have in common.
     </td>
   </tr>
 </table>
@@ -151,7 +210,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Jun 20 01:04:58 2014
+    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:42 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

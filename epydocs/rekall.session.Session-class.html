@@ -62,8 +62,9 @@
 <h1 class="epydoc">Class Session</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.session-pysrc.html#Session">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_session" name="class_hierarchy_for_session">
-<area shape="rect" id="node1" href="rekall.session.InteractiveSession-class.html" title="InteractiveSession" alt="" coords="5,61,112,88"/>
-<area shape="rect" id="node2" href="rekall.session.Session-class.html" title="Session" alt="" coords="29,5,88,32"/>
+<area shape="rect" id="node1" href="rekall.session.InteractiveSession-class.html" title="InteractiveSession" alt="" coords="19,117,125,144"/>
+<area shape="rect" id="node2" href="rekall.session.JsonSerializableSession-class.html" title="JsonSerializableSession" alt="" coords="5,61,139,88"/>
+<area shape="rect" id="node3" href="rekall.session.Session-class.html" title="Session" alt="" coords="43,5,101,32"/>
 </map>
   <img src="class_hierarchy_for_session.gif" alt='' usemap="#class_hierarchy_for_session" ismap="ismap" class="graph-without-title" />
 </center>
@@ -72,6 +73,31 @@
 <p>Base session.</p>
   <p>This session contains the bare minimum to use rekall.</p>
 
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Nested Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.registry.MetaclassRegistry-class.html" class="summary-name">__metaclass__</a><br />
+      Automatic Plugin Registration through metaclasses.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.session.Session-class.html" class="summary-name">top_level_class</a><br />
+      Base session.
+    </td>
+  </tr>
+</table>
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -91,39 +117,6 @@
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Session.__init__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__getstate__"></a><span class="summary-sig-name">__getstate__</span>(<span class="summary-sig-arg">self</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.session-pysrc.html#Session.__getstate__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">state</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.session-pysrc.html#Session.__setstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -192,6 +185,23 @@
       This method is called whenever the config object was updated.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Session.UpdateFromConfigObject">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.session.Session-class.html#UpdateRunners" class="summary-sig-name">UpdateRunners</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Updates the plugins container with active plugins.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.session-pysrc.html#Session.UpdateRunners">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -365,6 +375,82 @@
     </td>
   </tr>
 </table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ImplementationByClass"></a><span class="summary-sig-name">ImplementationByClass</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.session-pysrc.html#Session.ImplementationByClass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ImplementationByName"></a><span class="summary-sig-name">ImplementationByName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.session-pysrc.html#Session.ImplementationByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.session.Session-class.html#classes" class="summary-name">classes</a> = <code title="{'InteractiveSession': &lt;class 'rekall.session.InteractiveSession'&gt;,
+ 'JsonSerializableSession': &lt;class 'rekall.session.JsonSerializableSes\
+sion'&gt;,
+ 'Session': &lt;class 'rekall.session.Session'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">InteractiveSession</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.session.Intera<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.session.Session-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.session.InteractiveSession'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.session.InteractiveSes<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Session'"><code class="variable-quote">'</code><code class="variable-string">Session</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
 <!-- ==================== PROPERTIES ==================== -->
 <a name="section-Properties"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -373,6 +459,21 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.session.Session-class.html#address_resolver" class="summary-name">address_resolver</a><br />
+      A convenience accessor for the address resolver implementation.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.session.Session-class.html#profile" class="summary-name">profile</a>
+    </td>
+  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -432,6 +533,26 @@
   <p>This method is called whenever the config object was updated.</p>
   <p>We are expected to re-check the config and re-initialize this 
   session.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="UpdateRunners"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">UpdateRunners</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.session-pysrc.html#Session.UpdateRunners">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Updates the plugins container with active plugins.</p>
+  <p>Active plugins may change based on the profile/filename etc.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -553,6 +674,101 @@ Returns:
 </td></tr></table>
 </div>
 <br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="classes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">classes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">InteractiveSession</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.session.InteractiveSession'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">JsonSerializableSession</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.session.JsonSerializableSes<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+sion'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">Session</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.session.Session'&gt;<code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="classes_by_name"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">classes_by_name</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.session.InteractiveSession'&gt;<code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== PROPERTY DETAILS ==================== -->
+<a name="section-PropertyDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Property Details</span></td>
+</tr>
+</table>
+<a name="address_resolver"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">address_resolver</h3>
+  <p>A convenience accessor for the address resolver implementation.</p>
+  <p>Note that the correct address resolver implementation depends on the 
+  profile. For example, windows has its own address resolver, while Linux 
+  and OSX have a different one.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.address_resolver(<span class="summary-sig-arg">self</span>)</span>
+        - A convenience accessor for the address resolver implementation.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="profile"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">profile</h3>
+  
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.profile(<span class="summary-sig-arg">self</span>)</span>
+    </dd>
+    <dt>Set Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.profile(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>)</span>
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -584,7 +800,7 @@ Returns:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Jun 20 01:05:16 2014
+    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:03 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -67,11 +67,12 @@
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,5,123,32"/>
 <area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,61,139,88"/>
 <area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="287,117,409,144"/>
-<area shape="rect" id="node7" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="155,173,341,200"/>
+<area shape="rect" id="node8" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="155,173,341,200"/>
 <area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,61,291,88"/>
-<area shape="rect" id="node5" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="36,117,263,144"/>
-<area shape="rect" id="node6" href="rekall.plugins.windows.common.WinProcessFilter-class.html" title="common.WinProcessFilter" alt="" coords="175,229,321,256"/>
-<area shape="rect" id="node8" href="rekall.plugins.windows.pstree.PSTree-class.html" title="PSTree" alt="" coords="219,285,277,312"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="36,117,263,144"/>
+<area shape="rect" id="node5" href="rekall.plugin.VerbosityMixIn-class.html" title="plugin.VerbosityMixIn" alt="" coords="345,229,468,256"/>
+<area shape="rect" id="node9" href="rekall.plugins.windows.pstree.PSTree-class.html" title="PSTree" alt="" coords="297,285,356,312"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.common.WinProcessFilter-class.html" title="common.WinProcessFilter" alt="" coords="175,229,321,256"/>
 </map>
   <img src="class_hierarchy_for_pstree.gif" alt='' usemap="#class_hierarchy_for_pstree" ismap="ismap" class="graph-without-title" />
 </center>
@@ -120,12 +121,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.windows.pstree.PSTree-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">verbose</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Filters processes by parameters.</td>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.pstree.PSTree-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>)</span><br />
+      Produce results on the renderer given.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree.render">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -139,11 +139,13 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.windows.pstree.PSTree-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
-      Produce results on the renderer given.</td>
+          <td><span class="summary-sig"><a href="rekall.plugin.VerbosityMixIn-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature
+      <em>(Inherited from <a href="rekall.plugin.VerbosityMixIn-class.html">rekall.plugin.VerbosityMixIn</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree.render">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#VerbosityMixIn.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -386,11 +388,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.windows.pstree.PSTree-class.html#args" class="summary-sig-name">args</a>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">parser</span>)</span><br />
-      Declare the command line args we need.</td>
+          <td><span class="summary-sig"><a name="GetActiveClasses"></a><span class="summary-sig-name">GetActiveClasses</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
+      Return only the active commands based on config.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree.args">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -404,12 +407,45 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="GetActiveClasses"></a><span class="summary-sig-name">GetActiveClasses</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">session</span>)</span><br />
-      Return only the active commands based on config.
-      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.pstree.PSTree-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree.ImplementationByClass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.pstree.PSTree-class.html#ImplementationByName" class="summary-sig-name">ImplementationByName</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree.ImplementationByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">parser</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.VerbosityMixIn-class.html">rekall.plugin.VerbosityMixIn</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#VerbosityMixIn.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -459,14 +495,6 @@ t_from_csrss_handles), (&quot;PspCidTable&quot;, list_from_pspcid), (&quot;Sessi
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__abstractmethods__"></a><span class="summary-name">__abstractmethods__</span> = <code title="frozenset([])"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></code>
-      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
@@ -483,15 +511,15 @@ nalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'address_resolver': &lt;class 'rekall.plugins.windows.address_resolver.P\
+EAddressResolver'&gt;,
+ 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
 AnalyzeStruct'&gt;,
  'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'atomscan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'bash': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
- 'boot_cmdline': &lt;class 'rekall.plugins.darwin.misc.DarwinBootParamete\
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">analyze_struct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.wi<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">address_resolver</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -545,70 +573,6 @@ AnalyzeStruct'&gt;,
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="args"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">args</span>(<span class="sig-arg">cls</span>,
-        <span class="sig-arg">parser</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree.args">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Declare the command line args we need.</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#args">plugin.Command.args</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="__init__"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">verbose</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">**kwargs</span>)</span>
-    <br /><em class="fname">(Constructor)</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree.__init__">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Filters processes by parameters.
-
-Args:
-   physical_eprocess: One or more EPROCESS structs or offsets defined in
-      the physical AS.
-
-   pid: A single pid.
-
-   proc_regex: A regular expression for filtering process name (using
-     _EPROCESS.ImageFileName).
-
-   method: Methods to use for process listing.
-
-</pre>
-  <dl class="fields">
-    <dt>Overrides:
-        object.__init__
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <a name="render"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -645,6 +609,54 @@ Args:
   </dl>
 </td></tr></table>
 </div>
+<a name="ImplementationByClass"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByClass</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree.ImplementationByClass">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.plugin.Command-class.html#ImplementationByClass">plugin.Command.ImplementationByClass</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="ImplementationByName"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByName</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.pstree-pysrc.html#PSTree.ImplementationByName">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.plugin.Command-class.html#ImplementationByName">plugin.Command.ImplementationByName</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
@@ -677,7 +689,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Jun 20 01:05:14 2014
+    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:01 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

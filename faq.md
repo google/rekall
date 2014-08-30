@@ -28,7 +28,7 @@ are not quite sure what exact version of Windows it is.
 3. Finally we convert the pdb file into Rekall's own json format.
 
 ```
-$ rekal -f ~/images/win7.elf version_scan | grep ntkrnl
+$ rekal -f ~/images/win7.elf --profile None version_scan | grep ntkrnl
 0x0000027bb5fc f8e2a8b5c9b74bf4a6e4a48f180099942 ntkrnlmp.pdb
 
 $ rekal fetch_pdb --dump-dir . --filename ntkrnlmp.pdb --guid f8e2a8b5c9b74bf4a6e4a48f180099942

@@ -83,6 +83,24 @@
   <p>By default we take the encoding from the profile constant 
   &quot;default_text_encoding&quot;.</p>
 
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Nested Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.registry.UniqueObjectIdMetaclass-class.html" class="summary-name">__metaclass__</a><br />
+      Give each object a unique ID.
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em>
+    </td>
+  </tr>
+</table>
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -134,6 +152,23 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.UnicodeString-class.html#proxied" class="summary-sig-name">proxied</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return an object to be proxied</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnicodeString.proxied">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.UnicodeString-class.html#__unicode__" class="summary-sig-name">__unicode__</a>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnicodeString.__unicode__">source&nbsp;code</a></span>
@@ -154,23 +189,6 @@
       repr(x)</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnicodeString.__repr__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.UnicodeString-class.html#size" class="summary-sig-name">size</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      This is equivalent to strlen().</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnicodeString.size">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -315,11 +333,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.String-class.html#__eq__" class="summary-sig-name">__eq__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">other</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.overlays.basic.String-class.html">rekall.plugins.overlays.basic.String</a>)</em></td>
+          <td><span class="summary-sig"><a name="__eq__"></a><span class="summary-sig-name">__eq__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kw</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.StringProxyMixIn-class.html">rekall.obj.StringProxyMixIn</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#String.__eq__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.obj-pysrc.html#StringProxyMixIn.__eq__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -414,23 +433,6 @@
       <em>(Inherited from <a href="rekall.plugins.overlays.basic.String-class.html">rekall.plugins.overlays.basic.String</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#String.__getitem__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.String-class.html#__getstate__" class="summary-sig-name">__getstate__</a>(<span class="summary-sig-arg">self</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.overlays.basic.String-class.html">rekall.plugins.overlays.basic.String</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#String.__getstate__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -672,8 +674,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="__ne__"></a><span class="summary-sig-name">__ne__</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">*args</span>,
-        <span class="summary-sig-arg">**kw</span>)</span>
+        <span class="summary-sig-arg">other</span>)</span>
       <em>(Inherited from <a href="rekall.obj.StringProxyMixIn-class.html">rekall.obj.StringProxyMixIn</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#StringProxyMixIn.__ne__">source&nbsp;code</a></span>
@@ -696,24 +697,6 @@
       <em>(Inherited from <a href="rekall.obj.NumericProxyMixIn-class.html">rekall.obj.NumericProxyMixIn</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#NumericProxyMixIn.__neg__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__neq__"></a><span class="summary-sig-name">__neq__</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">other</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.overlays.basic.String-class.html">rekall.plugins.overlays.basic.String</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#String.__neq__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -1105,25 +1088,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__setstate__"></a><span class="summary-sig-name">__setstate__</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">state</span>)</span><br />
-      Sets the object's state.
-      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.__setstate__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.String-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       str(x)
       <em>(Inherited from <a href="rekall.plugins.overlays.basic.String-class.html">rekall.plugins.overlays.basic.String</a>)</em></td>
@@ -1308,24 +1272,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.String-class.html#proxied" class="summary-sig-name">proxied</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Return an object to be proxied
-      <em>(Inherited from <a href="rekall.plugins.overlays.basic.String-class.html">rekall.plugins.overlays.basic.String</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#String.proxied">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a href="rekall.obj.BaseObject-class.html#reference" class="summary-sig-name">reference</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Produces a pointer to this object.
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
@@ -1408,8 +1354,16 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.obj.BaseObject-class.html#obj_end" class="summary-name">obj_end</a>
-      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em>
+        <a href="rekall.plugins.overlays.basic.UnicodeString-class.html#obj_size" class="summary-name">obj_size</a><br />
+      This is equivalent to strlen().
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.basic.String-class.html#obj_end" class="summary-name">obj_end</a>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.String-class.html">rekall.plugins.overlays.basic.String</a>)</em>
     </td>
   </tr>
 <tr>
@@ -1500,6 +1454,28 @@ Args:
   </dl>
 </td></tr></table>
 </div>
+<a name="proxied"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">proxied</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnicodeString.proxied">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return an object to be proxied</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.obj.BaseObject-class.html#proxied">obj.BaseObject.proxied</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <a name="__unicode__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1546,28 +1522,6 @@ Args:
   </dl>
 </td></tr></table>
 </div>
-<a name="size"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">size</span>(<span class="sig-arg">self</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnicodeString.size">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>This is equivalent to strlen().</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.obj.NativeType-class.html#size">obj.NativeType.size</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <a name="write"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1589,6 +1543,30 @@ Args:
         <a href="rekall.obj.BaseObject-class.html#write">obj.BaseObject.write</a>
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== PROPERTY DETAILS ==================== -->
+<a name="section-PropertyDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Property Details</span></td>
+</tr>
+</table>
+<a name="obj_size"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">obj_size</h3>
+  <p>This is equivalent to strlen().</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.obj_size(<span class="summary-sig-arg">self</span>)</span>
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -1624,7 +1602,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Jun 20 01:05:06 2014
+    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:50 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

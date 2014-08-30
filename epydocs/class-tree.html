@@ -58,6 +58,8 @@
 </b></center><br />
 <h1 class="epydoc">Class Hierarchy</h1>
 <ul class="nomargin-top">
+    <li> <strong class="uidlink">manuskript.plugins.PythonCall</strong>
+    </li>
     <li> <strong class="uidlink">StringIO.StringIO</strong>:
       <em class="summary">class StringIO([buffer])</em>
     <ul>
@@ -65,16 +67,26 @@
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink">unittest.TestCase</strong>
-    </li>
-    <li> <strong class="uidlink">unittest.TestCase</strong>
-    </li>
     <li> <strong class="uidlink">object</strong>:
       <em class="summary">The most base type</em>
     <ul>
-    <li> <strong class="uidlink"><a href="rekall.kb.AddressResolver-class.html">rekall.kb.AddressResolver</a></strong>:
-      <em class="summary">Wrapper around a profile which allows addresses to be resolved in 
-        it.</em>
+    <li> <strong class="uidlink"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a></strong>:
+      <em class="summary">The basic building block for constructing an address resolver 
+        plugin.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html">rekall.plugins.darwin.address_resolver.DarwinAddressResolver</a></strong>:
+      <em class="summary">A Darwin specific address resolver plugin.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.address_resolver.LinuxAddressResolver-class.html">rekall.plugins.linux.address_resolver.LinuxAddressResolver</a></strong>:
+      <em class="summary">A Linux specific address resolver plugin.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.PEAddressResolver-class.html">rekall.plugins.windows.address_resolver.PEAddressResolver</a></strong>:
+      <em class="summary">A simple address resolver for PE files.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.WindowsAddressResolver-class.html">rekall.plugins.windows.address_resolver.WindowsAddressResolver</a></strong>:
+      <em class="summary">A windows specific address resolver plugin.</em>
+    </li>
+    </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.obj.BaseAddressComparisonMixIn-class.html">rekall.obj.BaseAddressComparisonMixIn</a></strong>:
       <em class="summary">A mixin providing comparison operators for its base offset.</em>
@@ -131,6 +143,14 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.inet_sock-class.html">rekall.plugins.overlays.linux.linux.inet_sock</a></strong>:
       <em class="summary">Class for an internet socket object</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.kgid_t-class.html">rekall.plugins.overlays.linux.linux.kgid_t</a></strong>:
+      <em class="summary">Newer kernels use this struct instead of an int.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.kuid_t-class.html">rekall.plugins.overlays.linux.linux.kuid_t</a></strong>:
+      <em class="summary">Newer kernels use this struct instead of an int.</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.mspdb.lfBitfield-class.html">rekall.plugins.tools.mspdb.lfBitfield</a></strong>:
       <em class="summary">A range of bits.</em>
     </li>
@@ -167,6 +187,8 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.list_head-class.html">rekall.plugins.overlays.linux.linux.list_head</a></strong>:
       <em class="summary">A list_head makes a doubly linked list.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.page-class.html">rekall.plugins.overlays.linux.linux.page</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.darwin.darwin.proc-class.html">rekall.plugins.overlays.darwin.darwin.proc</a></strong>
     </li>
@@ -225,6 +247,9 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.standard.DummyAddressSpace-class.html">rekall.plugins.addrspaces.standard.DummyAddressSpace</a></strong>:
       <em class="summary">An AS which always returns nulls.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.ewf.EWFAddressSpace-class.html">rekall.plugins.addrspaces.ewf.EWFAddressSpace</a></strong>:
+      <em class="summary">An EWF capable address space.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.standard.FileAddressSpace-class.html">rekall.plugins.addrspaces.standard.FileAddressSpace</a></strong>:
       <em class="summary">This is a direct file AS.</em>
@@ -291,6 +316,11 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.mspdb.StreamBasedAddressSpace-class.html">rekall.plugins.tools.mspdb.StreamBasedAddressSpace</a></strong>:
       <em class="summary">An address space which combines together the page lists.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.vmem.VMemAddressSpace-class.html">rekall.plugins.addrspaces.vmem.VMemAddressSpace</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.crash.WindowsCrashBMP-class.html">rekall.plugins.addrspaces.crash.WindowsCrashBMP</a></strong>:
+      <em class="summary">This Address Space supports the new windows Crash Dump format.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32-class.html">rekall.plugins.addrspaces.crash.WindowsCrashDumpSpace32</a></strong>:
       <em class="summary">This Address Space supports windows Crash Dump format</em>
     <ul>
@@ -316,20 +346,44 @@
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.ui.renderer.BaseColumn-class.html">rekall.ui.renderer.BaseColumn</a></strong>:
-      <em class="summary">Things that all columnae have in common.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.ui.text.TextColumn-class.html">rekall.ui.text.TextColumn</a></strong>:
-      <em class="summary">Implementation for text (mostly CLI) tables.</em>
-    </li>
-    </ul>
-    </li>
     <li> <strong class="uidlink">exceptions.BaseException</strong>:
       <em class="summary">Common base class for all exceptions</em>
     <ul>
     <li> <strong class="uidlink">exceptions.Exception</strong>:
       <em class="summary">Common base class for all non-exit exceptions.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.DecodingError-class.html">rekall.plugins.windows.malware.apihooks.DecodingError</a></strong>:
+      <em class="summary">Raised when unable to decode an instruction.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.Error-class.html">rekall.plugins.overlays.windows.ntfs.Error</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.ParseError-class.html">rekall.plugins.overlays.windows.ntfs.ParseError</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.NTFSParseError-class.html">rekall.plugins.overlays.windows.ntfs.NTFSParseError</a></strong>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.addrspace.Error-class.html">rekall.addrspace.Error</a></strong>:
+      <em class="summary">Address space errors.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.addrspace.ASAssertionError-class.html">rekall.addrspace.ASAssertionError</a></strong>:
+      <em class="summary">The address space failed to instantiate.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.addrspace.AddrSpaceError-class.html">rekall.addrspace.AddrSpaceError</a></strong>:
+      <em class="summary">Address Space Exception.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.obj.Error-class.html">rekall.obj.Error</a></strong>:
+      <em class="summary">All object related exceptions come from this one.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.obj.ProfileError-class.html">rekall.obj.ProfileError</a></strong>:
+      <em class="summary">Errors in setting the profile.</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.hypervisors.Error-class.html">rekall.plugins.hypervisors.Error</a></strong>:
       <em class="summary">Base exception.</em>
     <ul>
@@ -342,35 +396,6 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.hypervisors.UnrelatedVmcsError-class.html">rekall.plugins.hypervisors.UnrelatedVmcsError</a></strong>:
       <em class="summary">The provided VMCS is unrelated to the VM.</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.Error-class.html">rekall.plugins.overlays.windows.ntfs.Error</a></strong>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.ParseError-class.html">rekall.plugins.overlays.windows.ntfs.ParseError</a></strong>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs.NTFSParseError-class.html">rekall.plugins.overlays.windows.ntfs.NTFSParseError</a></strong>
-    </li>
-    </ul>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.obj.Error-class.html">rekall.obj.Error</a></strong>:
-      <em class="summary">All object related exceptions come from this one.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.obj.ProfileError-class.html">rekall.obj.ProfileError</a></strong>:
-      <em class="summary">Errors in setting the profile.</em>
-    </li>
-    </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.addrspace.Error-class.html">rekall.addrspace.Error</a></strong>:
-      <em class="summary">Address space errors.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.addrspace.ASAssertionError-class.html">rekall.addrspace.ASAssertionError</a></strong>:
-      <em class="summary">The address space failed to instantiate.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.addrspace.AddrSpaceError-class.html">rekall.addrspace.AddrSpaceError</a></strong>:
-      <em class="summary">Address Space Exception.</em>
     </li>
     </ul>
     </li>
@@ -421,6 +446,9 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.DecodingError-class.html">rekall.ui.json_renderer.DecodingError</a></strong>:
       <em class="summary">Raised if there is a decoding error.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.EncodingError-class.html">rekall.ui.json_renderer.EncodingError</a></strong>:
+      <em class="summary">Raised if we can not encode the object properly.</em>
     </li>
     </ul>
     </li>
@@ -592,6 +620,14 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.inet_sock-class.html">rekall.plugins.overlays.linux.linux.inet_sock</a></strong>:
       <em class="summary">Class for an internet socket object</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.kgid_t-class.html">rekall.plugins.overlays.linux.linux.kgid_t</a></strong>:
+      <em class="summary">Newer kernels use this struct instead of an int.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.kuid_t-class.html">rekall.plugins.overlays.linux.linux.kuid_t</a></strong>:
+      <em class="summary">Newer kernels use this struct instead of an int.</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.mspdb.lfBitfield-class.html">rekall.plugins.tools.mspdb.lfBitfield</a></strong>:
       <em class="summary">A range of bits.</em>
     </li>
@@ -628,6 +664,8 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.list_head-class.html">rekall.plugins.overlays.linux.linux.list_head</a></strong>:
       <em class="summary">A list_head makes a doubly linked list.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.linux.page-class.html">rekall.plugins.overlays.linux.linux.page</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.darwin.darwin.proc-class.html">rekall.plugins.overlays.darwin.darwin.proc</a></strong>
     </li>
@@ -681,14 +719,30 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.JsonRenderer-class.html">rekall.ui.json_renderer.JsonRenderer</a></strong>:
       <em class="summary">Render the output as a json object.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.data_export.DataExportRenderer-class.html">rekall.plugins.renderers.data_export.DataExportRenderer</a></strong>:
+      <em class="summary">An exporter for data.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer-class.html">rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.ui.text.TextRenderer-class.html">rekall.ui.text.TextRenderer</a></strong>:
-      <em class="summary">Renderer for the command line that supports paging, colors and progress.</em>
+      <em class="summary">Renderer for the command line that supports paging, colors and 
+        progress.</em>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.ui.text.TestRenderer-class.html">rekall.ui.text.TestRenderer</a></strong>:
       <em class="summary">A special renderer which makes parsing the output of tables easier.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.text.WideTextRenderer-class.html">rekall.ui.text.WideTextRenderer</a></strong>:
+      <em class="summary">A Renderer which explodes tables into wide formatted records.</em>
+    </li>
     </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSRenderer-class.html">rekall.plugins.renderers.xls.XLSRenderer</a></strong>:
+      <em class="summary">A Renderer for xls files.</em>
     </li>
     </ul>
     </li>
@@ -844,19 +898,30 @@
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.ui.renderer.BaseTable-class.html">rekall.ui.renderer.BaseTable</a></strong>:
-      <em class="summary">Things that all tables have in common.</em>
+      <em class="summary">Renderers contain tables.</em>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.ui.text.TextTable-class.html">rekall.ui.text.TextTable</a></strong>:
       <em class="summary">A table is a collection of columns.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSTable-class.html">rekall.plugins.renderers.xls.XLSTable</a></strong>:
+      <em class="summary">Renderers contain tables.</em>
+    </li>
+    </ul>
     </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.addrspace.CachingAddressSpaceMixIn-class.html">rekall.addrspace.CachingAddressSpaceMixIn</a></strong>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.ewf.EWFAddressSpace-class.html">rekall.plugins.addrspaces.ewf.EWFAddressSpace</a></strong>:
+      <em class="summary">An EWF capable address space.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.mspdb.StreamBasedAddressSpace-class.html">rekall.plugins.tools.mspdb.StreamBasedAddressSpace</a></strong>:
       <em class="summary">An address space which combines together the page lists.</em>
     </li>
     </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.text.Cell-class.html">rekall.ui.text.Cell</a></strong>:
+      <em class="summary">A Cell represents a single entry in a table.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.ui.text.Colorizer-class.html">rekall.ui.text.Colorizer</a></strong>:
       <em class="summary">An object which makes its target colorful.</em>
@@ -945,6 +1010,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.checks.CheckTrapTable-class.html">rekall.plugins.darwin.checks.CheckTrapTable</a></strong>:
       <em class="summary">Checks the traps table for hooks.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html">rekall.plugins.darwin.address_resolver.DarwinAddressResolver</a></strong>:
+      <em class="summary">A Darwin specific address resolver plugin.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.networking.DarwinArp-class.html">rekall.plugins.darwin.networking.DarwinArp</a></strong>:
       <em class="summary">Show information about arp tables.</em>
     </li>
@@ -959,6 +1027,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.zones.DarwinDeadProcesses-class.html">rekall.plugins.darwin.zones.DarwinDeadProcesses</a></strong>:
       <em class="summary">Show deallocated processes which still exist in the zone allocator.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.compressor.DarwinDumpCompressedPages-class.html">rekall.plugins.darwin.compressor.DarwinDumpCompressedPages</a></strong>:
+      <em class="summary">Dumps all compressed pages.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.networking.DarwinIFConfig-class.html">rekall.plugins.darwin.networking.DarwinIFConfig</a></strong>:
       <em class="summary">List network interface information.</em>
@@ -1115,6 +1186,9 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.psxview.LinuxPsxView-class.html">rekall.plugins.linux.psxview.LinuxPsxView</a></strong>:
+      <em class="summary">Find hidden processes comparing various process listings.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsof.Lsof-class.html">rekall.plugins.linux.lsof.Lsof</a></strong>:
       <em class="summary">Lists open files.</em>
     </li>
@@ -1126,6 +1200,9 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.address_resolver.LinuxAddressResolver-class.html">rekall.plugins.linux.address_resolver.LinuxAddressResolver</a></strong>:
+      <em class="summary">A Linux specific address resolver plugin.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.dmesg.LinuxDmesg-class.html">rekall.plugins.linux.dmesg.LinuxDmesg</a></strong>:
       <em class="summary">Gathers dmesg buffer.</em>
     </li>
@@ -1135,6 +1212,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mfind-class.html">rekall.plugins.linux.fs.Mfind</a></strong>:
       <em class="summary">Finds a file by name in memory.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mcat-class.html">rekall.plugins.linux.fs.Mcat</a></strong>:
+      <em class="summary">Returns the contents available in memory for a given file.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mls-class.html">rekall.plugins.linux.fs.Mls</a></strong>:
       <em class="summary">Lists the files in a mounted filesystem.</em>
     </li>
@@ -1148,6 +1228,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.Netstat-class.html">rekall.plugins.linux.netstat.Netstat</a></strong>:
       <em class="summary">Print the active network connections.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.notifier_chains.NotifierChainPlugin-class.html">rekall.plugins.linux.notifier_chains.NotifierChainPlugin</a></strong>:
+      <em class="summary">Outputs and verifies kernel notifier chains.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.PacketQueues-class.html">rekall.plugins.linux.netstat.PacketQueues</a></strong>:
       <em class="summary">Dumps the current packet queues for all known open sockets.</em>
@@ -1227,6 +1310,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.callbacks.Callbacks-class.html">rekall.plugins.windows.malware.callbacks.Callbacks</a></strong>:
       <em class="summary">Print system-wide notification routines.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.CheckPEHooks-class.html">rekall.plugins.windows.malware.apihooks.CheckPEHooks</a></strong>:
+      <em class="summary">Checks a pe file mapped into memory for hooks.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html">rekall.plugins.windows.malware.cmdhistory.CmdScan</a></strong>:
       <em class="summary">Extract command history by scanning for _COMMAND_HISTORY</em>
     <ul>
@@ -1277,6 +1363,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.misc.Objects-class.html">rekall.plugins.windows.misc.Objects</a></strong>:
       <em class="summary">Displays all object Types on the system.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.procdump.PEDump-class.html">rekall.plugins.windows.procdump.PEDump</a></strong>:
+      <em class="summary">Dump a PE binary from memory.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.PFNInfo-class.html">rekall.plugins.windows.pfn.PFNInfo</a></strong>:
       <em class="summary">Prints information about an address from the PFN database.</em>
     </li>
@@ -1312,6 +1401,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.printkey.RegDump-class.html">rekall.plugins.windows.registry.printkey.RegDump</a></strong>:
       <em class="summary">Dump all registry hives from memory into a dump directory.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.printkey.Services-class.html">rekall.plugins.windows.registry.printkey.Services</a></strong>:
+      <em class="summary">Enumerate all services.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.userassist.UserAssist-class.html">rekall.plugins.windows.registry.userassist.UserAssist</a></strong>:
       <em class="summary">Print userassist registry keys and information</em>
@@ -1354,23 +1446,29 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.DTBScan-class.html">rekall.plugins.windows.pfn.DTBScan</a></strong>:
       <em class="summary">Scans the physical memory for DTB values.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.EATHooks-class.html">rekall.plugins.windows.malware.apihooks.EATHooks</a></strong>:
+      <em class="summary">Detect EAT hooks in process and kernel memory</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.getsids.GetSIDs-class.html">rekall.plugins.windows.registry.getsids.GetSIDs</a></strong>:
       <em class="summary">Print the SIDs owning each process token.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.handles.Handles-class.html">rekall.plugins.windows.handles.Handles</a></strong>:
       <em class="summary">Print list of open handles for each process</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.IATHooks-class.html">rekall.plugins.windows.malware.apihooks.IATHooks</a></strong>:
+      <em class="summary">Detect IAT/EAT hooks in process and kernel memory</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.impscan.ImpScan-class.html">rekall.plugins.windows.malware.impscan.ImpScan</a></strong>:
       <em class="summary">Scan for calls to imported functions.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.InlineHooks-class.html">rekall.plugins.windows.malware.apihooks.InlineHooks</a></strong>:
+      <em class="summary">Detect API hooks in process and kernel memory</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.malfind.LdrModules-class.html">rekall.plugins.windows.malware.malfind.LdrModules</a></strong>:
       <em class="summary">Detect unlinked DLLs</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.malfind.Malfind-class.html">rekall.plugins.windows.malware.malfind.Malfind</a></strong>:
       <em class="summary">Find hidden and injected code</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.procdump.PEDump-class.html">rekall.plugins.windows.procdump.PEDump</a></strong>:
-      <em class="summary">Dump a PE binary from memory.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pstree.PSTree-class.html">rekall.plugins.windows.pstree.PSTree</a></strong>:
       <em class="summary">Print process list as a tree</em>
@@ -1391,9 +1489,6 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.procinfo.ProcInfo-class.html">rekall.plugins.windows.procinfo.ProcInfo</a></strong>:
       <em class="summary">Dump detailed information about a running process.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.psxview.PsXview-class.html">rekall.plugins.windows.malware.psxview.PsXview</a></strong>:
-      <em class="summary">Find hidden processes with various process listings</em>
-    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.PtoV-class.html">rekall.plugins.windows.pfn.PtoV</a></strong>:
       <em class="summary">Converts a physical address to a virtual address.</em>
     </li>
@@ -1411,13 +1506,15 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VAD-class.html">rekall.plugins.windows.vadinfo.VAD</a></strong>:
       <em class="summary">Concise dump of the VAD.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADInfo-class.html">rekall.plugins.windows.vadinfo.VADInfo</a></strong>:
-      <em class="summary">Dump the VAD info</em>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADDump-class.html">rekall.plugins.windows.vadinfo.VADDump</a></strong>:
       <em class="summary">Dumps out the vad sections to a file</em>
     </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADInfo-class.html">rekall.plugins.windows.vadinfo.VADInfo</a></strong>:
+      <em class="summary">Dump the VAD info</em>
+    <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADTree-class.html">rekall.plugins.windows.vadinfo.VADTree</a></strong>:
       <em class="summary">Walk the VAD tree and display in tree format</em>
     </li>
@@ -1446,6 +1543,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods.WinPsList-class.html">rekall.plugins.windows.taskmods.WinPsList</a></strong>:
       <em class="summary">List processes for windows.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.psxview.WindowsPsxView-class.html">rekall.plugins.windows.malware.psxview.WindowsPsxView</a></strong>:
+      <em class="summary">Find hidden processes with various process listings</em>
+    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.ssdt.WinSSDT-class.html">rekall.plugins.windows.ssdt.WinSSDT</a></strong>:
@@ -1453,6 +1553,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.misc.WinVirtualMap-class.html">rekall.plugins.windows.misc.WinVirtualMap</a></strong>:
       <em class="summary">Prints the Windows Kernel Virtual Address Map.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.WindowsAddressResolver-class.html">rekall.plugins.windows.address_resolver.WindowsAddressResolver</a></strong>:
+      <em class="summary">A windows specific address resolver plugin.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.windowstations.WindowsStations-class.html">rekall.plugins.windows.gui.windowstations.WindowsStations</a></strong>:
       <em class="summary">Displays all the windows stations by following lists.</em>
@@ -1489,6 +1592,14 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.PECommandPlugin-class.html">rekall.plugins.windows.address_resolver.PECommandPlugin</a></strong>:
+      <em class="summary">A command that is active when inspecting a PE file.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.PEAddressResolver-class.html">rekall.plugins.windows.address_resolver.PEAddressResolver</a></strong>:
+      <em class="summary">A simple address resolver for PE files.</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.VtoP-class.html">rekall.plugins.windows.pfn.VtoP</a></strong>:
       <em class="summary">Prints information about the virtual to physical translation.</em>
     </li>
@@ -1497,14 +1608,16 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.ipython.Rekall-class.html">rekall.plugins.tools.ipython.Rekall</a></strong>:
       <em class="summary">Starts or modifies a new rekall analysis session.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.RenderingSampler-class.html">rekall.plugins.tools.json_tools.RenderingSampler</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.modules.VersionScan-class.html">rekall.plugins.windows.modules.VersionScan</a></strong>:
       <em class="summary">Scan the physical address space for RSDS versions.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.hypervisors.VmScan-class.html">rekall.plugins.hypervisors.VmScan</a></strong>:
       <em class="summary">Scan the physical memory attempting to find hypervisors.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.WebConsole-class.html">rekall.plugins.tools.webconsole.WebConsole</a></strong>:
-      <em class="summary">Launch the web-based console notebook.</em>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole_plugin.WebConsole-class.html">rekall.plugins.tools.webconsole_plugin.WebConsole</a></strong>:
+      <em class="summary">Launch the web-based Rekall console.</em>
     </li>
     </ul>
     </li>
@@ -1550,10 +1663,10 @@
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.dwarfparser.DWARFParser-class.html">rekall.plugins.overlays.linux.dwarfparser.DWARFParser</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html">rekall.plugins.overlays.linux.dwarfdump.DWARFParser</a></strong>:
       <em class="summary">A parser for DWARF files.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html">rekall.plugins.overlays.linux.dwarfdump.DWARFParser</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.linux.dwarfparser.DWARFParser-class.html">rekall.plugins.overlays.linux.dwarfparser.DWARFParser</a></strong>:
       <em class="summary">A parser for DWARF files.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html">rekall.plugins.darwin.common.DarwinKASLRMixin</a></strong>:
@@ -1567,6 +1680,9 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.checks.CheckTrapTable-class.html">rekall.plugins.darwin.checks.CheckTrapTable</a></strong>:
       <em class="summary">Checks the traps table for hooks.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html">rekall.plugins.darwin.address_resolver.DarwinAddressResolver</a></strong>:
+      <em class="summary">A Darwin specific address resolver plugin.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.networking.DarwinArp-class.html">rekall.plugins.darwin.networking.DarwinArp</a></strong>:
       <em class="summary">Show information about arp tables.</em>
@@ -1582,6 +1698,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.zones.DarwinDeadProcesses-class.html">rekall.plugins.darwin.zones.DarwinDeadProcesses</a></strong>:
       <em class="summary">Show deallocated processes which still exist in the zone allocator.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.compressor.DarwinDumpCompressedPages-class.html">rekall.plugins.darwin.compressor.DarwinDumpCompressedPages</a></strong>:
+      <em class="summary">Dumps all compressed pages.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.networking.DarwinIFConfig-class.html">rekall.plugins.darwin.networking.DarwinIFConfig</a></strong>:
       <em class="summary">List network interface information.</em>
@@ -1662,6 +1781,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.dumpcerts.CertVadScan-class.html">rekall.plugins.windows.dumpcerts.CertVadScan</a></strong>:
       <em class="summary">Scan certificates in process Vads.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.compressor.DarwinDumpCompressedPages-class.html">rekall.plugins.darwin.compressor.DarwinDumpCompressedPages</a></strong>:
+      <em class="summary">Dumps all compressed pages.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.pslist.DarwinVadDump-class.html">rekall.plugins.darwin.pslist.DarwinVadDump</a></strong>:
       <em class="summary">Dump the VMA memory for a process.</em>
     </li>
@@ -1723,6 +1845,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.constants.FakeAtom-class.html">rekall.plugins.windows.gui.constants.FakeAtom</a></strong>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.runplugin.FakeParser-class.html">rekall.plugins.tools.webconsole.runplugin.FakeParser</a></strong>:
+      <em class="summary">Fake parser used to reflect on Replugins' arguments.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.FakeParser-class.html">rekall.plugins.tools.webconsole.FakeParser</a></strong>:
       <em class="summary">Fake parser used to reflect on plugins' arguments.</em>
     </li>
@@ -1745,7 +1870,7 @@
     </li>
     <li> <strong class="uidlink">string.Formatter</strong>
     <ul>
-    <li> <strong class="uidlink"><a href="rekall.ui.renderer.Formatter-class.html">rekall.ui.renderer.Formatter</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.ui.text.Formatter-class.html">rekall.ui.text.Formatter</a></strong>:
       <em class="summary">A formatter which supports extended formating specs.</em>
     </li>
     </ul>
@@ -1773,6 +1898,9 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.HookHeuristic-class.html">rekall.plugins.windows.malware.apihooks.HookHeuristic</a></strong>:
+      <em class="summary">A Hook heuristic detects possible hooks.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a></strong>:
       <em class="summary">The baseclass for abstracted IO implementations.</em>
     <ul>
@@ -1799,6 +1927,8 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.JITIterator-class.html">rekall.ui.JITIterator</a></strong>
+    </li>
     <li> <strong class="uidlink">json.encoder.JSONEncoder</strong>:
       <em class="summary">Extensible JSON &lt;http://json.org&gt; encoder for Python data 
         structures.</em>
@@ -1809,11 +1939,6 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.JsonDecoder-class.html">rekall.ui.json_renderer.JsonDecoder</a></strong>:
       <em class="summary">A Decoder for JSON encoded data.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.RendererDecoder-class.html">rekall.plugins.tools.json_tools.RendererDecoder</a></strong>:
-      <em class="summary">A decoder which produces proxy objects for the real thing.</em>
-    </li>
-    </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.JsonEncoder-class.html">rekall.ui.json_renderer.JsonEncoder</a></strong>
     </li>
@@ -1826,6 +1951,9 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.checks.CheckTrapTable-class.html">rekall.plugins.darwin.checks.CheckTrapTable</a></strong>:
       <em class="summary">Checks the traps table for hooks.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html">rekall.plugins.darwin.address_resolver.DarwinAddressResolver</a></strong>:
+      <em class="summary">A Darwin specific address resolver plugin.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.networking.DarwinArp-class.html">rekall.plugins.darwin.networking.DarwinArp</a></strong>:
       <em class="summary">Show information about arp tables.</em>
@@ -1841,6 +1969,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.zones.DarwinDeadProcesses-class.html">rekall.plugins.darwin.zones.DarwinDeadProcesses</a></strong>:
       <em class="summary">Show deallocated processes which still exist in the zone allocator.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.compressor.DarwinDumpCompressedPages-class.html">rekall.plugins.darwin.compressor.DarwinDumpCompressedPages</a></strong>:
+      <em class="summary">Dumps all compressed pages.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.networking.DarwinIFConfig-class.html">rekall.plugins.darwin.networking.DarwinIFConfig</a></strong>:
       <em class="summary">List network interface information.</em>
@@ -1987,6 +2118,9 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.psxview.LinuxPsxView-class.html">rekall.plugins.linux.psxview.LinuxPsxView</a></strong>:
+      <em class="summary">Find hidden processes comparing various process listings.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsof.Lsof-class.html">rekall.plugins.linux.lsof.Lsof</a></strong>:
       <em class="summary">Lists open files.</em>
     </li>
@@ -1998,6 +2132,9 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.address_resolver.LinuxAddressResolver-class.html">rekall.plugins.linux.address_resolver.LinuxAddressResolver</a></strong>:
+      <em class="summary">A Linux specific address resolver plugin.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.dmesg.LinuxDmesg-class.html">rekall.plugins.linux.dmesg.LinuxDmesg</a></strong>:
       <em class="summary">Gathers dmesg buffer.</em>
     </li>
@@ -2007,6 +2144,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mfind-class.html">rekall.plugins.linux.fs.Mfind</a></strong>:
       <em class="summary">Finds a file by name in memory.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mcat-class.html">rekall.plugins.linux.fs.Mcat</a></strong>:
+      <em class="summary">Returns the contents available in memory for a given file.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mls-class.html">rekall.plugins.linux.fs.Mls</a></strong>:
       <em class="summary">Lists the files in a mounted filesystem.</em>
     </li>
@@ -2021,8 +2161,19 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.Netstat-class.html">rekall.plugins.linux.netstat.Netstat</a></strong>:
       <em class="summary">Print the active network connections.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.notifier_chains.NotifierChainPlugin-class.html">rekall.plugins.linux.notifier_chains.NotifierChainPlugin</a></strong>:
+      <em class="summary">Outputs and verifies kernel notifier chains.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.PacketQueues-class.html">rekall.plugins.linux.netstat.PacketQueues</a></strong>:
       <em class="summary">Dumps the current packet queues for all known open sockets.</em>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.PECommandPlugin-class.html">rekall.plugins.windows.address_resolver.PECommandPlugin</a></strong>:
+      <em class="summary">A command that is active when inspecting a PE file.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.PEAddressResolver-class.html">rekall.plugins.windows.address_resolver.PEAddressResolver</a></strong>:
+      <em class="summary">A simple address resolver for PE files.</em>
     </li>
     </ul>
     </li>
@@ -2091,6 +2242,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.callbacks.Callbacks-class.html">rekall.plugins.windows.malware.callbacks.Callbacks</a></strong>:
       <em class="summary">Print system-wide notification routines.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.CheckPEHooks-class.html">rekall.plugins.windows.malware.apihooks.CheckPEHooks</a></strong>:
+      <em class="summary">Checks a pe file mapped into memory for hooks.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html">rekall.plugins.windows.malware.cmdhistory.CmdScan</a></strong>:
       <em class="summary">Extract command history by scanning for _COMMAND_HISTORY</em>
     <ul>
@@ -2141,6 +2295,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.misc.Objects-class.html">rekall.plugins.windows.misc.Objects</a></strong>:
       <em class="summary">Displays all object Types on the system.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.procdump.PEDump-class.html">rekall.plugins.windows.procdump.PEDump</a></strong>:
+      <em class="summary">Dump a PE binary from memory.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.PFNInfo-class.html">rekall.plugins.windows.pfn.PFNInfo</a></strong>:
       <em class="summary">Prints information about an address from the PFN database.</em>
     </li>
@@ -2176,6 +2333,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.printkey.RegDump-class.html">rekall.plugins.windows.registry.printkey.RegDump</a></strong>:
       <em class="summary">Dump all registry hives from memory into a dump directory.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.printkey.Services-class.html">rekall.plugins.windows.registry.printkey.Services</a></strong>:
+      <em class="summary">Enumerate all services.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.userassist.UserAssist-class.html">rekall.plugins.windows.registry.userassist.UserAssist</a></strong>:
       <em class="summary">Print userassist registry keys and information</em>
@@ -2218,23 +2378,29 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.DTBScan-class.html">rekall.plugins.windows.pfn.DTBScan</a></strong>:
       <em class="summary">Scans the physical memory for DTB values.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.EATHooks-class.html">rekall.plugins.windows.malware.apihooks.EATHooks</a></strong>:
+      <em class="summary">Detect EAT hooks in process and kernel memory</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.getsids.GetSIDs-class.html">rekall.plugins.windows.registry.getsids.GetSIDs</a></strong>:
       <em class="summary">Print the SIDs owning each process token.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.handles.Handles-class.html">rekall.plugins.windows.handles.Handles</a></strong>:
       <em class="summary">Print list of open handles for each process</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.IATHooks-class.html">rekall.plugins.windows.malware.apihooks.IATHooks</a></strong>:
+      <em class="summary">Detect IAT/EAT hooks in process and kernel memory</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.impscan.ImpScan-class.html">rekall.plugins.windows.malware.impscan.ImpScan</a></strong>:
       <em class="summary">Scan for calls to imported functions.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.InlineHooks-class.html">rekall.plugins.windows.malware.apihooks.InlineHooks</a></strong>:
+      <em class="summary">Detect API hooks in process and kernel memory</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.malfind.LdrModules-class.html">rekall.plugins.windows.malware.malfind.LdrModules</a></strong>:
       <em class="summary">Detect unlinked DLLs</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.malfind.Malfind-class.html">rekall.plugins.windows.malware.malfind.Malfind</a></strong>:
       <em class="summary">Find hidden and injected code</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.procdump.PEDump-class.html">rekall.plugins.windows.procdump.PEDump</a></strong>:
-      <em class="summary">Dump a PE binary from memory.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pstree.PSTree-class.html">rekall.plugins.windows.pstree.PSTree</a></strong>:
       <em class="summary">Print process list as a tree</em>
@@ -2255,9 +2421,6 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.procinfo.ProcInfo-class.html">rekall.plugins.windows.procinfo.ProcInfo</a></strong>:
       <em class="summary">Dump detailed information about a running process.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.psxview.PsXview-class.html">rekall.plugins.windows.malware.psxview.PsXview</a></strong>:
-      <em class="summary">Find hidden processes with various process listings</em>
-    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.PtoV-class.html">rekall.plugins.windows.pfn.PtoV</a></strong>:
       <em class="summary">Converts a physical address to a virtual address.</em>
     </li>
@@ -2275,13 +2438,15 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VAD-class.html">rekall.plugins.windows.vadinfo.VAD</a></strong>:
       <em class="summary">Concise dump of the VAD.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADInfo-class.html">rekall.plugins.windows.vadinfo.VADInfo</a></strong>:
-      <em class="summary">Dump the VAD info</em>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADDump-class.html">rekall.plugins.windows.vadinfo.VADDump</a></strong>:
       <em class="summary">Dumps out the vad sections to a file</em>
     </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADInfo-class.html">rekall.plugins.windows.vadinfo.VADInfo</a></strong>:
+      <em class="summary">Dump the VAD info</em>
+    <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADTree-class.html">rekall.plugins.windows.vadinfo.VADTree</a></strong>:
       <em class="summary">Walk the VAD tree and display in tree format</em>
     </li>
@@ -2310,6 +2475,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods.WinPsList-class.html">rekall.plugins.windows.taskmods.WinPsList</a></strong>:
       <em class="summary">List processes for windows.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.psxview.WindowsPsxView-class.html">rekall.plugins.windows.malware.psxview.WindowsPsxView</a></strong>:
+      <em class="summary">Find hidden processes with various process listings</em>
+    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.ssdt.WinSSDT-class.html">rekall.plugins.windows.ssdt.WinSSDT</a></strong>:
@@ -2317,6 +2485,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.misc.WinVirtualMap-class.html">rekall.plugins.windows.misc.WinVirtualMap</a></strong>:
       <em class="summary">Prints the Windows Kernel Virtual Address Map.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.WindowsAddressResolver-class.html">rekall.plugins.windows.address_resolver.WindowsAddressResolver</a></strong>:
+      <em class="summary">A windows specific address resolver plugin.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.windowstations.WindowsStations-class.html">rekall.plugins.windows.gui.windowstations.WindowsStations</a></strong>:
       <em class="summary">Displays all the windows stations by following lists.</em>
@@ -2336,10 +2507,10 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.common.KernelAddressCheckerMixIn-class.html">rekall.plugins.linux.common.KernelAddressCheckerMixIn</a></strong>:
       <em class="summary">A plugin mixin which does kernel address checks.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsmod.KernelModule-class.html">rekall.plugins.linux.lsmod.KernelModule</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.address_resolver.KernelModule-class.html">rekall.plugins.linux.address_resolver.KernelModule</a></strong>:
       <em class="summary">A Fake object which makes the kernel look like a module.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.kb.KernelModule-class.html">rekall.kb.KernelModule</a></strong>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.KernelModule-class.html">rekall.plugins.windows.address_resolver.KernelModule</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.utils.LinkedList-class.html">rekall.utils.LinkedList</a></strong>:
       <em class="summary">A simple doubly linked list used for fast caches.</em>
@@ -2487,12 +2658,157 @@
     <ul>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a></strong>:
+      <em class="summary">Baseclass for all TestRenderer object renderers.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.JsonObjectRenderer-class.html">rekall.ui.json_renderer.JsonObjectRenderer</a></strong>:
+      <em class="summary">An ObjectRenderer for Json encoding.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer-class.html">rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer-class.html">rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html">rekall.ui.json_renderer.StateBasedObjectRenderer</a></strong>:
+      <em class="summary">An object renderer which serializes an object to a dict.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer-class.html">rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer-class.html">rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.FileAddressSpaceObjectRenderer-class.html">rekall.plugins.renderers.json_storage.FileAddressSpaceObjectRenderer</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.EWFAddressSpaceObjectRenderer-class.html">rekall.plugins.renderers.json_storage.EWFAddressSpaceObjectRenderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.IA32PagedMemoryObjectRenderer-class.html">rekall.plugins.renderers.json_storage.IA32PagedMemoryObjectRenderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.BaseObjectRenderer-class.html">rekall.ui.json_renderer.BaseObjectRenderer</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.PointerObjectRenderer-class.html">rekall.plugins.renderers.json_storage.PointerObjectRenderer</a></strong>:
+      <em class="summary">Encode a Pointer.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.ArrayObjectRenderer-class.html">rekall.plugins.renderers.json_storage.ArrayObjectRenderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html">rekall.plugins.renderers.data_export.DataExportObjectRenderer</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html">rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer-class.html">rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.windows.EPROCESSDataExport-class.html">rekall.plugins.renderers.windows.EPROCESSDataExport</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.windows.UNICODE_STRINGDataExport-class.html">rekall.plugins.renderers.windows.UNICODE_STRINGDataExport</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.windows.STRINGDataExport-class.html">rekall.plugins.renderers.windows.STRINGDataExport</a></strong>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.data_export.DataExportEnumerationRenderer-class.html">rekall.plugins.renderers.data_export.DataExportEnumerationRenderer</a></strong>:
+      <em class="summary">For enumerations store both their value and the enum name.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer-class.html">rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.data_export.DataExportUnixTimestampObjectRenderer-class.html">rekall.plugins.renderers.data_export.DataExportUnixTimestampObjectRenderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.json_renderer.JSTreeNodeRenderer-class.html">rekall.ui.json_renderer.JSTreeNodeRenderer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.NoneObjectRenderer-class.html">rekall.plugins.renderers.json_storage.NoneObjectRenderer</a></strong>:
+      <em class="summary">Encode a None Object.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.ProfileObjectRenderer-class.html">rekall.plugins.renderers.json_storage.ProfileObjectRenderer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.SessionObjectRenderer-class.html">rekall.plugins.renderers.json_storage.SessionObjectRenderer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.SetObjectRenderer-class.html">rekall.plugins.renderers.json_storage.SetObjectRenderer</a></strong>:
+      <em class="summary">Encode a python set().</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer-class.html">rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.windows.NoneRendererText-class.html">rekall.plugins.renderers.windows.NoneRendererText</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a></strong>:
+      <em class="summary">Baseclass for all TextRenderer object renderers.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.windows.BoolRenderer-class.html">rekall.plugins.renderers.windows.BoolRenderer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.text.CellRenderer-class.html">rekall.ui.text.CellRenderer</a></strong>:
+      <em class="summary">This renders a Cell object into a Cell object.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer-class.html">rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer-class.html">rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.text.NoneObjectTextRenderer-class.html">rekall.ui.text.NoneObjectTextRenderer</a></strong>:
+      <em class="summary">NoneObjects will be rendered with a single dash '-'.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.ui.text.NoneTextRenderer-class.html">rekall.ui.text.NoneTextRenderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.text.TreeNodeObjectRenderer-class.html">rekall.ui.text.TreeNodeObjectRenderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.windows.UnixTimestampObjectRenderer-class.html">rekall.plugins.renderers.windows.UnixTimestampObjectRenderer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSObjectRenderer-class.html">rekall.plugins.renderers.xls.XLSObjectRenderer</a></strong>:
+      <em class="summary">By default the XLS renderer delegates to the text renderer.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSDateTimeRenderer-class.html">rekall.plugins.renderers.xls.XLSDateTimeRenderer</a></strong>:
+      <em class="summary">Renders timestamps as python datetime objects.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSEProcessRenderer-class.html">rekall.plugins.renderers.xls.XLSEProcessRenderer</a></strong>:
+      <em class="summary">Expands an EPROCESS into three columns (address, name and PID).</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSNativeTypeRenderer-class.html">rekall.plugins.renderers.xls.XLSNativeTypeRenderer</a></strong>:
+      <em class="summary">Renders native types as python objects.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLS_UNICODE_STRING_Renderer-class.html">rekall.plugins.renderers.xls.XLS_UNICODE_STRING_Renderer</a></strong>
+    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSNoneObjectRenderer-class.html">rekall.plugins.renderers.xls.XLSNoneObjectRenderer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSPointerRenderer-class.html">rekall.plugins.renderers.xls.XLSPointerRenderer</a></strong>:
+      <em class="summary">Renders the address of the pointer target as a hex string.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSStringRenderer-class.html">rekall.plugins.renderers.xls.XLSStringRenderer</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSStructRenderer-class.html">rekall.plugins.renderers.xls.XLSStructRenderer</a></strong>:
+      <em class="summary">Hex format struct's offsets.</em>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.core.OutputFileMixin-class.html">rekall.plugins.core.OutputFileMixin</a></strong>:
       <em class="summary">A mixin for plugins that want to dump a single user controlled 
         output.</em>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.profile_tool.ConvertProfile-class.html">rekall.plugins.tools.profile_tool.ConvertProfile</a></strong>:
       <em class="summary">Convert a profile from another program to the Rekall format.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mcat-class.html">rekall.plugins.linux.fs.Mcat</a></strong>:
+      <em class="summary">Returns the contents available in memory for a given file.</em>
     </li>
     </ul>
     </li>
@@ -2501,6 +2817,8 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.pe_vtypes.PE-class.html">rekall.plugins.overlays.windows.pe_vtypes.PE</a></strong>:
       <em class="summary">A convenience object to access PE file information.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.PESectionModule-class.html">rekall.plugins.windows.address_resolver.PESectionModule</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.ui.text.Pager-class.html">rekall.ui.text.Pager</a></strong>:
       <em class="summary">A wrapper around a pager.</em>
@@ -2569,6 +2887,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.checks.CheckTrapTable-class.html">rekall.plugins.darwin.checks.CheckTrapTable</a></strong>:
       <em class="summary">Checks the traps table for hooks.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html">rekall.plugins.darwin.address_resolver.DarwinAddressResolver</a></strong>:
+      <em class="summary">A Darwin specific address resolver plugin.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.networking.DarwinArp-class.html">rekall.plugins.darwin.networking.DarwinArp</a></strong>:
       <em class="summary">Show information about arp tables.</em>
     </li>
@@ -2583,6 +2904,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.zones.DarwinDeadProcesses-class.html">rekall.plugins.darwin.zones.DarwinDeadProcesses</a></strong>:
       <em class="summary">Show deallocated processes which still exist in the zone allocator.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin.compressor.DarwinDumpCompressedPages-class.html">rekall.plugins.darwin.compressor.DarwinDumpCompressedPages</a></strong>:
+      <em class="summary">Dumps all compressed pages.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.networking.DarwinIFConfig-class.html">rekall.plugins.darwin.networking.DarwinIFConfig</a></strong>:
       <em class="summary">List network interface information.</em>
@@ -2739,6 +3063,9 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.psxview.LinuxPsxView-class.html">rekall.plugins.linux.psxview.LinuxPsxView</a></strong>:
+      <em class="summary">Find hidden processes comparing various process listings.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.lsof.Lsof-class.html">rekall.plugins.linux.lsof.Lsof</a></strong>:
       <em class="summary">Lists open files.</em>
     </li>
@@ -2750,6 +3077,9 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.address_resolver.LinuxAddressResolver-class.html">rekall.plugins.linux.address_resolver.LinuxAddressResolver</a></strong>:
+      <em class="summary">A Linux specific address resolver plugin.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.dmesg.LinuxDmesg-class.html">rekall.plugins.linux.dmesg.LinuxDmesg</a></strong>:
       <em class="summary">Gathers dmesg buffer.</em>
     </li>
@@ -2759,6 +3089,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mfind-class.html">rekall.plugins.linux.fs.Mfind</a></strong>:
       <em class="summary">Finds a file by name in memory.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mcat-class.html">rekall.plugins.linux.fs.Mcat</a></strong>:
+      <em class="summary">Returns the contents available in memory for a given file.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.Mls-class.html">rekall.plugins.linux.fs.Mls</a></strong>:
       <em class="summary">Lists the files in a mounted filesystem.</em>
     </li>
@@ -2772,6 +3105,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.Netstat-class.html">rekall.plugins.linux.netstat.Netstat</a></strong>:
       <em class="summary">Print the active network connections.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.notifier_chains.NotifierChainPlugin-class.html">rekall.plugins.linux.notifier_chains.NotifierChainPlugin</a></strong>:
+      <em class="summary">Outputs and verifies kernel notifier chains.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.PacketQueues-class.html">rekall.plugins.linux.netstat.PacketQueues</a></strong>:
       <em class="summary">Dumps the current packet queues for all known open sockets.</em>
@@ -2851,6 +3187,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.callbacks.Callbacks-class.html">rekall.plugins.windows.malware.callbacks.Callbacks</a></strong>:
       <em class="summary">Print system-wide notification routines.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.CheckPEHooks-class.html">rekall.plugins.windows.malware.apihooks.CheckPEHooks</a></strong>:
+      <em class="summary">Checks a pe file mapped into memory for hooks.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html">rekall.plugins.windows.malware.cmdhistory.CmdScan</a></strong>:
       <em class="summary">Extract command history by scanning for _COMMAND_HISTORY</em>
     <ul>
@@ -2901,6 +3240,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.misc.Objects-class.html">rekall.plugins.windows.misc.Objects</a></strong>:
       <em class="summary">Displays all object Types on the system.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.procdump.PEDump-class.html">rekall.plugins.windows.procdump.PEDump</a></strong>:
+      <em class="summary">Dump a PE binary from memory.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.PFNInfo-class.html">rekall.plugins.windows.pfn.PFNInfo</a></strong>:
       <em class="summary">Prints information about an address from the PFN database.</em>
     </li>
@@ -2936,6 +3278,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.printkey.RegDump-class.html">rekall.plugins.windows.registry.printkey.RegDump</a></strong>:
       <em class="summary">Dump all registry hives from memory into a dump directory.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.printkey.Services-class.html">rekall.plugins.windows.registry.printkey.Services</a></strong>:
+      <em class="summary">Enumerate all services.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.userassist.UserAssist-class.html">rekall.plugins.windows.registry.userassist.UserAssist</a></strong>:
       <em class="summary">Print userassist registry keys and information</em>
@@ -2978,23 +3323,29 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.DTBScan-class.html">rekall.plugins.windows.pfn.DTBScan</a></strong>:
       <em class="summary">Scans the physical memory for DTB values.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.EATHooks-class.html">rekall.plugins.windows.malware.apihooks.EATHooks</a></strong>:
+      <em class="summary">Detect EAT hooks in process and kernel memory</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.getsids.GetSIDs-class.html">rekall.plugins.windows.registry.getsids.GetSIDs</a></strong>:
       <em class="summary">Print the SIDs owning each process token.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.handles.Handles-class.html">rekall.plugins.windows.handles.Handles</a></strong>:
       <em class="summary">Print list of open handles for each process</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.IATHooks-class.html">rekall.plugins.windows.malware.apihooks.IATHooks</a></strong>:
+      <em class="summary">Detect IAT/EAT hooks in process and kernel memory</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.impscan.ImpScan-class.html">rekall.plugins.windows.malware.impscan.ImpScan</a></strong>:
       <em class="summary">Scan for calls to imported functions.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.InlineHooks-class.html">rekall.plugins.windows.malware.apihooks.InlineHooks</a></strong>:
+      <em class="summary">Detect API hooks in process and kernel memory</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.malfind.LdrModules-class.html">rekall.plugins.windows.malware.malfind.LdrModules</a></strong>:
       <em class="summary">Detect unlinked DLLs</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.malfind.Malfind-class.html">rekall.plugins.windows.malware.malfind.Malfind</a></strong>:
       <em class="summary">Find hidden and injected code</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.procdump.PEDump-class.html">rekall.plugins.windows.procdump.PEDump</a></strong>:
-      <em class="summary">Dump a PE binary from memory.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pstree.PSTree-class.html">rekall.plugins.windows.pstree.PSTree</a></strong>:
       <em class="summary">Print process list as a tree</em>
@@ -3015,9 +3366,6 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.procinfo.ProcInfo-class.html">rekall.plugins.windows.procinfo.ProcInfo</a></strong>:
       <em class="summary">Dump detailed information about a running process.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.psxview.PsXview-class.html">rekall.plugins.windows.malware.psxview.PsXview</a></strong>:
-      <em class="summary">Find hidden processes with various process listings</em>
-    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn.PtoV-class.html">rekall.plugins.windows.pfn.PtoV</a></strong>:
       <em class="summary">Converts a physical address to a virtual address.</em>
     </li>
@@ -3035,13 +3383,15 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VAD-class.html">rekall.plugins.windows.vadinfo.VAD</a></strong>:
       <em class="summary">Concise dump of the VAD.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADInfo-class.html">rekall.plugins.windows.vadinfo.VADInfo</a></strong>:
-      <em class="summary">Dump the VAD info</em>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADDump-class.html">rekall.plugins.windows.vadinfo.VADDump</a></strong>:
       <em class="summary">Dumps out the vad sections to a file</em>
     </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADInfo-class.html">rekall.plugins.windows.vadinfo.VADInfo</a></strong>:
+      <em class="summary">Dump the VAD info</em>
+    <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo.VADTree-class.html">rekall.plugins.windows.vadinfo.VADTree</a></strong>:
       <em class="summary">Walk the VAD tree and display in tree format</em>
     </li>
@@ -3070,6 +3420,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods.WinPsList-class.html">rekall.plugins.windows.taskmods.WinPsList</a></strong>:
       <em class="summary">List processes for windows.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.psxview.WindowsPsxView-class.html">rekall.plugins.windows.malware.psxview.WindowsPsxView</a></strong>:
+      <em class="summary">Find hidden processes with various process listings</em>
+    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.ssdt.WinSSDT-class.html">rekall.plugins.windows.ssdt.WinSSDT</a></strong>:
@@ -3077,6 +3430,9 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.misc.WinVirtualMap-class.html">rekall.plugins.windows.misc.WinVirtualMap</a></strong>:
       <em class="summary">Prints the Windows Kernel Virtual Address Map.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.WindowsAddressResolver-class.html">rekall.plugins.windows.address_resolver.WindowsAddressResolver</a></strong>:
+      <em class="summary">A windows specific address resolver plugin.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.windowstations.WindowsStations-class.html">rekall.plugins.windows.gui.windowstations.WindowsStations</a></strong>:
       <em class="summary">Displays all the windows stations by following lists.</em>
@@ -3111,6 +3467,14 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.imagecopy.ImageCopy-class.html">rekall.plugins.imagecopy.ImageCopy</a></strong>:
       <em class="summary">Copies a physical address space out as a raw DD image</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.PECommandPlugin-class.html">rekall.plugins.windows.address_resolver.PECommandPlugin</a></strong>:
+      <em class="summary">A command that is active when inspecting a PE file.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver.PEAddressResolver-class.html">rekall.plugins.windows.address_resolver.PEAddressResolver</a></strong>:
+      <em class="summary">A simple address resolver for PE files.</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.modules.VersionScan-class.html">rekall.plugins.windows.modules.VersionScan</a></strong>:
       <em class="summary">Scan the physical address space for RSDS versions.</em>
     </li>
@@ -3119,17 +3483,22 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.intel.PhysicalAddress-class.html">rekall.plugins.addrspaces.intel.PhysicalAddress</a></strong>:
+      <em class="summary">A class to represent a physical address.</em>
+    </li>
     <li> <strong class="uidlink">manuskript.plugin.Plugin</strong>
     <ul>
     <li> <strong class="uidlink">manuskript.plugins.pythoncall.PythonCall</strong>
     <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.RekallPythonCall-class.html">rekall.plugins.tools.webconsole.RekallPythonCall</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.pythoncall.RekallPythonCall-class.html">rekall.plugins.tools.webconsole.pythoncall.RekallPythonCall</a></strong>:
       <em class="summary">PythonCall extension that inserts Rekall session into local 
         context.</em>
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.RekallWebConsole-class.html">rekall.plugins.tools.webconsole.RekallWebConsole</a></strong>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.runplugin.RekallRunPlugin-class.html">rekall.plugins.tools.webconsole.runplugin.RekallRunPlugin</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole_plugin.RekallWebConsole-class.html">rekall.plugins.tools.webconsole_plugin.RekallWebConsole</a></strong>
     </li>
     </ul>
     </li>
@@ -3219,6 +3588,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.printkey.SAMProfile-class.html">rekall.plugins.windows.registry.printkey.SAMProfile</a></strong>:
       <em class="summary">A profile to parse the SAM.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.vmem.VMWareProfile-class.html">rekall.plugins.addrspaces.vmem.VMWareProfile</a></strong>:
+      <em class="summary">A profile for parsing VMWare structures.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.cmdhistory.WinSrv64-class.html">rekall.plugins.windows.malware.cmdhistory.WinSrv64</a></strong>:
       <em class="summary">A domain specific profile for the xp, 2008.</em>
     </li>
@@ -3303,6 +3675,8 @@
       <em class="summary">Profile to parse hypervisor control structures.</em>
     </li>
     </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.obj.TestProfile-class.html">rekall.obj.TestProfile</a></strong>
     </li>
     </ul>
     </li>
@@ -3398,6 +3772,8 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.Sampler-class.html">rekall.plugins.tools.json_tools.Sampler</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.scan.ScannerCheck-class.html">rekall.scan.ScannerCheck</a></strong>:
       <em class="summary">A scanner check is a special class which is invoked on an AS to 
         check for a specific condition.</em>
@@ -3439,16 +3815,14 @@
     <li> <strong class="uidlink"><a href="rekall.session.Session-class.html">rekall.session.Session</a></strong>:
       <em class="summary">Base session.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.session.JsonSerializableSession-class.html">rekall.session.JsonSerializableSession</a></strong>:
+      <em class="summary">A session which can serialize its state into a Json file.</em>
+    <ul>
     <li> <strong class="uidlink"><a href="rekall.session.InteractiveSession-class.html">rekall.session.InteractiveSession</a></strong>:
       <em class="summary">The session allows for storing of arbitrary values and 
         configuration.</em>
     </li>
     </ul>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.kb.SortedAddresses-class.html">rekall.kb.SortedAddresses</a></strong>:
-      <em class="summary">An object to abstract searching for known memory locations.</em>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.kb.SymbolAddresses-class.html">rekall.kb.SymbolAddresses</a></strong>
     </li>
     </ul>
     </li>
@@ -3471,25 +3845,8 @@
     </li>
     </ul>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.StructFormatter-class.html">rekall.plugins.tools.json_tools.StructFormatter</a></strong>
-    <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.AddressSpaceFormatter-class.html">rekall.plugins.tools.json_tools.AddressSpaceFormatter</a></strong>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.DatetimeFormatter-class.html">rekall.plugins.tools.json_tools.DatetimeFormatter</a></strong>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.EnumFormatter-class.html">rekall.plugins.tools.json_tools.EnumFormatter</a></strong>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.LiteralFormatter-class.html">rekall.plugins.tools.json_tools.LiteralFormatter</a></strong>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.NoneObjectFormatter-class.html">rekall.plugins.tools.json_tools.NoneObjectFormatter</a></strong>
-    </li>
-    </ul>
-    </li>
     <li> <strong class="uidlink"><a href="rekall.superposition.Superposition-class.html">rekall.superposition.Superposition</a></strong>:
       <em class="summary">Represents multiple possible values of a single variable.</em>
-    </li>
-    <li> <strong class="uidlink"><a href="rekall.kb.SymbolContainer-class.html">rekall.kb.SymbolContainer</a></strong>:
-      <em class="summary">A container class for symbols.</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin-class.html">rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin</a></strong>:
       <em class="summary">A mixin for plugins that want to use tcpip.sys profiles.</em>
@@ -3518,6 +3875,9 @@
     <li> <strong class="uidlink">unittest.case.TestCase</strong>:
       <em class="summary">A class whose instances are single test cases.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.obj_test.ProfileTest-class.html">rekall.obj_test.ProfileTest</a></strong>:
+      <em class="summary">Test the profile implementation.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a></strong>:
       <em class="summary">Base class for all rekall unit tests.</em>
     <ul>
@@ -3536,7 +3896,7 @@
       <em class="summary">Disable the test for this command to avoid bringing up the 
         notebook.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.TestWebConsole-class.html">rekall.plugins.tools.webconsole.TestWebConsole</a></strong>:
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole_plugin.TestWebConsole-class.html">rekall.plugins.tools.webconsole_plugin.TestWebConsole</a></strong>:
       <em class="summary">Disable the test for this command to avoid bringing up the 
         notebook.</em>
     </li>
@@ -3556,9 +3916,17 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.linux.proc_maps.TestLinVadDump-class.html">rekall.plugins.linux.proc_maps.TestLinVadDump</a></strong>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.TestMcat-class.html">rekall.plugins.linux.fs.TestMcat</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.TestMfind-class.html">rekall.plugins.linux.fs.TestMfind</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.fs.TestMls-class.html">rekall.plugins.linux.fs.TestMls</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.procdump_test.TestModDump-class.html">rekall.plugins.windows.procdump_test.TestModDump</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.procdump_test.TestPEDump-class.html">rekall.plugins.windows.procdump_test.TestPEDump</a></strong>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.linux.netstat.TestPacketQueues-class.html">rekall.plugins.linux.netstat.TestPacketQueues</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.procdump_test.TestProcdump-class.html">rekall.plugins.windows.procdump_test.TestProcdump</a></strong>:
       <em class="summary">Test the Procdump module.</em>
@@ -3588,14 +3956,20 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.disassembler.TestDisassemble-class.html">rekall.plugins.windows.disassembler.TestDisassemble</a></strong>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.TestEATHooks-class.html">rekall.plugins.windows.malware.apihooks.TestEATHooks</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.core_test.TestGrep-class.html">rekall.plugins.core_test.TestGrep</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.index.TestGuessGUID-class.html">rekall.plugins.windows.index.TestGuessGUID</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.printkey_test.TestHiveDump-class.html">rekall.plugins.windows.registry.printkey_test.TestHiveDump</a></strong>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.TestIATHooks-class.html">rekall.plugins.windows.malware.apihooks.TestIATHooks</a></strong>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.core_test.TestInfo-class.html">rekall.plugins.core_test.TestInfo</a></strong>:
       <em class="summary">Test the Info plugin.</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.TestInlineHooks-class.html">rekall.plugins.windows.malware.apihooks.TestInlineHooks</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools.TestJSONParser-class.html">rekall.plugins.tools.json_tools.TestJSONParser</a></strong>:
       <em class="summary">Test the JSON renderer/parser.</em>
@@ -3655,6 +4029,9 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.handles_test.TestHandles-class.html">rekall.plugins.windows.handles_test.TestHandles</a></strong>:
       <em class="summary">Test the Handler module.</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.TestHookHeuristics-class.html">rekall.plugins.windows.malware.apihooks.TestHookHeuristics</a></strong>:
+      <em class="summary">Test the hook detection heuristic.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.impscan_test.TestImpScan-class.html">rekall.plugins.windows.malware.impscan_test.TestImpScan</a></strong>:
       <em class="summary">Test the impscan module.</em>
     </li>
@@ -3695,6 +4072,14 @@
     </li>
     </ul>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.ui.text.TextColumn-class.html">rekall.ui.text.TextColumn</a></strong>:
+      <em class="summary">Implementation for text (mostly CLI) tables.</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls.XLSColumn-class.html">rekall.plugins.renderers.xls.XLSColumn</a></strong>:
+      <em class="summary">Implementation for text (mostly CLI) tables.</em>
+    </li>
+    </ul>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.threadpool.ThreadPool-class.html">rekall.threadpool.ThreadPool</a></strong>
     </li>
     <li> <strong class="uidlink"><a href="rekall.ui.text.UnicodeWrapper-class.html">rekall.ui.text.UnicodeWrapper</a></strong>:
@@ -3704,11 +4089,23 @@
     <li> <strong class="uidlink"><a href="rekall.plugin.VerbosityMixIn-class.html">rekall.plugin.VerbosityMixIn</a></strong>:
       <em class="summary">Use this mixin to provide a --verbosity option to a plugin.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.CheckPEHooks-class.html">rekall.plugins.windows.malware.apihooks.CheckPEHooks</a></strong>:
+      <em class="summary">Checks a pe file mapped into memory for hooks.</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.devicetree.DriverIrp-class.html">rekall.plugins.windows.malware.devicetree.DriverIrp</a></strong>:
       <em class="summary">Driver IRP hook detection</em>
     </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.EATHooks-class.html">rekall.plugins.windows.malware.apihooks.EATHooks</a></strong>:
+      <em class="summary">Detect EAT hooks in process and kernel memory</em>
+    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html">rekall.plugins.windows.registry.evtlogs.EvtLogs</a></strong>:
       <em class="summary">Extract Windows Event Logs (XP/2003 only)</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.IATHooks-class.html">rekall.plugins.windows.malware.apihooks.IATHooks</a></strong>:
+      <em class="summary">Detect IAT/EAT hooks in process and kernel memory</em>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks.InlineHooks-class.html">rekall.plugins.windows.malware.apihooks.InlineHooks</a></strong>:
+      <em class="summary">Detect API hooks in process and kernel memory</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.malfind.LdrModules-class.html">rekall.plugins.windows.malware.malfind.LdrModules</a></strong>:
       <em class="summary">Detect unlinked DLLs</em>
@@ -3719,8 +4116,8 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.procinfo.PEInfo-class.html">rekall.plugins.windows.procinfo.PEInfo</a></strong>:
       <em class="summary">Print information about a PE binary.</em>
     </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods.Threads-class.html">rekall.plugins.windows.taskmods.Threads</a></strong>:
-      <em class="summary">Enumerate threads.</em>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.pstree.PSTree-class.html">rekall.plugins.windows.pstree.PSTree</a></strong>:
+      <em class="summary">Print process list as a tree</em>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.hypervisors.VmScan-class.html">rekall.plugins.hypervisors.VmScan</a></strong>:
       <em class="summary">Scan the physical memory attempting to find hypervisors.</em>
@@ -3925,8 +4322,8 @@ dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
       <em class="summary">type(object) -&gt; the object's type type(name, bases, dict) -&gt; 
         a new type</em>
     <ul>
-    <li> <strong class="uidlink">abc.ABCMeta</strong>:
-      <em class="summary">Metaclass for defining Abstract Base Classes (ABCs).</em>
+    <li> <strong class="uidlink"><a href="rekall.registry.UniqueObjectIdMetaclass-class.html">rekall.registry.UniqueObjectIdMetaclass</a></strong>:
+      <em class="summary">Give each object a unique ID.</em>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.registry.MetaclassRegistry-class.html">rekall.registry.MetaclassRegistry</a></strong>:
       <em class="summary">Automatic Plugin Registration through metaclasses.</em>
@@ -3971,7 +4368,7 @@ dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Jun 20 01:04:57 2014
+    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:41 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

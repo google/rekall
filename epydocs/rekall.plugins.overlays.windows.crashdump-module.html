@@ -144,15 +144,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.overlays.windows.crashdump-module.html#vtypes64" class="summary-name">vtypes64</a> = <code title="{'_DMP_HEADER64': [8192,
-                   {'BugCheckCode': [56, ['unsigned long']],
-                    'BugCheckCodeParameter': [64,
-                                              ['array',
-                                               4,
-                                               ['unsigned long long']]\
-],
-                    'Comment': [4016, ['array', 128, ['unsigned char']\
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_DMP_HEADER64</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8192<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BugCheckCode</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>56<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">un</code><code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugins.overlays.windows.crashdump-module.html#vtypes64" class="summary-name">vtypes64</a> = <code title="{'_BMP_DUMP_HEADER': [56,
+                      {'Bitmap': [56,
+                                  ['Array',
+                                   {'count': &lt;function &lt;lambda&gt; at 0x3\
+238a28&gt;,
+                                    'target': 'unsigned int'}]],
+                       'FirstPage': [32, ['unsigned long long']],
+                       'Pages': [48, ['unsigned long long']],
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_BMP_DUMP_HEADER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>56<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Bitmap</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>56<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Array</code><code class="variable-quote">'</code><code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -163,10 +163,10 @@
                  {'DumpType': [None,
                                ['Enumeration',
                                 {'choices': {1: 'Full Dump',
-                                             2: 'Kernel Dump'},
+                                             2: 'Kernel Dump',
+                                             5: 'BMP Dump'},
                                  'target': 'unsigned int'}]],
                   'Signature': [None, ['String', {'length': 4}]],
-                  'SystemTime': [None, ['WinFileTime']],
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_DMP_HEADER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DumpType</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Enumer</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -257,14 +257,14 @@
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_DMP_HEADER64</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8192<code class="variable-op">,</code>
-                   <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BugCheckCode</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>56<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned long</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
-                    <code class="variable-quote">'</code><code class="variable-string">BugCheckCodeParameter</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>64<code class="variable-op">,</code>
-                                              <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">array</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-                                               4<code class="variable-op">,</code>
-                                               <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned long long</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-<code class="variable-group">]</code><code class="variable-op">,</code>
-                    <code class="variable-quote">'</code><code class="variable-string">Comment</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>4016<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">array</code><code class="variable-quote">'</code><code class="variable-op">, </code>128<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned char</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_BMP_DUMP_HEADER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>56<code class="variable-op">,</code>
+                      <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Bitmap</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>56<code class="variable-op">,</code>
+                                  <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Array</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                   <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">count</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;function &lt;lambda&gt; at 0x3<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+238a28&gt;<code class="variable-op">,</code>
+                                    <code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">unsigned int</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                       <code class="variable-quote">'</code><code class="variable-string">FirstPage</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>32<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned long long</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                       <code class="variable-quote">'</code><code class="variable-string">Pages</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>48<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned long long</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -287,10 +287,10 @@
                  <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DumpType</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
                                <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Enumeration</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                                 <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">choices</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code>1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Full Dump</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-                                             2<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Kernel Dump</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-op">,</code>
+                                             2<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Kernel Dump</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                             5<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">BMP Dump</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-op">,</code>
                                  <code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">unsigned int</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
                   <code class="variable-quote">'</code><code class="variable-string">Signature</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">String</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">length</code><code class="variable-quote">'</code><code class="variable-op">: </code>4<code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
-                  <code class="variable-quote">'</code><code class="variable-string">SystemTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">WinFileTime</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -329,7 +329,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Jun 20 01:04:57 2014
+    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:41 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

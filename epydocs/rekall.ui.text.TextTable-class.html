@@ -63,8 +63,9 @@
 <h1 class="epydoc">Class TextTable</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.ui.text-pysrc.html#TextTable">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_texttable" name="class_hierarchy_for_texttable">
-<area shape="rect" id="node1" href="rekall.ui.renderer.BaseTable-class.html" title="renderer.BaseTable" alt="" coords="5,5,123,32"/>
-<area shape="rect" id="node2" href="rekall.ui.text.TextTable-class.html" title="TextTable" alt="" coords="29,61,99,88"/>
+<area shape="rect" id="node1" href="rekall.plugins.renderers.xls.XLSTable-class.html" title="plugins.renderers.xls.XLSTable" alt="" coords="5,117,176,144"/>
+<area shape="rect" id="node2" href="rekall.ui.renderer.BaseTable-class.html" title="renderer.BaseTable" alt="" coords="32,5,149,32"/>
+<area shape="rect" id="node3" href="rekall.ui.text.TextTable-class.html" title="TextTable" alt="" coords="56,61,125,88"/>
 </map>
   <img src="class_hierarchy_for_texttable.gif" alt='' usemap="#class_hierarchy_for_texttable" ismap="ismap" class="graph-without-title" />
 </center>
@@ -105,9 +106,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.ui.text.TextTable-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">tablesep</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"> </code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">elide</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+        <span class="summary-sig-arg">**options</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextTable.__init__">source&nbsp;code</a></span>
@@ -143,7 +142,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.ui.text.TextTable-class.html#render_header" class="summary-sig-name">render_header</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="render_header"></a><span class="summary-sig-name">render_header</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns a Cell formed by joining all the column headers.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextTable.render_header">source&nbsp;code</a></span>
             
@@ -159,11 +159,48 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.text.TextTable-class.html#get_row" class="summary-sig-name">get_row</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*row</span>,
+        <span class="summary-sig-arg">**options</span>)</span><br />
+      Format the row into a single Cell spanning all output columns.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextTable.get_row">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.ui.text.TextTable-class.html#render_row" class="summary-sig-name">render_row</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">row</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">highlight</span>=<span class="summary-sig-default">None</span>)</span></td>
+        <span class="summary-sig-arg">highlight</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**options</span>)</span><br />
+      Write the row to the output.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextTable.render_row">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.text.TextTable-class.html#flush" class="summary-sig-name">flush</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextTable.flush">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -187,6 +224,23 @@
       <code>__str__</code>,
       <code>__subclasshook__</code>
       </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="deferred_rows"></a><span class="summary-name">deferred_rows</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 </table>
@@ -223,9 +277,7 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">tablesep</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"> </code><code class="variable-quote">'</code></span>,
-        <span class="sig-arg">elide</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">**kwargs</span>)</span>
+        <span class="sig-arg">**options</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -270,25 +322,34 @@ Args:
   </dl>
 </td></tr></table>
 </div>
-<a name="render_header"></a>
+<a name="get_row"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">render_header</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_row</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">*row</span>,
+        <span class="sig-arg">**options</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.ui.text-pysrc.html#TextTable.render_header">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.ui.text-pysrc.html#TextTable.get_row">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  
+  <pre class="literalblock">
+Format the row into a single Cell spanning all output columns.
+
+Args:
+  *row: A list of objects to render in the same order as columns are
+     defined.
+
+Returns:
+  A single Cell object spanning the entire row.
+
+</pre>
   <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.ui.renderer.BaseTable-class.html#render_header">renderer.BaseTable.render_header</a>
-    </dt>
   </dl>
 </td></tr></table>
 </div>
@@ -301,17 +362,40 @@ Args:
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">render_row</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">row</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">highlight</span>=<span class="sig-default">None</span>)</span>
+        <span class="sig-arg">highlight</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">**options</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.ui.text-pysrc.html#TextTable.render_row">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  
+  <p>Write the row to the output.</p>
   <dl class="fields">
     <dt>Overrides:
         <a href="rekall.ui.renderer.BaseTable-class.html#render_row">renderer.BaseTable.render_row</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="flush"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">flush</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ui.text-pysrc.html#TextTable.flush">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.ui.renderer.BaseTable-class.html#flush">renderer.BaseTable.flush</a>
     </dt>
   </dl>
 </td></tr></table>
@@ -348,7 +432,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Jun 20 01:05:17 2014
+    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:04 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

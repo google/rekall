@@ -245,9 +245,9 @@ before submitting your code:</p>
 
 
 <h2>Step 8: Submit your changes</h2>
-<p>We use git-cl also to submit. We use &lsquo;git cl push&rsquo;, to squash all commits from
+<p>We use git-cl also to submit. We use &lsquo;git cl land&rsquo;, to squash all commits from
 the branch into a single commit in git.</p>
-<div class="highlight"><pre><span class="o">&gt;</span> <span class="n">git</span> <span class="n">cl</span> <span class="n">push</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>
+<div class="highlight"><pre><span class="o">&gt;</span> <span class="n">git</span> <span class="n">cl</span> <span class="n">land</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>
 </pre></div>
 
 
@@ -274,13 +274,21 @@ commit the code on their behalf. (See
 <p>The reviewer should run the following:</p>
 <div class="highlight"><pre><span class="o">&gt;</span> <span class="n">git</span> <span class="n">cl</span> <span class="n">patch</span> <span class="o">&lt;</span><span class="n">code</span> <span class="n">review</span> <span class="n">issue</span> <span class="n">number</span><span class="o">&gt;</span>
 <span class="o">&gt;</span> <span class="n">git</span> <span class="n">commit</span> <span class="o">--</span><span class="n">amend</span> <span class="o">-</span><span class="n">s</span> <span class="o">--</span><span class="n">author</span><span class="o">=</span><span class="s">&quot;$AUTHOR_NAME &lt;$AUTHOR_EMAIL&gt;&quot;</span>
-<span class="o">&gt;</span> <span class="n">git</span> <span class="n">cl</span> <span class="n">push</span> <span class="o">-</span><span class="n">c</span>
+<span class="o">&gt;</span> <span class="n">git</span> <span class="n">cl</span> <span class="n">land</span> <span class="o">-</span><span class="n">c</span>
 </pre></div>
 
 
 <h2>Git pull requests.</h2>
 <p>We also accept git pull requests. Please make sure that the pull request
 squashes all local commits into a single commit.</p>
+<h2>Troubleshooting</h2>
+<p>If &lsquo;git cl land&rsquo; returns the following error:</p>
+<div class="highlight"><pre> <span class="o">&gt;</span> <span class="n">error</span><span class="o">:</span> <span class="n">The</span> <span class="n">requested</span> <span class="n">URL</span> <span class="n">returned</span> <span class="n">error</span><span class="o">:</span> <span class="mi">403</span> <span class="n">Forbidden</span> <span class="k">while</span> <span class="n">accessing</span>
+ <span class="o">&gt;</span> <span class="n">https</span><span class="o">:</span><span class="c1">//github.com/google/rekall.git/info/refs?service=git-receive-pack</span>
+</pre></div>
+
+
+<p>It means you have no commit rights on the rekall git repository.</p>
 
 <p>
 

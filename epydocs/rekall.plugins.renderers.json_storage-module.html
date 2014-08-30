@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.renderers.json_storage</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.renderers-module.html">Package&nbsp;renderers</a> ::
+        Module&nbsp;json_storage
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.renderers.json_storage-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module json_storage</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.renderers.json_storage-pysrc.html">source&nbsp;code</a></span></p>
+<pre class="literalblock">
+This file implements ObjectRenderers for the JsonRenderer.
+
+The JsonRenderer aims to serialize and recreate objects exactly at they were
+upon unserializing them. This means that the environment loading the serialized
+data must have access to all the necessary files (i.e. the complete memory image
+file).
+
+For example consider an _EPROCESS() instance. In memory, python merely stores
+the following items in the object:
+
+- obj_offset: The offset in the address space.
+- obj_profile: The profile this object came from.
+- obj_vm: The address space the object will be read from.
+
+When the object is read, the address space is read at obj_offset, the data is
+decoded and possibly other members are created using the profile. We do not know
+the value of the object without reading it from the image.
+
+Contrast this with the WebConsoleRenderer which needs to be deserialized in an
+environment which does not have access to the original image. In this case we
+must store all kinds of additional metadata about each object, since the decoder
+is unable to directly get this information.
+
+Example:
+
+zeus2x4.vmem.E01 23:46:28&gt; x = session.profile._EPROCESS(0x81e8a368)
+zeus2x4.vmem.E01 23:46:32&gt; encoder = json_renderer.JsonEncoder()
+zeus2x4.vmem.E01 23:46:34&gt; print encoder.Encode(x)
+{'offset': 2179507048,
+ 'profile': ('*', u'nt/GUID/1B2D0DFE2FB942758D615C901BE046922'),
+ 'type': u'_EPROCESS,_EPROCESS,Struct,BaseAddressComparisonMixIn,BaseObject',
+ 'type_name': ('*', u'_EPROCESS'),
+ 'vm': {'base': {'filename': ('*',
+    u'/home/scudette/images/zeus2x4.vmem.E01'),
+   'type': u'EWFAddressSpace,CachingAddressSpaceMixIn,FDAddressSpace,BaseAddressSpace'},
+  'dtb': 233472,
+  'type': u'IA32PagedMemory,PagedReader,BaseAddressSpace'}}
+
+zeus2x4.vmem.E01 23:47:25&gt; decoder = json_renderer.JsonDecoder(session=session)
+zeus2x4.vmem.E01 23:48:10&gt; print decoder.Decode(encoder.Encode(x)).ImageFileName
+alg.exe
+
+Since the decoder is able to exactly recreate the original object, this object
+can then be subsequently used to dereference the memory image - we can recover
+the _EPROCESS.ImageFileName attribute and print the process name - even though
+the actual name was never encoded.
+
+</pre>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.FileAddressSpaceObjectRenderer-class.html" class="summary-name">FileAddressSpaceObjectRenderer</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.EWFAddressSpaceObjectRenderer-class.html" class="summary-name">EWFAddressSpaceObjectRenderer</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer-class.html" class="summary-name">AttributeDictObjectRenderer</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.IA32PagedMemoryObjectRenderer-class.html" class="summary-name">IA32PagedMemoryObjectRenderer</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.SessionObjectRenderer-class.html" class="summary-name">SessionObjectRenderer</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.ProfileObjectRenderer-class.html" class="summary-name">ProfileObjectRenderer</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.SetObjectRenderer-class.html" class="summary-name">SetObjectRenderer</a><br />
+      Encode a python set().
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.NoneObjectRenderer-class.html" class="summary-name">NoneObjectRenderer</a><br />
+      Encode a None Object.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer-class.html" class="summary-name">UnixTimestampJsonObjectRenderer</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.PointerObjectRenderer-class.html" class="summary-name">PointerObjectRenderer</a><br />
+      Encode a Pointer.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.renderers.json_storage.ArrayObjectRenderer-class.html" class="summary-name">ArrayObjectRenderer</a>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rekall.plugins.renderers'"><code class="variable-quote">'</code><code class="variable-string">rekall.plugins.renderers</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:41 2014
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

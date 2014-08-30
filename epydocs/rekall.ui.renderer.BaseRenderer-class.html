@@ -63,16 +63,25 @@
 <h1 class="epydoc">Class BaseRenderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_baserender" name="class_hierarchy_for_baserender">
-<area shape="rect" id="node1" href="rekall.ui.json_renderer.JsonRenderer-class.html" title="json_renderer.JsonRenderer" alt="" coords="5,61,165,88"/>
-<area shape="rect" id="node2" href="rekall.ui.renderer.BaseRenderer-class.html" title="BaseRenderer" alt="" coords="119,5,209,32"/>
-<area shape="rect" id="node4" href="rekall.ui.text.TextRenderer-class.html" title="text.TextRenderer" alt="" coords="189,61,299,88"/>
-<area shape="rect" id="node3" href="rekall.ui.text.TestRenderer-class.html" title="text.TestRenderer" alt="" coords="189,117,299,144"/>
+<area shape="rect" id="node1" href="rekall.plugins.renderers.data_export.DataExportRenderer-class.html" title="plugins.renderers.data_export.DataExportRenderer" alt="" coords="139,117,405,144"/>
+<area shape="rect" id="node3" href="rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer-class.html" title="plugins.tools.webconsole.runplugin.WebConsoleRenderer" alt="" coords="124,173,420,200"/>
+<area shape="rect" id="node2" href="rekall.plugins.renderers.xls.XLSRenderer-class.html" title="plugins.renderers.xls.XLSRenderer" alt="" coords="5,61,195,88"/>
+<area shape="rect" id="node4" href="rekall.ui.json_renderer.JsonRenderer-class.html" title="json_renderer.JsonRenderer" alt="" coords="219,61,379,88"/>
+<area shape="rect" id="node5" href="rekall.ui.renderer.BaseRenderer-class.html" title="BaseRenderer" alt="" coords="253,5,344,32"/>
+<area shape="rect" id="node7" href="rekall.ui.text.TextRenderer-class.html" title="text.TextRenderer" alt="" coords="429,61,539,88"/>
+<area shape="rect" id="node6" href="rekall.ui.text.TestRenderer-class.html" title="text.TestRenderer" alt="" coords="429,117,539,144"/>
+<area shape="rect" id="node8" href="rekall.ui.text.WideTextRenderer-class.html" title="text.WideTextRenderer" alt="" coords="563,117,696,144"/>
 </map>
   <img src="class_hierarchy_for_baserender.gif" alt='' usemap="#class_hierarchy_for_baserender" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
 <p>All renderers inherit from this.</p>
+  <p>This class defines the only public interface for the rendering system.
+  This is the API which should be used by Rekall plugins to render the 
+  output. Derived classes can add additional methods, but these should not 
+  be directly used by the plugins - otherwise plugins will fail when being 
+  rendered with different renderer implementations.</p>
 
 <!-- ==================== NESTED CLASSES ==================== -->
 <a name="section-NestedClasses"></a>
@@ -88,6 +97,14 @@
     </td><td class="summary">
         <a href="rekall.registry.MetaclassRegistry-class.html" class="summary-name">__metaclass__</a><br />
       Automatic Plugin Registration through metaclasses.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.ui.renderer.BaseTable-class.html" class="summary-name">table_class</a><br />
+      Renderers contain tables.
     </td>
   </tr>
 <tr>
@@ -222,8 +239,7 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#section" class="summary-sig-name">section</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">width</span>=<span class="summary-sig-default">50</span>,
-        <span class="summary-sig-arg">keep_sort</span>=<span class="summary-sig-default">False</span>)</span><br />
+        <span class="summary-sig-arg">width</span>=<span class="summary-sig-default">50</span>)</span><br />
       Start a new section.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.section">source&nbsp;code</a></span>
@@ -278,10 +294,7 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#table_header" class="summary-sig-name">table_header</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">columns</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">suppress_headers</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">sort</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+        <span class="summary-sig-arg">**options</span>)</span><br />
       Table header renders the title row of a table.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.table_header">source&nbsp;code</a></span>
@@ -299,47 +312,11 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="table_row"></a><span class="summary-sig-name">table_row</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">*row</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Outputs a single row of a table.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.table_row">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="flush_table"></a><span class="summary-sig-name">flush_table</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">keep_sort</span>=<span class="summary-sig-default">False</span>)</span><br />
-      If sorting is on, this will trigger deferred rendering.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.flush_table">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#record" class="summary-sig-name">record</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">record_data</span>)</span><br />
-      Writes a single complete record.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.record">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -404,6 +381,26 @@
       
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_object_renderer"></a><span class="summary-sig-name">get_object_renderer</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">target</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">type</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">target_renderer</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**options</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.get_object_renderer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -423,6 +420,49 @@
     </td>
   </tr>
 </table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ImplementationByClass"></a><span class="summary-sig-name">ImplementationByClass</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.ImplementationByClass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ImplementationByName"></a><span class="summary-sig-name">ImplementationByName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.ImplementationByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
 <!-- ==================== CLASS VARIABLES ==================== -->
 <a name="section-ClassVariables"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -435,23 +475,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="sort_key_func"></a><span class="summary-name">sort_key_func</span> = <code title="None">None</code><br />
-      hash(x)
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="deferred_rows"></a><span class="summary-name">deferred_rows</span> = <code title="None">None</code><br />
-      hash(x)
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="table_cls"></a><span class="summary-name">table_cls</span> = <code title="None">None</code><br />
+        <a name="name"></a><span class="summary-name">name</span> = <code title="None">None</code><br />
       hash(x)
     </td>
   </tr>
@@ -480,7 +504,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="__abstractmethods__"></a><span class="summary-name">__abstractmethods__</span> = <code title="frozenset([])"><code class="variable-group">frozenset([</code><code class="variable-group">])</code></code>
+        <a name="table"></a><span class="summary-name">table</span> = <code title="None">None</code><br />
+      hash(x)
     </td>
   </tr>
 <tr>
@@ -488,16 +513,29 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.ui.renderer.BaseRenderer-class.html#classes" class="summary-name">classes</a> = <code title="{'BaseRenderer': &lt;class 'rekall.ui.renderer.BaseRenderer'&gt;,
+ 'DataExportRenderer': &lt;class 'rekall.plugins.renderers.data_export.Da\
+taExportRenderer'&gt;,
  'JsonRenderer': &lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;,
  'TestRenderer': &lt;class 'rekall.ui.text.TestRenderer'&gt;,
- 'TextRenderer': &lt;class 'rekall.ui.text.TextRenderer'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.renderer.BaseRend<code class="variable-ellipsis">...</code></code>
+ 'TextRenderer': &lt;class 'rekall.ui.text.TextRenderer'&gt;,
+ 'WebConsoleRenderer': &lt;class 'rekall.plugins.tools.webconsole.runplug\
+in.WebConsoleRenderer'&gt;,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.renderer.BaseRend<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="classes_by_name"></a><span class="summary-name">classes_by_name</span> = <code title="{None: &lt;class 'rekall.ui.text.TestRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.ui.text.TestRenderer'&gt;<code class="variable-group">}</code></code>
+        <a href="rekall.ui.renderer.BaseRenderer-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.webconsole.runplugin.WebConsoleRen\
+derer'&gt;,
+ 'data': &lt;class 'rekall.plugins.renderers.data_export.DataExportRender\
+er'&gt;,
+ 'json': &lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;,
+ 'test': &lt;class 'rekall.ui.text.TestRenderer'&gt;,
+ 'text': &lt;class 'rekall.ui.text.TextRenderer'&gt;,
+ 'wide': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconso<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -598,8 +636,7 @@ Args:
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">section</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">name</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">width</span>=<span class="sig-default">50</span>,
-        <span class="sig-arg">keep_sort</span>=<span class="sig-default">False</span>)</span>
+        <span class="sig-arg">width</span>=<span class="sig-default">50</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.section">source&nbsp;code</a></span>&nbsp;
@@ -647,66 +684,17 @@ Args:
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">table_header</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">columns</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">suppress_headers</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">name</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">sort</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">**kwargs</span>)</span>
+        <span class="sig-arg">**options</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.table_header">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Table header renders the title row of a table.
-
-This also stores the header types to ensure everything is formatted
-appropriately.  It must be a list of tuples rather than a dict for
-ordering purposes.
-
-Args:
-  columns: A list of (name, cname, formatstring) tuples describing
-    the table headers.
-
-  suppress_headers: If True table headers will not be written (still
-    useful for formatting).
-
-  name: The name of this table.
-
-  sort: Optional - tuple of cnames of columns to sort by. If sorting
-  sorting is on, rendering of table rows will be deferred either
-  until next call to table_header (or section) or until the plugin
-  render function ends.
-
-</pre>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="record"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">record</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">record_data</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.record">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Writes a single complete record.
-
-A record consists of one object of related fields.
-
-Args:
-  data: A list of tuples (name, short_name, formatstring, data)
-
-</pre>
+  <p>Table header renders the title row of a table.</p>
+  <p>This also stores the header types to ensure everything is formatted 
+  appropriately.  It must be a list of tuples rather than a dict for 
+  ordering purposes.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -734,9 +722,40 @@ Args:
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.renderer.BaseRenderer'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">DataExportRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.renderers.data_export.Da<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+taExportRenderer'&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">JsonRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">TestRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.text.TestRenderer'&gt;<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">TextRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.text.TextRenderer'&gt;<code class="variable-group">}</code>
+ <code class="variable-quote">'</code><code class="variable-string">TextRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.text.TextRenderer'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">WebConsoleRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconsole.runplug<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+in.WebConsoleRenderer'&gt;<code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="classes_by_name"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">classes_by_name</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconsole.runplugin.WebConsoleRen<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+derer'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">data</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.renderers.data_export.DataExportRender<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+er'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">json</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">test</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.text.TestRenderer'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">text</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.text.TextRenderer'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">wide</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.text.WideTextRenderer'&gt;<code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -774,7 +793,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Jun 20 01:05:16 2014
+    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:04 2014
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

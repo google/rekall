@@ -122,7 +122,7 @@ are not quite sure what exact version of Windows it is.</p>
 <p>Finally we convert the pdb file into Rekall&rsquo;s own json format.</p>
 </li>
 </ol>
-<div class="highlight"><pre><span class="err">$</span> <span class="n">rekal</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/</span><span class="n">images</span><span class="o">/</span><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="n">version_scan</span> <span class="o">|</span> <span class="n">grep</span> <span class="n">ntkrnl</span>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">rekal</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/</span><span class="n">images</span><span class="o">/</span><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="o">--</span><span class="n">profile</span> <span class="n">None</span> <span class="n">version_scan</span> <span class="o">|</span> <span class="n">grep</span> <span class="n">ntkrnl</span>
 <span class="mh">0x0000027bb5fc</span> <span class="n">f8e2a8b5c9b74bf4a6e4a48f180099942</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span>
 
 <span class="err">$</span> <span class="n">rekal</span> <span class="n">fetch_pdb</span> <span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">dir</span> <span class="p">.</span> <span class="o">--</span><span class="n">filename</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">guid</span> <span class="n">f8e2a8b5c9b74bf4a6e4a48f180099942</span>
