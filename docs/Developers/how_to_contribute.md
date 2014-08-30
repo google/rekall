@@ -119,3 +119,11 @@ The reviewer should run the following:
 
 We also accept git pull requests. Please make sure that the pull request
 squashes all local commits into a single commit.
+
+## Troubleshooting
+
+If 'git cl land' returns the following error:
+     > error: The requested URL returned error: 403 Forbidden while accessing
+     > https://github.com/google/rekall.git/info/refs?service=git-receive-pack
+     
+It means you have no commit rights on the rekall git repository.
