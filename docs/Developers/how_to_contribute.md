@@ -31,6 +31,7 @@ This will add the git cl command.
     > export PATH="`pwd`/depot_tools/:$PATH"
 
 ## Step 2c: Configure git cl, you'll only need to do this once.
+
     > git cl config
     > Rietveld server (host[:port]) [https://codereview.appspot.com]:
     > CC list:rekall-dev@googlegroups.com
@@ -123,6 +124,7 @@ squashes all local commits into a single commit.
 ## Troubleshooting
 
 If 'git cl land' returns the following error:
+
      > error: The requested URL returned error: 403 Forbidden while accessing
      > https://github.com/google/rekall.git/info/refs?service=git-receive-pack
      
