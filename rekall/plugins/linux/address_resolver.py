@@ -57,17 +57,6 @@ class LinuxAddressResolver(address_resolver.AddressResolverMixin,
         # Delay initialization until we need it.
         self._initialized = False
 
-    def NormalizeModuleName(self, module):
-        try:
-            module_name = module.name
-        except AttributeError:
-            module_name = module
-
-        module_name = unicode(module_name)
-        module_name = re.split(r"[/\\]", module_name)[-1]
-
-        return module_name.lower()
-
     def _EnsureInitialized(self):
         if self._initialized:
             return
@@ -179,7 +168,7 @@ class LinuxAddressResolver(address_resolver.AddressResolverMixin,
             # Ensure address falls within the current module.
             containing_module = self._FindContainingModule(address)
             if (containing_module and address < containing_module.end and
-                0 < difference < max_distance):
+                    0 < difference < max_distance):
                 return "%s + %#x" % (
                     name, address - offset)
 

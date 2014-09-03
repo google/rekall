@@ -734,6 +734,7 @@ class InteractiveSession(JsonSerializableSession):
         self.help_profile = None
 
         super(InteractiveSession, self).__init__()
+
         with self:
             if use_config_file:
                 config.MergeConfigOptions(self.state)

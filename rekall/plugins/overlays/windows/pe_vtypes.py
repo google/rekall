@@ -810,13 +810,22 @@ class PE(object):
         # Use the session to load the pe profile.
         self.profile = self.session.LoadProfile("pe")
 
-        if address_space is None:
-            address_space = self.session.GetParameter("default_address_space")
-
+        # If neither filename or address_space were provided we just get the
+        # session default.
         if filename is None and address_space is None:
-            raise IOError("Filename or address_space not specified.")
+            address_space = self.session.GetParameter("default_address_space")
+            if address_space == None:
+                raise IOError("Filename or address_space not specified.")
+
+            self.vm = address_space
+            self.image_base = image_base
 
         elif address_space:
+            # Resolve the correct address space. This allows the address space
+            # to be specified from the command line (e.g. "P")
+            load_as = self.session.plugins.load_as(session=self.session)
+            address_space = load_as.ResolveAddressSpace(address_space)
+
             self.vm = address_space
             self.image_base = image_base
             if self.image_base == None:
@@ -935,6 +944,9 @@ class PE(object):
             for string in version_info.Strings():
                 yield unicode(string.Key), unicode(string.Value)
 
+    def VersionInformationDict(self):
+        return dict(self.VersionInformation())
+
     def Sections(self):
         for section in self.nt_header.Sections:
 
@@ -1039,7 +1051,7 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
     def __str__(self):
         return "<PEFileAddressSpace @ %#x >" % self.image_base
 
-    def read(self, addr, length):
+    def read_partial(self, addr, length):
         # Not a particularly efficient algorithm, but probably fast enough since
         # usually there are not too many sections.
         for virtual_address, run_length, physical_address in self.runs:
@@ -1051,3 +1063,19 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
 
         # Otherwise just null pad the results.
         return '\x00' * length
+
+    def read(self, addr, length):
+        addr, length = int(addr), int(length)
+
+        result = ""
+        while length > 0:
+            data = self.read_partial(addr, length)
+            if not data:
+                data = "\x00"
+
+            result += data
+            length -= len(data)
+            addr += len(data)
+
+        return result
+

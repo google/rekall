@@ -67,11 +67,8 @@ class String(obj.StringProxyMixIn, obj.NativeType):
             length = length(self.obj_parent)
 
         self.term = term
-        if length > max_length:
-            logging.warn("%s@%#x truncated", self.obj_name, self.obj_offset)
-            length = 0
-
         self.length = int(length)
+        self.max_length = max_length
 
     @property
     def obj_end(self):
@@ -81,8 +78,15 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return self.v().startswith(other)
 
     def v(self, vm=None):
+        # Make sure to protect ourselves before reading too much at once.
+        length = self.length
+        if self.length > self.max_length:
+            logging.warn("%s@%#x truncated", self.obj_name, self.obj_offset)
+            length = 0
+
+        # TODO: Make this read in chunks to support very large reads.
         vm = vm or self.obj_vm
-        data = vm.read(self.obj_offset, self.length)
+        data = vm.read(self.obj_offset, length)
         if self.term is not None:
             left, sep, _ = data.partition(self.term)
             data = left + sep

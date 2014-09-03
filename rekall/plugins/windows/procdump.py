@@ -61,7 +61,11 @@ class PEDump(common.WindowsCommandPlugin):
         super(PEDump, self).__init__(**kwargs)
         self.address_space = address_space
 
-        # Allow the image base to be given as a name.
+        # Allow the image base to be given as a name (e.g. "nt").
+        resolver = self.session.address_resolver
+        if resolver:
+            image_base = resolver.get_address_by_name(image_base)
+
         self.image_base = image_base
         self.out_fd = out_fd
         self.out_file = out_file

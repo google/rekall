@@ -123,6 +123,8 @@ def main(argv=None):
 
     # Determine if an external script needs to be run first.
     if getattr(flags, "run", None):
+        # Export the session object to the external script.
+        user_session._locals["session"] = user_session
         exec open(flags.run) in user_session._locals
 
     # Run a module and do not drop into the shell.

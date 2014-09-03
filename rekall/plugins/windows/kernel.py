@@ -38,7 +38,7 @@ from rekall.plugins.overlays.windows import pe_vtypes
 class ExportScanner(scan.BaseScanner):
     # We search for the name of a section present in the PE header.
     checks = [("MultiStringFinderCheck", dict(needles=[
-                    "INITKDBG", "MISYSPTE", "PAGEKD"]))]
+        "INITKDBG", "MISYSPTE", "PAGEKD"]))]
 
 
 
@@ -61,7 +61,6 @@ class KernelBaseHook(kb.ParameterHook):
             kernel_boundary = 0x80000000
 
         kernel_boundary = obj.Pointer.integer_to_address(kernel_boundary)
-
         for hit in scanner.scan(offset=kernel_boundary, maxlen=2**64):
 
             # Search backwards for an MZ signature on the page boundary.

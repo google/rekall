@@ -65,7 +65,7 @@ into overlays.
    "_TCP_LISTENER": {
      "Owner": [
        ["Disassembler", {
-         "start": "tcpip.sys!_TcpCovetNetBufferList@20",
+         "start": "tcpip.sys!_TcpCovetNetBufferList",
          "rule": [
            "MOV EAX, [ESI+$out]",
            "TEST EAX, EAX",
@@ -106,8 +106,8 @@ DISASSEMBLER_CACHE = utils.FastStore()
 class Disassembler(DynamicParser):
     """A constant generator deriving values based on the disassembler."""
 
-    def __init__(self, start=None, end=None, length=100,
-                 rules=None):
+    def __init__(self, name=None, start=None, end=None, length=300,
+                 rules=None, max_separation=10):
         """Derive a value from disassembly.
 
         Args:
@@ -119,11 +119,14 @@ class Disassembler(DynamicParser):
 
           rules: A list of rules (see above).
         """
+        self.text_rules = rules
         self.rules = self.CompileRule(rules)
         self.start = start
         self.length = length
         self.end = end
+        self.name = name
         self.cached_value = None
+        self.max_separation = max_separation
 
     def __str__(self):
         return "Disassemble %s" % self.start
@@ -147,9 +150,22 @@ class Disassembler(DynamicParser):
         # Sanitize all regular expression chars in the rule.
         result = []
         for line in rule:
+            # Escape regex sensitive chars.
             line = re.sub(r"([()\[\]\+])", r"\\\1", line)
+
+            # Wildcards
             line = re.sub(r"\*", r".+?", line)
-            line = re.sub(r"\$out", r"(?P<out>[^ \[\]+-]+?)", line)
+
+            # Capture variable. The same capture variable may be specified more
+            # than once in the same rule, so we need to append the instance
+            # number of the capture variable to make it unique.
+            self.instance = 0
+            def _ReplaceCaptureVars(match):
+                self.instance += 1
+                return r"(?P<%s_%s>[^ \[\]+-]+)" % (
+                    match.group(1), self.instance)
+
+            line = re.sub(r"\$([a-zA-Z0-9]+)", _ReplaceCaptureVars, line)
             result.append(re.compile(line, re.S | re.M))
 
         return result
@@ -167,39 +183,91 @@ class Disassembler(DynamicParser):
             # it can then it is a better match.
             m = rule.search(line)
             if m:
-                out = m.groupdict().get("out")
+                yield i, m.groupdict()
 
-                return i, out
+    def _CheckCaptureVariables(self, vector, contexts):
+        """Checks that capture variables are consistent in the vector.
 
-        return None, None
+        The vector is a list of disassembly lines which match the rules, e.g.
 
-    def _SmallestVector(self, hits):
-        """Find the vector with the smallest distance."""
-        distance = 1e6
-        result = []
-        for vector, vector_distance in self.CalcDistance(hits):
-            if vector_distance < distance:
-                result = vector
-                distance = vector_distance
+        [16, 60, 61]
+
+        The context is the capture variables from these rules. In order
+        to be valid, the capture variables must all be consistent. For
+        example the following is not consistent (since var1 is RAX in
+        the first rule and RCX in the second rule):
+
+        contexts[16]
+        {'var1': u'RAX'}
+
+        contexts[60]
+        {'var1': u'RCX', 'out': u'0x88'}
+
+        contexts[61]
+        {}
+        """
+        result = {}
+        for rule_number, item in enumerate(vector):
+            rule_context = contexts[rule_number]
+
+            # The capture variables in this rule only.
+            rule_capture_vars_values = {}
+
+            for k, v in rule_context[item].iteritems():
+                var_name = k.rsplit("_", 1)[0]
+
+                # If this var is previously known, this match must be the same
+                # as previously found.
+                if var_name in result and v != result[var_name]:
+                    return
+
+                # If this capture variable's value is the same as another
+                # capture variable's value in the same rule, exclude the
+                # match. This means that an expression like:
+                #
+                #     MOV $var2, [$var1+$out]
+                #
+                # Necessarily implies that $var1 and $var2 must be different
+                # registers.
+                if (v in rule_capture_vars_values and
+                    rule_capture_vars_values[v] != var_name):
+                    return
+
+                result[var_name] = v
+                rule_capture_vars_values[v] = var_name
 
         return result
 
-    def CalcDistance(self, hits):
-        n_hits = len(hits)
+    def _GetMatch(self, hits, contexts):
+        """Find the first vector that matches all the criteria."""
+        for vector in self.GenerateVector(hits, [], 0):
+            context = self._CheckCaptureVariables(vector, contexts)
+            if not context:
+                continue
 
-        while hits[0]:
-            for rule in range(1, n_hits):
-                while hits[rule] and hits[rule][0] <= hits[rule - 1][0]:
-                    hits[rule].pop(0)
+            return (vector, context)
 
-                if not hits[rule]:
-                    return
+        return [], {}
 
-            vector = [hits[i][0] for i in hits]
-            distance = hits[n_hits - 1][0] - hits[0][0]
-            yield vector, distance
+    def GenerateVector(self, hits, vector, level):
+        for item in hits.get(level, []):
+            if vector:
+                if item < vector[-1]:
+                    continue
 
-            hits[0].pop(0)
+                if item > self.max_separation + vector[-1]:
+                    break
+
+            new_vector = vector + [item]
+
+            if level + 1 == len(hits):
+                yield new_vector
+
+            elif level + 1 < len(hits):
+                for result in self.GenerateVector(
+                        hits, new_vector, level+1):
+
+                    yield result
 
     def _calculate(self, session):
         # Try to cache disassembly to speed things up.
@@ -208,31 +276,43 @@ class Disassembler(DynamicParser):
                 (self.start, self.length, self.end))
         except KeyError:
             disassembly = unicode(session.plugins.dis(
-                    offset=self.start,
-                    length=self.length, end=self.end))
+                offset=self.start, single=True,
+                length=self.length, end=self.end))
 
             DISASSEMBLER_CACHE.Put(
                 (self.start, self.length, self.end), disassembly)
 
         hits = {}
-        outs = {}
+        contexts = {}
 
-        for hit, line in enumerate(disassembly.splitlines()):
-            rule_idx, out = self._FindRuleIndex(line)
+        disassembly = disassembly.splitlines()
+        for hit, line in enumerate(disassembly):
+            for rule_idx, context in self._FindRuleIndex(line):
+                hits.setdefault(rule_idx, []).append(hit)
+                contexts.setdefault(rule_idx, {})[hit] = context
 
-            if rule_idx is None:
-                continue
+        # All the hits must match
+        if len(hits) < len(self.rules):
+            logging.error("Failed to find match for %s", self.name)
 
-            hits.setdefault(rule_idx, []).append(hit)
-            if out:
-                outs[hit] = out
+            # Add some debugging messages here to make diagnosing errors easier.
+            for i, rule in enumerate(self.text_rules):
+                if i not in hits:
+                    logging.debug("Unable to match rule: %s", rule)
 
-        for item in self._SmallestVector(hits):
-            out = outs.get(item)
-            if out:
-                return int(out, 0)
+            return 0
 
-        return 0
+        vector, context = self._GetMatch(hits, contexts)
+
+        if len(vector) < len(self.rules):
+            logging.error("Failed to find match for %s.", self.name)
+            return 0
+
+        logging.debug("Found match for %s", self.name)
+        for x in vector:
+            logging.debug(disassembly[x])
+
+        return int(context.get("out", "0"), 0)
 
 
 class DynamicProfile(obj.Profile):
@@ -251,15 +331,17 @@ def GenerateOverlay(dynamic_definition):
         for field_name, attempts in definition.items():
             parsers = []
             for (parser_name, kwargs) in attempts:
+                kwargs = kwargs.copy()
                 target = kwargs.pop("target", None)
                 target_args = kwargs.pop("target_args", {})
+                name = "%s.%s" % (type_name, field_name)
 
                 parsers.append(DynamicParser.classes.get(parser_name)(
-                        **kwargs))
+                    name=name, **kwargs))
 
             # Make the offset a callable
             # Bind parameters in lambda:
-            # pylint: disable=dangerous-default-value
+            # pylint: disable=dangerous-default-value,cell-var-from-loop
             def offset_cb(x, parsers=parsers, field_name=field_name):
                 for p in parsers:
                     result = p.calculate(x.obj_session)

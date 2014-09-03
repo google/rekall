@@ -63,6 +63,42 @@ class VMemAddressSpace(addrspace.RunBasedAddressSpace):
             self.runs.insert((v * 0x1000, p * 0x1000, l * 0x1000))
 
 
+class VMSSAddressSpace(addrspace.RunBasedAddressSpace):
+    __image = True
+
+    def __init__(self, base=None, **kwargs):
+        self.as_assert(base != None, "No base address space provided")
+        super(VMSSAddressSpace, self).__init__(base=base, **kwargs)
+
+        vmss_profile = VMWareProfile(session=self.session)
+
+        self.header = vmss_profile._VMWARE_HEADER(vm=self.base)
+        self.as_assert(
+            self.header.Magic in [
+                0xbed2bed0, 0xbad1bad1, 0xbed2bed2, 0xbed3bed3],
+            "Invalid VMware signature: {0:#x}".format(self.header.Magic))
+
+        region_count = self.header.GetTags("memory", "regionsCount")
+
+        # Fill in the runs list from the header.
+        virtual_offsets = self.header.GetTags("memory", "regionPPN")
+        lengths = self.header.GetTags("memory", "regionSize")
+        mem_regions = self.header.GetTags("memory", "Memory")
+
+        # Single region case.
+        if region_count and region_count[0] == 0:
+            if not mem_regions:
+                raise IOError("Unable to locate mem region tag in VMSS file.")
+
+            self.runs.insert(
+                (0, mem_regions[0].obj_offset, mem_regions[0].length))
+        else:
+            for v, l, m in zip(
+                    virtual_offsets, lengths, mem_regions):
+                self.runs.insert(
+                    (v * 0x1000, m.obj_offset, l * 0x1000))
+
+
 class _VMWARE_HEADER(obj.Struct):
     """Add convenience methods to the header."""
 
@@ -200,7 +236,7 @@ class VMWareProfile(basic.BasicClasses):
                 # by DataDiskSize.
                 'Data': [lambda x: x.Padding.obj_end, ["String", dict(
                     term=None,
-                    length=lambda x: x.DataDiskSize
+                    length=lambda x: x.DataDiskSize,
                     )]],
                 }],
 

@@ -603,10 +603,10 @@ class Tcpip(windows.BasicPEProfile):
             if version == "6.0":
                 profile.add_overlay(tcpip_vtypes_vista_64)
                 profile.add_overlay({
-                        '_TCP_ENDPOINT': [None, {
-                                'Owner' : [0x210, ['pointer', ['_EPROCESS']]],
-                                }],
-                        })
+                    '_TCP_ENDPOINT': [None, {
+                        'Owner' : [0x210, ['pointer', ['_EPROCESS']]],
+                        }],
+                    })
 
             # Windows 7
             elif version >= "6.1":

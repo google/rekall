@@ -51,6 +51,21 @@ class RelativeOffsetMixin(object):
 
         return base_constant
 
+    def add_constants(self, relative_to_image_base=True, **kwargs):
+        """Add new constants to this profile.
+
+        Args:
+
+          - relative_to_image_base: If True, the constants are specified
+            relative to the image base. Otherwise constants are absolute
+            addresses.
+        """
+        for k, v in kwargs.items():
+            if not relative_to_image_base:
+                kwargs[k] = (v) - self.GetImageBase()
+
+        super(RelativeOffsetMixin, self).add_constants(**kwargs)
+
     def get_nearest_constant_by_address(self, address, below=True):
         if address < self.GetImageBase():
             return 0, ""
@@ -58,7 +73,7 @@ class RelativeOffsetMixin(object):
         try:
             offset, name = super(
                 RelativeOffsetMixin, self).get_nearest_constant_by_address(
-                address - self.GetImageBase(), below=below)
+                    address - self.GetImageBase(), below=below)
 
             return offset + self.GetImageBase(), name
         except ValueError:

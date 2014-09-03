@@ -53,6 +53,20 @@ class AddressResolverMixin(object):
         super(AddressResolverMixin, self).__init__(**kwargs)
         self.profiles = {}
 
+    def NormalizeModuleName(self, module):
+        try:
+            module_name = module.name
+        except AttributeError:
+            module_name = module
+
+        module_name = unicode(module_name)
+        module_name = re.split(r"[/\\]", module_name)[-1]
+
+        return module_name.lower()
+
+    def _EnsureInitialized(self):
+        """Initialize this address resolver."""
+
     def _ParseAddress(self, name):
         m = self.ADDRESS_NAME_REGEX.match(name)
         if m:
@@ -181,12 +195,17 @@ class AddressResolverMixin(object):
         Returns an empty string if the address is not in a containing module, or
         if the nearest known symbol is farther than max_distance away.
         """
+        _ = address
+        _ = max_distance
+        return ""
 
     def get_nearest_constant_by_address(self, address):
         """Searches for a known symbol at an address lower than this.
 
         Returns a tuple (nearest_offset, full_name of symbol).
         """
+        _ = address
+        return (0xFFFFFFFFFF, "")
 
     def search_symbol(self, pattern):
         """Searches symbols for the pattern.

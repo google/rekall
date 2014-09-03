@@ -1,0 +1,179 @@
+# The following are type generator definitions for the most commonly used
+# undocumented win32k structures.
+
+tagDESKTOP:
+  PtiList:
+  - - Disassembler
+    - rules:
+      - MOV $var1, *grpdeskRitInput
+      - TEST $var1, $var1
+      - MOV $var1, [$var1+$rpwinstaParent]
+      - MOV $pdesk, [$var1+$rpdeskList]
+      - LEA *, [$pdesk+$out]
+      start: win32k!SetGlobalCursorLevel
+      target: Pointer
+
+  pheapDesktop:
+  - - Disassembler
+    - rules:
+      - MOV $var1, [*+$out]
+      - CALL *RtlAllocateHeap
+      start: win32k!DesktopAlloc
+      target: Pointer
+
+  rpdeskNext:
+  - - Disassembler
+    - rules:
+      - MOV $var1, [$var2+$out]
+      - TEST $var1, $var1
+      - JZ *
+      - MOV *CX, $var1
+      - CALL *ObQueryNameInfo
+      start: win32k!ParseDesktop
+      target: Pointer
+
+  - - Disassembler
+    - rules:
+      - MOV $var1, [EBP+*]
+      - MOV $var2, [$var1+*]
+      - TEST $var2, $var2
+      - JZ *
+      - MOV *, [$var2-$out]
+      start: win32k!ParseDesktop
+      target: Pointer
+
+  rpwinstaParent:
+  - - Disassembler
+    - rules:
+      - MOV $var1, *grpdeskRitInput
+      - TEST $var1, $var1
+      - MOV $var1, [$var1+$out]
+      - MOV $var2, [$var1+$off2]
+      start: win32k!SetGlobalCursorLevel
+      target: Pointer
+
+tagTHREADINFO:
+  PtiLink:
+  - - Disassembler
+    - rules:
+      - LEA $RSI, [$RDI-$out]
+      - MOV $RDX, [$RSI+$tagQ]
+      - CMP $RDX, [$RSI+*]
+      start: win32k!zzzReattachThreads
+      target: Pointer
+
+  ppi:
+  - - Disassembler
+    - length: 300
+      rules:
+      - MOV $var1, *gptiCurrent
+      - MOV $var3, [$var2+$out]
+      - MOV [$var1+$out], $var3
+      start: win32k!xxxCreateWindowStation
+      target: Pointer
+
+  rpdesk:
+  - - Disassembler
+    - length: 300
+      rules:
+      - MOV $var1, *gptiCurrent
+      - MOV $var2, [$var1+$out]
+      - TEST $var2, *
+      start: win32k!xxxCreateWindowStation
+      target: Pointer
+
+tagWINDOWSTATION:
+  rpwinstaNext:
+  - - Disassembler
+    - rules:
+      - CMP * [$var1+$unknown1], 0x1
+      - MOV $var2, [$var1+$out]
+      - JZ *
+      start: win32k!DestroyWindowStation
+      target: Pointer
+
+  rpdeskList:
+  - - Disassembler
+    - rules:
+      - MOV $RBX, *grpWinStaList
+      - TEST $RBX, $RBX
+      - MOV $RDI, [$RBX+$out]
+      - TEST $RDI, $RDI
+      start: win32k!xxxSendMessageBSM
+      target: Pointer
+
+  cNumClipFormats:
+  - - Disassembler
+    - rules:
+      - MOV $var2, [$var1+$out]
+      - JMP *
+      - DEC $var2
+      - TEST $var2, *
+      - JNZ *
+      start: win32k!FindClipFormat
+      target: Pointer
+
+  - - Disassembler
+    - rules:
+      - MOV $var2, [$var1+$out]
+      - TEST $var2, $var2
+      - DEC $var2
+      start: win32k!FindClipFormat
+      target: Pointer
+
+  iClipSerialNumber:
+  - - Disassembler
+    - rules:
+      - CALL *HMAssignmentLock
+      - INC *[$var1+$out]
+      start: win32k!xxxEmptyClipboard
+      target: Pointer
+
+  pClipBase:
+  - - Disassembler
+    - rules:
+      - MOV *CX, [$var1+$out]
+      - XOR EDX, EDX
+      - CALL *ExFreePoolWithTag
+      - AND *[$var1+$out], 0x0
+      start: win32k!xxxEmptyClipboard
+      target: Pointer
+
+  pGlobalAtomTable:
+  - - Disassembler
+    - rules:
+      - MOV $var1, [*]
+      - ADD $var1, $out
+      - CALL *CreateGlobalAtomTable
+      start: win32k!xxxCreateWindowStation
+      target: Pointer
+
+  pTerm:
+  - - Disassembler
+    - length: 500
+      max_separation: 50
+      rules:
+      - LEA $pterm, *gTermIO
+      - MOV $var1, [*]
+      - MOV [$var1+$out], $pterm
+      start: win32k!xxxCreateWindowStation
+      target: Pointer
+
+  spwndClipOpen:
+  - - Disassembler
+    - rules:
+      - MOV *DX, [$var1+$out]
+      - LEA *CX, [$var1+*]
+      - CALL *HMAssignmentLock
+      - INC *[$var1+*]
+      start: win32k!xxxEmptyClipboard
+      target: Pointer
+
+  spwndClipOwner:
+  - - Disassembler
+    - rules:
+      - LEA *CX, [$var1+$out]
+      - CALL *HMAssignmentLock
+      - INC *[$var1+*]
+      start: win32k!xxxEmptyClipboard
+      target: Pointer

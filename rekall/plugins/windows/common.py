@@ -115,10 +115,9 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
     def scan_for_process(self):
         """Scan the image for the idle process."""
         for process in WinDTBScanner(
-            session=self.session, process_name=self.process_name,
-            profile=self.profile,
-            address_space=self.physical_address_space).scan():
-
+                session=self.session, process_name=self.process_name,
+                profile=self.profile,
+                address_space=self.physical_address_space).scan():
             yield process
 
     def dtb_hits(self):
@@ -190,7 +189,7 @@ class PoolTagCheck(scan.StringCheck):
 
     def check(self, buffer_as, offset):
         return super(PoolTagCheck, self).check(
-             buffer_as, offset + self.tag_offset)
+            buffer_as, offset + self.tag_offset)
 
 
 class MultiPoolTagCheck(scan.MultiStringFinderCheck):
@@ -211,7 +210,7 @@ class MultiPoolTagCheck(scan.MultiStringFinderCheck):
 
     def check(self, buffer_as, offset):
         return super(MultiPoolTagCheck, self).check(
-             buffer_as, offset + self.tag_offset)
+            buffer_as, offset + self.tag_offset)
 
 
 class CheckPoolSize(scan.ScannerCheck):
@@ -325,7 +324,7 @@ class KDBGHook(kb.ParameterHook):
             "automatically scan for it now using plugin.kdbgscan.")
 
         for kdbg in self.session.plugins.kdbgscan(
-            session=self.session).hits():
+                session=self.session).hits():
             # Just return the first one
             logging.info("Found a KDBG hit %r. Hope it works. If not try "
                          "setting it manually.", kdbg)
@@ -459,7 +458,7 @@ class WinProcessFilter(WindowsCommandPlugin):
                     yield proc
 
                 elif self.proc_regex and self.proc_regex.match(
-                    utils.SmartUnicode(proc.name)):
+                        utils.SmartUnicode(proc.name)):
                     yield proc
 
     def virtual_process_from_physical_offset(self, physical_offset):
@@ -524,7 +523,7 @@ class WinProcessFilter(WindowsCommandPlugin):
             "HandleTableListHead", "_LIST_ENTRY")
 
         for table in handle_table_list_head.list_of_type(
-            "_HANDLE_TABLE", "HandleTableList"):
+                "_HANDLE_TABLE", "HandleTableList"):
             proc = table.QuotaProcess.deref()
             if proc and proc.pid > 0:
                 yield proc
@@ -557,7 +556,7 @@ class WinProcessFilter(WindowsCommandPlugin):
 
         for session in sessions:
             for proc in session.ProcessList.list_of_type(
-                "_EPROCESS", "SessionProcessLinks"):
+                    "_EPROCESS", "SessionProcessLinks"):
                 yield proc
 
     def list_eprocess(self):

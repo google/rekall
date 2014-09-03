@@ -147,7 +147,7 @@ class Info(plugin.Command):
 
     def split_into_paragraphs(self, string, dedent=0, wrap=50):
         for paragraph, leading_space in self._split_into_paragraphs(
-            string, dedent):
+                string, dedent):
             paragraph = textwrap.wrap("\n".join(paragraph), wrap)
             yield "\n".join([(" " * leading_space + x) for x in paragraph])
 
@@ -217,7 +217,7 @@ class Info(plugin.Command):
     def _clean_up_doc(self, doc, dedent=0):
         clean_doc = []
         for paragraph in self.split_into_paragraphs(
-            " " * dedent + doc, dedent=dedent, wrap=70):
+                " " * dedent + doc, dedent=dedent, wrap=70):
             clean_doc.append(paragraph)
 
         return "\n".join(clean_doc)
@@ -765,7 +765,7 @@ class Dump(plugin.Command):
         offset = 0
         resolver = self.session.address_resolver
         for offset, hexdata, translated_data in utils.Hexdump(
-            data, width=self.width):
+                data, width=self.width):
 
             # Add a symbol name for the start of each row.
             comment = resolver.format_address(
@@ -840,7 +840,7 @@ class Grep(plugin.Command):
             data = self.address_space.read(offset, 4096)
             for idx in self._GenerateHits(data):
                 for dump_offset, hexdata, translated_data in utils.Hexdump(
-                    data[idx-20:idx+20], width=self.context):
+                        data[idx-20:idx+20], width=self.context):
                     comment = ""
                     nearest_offset, symbol = (
                         resolver.get_nearest_constant_by_address(offset + idx))

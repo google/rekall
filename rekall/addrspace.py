@@ -156,7 +156,7 @@ class BaseAddressSpace(object):
         contiguous_poffset = 0
         total_length = 0
         for (voffset, poffset, length) in self.get_available_addresses():
-            # This can take sometime as we enumerate all the address ranges.
+            # This can take some time as we enumerate all the address ranges.
             if self.session:
                 self.session.report_progress(
                     "%(name)s: Merging Address Ranges %(spinner)s",

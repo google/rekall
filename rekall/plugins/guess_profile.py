@@ -158,8 +158,15 @@ class ProfileHook(kb.ParameterHook):
 
         # If the file is a PE file, we simply return the PE address space.
         if pe_profile._IMAGE_DOS_HEADER(vm=address_space).NTHeader:
-            self.session.kernel_address_space = pe_vtypes.PEFileAddressSpace(
+            pe_as = pe_vtypes.PEFileAddressSpace(
                 base=address_space, profile=pe_profile)
+
+            self.session.kernel_address_space = pe_as
+            self.session.SetParameter("default_image_base", pe_as.image_base)
+
+            machine_type = pe_as.nt_header.FileHeader.Machine
+            if machine_type == "IMAGE_FILE_MACHINE_AMD64":
+                pe_profile.set_metadata("arch", "ADM64")
 
             return pe_profile
 

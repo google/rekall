@@ -23,8 +23,11 @@ import logging
 import re
 
 from rekall import obj
+from rekall import plugin
+from rekall import utils
 from rekall.plugins.common import address_resolver
 from rekall.plugins.windows import common
+from rekall.plugins.overlays.windows import pe_vtypes
 
 
 class KernelModule(object):
@@ -330,6 +333,182 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
     def search_symbol(self, pattern):
         # Currently we only allow searching in the same module.
+        self._EnsureInitialized()
+        result = []
+
+        components = self._ParseAddress(pattern)
+        module_name = components["module"]
+        if module_name == None:
+            raise RuntimeError(
+                "Module name must be specified for symbol search.")
+
+        profile = self.LoadProfileForName(module_name)
+
+        # Match all symbols.
+        symbol_regex = re.compile(components["symbol"].replace("*", ".*"))
+        for constant in profile.constants:
+            if symbol_regex.match(constant):
+                result.append("%s!%s" % (module_name, constant))
+
+        return result
+
+
+class PECommandPlugin(plugin.KernelASMixin, plugin.PhysicalASMixin,
+                      plugin.ProfileCommand):
+    """A command that is active when inspecting a PE file."""
+    __abstract = True
+
+    @classmethod
+    def is_active(cls, session):
+        """We are only active if the profile is windows."""
+        return (super(PECommandPlugin, cls).is_active(session) and
+                session.profile.name == 'pe')
+
+
+class PESectionModule(object):
+    def __init__(self, name, start, length):
+        self.name = utils.SmartStr(name)
+        self.base = start
+        self.length = length
+        self.end = self.base + self.length
+
+
+class PEAddressResolver(address_resolver.AddressResolverMixin,
+                        PECommandPlugin):
+    """A simple address resolver for PE files."""
+
+    def __init__(self, **kwargs):
+        super(PEAddressResolver, self).__init__(**kwargs)
+        self.address_map = utils.SortedCollection(key=lambda x: x[0])
+        self.section_map = utils.SortedCollection(key=lambda x: x[0])
+        self.image_base = self.kernel_address_space.image_base
+        self.pe_helper = pe_vtypes.PE(
+            address_space=self.session.kernel_address_space,
+            image_base=self.image_base,
+            session=self.session)
+
+        # Delay initialization until we need it.
+        self._initialized = False
+
+    def NormalizeModuleName(self, module):
+        try:
+            module_name = module.name
+        except AttributeError:
+            module_name = module
+
+        module_name = utils.SmartUnicode(module_name)
+        module_name = re.split(r"[/\\]", module_name)[-1]
+        result = module_name.split(".")[0]
+
+        return result.lower()
+
+    def LoadProfileForName(self, _):
+        self._EnsureInitialized()
+
+        return self.pe_profile
+
+    def _FindContainingModule(self, address):
+        self._EnsureInitialized()
+
+        address = obj.Pointer.integer_to_address(address)
+        try:
+            _, module = self.section_map.find_le(address)
+            if address < module.end:
+                return module
+
+        except ValueError:
+            pass
+
+        return obj.NoneObject("Unknown module")
+
+    def _EnsureInitialized(self):
+        if self._initialized:
+            return
+
+        self.modules_by_name = {}
+        symbols = {}
+
+        # Insert a psuedo module for each section
+        module_end = self.image_base
+
+        # If the executable has a pdb file, we use that as its .text module
+        # name.
+        if self.pe_helper.RSDS.Filename:
+            module_name = self.NormalizeModuleName(self.pe_helper.RSDS.Filename)
+        else:
+            module_name = ""
+
+        # Find the highest address covered in this executable image.
+        for _, name, virtual_address, length in self.pe_helper.Sections():
+            if self.image_base + virtual_address + length > module_end:
+                module_end = virtual_address + length + self.image_base
+
+        # Make a single module which covers the entire length of the executable
+        # in virtual memory.
+        module = PESectionModule(
+            module_name, self.image_base, module_end - self.image_base)
+        self.modules_by_name[module.name] = module
+        self.section_map.insert((module.base, module))
+
+        # Extract all exported symbols into the profile's symbol table.
+        for _, func, name, _ in self.pe_helper.ExportDirectory():
+            func_address = func.v()
+            try:
+                symbols[utils.SmartUnicode(name)] = func_address
+            except ValueError:
+                continue
+
+        # Load the profile for this binary.
+        self.pe_profile = self.session.LoadProfile("%s/GUID/%s" % (
+            utils.SmartUnicode(self.pe_helper.RSDS.Filename).split(".")[0],
+            self.pe_helper.RSDS.GUID_AGE))
+
+        self.pe_profile.image_base = self.image_base
+
+        self.pe_profile.add_constants(constants_are_addresses=True,
+                                      relative_to_image_base=False,
+                                      **symbols)
+
+        self._initialized = True
+
+    def format_address(self, address, max_distance=0x1000):
+        self._EnsureInitialized()
+
+        address = obj.Pointer.integer_to_address(address)
+
+        # Try to locate the symbol below it.
+        offset, name = self.get_nearest_constant_by_address(address)
+        difference = address - offset
+
+        if name:
+            if difference == 0:
+                return name
+
+            # Ensure address falls within the current module.
+            containing_module = self._FindContainingModule(address)
+            if (containing_module and address < containing_module.end and
+                0 < difference < max_distance):
+                return "%s + %#x" % (
+                    name, address - offset)
+
+        return ""
+
+    def get_nearest_constant_by_address(self, address):
+        self._EnsureInitialized()
+
+        offset, name = self.pe_profile.get_nearest_constant_by_address(address)
+
+        # Find the containing section.
+        containing_module = self._FindContainingModule(address)
+        if containing_module:
+            if name:
+                name = "%s!%s" % (containing_module.name, name)
+            else:
+                name = containing_module.name
+
+        return offset, name
+
+    def search_symbol(self, pattern):
         self._EnsureInitialized()
         result = []
 

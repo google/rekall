@@ -49,7 +49,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
         parser.add_argument("-a", "--address-space", default=None,
                             help="The address space to use.")
 
-    def __init__(self, image_base=0, executable=None, address_space=None,
+    def __init__(self, image_base=None, executable=None, address_space=None,
                  **kwargs):
         """Dump a PE binary from memory.
 
@@ -67,15 +67,19 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
           filename: If provided we create an address space from this file.
         """
         super(PEInfo, self).__init__(**kwargs)
-        if executable is None:
+        if executable is None and address_space is None:
             # Resolve the correct address space. This allows the address space
             # to be specified from the command line (e.g. "P")
             load_as = self.session.plugins.load_as(session=self.session)
             address_space = load_as.ResolveAddressSpace(address_space)
 
-        # Allow the image base to be given as a name.
-        image_base = self.session.address_resolver.get_address_by_name(
-            image_base)
+        if image_base is None:
+            image_base = self.session.GetParameter("default_image_base", 0)
+
+        # Allow the image base to be given as a name (e.g. "nt").
+        resolver = self.session.address_resolver
+        if resolver:
+            image_base = resolver.get_address_by_name(image_base)
 
         self.pe_helper = pe_vtypes.PE(
             address_space=address_space, session=self.session,
@@ -145,8 +149,8 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
             # build the IAT). In this case we can show something sensible using
             # the address resolver.
             for (dll, name, ordinal), (_, func, _) in zip(
-                self.pe_helper.ImportDirectory(),
-                self.pe_helper.IAT()):
+                    self.pe_helper.ImportDirectory(),
+                    self.pe_helper.IAT()):
                 renderer.table_row(
                     u"%s!%s" % (dll, name or ""),
                     resolver.format_address(func.v()),

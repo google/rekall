@@ -35,6 +35,17 @@ config.DeclareOption(name="dtb", group="Autodetection Overrides",
                      help="The DTB physical address.")
 
 
+class PhysicalAddress(object):
+    """A class to represent a physical address.
+
+    This object is supposed to be an opaque object which passes data between the
+    various query functions of an address space into the read function.
+
+    i.e. one can receive the PhysicalAddress() object by calling vtop() and then
+    pass it back to the read() method.
+    """
+
+
 class IA32PagedMemory(addrspace.PagedReader):
     """ Standard x86 32 bit non PAE address space.
 
@@ -114,7 +125,6 @@ class IA32PagedMemory(addrspace.PagedReader):
     def get_pde(self, vaddr):
         '''
         Return the Page Directory Entry for the given virtual address.
-        If caching
 
         Bits 31:12 are from CR3
         Bits 11:2 are bits 31:22 of the linear address
@@ -151,7 +161,6 @@ class IA32PagedMemory(addrspace.PagedReader):
         Bits 21:0 are from the original linear address
         '''
         return  (pde_value & 0xffc00000) | (vaddr & 0x3fffff)
-
 
     def vtop(self, vaddr):
         '''

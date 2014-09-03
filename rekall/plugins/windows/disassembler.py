@@ -69,6 +69,9 @@ class Disassemble(plugin.Command):
             "-e", "--end", default=None, action=config.IntParser,
             help="The end address to disassemble up to.")
 
+        parser.add_argument(
+            "-s", "--single", default=False, action="store_true",
+            help="If specified disassemble only until the next known symbol.")
 
         parser.add_argument(
             "--mode", default=None,
@@ -79,12 +82,20 @@ class Disassemble(plugin.Command):
             help="If set we do not write table headers.")
 
     def __init__(self, offset=0, address_space=None, length=None, end=None,
-                 mode=None, suppress_headers=False, **kwargs):
+                 mode=None, suppress_headers=False, single=False, **kwargs):
         super(Disassemble, self).__init__(**kwargs)
         load_as = self.session.plugins.load_as(session=self.session)
         self.address_space = load_as.ResolveAddressSpace(address_space)
+        resolver = self.session.address_resolver
+        if resolver:
+            offset = resolver.get_address_by_name(offset)
+
+        # Normalize the offset to an address.
+        offset = obj.Pointer.integer_to_address(offset)
+
         self.offset = offset
         self.length = length
+        self.single = single
         self.end = end
         self.suppress_headers = suppress_headers
         self.mode = mode or self.session.profile.metadata(
@@ -101,15 +112,6 @@ class Disassemble(plugin.Command):
         Returns:
           A tuple of (Address, Opcode, Instructions).
         """
-        resolver = self.session.address_resolver
-
-        # Allow the offset to be specified as a symbol name.
-        if isinstance(offset, basestring):
-            offset = resolver.get_address_by_name(offset)
-
-        # Normalize the offset to an address.
-        offset = obj.Pointer.integer_to_address(offset)
-
         # Disassemble the data one page at the time.
         while 1:
             # The start of the disassembler buffer.
@@ -122,7 +124,7 @@ class Disassemble(plugin.Command):
                 int(offset), data, self.distorm_mode)
 
             for i, (offset, size, instruction, hexdump) in enumerate(
-                iterable):
+                    iterable):
                 yield offset, size, hexdump, instruction
 
                 # Exit condition can be specified by length.
@@ -201,7 +203,7 @@ class Disassemble(plugin.Command):
 
         offset = 0
         for offset, size, hexdump, instruction in self.disassemble(
-            self.offset):
+                self.offset):
             relative = ""
             comment = ""
 
@@ -215,6 +217,11 @@ class Disassemble(plugin.Command):
 
                 if offset - f_offset == 0:
                     renderer.format("------ %s ------\n" % f_name)
+
+                    # If the user requested to disassemble only a single
+                    # function stop here.
+                    if self.single and offset > self.offset:
+                        break
 
                 comment = self.find_reference(offset, size, instruction)
                 if offset - f_offset < 0x1000:

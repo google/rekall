@@ -118,6 +118,9 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
     changed_files = set()
     pool = multiprocessing.Pool(NUMBER_OF_CORES)
     for line in open(guidfile_path):
+        if line.startswith("#"):
+            continue
+
         guid, pdb_filename = line.strip().split(" ", 2)
 
         # We dont care about this pdb.

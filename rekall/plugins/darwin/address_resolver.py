@@ -38,17 +38,6 @@ class DarwinAddressResolver(address_resolver.AddressResolverMixin,
         # Delay initialization until we need it.
         self._initialized = False
 
-    def NormalizeModuleName(self, module):
-        try:
-            module_name = module.name
-        except AttributeError:
-            module_name = module
-
-        module_name = unicode(module_name)
-        module_name = re.split(r"[/\\]", module_name)[-1]
-
-        return module_name.lower()
-
     def _EnsureInitialized(self):
         if self._initialized:
             return
