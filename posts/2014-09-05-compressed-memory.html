@@ -100,18 +100,20 @@ ript>
   <div class="col-md-8">
     
 <div id="header">
-<h1>Mac Compressed Memory</h1>
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
-<div class="paragraph"><p>Beginning of August some of the Rekall developers went to the DFRWS US conference in Denver. There were lots of very interesting talks on forensics presented at that conference but I found one of them particularly interesting. The title of the presented paper was "In Lieu of Swap: Analyzing Compressed RAM in Mac OS X and Linux" (Golden G. Richard III and Andrew Case) [1]. The conference organizers found this paper really good too, it won this years Best Paper Award.</p></div>
-<div class="paragraph"><p>In the talk, one of the authors presented how they are able to extract Mac compressed memory from an image. Since OS X Mavericks, macs can compress memory regions that are not currently used to save some space [2]. This obviously poses some problems for memory forensics since for example simple string matching won&#8217;t work anymore if the memory you are looking at was compressed.</p></div>
+<div class="paragraph"><p>New Rekall Plugin: Mac Compressed Memory</p></div>
+<div class="exampleblock">
+<div class="content">
+<div class="paragraph"><p>Beginning of August I went to the DFRWS US conference in Denver. There were lots of very interesting talks on forensics presented at that conference but I found one of them particularly interesting. The title of the presented paper was "In Lieu of Swap: Analyzing Compressed RAM in Mac OS X and Linux" (Golden G. Richard III and Andrew Case) [<a href="http://dfrws.org/2014/proceedings/DFRWS2014-1.pdf">1</a>]. The conference organizers found this paper really good too, it won this years Best Paper Award.</p></div>
+<div class="paragraph"><p>In the talk, one of the authors presented how they are able to extract Mac compressed memory from an image. Since OS X Mavericks, Macs can compress memory regions that are not currently used to save some space [<a href="https://www.apple.com/osx/advanced-technologies/">2</a>]. This obviously poses some problems for memory forensics since for example simple string matching won&#8217;t work anymore if the memory you are looking at was compressed.</p></div>
 <div class="paragraph"><p>In the presentation, one of the authors introduced their approach to find and decompress those memory regions (they implemented a Volatility plugin which does it). I became particularly interested when I heard that he was complaining that the Python implementation of the decompression algorithm they have is very slow. I really wanted to analyze what they have done and if there is a way of improving the speed of this algorithm but unfortunately I found out that the authors have not released the code for this yet. Even now, one month later, the code is nowhere to be found :( I thought this might be an
 interesting challenge though so that same evening after coming back from conference beers I sat down and implemented my own version of the decompressor.</p></div>
-<div class="paragraph"><p>The algorithm Apple uses to compress memory is the one Paul Wilson and Scott F. Kaplan published in 1997 (with slight modifications). There is a standard C implementation freely available (for example found in this repository [3]) but no Python one as far as I know. Apple uses a highly optimized assembler version for Mavericks which is way faster than the C implementation.</p></div>
-<div class="paragraph"><p>I ported the code from [3] basically 1:1 to Python and quickly saw why the Python version is slow. There are lots of bit operations that Python is particularly bad at and also many of the operations are vectorized in C which is not so easily done in Python. I spent some time optimizing this using some precomputations and use of Python iterators as pointers and actually got acceptable performance for this algorithm. My implementation can now do 1000 compress/decompress operations of a 4k page per second on my 2014 Macbook Pro 15 inch which is 2.5 times as much as what was claimed in the talk for the implementation they had. Of course I am fully aware that I&#8217;m comparing apples and oranges here since the hardware they used was probably completely different. However, they still have not released the code they were talking about so I have no way of staging a fair comparison. Regardless of the performance difference, this was a fun exercise. If you want to take a look at my optimized implementation, it&#8217;s available in the Rekall repository [4].</p></div>
-<div class="paragraph"><p>As a side effect of having this memory decompressor, I was also able to implement a Rekall plugin that dumps all compressed memory pages in a Darwin image to disk. If you don&#8217;t want to wait until the code from the cited paper is released (at least the part for OS X), you can already try it now, the Rekall plugin is called "dumpcompressedmemory":</p></div>
+<div class="paragraph"><p>To compress memory, Apple uses an algorithm called WKdm which was published in 1997 by Paul Wilson and Scott F. Kaplan (with slight modifications). There is a standard C implementation freely available (for example found in this repository [<a href="https://github.com/santolucito/CCache/tree/master/WKdm">3</a>]) but no Python one as far as I know. Apple uses a highly optimized assembler version for Mavericks which is way faster than the C implementation.</p></div>
+<div class="paragraph"><p>I ported the code from [<a href="https://github.com/santolucito/CCache/tree/master/WKdm">3</a>] basically 1:1 to Python and quickly saw why the Python version is slow. There are lots of bit operations that Python is particularly bad at and also many of the operations are vectorized in C which is not so easily done in Python. I spent some time optimizing this using some precomputations and use of Python iterators as pointers and actually got acceptable performance for this algorithm. My implementation can now do 1000 compress/decompress operations of a 4k page per second on my 2014 Macbook Pro 15 inch which is 2.5 times as much as what was claimed in the talk for the implementation they had. Of course I am fully aware that I&#8217;m comparing apples and oranges here since the hardware they used was probably completely different. However, they still have not released the code they were talking about so I have no way of staging a fair comparison. Regardless of the performance difference, this was a fun exercise. If you want to take a look at my optimized implementation, it&#8217;s available in the Rekall repository [<a href="https://github.com/google/rekall/blob/master/rekall/plugins/darwin/WKdm.py">4</a>].</p></div>
+<div class="paragraph"><p>As a side effect of having this memory decompressor, I was also able
+to implement a Rekall plugin that dumps all compressed memory pages in
+a Darwin image to disk, it&#8217;s called "dumpcompressedmemory":</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>rekal -f ~/mem.dump
@@ -134,13 +136,12 @@ slot10.dmp slot17.dmp slot24.dmp slot3.dmp slot35.dmp
 <div class="paragraph"><p>[2] <a href="https://www.apple.com/osx/advanced-technologies/">https://www.apple.com/osx/advanced-technologies/</a></p></div>
 <div class="paragraph"><p>[3] <a href="https://github.com/santolucito/CCache/tree/master/WKdm">https://github.com/santolucito/CCache/tree/master/WKdm</a></p></div>
 <div class="paragraph"><p>[4] <a href="https://github.com/google/rekall/blob/master/rekall/plugins/darwin/WKdm.py">https://github.com/google/rekall/blob/master/rekall/plugins/darwin/WKdm.py</a></p></div>
-</div>
-</div>
+</div></div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-09-05 14:35:22 CEST
+Last updated 2014-09-08 19:43:21 CEST
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>
