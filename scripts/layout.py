@@ -97,7 +97,7 @@ def blog_nav(page=None):
             items.append(
                 (subpage.date, subpage))
 
-    items.sort()
+    items.sort(reverse=True)
     result = ""
     for _, post in items[:5]:
         result += """
