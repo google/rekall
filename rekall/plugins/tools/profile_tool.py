@@ -71,10 +71,10 @@ For example, suppose you have an existing profile created for use in Volatility,
 you can just convert it to the rekall format:
 
 ./tools/profile_converter.py convert Ubuntu-3.0.0-32-generic-pae.zip \
-   Ubuntu-3.0.0-32-generic-pae.rekall.zip
+   Ubuntu-3.0.0-32-generic-pae.rekall.json
 
 $ ls -l Ubuntu-3.0.0-32-generic-pae.*
--rw-r----- 1 scudette g 643711 Dec 12 02:12 Ubuntu-3.0.0-32-generic-pae.rekall.zip
+-rw-r----- 1 scudette g 643711 Dec 12 02:12 Ubuntu-3.0.0-32-generic-pae.rekall.json
 -rw-r----- 1 scudette g 726480 Dec 12 00:30 Ubuntu-3.0.0-32-generic-pae.zip
 
 Now simply specify the rekall profile using the --profile command line arg.
@@ -418,7 +418,6 @@ class BuildIndex(plugin.Command):
     Structure:
     ==========
 
-    repository_root: (string) # The path to the repository to index.
     base_symbol: (string) # OPTIONAL Compute ALL offsets as relative to this
         symbol. This includes MaxOffset and MinOffset.
     symbols: (array of dicts) # A list of symbols to index.
@@ -430,7 +429,6 @@ class BuildIndex(plugin.Command):
     Example:
     ========
 
-    repository_root: ./
     path: win32k.sys
     symbols:
       -
@@ -471,12 +469,17 @@ class BuildIndex(plugin.Command):
     def args(cls, parser):
         super(BuildIndex, cls).args(parser)
         parser.add_argument(
-            "--spec", default=None, required=True,
+            "spec", default=None,
             help="An Index specification file.")
 
-    def __init__(self, spec=None, **kwargs):
+        parser.add_argument(
+            "--root", default="./",
+            help="Repository root path.")
+
+    def __init__(self, spec=None, root="./", **kwargs):
         super(BuildIndex, self).__init__(**kwargs)
         self.spec = spec
+        self.root = root
 
     @staticmethod
     def _decide_base(data, base_symbol):
@@ -485,10 +488,63 @@ class BuildIndex(plugin.Command):
 
         return data["$CONSTANTS"].get(base_symbol, None)
 
-    def render(self, renderer):
-        with renderer.open(filename=self.spec, mode="rb") as fd:
-            spec = yaml.safe_load(fd)
+    def ValidateDataIndex(self, index, spec):
+        """Check the index for collisions.
 
+        An index collision occurs when all the comparison points in one GUID are
+        also contained in another GUID. If these points match it is impossible
+        to distinguish between the two indexes. We need to issue a warning so
+        the user can add additional comparison points to resolve the ambiguity.
+        """
+        errors = 0
+        # The following algorithm is very slow O(n^2) but there aren't that many
+        # profiles in the index.
+        for profile, data in index.iteritems():
+            for profile2, data2 in index.iteritems():
+                overlap = []
+
+                # Don't report collisions with the same profile.
+                if profile == profile2:
+                    continue
+
+                for condition in data:
+                    if condition in data2:
+                        overlap.append(condition)
+
+                if overlap == data:
+                    # Some profiles are just rebuilt (so they have a new GUID)
+                    # but they are otherwise identical. We can never distinguish
+                    # between them so it does not matter.
+                    if self._AreProfilesEquivalent(profile, profile2):
+                        continue
+
+                    errors += 1
+                    logging.error(
+                        "Profile %s and %s are ambiguous, please add more "
+                        "comparison points.", profile, profile2)
+
+                    logging.error(
+                        "Run the following command:\nzdiff %s.gz %s.gz",
+                        profile, profile2)
+
+        if errors:
+            logging.error("Index with errors: %s", errors)
+
+    def _AreProfilesEquivalent(self, profile, profile2):
+        # Check if the two profiles are equivalent:
+        profile_obj = self._GetProfile(profile)
+        profile2_obj = self._GetProfile(profile2)
+        for section in ["$CONSTANTS", "$FUNCTIONS"]:
+            if profile_obj.get(section) == profile2_obj.get(section):
+                return True
+
+    def BuildDataIndex(self, spec):
+        """Builds a data index from the specification.
+
+        A data index is an index which collates known data at known offsets
+        in memory. We then apply the index to a memory location to discover
+        the most likely match there.
+        """
         index = {}
         metadata = dict(Type="Profile",
                         ProfileClass="Index")
@@ -496,78 +552,127 @@ class BuildIndex(plugin.Command):
         result = {"$METADATA": metadata,
                   "$INDEX": index}
 
-        repository_root = spec["repository_root"]
         highest_offset = 0
         lowest_offset = float("inf")
         base_sym = spec.get("base_symbol", None)
 
-        for root, _, files in os.walk(
-            os.path.join(repository_root, spec["path"])):
-            for name in files:
-                path = os.path.join(root, name)
-                relative_path = os.path.splitext(
-                    path[len(repository_root):])[0]
+        for relative_path, data in self._GetAllProfiles(spec["path"]):
+            for sym_spec in spec["symbols"]:
+                shift = sym_spec.get("shift", 0)
 
-                if path.endswith(".gz"):
-                    self.session.report_progress("Processing %s", relative_path)
-                    try:
-                        file_data = gzip.open(path).read()
-                        data = json.loads(file_data)
-                    except Exception:
+                if "$CONSTANTS" not in data:
+                    continue
+
+                offset = data["$CONSTANTS"].get(sym_spec["name"])
+                if offset is None:
+                    # Maybe its a function.
+                    offset = data["$FUNCTIONS"].get(sym_spec["name"])
+                    if offset is None:
                         continue
 
-                    index[relative_path] = []
-                    for sym_spec in spec["symbols"]:
-                        shift = sym_spec.get("shift", 0)
+                # Offsets (as well as min/max offset) are computed
+                # relative to base.
+                base = self._decide_base(
+                    data=data,
+                    base_symbol=base_sym)
 
-                        if "$CONSTANTS" not in data:
-                            continue
+                # If we got a base symbol but it's not in the constants
+                # then that means this profile is incompatible with this
+                # index and should be skipped.
+                if base == None:
+                    continue
 
-                        offset = data["$CONSTANTS"].get(sym_spec["name"])
+                # We don't record the offset as reported by the profile
+                # but as the reader is actually going to use it.
+                offset = offset + shift - base
 
-                        if not offset:
-                            continue
+                values = []
+                # If a symbol's expected value is prefixed with
+                # 'str:' then that means it was given to us as
+                # human-readable and we need to encode it. Otherwise it
+                # should already be hex-encoded.
+                raw_prefix = "str:"
+                for value in sym_spec["data"]:
+                    if value.startswith(raw_prefix):
+                        value = value[len(raw_prefix):].encode("hex")
 
-                        # Offsets (as well as min/max offset) are computed
-                        # relative to base.
-                        base = self._decide_base(
-                            data=data,
-                            base_symbol=base_sym)
+                    values.append(value)
 
-                        # If we got a base symbol but it's not in the constants
-                        # then that means this profile is incompatible with this
-                        # index and should be skipped.
-                        if base == None:
-                            continue
+                index.setdefault(relative_path, []).append((offset, values))
 
-                        # We don't record the offset as reported by the profile
-                        # but as the reader is actually going to use it.
-                        offset = offset + shift - base
-
-                        values = []
-                        # If a symbol's expected value is prefixed with
-                        # 'string:' then that means it was given to us as
-                        # human-readable and we need to encode it. Otherwise it
-                        # should already be hex-encoded.
-                        raw_prefix = "string:"
-                        for value in sym_spec["data"]:
-                            if value.startswith(raw_prefix):
-                                value = value[len(raw_prefix):].encode("hex")
-
-                            values.append(value)
-
-                        index[relative_path].append(
-                            (offset, values))
-
-                        # Compute the lowest and highest offsets so the reader
-                        # can optimize reading the image.
-                        lowest_offset = min(
-                            lowest_offset, offset)
-                        highest_offset = max(
-                            highest_offset, offset + len(sym_spec["data"]))
+                # Compute the lowest and highest offsets so the reader
+                # can optimize reading the image.
+                lowest_offset = min(lowest_offset, offset)
+                highest_offset = max(
+                    highest_offset, offset + len(sym_spec["data"]))
 
         metadata["BaseSymbol"] = base_sym
         metadata["MaxOffset"] = highest_offset
         metadata["MinOffset"] = lowest_offset
+
+        # Make sure to issue warnings if the index is not good enough.
+        self.ValidateDataIndex(index, spec)
+
+        return result
+
+    def BuildStructIndex(self, spec):
+        """Builds a Struct index from specification.
+
+        A Struct index is a collection of struct offsets for certain members
+        over all available versions.
+        """
+        index = {}
+        metadata = dict(Type="Profile",
+                        ProfileClass=spec.get("implementation", "Index"))
+
+        result = {"$METADATA": metadata,
+                  "$INDEX": index}
+
+        for relative_path, data in self._GetAllProfiles(spec["path"]):
+            try:
+                structs = data["$STRUCTS"]
+            except KeyError:
+                continue
+
+            metadata = index[relative_path] = data["$METADATA"]
+            offsets = metadata["offsets"] = {}
+            for struct, fields in spec["members"].items():
+                for field in fields:
+                    try:
+                        offsets["%s.%s" % (struct, field)] = (
+                            structs[struct][1][field][0])
+                    except KeyError:
+                        continue
+
+        return result
+
+    def _GetProfile(self, name):
+        path = "%s.gz" % name
+        file_data = gzip.open(path).read()
+        return json.loads(file_data)
+
+    def _GetAllProfiles(self, path):
+        """Iterate over all paths and get the profiles."""
+        for root, _, files in os.walk(os.path.join(self.root, path)):
+            for name in files:
+                path = os.path.join(root, name)
+                relative_path = os.path.splitext(path[len(self.root):])[0]
+
+                if path.endswith(".gz"):
+                    self.session.report_progress("Processing %s", relative_path)
+                    file_data = gzip.open(path).read()
+                    data = json.loads(file_data)
+
+                    yield relative_path, data
+
+    def render(self, renderer):
+        with renderer.open(filename=self.spec, mode="rb") as fd:
+            spec = yaml.safe_load(fd)
+
+
+        if spec.get("type") == "struct":
+            result = self.BuildStructIndex(spec)
+        else:
+            result = self.BuildDataIndex(spec)
 
         renderer.write(utils.PPrint(result))

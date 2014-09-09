@@ -452,7 +452,7 @@ overlays = {
 
 
 # This is not used just yet but soon!
-win7_x86_dynamic_overlays = type_generator.GenerateOverlay({
+win7_x86_dynamic_overlays = {
         "_TCP_LISTENER": dict(
             # The Owner process.
             Owner=[
@@ -498,7 +498,7 @@ win7_x86_dynamic_overlays = type_generator.GenerateOverlay({
                         )],
                 ],
             ),
-        })
+        }
 
 
 

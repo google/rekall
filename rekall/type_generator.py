@@ -100,14 +100,11 @@ class DynamicParser(object):
         return obj.NoneObject("No value found")
 
 
-DISASSEMBLER_CACHE = utils.FastStore()
-
-
 class Disassembler(DynamicParser):
     """A constant generator deriving values based on the disassembler."""
 
-    def __init__(self, name=None, start=None, end=None, length=300,
-                 rules=None, max_separation=10):
+    def __init__(self, session=None, name=None, start=None, end=None,
+                 length=300, rules=None, max_separation=10):
         """Derive a value from disassembly.
 
         Args:
@@ -119,6 +116,7 @@ class Disassembler(DynamicParser):
 
           rules: A list of rules (see above).
         """
+        self.session = session
         self.text_rules = rules
         self.rules = self.CompileRule(rules)
         self.start = start
@@ -209,7 +207,6 @@ class Disassembler(DynamicParser):
         result = {}
         for rule_number, item in enumerate(vector):
             rule_context = contexts[rule_number]
-
             # The capture variables in this rule only.
             rule_capture_vars_values = {}
 
@@ -272,15 +269,21 @@ class Disassembler(DynamicParser):
     def _calculate(self, session):
         # Try to cache disassembly to speed things up.
         try:
-            disassembly = DISASSEMBLER_CACHE.Get(
+            disassembler_cache = self.session.GetParameter(
+                "disassembler_cache", utils.FastStore())
+
+            disassembly = disassembler_cache.Get(
                 (self.start, self.length, self.end))
+
         except KeyError:
             disassembly = unicode(session.plugins.dis(
-                offset=self.start, single=True,
+                offset=self.start, branch=True,
                 length=self.length, end=self.end))
 
-            DISASSEMBLER_CACHE.Put(
+            disassembler_cache.Put(
                 (self.start, self.length, self.end), disassembly)
+
+            self.session.SetParameter("disassembler_cache", disassembler_cache)
 
         hits = {}
         contexts = {}
@@ -321,7 +324,7 @@ class DynamicProfile(obj.Profile):
 
 
 
-def GenerateOverlay(dynamic_definition):
+def GenerateOverlay(session, dynamic_definition):
     """Parse the definition and generate an overlay from it."""
     overlay = {}
     for type_name, definition in dynamic_definition.items():
@@ -337,7 +340,7 @@ def GenerateOverlay(dynamic_definition):
                 name = "%s.%s" % (type_name, field_name)
 
                 parsers.append(DynamicParser.classes.get(parser_name)(
-                    name=name, **kwargs))
+                    session=session, name=name, **kwargs))
 
             # Make the offset a callable
             # Bind parameters in lambda:

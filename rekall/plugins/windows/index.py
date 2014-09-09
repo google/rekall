@@ -36,6 +36,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 from rekall import obj
 from rekall import testlib
 from rekall.plugins.windows import common
+from rekall.plugins.overlays import basic
 
 
 class GuessGUID(common.WindowsCommandPlugin):
@@ -57,7 +58,7 @@ class GuessGUID(common.WindowsCommandPlugin):
         """Scan for module using version_scan for RSDS scanning."""
         module_name = self.module.split(".")[0]
         for _, guid in self.session.plugins.version_scan(
-            name_regex="^%s.pdb" % module_name).ScanVersions():
+                name_regex="^%s.pdb" % module_name).ScanVersions():
             yield obj.NoneObject(), "%s/GUID/%s" % (module_name, guid)
 
     def LookupIndex(self):
@@ -103,6 +104,36 @@ class GuessGUID(common.WindowsCommandPlugin):
             ])
         for context, possibility in self.GuessProfiles():
             renderer.table_row(context.pid, context.SessionId, possibility)
+
+
+class EProcessIndex(basic.ProfileLLP64):
+    """A profile index for _EPROCESS structs."""
+
+    @classmethod
+    def Initialize(cls, profile):
+        super(EProcessIndex, cls).Initialize(profile)
+        profile.add_types({
+            '_KUSER_SHARED_DATA': [None, {
+                "NtMajorVersion": [620, ["unsigned long", {}]],
+                "NtMinorVersion": [624, ["unsigned long", {}]],
+                }]
+            })
+
+    def _SetupProfileFromData(self, data):
+        super(EProcessIndex, self)._SetupProfileFromData(data)
+        self.index = data.get("$INDEX", {})
+
+        # Consolidate all the relative offsets from the ImageFileName to the
+        # DirectoryTableBase.
+        self.filename_to_dtb = set()
+        for metadata in self.index.values():
+            offsets = metadata["offsets"]
+            relative_offset = offsets["_EPROCESS.ImageFileName"] - (
+                offsets["_EPROCESS.Pcb"] +
+                offsets["_KPROCESS.DirectoryTableBase"])
+
+            arch = metadata.get("arch", "AMD64")
+            self.filename_to_dtb.add((relative_offset, arch))
 
 
 class TestGuessGUID(testlib.SimpleTestCase):

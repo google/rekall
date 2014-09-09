@@ -1047,8 +1047,7 @@ class TreeNodeObjectRenderer(TextObjectRenderer):
         self.max_depth = options.pop("max_depth", 10)
         child_spec = options.pop("child", None)
         if child_spec:
-            child_type = child_spec.get("type")
-
+            child_type = child_spec.get("type", "object")
             self.child = self.ByName(child_type, renderer)(
                 renderer, session=session, **child_spec)
 
@@ -1072,12 +1071,12 @@ class TreeNodeObjectRenderer(TextObjectRenderer):
         self.heading_width = heading.width
         return heading
 
-    def render_row(self, target, depth=0, **options):
+    def render_row(self, target, depth=0, child=None, **options):
         if self.child:
-            child_cell = self.child.render_row(target, **options)
+            child_cell = self.child.render_row(target, **child)
         else:
             child_cell = super(TreeNodeObjectRenderer, self).render_row(
-                target, **options)
+                target, **child)
 
         padding = Cell.FromString("." * depth)
         result = Cell.Join(padding, child_cell)

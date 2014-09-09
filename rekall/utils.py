@@ -498,7 +498,7 @@ def PPrint(data, depth=0):
         tmp = []
         for key, value in sorted(data.items()):
             # Only emit non-empty dicts.
-            if value:
+            if value != {}:
                 tmp.append(
                     " %s%s: %s" % (
                         " " * depth,
@@ -521,6 +521,10 @@ def PPrint(data, depth=0):
             data = json.dumps(data.encode("ascii"))
         except UnicodeError:
             pass
+
+    # JSON encodes None as null.
+    elif data is None:
+        return "null"
 
     return str(data)
 
@@ -770,3 +774,15 @@ class SortedCollection(object):
         if i != len(self):
             return self._items[i]
         raise ValueError('No item found with key above: %r' % (k,))
+
+
+class JITIterator(object):
+    def __init__(self, baseclass):
+        self.baseclass = baseclass
+
+    def __contains__(self, item):
+        return item in list(self)
+
+    def __iter__(self):
+        return (
+            x.name for x in self.baseclass.classes.values() if x.name)

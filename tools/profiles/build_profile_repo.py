@@ -170,10 +170,14 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
 def RebuildHelp():
     """Rebuilds the plugin help profile."""
     help_dict = {}
-    result = {"$METADATA": dict(Type="Profile",
-                                ProfileClass="PluginHelp"),
-              "$HELP": help_dict
-              }
+    result = {
+        "$METADATA": dict(
+            Type="Profile",
+            ProfileClass="PluginHelp"
+            ),
+        "$HELP": help_dict
+        }
+
     for cls in plugin.Command.classes.values():
         session.report_progress("Rebuilding profile help: %s.", cls.__name__)
 

@@ -1179,45 +1179,46 @@ class _KTIMER(obj.Struct):
 def InitializeWindowsProfile(profile):
     """Install the basic windows overlays."""
     profile.add_types({
-            'pointer64': ['NativeType', dict(format_string='<Q')]
-            })
+        'pointer64': ['NativeType', dict(format_string='<Q')]
+        })
 
     profile.add_classes({
-            '_UNICODE_STRING': _UNICODE_STRING,
-            '_EPROCESS': _EPROCESS,
-            '_ETHREAD': _ETHREAD,
-            '_HANDLE_TABLE': _HANDLE_TABLE,
-            '_POOL_HEADER': _POOL_HEADER,
-            '_OBJECT_HEADER': _OBJECT_HEADER,
-            '_PSP_CID_TABLE': _PSP_CID_TABLE,
-            '_FILE_OBJECT': _FILE_OBJECT,
-            '_OBJECT_DIRECTORY': _OBJECT_DIRECTORY,
-            '_EX_FAST_REF': _EX_FAST_REF,
-            '_CM_KEY_BODY': _CM_KEY_BODY,
-            '_MMVAD_FLAGS': _MMVAD_FLAGS,
-            '_MMVAD_FLAGS2': _MMVAD_FLAGS2,
-            '_MMSECTION_FLAGS': _MMSECTION_FLAGS,
-            '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
-            "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
-            "_SID": _SID,
-            "_HEAP": _HEAP,
-            "_KTIMER": _KTIMER,
-            "RVAPointer": pe_vtypes.RVAPointer,
-            "SentinelArray": pe_vtypes.SentinelArray,
-            "SentinelListArray": pe_vtypes.SentinelListArray,
-            })
+        '_UNICODE_STRING': _UNICODE_STRING,
+        '_EPROCESS': _EPROCESS,
+        '_ETHREAD': _ETHREAD,
+        '_HANDLE_TABLE': _HANDLE_TABLE,
+        '_POOL_HEADER': _POOL_HEADER,
+        '_OBJECT_HEADER': _OBJECT_HEADER,
+        '_PSP_CID_TABLE': _PSP_CID_TABLE,
+        '_FILE_OBJECT': _FILE_OBJECT,
+        '_OBJECT_DIRECTORY': _OBJECT_DIRECTORY,
+        '_EX_FAST_REF': _EX_FAST_REF,
+        '_CM_KEY_BODY': _CM_KEY_BODY,
+        '_MMVAD_FLAGS': _MMVAD_FLAGS,
+        '_MMVAD_FLAGS2': _MMVAD_FLAGS2,
+        '_MMSECTION_FLAGS': _MMSECTION_FLAGS,
+        '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
+        "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
+        "_SID": _SID,
+        "_HEAP": _HEAP,
+        "_KTIMER": _KTIMER,
+        "RVAPointer": pe_vtypes.RVAPointer,
+        "SentinelArray": pe_vtypes.SentinelArray,
+        "SentinelListArray": pe_vtypes.SentinelListArray,
+        })
 
     profile.add_overlay(windows_overlay)
 
     # Pooltags for common objects (These are different in Win8).
-    profile.add_constants(DRIVER_POOLTAG="Dri\xf6",
-                          EPROCESS_POOLTAG="Pro\xe3",
-                          FILE_POOLTAG="Fil\xe5",
-                          SYMLINK_POOLTAG="Sym\xe2",
-                          MODULE_POOLTAG="MmLd",
-                          MUTANT_POOLTAG="Mut\xe1",
-                          THREAD_POOLTAG='\x54\x68\x72\xe5',
-                          )
+    profile.add_constants(
+        DRIVER_POOLTAG="Dri\xf6",
+        EPROCESS_POOLTAG="Pro\xe3",
+        FILE_POOLTAG="Fil\xe5",
+        SYMLINK_POOLTAG="Sym\xe2",
+        MODULE_POOLTAG="MmLd",
+        MUTANT_POOLTAG="Mut\xe1",
+        THREAD_POOLTAG='\x54\x68\x72\xe5',
+        )
 
     # These constants are always the same in all versions of Windows.
     if profile.metadata("arch") == "AMD64":

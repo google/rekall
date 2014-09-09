@@ -70,10 +70,6 @@ class Disassemble(plugin.Command):
             help="The end address to disassemble up to.")
 
         parser.add_argument(
-            "-s", "--single", default=False, action="store_true",
-            help="If specified disassemble only until the next known symbol.")
-
-        parser.add_argument(
             "--mode", default=None,
             help="Disassemble Mode (AMD64 or I386). Defaults to profile arch.")
 
@@ -81,8 +77,13 @@ class Disassemble(plugin.Command):
             "--suppress_headers", default=False, action="store_true",
             help="If set we do not write table headers.")
 
+        parser.add_argument(
+            "--branch", default=False, action="store_true",
+            help="If set we follow all branches to cover all code.")
+
     def __init__(self, offset=0, address_space=None, length=None, end=None,
-                 mode=None, suppress_headers=False, single=False, **kwargs):
+                 mode=None, suppress_headers=False, branch=False,
+                 **kwargs):
         super(Disassemble, self).__init__(**kwargs)
         load_as = self.session.plugins.load_as(session=self.session)
         self.address_space = load_as.ResolveAddressSpace(address_space)
@@ -95,8 +96,11 @@ class Disassemble(plugin.Command):
 
         self.offset = offset
         self.length = length
-        self.single = single
         self.end = end
+
+        # All the visited addresses (for branch analysis).
+        self._visited = set()
+        self.follow_branches = branch
         self.suppress_headers = suppress_headers
         self.mode = mode or self.session.profile.metadata(
             "arch", "I386")
@@ -106,10 +110,10 @@ class Disassemble(plugin.Command):
         else:
             self.distorm_mode = distorm3.Decode64Bits
 
-    def disassemble(self, offset):
+    def disassemble(self, offset, depth=0):
         """Disassemble the number of instructions required.
 
-        Returns:
+        Yields:
           A tuple of (Address, Opcode, Instructions).
         """
         # Disassemble the data one page at the time.
@@ -123,12 +127,37 @@ class Disassemble(plugin.Command):
             iterable = distorm3.DecodeGenerator(
                 int(offset), data, self.distorm_mode)
 
-            for i, (offset, size, instruction, hexdump) in enumerate(
-                    iterable):
-                yield offset, size, hexdump, instruction
+            for offset, size, instruction, hexdump in iterable:
+                if offset in self._visited:
+                    return
+
+                yield depth, offset, size, hexdump, instruction
+
+                self._visited.add(offset)
+
+                # If the user asked for full branch analysis we follow all
+                # branches. This gives us full code coverage for a function - we
+                # just disassemble until the function exists from all branches.
+                if self.follow_branches:
+                    # A return stops this branch.
+                    if instruction.startswith("RET"):
+                        return
+
+                    m = self.BRANCH_REFERENCE.match(instruction)
+                    if m:
+                        # Start disassembling the branch. When the branch is
+                        # exhausted we resume disassembling the continued
+                        # branch.
+                        for x in self.disassemble(
+                                int(m.group(2), 16), depth=depth+1):
+                            yield x
+
+                        # A JMP stops disassembling this branch.
+                        if instruction.startswith("JMP"):
+                            return
 
                 # Exit condition can be specified by length.
-                if self.length is not None and i >= self.length:
+                if self.length is not None and len(self._visited) > self.length:
                     return
 
                 # Exit condition can be specified by end address.
@@ -154,6 +183,7 @@ class Disassemble(plugin.Command):
         else:
             return "0x%x %s" % (target, operand_name)
 
+    BRANCH_REFERENCE = re.compile("(J|B)[^ ]{1,2} (0x[^ ]+)")
     SIMPLE_REFERENCE = re.compile("0x[0-9a-fA-F]+$")
     INDIRECT_REFERENCE = re.compile(r"\[(0x[0-9a-fA-F]+)\]")
     RIP_REFERENCE = re.compile(r"\[RIP([+-]0x[0-9a-fA-F]+)\]")
@@ -193,16 +223,23 @@ class Disassemble(plugin.Command):
         if self.end is None and self.length is None:
             self.length = self.session.GetParameter("paging_limit") - 5
 
+        # If we are doing branch analysis we can not suspend this plugin. We
+        # must do everything all the time.
+        if self.follow_branches:
+            self.length = self.end = None
+
         renderer.table_header(
-            [('Address', "cmd_address", '[addrpad]'),
+            [dict(type="TreeNode", name="Address", cname="cmd_address",
+                  child=dict(formatstring='[addrpad]')),
              ('Rel', "relative_address", '>4'),
-             ('Op Codes', "opcode", '<20'),
+#             ('Op Codes', "opcode", '<20'),
              ('Instruction', "instruction", '<30'),
              ('Comment', "comment", "")],
             suppress_headers=self.suppress_headers)
 
         offset = 0
-        for offset, size, hexdump, instruction in self.disassemble(
+        self._visited.clear()
+        for depth, offset, size, hexdump, instruction in self.disassemble(
                 self.offset):
             relative = ""
             comment = ""
@@ -218,17 +255,13 @@ class Disassemble(plugin.Command):
                 if offset - f_offset == 0:
                     renderer.format("------ %s ------\n" % f_name)
 
-                    # If the user requested to disassemble only a single
-                    # function stop here.
-                    if self.single and offset > self.offset:
-                        break
-
                 comment = self.find_reference(offset, size, instruction)
                 if offset - f_offset < 0x1000:
                     relative = "%x" % (offset - f_offset)
 
             renderer.table_row(
-                offset, relative, hexdump, instruction, comment)
+                offset, relative, #hexdump,
+                instruction, comment, depth=depth)
 
         # Continue from where we left off when the user calls us again with the
         # v() plugin.

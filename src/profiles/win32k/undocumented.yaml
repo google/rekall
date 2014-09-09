@@ -12,6 +12,7 @@ tagDESKTOP:
       - LEA *, [$pdesk+$out]
       start: win32k!SetGlobalCursorLevel
       target: Pointer
+      max_separation: 300
 
   pheapDesktop:
   - - Disassembler
@@ -30,6 +31,32 @@ tagDESKTOP:
       - MOV *CX, $var1
       - CALL *ObQueryNameInfo
       start: win32k!ParseDesktop
+      target: Pointer
+
+  - - Disassembler
+    - rules:
+      - MOV RCX, [$RDI+$out]
+      - TEST RCX, RCX
+      - CALL *ObfDereferenceObject
+      start: win32k!DestroyDesktop
+      target: Pointer
+
+  - - Disassembler
+    - rules:
+      - CMP * [$RCX], 0x0
+      - MOV $RDX, [$RSI+$out]
+      - CALL *LockObjectAssignment
+      start: win32k!DestroyDesktop
+      target: Pointer
+
+  - - Disassembler
+    - rules:
+      - MOV $EAX, *grpWinStaList
+      - TEST $EAX, $EAX
+      - MOV $EAX, [$EAX+$unknown]
+      - TEST $EAX, $EAX
+      - MOV EAX, [$EAX+$out]
+      start: win32k!UserSetDelayedChangeBroadcastForAllDesktops
       target: Pointer
 
   - - Disassembler
@@ -81,6 +108,32 @@ tagTHREADINFO:
       - TEST $var2, *
       start: win32k!xxxCreateWindowStation
       target: Pointer
+
+  - - Disassembler
+    - rules:
+        - MOV $EAX, [$EAX+$out]
+        - MOV $EDX, [$EAX+$unknown]
+        - MOV $ECX, 0x3000000
+        - TEST $ECX, $EDX
+      target: Pointer
+      start: win32k!xxxCapture
+
+  - - Disassembler
+    - rules:
+        - MOV $RAX, [$var1+$out]
+        - MOV $ECX, [$RAX+$unknown]
+        - TEST $ECX, 0xc00
+      target: Pointer
+      start: win32k!xxxCapture
+
+  - - Disassembler
+    - rules:
+        - MOV $EAX, [$EAX+$out]
+        - MOV $EDX, [$EAX+$unknown]
+        - MOV $ECX, 0xc00
+        - TEST $ECX, $EDX
+      target: Pointer
+      start: win32k!xxxCapture
 
 tagWINDOWSTATION:
   rpwinstaNext:
@@ -146,6 +199,14 @@ tagWINDOWSTATION:
       - ADD $var1, $out
       - CALL *CreateGlobalAtomTable
       start: win32k!xxxCreateWindowStation
+      target: Pointer
+
+  - - Disassembler
+    - rules:
+      - MOV *CX, [$RDI+$out]
+      - XOR $EDX, $EDX
+      - CALL *RtlEmptyAtomTable
+      start: win32k!EndShutdown
       target: Pointer
 
   pTerm:

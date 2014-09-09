@@ -2101,7 +2101,7 @@ class Profile(object):
             offset = 0
             if vm is None:
                 vm = addrspace.BaseAddressSpace.classes["DummyAddressSpace"](
-                    size=self.get_obj_size(name), session=session)
+                    size=self.get_obj_size(name) or 0, session=session)
 
         else:
             offset = int(offset)

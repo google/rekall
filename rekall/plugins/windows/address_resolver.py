@@ -527,3 +527,8 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
                 result.append("%s!%s" % (module_name, constant))
 
         return result
+
+    def __str__(self):
+        self._EnsureInitialized()
+        return "<%s: %s@%#x>" % (self.__class__.__name__, self.pe_profile.name,
+                                 self.image_base)

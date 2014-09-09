@@ -615,8 +615,8 @@ class Session(object):
 
                 except (IOError, KeyError) as e:
                     result = obj.NoneObject(e)
-                    logging.debug("Could not find profile %s in %s",
-                                  filename, path)
+                    logging.debug("Could not find profile %s in %s: %s",
+                                  filename, path, e)
 
                     continue
 

@@ -218,6 +218,31 @@ class BaseScanner(object):
                 chunk_offset = scan_offset
 
 
+class MultiStringScanner(BaseScanner):
+    """A scanner for multiple strings at once."""
+
+    # Override with the needles to check for.
+    needles = []
+
+    def __init__(self, needles=None, **kwargs):
+        super(MultiStringScanner, self).__init__(**kwargs)
+        if needles is not None:
+            self.needles = needles
+
+        self.check = MultiStringFinderCheck(
+            profile=self.profile, address_space=self.address_space,
+            needles=self.needles)
+
+    def check_addr(self, offset, buffer_as=None):
+        # Ask the check if this offset is possible.
+        val = self.check.check(buffer_as, offset)
+        if val:
+            return offset, val
+
+    def skip(self, buffer_as, offset):
+        return max(1, self.check.skip(buffer_as, offset))
+
+
 class PointerScanner(BaseScanner):
     """Scan for a bunch of pointers at the same time.
 
@@ -310,8 +335,11 @@ class MultiStringFinderCheck(ScannerCheck):
           needles: A list of strings we search for.
         """
         super(MultiStringFinderCheck, self).__init__(**kwargs)
+
+        # It is an error to not provide something to search for and Acora will
+        # raise later.
         if not needles:
-            needles = []
+            raise RuntimeError("No needles provided to search.")
 
         tree = acora.AcoraBuilder(*needles)
 
@@ -336,7 +364,7 @@ class MultiStringFinderCheck(ScannerCheck):
                 self.next_hit_index += 1
                 self.current_hit = string
 
-                return True
+                return string
         except IndexError:
             pass
 

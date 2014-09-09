@@ -77,9 +77,9 @@ class Index(obj.Profile):
                 possible_values = [possible_values]
 
             if self._TestSymbols(
-                address_space=address_space,
-                offset=image_base + offset,
-                possible_values=possible_values):
+                    address_space=address_space,
+                    offset=image_base + offset,
+                    possible_values=possible_values):
                 logging.debug(
                     "%s matched offset %#x+%#x=%#x",
                     profile, offset, image_base, offset+image_base)
