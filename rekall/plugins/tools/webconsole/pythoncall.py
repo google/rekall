@@ -35,4 +35,4 @@ class RekallPythonCall(manuskript_plugins.PythonCall):
 
         rekall_session = app.config["rekall_session"]
         shell.local_context = rekall_session._locals # pylint: disable=protected-access
-        shell.global_context["rekall_session"] = rekall_session
+        shell.global_context["session"] = rekall_session

@@ -1,5 +1,7 @@
 (function() {
 
-  var module = angular.module('manuskript.app', ['manuskript.app.controller']);
+  var module = angular.module('manuskript.app', [
+    'manuskript.app.controller',
+  ]);
 
 })();

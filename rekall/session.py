@@ -437,9 +437,27 @@ class Session(object):
           *pos_args: Args passed to the plugin if it is not an instance.
           **kwargs: kwargs passed to the plugin if it is not an instance.
         """
-        flags = kwargs.pop("flags", None)
         output = kwargs.pop("output", None)
         renderer = kwargs.pop("renderer", None)
+
+        # Do we need to redirect output?
+        if output is not None:
+            with self:
+                # Do not lose the global output redirection.
+                old_output = self.GetParameter("output") or None
+                self.SetParameter("output", output)
+                try:
+                    return self._RunPlugin(plugin_obj, renderer=renderer,
+                                           *pos_args, **kwargs)
+                finally:
+                    self.SetParameter("output", old_output)
+
+        else:
+            return self._RunPlugin(plugin_obj, renderer=renderer,
+                                   *pos_args, **kwargs)
+
+    def _GetPluginObj(self, plugin_obj, *pos_args, **kwargs):
+        flags = kwargs.pop("flags", None)
 
         if isinstance(plugin_obj, basestring):
             plugin_name = plugin_obj
@@ -464,55 +482,42 @@ class Session(object):
                     plugin_cls, flags)
 
             # Instantiate the plugin object.
-            plugin_obj = plugin_cls(*pos_args, **kwargs)
+            return plugin_cls(*pos_args, **kwargs)
 
-        # Do we need to redirect output?
-        if output is not None:
-            with self:
-                # Do not lose the global output redirection.
-                old_output = self.GetParameter("output") or None
-                self.SetParameter("output", output)
-                try:
-                    return self._RunPlugin(plugin_obj, **kwargs)
-                finally:
-                    self.SetParameter("output", old_output)
-
-        else:
-            return self._RunPlugin(plugin_obj, renderer=renderer, **kwargs)
-
-    def _RunPlugin(self, plugin_obj, **kwargs):
+    def _RunPlugin(self, plugin_obj, *pos_args, **kwargs):
         ui_renderer = kwargs.pop("renderer", None)
         if ui_renderer is None:
             ui_renderer = self.GetRenderer()
 
         # Start the renderer before instantiating the plugin to allow
         # rendering of reported progress in the constructor.
-        with ui_renderer.start(plugin_name=plugin_obj.name, kwargs=kwargs):
-            try:
+        try:
+            plugin_obj = self._GetPluginObj(plugin_obj, *pos_args, **kwargs)
+            with ui_renderer.start(plugin_name=plugin_obj.name, kwargs=kwargs):
                 plugin_obj.render(ui_renderer)
                 return plugin_obj
 
-            except plugin.InvalidArgs as e:
-                logging.error("Invalid Args (Try 'info plugins.%s'): %s",
-                              plugin_obj.name, e)
+        except plugin.InvalidArgs as e:
+            logging.error("Invalid Args: %s", e)
 
-            except plugin.PluginError as e:
-                ui_renderer.report_error(str(e))
+        except plugin.PluginError as e:
+            ui_renderer.report_error(str(e))
 
-            except KeyboardInterrupt:
-                ui_renderer.report_error("Aborted")
-                self.report_progress("Aborted!\r\n", force=True)
+        except KeyboardInterrupt:
+            ui_renderer.report_error("Aborted")
+            self.report_progress("Aborted!\r\n", force=True)
 
-            except Exception, e:
-                # If anything goes wrong, we break into a debugger here.
-                ui_renderer.report_error(traceback.format_exc())
+        except Exception, e:
+            # Report the error to the renderer.
+            ui_renderer.report_error(traceback.format_exc())
 
-                if self.GetParameter("debug"):
-                    pdb.post_mortem(sys.exc_info()[2])
+            # If anything goes wrong, we break into a debugger here.
+            if self.GetParameter("debug"):
+                pdb.post_mortem(sys.exc_info()[2])
 
-                raise
+            raise
 
-            return plugin_obj
+        return plugin_obj
 
     def LoadProfile(self, filename, use_cache=True):
         """Try to load a profile directly from a filename.

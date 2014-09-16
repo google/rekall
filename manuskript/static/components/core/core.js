@@ -1,5 +1,6 @@
 (function() {
-  angular.module('manuskript.core', [
+  var module = angular.module('manuskript.core', [
+    'manuskript.core.network.service',
     'manuskript.core.nodePluginRegistry.service',
     'manuskript.core.addNodeDialog.controller',
     'manuskript.core.codeEditor.directive',

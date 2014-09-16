@@ -11,14 +11,15 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 
   var module = angular.module('manuskript.app.controller', [
     'manuskript.core',
+    'manuskript.core.network.service',
     'manuskript.load.controller',
     'pasvaz.bindonce',
     'manuskript.configuration'].concat(manuskriptPluginsList));
 
   module.controller("ManuskriptAppController", function(
-      $scope, $modal, $timeout, $sce,
-      manuskriptCoreNodePluginRegistryService,
-      manuskriptConfiguration) {
+    $scope, $modal, $timeout, $sce,
+    manuskriptCoreNodePluginRegistryService, manuskriptNetworkService,
+    manuskriptConfiguration) {
 
     $scope.pageTitle = manuskriptConfiguration.pageTitle || "Manuskript";
 
@@ -39,9 +40,9 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      */
     $scope.cellClass = function(node) {
       if ($scope.selection.node === node) {
-	return ["cell", "selected"];
+        return ["cell", "selected"];
       } else {
-	return ["cell"];
+        return ["cell"];
       }
     }
 
@@ -52,43 +53,48 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      */
     var selectionChangeHandler = function(newValue, oldValue) {
       if (newValue != null && newValue !== oldValue) {
-	var scrollIntoCell = function() {
-	  var selectedCell = angular.element("#cells .cell.selected");
-	  if (selectedCell.length > 0) {
-	    var cellTop = selectedCell.offset().top;
-	    var cellHeight = selectedCell.height();
-	    var windowScrollTop = angular.element(window).scrollTop();
-	    var windowHeight = window.innerHeight;
+        var scrollIntoCell = function() {
+          var selectedCell = angular.element("#cells .cell.selected");
+          if (selectedCell.length > 0) {
+            var cellTop = selectedCell.offset().top;
+            var cellHeight = selectedCell.height();
+            var windowScrollTop = angular.element(window).scrollTop();
+            var windowHeight = window.innerHeight;
 
-	    var elementVisible = (cellTop > windowScrollTop &&
-		cellTop < (windowScrollTop + windowHeight) ||
-		(cellTop + cellHeight) > windowScrollTop &&
-		(cellTop + cellHeight) < (windowScrollTop + windowHeight));
+            var elementVisible = (cellTop > windowScrollTop &&
+                cellTop < (windowScrollTop + windowHeight) ||
+                (cellTop + cellHeight) > windowScrollTop &&
+                (cellTop + cellHeight) < (windowScrollTop + windowHeight));
 
-	    if (!elementVisible) {
-	      angular.element(window).scrollTop(Math.max(0, cellTop - 40));
-	    }
-	  } else {
-	    $timeout(scrollIntoCell);
-	  }
-	}
-	$timeout(scrollIntoCell);
+            if (!elementVisible) {
+              angular.element(window).scrollTop(Math.max(0, cellTop - 40));
+            }
+          } else {
+            $timeout(scrollIntoCell);
+          }
+        }
+        $timeout(scrollIntoCell);
       }
     };
     $scope.$watch('selection.node', selectionChangeHandler);
     $scope.$watch('selection.nodeIndex', selectionChangeHandler);
 
+
     /**
      * If selection changes, forced saving of the previous node.
      */
     $scope.$watch('selection.node', function(newValue, oldValue) {
-      $scope.saveNode(oldValue);
+      if (oldValue) {
+        $scope.saveNode(oldValue);
+      };
     });
 
     /**
      * When selected node changes, update selected node index.
      */
     $scope.$watchCollection('nodes', function() {
+      // Sync the nodes with the server.
+      $scope.uploadDocument();
       $scope.selection.nodeIndex = $scope.nodes.indexOf($scope.selection.node);
     });
 
@@ -100,26 +106,30 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      *                                 the element with this index.
      */
     $scope.addNode = function(nodeType, beforeNodeIndex) {
+      // If the node is not specified we add it after the current selection.
       if (beforeNodeIndex === undefined) {
-	beforeNodeIndex = $scope.nodes.length;
-      }
+        beforeNodeIndex = $scope.nodes.indexOf($scope.selection.node);
+        if (beforeNodeIndex === -1) {
+          beforeNodeIndex = $scope.nodes.length;
+        };
+      };
 
       var modalInstance = $modal.open({
-	templateUrl: 'static/components/core/addnode-dialog.html',
-	controller: 'AddNodeDialogController',
-	resolve: {
-	  items: function() {
-	    return $scope.listPlugins();
-	  }
-	}
+        templateUrl: 'static/components/core/addnode-dialog.html',
+        controller: 'AddNodeDialogController',
+        resolve: {
+          items: function() {
+            return $scope.listPlugins();
+          }
+        }
       });
 
       modalInstance.result.then(function(typeKey) {
-	var node = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
+        var node = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
             typeKey);
 
-	$scope.nodes.splice(beforeNodeIndex, 0, node);
-	$scope.editNode(node);
+        $scope.nodes.splice(beforeNodeIndex, 0, node);
+        $scope.editNode(node);
       });
     };
 
@@ -166,12 +176,14 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      */
     $scope.saveNode = function(node) {
       if (node === undefined) {
-	node = $scope.selection.node;
+        node = $scope.selection.node;
       }
 
       if (node != null && node.state == 'edit') {
-	$scope.renderNode(node);
+        $scope.renderNode(node);
       }
+
+      $scope.uploadDocument();
     };
 
     /**
@@ -232,7 +244,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       $scope.nodes.splice(nodeIndex, 1);
 
       if ($scope.selection.node === node) {
-	$scope.selection.node = null;
+        $scope.selection.node = null;
       }
     }
 
@@ -257,6 +269,12 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      * Returns url of an AngularJS template for the given node. If registered
      * plugin descriptor doesn't have a template url, the url is built based
      * on node type.
+     *
+     * This is the core of the plugin registry system - by emitting a different
+     * template here for each node, a different controller can be used for each
+     * node. The controller then sets up watchers on the node itself. The choice
+     * of node template occurs based on the node.type element.
+     *
      * @param node - Node to get a template for.
      * @returns {string} A url of the AngularJS template for the given node.
      */
@@ -275,8 +293,37 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     $scope.renderAllNodes = function() {
       for (var i = 0; i < $scope.nodes.length; ++i) {
         var node = $scope.nodes[i];
-	node.state = "render";
+        node.state = "render";
       }
+    };
+
+    $scope.loadNodesFromServer = function() {
+      $scope.removeAllNodes();;
+
+      manuskriptNetworkService.callServer('rekall/load_nodes', {
+        onmessage: function(cells) {
+          $scope.nodes = cells;
+          $scope.renderAllNodes();
+          $scope.$apply();
+        }});
+    };
+
+    $scope.uploadDocument = function() {
+      var cells = [];
+      for (var i = 0; i < $scope.nodes.length; i++) {
+        var node = $scope.nodes[i];
+
+        // Only copy the minimum set of attributes from the node for storage.
+        cells.push({
+          source: node.source, // Private plugin specific data for this node.
+          type: node.type,   // The type of this cell (used to invoke the right plugin).
+        });
+      };
+
+      // Send the nodes to the server for storage.
+      manuskriptNetworkService.callServer("rekall/document/upload", {
+        params: cells
+      });
     };
 
     /**
@@ -300,6 +347,9 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       var blob = new Blob([angular.toJson($scope.nodes)], {type: "text/json;charset=utf-8"});
       saveAs(blob, $scope.fileToSave);
     };
+
+    // First time we run, we need to load the cells from the server.
+    $scope.loadNodesFromServer();
   });
 
 })();

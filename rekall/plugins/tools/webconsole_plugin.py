@@ -26,6 +26,7 @@ import os
 import sys
 import webbrowser
 
+from rekall import io_manager
 from rekall import plugin
 from rekall import testlib
 
@@ -67,6 +68,9 @@ class WebConsole(plugin.Command):
     def args(cls, parser):
         super(WebConsole, cls).args(parser)
 
+        parser.add_argument("worksheet",
+                            help="The worksheet file name to use.")
+
         parser.add_argument("--host", default="localhost",
                             help="Host for the web console to use.")
 
@@ -84,12 +88,18 @@ class WebConsole(plugin.Command):
                             "browser.")
 
     def __init__(self, host="localhost", port=0, debug=False,
-                 no_browser=False, **kwargs):
+                 no_browser=False, worksheet=None, **kwargs):
         super(WebConsole, self).__init__(**kwargs)
         self.host = host
         self.port = port
         self.debug = debug
         self.no_browser = no_browser
+        if worksheet is None:
+            raise plugin.PluginError(
+                "A worksheet file name must be provided. This is used "
+                "to save the worksheet.")
+
+        self.worksheet_fd = io_manager.Factory(worksheet, mode="a")
 
     def server_post_activate_callback(self, server):
         # Update the port number, because the server may have launched on a
@@ -112,7 +122,10 @@ class WebConsole(plugin.Command):
                      pythoncall.RekallPythonCall,
                      runplugin.RekallRunPlugin,
                      RekallWebConsole],
-            config=dict(rekall_session=self.session))
+            config=dict(
+                rekall_session=self.session,
+                worksheet=self.worksheet_fd,
+                ))
 
         # Use blueprint as an easy way to serve static files.
         bp = Blueprint('rekall-webconsole', __name__,

@@ -69,6 +69,13 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
             session=self.session,
             renderer=self.renderer).EncodeToJsonSafe(item, **options)
 
+    def _decode_value(self, item, options):
+        object_renderer_cls = self.FromEncoded(item, self.renderer)
+
+        return object_renderer_cls(
+            session=self.session,
+            renderer=self.renderer).DecodeFromJsonSafe(item, options)
+
     def render_row(self, item, **options):
         """The Json object renderer returns a json safe object for encoding."""
         self.EncodeToJsonSafe(item, **options)
@@ -165,7 +172,7 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
         if value.__class__ is dict:
             result = dict()
             for k, v in value.iteritems():
-                result[k] = self.DecodeFromJsonSafe(v, options)
+                result[k] = self._decode_value(v, options)
 
             return result
 
@@ -237,7 +244,8 @@ class BaseObjectRenderer(StateBasedObjectRenderer):
         value = super(BaseObjectRenderer, self).DecodeFromJsonSafe(
             value, options)
 
-        profile = value.pop("profile")
+        profile = value.pop("profile", None)
+        value.pop("mro", None)
 
         return profile.Object(**value)
 
@@ -532,14 +540,13 @@ class JsonRenderer(renderer_module.BaseRenderer):
         self.SendMessage(
             ["m", dict(plugin_name=plugin_name,
                        tool_name="rekall",
+                       cookie=self._object_id,
                        tool_version=constants.VERSION,
-                       )])
+                      )])
 
         return self
 
     def SendMessage(self, statement):
-        if self.send_message_callback is not None:
-            self.send_message_callback(statement, self.encoder)
         self.data.append(statement)
 
     def format(self, formatstring, *args):

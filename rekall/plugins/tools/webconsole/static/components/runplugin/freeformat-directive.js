@@ -3,7 +3,8 @@
 
   var module = angular.module('rekall.runplugin.freeFormat.directive',
 			      ['rekall.runplugin.contextMenu.directive',
-			       'rekall.runplugin.objectActions.service']);
+			       'rekall.runplugin.objectActions.service',
+                              ]);
 
   module.directive('rekallFreeFormat', function(rekallObjectActionsService) {
     return {
@@ -39,8 +40,11 @@
 	    var value = component.value;
 
 	    var newElement;
-	    if (value !== null && value !== undefined && rekallObjectActionsService.hasActions(value)) {
-	      newElement = angular.element('<span class="freeFormatArgument">' + component.rendered + '</span>');
+	    if (value !== null &&
+                value !== undefined &&
+                rekallObjectActionsService.hasActions(value)) {
+	      newElement = angular.element($('<span class="freeFormatArgument">').text(
+                component.rendered));
 
 	      newElement.click(function(event) {
 		var actions = rekallObjectActionsService.actionsForObject(value);
@@ -48,7 +52,8 @@
 		event.stopPropagation();
 	      }); // jshint ignore:line
 	    } else {
-	      newElement = angular.element('<span>' + component.rendered + '</span>');
+	      newElement = angular.element($('<span/>').text(
+                component.rendered))
 	    }
 
 	    element.append(newElement);

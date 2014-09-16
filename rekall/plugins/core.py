@@ -634,7 +634,7 @@ class Printer(plugin.Command):
 
     def render(self, renderer):
         for line in utils.SmartStr(self.target).splitlines():
-            renderer.write(line + "\n")
+            renderer.format("{0}\n", line)
 
 
 class Lister(Printer):
@@ -664,22 +664,29 @@ class DT(plugin.ProfileCommand):
     @classmethod
     def args(cls, parser):
         super(DT, cls).args(parser)
+        parser.add_argument("offset", action=config.IntParser, default=0,
+                            help="Name of a struct definition.")
+
         parser.add_argument("target",
                             help="Name of a struct definition.")
 
-    def __init__(self, target=None, profile=None, **kwargs):
+    def __init__(self, offset=0, target=None, profile=None, **kwargs):
         """Prints an object to the screen."""
         super(DT, self).__init__(**kwargs)
         self.profile = profile or self.session.profile
+        self.offset = offset
         self.target = target
         if target is None:
             raise plugin.PluginError("You must specify something to print.")
 
-        if not isinstance(target, str):
+        if not isinstance(target, basestring):
             raise plugin.PluginError("Target must be a string.")
 
     def render(self, renderer):
-        item = self.profile.Object(self.target)
+        default_as = self.session.GetParameter("default_address_space")
+        item = self.profile.Object(
+            self.target, offset=self.offset, vm=default_as)
+
         self.session.plugins.p(item).render(renderer)
 
 

@@ -8,15 +8,23 @@
     var registeredActions = {};
 
     this.registerAction = function(objType, action, title, description) {
-      registeredActions[objType] = {'action': action,
-				    'title': title,
-				    'description': description};
+      if (registeredActions[objType] === undefined) {
+        registeredActions[objType] = []
+      }
+
+      registeredActions[objType].push({
+        'action': action,
+	'title': title,
+	'description': description
+      })
+
     };
 
     this.registerRunPluginAction = function(objType, pluginName, pluginArgumentsCallback,
 					    title, description) {
       this.registerAction(objType, function(obj, scope) {
-	var newNode = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin('rekallplugin');
+	var newNode = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
+          'rekallplugin');
 	newNode.source = {
 	  'plugin': scope.plugins[pluginName],
 	  'arguments': pluginArgumentsCallback(obj),
@@ -24,7 +32,9 @@
 	newNode.state = 'render';
 
 	var nodesScope = scope;
-	while (nodesScope !== undefined && nodesScope.nodes === undefined && nodesScope.addNode === undefined) {
+	while (nodesScope !== undefined &&
+               nodesScope.nodes === undefined &&
+               nodesScope.addNode === undefined) {
 	  nodesScope = nodesScope.$parent;
 	}
 
@@ -47,19 +57,24 @@
       var actions = [];
       if (obj.mro) {
 	for (var i = 0; i < obj.mro.length; ++i) {
-	  var action = registeredActions[obj.mro[i]];
-	  if (action !== undefined) {
-	    var wrappedAction = {
-	      'action': function(scope) {
-		return action.action(obj, scope);
-	      }, // jshint ignore:line
-	    'title': action.title,
-	      'description': action.description
-	    };
-	    actions.push(wrappedAction);
-            break;
+	  var actionsList = registeredActions[obj.mro[i]];
+          if (actionsList === undefined) {
+            continue
+          }
+
+          for (var j = 0; j< actionsList.length; j++) {
+	    var wrappedAction = function(action) {
+              return {
+	        'action': function(scope) {
+		  return action.action(obj, scope);
+	        }, // jshint ignore:line
+	        'title': action.title,
+	        'description': action.description
+	      };
+            }
+	    actions.push(wrappedAction(actionsList[j]));
 	  }
-	}
+        }
       }
 
       return actions;

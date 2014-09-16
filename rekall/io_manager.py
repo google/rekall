@@ -104,7 +104,7 @@ class IOManager(object):
         """
         try:
             return json.load(self.Open(name))
-        except IOManagerError:
+        except IOError:
             return None
 
     def StoreData(self, name, data, **options):
@@ -216,10 +216,6 @@ class ZipFileManager(IOManager):
             if self.mode == "w":
                 raise IOManagerError(
                     "Zip files must have the .zip extensions.")
-            else:
-                # For reading we assume the a name without the .zip extension
-                # should have it added.
-                urn = "%s.zip" % urn
 
         self.fd = fd
         self.file_name = os.path.normpath(os.path.abspath(urn))
@@ -262,7 +258,7 @@ class ZipFileManager(IOManager):
             self._OpenZipFile(mode="a")
 
     def Create(self, name):
-        if self.mode != "w":
+        if self.mode not in ["w", "a"]:
             raise IOManagerError("Container not opened for writing.")
 
         result = SelfClosingFile(name, self)
@@ -270,7 +266,7 @@ class ZipFileManager(IOManager):
         return result
 
     def Open(self, name):
-        if self.mode != "r":
+        if self.mode not in ["r", "a"]:
             raise IOManagerError("Container not opened for reading.")
         if self.zip is None:
             self._OpenZipFile()
@@ -288,7 +284,7 @@ class ZipFileManager(IOManager):
         self._outstanding_writers.remove(self)
         if exc_type is None and not self._outstanding_writers:
             self.zip.close()
-            if self.mode == "w":
+            if self.mode in ["w", "a"]:
                 self._OpenZipFile(mode="a")
 
     def __str__(self):

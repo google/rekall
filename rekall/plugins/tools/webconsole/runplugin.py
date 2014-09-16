@@ -24,6 +24,7 @@ __author__ = "Mikhail Bushkov <realbushman@gmail.com>"
 
 
 import argparse
+import logging
 import StringIO
 import traceback
 
@@ -72,7 +73,7 @@ class FakeParser(object):
 
         passed_default = kwargs.get("default", None)
         if (passed_default is None and
-            "choices" in argument_def and argument_def["choices"]):
+                "choices" in argument_def and argument_def["choices"]):
             passed_default = argument_def["choices"][0]
 
         arg_type = "string"
@@ -104,6 +105,15 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
 
     spinner = r"/-\|"
     last_spin = 0
+
+    def __init__(self, ws=None, **kwargs):
+        super(WebConsoleRenderer, self).__init__(**kwargs)
+        self.ws = ws
+        self.queue = []
+
+    def SendMessage(self, message):
+        self.ws.send(json.dumps([message]))
+        self.queue.append(message)
 
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
         if "%(" in message:
@@ -158,7 +168,9 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         "/rekall-webconsole/components/runplugin/pluginarguments-directive.js",
         "/rekall-webconsole/components/runplugin/pluginregistry-service.js",
         "/rekall-webconsole/components/runplugin/runplugin-controller.js",
-        "/rekall-webconsole/components/runplugin/tablecell-directive.js",
+        ("/rekall-webconsole/components/runplugin/"
+         "scroll-table-cell-directive.js"),
+        "/rekall-webconsole/components/runplugin/scroll-table-directive.js",
 
         "/rekall-webconsole/components/runplugin/runplugin.js",
         ]
@@ -169,6 +181,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
 
     @classmethod
     def PlugListPluginsIntoApp(cls, app):
+
         @app.route("/rekall/plugins/all")
         def list_all_plugins():   # pylint: disable=unused-variable
             session = app.config['rekall_session']
@@ -194,14 +207,46 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             return jsonify({"data": result})
 
     @classmethod
+    def PlugManageDocument(cls, app):
+        sockets = Sockets(app)
+
+        @sockets.route("/rekall/document/upload")
+        def upload_document(ws):  # pylint: disable=unused-variable
+            cells = json.loads(ws.receive())
+            worksheet = app.config['worksheet']
+            if cells:
+                worksheet.StoreData("notebook_cells", cells)
+
+        @sockets.route("/rekall/load_nodes")
+        def rekall_load_nodes(ws):  # pylint: disable=unused-variable
+            worksheet = app.config["worksheet"]
+            cells = worksheet.GetData("notebook_cells") or []
+            print "load_nodes", cells
+
+            ws.send(json.dumps(cells))
+
+    @classmethod
     def PlugRunPluginsIntoApp(cls, app):
         sockets = Sockets(app)
 
         @sockets.route("/rekall/runplugin")
         def rekall_run_plugin_socket(ws):  # pylint: disable=unused-variable
             source = json.loads(ws.receive())
-            plugin_cls = plugin.Command.classes_by_name[
-                source["plugin"]["name"]]
+            plugin_data = source["plugin"]
+            plugin_name = plugin_data["name"]
+            cookie = source.get("cookie")
+            rekall_session = app.config["rekall_session"]
+            worksheet = app.config["worksheet"]
+
+            # If the data is cached locally just return it.
+            cache_key = "%s_%s" % (plugin_name, cookie)
+            cache = worksheet.GetData(cache_key)
+            if cache:
+                logging.debug("Dumping request from cache")
+                ws.send(json.dumps(cache))
+                return
+
+            plugin_cls = plugin.Command.classes_by_name[plugin_name]
 
             fake_parser = FakeParser()
             plugin_cls.args(fake_parser)
@@ -224,25 +269,23 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             plugin_cls.args(parser)
             kwargs = vars(parser.parse_args(cmdline_args))
 
-            def SendMessage(message, encoder):
-                ws.send(json.dumps([message]))
-                encoder.flush()
-
-            rekall_session = app.config["rekall_session"]
-
             output = StringIO.StringIO()
-            renderer = WebConsoleRenderer(session=rekall_session, output=output,
-                send_message_callback=SendMessage)
+            renderer = WebConsoleRenderer(
+                session=rekall_session, output=output,
+                ws=ws)
 
             with renderer.start():
-              try:
-                  rekall_session.RunPlugin(source["plugin"]["name"],
-                                           renderer=renderer,
-                                           **kwargs)
-              except Exception as e:
-                  message = traceback.format_exc()
-                  renderer.report_error(message)
-                  raise
+                try:
+                    rekall_session.RunPlugin(source["plugin"]["name"],
+                                             renderer=renderer,
+                                             **kwargs)
+                except Exception:
+                    message = traceback.format_exc()
+                    renderer.report_error(message)
+
+            # Cache the data in the worksheet.
+            cache_key = "%s_%s" % (plugin_name, renderer._object_id)
+            worksheet.StoreData(cache_key, renderer.queue)
 
     @classmethod
     def PlugIntoApp(cls, app):
@@ -250,3 +293,4 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
 
         cls.PlugListPluginsIntoApp(app)
         cls.PlugRunPluginsIntoApp(app)
+        cls.PlugManageDocument(app)

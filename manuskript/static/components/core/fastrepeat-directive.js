@@ -22,6 +22,9 @@
           var watchHandler = function(newValue, oldValue) {
             var collection = $scope.$eval(collectionString);
             var scopes = [];
+            if (collection == null)
+              return;
+
             for (var i = state.index; i < collection.length; ++i) {
               var childScope = $scope.$new();
               childScope[indexString] = collection[i];
