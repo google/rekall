@@ -323,7 +323,6 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         '''
         return (pte & 0xffffffffff000) | (vaddr & 0xfff)
 
-
     def vtop(self, vaddr):
         '''
         Translates virtual addresses into physical offsets.

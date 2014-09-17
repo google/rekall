@@ -43,5 +43,3 @@ class ParameterHook(object):
 
     def calculate(self):
         """Derive the value of the parameter."""
-
-

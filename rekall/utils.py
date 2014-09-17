@@ -459,10 +459,11 @@ def FormatIPAddress(family, value):
 
     return socket.inet_ntop(
         getattr(socket, str(family)),
-        value.obj_vm.read(value.obj_offset, value.size()))
+        value.obj_vm.read(value.obj_offset, value.obj_size))
+
 
 def ntoh(value):
-    size = value.size()
+    size = value.obj_size
     if size == 2:
         return socket.ntohs(value.v())
     elif size == 4:
@@ -478,7 +479,6 @@ def Invert(dictionary):
     Assume the keys and values are unique.
     """
     return {v:k for k, v in dictionary.items()}
-
 
 
 def PPrint(data, depth=0):

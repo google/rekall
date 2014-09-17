@@ -1,10 +1,11 @@
-"""OSX Specific plugins."""
+"""OS X Specific plugins."""
 # pylint: disable=unused-import
 
 from rekall.plugins.darwin import address_resolver
 from rekall.plugins.darwin import checks
 from rekall.plugins.darwin import common
 from rekall.plugins.darwin import compressor
+from rekall.plugins.darwin import files
 from rekall.plugins.darwin import hooks
 from rekall.plugins.darwin import lsof
 from rekall.plugins.darwin import lsmod

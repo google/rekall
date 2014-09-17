@@ -13,3 +13,5 @@ from rekall.plugins import renderers
 from rekall.plugins import overlays
 from rekall.plugins import tools
 from rekall.plugins import windows
+
+from rekall.plugins import collectors

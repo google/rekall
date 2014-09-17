@@ -19,8 +19,6 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-
-from rekall import obj
 from rekall.plugins.darwin import common
 
 
@@ -29,36 +27,25 @@ class DarwinListZones(common.DarwinPlugin):
 
     __name = "list_zones"
 
-    def ListZones(self):
-        first_zone = self.profile.get_constant_object(
-            "_first_zone",
-            target="Pointer",
-            target_args=dict(
-                target="zone"
-                )
-            )
-
-        return first_zone.walk_list("next_zone")
-
-    def GetZone(self, name):
-        for zone in self.ListZones():
-            if zone.zone_name.deref() == name:
-                return zone
-
-        return obj.NoneObject("Zone for %s not found." % name, log=True)
-
     def render(self, renderer):
         renderer.table_header([
-                ("Name", "name", "30"),
-                ("Active", "active", ">10"),
-                ("Free", "free", ">10"),
-                ("Size", "size", ">10")])
+            ("Name", "name", "30"),
+            ("Active", "active", ">10"),
+            ("Free", "free", ">10"),
+            ("Element Size", "size", ">10"),
+            ("Tracks pages", "tracks_pages", "15"),
+            ("Allows foreign pages", "allows_foreign", "15")])
 
-        for zone in self.ListZones():
-            renderer.table_row(zone.zone_name.deref(),
-                               zone.count,
-                               zone.m("sum_count") - zone.count,
-                               zone.elem_size)
+        for zone in sorted(
+                self.session.entities.find_by_component("AllocationZone"),
+                key=lambda e: e["AllocationZone/name"]):
+            renderer.table_row(
+                zone["AllocationZone/name"],
+                zone["AllocationZone/count_active"],
+                zone["AllocationZone/count_free"],
+                zone["AllocationZone/element_size"],
+                zone["AllocationZone/tracks_pages"],
+                zone["AllocationZone/allows_foreign"])
 
 
 class DarwinDeadProcesses(common.DarwinPlugin):
@@ -68,7 +55,8 @@ class DarwinDeadProcesses(common.DarwinPlugin):
 
     def render(self, renderer):
         # Find the proc zone from the allocator.
-        proc_zone = DarwinListZones(session=self.session).GetZone("proc")
+        proc_zone = self.session.entities.find_first_by_attribute(
+            "AllocationZone/name", "proc")["MemoryObject/base_object"]
 
         # Walk over the free list and get all proc objects.
         procs = []

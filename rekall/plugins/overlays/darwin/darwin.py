@@ -26,8 +26,6 @@ from rekall import utils
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.overlays import basic
 
-from rekall.plugins.collectors.darwin import darwin
-from rekall.plugins.collectors.darwin import networking
 
 darwin_overlay = {
     "proc": [None, {
@@ -604,6 +602,7 @@ class fileproc(obj.Struct):
         # used in current code:
         # opensource.apple.com/source/xnu/xnu-1456.1.26/bsd/netat/sys_dep.c
         "DTYPE_ATALK": "<unknown>",
+        "-": "INVALID",
     }
 
     @property
@@ -806,7 +805,6 @@ class socket(obj.Struct):
                     attr))
 
         return self.cached_socketinfo[attr]
-
 
     @property
     def src_addr(self):
@@ -1158,47 +1156,6 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
         profile.add_enums(**darwin_enums)
         profile.add_overlay(darwin_overlay)
         profile.add_constants(default_text_encoding="utf8")
-
-        profile.add_collector(
-            collector=networking.NetworkInterfaces,
-            components=["Named", "NetworkInterface"],
-        )
-
-        profile.add_collector(
-            collector=networking.FileprocHandleCollector,
-            components=["Handle", "MemoryObject", "Resource"],
-        )
-
-        profile.add_collector(
-            collector=networking.HandleSocketCollector,
-            components=["Connection", "Named"],
-        )
-
-        profile.add_collector(
-            collector=darwin.DarwinPgrpHashProcessCollector,
-            components=["Named", "Process", "User", "MemoryObject"],
-        )
-
-        profile.add_collector(
-            collector=darwin.DarwinTaskProcessCollector,
-            components=["Named", "Process", "User", "MemoryObject"],
-        )
-
-        profile.add_collector(
-            collector=darwin.DarwinAllprocProcessCollector,
-            components=["Named", "Process", "User", "MemoryObject"],
-        )
-
-        profile.add_collector(
-            collector = darwin.DarwinPidHashProcessCollector,
-            components=["Named", "Process", "User", "MemoryObject"],
-        )
-
-        profile.add_collector(
-            collector = networking.UnixSocketCollector,
-            components=["Connection", "Named"],
-        )
-
 
     def get_constant_cpp_object(self, constant, **kwargs):
         """A variant of get_constant_object which accounts for name mangling."""

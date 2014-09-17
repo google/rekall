@@ -35,7 +35,7 @@ import time
 import traceback
 
 from rekall import addrspace
-from rekall import args
+from rekall import args as args_module
 from rekall import config
 from rekall import constants
 from rekall import entity
@@ -296,6 +296,7 @@ class Session(object):
         # having to hit the profile repository all the time.
         self.profile_cache = {}
 
+        entity.EntityManager.initialize()
         self.entities = entity.EntityManager(session=self)
 
         self.inventories = {}
@@ -372,6 +373,9 @@ class Session(object):
         for cls in kb.ParameterHook.classes.values():
             if cls.is_active(self) and cls.name:
                 self._parameter_hooks[cls.name] = cls(session=self)
+
+        # Tell the entity manager to update the list of collectors.
+        self.entities.update_collectors()
 
     def __getattr__(self, attr):
         """This will only get called if the attribute does not exist."""
@@ -478,7 +482,7 @@ class Session(object):
 
             # If the args came from the command line parse them now:
             if flags:
-                kwargs = args.MockArgParser().build_args_dict(
+                kwargs = args_module.MockArgParser().build_args_dict(
                     plugin_cls, flags)
 
             # Instantiate the plugin object.

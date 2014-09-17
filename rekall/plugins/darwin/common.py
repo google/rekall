@@ -153,7 +153,7 @@ class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
     @classmethod
     def is_active(cls, session):
         """We are only active if the profile is darwin."""
-        return (session.profile.metadata("os") == 'darwin' and
+        return (session.profile.metadata("os") == "darwin" and
                 plugin.Command.is_active(session))
 
 
@@ -519,7 +519,8 @@ class DarwinProcessFilter(DarwinPlugin):
     def list_using_dead_procs(self):
         """List deallocated proc structs using the zone allocator."""
         # Find the proc zone from the allocator.
-        proc_zone = self.session.plugins.list_zones().GetZone("proc")
+        proc_zone = self.session.entities.find_first_by_attribute(
+            "AllocationZone/name", "proc")["MemoryObject/base_object"]
 
         # Walk over the free list and get all the proc objects.
         obj_list = proc_zone.free_elements.walk_list("next")
@@ -540,7 +541,6 @@ class DarwinProcessFilter(DarwinPlugin):
 
     def list_using_tasks(self):
         """List processes using the processor tasks queue.
-
 
         See
         /osfmk/kern/processor.c (processor_set_things)

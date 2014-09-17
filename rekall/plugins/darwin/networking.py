@@ -16,7 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-__author__ = "Michael Cohen <scudette@google.com>"
+__author__ = (
+    "Michael Cohen <scudette@google.com>",
+    "Adam Sindelar <adam.sindelar@gmail.com>")
+
+import itertools
 
 from rekall.plugins.darwin import common
 from rekall.plugins.darwin import lsof
@@ -229,36 +233,14 @@ class DarwinIPFilters(common.DarwinPlugin):
                                    resolver.format_address(handler))
 
 
-class DarwinNetstat(lsof.DarwinLsof):
+class DarwinNetstat(common.DarwinPlugin):
     """List per process network connections."""
 
     __name = "netstat"
 
-    def sockets(self):
-        for open_file in self.lsof():
-            if open_file["fileproc"].fg_type != "DTYPE_SOCKET":
-                continue
-
-            sock = open_file["fileproc"].autocast_fg_data()
-            if sock.addressing_family in ["AF_INET", "AF_INET6", "AF_UNIX"]:
-                yield open_file
-
     def render(self, renderer):
-        inet_by_proto = {}
-        unix_socks = []
-
-        # Group sockets by protocol/addressing family.
-        for open_file in self.sockets():
-            sock = open_file["fileproc"].autocast_fg_data()
-            proto = sock.l4_protocol
-
-            if proto:
-                inet_by_proto.setdefault(proto, []).append((sock, open_file))
-            else:
-                unix_socks.append((sock, open_file))
-
         # Render all inet protos in alphabetical order (like netstat).
-        renderer.section("Active Internet connections")
+        renderer.section("Active IPv4 connections")
         renderer.table_header([
             ("Proto", "proto", "14"),
             ("SAddr", "saddr", "30"),
@@ -266,22 +248,31 @@ class DarwinNetstat(lsof.DarwinLsof):
             ("DAddr", "daddr", "30"),
             ("DPort", "dport", "5"),
             ("State", "state", "15"),
-            ("Pid", "pid", "8"),
-            ("Comm", "comm", "20"),
-        ])
+            ("Pid", "pid", "18"),
+            ("Comm", "comm", "20")])
 
-        for proto, sockets in sorted(inet_by_proto.iteritems()):
-            for sock, open_file in sockets:
-                renderer.table_row(
-                    proto,
-                    sock.src_addr,
-                    sock.src_port,
-                    sock.dst_addr,
-                    sock.dst_port,
-                    sock.tcp_state,
-                    open_file["proc"].pid,
-                    open_file["proc"].p_comm,
-                )
+        inet_connections = itertools.chain(
+            sorted(
+                self.session.entities.find_by_attribute(
+                    "Connection/addressing_family", "AF_INET"),
+                key=lambda e: e["Connection/src_addr"]),
+            sorted(
+                self.session.entities.find_by_attribute(
+                    "Connection/addressing_family", "AF_INET6"),
+                key=lambda e: e["Connection/src_addr"]))
+
+        for connection in inet_connections:
+            # More than one process could have handles on this.
+            processes = connection["&Handle/resource"]["Handle/process"]
+            renderer.table_row(
+                "/".join(connection["Connection/protocols"]),
+                connection["Connection/src_addr"],
+                connection["Connection/src_bind"],
+                connection["Connection/dst_addr"],
+                connection["Connection/dst_bind"],
+                connection["Connection/state"],
+                processes["Process/pid"],
+                processes["Process/command"])
 
         # Render the UNIX sockets.
         renderer.section("Active UNIX domain sockets")
@@ -289,19 +280,21 @@ class DarwinNetstat(lsof.DarwinLsof):
             ("Address", "address", "14"),
             ("Conn", "conn", "14"),
             ("Type", "type", "10"),
-            ("Vnode", "vnode", "14"),
-            ("Path", "path", "60"),
-            ("Pid", "pid", "8"),
-            ("Comm", "comm", "20"),
-        ])
+            ("UAddr", "unsi_addr", "50"),
+            ("vnode path", "path", "50"),
+            ("Pid", "pid", "18"),
+            ("Comm", "comm", "20")])
 
-        for sock, open_file in unix_socks:
+        for connection in sorted(
+                self.session.entities.find_by_attribute(
+                    "Connection/addressing_family", "AF_UNIX"),
+                key=lambda e: e["Connection/src_addr"]):
+            processes = connection["&Handle/resource"]["Handle/process"]
             renderer.table_row(
-                "0x%x" % int(sock.so_pcb),
-                "0x%x" % int(sock.unp_conn),
-                sock.human_type,
-                "0x%x" % int(sock.vnode),
-                sock.human_name,
-                open_file["proc"].pid,
-                open_file["proc"].p_comm,
-            )
+                connection["Connection/src_addr"],
+                connection["Connection/dst_addr"],
+                "/".join(connection["Connection/protocols"]),
+                connection["Connection/src_bind"],
+                connection["Connection/file_bind"]["File/path"],
+                processes["Process/pid"],
+                processes["Process/command"])

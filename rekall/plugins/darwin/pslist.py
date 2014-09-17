@@ -24,32 +24,38 @@ from rekall.plugins import core
 from rekall.plugins.darwin import common
 
 
-class DarwinPsxView(common.DarwinProcessFilter):
+class DarwinPsxView(common.DarwinPlugin):
     __name = "psxview"
-
+    
     def render(self, renderer):
+        collector_names = [
+            c.name for c
+            in self.session.entities.collectors_for("MemoryObject/type=proc")]
+        collector_names.sort()
+
         headers = [
             ("Offset (V)", "offset_v", "[addrpad]"),
             ("Comm", "comm", "20s"),
-            ("PID", "pid", ">6"),
-        ]
+            ("PID", "pid", ">6")]
 
-        method_names = self.METHODS.keys()
-
-        for method in method_names:
-            headers.append((method, method, str(len(method))))
+        for collector_name in collector_names:
+            headers.append((
+                collector_name,
+                collector_name,
+                str(len(collector_name))))
 
         renderer.table_header(headers)
 
-        for process in self.filter_processes():
+        for entity in sorted(
+                self.session.entities.find_by_component("Process"),
+                key=lambda e: e["Process/pid"]):
             row = [
-                process,
-                process.p_comm,
-                process.p_pid,
-            ]
+                entity["MemoryObject/base_object"],
+                entity["Process/command"],
+                entity["Process/pid"]]
 
-            for method in method_names:
-                row.append(process in self.cache[method])
+            for collector_name in collector_names:
+                row.append(collector_name in entity.collectors)
 
             renderer.table_row(*row)
 

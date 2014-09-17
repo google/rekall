@@ -1290,10 +1290,6 @@ class Profile(object):
     # This hold the executable code compiled from the vtypes above.
     types = None
 
-    # This holds all the entity collectors indexed by names of components that
-    # they produce.
-    collectors = None
-
     # This is the base class for all profiles.
     __metaclass__ = registry.MetaclassRegistry
 
@@ -1419,9 +1415,6 @@ class Profile(object):
 
         self.overlays = []
         self.vtypes = {}
-        self.collectors = {
-            "Entity": [],
-        }
         self.constants = {}
         self.constant_addresses = utils.SortedCollection(key=lambda x: x[0])
         self.enums = {}
@@ -1464,7 +1457,6 @@ class Profile(object):
         # pylint: disable=protected-access
         result = self.__class__(name=self.name, session=self.session)
         result.vtypes = self.vtypes.copy()
-        result.collectors = self.collectors.copy()
         result.overlays = self.overlays[:]
         result.enums = self.enums.copy()
         result.reverse_enums = self.reverse_enums.copy()
@@ -1489,7 +1481,6 @@ class Profile(object):
         other.EnsureInitialized()
 
         self.vtypes.update(other.vtypes)
-        self.collectors.update(other.collectors)
         self.overlays += other.overlays
         self.constants.update(other.constants)
         self.object_classes.update(other.object_classes)
@@ -1838,27 +1829,6 @@ class Profile(object):
         self.flush_cache()
         self.overlays.append(copy.deepcopy(overlay))
         self.known_types.update(overlay)
-
-    def add_collector(self, components, collector):
-        """Add a collector for a particular entity component.
-
-        Arguments:
-          collector: A Callable that takes instance of Session as argument
-            and yields tuples of (identity, components)
-
-          components: Call the collector when this component is requested.
-        """
-        for component in components:
-            self.collectors.setdefault(component, []).append(collector)
-
-        self.collectors["Entity"].append(collector)
-
-    def get_collectors(self, component):
-        """Get collectors that yield a particular component."""
-        for name, collectors in self.collectors.iteritems():
-            if component == name:
-                for collector in collectors:
-                    yield collector
 
     def _apply_type_overlay(self, type_member, overlay):
         """Update the overlay with the missing information from type.

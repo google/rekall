@@ -40,19 +40,14 @@ COMPONENTS = [
     "MemoryObject",
     "NetworkInterface",
     "Process",
-    "Thread",
     "Connection",
     "Handle",
     "File",
+    "Event",
+    "Permissions",
     "User",
     "Group",
-#    "Timer",
-#    "Route",
-#    "LoginSession",
-#    "KernelModule",
-#    "Mount",
-#    "AllocationZone",
-]
+    "AllocationZone"]
 
 
 class ComponentTuple(collections.namedtuple("ComponentTuple", COMPONENTS)):
@@ -62,21 +57,17 @@ class ComponentTuple(collections.namedtuple("ComponentTuple", COMPONENTS)):
         components = [
             superposition.SuperpositionMergeNamedTuples(
                 getattr(self, component),
-                getattr(other, component),
-            )
-            for component in COMPONENTS[1:]  # Skip Entity.
-        ]
+                getattr(other, component))
+            for component in COMPONENTS[1:]]  # Skip Entity.
 
         # Entity is merged using slightly simpler rules.
         entity = Entity(
             identity=self.Entity.identity | other.Entity.identity,
-            collectors=self.Entity.collectors | other.Entity.collectors,
-        )
+            collectors=self.Entity.collectors | other.Entity.collectors)
 
         return ComponentTuple(
             entity,
-            *components
-        )
+            *components)
 
     def __or__(self, other):
         return self.union(other)
@@ -85,6 +76,7 @@ class ComponentTuple(collections.namedtuple("ComponentTuple", COMPONENTS)):
 __EmptyComponentTuple = ComponentTuple(*[None for _ in COMPONENTS])
 
 
+# pylint: disable=protected-access
 def MakeComponentTuple(*components):
     kwargs = {}
     for component in components:
@@ -93,48 +85,37 @@ def MakeComponentTuple(*components):
 
     return __EmptyComponentTuple._replace(**kwargs)
 
+
 # Special component that the entity system uses to store identifying
 # information. This is kept in a component for ease of access, serialization and
 # consistency reasons.
 Entity = collections.namedtuple(
     "Entity",
-    ["identity", "collectors"],
-)
+    ["identity", "collectors"])
 
 
 Named = collections.namedtuple(
     "Named",
-    ["name", "kind"],
-)
+    ["name", "kind"])
 
 
 MemoryObject = collections.namedtuple(
     "MemoryObject",
-    ["base_object", "type"],
-)
+    ["base_object", "type", "state"])
 
 
 NetworkInterface = collections.namedtuple(
     "NetworkInterface",
-    ["addresses"],
-)
+    ["name", "addresses"])
 
 
 Process = collections.namedtuple(
     "Process",
-    ["pid", "parent", "user", "command", "arguments"],
-)
-
-
-Thread = collections.namedtuple(
-    "Thread",
-    ["state"],
-)
+    ["pid", "parent", "user", "command", "arguments"])
 
 
 Connection = collections.namedtuple(
-    "Connection",
-    [
+    "Connection", [
         "src_addr",
         "dst_addr",
         "protocols",  # Known protocols, in order (e.g. [IPv4, TCP])
@@ -142,66 +123,59 @@ Connection = collections.namedtuple(
         "state",  # State of the connection, if meaningful.
         "src_bind",  # Source port for inet, vnode for unix, etc.
         "dst_bind",
-    ],
-)
+        "interface",
+        "file_bind"])  # UNIX sockets can be bound to a file.
 
 
 Handle = collections.namedtuple(
     "Handle",
-    ["resource", "process", "fd", "flags"],
-)
+    ["resource", "process", "fd", "flags"])
 
 
 File = collections.namedtuple(
-    "File",
-    ["full_path"],
-)
+    "File", [
+        "path",
+        "type"])
+
+
+Event = collections.namedtuple(
+    "Event", [
+        "created",
+        "destroyed",
+        "accessed",
+        "modified",
+        "backed_up"])
+
+
+Permissions = collections.namedtuple(
+    "Permissions", [
+        "owner",
+        "group",
+        "chmod",
+        "acl"])
 
 
 User = collections.namedtuple(
     "User",
-    ["uid", "home_dir", "username", "real_name"],
-)
+    ["uid", "home_dir", "username", "real_name"])
 
 
 Group = collections.namedtuple(
     "Group",
-    ["gid", "group_name"],
-)
+    ["gid", "group_name"])
 
 
-# Timer = collections.namedtuple(
-#     "Timer",
-#     [],
-# )
-#
-#
-# Route = collections.namedtuple(
-#     "Route",
-#     ["source", "destination", "interface"],
-# )
-#
-#
-# LoginSession = collections.namedtuple(
-#     "LoginSession",
-#     ["user", "timestamp"],
-# )
-#
-#
-# KernelModule = collections.namedtuple(
-#     "KernelModule",
-#     [],
-# )
-#
-#
-# Mount = collections.namedtuple(
-#     "Mount",
-#     [],
-# )
-#
-#
-# AllocationZone = collections.namedtuple(
-#     "AllocationZone",
-#     [],
-# )
-#
+AllocationZone = collections.namedtuple(
+    "AllocationZone", [
+        "name",
+        "type",
+        "count_active",
+        "count_free",
+        "element_size",
+        "tracks_pages",
+        "max_size",
+        "page_count",
+        "is_exhaustible",
+        "is_expandable",
+        "allows_foreign",
+        "is_collectable"])

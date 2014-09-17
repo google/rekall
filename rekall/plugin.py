@@ -157,7 +157,6 @@ class Command(object):
                 yield command_cls
 
 
-
 class ProfileCommand(Command):
     """A baseclass for all commands which require a profile."""
 

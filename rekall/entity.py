@@ -22,7 +22,10 @@ The Rekall Memory Forensics entity layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+import logging
+
 from rekall import components as comp
+from rekall import entity_collector
 from rekall import identity as id
 from rekall import obj
 from rekall import superposition
@@ -74,13 +77,13 @@ class Entity(object):
     They occur in cases where there are legitimately multiple valid values of a
     single attribute. Some examples:
 
-    Resource.handle can have multiple values, because a single file/socket can
+    Resource/handle can have multiple values, because a single file/socket can
     be opened by multiple handles owned by multiple processes.
 
-    MemoryObject.type can be a superposition in case of unions, or things that
+    MemoryObject/type can be a superposition in case of unions, or things that
     are stored as a void pointer and cast depending on contextual state.
 
-    User.real_name can often be a superposition because of variable formatting
+    User/real_name can often be a superposition because of variable formatting
     rules applied by the OS.
 
     Public state members:
@@ -140,9 +143,7 @@ class Entity(object):
             ", ".join([
                 x
                 for x in comp.COMPONENTS
-                if getattr(self.components, x)
-            ])
-        )
+                if getattr(self.components, x)]))
 
     def __str__(self):
         return self.__unicode__()
@@ -150,6 +151,7 @@ class Entity(object):
     def __repr__(self):
         return self.__unicode__()
 
+    # pylint: disable=protected-access
     def asdict(self):
         result = {}
         for component_name in comp.COMPONENTS:
@@ -161,7 +163,7 @@ class Entity(object):
             for field in component._fields:
                 val = getattr(component, field)
                 if val:
-                    key = "%s.%s" % (component_name, field)
+                    key = "%s/%s" % (component_name, field)
                     result[key] = val
 
         return result
@@ -186,7 +188,7 @@ class Entity(object):
         self.entity_manager.add_attribute_lookup(key)
 
         for entity in self.entity_manager.find_by_attribute(
-            key, self.identity):
+                key, self.identity):
             yield entity
 
     def get_raw(self, key):
@@ -199,7 +201,7 @@ class Entity(object):
             key: Property path in form of Component.attribute.
         """
         try:
-            component_name, attribute = key.split(".")
+            component_name, attribute = key.split("/")
         except ValueError:
             raise ValueError("%s is not a valid key." % key)
 
@@ -249,10 +251,10 @@ class Entity(object):
         Getting a basic value:
         ======================
 
-        Use key in form of Component.attribute. For example, "Process.pid" or
-        "User.username". Same as calling entity[key]:
+        Use key in form of Component.attribute. For example, "Process/pid" or
+        "User/username". Same as calling entity[key]:
 
-        entity["Process.pid"]  # PID of the process.
+        entity["Process/pid"]  # PID of the process.
 
         What if the value is an entity:
         ===============================
@@ -260,8 +262,8 @@ class Entity(object):
         This method automatically recognizes attributes that reference other
         entities and automatically looks them up and returns them. For example:
 
-        entity["Process.parent"]  # Returns the parent process entity.
-        entity["Process.parent"]["Process.pid"]  # PID of the parent.
+        entity["Process/parent"]  # Returns the parent process entity.
+        entity["Process/parent"]["Process/pid"]  # PID of the parent.
 
         What if I want all the child processes (Inverse Lookup):
         ========================================================
@@ -273,10 +275,10 @@ class Entity(object):
 
         For example:
 
-        entity["&Process.parent"]  # Returns processes of which this process is
+        entity["&Process/parent"]  # Returns processes of which this process is
                                    # (Child processes).
 
-        entity["&Handle.process"]  # Returns all handles this process has open.
+        entity["&Handle/process"]  # Returns all handles this process has open.
 
         When does this return more than one value:
         ==========================================
@@ -288,15 +290,15 @@ class Entity(object):
         proxy the [] operator, returning more superpositions. For example:
 
         # To return the pids of all child processes:
-        entity["&Process.parent"]["Process.pid"]
+        entity["&Process/parent"]["Process/pid"]
 
         You can request more than one key in a single call:
         ===================================================
 
         This is identical to the behavior of [] on python dictionaries:
 
-        entity["Process.pid", "Process.command"]  # is the same as calling:
-        (entity["Process.pid"], entity["Process.command"])
+        entity["Process/pid", "Process/command"]  # is the same as calling:
+        (entity["Process/pid"], entity["Process/command"])
         """
         # If we get called with [x, y] python will pass us the keys as a tuple
         # of (x, y). The following behaves identically to dict.
@@ -337,8 +339,7 @@ class Entity(object):
         return Entity(
             components=self.components | other.components,
             copies_count=self.copies_count + other.copies_count,
-            entity_manager=self.entity_manager,
-        )
+            entity_manager=self.entity_manager)
 
     def __ior__(self, other):
         return self.update(other)
@@ -376,6 +377,21 @@ class EntityLookupTable(object):
 class EntityManager(object):
     """Database of entities."""
 
+    is_initialized = False
+    collectors = []
+    collector_stack = []
+
+    @classmethod
+    def initialize(cls):
+        if cls.is_initialized:
+            return
+
+        for component_name in comp.COMPONENTS:
+            component_type = getattr(comp, component_name)
+            cls.add_component_type(component_type)
+
+        cls.is_initialized = True
+
     def __init__(self, session):
         self.entities = {}
         self.finished_collectors = set()
@@ -389,13 +405,77 @@ class EntityManager(object):
                 if getattr(entity.components, component_name):
                     yield component_name
 
+        def _collector_indexer(entity):
+            for collector_name in entity.components.Entity.collectors:
+                yield collector_name
+
         self.lookup_tables = {
             "components": EntityLookupTable(
                 key_name="components",
                 key_func=_component_indexer,
-                entity_manager=self,
-            )
-        }
+                entity_manager=self),
+            "collectors": EntityLookupTable(
+                key_name="collectors",
+                key_func=_collector_indexer,
+                entity_manager=self)}
+
+    def update_collectors(self):
+        """Generate a list of available collectors."""
+        self.collectors = []
+        for cls in entity_collector.EntityCollector.classes.values():
+            if cls.is_active(self.session):
+                collector = cls(entity_manager=self)
+                self.collectors.append(collector)
+
+    # pylint: disable=protected-access
+    @classmethod
+    def add_component_type(cls, component_type):
+        """Adds a factory function for the component_type."""
+        component_name = component_type.__name__
+        component_fields = component_type._fields
+
+        def component_factory(_, **kwargs):
+            args = [kwargs.pop(field, None) for field in component_fields]
+            if kwargs:
+                raise ValueError("Unexpected arguments: %s" % kwargs.keys())
+
+            return component_type(*args)
+
+        setattr(cls, component_name, component_factory)
+
+    @property
+    def identity_prefix(self):
+        """Returns the prefix for all identities on this machine.
+
+        Currently this just returns "LOCALHOST", but in the future this will
+        be a way of semi-uniquelly identifying the image/machine of origin.
+        """
+        # TODO: implement proper machine identification.
+        return "LOCALHOST"
+
+    def identify(self, identity_dict):
+        """Generate the appropriate type of identity based on identity dict.
+
+        Arguments:
+        identity_dict: a dictionary of attribute names (format being the
+        usual "Component/member") and expected values.
+
+        Returns:
+        If only one attribute is provided then a SimpleIdentity is returned.
+
+        If more than one attribute is provided then at least one value must be
+        not None; an AlternateIdentity is returned.
+        """
+        if len(identity_dict) == 1:
+            for attribute, value in identity_dict.items():
+                return id.SimpleIdentity(
+                    global_prefix=self.identity_prefix,
+                    attribute=attribute,
+                    value=value)
+        else:
+            return id.AlternateIdentity(
+                global_prefix=self.identity_prefix,
+                identity_dict=identity_dict)
 
     def register_components(self, identity, components, source_collector):
         """Find or create an entity for identity and add components to it.
@@ -419,11 +499,8 @@ class EntityManager(object):
             components=comp.MakeComponentTuple(
                 comp.Entity(
                     identity=identity,
-                    collectors=frozenset((source_collector,)),
-                ),
-                *components
-            ),
-        )
+                    collectors=frozenset((source_collector,))),
+                *components))
 
         indices = entity.indices
 
@@ -451,19 +528,18 @@ class EntityManager(object):
         if self.lookup_tables.get(key, None):
             return
 
-        component, _ = key.split(".")
+        logging.debug("Creating a lookup table for %s", key)
+        component, _ = key.split("/")
 
         lookup_table = EntityLookupTable(
             key_name=key,
             key_func=lambda e: (e.get_raw(key),),
-            entity_manager=self,
-        )
+            entity_manager=self)
 
         # Only use the entities that actually have the component to build the
         # index.
         lookup_table.update_index(
-            self.find_by_component(component, complete_results=False)
-        )
+            self.find_by_component(component, complete_results=False))
 
         self.lookup_tables[key] = lookup_table
 
@@ -472,7 +548,7 @@ class EntityManager(object):
 
         The number of entities yielded is almost always one or zero. The single
         exception to that rule is when the identity parameter is both: (a) a
-        composite identity and (b) not yet present in this entity manager. In
+        alternate identity and (b) not yet present in this entity manager. In
         that case, multiple entities may match.
         """
         for index in identity.indices:
@@ -484,12 +560,15 @@ class EntityManager(object):
         """Yields all entities that have the component.
 
         Arguments:
-            complete_results: If True, will run collect_component(component).
+            complete_results: If True, will attempt to collect the component.
         """
         if complete_results:
-            self.collect_component(component)
+            self.collect_for(component)
 
         return self.lookup_tables["components"].lookup(component)
+
+    def find_by_collector(self, collector):
+        return self.lookup_tables["collectors"].lookup(str(collector))
 
     def find_by_attribute(self, key, value, complete_results=True):
         """Yields all entities where component.attribute == value.
@@ -499,49 +578,71 @@ class EntityManager(object):
                 Process.pid, or User.username.
             value: Value, compared against using the == operator
             complete_results: If False, will only hit cache. If True, will also
-                collect_component(component).
+                collect the component.
 
         Yields:
             Instances of entity that match the search criteria.
         """
-        component, _ = key.split(".")
+        component, _ = key.split("/")
         lookup_table = self.lookup_tables.get(key, None)
 
         if lookup_table:
             # Sweet, we have an index for this.
             if complete_results:
-                self.collect_component(component)
+                self.collect_for((key, value))
 
             for entity in lookup_table.lookup(value):
                 yield entity
         else:
-            # No specific index. Let's hit the components index and then
-            # iterate.
+            # No index to support the query. We can use the component index
+            # to only search entities for which this makes sense. However,
+            # we must take care to only trigger the collectors we need, as
+            # opposed to all collectors that touch the component.
+            if complete_results:
+                self.collect_for((key, value))
             for entity in self.find_by_component(
-                component=component, complete_results=complete_results):
+                    component=component, complete_results=False):
                 if entity.get_raw(key) == value:
                     yield entity
 
-    def run_collector(self, collector):
-        """Will run the collector, which must be callable.
+    def find_first_by_attribute(self, *args, **kwargs):
+        """Convenience method - returns first result of find_by_attribute."""
+        for entity in self.find_by_attribute(*args, **kwargs):
+            return entity
 
-        All entities yielded by the collector will be registered and collector
-        will be added to the list of collectors that have been executed.
+    def collectors_for(self, wanted):
+        """Finds the active collectors that can satisfy the query.
+
+        For format of the wanted query, see EntityCollector.can_collect.
         """
-        if collector.__name__ in self.finished_collectors:
-            return
+        for collector in self.collectors:
+            if collector.can_collect(wanted):
+                yield collector
 
-        for identity, components in collector(self.session.profile):
-            self.register_components(
-                identity=identity,
-                components=components,
-                source_collector=collector.__name__,
-            )
+    def collect_for(self, wanted, use_hint=False):
+        """Will find the appropriate collectors to satisfy the query.
 
-        self.finished_collectors.add(collector.__name__)
+        For format of the wanted query, see EntityCollector.can_collect.
 
-    def collect_component(self, component_name):
-        """Will run all collectors that yield entities with this component."""
-        for collector in self.session.profile.get_collectors(component_name):
-            self.run_collector(collector)
+        If use_hint is set to True, 'wanted' will be passed on as hint to
+        the collectors. This may result in faster collection, but may result
+        in collectors having to run repeatedly.
+        """
+        if use_hint:
+            hint = wanted
+        else:
+            hint = None
 
+        for collector in self.collectors_for(wanted):
+            if collector in self.collector_stack:
+                previous = self.collector_stack[-1]
+                raise RuntimeError(
+                    ("Collector dependency circle: %s is being called to "
+                    "collect %s for %s. However, %s is already on the stack:"
+                    "\n %s") % (
+                        collector.name, wanted, previous.name, collector.name,
+                        self.collector_stack))
+            else:
+                self.collector_stack.append(collector)
+            collector.ensure_collected(hint=hint)
+            self.collector_stack.remove(collector)

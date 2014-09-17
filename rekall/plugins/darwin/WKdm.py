@@ -124,7 +124,7 @@ def WK_pack_3_tenbits(source_buf):
     packed_input = []
     for in1, in2, in3 in itertools.izip(*([iter(source_buf)] * 3)):
         packed_input.append(in1 | (in2 << 10) | (in3 << 20))
-        
+
     return packed_input
 
 
@@ -227,7 +227,7 @@ def WKdm_compress(src_buf):
         input_high_bits = input_word / 1024
         dict_location = hashLookupTable[input_high_bits % 256]
         dict_word, dict_high = dictionary[dict_location]
-    
+
         if (input_word == dict_word):
             tempTagsArray.append(EXACT_TAG)
             tempQPosArray.append(dict_location)
@@ -247,7 +247,7 @@ def WKdm_compress(src_buf):
     qpos_start = len(full_patterns) + TAGS_AREA_OFFSET + (len(src_buf) / 64)
 
     packed_tags = WK_pack_2bits(tempTagsArray)
-                         
+
     num_bytes_to_pack = len(tempQPosArray)
     num_packed_words = math.ceil(num_bytes_to_pack / 8.0)
     num_source_bytes = int(num_packed_words * 8)
@@ -313,11 +313,11 @@ def _WKdm_decompress(src_buf, qpos_start, low_start, low_end, header_size):
     rem = len(lowbits_str) % 16
     if rem:
         lowbits_str += "\x00" * (16 - rem)
-                             
+
     packed_lowbits = struct.unpack("I" * (len(lowbits_str) / 4), lowbits_str)
 
     tempLowBitsArray = WK_unpack_3_tenbits(packed_lowbits)[:num_packed_lowbits]
-  
+
     patterns_str = src_buf[256 + header_size:qpos_start * 4]
     full_patterns = struct.unpack("I" * (len(patterns_str) / 4), patterns_str)
 

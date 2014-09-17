@@ -67,13 +67,13 @@ class Superposition(object):
             return variants.pop()
         elif not variants:
             return obj.NoneObject(
-                "No non-null scalars in merge."
-            )
+                "No non-null scalars in merge.")
 
         return cls(variants)
 
     def __unicode__(self):
-        return "superposition(%s)" % ", ".join([repr(x) for x in self.variants])
+        results = [str(x) for x in self.variants]
+        return "%s (%d values)" % (", ".join(results), len(results))
 
     def __str__(self):
         return self.__unicode__()
@@ -83,8 +83,7 @@ class Superposition(object):
 
     def union(self, other):
         return Superposition(
-            set(self.variants) | set(other.variants)
-        )
+            set(self.variants) | set(other.variants))
 
     def __or__(self, other):
         return self.union(other)
@@ -111,6 +110,4 @@ def SuperpositionMergeNamedTuples(x, y):
 
     return tuple_cls(
         *[Superposition.merge_scalars(mx, my)
-            for mx, my in itertools.izip(x, y)]
-    )
-
+            for mx, my in itertools.izip(x, y)])
