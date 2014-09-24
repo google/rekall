@@ -1,0 +1,11 @@
+{
+  "name": "angular-file-upload-shim",
+  "main": "angular-file-upload-shim.js",
+  "version": "1.6.7",
+  "homepage": "https://github.com/danialfarid/angular-file-upload",
+  "authors": [
+    "danialf <danial.farid@gmail.com>"
+  ],
+  "description": "shim for anuglar-file-upload",
+  "license": "MIT"
+ }

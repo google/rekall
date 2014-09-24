@@ -1,0 +1,76 @@
+<div ng-controller="FileUploadController" class="fileupload">
+
+  <div class="panel panel-default" bindonce>
+    <div class="plugin-description panel-heading">
+      <div class="panel-title">
+
+        <div class="btn-group">
+          <button type="button" class="btn btn-default"
+                  tooltip="Expand or Collapse Cell" data-container="body"
+                  ng-click="minimizeToggle($event)">
+            <span class="glyphicon glyphicon-resize-full"></span>
+          </button>
+
+          <button type="button" class="btn btn-default"
+                  ng-hide="node.state=='edit'"
+                  tooltip="Edit plugin" data-container="body"
+                  ng-click="editNode(node)">
+            <span class="glyphicon glyphicon-edit"></span>
+          </button>
+
+          <button type="button" class="btn btn-success"
+                  ng-hide="node.state!='edit'"
+                  ng-click="renderNode()">
+            <span class="glyphicon glyphicon-ok"></span>
+          </button>
+
+          <div class="btn btn-default upload"
+               data-multiple="true"
+               tooltip="Upload new image" data-container="body"
+               onclick="this.value = null"
+               ng-file-select="onFileSelect($files)"
+               >
+            <span class="glyphicon glyphicon-upload"></span>
+          </div>
+
+          <a target="_self" class="btn btn-default"
+             ng-if="node.source.files.length"
+             tooltip="Download all files" data-container="body"
+             href="/downloads/{{node.id}}">
+            <span class="glyphicon glyphicon-download"></span>
+          </a>
+
+          <button type="button" class="btn btn-default"
+                  ng-disabled="selected==null"
+                  ng-click="removeFile()">
+            <span class="glyphicon glyphicon-trash"></span>
+          </button>
+        </div>
+        <div ng-if="node.state == 'edit'" class="edit" on-alt-enter="renderNode(node)">
+          <code-editor language="plaintext"  ng-model="node.source.caption"
+                       focus="node.state == 'edit'">
+          </code-editor>
+        </div>
+
+        <div ng-if="node.state != 'edit'" class="readonly" ng-dblclick="editNode(node)">
+          <h3>{{node.rendered.caption}}</h3>
+        </div>
+
+        <div ng-repeat="file in node.source.files"
+             ng-click="select($index)" >
+          <div ng-switch="file.type"
+               ng-class="{selected: $index == selected}"
+               class="well well-sm rekall-embedded-image
+                      rekall-zoom-{{node.source.size}}">
+            <img ng-switch-when="image/jpeg" src="files/{{file.name}}"/>
+
+            <button ng-switch-default class="btn btn-default">
+              <span class="glyphicon glyphicon-file" />
+              {{file.name}} ({{file.type}})
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

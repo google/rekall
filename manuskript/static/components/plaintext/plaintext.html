@@ -1,5 +1,5 @@
 <div ng-controller="PlainTextController" class="well plaintext">
-  <div ng-if="node.state == 'edit'" class="edit" on-alt-enter="saveNode(node)">
+  <div ng-if="node.state == 'edit'" class="edit" on-alt-enter="renderNode(node)">
     <code-editor language="plaintext"  ng-model="node.source" split-list focus="node.state == 'edit'"></code-editor>
   </div>
 

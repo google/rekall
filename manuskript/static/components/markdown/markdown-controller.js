@@ -14,14 +14,10 @@
     $scope.$watch('node.state', function() {
       if ($scope.node.state == 'render') {
         $scope.node.rendered = markdown.toHTML($scope.node.source.join("\n"));
-        $scope.node.state = 'show';
+        $scope.trustedHTMLString = $sce.trustAsHtml($scope.node.rendered);
+        $scope.showNode($scope.node);
       }
     });
-
-    $scope.trustedHtml = function() {
-      return $sce.trustAsHtml($scope.node.rendered);
-    };
-
   });
 
 })();

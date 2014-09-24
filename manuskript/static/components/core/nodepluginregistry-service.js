@@ -36,7 +36,11 @@
      */
     this.createDefaultNodeForPlugin = function(pluginName) {
       var plugin = this.plugins[pluginName];
-      return plugin.defaultNode();
+      var node = plugin.defaultNode();
+
+      // Each node has a unique ID.
+      node.id = Date.now();
+      return node;
     };
 
     /**

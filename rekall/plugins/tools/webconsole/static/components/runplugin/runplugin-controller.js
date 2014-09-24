@@ -62,11 +62,15 @@
 
         // We hold the plugin state here.
         $scope.node.plugin_state = state;
-        $scope.node.state = 'render';
+
         manuskriptNetworkService.callServer('rekall/runplugin', {
-          params: $scope.node.source,
+          params: {
+            cell_id: $scope.node.id,
+            source: angular.copy($scope.node.source),
+          },
           onclose: function(msg) {  // jshint ignore:line
-            $scope.node.state = 'show';
+            // Rendering is complete - show the node.
+            $scope.showNode($scope.node);
           },
           onmessage: function(jsonOutput) {
             for (var i = 0; i < jsonOutput.length; ++i) {
@@ -76,7 +80,6 @@
               if (queue.length > 0) {
                 rekallJsonDecoderService.decode(queue, state);
 
-                $scope.node.source.cookie = state.metadata.cookie;
                 copyStateToRendered();
 
                 queue.splice(0, queue.length);
@@ -103,29 +106,15 @@
     };
 
     $scope.$watch('node.state', function() {
-      if ($scope.node.state === 'render') {
+      if ($scope.node.state === "render") {
         $scope.pushSources();
-      } else if ($scope.node.state === "edit") {
-        $scope.node.rendered = [];
-
-        // Keep the old request in case the user changes their mind (this makes
-        // a copy).
-        $scope.old_source = angular.extend({},$scope.node.source);
-
-        // Force re-calculation on the server side as cache is likely stale.
-        $scope.node.source.cookie = null;
-      }
+      };
     });
 
     $scope.minimizeToggle = function($event) {
       var body = $($event.target).parents(".panel").first().find(".panel-body");
       body.toggleClass("minimized");
       $event.stopPropagation();
-    };
-
-    $scope.cancelEdit = function() {
-      $scope.node.source = $scope.old_source;
-      $scope.pushSources();
     };
   });
 

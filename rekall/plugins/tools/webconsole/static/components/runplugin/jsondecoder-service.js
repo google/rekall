@@ -144,10 +144,19 @@
       state.finished = true;
     };
 
+    var fileHandler = function(data, state) {
+      if (state.filenames == null) {
+        state.filenames = [];
+      }
+
+      state.filenames.push(data[0]);
+    };
+
     var handlersMap = {
       'm': metadataHandler,
       's': sectionHandler,
       'f': freeFormatHandler,
+      'file': fileHandler,
       'e': errorHandler,
       't': tableHandler,
       'r': rowHandler,

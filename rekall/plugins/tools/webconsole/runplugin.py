@@ -25,15 +25,19 @@ __author__ = "Mikhail Bushkov <realbushman@gmail.com>"
 
 import argparse
 import logging
-import StringIO
+import os
+import cStringIO
 import traceback
+import zipfile
 
 from flask import jsonify
 from flask import json
+from flask import request
 
 from rekall.plugins.renderers import data_export
 from rekall import config
 from rekall import plugin
+from rekall import utils
 
 from flask_sockets import Sockets
 
@@ -85,6 +89,7 @@ class FakeParser(object):
                 arg_type = "bool"
             elif isinstance(passed_default, int):
                 arg_type = "int"
+
         # If we can't guess by default value, inspect parser's action.
         elif "action" in kwargs:
             action = kwargs["action"]
@@ -96,6 +101,7 @@ class FakeParser(object):
                 arg_type = "bool"
 
         argument_def["type"] = arg_type
+
         self.arguments.append(argument_def)
 
 
@@ -106,9 +112,18 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
     spinner = r"/-\|"
     last_spin = 0
 
-    def __init__(self, ws=None, **kwargs):
+    def __init__(self, ws=None, worksheet=None, cell_id=0, **kwargs):
+        """Initialize a WebConsoleRenderer.
+
+        Args:
+          ws: A websocket we use to stream messages over.
+          worksheet: The worksheet file to store files.
+          cell_id: The cell id we are running under.
+        """
         super(WebConsoleRenderer, self).__init__(**kwargs)
         self.ws = ws
+        self.cell_id = cell_id
+        self.worksheet = worksheet
         self.queue = []
 
     def SendMessage(self, message):
@@ -135,6 +150,26 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
             formatted_message = message
 
         self.SendMessage(["p", formatted_message])
+
+    def open(self, directory=None, filename=None, mode="rb"):
+        if filename is None and directory is None:
+            raise IOError("Must provide a filename")
+
+        if directory:
+            filename = os.path.normpath(os.path.join(directory, "./", filename))
+
+        # Store files under this cell_id This prevents this cell's files from
+        # being mixed with other cell's files.
+        full_path = "%s.files/%s" % (self.cell_id, filename)
+
+        # Export the fact that we wrote a file using the special "f" command.
+        self.SendMessage(["file", filename, full_path])
+
+        if 'w' in mode:
+            return self.worksheet.Create(full_path)
+
+        return self.worksheet.Open(full_path)
+
 
 
 class WebConsoleObjectRenderer(data_export.NativeDataExportObjectRenderer):
@@ -169,12 +204,15 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         "/rekall-webconsole/components/runplugin/pluginregistry-service.js",
         "/rekall-webconsole/components/runplugin/runplugin-controller.js",
         "/rekall-webconsole/components/runplugin/scroll-table-directive.js",
+        "/rekall-webconsole/components/fileupload/fileupload-controller.js",
 
         "/rekall-webconsole/components/runplugin/runplugin.js",
+        "/rekall-webconsole/components/fileupload/fileupload.js",
         ]
 
     CSS_FILES = [
         "/rekall-webconsole/components/runplugin/runplugin.css",
+        "/rekall-webconsole/components/fileupload/fileupload.css",
         ]
 
     @classmethod
@@ -205,22 +243,110 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             return jsonify({"data": result})
 
     @classmethod
+    def DownloadManager(cls, app):
+
+        @app.route("/files/<filename>")
+        def get_file(filename):  # pylint: disable=unused-variable
+            """Serve embedded files from the worksheet."""
+            worksheet = app.config['worksheet']
+            inventory = worksheet.GetData("files_inventory") or []
+            for item in inventory:
+                if item["filename"] == filename:
+                    data = worksheet.GetData(item["path"], raw=True)
+                    return data, 200, {"content-type": item["content-type"]}
+
+            # Not found in inventory.
+            return "", 404
+
+        @app.route("/rekall/upload/files", methods=["POST"])
+        def upload():   # pylint: disable=unused-variable
+            worksheet = app.config['worksheet']
+            inventory = worksheet.GetData("files_inventory") or []
+            try:
+                for in_fd in request.files.itervalues():
+                    # Path in the archive.
+                    path = "files/%s" % in_fd.filename
+                    with worksheet.Create(path) as out_fd:
+                        inventory.append({"content-type": in_fd.mimetype,
+                                          "path": path,
+                                          "filename": in_fd.filename})
+
+                        utils.CopyFDs(in_fd, out_fd)
+            finally:
+                worksheet.StoreData("files_inventory", inventory)
+
+            return "OK", 200
+
+        @app.route("/downloads/<cell_id>")
+        def download_cell(cell_id):   # pylint: disable=unused-variable
+            worksheet = app.config['worksheet']
+
+            data = cStringIO.StringIO()
+            file = {}
+            with zipfile.ZipFile(
+                data, mode="w", compression=zipfile.ZIP_DEFLATED) as out_fd:
+                cells = worksheet.GetData("notebook_cells") or []
+                for cell in cells:
+                    if str(cell["id"]) != str(cell_id):
+                        continue
+
+                    source = cell["source"]
+                    for file in source["files"]:
+                        filename = "files/%s" % file["name"]
+
+                        with worksheet.Open(filename) as in_fd:
+                            # Limit reading to a reasonable size (10Mb).
+                            out_fd.writestr(
+                                file["name"],
+                                in_fd.read(100000000))
+
+            return data.getvalue(), 200, {
+                "content-type": 'binary/octet-stream',
+                'content-disposition': "attachment; filename=\"%s.zip\"" % (
+                    file.get("name", "unknown"))}
+
+        @app.route("/rekall/downloads/<plugin_name>/<cookie>")
+        def download_plugin(plugin_name, cookie):   # pylint: disable=unused-variable
+            worksheet = app.config['worksheet']
+
+            data = cStringIO.StringIO()
+            with zipfile.ZipFile(
+                data, mode="w", compression=zipfile.ZIP_DEFLATED) as out_fd:
+                path = "%s_%s.files/" % (plugin_name, cookie)
+                for filename in worksheet.ListFiles():
+                    if filename.startswith(path):
+                        with worksheet.Open(filename) as in_fd:
+                            # Limit reading to a reasonable size (10Mb).
+                            out_fd.writestr(
+                                filename[len(path):],
+                                in_fd.read(100000000))
+
+            return data.getvalue(), 200, {
+                "content-type": 'binary/octet-stream',
+                'content-disposition': "attachment; filename=\"%s.zip\"" % (
+                    plugin_name)}
+
+
+    @classmethod
     def PlugManageDocument(cls, app):
         sockets = Sockets(app)
 
         @sockets.route("/rekall/document/upload")
         def upload_document(ws):  # pylint: disable=unused-variable
             cells = json.loads(ws.receive())
+            if not cells:
+                return
+
             worksheet = app.config['worksheet']
-            if cells:
-                worksheet.StoreData("notebook_cells", cells)
+            new_data = json.dumps(cells, sort_keys=True)
+            old_data = worksheet.GetData("notebook_cells", raw=True)
+            if old_data != new_data:
+                worksheet.StoreData("notebook_cells", new_data, raw=True)
 
         @sockets.route("/rekall/load_nodes")
         def rekall_load_nodes(ws):  # pylint: disable=unused-variable
             worksheet = app.config["worksheet"]
             cells = worksheet.GetData("notebook_cells") or []
-            print "load_nodes", cells
-
             ws.send(json.dumps(cells))
 
     @classmethod
@@ -229,15 +355,16 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
 
         @sockets.route("/rekall/runplugin")
         def rekall_run_plugin_socket(ws):  # pylint: disable=unused-variable
-            source = json.loads(ws.receive())
+            cell = json.loads(ws.receive())
+            cell_id = cell["cell_id"]
+            source = cell["source"]
             plugin_data = source["plugin"]
             plugin_name = plugin_data["name"]
-            cookie = source.get("cookie")
             rekall_session = app.config["rekall_session"]
             worksheet = app.config["worksheet"]
 
             # If the data is cached locally just return it.
-            cache_key = "%s_%s" % (plugin_name, cookie)
+            cache_key = "%s/%s" % (cell_id, plugin_name)
             cache = worksheet.GetData(cache_key)
             if cache:
                 logging.debug("Dumping request from cache")
@@ -265,12 +392,15 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
 
             parser = argparse.ArgumentParser()
             plugin_cls.args(parser)
-            kwargs = vars(parser.parse_args(cmdline_args))
+            kwargs = {}
+            for k, v in vars(parser.parse_args(cmdline_args)).items():
+                if v is not None:
+                    kwargs[k] = v
 
-            output = StringIO.StringIO()
+            output = cStringIO.StringIO()
             renderer = WebConsoleRenderer(
                 session=rekall_session, output=output,
-                ws=ws)
+                ws=ws, worksheet=worksheet)
 
             with renderer.start():
                 try:
@@ -282,7 +412,6 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                     renderer.report_error(message)
 
             # Cache the data in the worksheet.
-            cache_key = "%s_%s" % (plugin_name, renderer._object_id)
             worksheet.StoreData(cache_key, renderer.queue)
 
     @classmethod
@@ -292,3 +421,4 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         cls.PlugListPluginsIntoApp(app)
         cls.PlugRunPluginsIntoApp(app)
         cls.PlugManageDocument(app)
+        cls.DownloadManager(app)

@@ -23,6 +23,88 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 
     $scope.pageTitle = manuskriptConfiguration.pageTitle || "Manuskript";
 
+
+    /**
+     * A node represents the state of the cell. A node the following fields:
+     * - id: This is a unique number representing a unique configuration of the
+     *   cell. Note that it can be used to cache cell data - id will change
+     *   whenever the cell's content changes.
+     *
+     * - source: This is an object describing the source parameters for the
+     *   cell. Cells are assumed to be stable relative to the source object -
+     *   i.e. if the source has not changed, the cell is not changed.
+     *
+     * - type: This is the type of plugin handling the cell.
+     *
+     * Node state life cycle:
+     *
+     * 1) Nodes get created into the 'edit' state. Templates can detect the edit
+     * state by testing node.state == 'edit'. Existing nodes can switch to the
+     * edit state by calling $scope.editNode(node).
+     *
+     * 2) When the user click on the button, they are moved into the 'render'
+     * state (by calling the $scope.renderNode(node) function. If the
+     * node.source has not changed, the node switches to the show state
+     * immediately, otherwise it switches to the 'render' state.
+     *
+     * 3) Plugins should watch for the node's state to enter the render
+     * state. At this point the node.source object should be stable and can be
+     * processed. When the plugin finished processing it should call
+     * $scope.showNode(node) to move to the 'show' state.
+     *
+     * 4) Plugins should render the final view of the cell in the 'show' state,
+     * perhaps using intermediate data created during the 'render' state.
+     *
+     * Note - do not manipulate the state directly - only use the below
+     * functions. Plugins are probably only interested in watching for the
+     * 'render' state.
+     */
+    /**
+     * Starts editing of a given node.
+     * @param node - Node to edit.
+     */
+    $scope.editNode = function(node) {
+      $scope.selection.node = node;
+
+      // Maintain a copy of the old state so we can check for changes.
+      node.old_source = angular.copy(node.source);
+      node.state = 'edit';
+    };
+
+    /**
+     * Moves the node into the rendered state. If the node's source has not
+     * changed we can skip the render state and move right into the show state.
+     *
+     * @throws {NotRenderableNodeError} If given node is not renderable.
+     */
+    $scope.renderNode = function(node) {
+      if (node === undefined) {
+        node = $scope.selection.node;
+      }
+
+      if (node != null) {
+        if (angular.equals(node.old_source, node.source)) {
+          node.state = 'show';
+        } else {
+          // Node has changed - let the server know. We change the ID of the
+          // node to represent that the sources have changed.  Therefore there
+          // is a 1:1 mapping between each instance of the cell's source and its
+          // ID.
+          node.id = Date.now();
+          $scope.uploadDocument();
+          node.state = 'render';
+        }
+      }
+    };
+
+    /**
+     * Move the node from the rendered state to the 'show' state.
+     *
+     */
+    $scope.showNode = function(node) {
+      node.state = 'show';
+    };
+
     /**
      * List of nodes shown to the user.
      */
@@ -30,7 +112,6 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 
     $scope.selection = {
       node: null,
-      nodeIndex: -1
     };
 
     /**
@@ -77,25 +158,16 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       }
     };
     $scope.$watch('selection.node', selectionChangeHandler);
-    $scope.$watch('selection.nodeIndex', selectionChangeHandler);
-
 
     /**
-     * If selection changes, forced saving of the previous node.
+     * If selection changes during an edit, move the previous node into the
+     * render state (Same as submitting it). Do nothing at other times.
+     *
      */
     $scope.$watch('selection.node', function(newValue, oldValue) {
-      if (oldValue) {
-        $scope.saveNode(oldValue);
+      if (oldValue && oldValue.state == 'edit') {
+        $scope.renderNode(oldValue);
       };
-    });
-
-    /**
-     * When selected node changes, update selected node index.
-     */
-    $scope.$watchCollection('nodes', function() {
-      // Sync the nodes with the server.
-      $scope.uploadDocument();
-      $scope.selection.nodeIndex = $scope.nodes.indexOf($scope.selection.node);
     });
 
     /**
@@ -158,40 +230,6 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       var newNode = angular.copy(node);
       var nodeIndex = $scope.nodes.indexOf(node);
       $scope.nodes.splice(nodeIndex + 1, 0, newNode);
-    };
-
-    /**
-     * Starts editing of a given node.
-     * @param node - Node to edit.
-     */
-    $scope.editNode = function(node) {
-      $scope.selection.node = node;
-      node.state = 'edit';
-    };
-
-    /**
-     * Finishes editing of the node that is currently being edited.
-     * @param node - Node to be saved. If not specified, currently selected
-     *               node will be used.
-     */
-    $scope.saveNode = function(node) {
-      if (node === undefined) {
-        node = $scope.selection.node;
-      }
-
-      if (node != null && node.state == 'edit') {
-        $scope.renderNode(node);
-      }
-
-      $scope.uploadDocument();
-    };
-
-    /**
-     * Renders node.
-     * @throws {NotRenderableNodeError} If given node is not renderable.
-     */
-    $scope.renderNode = function(node) {
-      node.state = 'render';
     };
 
     /**
@@ -298,7 +336,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     };
 
     $scope.loadNodesFromServer = function() {
-      $scope.removeAllNodes();;
+      $scope.removeAllNodes();
 
       manuskriptNetworkService.callServer('rekall/load_nodes', {
         onmessage: function(cells) {
@@ -310,13 +348,15 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 
     $scope.uploadDocument = function() {
       var cells = [];
+
       for (var i = 0; i < $scope.nodes.length; i++) {
         var node = $scope.nodes[i];
 
         // Only copy the minimum set of attributes from the node for storage.
         cells.push({
           source: node.source, // Private plugin specific data for this node.
-          type: node.type,   // The type of this cell (used to invoke the right plugin).
+          type: node.type,     // The type of this cell (used to invoke the right plugin).
+          id: node.id,         // Retain the node id.
         });
       };
 
@@ -326,27 +366,8 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       });
     };
 
-    /**
-     * Loads list of nodes from the local JSON file. File object is expeted
-     * to be in the current scope ($scope.fileToLoad).
-     */
-    $scope.loadFile = function() {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        $scope.nodes = angular.fromJson(reader.result);
-        $scope.$apply();
-      };
-      reader.readAsText($scope.fileToLoad);
-    };
-
-    /**
-     * Saves list of nodes to the local JSON file. File name is expected to
-     * be in the current scope ($scope.fileToSave).
-     */
-    $scope.saveFile = function() {
-      var blob = new Blob([angular.toJson($scope.nodes)], {type: "text/json;charset=utf-8"});
-      saveAs(blob, $scope.fileToSave);
-    };
+    // If node order changes we refresh the server document.
+    $scope.$watchCollection("nodes", $scope.uploadDocument);
 
     // First time we run, we need to load the cells from the server.
     $scope.loadNodesFromServer();

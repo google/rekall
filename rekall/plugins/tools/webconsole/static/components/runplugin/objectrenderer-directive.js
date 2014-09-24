@@ -28,12 +28,13 @@
           scope.address = result;
         }
       },
-      template: '<samp bindonce="address">0x<span bo-bind="address" /></samp>'
+      template: '<samp>0x<span bo-bind="address" /></samp>'
     }
   });
 
   var templates = {
     'Address': '<addrpad object="object" pad=0 />',
+    'Pointer': '<addrpad object="object.target" />',
     'PaddedAddress': '<addrpad object="object.value" pad=14 />',
     'AddressSpace': '{{object.name}}',
     'Enumeration': '<samp class="enum">{{object.enum}} ({{object.value}})</samp>',
@@ -93,7 +94,7 @@
 
         var template = getTemplate(scope.object);
         if (template) {
-          element.html($("<rekall-context-menu object='object'>").html(template));
+          element.html($("<rekall-context-menu object='object' bindonce>").html(template));
           $compile(element.contents())(scope);
         };
       },

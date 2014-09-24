@@ -1,0 +1,22 @@
+
+.upload {
+    overflow: hidden;
+}
+
+.rekall-zoom-0 {
+    max-width: 20%;
+}
+.rekall-zoom-1 {
+    max-width: 60%;
+}
+.rekall-zoom-2 {
+    max-width: 100%;
+}
+
+.rekall-embedded-image img {
+    width: 100%;
+}
+
+.rekall-embedded-image.selected {
+    background-color: #fcf8e3;
+}

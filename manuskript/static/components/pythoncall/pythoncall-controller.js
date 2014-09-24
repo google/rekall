@@ -31,7 +31,7 @@
           '/controllers/pythoncall',
 	  function(data) {
 	    $scope.node.rendered = angular.fromJson(data)["data"];
-            $scope.node.state = 'show';
+            $scope.showNode($scope.node);
 	  },
 	  function() {
 	  });

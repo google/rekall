@@ -7,7 +7,7 @@
     $scope.$watch('node.state', function() {
       if ($scope.node.state == 'render') {
         $scope.node.rendered = $scope.node.source.slice();
-        $scope.node.state = 'show';
+        $scope.showNode($scope.node);
       }
     });
 

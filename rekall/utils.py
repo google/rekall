@@ -786,3 +786,18 @@ class JITIterator(object):
     def __iter__(self):
         return (
             x.name for x in self.baseclass.classes.values() if x.name)
+
+
+def CopyFDs(in_fd, out_fd, length=2**64):
+    """Copy from one fd to another.
+
+    If length is specified, we stop when we copied this many bytes. We always
+    stop when in_fd reaches EOF.
+    """
+    while length > 0:
+        data = in_fd.read(min(10000000, length))
+        if not data:
+            return
+
+        out_fd.write(data)
+        length -= len(data)

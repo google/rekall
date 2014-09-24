@@ -15,11 +15,11 @@
       require: 'ngModel',
       link: function(scope, element, attrs, ngModel) {
         var fromUser = function(text) {
-	  return text.split('\n');
+          return text.split('\n');
         };
 
         var toUser = function(list) {
-	  return list.join('\n');
+          return list.join('\n');
         };
 
         ngModel.$parsers.push(fromUser);

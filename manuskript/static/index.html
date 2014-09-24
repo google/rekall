@@ -10,6 +10,7 @@
     <!-- third-party dependencies -->
     <script src="static/bower_components/jquery/dist/jquery.js"></script>
     <script src="static/bower_components/file-saver/FileSaver.js"></script>
+    <script src="static/bower_components/ng-file-upload/angular-file-upload-shim.js"></script>
     <script src="static/bower_components/angular/angular.js"></script>
     <script src="static/bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <script src="static/bower_components/markdown/lib/markdown.js"></script>
@@ -21,6 +22,7 @@
     <script src="static/bower_components/angular-animate/angular-animate.js"></script>
     <script src="static/bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
     <script src="static/bower_components/angular-bindonce/bindonce.js"></script>
+    <script src="static/bower_components/ng-file-upload/angular-file-upload.js"></script>
 
     <!-- internal dependencies -->
     <script src="static/components/core/addnode-dialog-controller.js"></script>
@@ -43,9 +45,9 @@
   <body ng-controller="ManuskriptAppController">
 
     <!-- Navigation bar -->
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation" bindonce>
       <div class="navbar-header">
-        <a class="navbar-brand">{{pageTitle}}</a>
+        <a class="navbar-brand" bo-text="pageTitle"></a>
       </div>
       <div class="container-fluid">
         <div class="btn-group right-padded">
@@ -79,7 +81,7 @@
           <button type="button"
                   ng-class="selection.node.state == 'edit' && 'btn btn-success' || 'btn btn-default'"
                   ng-disabled="selection.node.state != 'edit'"
-                  ng-click="saveNode()">
+                  ng-click="renderNode()">
             <span class="glyphicon glyphicon-ok"></span>
           </button>
         </div>

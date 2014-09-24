@@ -56,7 +56,7 @@ class PEDump(common.WindowsCommandPlugin):
             "--out_fd", dest="SUPPRESS",
             help="A file like object to write the output.")
 
-    def __init__(self, image_base=None, out_fd=None, address_space=None,
+    def __init__(self, image_base=0, out_fd=None, address_space=None,
                  out_file=None, **kwargs):
         super(PEDump, self).__init__(**kwargs)
         self.address_space = address_space

@@ -45,6 +45,11 @@ import urlparse
 import zipfile
 
 from rekall import registry
+from rekall import utils
+
+# The maximum size of a single data object we support. This represent the
+# maximum amount of data we are prepared to read into memory at once.
+MAX_DATA_SIZE = 100000000
 
 
 class IOManagerError(IOError):
@@ -92,7 +97,7 @@ class IOManager(object):
           IOManagerError: If the file is not found.
         """
 
-    def GetData(self, name):
+    def GetData(self, name, raw=False):
         """Get the data object stored at container member.
 
         This returns an arbitrary python object which is stored in the named
@@ -101,21 +106,42 @@ class IOManager(object):
         actual object.
 
         Returns None if the file is not found.
+
+        Args:
+          name: The name to retrieve the data under.
+          raw: If specified we do not parse the data, simply return it as is.
         """
         try:
-            return json.load(self.Open(name))
+            fd = self.Open(name)
+            if raw:
+                return fd.read(MAX_DATA_SIZE)
+
+            return json.load(fd)
+
         except IOError:
             return None
 
-    def StoreData(self, name, data, **options):
+    def StoreData(self, name, data, raw=False, **options):
         """Stores the data in the named container member.
 
         This serializes the data and stores it in the named member. Not all
         types of data are serializable, so this may raise. For example, when
         using JSON to store the data, arbitrary python objects may not be used.
+
+        Args:
+          name: The name under which the data will be stored.
+          data: The data to store.
+
+          raw: If true we write the data directly without encoding to json. In
+            this case data should be a string.
         """
         with self.Create(name) as fd:
-            fd.write(json.dumps(data, sort_keys=True, **options))
+            if raw:
+                to_write = utils.SmartStr(data)
+            else:
+                to_write = json.dumps(data, sort_keys=True, **options)
+
+            fd.write(to_write)
 
     def __enter__(self):
         return self
@@ -324,7 +350,7 @@ class URLManager(IOManager):
             fd = urllib2.urlopen(url + ".gz", timeout=10)
             logging.debug("Opened url %s.gz" % url)
             return gzip.GzipFile(
-                fileobj=StringIO.StringIO(fd.read(10000000)))
+                fileobj=StringIO.StringIO(fd.read(MAX_DATA_SIZE)))
         except urllib2.HTTPError:
             # Try to load the file without the .gz extension.
             logging.debug("Opened url %s" % url)
