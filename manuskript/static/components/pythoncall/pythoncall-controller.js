@@ -46,6 +46,11 @@
       }
     });
 
+    $scope.minimizeToggle = function($event) {
+      var output = $($event.target).parents(".pythoncall").first().find(".python-output");
+      output.toggleClass('infinite-scroll');
+    };
+
   });
 
 })();

@@ -2,6 +2,10 @@
   <div ng-if="node.state == 'edit'" on-alt-enter="saveNode(node)">
 
     <div class="row-fluid">
+      <button type="button" class="close" ng-click="cancelEdit()">
+        <span aria-hidden="true">&times;</span>
+        <span class="sr-only">Close</span>
+      </button>
       <div class="col-sm-6">
         <div class="row-fluid">
           <div class="col-sm-6 plugin-title">
@@ -28,7 +32,6 @@
             </tbody>
           </table>
         </div>
-
         <div class="panel panel-default" ng-if="node.source.plugin != null">
           <div class="panel-heading">
             <h3 class="panel-title">Description</h3>
@@ -68,13 +71,20 @@
     <div class="clearfix"></div>
   </div>
 
-  <div ng-if="node.state != 'edit'" ng-dblclick="editNode(node)" class="panel panel-default">
+  <div ng-if="node.state != 'edit'" class="panel panel-default">
     <div class="plugin-description panel-heading">
       <div tooltip="{{node.source.plugin.short_description}}" class="panel-title">
         <button type="button" class="btn btn-default"
                 ng-click="minimizeToggle($event)">
           <span class="glyphicon glyphicon-resize-full"></span>
         </button>
+
+        <button type="button" class="btn btn-default"
+                ng-disabled="node == null || node.state == 'edit'"
+                ng-click="editNode(node)">
+          <span class="glyphicon glyphicon-edit"></span>
+        </button>
+
         {{node.source.plugin.name}}
         <div ng-if="node.source.arguments">
           <div ng-repeat="(key, value) in node.source.arguments">
@@ -95,41 +105,41 @@
       </div>
 
       <div ng-if="node.rendered">
-        <rekall-context-menu>
-          <div class="panel panel-default" bindonce>
-            <div ng-repeat="element in node.rendered" preserve-scope>
+        <div class="panel panel-default" bindonce>
+          <div ng-repeat="element in node.rendered" preserve-scope>
 
-              <div ng-if="element.type == 'section'">
-                <h3 class="lead" bo-text="element.name" bo-if="element.name"></h3>
-              </div>
+            <div ng-if="element.type == 'section'">
+              <h3 class="lead" bo-text="element.name" bo-if="element.name"></h3>
+            </div>
 
-              <div ng-if="element.type == 'format'">
-                <div class="freeFormat"><rekall-free-format element="element" /></div>
-              </div>
-
-              <div ng-if="element.type == 'error'">
-                <pre class="bg-danger">{{element.data}}</pre>
-              </div>
-
-              <div ng-if="element.type == 'table'">
-                <scroll-table collection="element.rows"
-                              height="height"
-                              headers="element.header">
-                </scroll-table>
+            <div ng-if="element.type == 'format'">
+              <div class="freeFormat">
+                <rekall-free-format element="element" />
               </div>
             </div>
 
-        </rekall-context-menu>
+            <div ng-if="element.type == 'error'">
+              <pre class="bg-danger">{{element.data}}</pre>
+            </div>
+
+            <div ng-if="element.type == 'table'">
+              <scroll-table collection="element.rows"
+                            headers="element.header">
+              </scroll-table>
+            </div>
+          </div>
         </div>
 
       </div>
 
       <div ng-if="node.plugin_state.stderr">
-        <code-editor language="plaintext" readonly="true" ng-model="node.plugin_state.stderr" split-list></code-editor>
+        <code-editor language="plaintext" readonly="true"
+                     ng-model="node.plugin_state.stderr" split-list></code-editor>
       </div>
 
       <div ng-if="node.plugin_state.error">
-        <code-editor language="python" readonly="true" ng-model="node.plugin_state.error" split-list></code-editor>
+        <code-editor language="python" readonly="true"
+                     ng-model="node.plugin_state.error" split-list></code-editor>
       </div>
     </div>
   </div>

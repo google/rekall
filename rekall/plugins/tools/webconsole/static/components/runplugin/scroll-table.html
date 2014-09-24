@@ -1,19 +1,25 @@
 
-<div class="infinite-scroll">
-  <table class="table table-condensed">
-    <thead>
-      <tr>
-        <th fast-repeat="column in headers" no-watch style="font-size: 90%">
-          <span bo-text="column.name"></span>
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="row in rows" ng-class="{'loading':$last}">
-        <td fast-repeat="item in row" no-watch style="font-size: 90%" >
-          <scroll-table-cell element="item" />
-        </td>
-      </tr>
-    </tbody>
-  </table>
+<div class="scroll-table-container">
+  <div class="infinite-scroll">
+    <div class="table-handler prompt" style="position: absolute"
+         ng-click="minimizeToggle($event)">
+    </div>
+    <div class="table-handler"/>
+    <table class="table table-condensed table-striped table-hover">
+      <thead>
+        <tr>
+          <th ng-repeat="column in headers" no-watch style="font-size: 90%">
+            <span bo-text="column.name"></span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="row in rows">
+          <td ng-repeat="item in row" no-watch style="font-size: 90%" >
+            <rekall-object object="item.data" />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>

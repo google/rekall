@@ -164,12 +164,10 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         "/rekall-webconsole/components/runplugin/jsondecoder-service.js",
         "/rekall-webconsole/components/runplugin/objectactions-init.js",
         "/rekall-webconsole/components/runplugin/objectactions-service.js",
-        "/rekall-webconsole/components/runplugin/objectrenderer-service.js",
+        "/rekall-webconsole/components/runplugin/objectrenderer-directive.js",
         "/rekall-webconsole/components/runplugin/pluginarguments-directive.js",
         "/rekall-webconsole/components/runplugin/pluginregistry-service.js",
         "/rekall-webconsole/components/runplugin/runplugin-controller.js",
-        ("/rekall-webconsole/components/runplugin/"
-         "scroll-table-cell-directive.js"),
         "/rekall-webconsole/components/runplugin/scroll-table-directive.js",
 
         "/rekall-webconsole/components/runplugin/runplugin.js",

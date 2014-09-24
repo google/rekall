@@ -2,65 +2,32 @@
 (function() {
 
   var module = angular.module('rekall.runplugin.freeFormat.directive',
-			      ['rekall.runplugin.contextMenu.directive',
-			       'rekall.runplugin.objectActions.service',
-                              ]);
+                              []);
 
-  module.directive('rekallFreeFormat', function(rekallObjectActionsService) {
+  module.directive('rekallFreeFormat', function(
+    $compile, rekallObjectActionsService) {
     return {
       restrict: 'E',
       scope: {
         element: '=',
       },
-      require: '^rekallContextMenu',
-      link: function(scope, element, attrs, contextMenuCtrl) {
-	var format = scope.element.renderedData[0];
-	var components = [];
-	var prevPos = 0;
-	format.replace(/\{(\d+)(?:\:.+?\}|\})/g, function(match, argPos, offset) {
-	  argPos = parseInt(argPos) + 1;
-	  components.push({type: 'literal',
-			   value: format.substring(prevPos, offset)});
-	  components.push({type: 'argument',
-			   rendered: scope.element.renderedData[argPos],
-			   value: scope.element.data[argPos]});
 
-	  prevPos = offset + match.length;
-	});
-	if (prevPos < format.length) {
-	  components.push({type: 'literal',
-			   value: format.substring(prevPos, format.length)});
-	}
+      // Render a complex format expression. For example: "Process
+      // {0}".format(eprocess).
+      link: function(scope, element, attrs) {
+        var format = scope.element.data[0];
 
-	for (var i = 0; i < components.length; ++i) {
-	  var component = components[i];
-	  if (component.type === 'literal') {
-	    element.append(component.value);
-	  } else if (component.type === 'argument') {
-	    var value = component.value;
+        // Just convert to an angular template.
+        format = format.replace(
+            /\{(\d+)(?:\:.+?\}|\})/g, function(match, argPos, offset) {
+              return '<rekall-object object="element.data[' + (
+                parseInt(argPos) + 1) + ']"></rekall-object>'
+            });
 
-	    var newElement;
-	    if (value !== null &&
-                value !== undefined &&
-                rekallObjectActionsService.hasActions(value)) {
-	      newElement = angular.element($('<span class="freeFormatArgument">').text(
-                component.rendered));
+        format = format.replace(/[\r\n]/g, "<br>");
 
-	      newElement.click(function(event) {
-		var actions = rekallObjectActionsService.actionsForObject(value);
-		contextMenuCtrl.showContextMenu(actions, event.pageX, event.pageY);
-		event.stopPropagation();
-	      }); // jshint ignore:line
-	    } else {
-	      newElement = angular.element($('<span/>').text(
-                component.rendered))
-	    }
-
-	    element.append(newElement);
-	  } else {
-	    throw 'Invalid component type: ' + component.type;
-	  }
-	}
+        element.html(format);
+        $compile(element.contents())(scope);
       }
     };
   });

@@ -2,9 +2,9 @@
 (function() {
 
   var module = angular.module('rekall.runplugin.jsonDecoder.service',
-                              ['rekall.runplugin.objectRenderer.service']);
+                              []);
 
-  var serviceImplementation = function($http, rekallObjectRendererService) {
+  var serviceImplementation = function($http) {
 
     var decode = function(item, state) {
       if (item instanceof Array) {
@@ -66,11 +66,9 @@
       for (var i = 0; i < data.length; ++i) {
         var decodedValue = decode(data[i], state);
         decodedData.push(decodedValue);
-        renderedData.push(rekallObjectRendererService.render(decodedValue));
       }
 
-      state.elements.push({type: 'format', data: decodedData,
-      			   renderedData: renderedData});
+      state.elements.push({type: 'format', data: decodedData});
     };
 
     var errorHandler = function(data, state) {
@@ -128,8 +126,7 @@
 	}
 
 	var decodedData = decode(columnData, state);
-	var renderedData = rekallObjectRendererService.render(decodedData);
-	row.push({data: decodedData, rendered: renderedData});
+	row.push({data: decodedData});
       }
 
       lastElement.rows.push(row);

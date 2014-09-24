@@ -2,9 +2,11 @@
 (function() {
 
   var module = angular.module('rekall.runplugin.objectActions.service',
-			      ['manuskript.core']);
+                              ['manuskript.core',
+                               'rekall.runplugin.pluginRegistry.service']);
 
-  var serviceImplementation = function(manuskriptCoreNodePluginRegistryService) {
+  var serviceImplementation = function(
+    manuskriptCoreNodePluginRegistryService, rekallPluginRegistryService) {
     var registeredActions = {};
 
     this.registerAction = function(objType, action, title, description) {
@@ -14,37 +16,41 @@
 
       registeredActions[objType].push({
         'action': action,
-	'title': title,
-	'description': description
+        'title': title,
+        'description': description
       })
 
     };
 
     this.registerRunPluginAction = function(objType, pluginName, pluginArgumentsCallback,
-					    title, description) {
+                                            title, description) {
       this.registerAction(objType, function(obj, scope) {
-	var newNode = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
+        var newNode = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
           'rekallplugin');
-	newNode.source = {
-	  'plugin': scope.plugins[pluginName],
-	  'arguments': pluginArgumentsCallback(obj),
-	};
-	newNode.state = 'render';
 
-	var nodesScope = scope;
-	while (nodesScope !== undefined &&
-               nodesScope.nodes === undefined &&
-               nodesScope.addNode === undefined) {
-	  nodesScope = nodesScope.$parent;
-	}
+        rekallPluginRegistryService.getPlugins(function(plugins) {
+          newNode.source = {
+            'plugin': plugins[pluginName],
+            'arguments': pluginArgumentsCallback(obj),
+          };
+          newNode.state = 'render';
 
-	if (nodesScope !== undefined) {
-	  nodesScope.nodes.push(newNode);
-	  nodesScope.selection.node = newNode;
-	  nodesScope.selection.nodeIndex = nodesScope.nodes.length - 1;
-	} else {
-	  throw 'Nodes was not found.';
-	}
+          var nodesScope = scope;
+          while (nodesScope !== undefined &&
+                 nodesScope.nodes === undefined &&
+                 nodesScope.addNode === undefined) {
+            nodesScope = nodesScope.$parent;
+          }
+
+          if (nodesScope !== undefined) {
+            nodesScope.nodes.push(newNode);
+            nodesScope.selection.node = newNode;
+            nodesScope.selection.nodeIndex = nodesScope.nodes.length - 1;
+          } else {
+            throw 'Nodes was not found.';
+          }
+        });
+
       }, title, description);
     };
 
@@ -56,24 +62,24 @@
     this.actionsForObject = function(obj) {
       var actions = [];
       if (obj.mro) {
-	for (var i = 0; i < obj.mro.length; ++i) {
-	  var actionsList = registeredActions[obj.mro[i]];
+        for (var i = 0; i < obj.mro.length; ++i) {
+          var actionsList = registeredActions[obj.mro[i]];
           if (actionsList === undefined) {
             continue
           }
 
           for (var j = 0; j< actionsList.length; j++) {
-	    var wrappedAction = function(action) {
+            var wrappedAction = function(action) {
               return {
-	        'action': function(scope) {
-		  return action.action(obj, scope);
-	        }, // jshint ignore:line
-	        'title': action.title,
-	        'description': action.description
-	      };
+                'action': function(scope) {
+                  return action.action(obj, scope);
+                }, // jshint ignore:line
+                'title': action.title,
+                'description': action.description
+              };
             }
-	    actions.push(wrappedAction(actionsList[j]));
-	  }
+            actions.push(wrappedAction(actionsList[j]));
+          }
         }
       }
 

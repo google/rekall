@@ -2,6 +2,11 @@
   <div class="container-fluid">
     <div class="row source">
       <div class="in">
+        <button type="button" class="btn btn-default"
+                ng-click="minimizeToggle($event)">
+          <span class="glyphicon glyphicon-resize-full"></span>
+        </button>
+
         In [{{node.rendered.execution_count}}]:
       </div>
       <div>
@@ -21,7 +26,7 @@
     <code-editor language="plaintext" readonly="true" ng-model="node.rendered.stderr" split-list></code-editor>
   </div>
 
-  <div ng-if="node.rendered.stdout">
+  <div ng-if="node.rendered.stdout"  class="python-output infinite-scroll">
     <code-editor language="plaintext" readonly="true" ng-model="node.rendered.stdout" split-list></code-editor>
   </div>
 

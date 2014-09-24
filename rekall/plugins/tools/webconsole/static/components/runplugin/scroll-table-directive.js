@@ -58,15 +58,15 @@
         };
 
         // Check if the last row in the table is within the
-        var adjustScroll = function (done_callback) {
+        var adjustScroll = function (done_callback, increment) {
           if(shouldAdjustScroll()) {
-            $scope.end_row +=1;
+            $scope.end_row += increment || 1;
 
             // The a row was added, tell angular to check this table later to
             // see if we need to add more rows.
             if(updateRows()) {
               $timeout(function() {
-                adjustScroll();
+                adjustScroll(done_callback, increment);
               });
             } else if (done_callback !== undefined) {
               done_callback();
@@ -82,9 +82,12 @@
           scroll_pane.scroll();
         });
 
-        // Watch the height scope variable and adjust the table accordingly.
-        $scope.$watch("height", function(height) {
-          var container = $(element).find(".infinite-scroll");
+        var updateHeight = function(height) {
+          if (height === undefined) {
+            return;
+          }
+
+          var container = element.find(".infinite-scroll");
 
           container.css({height: height + "px"});
           adjustScroll(function() {
@@ -93,8 +96,25 @@
             if (table_height < height) {
               container.css({height: table_height + "px"}).scroll();
             };
-          });
-        });
+          }, 5)
+        };
+
+        $scope.minimized = true;
+        $scope.minimizeToggle = function($event) {
+          var button = $($event.target);
+          button.toggleClass("minimized");
+          if ($scope.minimized) {
+            updateHeight(500);
+          } else {
+            updateHeight(120);
+          };
+          $scope.minimized = !$scope.minimized;
+
+          $event.stopPropagation();
+        };
+
+        // Watch the height scope variable and adjust the table accordingly.
+        $scope.$watch("height", updateHeight);
       },
     };
   });

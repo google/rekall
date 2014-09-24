@@ -8,7 +8,6 @@
                                'rekall.runplugin.jsonDecoder.service',
                                'rekall.runplugin.objectActions.init',
                                'rekall.runplugin.objectActions.service',
-                               'rekall.runplugin.objectRenderer.service',
                                'rekall.runplugin.pluginArguments.directive',
                                'rekall.runplugin.pluginRegistry.service',
                                'rekall.runplugin.rekallTable.directive',
@@ -26,7 +25,6 @@
 
     rekallPluginRegistryService.getPlugins(function(result) {
       $scope.plugins = result;
-
       $scope.pluginsValues = [];
       for (var key in $scope.plugins) {
         $scope.pluginsValues.push($scope.plugins[key]);
@@ -55,19 +53,6 @@
 
       // For now just copy everything.
       $scope.node.rendered = angular.copy($scope.node.plugin_state.elements);
-      return
-
-      var last_visible_element = $scope.view_port_min + $scope.node.rendered.length;
-
-      // There is more data available.
-      if (last_visible_element < $scope.node.plugin_state.elements.length) {
-
-        // Concatenate the required number of elements to the end of the
-        // rendered array.
-        $scope.node.rendered = $scope.node.rendered.concat(
-          $scope.node.plugin_state.elements.slice(
-            last_visible_element, $scope.view_port_max));
-      }
     };
 
     $scope.pushSources = function() {
@@ -123,25 +108,25 @@
       } else if ($scope.node.state === "edit") {
         $scope.node.rendered = [];
 
+        // Keep the old request in case the user changes their mind (this makes
+        // a copy).
+        $scope.old_source = angular.extend({},$scope.node.source);
+
         // Force re-calculation on the server side as cache is likely stale.
         $scope.node.source.cookie = null;
       }
     });
 
-    $scope.minimized = true;
     $scope.minimizeToggle = function($event) {
-      var button = $($event.target);
-      button.toggleClass("minimized");
-      if ($scope.minimized) {
-        $scope.height = 500;
-      } else {
-        $scope.height = 120;
-      };
-      $scope.minimized = !$scope.minimized;
-
+      var body = $($event.target).parents(".panel").first().find(".panel-body");
+      body.toggleClass("minimized");
       $event.stopPropagation();
     };
 
+    $scope.cancelEdit = function() {
+      $scope.node.source = $scope.old_source;
+      $scope.pushSources();
+    };
   });
 
 })();

@@ -1,35 +1,38 @@
 'use strict';
 (function() {
 
-  var module = angular.module('rekall.runplugin.contextMenu.directive', []);
+  var module = angular.module('rekall.runplugin.contextMenu.directive',
+                              ['rekall.runplugin.objectActions.service']);
 
-  module.directive('rekallContextMenu', function() {
+  module.directive('rekallContextMenu', function(rekallObjectActionsService, $timeout) {
     return {
       restrict: 'E',
+      scope: {
+        object: '=',
+      },
+
       transclude: true,
+
       controller: function($scope) {
         var menu = $scope.menu = {
           'items': [],
-          'visible': true,
+          'visible': false,
           'style': {
             'left': 0,
             'top': 0
           }
         };
 
-        this.showContextMenu = function(newMenuItems, x, y) {
-          $scope.$apply(function () {
-            menu.items = newMenuItems;
-            menu.visible = true;
-            menu.style.left = x;
-            menu.style.top = y;
-          });
-        };
+
+        $scope.showContextMenu = this.showContextMenu = function(newMenuItems, x, y) {
+          $scope.menu.items = newMenuItems;
+          $scope.menu.visible = true;
+          $scope.menu.style.left = x;
+          $scope.menu.style.top = y;
+        }
 
         this.hideContextMenu = function() {
-          $scope.$apply(function () {
-            menu.visible = false;
-          });
+          menu.visible = false;
         };
 
         $scope.callItem = function(item, event) {
@@ -38,7 +41,23 @@
           menu.visible = false;
         };
       },
+
       link: function(scope , element, attrs) {  // jshint ignore:line
+        if (scope.object !== null &&
+            rekallObjectActionsService.hasActions(scope.object)) {
+
+          // Add click handlers
+          element.click(function(event) {
+            var actions = rekallObjectActionsService.actionsForObject(scope.object);
+
+            // Take into account window scrolling.
+            $timeout(function () {
+              scope.showContextMenu(
+                actions, event.pageX, event.pageY - $(window).scrollTop());
+            });
+          });
+        }
+
         var documentClickHandler = function(event) {  // jshint ignore:line
           if (!scope.menu.visible) {
             return;

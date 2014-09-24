@@ -22,7 +22,6 @@
 
 .runplugin .freeFormat {
     font-family: monospace;
-    white-space: pre;
 }
 
 .runplugin .interactiveTableCell, .runplugin .freeFormatArgument {
@@ -40,8 +39,53 @@
 
 .infinite-scroll {
     height: 120px;
-    display: block;
+    overflow-y: auto;
+    border-radius: 4px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: row;
+}
+
+.panel-body.minimized {
+    height: 500px;
     overflow-y: auto;
     border-radius: 4px;
     box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
 }
+
+.infinite-scroll .CodeMirror {
+    background: transparent;
+}
+
+.infinite-scroll table {
+    width: auto;
+}
+
+.table-handler {
+    min-width: 11ex;
+    padding: 0.4em;
+    padding-top:0;
+    padding-bottom:0;
+    height: 100%;
+}
+
+.scroll-table-container {
+    position: relative;
+}
+
+.table-handler:hover {
+    -webkit-box-shadow: inset 0 0 1px #000;
+    -moz-box-shadow: inset 0 0 1px #000;
+    box-shadow: inset 0 0 1px #000;
+    background: rgba(240,240,240,0.5);
+    cursor: ns-resize;
+}
+
+.bool-true {
+    background-color: #99FFCC !important;
+}
+
+.bool-false {
+    background-color: #FF9999 !important;
+}
+
