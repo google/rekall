@@ -22,10 +22,9 @@ Collectors for files, handles, sockets and similar.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-import datetime
-
 from rekall import identity
 from rekall.plugins.collectors.darwin import common
+from rekall.plugins.collectors.darwin import zones
 
 
 class DarwinHandleCollector(common.DarwinEntityCollector):
@@ -55,17 +54,19 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
                 # resource it's pointing to, because other collectors rely on
                 # memory objects already being out there when they parse them
                 # for resource (File/Socket/etc.) specific information.
-                resource_identity = identity.BaseObjectIdentity(fg_data)
-                handle_identity = identity.BaseObjectIdentity(fileproc)
+                resource_identity = manager.identify({
+                    "MemoryObject/base_object": fg_data})
+                handle_identity = manager.identify({
+                    "MemoryObject/base_object": fileproc})
 
                 yield [
-                    manager.Entity(identity=resource_identity),
+                    resource_identity,
                     manager.MemoryObject(
                         base_object=fg_data,
-                        type=resource_identity.obj_type)]
+                        type=fg_data.obj_type)]
 
                 yield [
-                    manager.Entity(identity=handle_identity),
+                    handle_identity,
                     manager.Handle(
                         process=process.identity,
                         fd=fd,
@@ -76,11 +77,26 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
                         type="fileproc")]
 
 
+class DarwinSocketZoneCollector(zones.DarwinZoneElementCollector):
+    collects = ["MemoryObject/type=socket"]
+    zone_name = "socket"
+    type_name = "socket"
+
+    def validate_element(self, socket):
+        return socket == socket.so_rcv.sb_so
+
+
 class DarwinSocketCollector(common.DarwinEntityCollector):
     """Searches for all memory objects that are sockets and parses them."""
 
     _name = "sockets"
-    collects = ["Connection", "File/type=socket", "MemoryObject/type=vnode"]
+    collects = [
+        "Connection",
+        "Handle",
+        "Event",
+        "Timestamps",
+        "File/type=socket",
+        "MemoryObject/type=vnode"]
 
     def collect(self, hint=None):
         manager = self.entity_manager
@@ -88,12 +104,25 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
             socket = entity["MemoryObject/base_object"]
             family = socket.addressing_family
 
-            # In all these cases, we just reuse the identity of the entity we
-            # found, which is most likely a BaseObjectIdentity. This is because
-            # there is no more useful way to identify a connection.
+            # Try to guess the process that owns this from the last_pid member.
+            # This isn't perfect, because more processes could have handles
+            # on the same thing and for older sockets, this may yield the wrong
+            # result due to PID reuse - still, it's better than nothing.
+            yield [
+                identity.UniqueIdentity(),
+                manager.Event(
+                    actor=manager.identify({
+                        "Process/pid": socket.last_pid}),
+                    target=entity.identity,
+                    action="accessed",
+                    category="latest")]
+
             if family in ("AF_INET", "AF_INET6"):
                 yield [
-                    entity.components.Entity,
+                    entity.identity,
+                    manager.Named(
+                        name=socket.human_name,
+                        kind="IP Connection"),
                     manager.Connection(
                         addressing_family=family,
                         state=socket.tcp_state,
@@ -114,7 +143,10 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
                     file_identity = None
 
                 yield [
-                    entity.components.Entity,
+                    entity.identity,
+                    manager.Named(
+                        name=socket.human_name,
+                        kind="Unix Socket"),
                     manager.Connection(
                         addressing_family="AF_UNIX",
                         src_addr="0x%x" % int(socket.so_pcb),
@@ -129,12 +161,15 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
                         manager.File(
                             path=path,
                             type="socket"),
+                        manager.Named(
+                            name=path,
+                            kind="Socket"),
                         manager.MemoryObject(
                             base_object=socket.vnode.deref(),
                             type="vnode")]
             else:
                 yield [
-                    entity.components.Entity,
+                    entity.identity,
                     manager.Connection(
                         addressing_family=family,
                         protocols=(family,))]
@@ -142,7 +177,7 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
 
 class DarwinFileCollector(common.DarwinEntityCollector):
     """Collects files based on vnodes."""
-    collects = ["File", "Permissions", "Event"]
+    collects = ["File", "Permissions", "Timestamps"]
     _name = "files"
 
     def collect(self, hint=None):
@@ -154,6 +189,9 @@ class DarwinFileCollector(common.DarwinEntityCollector):
             components = [
                 manager.File(
                     path=path),
+                manager.Named(
+                    name=path,
+                    kind="File"),
                 manager.MemoryObject(
                     base_object=vnode,
                     type="vnode")]
@@ -162,12 +200,13 @@ class DarwinFileCollector(common.DarwinEntityCollector):
             if vnode.v_mount.mnt_vfsstat.f_fstypename == "hfs":
                 cattr = vnode.v_data.dereference_as("cnode").c_attr
 
-                # TODO: this currently ignores timezones.
-                components.append(manager.Event(
-                    created=datetime.datetime.fromtimestamp(cattr.ca_ctime),
-                    modified=datetime.datetime.fromtimestamp(cattr.ca_mtime),
-                    accessed=datetime.datetime.fromtimestamp(cattr.ca_atime),
-                    backed_up=datetime.datetime.fromtimestamp(cattr.ca_btime)))
+                # HFS+ stores timestamps as UTC.
+                components.append(manager.Timestamps(
+                    created_at=cattr.ca_ctime,
+                    modified_at=cattr.ca_mtime,
+                    accessed_at=cattr.ca_atime,
+                    backup_at=cattr.ca_btime))
+
                 components.append(manager.Permissions(
                     owner=manager.identify({
                         "User/uid": cattr.ca_uid,
@@ -192,8 +231,8 @@ class UnpListCollector(common.DarwinEntityCollector):
 
             for unp in lhead.lh_first.walk_list("unp_link.le_next"):
                 yield [
-                    self.entity_manager.Entity(
-                        identity=identity.BaseObjectIdentity(unp.unp_socket)),
                     self.entity_manager.MemoryObject(
                         base_object=unp.unp_socket,
-                        type="socket")]
+                        type="socket"),
+                    self.entity_manager.Named(
+                        kind="Unix Socket")]

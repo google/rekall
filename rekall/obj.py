@@ -405,6 +405,17 @@ class BaseObject(object):
         # if task.UniqueProcessId in pids: ....
         return hash(self.v())
 
+    @property
+    def indices(self):
+        """Returns (usually 1) representation(s) of self usable as dict keys.
+
+        Using full base objects for indexing can be slow, especially with
+        Structs. This method returns a representation of the object that is
+        a suitable key - either the value of a primitive type, or the memory
+        address of the more complex ones.
+        """
+        return (self.v(),)
+
     def m(self, memname):
         return NoneObject("No member {0}".format(memname))
 
@@ -572,6 +583,7 @@ class NativeType(NumericProxyMixIn, BaseObject):
 
         (val,) = struct.unpack(self.format_string, data)
 
+        self.value = val
         return val
 
     def cdecl(self):
@@ -771,6 +783,10 @@ class Pointer(NativeType):
 
     def __unicode__(self):
         return u"Pointer to %s" % self.deref()
+
+    @property
+    def indices(self):
+        return self.dereference().indices
 
     def __getattr__(self, attr):
         ## We just dereference ourself
@@ -1121,7 +1137,14 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         self.struct_size = struct_size
 
     def __hash__(self):
-        return self.obj_offset + hash(self.obj_vm)
+        return hash(self.indices)
+
+    @property
+    def indices(self):
+        return ("%s(0x%x, dtb=0x%x)" % (
+            self.obj_type,
+            self.obj_vm.dtb,
+            self.obj_offset),)
 
     def __int__(self):
         """Return our offset as an integer.

@@ -22,7 +22,6 @@ Collectors that deal with Darwin zone allocator.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from rekall import identity
 from rekall.plugins.collectors.darwin import common
 
 
@@ -70,13 +69,10 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
 
     def collect(self, hint=None):
         for element, state in self.collect_base_objects(hint=hint):
-            yield [
-                self.entity_manager.Entity(
-                    identity=identity.BaseObjectIdentity(element)),
-                self.entity_manager.MemoryObject(
-                    base_object=element,
-                    type=self.type_name,
-                    state=state)]
+            yield self.entity_manager.MemoryObject(
+                base_object=element,
+                type=self.type_name,
+                state=state)
 
     def collect_base_objects(self, hint=None):
         zone_entity = self.entity_manager.find_first_by_attribute(

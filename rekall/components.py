@@ -44,6 +44,7 @@ COMPONENTS = [
     "Handle",
     "File",
     "Event",
+    "Timestamps",
     "Permissions",
     "User",
     "Group",
@@ -140,11 +141,22 @@ File = collections.namedtuple(
 
 Event = collections.namedtuple(
     "Event", [
-        "created",
-        "destroyed",
-        "accessed",
-        "modified",
-        "backed_up"])
+        "actor",
+        "action",
+        "target",
+        "description",
+        "native_id",
+        "timestamp",
+        "category"])  # latest/earliest/recent/ancient
+
+
+Timestamps = collections.namedtuple(
+    "Timestamps", [
+        "created_at",
+        "destroyed_at",
+        "accessed_at",
+        "modified_at",
+        "backup_at"])
 
 
 Permissions = collections.namedtuple(

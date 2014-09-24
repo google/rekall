@@ -37,6 +37,6 @@ class DarwinListFiles(common.DarwinPlugin):
             renderer.table_row(
                 entity["File/type"],
                 ",".join(entity["Entity/collectors"]),
-                entity["Event/created"],
-                entity["Event/modified"],
+                entity["Timestamps/created_at"],
+                entity["Timestamps/modified_at"],
                 entity["File/path"])

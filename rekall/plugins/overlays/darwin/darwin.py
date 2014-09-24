@@ -155,6 +155,15 @@ darwin_overlay = {
         )]],
     }],
 
+    "cat_attr": [None, {
+        "ca_atime": [None, ["UnixTimeStamp"]],
+        "ca_atimeondisk": [None, ["UnixTimeStamp"]],
+        "ca_mtime": [None, ["UnixTimeStamp"]],
+        "ca_ctime": [None, ["UnixTimeStamp"]],
+        "ca_itime": [None, ["UnixTimeStamp"]],
+        "ca_btime": [None, ["UnixTimeStamp"]],
+    }],
+
     "ifnet": [None, {
         "if_name": [None, ["Pointer", dict(target="String")]],
     }],

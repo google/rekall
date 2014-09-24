@@ -22,11 +22,8 @@ The Rekall Memory Forensics entity layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-import logging
 import re
 
-from rekall import components as comp
-from rekall import identity as i
 from rekall import registry
 
 
@@ -93,8 +90,7 @@ class EntityCollector(object):
 
         Unless an identity is specified explicitly, one will be created
         automatically by taking the first field of the first component and
-        instantiating identity.SimpleIdentity with it. This is a good heuristic
-        about 90% of the time.
+        instantiating an identity with it.
 
         To specify an identity explicitly, yield the Entity component as first
         in the list and provide the identity in its 'identity' field.
@@ -186,55 +182,7 @@ class EntityCollector(object):
         _ = session
         return False
 
-    # pylint: disable=protected-access
-    def ensure_collected(self, hint=None):
-        """Will call collect and register all entities with the manager."""
-        if self.is_collected:
-            return
-        stack_depth = len(self.entity_manager.collector_stack)
-        logging.debug(
-            "%sCollector %s will run with hint %s.",
-            "  " * stack_depth,
-            self.name,
-            hint)
-
-        manager = self.entity_manager
-
-        for stub in self.collect():
-            if isinstance(stub, list):
-                # More than one component yielded.
-                components = stub
-            else:
-                # One component yielded.
-                components = [stub]
-
-            first_component = components[0]
-            first_value = first_component[0]
-            if isinstance(first_component, comp.Entity):
-                identity = first_value
-                # We don't need the Entity component, the manager will build it.
-                components.pop(0)
-            else:
-                # If collect didn't specify identity just build an implicit
-                # one from the first component's first field. This is a good
-                # heuristic for about 90% of the time.
-                first_field = first_component._fields[0]
-                identity = i.SimpleIdentity(
-                    global_prefix=manager.identity_prefix,
-                    attribute="%s/%s" % (
-                        type(first_component).__name__,
-                        first_field),
-                    value=first_value)
-            manager.register_components(
-                identity=identity,
-                components=components,
-                source_collector=self.name)
-
-        if hint is None:
-            manager.finished_collectors.add(self.name)
-
     @property
     def entities(self):
         """Returns this collector's entities."""
-        self.ensure_collected()
         return self.session.entities.find_by_collector(self.name)

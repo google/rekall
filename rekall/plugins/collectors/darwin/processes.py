@@ -22,7 +22,6 @@ Darwin Process collectors.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from rekall import identity
 from rekall.plugins.collectors.darwin import common
 from rekall.plugins.collectors.darwin import zones
 
@@ -33,35 +32,39 @@ class DarwinProcParser(common.DarwinEntityCollector):
     collects = [
         "Process",
         "User",
+        "Timestamps",
         "Named/kind=process"]
 
     def collect(self, hint=None):
         manager = self.entity_manager
         for entity in manager.find_by_attribute(
                 "MemoryObject/type", "proc"):
+
             proc = entity["MemoryObject/base_object"]
             user_identity = manager.identify({
-                "User/uid": proc.p_uid,
-                "User/username": None})
-            # The identity of the original memory object is reused. The basic
-            # reasoning here is that, because of PID reuse, this is actually
-            # a better way of constructing the identity than using the PID.
+                "User/uid": proc.p_uid})
+            process_identity = manager.identify({
+                "Process/pid": proc.pid})
+
             yield [
-                entity.components.Entity,
+                # Reuse the base object identity but also use the PID.
+                process_identity | entity.identity,
+                manager.Timestamps(
+                    created_at=proc.p_start),
                 manager.Process(
                     pid=proc.pid,
-                    command=proc.p_comm,
+                    command=str(proc.p_comm),
                     parent=manager.identify({"Process/pid": proc.pid}),
                     user=user_identity),
                 manager.Named(
-                    name=proc.p_comm,
-                    kind="process")]
+                    name="%s (pid=%d)" % (proc.p_comm, proc.pid),
+                    kind="Process")]
 
             # We don't know much about the user at this stage, but this
             # is still kind of useful in getting at least a list of UIDs.
             # Once we have more robustness in listing users this can go away.
             yield [
-                manager.Entity(identity=user_identity),
+                user_identity,
                 manager.User(uid=proc.p_uid)]
 
 
@@ -104,12 +107,9 @@ class DarwinPgrpHashProcessCollector(common.DarwinEntityCollector):
             for pgrp in slot.lh_first.walk_list("pg_hash.le_next"):
                 for proc in pgrp.pg_members.lh_first.walk_list(
                         "p_pglist.le_next"):
-                    yield [
-                        self.entity_manager.Entity(
-                            identity=identity.BaseObjectIdentity(proc)),
-                        self.entity_manager.MemoryObject(
-                            base_object=proc,
-                            type="proc")]
+                    yield self.entity_manager.MemoryObject(
+                        base_object=proc,
+                        type="proc")
 
 
 class DarwinTaskProcessCollector(common.DarwinEntityCollector):
@@ -135,12 +135,9 @@ class DarwinTaskProcessCollector(common.DarwinEntityCollector):
             if not proc:
                 continue
 
-            yield [
-                self.entity_manager.Entity(
-                    identity=identity.BaseObjectIdentity(proc)),
-                self.entity_manager.MemoryObject(
-                    base_object=proc,
-                    type="proc")]
+            yield self.entity_manager.MemoryObject(
+                base_object=proc,
+                type="proc")
 
 
 class DarwinAllprocProcessCollector(common.DarwinEntityCollector):
@@ -158,12 +155,9 @@ class DarwinAllprocProcessCollector(common.DarwinEntityCollector):
         allproc = self.profile.get_constant_object(
             "_allproc", target="proclist")
         for proc in allproc.lh_first.p_list:
-            yield [
-                self.entity_manager.Entity(
-                    identity=identity.BaseObjectIdentity(proc)),
-                self.entity_manager.MemoryObject(
-                    base_object=proc,
-                    type="proc")]
+            yield self.entity_manager.MemoryObject(
+                base_object=proc,
+                type="proc")
 
 
 class DarwinPidHashProcessCollector(common.DarwinEntityCollector):
@@ -206,12 +200,9 @@ class DarwinPidHashProcessCollector(common.DarwinEntityCollector):
                 if not proc:
                     continue
 
-                yield [
-                    self.entity_manager.Entity(
-                        identity=identity.BaseObjectIdentity(proc)),
-                    self.entity_manager.MemoryObject(
-                        base_object=proc,
-                        type="proc")]
+                yield self.entity_manager.MemoryObject(
+                    base_object=proc,
+                    type="proc")
 
 
 class DarwinDeadProcessCollector(zones.DarwinZoneElementCollector):

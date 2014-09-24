@@ -72,7 +72,14 @@ class Superposition(object):
         return cls(variants)
 
     def __unicode__(self):
-        results = [str(x) for x in self.variants]
+        results = []
+        for variant in self.variants:
+            if isinstance(variant, obj.BaseObject):
+                # Base object __str__ returns massive output.
+                results.append(repr(variant))
+            else:
+                results.append(str(variant))
+
         return "%s (%d values)" % (", ".join(results), len(results))
 
     def __str__(self):

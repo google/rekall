@@ -43,8 +43,6 @@ config.DeclareOption(
     help="Timezone to output all times (e.g. Australia/Sydney).")
 
 
-
-
 class String(obj.StringProxyMixIn, obj.NativeType):
     """Class for dealing with Null terminated C Strings.
 
@@ -106,6 +104,10 @@ class String(obj.StringProxyMixIn, obj.NativeType):
 
     def __unicode__(self):
         return self.v().decode("utf8", "replace").split("\x00")[0] or u""
+
+    @property
+    def indices(self):
+        return (str(self),)
 
     def __getitem__(self, *args):
         return unicode(self).__getitem__(*args)
@@ -561,7 +563,6 @@ class timeval(UnixTimeStamp, obj.Struct):
 
     def v(self, vm=None):
         return float(self.m("tv_sec")) + self.m("tv_usec")/1e6
-
 
 
 class WinFileTime(UnixTimeStamp):

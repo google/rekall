@@ -20,6 +20,7 @@
 
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+import sys
 
 from rekall import plugin
 from rekall import components
@@ -49,3 +50,41 @@ class ListCollectors(plugin.Command):
                 component_name,
                 len(self.session.entities.find_by_component(component_name)),
                 collector_count)
+
+
+class ListEvents(plugin.Command):
+    __name = "list_events"
+
+    @staticmethod
+    def event_sortkey(event):
+        timestamp = event["Event/timestamp"]
+        if timestamp:
+            return timestamp
+
+        category = event["Event/category"]
+        if category in ("latest", "recent"):
+            # Stuff that doesn't have a timestamp but is flagged as latest or
+            # recent should sort as AFTER all known timestamps.
+            return sys.maxint
+
+        # Events without a timestamp that aren't recent or latest should sort
+        # as BEFORE all known timestamps.
+        return -(sys.maxint - 1)
+
+    def render(self, renderer):
+        renderer.table_header([
+            ("Time", "time", "35"),
+            ("Category", "category", "10"),
+            ("Actor", "actor", "30"),
+            ("Action", "action", "30"),
+            ("Target", "target", "30")])
+
+        for event in sorted(
+                self.session.entities.find_by_component("Event"),
+                key=self.event_sortkey):
+            renderer.table_row(
+                event["Event/timestamp"],
+                event["Event/category"],
+                event["Event/actor"],
+                event["Event/action"],
+                event["Event/target"])

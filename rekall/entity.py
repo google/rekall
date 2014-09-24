@@ -137,19 +137,30 @@ class Entity(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __unicode__(self):
-        return "Entity(ID: %s; components: %s)" % (
-            str(self.identity),
-            ", ".join([
-                x
-                for x in comp.COMPONENTS
-                if getattr(self.components, x)]))
+    def __repr__(self):
+        keyvals = []
+        for key, val in self.asdict().iteritems():
+            if isinstance(val, obj.BaseObject):
+                val = repr(val)  # Base objects' __str__ results are massive.
+            keyvals.append("\t%s = %s" % (key, val))
+
+        return "Entity(ID: %s;\n%s)" % (
+            self.identity,
+            "\n".join(keyvals))
 
     def __str__(self):
         return self.__unicode__()
 
-    def __repr__(self):
-        return self.__unicode__()
+    def __unicode__(self):
+        name = self.get_raw("Named/name")
+        if name == None:
+            name = str(self.identity)
+
+        kind = self.get_raw("Named/kind")
+        if kind == None:
+            kind = "Entity"
+
+        return "%s: %s" % (kind, name)
 
     # pylint: disable=protected-access
     def asdict(self):
@@ -461,21 +472,12 @@ class EntityManager(object):
         usual "Component/member") and expected values.
 
         Returns:
-        If only one attribute is provided then a SimpleIdentity is returned.
-
-        If more than one attribute is provided then at least one value must be
-        not None; an AlternateIdentity is returned.
+        AlternateIdenity initialized with the identity dict and this manager's
+        global prefix.
         """
-        if len(identity_dict) == 1:
-            for attribute, value in identity_dict.items():
-                return id.SimpleIdentity(
-                    global_prefix=self.identity_prefix,
-                    attribute=attribute,
-                    value=value)
-        else:
-            return id.AlternateIdentity(
-                global_prefix=self.identity_prefix,
-                identity_dict=identity_dict)
+        return id.AlternateIdentity(
+            global_prefix=self.identity_prefix,
+            identity_dict=identity_dict)
 
     def register_components(self, identity, components, source_collector):
         """Find or create an entity for identity and add components to it.
@@ -490,10 +492,6 @@ class EntityManager(object):
                 and describes the source of this information (usually the
                 string name of the collector function).
         """
-        if isinstance(identity, obj.BaseObject):
-            # Be nice and accept base objects.
-            identity = id.BaseObjectIdentity(identity)
-
         entity = Entity(
             entity_manager=self,
             components=comp.MakeComponentTuple(
@@ -619,6 +617,7 @@ class EntityManager(object):
             if collector.can_collect(wanted):
                 yield collector
 
+    # pylint: disable=protected-access
     def collect_for(self, wanted, use_hint=False):
         """Will find the appropriate collectors to satisfy the query.
 
@@ -634,15 +633,52 @@ class EntityManager(object):
             hint = None
 
         for collector in self.collectors_for(wanted):
+            # Dependency loops are disallowed. Some special cases could be made
+            # to work, but the complexity tradeoff is not worth it.
             if collector in self.collector_stack:
                 previous = self.collector_stack[-1]
                 raise RuntimeError(
-                    ("Collector dependency circle: %s is being called to "
-                    "collect %s for %s. However, %s is already on the stack:"
-                    "\n %s") % (
-                        collector.name, wanted, previous.name, collector.name,
-                        self.collector_stack))
-            else:
-                self.collector_stack.append(collector)
-            collector.ensure_collected(hint=hint)
-            self.collector_stack.remove(collector)
+                    ("Collector dependency loop: %s is being called to "
+                     "collect %s for %s. However, %s is already on the stack:"
+                     "\n %s") % (
+                         collector.name, wanted, previous.name, collector.name,
+                         self.collector_stack))
+
+            if collector.name in self.finished_collectors:
+                continue
+
+            self.collector_stack.append(collector)
+            logging.debug(
+                "%sCollector %s will now run (hint=%s)",
+                "." * (len(self.collector_stack) - 1),
+                collector.name,
+                hint)
+
+            for results in collector.collect(hint=hint):
+                if not isinstance(results, list):
+                    # Just one component yielded.
+                    results = [results]
+
+                # First result is either the first component or an identity.
+                first_result = results[0]
+                if isinstance(first_result, id.Identity):
+                    # If the collector gave as an identity then use that.
+                    identity = first_result
+                    results.pop(0)
+                else:
+                    # If collector didn't give us an identity then we build
+                    # one from the first component's first field. This is
+                    # a good heuristic for about 90% of the time.
+                    attribute = "%s/%s" % (
+                        type(first_result).__name__,
+                        first_result._fields[0])
+                    identity = self.identify({attribute: first_result[0]})
+
+                self.register_components(
+                    identity=identity,
+                    components=results,
+                    source_collector=collector.name)
+
+            if hint is None:
+                self.finished_collectors.add(collector.name)
+            self.collector_stack.pop()

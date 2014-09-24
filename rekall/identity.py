@@ -22,8 +22,6 @@ The Rekall Memory Forensics entity layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from rekall import obj
-
 
 class Identity(object):
     """Uniquely identifies something like a process or a user.
@@ -128,26 +126,32 @@ class Identity(object):
         return self.union(other)
 
 
-class SimpleIdentity(Identity):
-    def __init__(self, attribute, value, global_prefix=None):
-        super(SimpleIdentity, self).__init__()
-        self.id_path = "%s/%s=%s" % (
-            global_prefix,
-            attribute,
-            value)
-
-        self.attribute = attribute
-        self.value = value
-        self.global_prefix = global_prefix
-
+class UniqueObject(object):
     def __eq__(self, other):
-        if not isinstance(other, SimpleIdentity):
-            return False
+        return self is other
 
-        return self.id_path == other.id_path
+    def __hash__(self):
+        return id(self)
+
+
+class UniqueIdentity(Identity):
+    def __init__(self, global_prefix=None):
+        super(UniqueIdentity, self).__init__()
+        self.global_prefix = global_prefix
+        self.index = UniqueObject()
 
     def __unicode__(self):
-        return self.id_path
+        return "<unique %d>" % id(self.index)
+
+    def __hash__(self):
+        return id(self.index)
+
+    @property
+    def indices(self):
+        return (self.index,)
+
+    def __eq__(self, other):
+        return False
 
 
 class AlternateIdentity(Identity):
@@ -160,155 +164,53 @@ class AlternateIdentity(Identity):
     will result. (In the above example, this would be equivalent to two users
     with the same UID but different usernames.)
 
-    If you need to express an AND-like relationship use a SimpleIdentity with
-    a tuple attribute. (For example, two memory addresses are equivalent if
-    their offsets are the same *and* their DTB value is the same.)
+    If you need to express an AND-like relationship use a tuple attribute
+    (For example, two memory addresses are equivalent if their offsets are the
+    same *and* their DTB value is the same.)
     """
-    def __init__(self, identity_dict, global_prefix=None):
+    def __init__(self, indices=None, identity_dict=None, global_prefix=None):
         super(AlternateIdentity, self).__init__()
+
         self.global_prefix = global_prefix
 
-        # Save the identity dict because it'll be useful when we merge.
-        self.identity_dict = identity_dict
+        if indices:
+            self._indices = set(indices)
+        else:
+            self._indices = set()
 
-        # All attributes should be from the same components, so just grab the
-        # component name from the first attribute. It'll be validated below.
-        self.component_prefix = identity_dict.keys()[0].split("/")[0]
+        if identity_dict:
+            self._indices.update(self.indices_from_dict(
+                global_prefix=global_prefix,
+                identity_dict=identity_dict))
 
-        self.attributes = []
-        self.values = []
-        self._indices = []
-
-        for attribute, value in sorted(identity_dict.iteritems()):
-            component, key = attribute.split("/")
-            if self.component_prefix != component:
-                raise ValueError((
-                    "identity_dict can only contain attributes from one "
-                    "component, but %s was given.") % identity_dict)
-
-            self.attributes.append(key)
-            self.values.append(value)
-
-            # Build up indices now, so we don't have to do it every time.
-            if value is not None:
-                self._indices.append((global_prefix, attribute, value))
+    @staticmethod
+    def indices_from_dict(global_prefix, identity_dict):
+        for attribute, value in identity_dict.iteritems():
+            indices = getattr(value, "indices", None)
+            if indices:
+                # This means the value supports indexing, like an identity or
+                # a base object.
+                for index in indices:
+                    yield (global_prefix, attribute, index)
+            else:
+                # The value itself is an index.
+                yield (global_prefix, attribute, value)
 
     def __eq__(self, other):
-        if not isinstance(other, AlternateIdentity):
+        if ((not isinstance(other, AlternateIdentity)) or
+            (self.global_prefix != other.global_prefix)):
             return False
 
-        # Make sure we're comparing the comparable.
-        if ((self.component_prefix != other.component_prefix) or
-            (self.global_prefix != other.component_prefix) or
-            (self.attributes != other.attributes)):
-            return False
-
-        for idx, value in enumerate(self.values):
-            # If either side is None then we can't compare them.
-            if value is None or other.attributes[idx] is None:
-                continue
-
-            # We got here, so we have two values we can actually compare.
-            # Note that we don't need to compare every value - it would be
-            # a violation of the entity system's integrity if one value matched
-            # and another one didn't in an alternate identity.
-            return value == other.attributes[idx]
-
-        # At this point we know that we're comparing two identities of the same
-        # kind, but none of the values match or mismatch, so the result is
-        # undecidable.
-        return None
-
-    def union(self, other):
-        return AlternateIdentity(
-            identity_dict=self.identity_dict,
-            global_prefix=self.global_prefix)
+        return self.indices & other.indices
 
     @property
     def indices(self):
         return self._indices
 
     def __unicode__(self):
-        keyvals = []
-        for idx, value in enumerate(self.values):
-            if value is None:
-                continue
-            keyvals.append("%s=%s" % (self.attributes[idx], value))
+        return "(%s)" % ";".join(["%s/%s=%s" % x for x in self.indices])
 
-        return "%s/%s/(%s)" % (
-            self.global_prefix,
-            self.component_prefix,
-            ",".join(keyvals))
-
-
-class BaseObjectIdentity(Identity):
-    """Implements Identity using BaseObject memory locations.
-
-    This container will store:
-      obj_offset
-      obj_type
-      obj_vm, actually an AttributeDict with:
-        dtb (or 0 for physical address space)
-
-    The interface above is the same as what BaseObject would provide which
-    is useful when using the two interchangeably.
-
-    This class also supports pickling and, once unpickled, can rebuild the
-    original BaseObject instance using an active session.
-
-    TODO: This class is going to be drastically simplified.
-    """
-    def __init__(self, base_obj, follow_pointers=True):
-        super(BaseObjectIdentity, self).__init__()
-
-        # Dereference pointers by default so we don't have the same thing
-        # appear more than one time. One exception is void pointers.
-        if (follow_pointers and
-            isinstance(base_obj, obj.Pointer) and
-            base_obj.target != "void"):
-            base_obj = base_obj.dereference()
-
-        self.obj_offset = base_obj.obj_offset
-        self.obj_type = base_obj.obj_type
-        self.dtb = getattr(base_obj.obj_vm, "dtb", 0)
-
-        if isinstance(base_obj, obj.Pointer) and follow_pointers:
-            _base_obj = base_obj.dereference()
-            if _base_obj:
-                base_obj = base_obj
-
-    def restore_base_obj(self, session):
-        """Rebuild the original BaseObject instance."""
-        if self.dtb == 0:
-            vm = session.physical_address_space
-        elif self.dtb == session.kernel_address_space.dtb:
-            vm = session.kernel_address_space
-        else:
-            raise AttributeError(
-                "DTB does't match the kernel virtual address space.")
-
-        if session == None:
-            raise AttributeError(
-                "Cannot restore a base object without a valid session.")
-
-        return session.profile.Object(
-            type_name=self.obj_type,
-            offset=self.obj_offset,
-            vm=vm)
-
-    def __eq__(self, other):
-        if not isinstance(other, BaseObjectIdentity):
-            return False
-
-        return ((self.obj_type, self.obj_offset, self.dtb)
-                == (other.obj_type, other.obj_offset, other.dtb))
-
-    def __unicode__(self):
-        return "<%s 0x%x; dtb:0x%x>" % (
-            self.obj_type,
-            self.obj_offset,
-            self.dtb)
-
-    @property
-    def indices(self):
-        return set([(self.obj_type, self.obj_offset, self.dtb)])
+    def union(self, other):
+        return AlternateIdentity(
+            indices=self.indices | other.indices,
+            global_prefix=self.global_prefix)

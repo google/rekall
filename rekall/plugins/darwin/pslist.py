@@ -26,7 +26,7 @@ from rekall.plugins.darwin import common
 
 class DarwinPsxView(common.DarwinPlugin):
     __name = "psxview"
-    
+
     def render(self, renderer):
         collector_names = [
             c.name for c
