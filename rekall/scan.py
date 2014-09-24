@@ -189,7 +189,6 @@ class BaseScanner(object):
                 # Consume the next block in this range.
                 buffer_as = addrspace.BufferAddressSpace(
                     session=self.session,
-
                     data=overlap + self.address_space.base.read(
                         phys_chunk_offset, chunk_size),
 
