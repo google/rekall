@@ -138,14 +138,17 @@ class UnixTimestampObjectRenderer(renderer.ObjectRenderer):
     renders_type = "UnixTimeStamp"
     renderers = ["TextRenderer"]
 
-    def render_row(self, target, formatstring="", **_):
+    def render_row(self, target, details=False, **options):
+        if details:
+            return text.Cell.FromString(repr(target))
+
         if target:
             dt = target.as_datetime()
             if dt:
                 return text.Cell.FromString(target.display_datetime(dt))
 
         return text.Cell.FromString(
-            self.renderer.formatter.format_field("-", formatstring))
+            self.renderer.formatter.format_field("-", **options))
 
 
 class NoneRendererText(renderer.ObjectRenderer):

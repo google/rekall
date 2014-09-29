@@ -271,7 +271,7 @@ class VAD(common.WinProcessFilter):
 
         return unicode(filename)
 
-    def render_vadroot(self, renderer, vad_root):
+    def render_vadroot(self, renderer, vad_root, task):
         renderer.table_header([('VAD', 'offset', '[addrpad]'),
                                ('lev', 'depth', '>3'),
                                ('Start Addr', 'start_pfn', '[addrpad]'),
@@ -282,23 +282,31 @@ class VAD(common.WinProcessFilter):
                                ('Protect', 'protection', '!20'),
                                ('Filename', 'filename', '')])
 
+        task_as = task.get_process_address_space()
+
         for vad in vad_root.traverse():
             # Apply filters if needed.
             if self.regex and not re.search(
-                self.regex, self._get_filename(vad)):
+                    self.regex, self._get_filename(vad)):
                 continue
 
             if (self.offset is not None and
-                not vad.Start < self.offset < vad.End):
+                    not vad.Start < self.offset < vad.End):
                 continue
+
+            exe = ""
+            if "EXECUTE" in str(vad.u.VadFlags.ProtectionEnum):
+                exe = "Exe"
 
             renderer.table_row(
                 vad, vad.obj_context.get('depth', 0),
-                vad.Start,
-                vad.End,
+
+                # The vad region itself exists in the process address space.
+                self.profile.Pointer(value=vad.Start, vm=task_as),
+                self.profile.Pointer(value=vad.End, vm=task_as),
                 vad.CommitCharge if vad.CommitCharge < 0x7fffffff else -1,
                 "Private" if vad.u.VadFlags.PrivateMemory > 0 else "Mapped",
-                "Exe" if "EXECUTE" in str(vad.u.VadFlags.ProtectionEnum) else "",
+                exe,
                 vad.u.VadFlags.ProtectionEnum,
                 self._get_filename(vad))
 
@@ -308,7 +316,7 @@ class VAD(common.WinProcessFilter):
             renderer.format("Pid: {0} {1}\n", task.UniqueProcessId,
                             task.ImageFileName)
             renderer.RenderProgress("Pid: %s" % task.UniqueProcessId)
-            self.render_vadroot(renderer, task.RealVadRoot)
+            self.render_vadroot(renderer, task.RealVadRoot, task)
 
 
 class VADDump(core.DirectoryDumperMixin, VAD):

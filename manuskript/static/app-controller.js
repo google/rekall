@@ -86,13 +86,8 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
         if (angular.equals(node.old_source, node.source)) {
           node.state = 'show';
         } else {
-          // Node has changed - let the server know. We change the ID of the
-          // node to represent that the sources have changed.  Therefore there
-          // is a 1:1 mapping between each instance of the cell's source and its
-          // ID.
-          node.id = Date.now();
-          $scope.uploadDocument();
           node.state = 'render';
+          $scope.uploadDocument();
         }
       }
     };
@@ -331,7 +326,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     $scope.renderAllNodes = function() {
       for (var i = 0; i < $scope.nodes.length; ++i) {
         var node = $scope.nodes[i];
-        node.state = "render";
+        $scope.renderNode(node);
       }
     };
 
@@ -354,9 +349,12 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 
         // Only copy the minimum set of attributes from the node for storage.
         cells.push({
-          source: node.source, // Private plugin specific data for this node.
-          type: node.type,     // The type of this cell (used to invoke the right plugin).
-          id: node.id,         // Retain the node id.
+          // Need to use angular.copy to have angular remove its own pollution
+          // from this object (i.e. various watchers and scope things).
+          source: angular.copy(node.source), // Private plugin specific data for this node.
+          type: node.type,                   // The type of this cell (used to
+                                             // invoke the right plugin).
+          id: node.id,                       // Retain the node id.
         });
       };
 

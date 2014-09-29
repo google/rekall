@@ -31,11 +31,11 @@ body {
     padding-top: 5px;
     padding-bottom: 5px;
     padding-left: 1em;
-    cursor: pointer;
+    cursor: default;
 }
 
 .cell pre {
-    cursor: pointer;
+    cursor: default;
 }
 
 .cell .well {

@@ -1,0 +1,73 @@
+<rekall-context-menu object='object' bindonce="template">
+  <!-- If the object has a details attribute, we always show it instead of our
+  rendering. This is equivalent to the repr() of the object.
+    -->
+  <span bo-if="object.details">
+    <samp bo-bind="object.details"/>
+  </span>
+
+  <span bo-if="!object.details">
+    <span bo-switch="template">
+
+      <span bo-switch-when="Address">
+        <addrpad object="object.value" />
+      </span>
+
+      <span bo-switch-when="Pointer">
+        <addrpad object="object.target" pad=14 />
+      </span>
+
+      <span bo-switch-when="PaddedAddress">
+        <addrpad object="object.value" pad=14 />
+      </span>
+
+      <span bo-switch-when="AddressSpace">
+        <samp bo-text="object.name"/>
+      </span>
+
+      <span bo-switch-when="Enumeration">
+        <samp class="enum" bo-text="object.enum"/> (<samp bo-text="object.value"/>)
+      </span>
+
+      <span bo-switch-when="Literal">
+        <samp bo-text="object.value"/>
+      </span>
+
+      <span bo-switch-when="NativeType">
+        <samp bo-bind="object.value"></samp>
+      </span>
+
+      <span bo-switch-when="NoneObject">
+        <samp tooltip="{{object.reason}}" class="NoneObject">-</samp>
+      </span>
+
+      <span bo-switch-when="BaseObject">
+        <samp bo-bind="object.type_name"/>@<addrpad object="object.offset"/>
+      </span>
+
+      <span bo-switch-when="Struct">
+        <addrpad object="object.offset" />
+      </span>
+
+      <span bo-switch-when="UnixTimeStamp">
+        <samp bo-bind="object.epoch * 1000 | date:'medium'"></samp>
+      </span>
+
+      <span bo-switch-when="_EPROCESS">
+        <samp class="process">
+          <span bo-bind="object.Cybox.Name"/> (<span bo-bind="object.Cybox.PID"/>)
+        </samp>
+      </span>
+
+      <span bo-switch-when="bool">
+        <span class="glyphicon"
+              bo-class="{'glyphicon-ok': object, 'glyphicon-remove': !object}"/>
+      </span>
+
+      <span bo-switch-default>
+        <samp bo-bind="object"/>
+      </span>
+
+    </span>
+  </span>
+</rekall-context-menu>

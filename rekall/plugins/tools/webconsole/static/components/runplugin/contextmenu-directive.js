@@ -2,9 +2,12 @@
 (function() {
 
   var module = angular.module('rekall.runplugin.contextMenu.directive',
-                              ['rekall.runplugin.objectActions.service']);
+                              ['rekall.runplugin.objectActions.service',
+                               'ui.bootstrap']);
 
-  module.directive('rekallContextMenu', function(rekallObjectActionsService, $timeout) {
+  // This directive creates a context menu around a Rekall object.
+  module.directive('rekallContextMenu', function(
+    rekallObjectActionsService, $modal, $timeout) {
     return {
       restrict: 'E',
       scope: {
@@ -22,54 +25,55 @@
             'top': 0
           }
         };
-
-
-        $scope.showContextMenu = this.showContextMenu = function(newMenuItems, x, y) {
-          $scope.menu.items = newMenuItems;
-          $scope.menu.visible = true;
-          $scope.menu.style.left = x;
-          $scope.menu.style.top = y;
-        }
-
-        this.hideContextMenu = function() {
-          menu.visible = false;
-        };
-
-        $scope.callItem = function(item, event) {
-          item.action($scope);
-          event.stopPropagation();
-          menu.visible = false;
-        };
       },
 
       link: function(scope , element, attrs) {  // jshint ignore:line
+        scope.showContextMenu = function(newMenuItems, x, y) {
+          scope.menu.items = newMenuItems;
+          scope.menu.visible = true;
+          scope.menu.style.left = x;
+          scope.menu.style.top = y;
+        }
+
+        scope.callItem = function(item, event) {
+          event.stopPropagation();
+
+          item.action(scope);
+          scope.menu.visible = false;
+
+          return false;
+        };
+
         if (scope.object !== null &&
-            rekallObjectActionsService.hasActions(scope.object)) {
+            rekallObjectActionsService.hasMenuItems(scope.object)) {
+
+          // This object has actions.
+          scope.actionable = true;
 
           // Add click handlers
           element.click(function(event) {
-            var actions = rekallObjectActionsService.actionsForObject(scope.object);
+            var items = rekallObjectActionsService.menuItemsForObject(scope.object);
 
             // Take into account window scrolling.
             $timeout(function () {
               scope.showContextMenu(
-                actions, event.pageX, event.pageY - $(window).scrollTop());
+                items, event.pageX, event.pageY - $(window).scrollTop());
+
+
+              var documentClickHandler = function(event) {
+                scope.menu.visible = false;
+                $(document).unbind('click', documentClickHandler);
+                scope.$apply();
+
+                event.stopPropagation();
+              };
+
+              $(document).bind('click', documentClickHandler);
             });
+
+            event.stopPropagation();
           });
         }
-
-        var documentClickHandler = function(event) {  // jshint ignore:line
-          if (!scope.menu.visible) {
-            return;
-          }
-
-          scope.menu.visible = false;
-        };
-
-        $(document).bind('click', documentClickHandler);
-        scope.$on('$destroy', function() {
-          $(document).unbind('click', documentClickHandler);
-        });
       },
       templateUrl: '/rekall-webconsole/components/runplugin/contextmenu.html',
     };

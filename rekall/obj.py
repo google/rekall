@@ -848,7 +848,7 @@ class Void(Pointer):
         return "0x{0:08X}".format(self.v())
 
     def __repr__(self):
-        return "Void[{0} {1}] (0x{2:08X})".format(
+        return "Void[{0} {1}] (0x{2:08x})".format(
             self.__class__.__name__, self.obj_name or '', self.v())
 
     def __nonzero__(self):
@@ -2101,12 +2101,6 @@ class Profile(object):
             if vm is None:
                 vm = self.session.GetParameter("default_address_space")
 
-            if not vm.is_valid_address(offset):
-                # If we can not instantiate the object here, we just error out:
-                return NoneObject(
-                    "Invalid Address 0x{0:08X}, instantiating {1}".format(
-                        offset, name))
-
         kwargs['profile'] = self
 
         # Compile the type on demand.
@@ -2223,3 +2217,7 @@ class ProfileModification(object):
         Args:
            A profile to be modified.
         """
+
+
+class Address(BaseObject):
+    """A BaseObject representing an address."""

@@ -221,6 +221,15 @@ class ObjectRenderer(object):
         """Return a suitable cache key."""
         return repr(item)
 
+    def DelegateObjectRenderer(self, item):
+        """Create an object renderer for an item based on this object renderer.
+
+        This is useful when delegating to render something else.
+        """
+        renderer_cls = self.ForTarget(item, self.renderer)
+        return renderer_cls(session=self.session, renderer=self.renderer,
+                            **self.options)
+
     def render_header(self, name=None, **options):
         """This should be overloaded to return the header Cell.
 

@@ -12,7 +12,7 @@
       if ($scope.node.state == 'render') {
         $scope.node.rendered.caption = $scope.node.source.caption;
         $scope.showNode($scope.node);
-      }
+      };
     });
 
     $scope.minimizeToggle = function(event) {
@@ -40,7 +40,10 @@
         var file = $files[i];
 
         $scope.upload = $upload.upload({
-          url: 'rekall/upload/files',
+          url: 'rekall/upload/' + $scope.node.id,
+          data: {
+            type: file.type
+          },
           file: file,
         }).success(function(data, status, headers, config) {
           for (var i=0; i < $scope.node.source.files.length; i++ ) {

@@ -445,21 +445,28 @@ class WinProcessFilter(WindowsCommandPlugin):
         self.proc_regex = proc_regex
 
         # Sometimes its important to know if any filtering is specified at all.
-        self.filtering_requested = bool(self.pids or self.proc_regex)
+        self.filtering_requested = bool(self.pids or self.proc_regex or
+                                        self.eprocess)
 
     def filter_processes(self):
         """Filters eprocess list using phys_eprocess and pids lists."""
-        for proc in self.list_eprocess():
-            if not self.filtering_requested:
-                yield proc
+        # If eprocess are given specifically only use those.
+        if self.eprocess:
+            for task in self.list_from_eprocess():
+                yield task
 
-            else:
-                if int(proc.pid) in self.pids:
+        else:
+            for proc in self.list_eprocess():
+                if not self.filtering_requested:
                     yield proc
 
-                elif self.proc_regex and self.proc_regex.match(
-                        utils.SmartUnicode(proc.name)):
-                    yield proc
+                else:
+                    if int(proc.pid) in self.pids:
+                        yield proc
+
+                    elif self.proc_regex and self.proc_regex.match(
+                            utils.SmartUnicode(proc.name)):
+                        yield proc
 
     def virtual_process_from_physical_offset(self, physical_offset):
         """Tries to return an eprocess in virtual space from a physical offset.
@@ -490,10 +497,7 @@ class WinProcessFilter(WindowsCommandPlugin):
             eprocess = self.profile._EPROCESS(
                 offset=eprocess_offset, vm=self.kernel_address_space)
 
-            for task in eprocess.ActiveProcessLinks:
-                # TODO: Need to filter out the PsActiveProcessHead (which is not
-                # really an _EPROCESS)
-                yield task
+            yield eprocess
 
     def list_from_csrss_handles(self, seen=None):
         """Enumerate processes using the csrss.exe handle table"""

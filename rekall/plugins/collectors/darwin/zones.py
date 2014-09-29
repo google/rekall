@@ -43,7 +43,7 @@ class DarwinZoneCollector(common.DarwinEntityCollector):
                     count_active=int(zone.count),
                     count_free=int(zone.m("sum_count") - zone.count),
                     element_size=zone.elem_size,
-                    tracks_pages=bool(zone.use_page_list),
+                    tracks_pages=bool(zone.m("use_page_list")),
                     allows_foreign=bool(zone.allows_foreign)),
                 self.entity_manager.MemoryObject(
                     base_object=zone,

@@ -43,7 +43,6 @@
       }
     });
 
-
     // When data appears in the plugin_state parameter we want to copy _some_ of
     // it into node.rendered for rendering.
     var copyStateToRendered = function() {
@@ -55,22 +54,22 @@
       $scope.node.rendered = angular.copy($scope.node.plugin_state.elements);
     };
 
-    $scope.pushSources = function() {
-      if ($scope.node.source.plugin) {
+    $scope.pushSources = function(node) {
+      if (node.source.plugin) {
         var state = rekallJsonDecoderService.createEmptyState();
         var queue = [];
 
         // We hold the plugin state here.
-        $scope.node.plugin_state = state;
+        node.plugin_state = state;
 
         manuskriptNetworkService.callServer('rekall/runplugin', {
           params: {
-            cell_id: $scope.node.id,
-            source: angular.copy($scope.node.source),
+            cell_id: node.id,
+            source: angular.copy(node.source),
           },
           onclose: function(msg) {  // jshint ignore:line
             // Rendering is complete - show the node.
-            $scope.showNode($scope.node);
+            node.state = "show";
           },
           onmessage: function(jsonOutput) {
             for (var i = 0; i < jsonOutput.length; ++i) {
@@ -88,12 +87,12 @@
           }});
 
       } else {
-        $scope.node.plugin_state = {
+        node.plugin_state = {
           stderr: ['No Rekall plugin was selected.'],
           stdout: [],
           error: []
         };
-        $scope.node.state = 'show';
+        node.state = "show";
       }
     };
 
@@ -106,8 +105,8 @@
     };
 
     $scope.$watch('node.state', function() {
-      if ($scope.node.state === "render") {
-        $scope.pushSources();
+      if ($scope.node.state == 'render') {
+        $scope.pushSources($scope.node);
       };
     });
 
@@ -115,6 +114,11 @@
       var body = $($event.target).parents(".panel").first().find(".panel-body");
       body.toggleClass("minimized");
       $event.stopPropagation();
+    };
+
+    $scope.recalculate = function() {
+      $scope.node.id = Date.now();
+      $scope.renderNode($scope.node);
     };
   });
 

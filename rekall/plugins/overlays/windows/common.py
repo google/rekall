@@ -978,7 +978,7 @@ class _EX_FAST_REF(obj.Struct):
 
     def dereference(self, vm=None):
         if self.target is None:
-            raise TypeError(
+            raise AttributeError(
                 "No target specified for dereferencing an _EX_FAST_REF.")
 
         return self.dereference_as(self.target)

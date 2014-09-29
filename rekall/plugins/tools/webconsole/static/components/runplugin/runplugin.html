@@ -78,28 +78,35 @@
       <div tooltip="{{node.source.plugin.short_description}}" class="panel-title">
         <div class="btn-group">
           <button type="button" class="btn btn-default"
-                  tooltip="Expand or Collapse Cell"
+                  tooltip="Expand or Collapse Cell" tooltip-append-to-body
                   ng-click="minimizeToggle($event)">
             <span class="glyphicon glyphicon-resize-full"></span>
           </button>
 
           <button type="button" class="btn btn-default"
                   ng-hide="node.state=='edit'"
-                  tooltip="Edit plugin" data-container="body"
+                  tooltip="Edit plugin" tooltip-append-to-body
                   ng-click="editNode(node)">
             <span class="glyphicon glyphicon-edit"></span>
           </button>
 
           <button type="button" class="btn btn-success"
                   ng-hide="node.state!='edit'"
+                  tooltip="Submit" tooltip-append-to-body
                   ng-click="renderNode()">
             <span class="glyphicon glyphicon-ok"></span>
           </button>
 
+          <button type="button" class="btn btn-default"
+                  tooltip="Recalculate" tooltip-append-to-body
+                  ng-click="recalculate()">
+            <span class="glyphicon glyphicon-repeat"></span>
+          </button>
+
           <a target="_self" class="btn btn-default"
              ng-if="node.plugin_state.filenames"
-             tooltip="Download all files"
-             href="/rekall/downloads/{{node.source.plugin.name}}/{{node.source.cookie}}">
+             tooltip="Download all files" tooltip-append-to-body
+             href="/downloads/{{node.id}}?filename={{node.source.plugin.name}}">
             <span class="glyphicon glyphicon-download"></span>
           </a>
         </div>

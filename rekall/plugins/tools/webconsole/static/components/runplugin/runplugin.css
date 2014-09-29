@@ -89,3 +89,20 @@
     background-color: #FF9999 !important;
 }
 
+.actionable {
+    color: blue;
+    cursor: context-menu;
+}
+
+modal.table {
+    word-break: break-all;
+}
+
+addrpad {
+   word-break: normal;
+   text-align: right;
+}
+
+.modal-lg {
+    width: 80%;
+}

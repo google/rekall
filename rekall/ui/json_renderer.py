@@ -65,9 +65,11 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
     def _encode_value(self, item, **options):
         object_renderer_cls = self.ForTarget(item, self.renderer)
 
-        return object_renderer_cls(
+        result = object_renderer_cls(
             session=self.session,
             renderer=self.renderer).EncodeToJsonSafe(item, **options)
+
+        return result
 
     def _decode_value(self, item, options):
         object_renderer_cls = self.FromEncoded(item, self.renderer)
@@ -214,7 +216,7 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
         return super(StateBasedObjectRenderer, self).DecodeFromJsonSafe(
             value, options)
 
-    def EncodeToJsonSafe(self, item, **options):
+    def EncodeToJsonSafe(self, item, details=False, **options):
         state = self.GetState(item, **options)
         if state.__class__ is not dict:
             raise EncodingError(
@@ -232,6 +234,10 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
             state["id"] = object_id
         except AttributeError:
             pass
+
+        # Add the details view if required.
+        if details:
+            state["details"] = repr(item)
 
         return super(StateBasedObjectRenderer, self).EncodeToJsonSafe(
             state, **options)

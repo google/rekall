@@ -69,7 +69,7 @@ class Formatter(string.Formatter):
     # This comes from http://docs.python.org/library/string.html
     # 7.1.3.1. Format Specification Mini-Language
     standard_format_specifier_re = re.compile(r"""
-(?P<fill>[^{}<>=^bcdeEfFgGnLosxX0-9])?  # The fill parameter. This can not be a
+(?P<fill>[^{}<>=^bcdeEfFgGnLorsxX0-9])?  # The fill parameter. This can not be a
                                         # format string or it is ambiguous.
 (?P<align>[<>=^])?     # The alignment.
 (?P<sign>[+\- ])?      # Sign extension.
@@ -78,7 +78,7 @@ class Formatter(string.Formatter):
 (?P<width>\d+)?        # The minimum width.
 (?P<comma>,)?
 (?P<precision>.\d+)?   # Precision
-(?P<type>[bcdeEfFgGnosxXL%])?  # The format string (Not all are supported).
+(?P<type>[bcdeEfFgGnorsxXL%])?  # The format string (Not all are supported).
 """, re.X)
 
     def __init__(self, session=None):
@@ -481,11 +481,14 @@ class TextObjectRenderer(renderer.ObjectRenderer):
 
         return header_cell
 
-    def render_row(self, target, **options):
+    def render_row(self, target, details=False, **options):
         """Render the target suitably.
 
         Args:
           target: The object to be rendered.
+
+          details: If specified, renders a detailed form of the object (by
+             default calls the object's repr() method.).
 
           options: A dict containing rendering options. The options are created
             from the column options, overriden by the row options and finally
@@ -496,6 +499,9 @@ class TextObjectRenderer(renderer.ObjectRenderer):
         Returns:
           A Cell instance containing the rendering of target.
         """
+        if details:
+            options["formatstring"] = "r"
+
         return self.formatter.format_cell(target, **options)
 
 

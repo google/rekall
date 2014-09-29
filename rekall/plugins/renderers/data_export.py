@@ -35,6 +35,7 @@ which is not relevant without access to the original image.
 """
 
 from rekall.ui import json_renderer
+from rekall.plugins.renderers import json_storage
 
 
 class DataExportRenderer(json_renderer.JsonRenderer):
@@ -45,13 +46,15 @@ class DataExportRenderer(json_renderer.JsonRenderer):
     def table_row(self, *args, **options):
         result = {}
         for i, arg in enumerate(args):
-            column_spec = self.table.column_specs[i]
+            column_spec = self.table.column_specs[i].copy()
+            column_spec.update(options)
+
             object_renderer = self.object_renderers[i]
 
             column_name = column_spec.get("cname", column_spec.get("name"))
             if column_name:
                 result[column_name] = self.encoder.Encode(
-                    arg, type=object_renderer, **options)
+                    arg, type=object_renderer, **column_spec)
 
         self.SendMessage(["r", result])
 
@@ -71,6 +74,10 @@ class NativeDataExportObjectRenderer(json_renderer.JsonObjectRenderer):
 
 
 class DataExportObjectRenderer(json_renderer.StateBasedObjectRenderer):
+    renderers = ["DataExportRenderer"]
+
+
+class DataExportNoneObjectRenderer(json_storage.NoneObjectRenderer):
     renderers = ["DataExportRenderer"]
 
 
@@ -102,7 +109,13 @@ class DataExportPointerObjectRenderer(DataExportBaseObjectRenderer):
     def EncodeToJsonSafe(self, item, **options):
         result = super(DataExportPointerObjectRenderer, self).EncodeToJsonSafe(
             item, **options)
+
         result["target"] = item.v()
+
+        # Also encode the target object.
+        target_obj = item.deref()
+        target_obj_renderer = self.DelegateObjectRenderer(target_obj)
+        result["target_obj"] = target_obj_renderer.EncodeToJsonSafe(target_obj)
 
         return result
 

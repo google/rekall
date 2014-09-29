@@ -24,6 +24,7 @@ __author__ = "Mikhail Bushkov <realbushman@gmail.com>"
 
 
 import argparse
+import hashlib
 import logging
 import os
 import cStringIO
@@ -160,7 +161,7 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
 
         # Store files under this cell_id This prevents this cell's files from
         # being mixed with other cell's files.
-        full_path = "%s.files/%s" % (self.cell_id, filename)
+        full_path = "%s/files/%s" % (self.cell_id, filename)
 
         # Export the fact that we wrote a file using the special "f" command.
         self.SendMessage(["file", filename, full_path])
@@ -170,6 +171,15 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
 
         return self.worksheet.Open(full_path)
 
+
+
+def GenerateCacheKey(state):
+    data = json.dumps(state, sort_keys=True)
+    hash = hashlib.md5(data).hexdigest()
+    try:
+        return "%s-%s" % (hash, state["plugin"]["name"])
+    except KeyError:
+        return hash
 
 
 class WebConsoleObjectRenderer(data_export.NativeDataExportObjectRenderer):
@@ -245,35 +255,27 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
     @classmethod
     def DownloadManager(cls, app):
 
-        @app.route("/files/<filename>")
-        def get_file(filename):  # pylint: disable=unused-variable
+        @app.route("/files/<cell_id>/<filename>")
+        def get_file(cell_id, filename):  # pylint: disable=unused-variable
             """Serve embedded files from the worksheet."""
             worksheet = app.config['worksheet']
-            inventory = worksheet.GetData("files_inventory") or []
-            for item in inventory:
-                if item["filename"] == filename:
-                    data = worksheet.GetData(item["path"], raw=True)
-                    return data, 200, {"content-type": item["content-type"]}
+            mimetype = request.args.get("type", "binary/octet-stream")
+
+            data = worksheet.GetData("%s/%s" % (cell_id, filename), raw=True)
+            if data:
+                return data, 200, {"content-type": mimetype}
 
             # Not found in inventory.
             return "", 404
 
-        @app.route("/rekall/upload/files", methods=["POST"])
-        def upload():   # pylint: disable=unused-variable
+        @app.route("/rekall/upload/<cell_id>", methods=["POST"])
+        def upload(cell_id):   # pylint: disable=unused-variable
             worksheet = app.config['worksheet']
-            inventory = worksheet.GetData("files_inventory") or []
-            try:
-                for in_fd in request.files.itervalues():
-                    # Path in the archive.
-                    path = "files/%s" % in_fd.filename
-                    with worksheet.Create(path) as out_fd:
-                        inventory.append({"content-type": in_fd.mimetype,
-                                          "path": path,
-                                          "filename": in_fd.filename})
-
-                        utils.CopyFDs(in_fd, out_fd)
-            finally:
-                worksheet.StoreData("files_inventory", inventory)
+            for in_fd in request.files.itervalues():
+                # Path in the archive.
+                path = "%s/%s" % (cell_id, in_fd.filename)
+                with worksheet.Create(path) as out_fd:
+                    utils.CopyFDs(in_fd, out_fd)
 
             return "OK", 200
 
@@ -282,38 +284,18 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             worksheet = app.config['worksheet']
 
             data = cStringIO.StringIO()
-            file = {}
             with zipfile.ZipFile(
                 data, mode="w", compression=zipfile.ZIP_DEFLATED) as out_fd:
-                cells = worksheet.GetData("notebook_cells") or []
-                for cell in cells:
-                    if str(cell["id"]) != str(cell_id):
+                path = "%s/" % cell_id
+                stored_files = set()
+
+                for filename in worksheet.ListFiles():
+                    # De-duplicate base on filename.
+                    if filename in stored_files:
                         continue
 
-                    source = cell["source"]
-                    for file in source["files"]:
-                        filename = "files/%s" % file["name"]
-
-                        with worksheet.Open(filename) as in_fd:
-                            # Limit reading to a reasonable size (10Mb).
-                            out_fd.writestr(
-                                file["name"],
-                                in_fd.read(100000000))
-
-            return data.getvalue(), 200, {
-                "content-type": 'binary/octet-stream',
-                'content-disposition': "attachment; filename=\"%s.zip\"" % (
-                    file.get("name", "unknown"))}
-
-        @app.route("/rekall/downloads/<plugin_name>/<cookie>")
-        def download_plugin(plugin_name, cookie):   # pylint: disable=unused-variable
-            worksheet = app.config['worksheet']
-
-            data = cStringIO.StringIO()
-            with zipfile.ZipFile(
-                data, mode="w", compression=zipfile.ZIP_DEFLATED) as out_fd:
-                path = "%s_%s.files/" % (plugin_name, cookie)
-                for filename in worksheet.ListFiles():
+                    stored_files.add(filename)
+                    # Copy all files under this cell id.
                     if filename.startswith(path):
                         with worksheet.Open(filename) as in_fd:
                             # Limit reading to a reasonable size (10Mb).
@@ -324,8 +306,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             return data.getvalue(), 200, {
                 "content-type": 'binary/octet-stream',
                 'content-disposition': "attachment; filename=\"%s.zip\"" % (
-                    plugin_name)}
-
+                    request.args.get("filename", "unknown"))}
 
     @classmethod
     def PlugManageDocument(cls, app):
@@ -349,6 +330,30 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             cells = worksheet.GetData("notebook_cells") or []
             ws.send(json.dumps(cells))
 
+
+        @app.route("/downloads/worksheet")
+        def download_worksheet():  # pylint: disable=unused-variable
+            worksheet = app.config["worksheet"]
+            data = cStringIO.StringIO()
+            with zipfile.ZipFile(
+                data, mode="w", compression=zipfile.ZIP_DEFLATED) as out_fd:
+                cells = worksheet.GetData("notebook_cells") or []
+                out_fd.writestr("notebook_cells", json.dumps(cells))
+
+                for cell in cells:
+                    # Copy all the files under this cell id:
+                    path = "%s/" % cell["id"]
+                    for filename in worksheet.ListFiles():
+                        if filename.startswith(path):
+                            with worksheet.Open(filename) as in_fd:
+                                # Limit reading to a reasonable size (10Mb).
+                                out_fd.writestr(filename, in_fd.read(100000000))
+
+            return data.getvalue(), 200, {
+                "content-type": 'binary/octet-stream',
+                'content-disposition': "attachment; filename='rekall_file.zip'"
+                }
+
     @classmethod
     def PlugRunPluginsIntoApp(cls, app):
         sockets = Sockets(app)
@@ -364,7 +369,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             worksheet = app.config["worksheet"]
 
             # If the data is cached locally just return it.
-            cache_key = "%s/%s" % (cell_id, plugin_name)
+            cache_key = "%s/%s" % (cell_id, GenerateCacheKey(source))
             cache = worksheet.GetData(cache_key)
             if cache:
                 logging.debug("Dumping request from cache")
@@ -380,15 +385,19 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             keyword_args = {}
             for arg in fake_parser.arguments:
                 if arg["positional"]:
-                    cmdline_args.append(source["arguments"][arg["name"]])
+                    value = source["arguments"][arg["name"]]
+                    if value is not None:
+                        cmdline_args.append(utils.SmartUnicode(value))
+
                 else:
                     arg_value = source["arguments"].get(arg["name"], "")
                     if arg_value == "":
                         continue
-                    keyword_args[arg["name"]] = arg_value
+                    keyword_args[arg["name"]] = utils.SmartUnicode(arg_value)
 
             for arg_name, arg_value in keyword_args.iteritems():
-                cmdline_args.extend(["--" + arg_name, arg_value])
+                cmdline_args.extend(
+                    ["--" + arg_name, utils.SmartStr(arg_value)])
 
             parser = argparse.ArgumentParser()
             plugin_cls.args(parser)
@@ -399,7 +408,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
 
             output = cStringIO.StringIO()
             renderer = WebConsoleRenderer(
-                session=rekall_session, output=output,
+                session=rekall_session, output=output, cell_id=cell_id,
                 ws=ws, worksheet=worksheet)
 
             with renderer.start():

@@ -10,7 +10,6 @@
         $scope.showNode($scope.node);
       }
     });
-
   });
 
 })();

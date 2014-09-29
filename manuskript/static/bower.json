@@ -27,5 +27,8 @@
   },
   "devDependencies": {
     "angular-mocks": "~1.2.16"
+  },
+  "resolutions": {
+    "angular-bootstrap": "~0.11.2"
   }
 }

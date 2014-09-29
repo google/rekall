@@ -36,7 +36,7 @@
           <a target="_self" class="btn btn-default"
              ng-if="node.source.files.length"
              tooltip="Download all files" data-container="body"
-             href="/downloads/{{node.id}}">
+             href="/downloads/{{node.id}}?filename={{node.source.caption}}">
             <span class="glyphicon glyphicon-download"></span>
           </a>
 
@@ -62,7 +62,8 @@
                ng-class="{selected: $index == selected}"
                class="well well-sm rekall-embedded-image
                       rekall-zoom-{{node.source.size}}">
-            <img ng-switch-when="image/jpeg" src="files/{{file.name}}"/>
+            <img ng-switch-when="image/jpeg"
+                 src="files/{{node.id}}/{{file.name}}?type={{file.type}}"/>
 
             <button ng-switch-default class="btn btn-default">
               <span class="glyphicon glyphicon-file" />

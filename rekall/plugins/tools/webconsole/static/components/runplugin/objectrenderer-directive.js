@@ -32,19 +32,22 @@
     }
   });
 
+  // All the available templates - must be kept in sync with the
+  // objectrenderer.html template.
   var templates = {
-    'Address': '<addrpad object="object" pad=0 />',
-    'Pointer': '<addrpad object="object.target" />',
-    'PaddedAddress': '<addrpad object="object.value" pad=14 />',
-    'AddressSpace': '{{object.name}}',
-    'Enumeration': '<samp class="enum">{{object.enum}} ({{object.value}})</samp>',
-    'Literal': '<samp>{{object.value}}</samp>',
-    'NativeType': '<samp bo-bind="object.value"></samp>',
-    'NoneObject': '<samp tooltip="{{object.reason}}" class="NoneObject">-</samp>',
-    'Struct': '<addrpad object="object.offset"/>',
-    'UnixTimeStamp': '<samp bo-bind="object.epoch*1000 | date:\'medium\'"</samp>',
-    '_EPROCESS': '<samp class="process"><span bo-bind="object.Cybox.Name"/> (<span bo-bind="object.Cybox.PID"/>)</samp>',
-    'bool': '<span class="glyphicon" bo-class="{\'glyphicon-ok\': object, \'glyphicon-remove\': !object}"/></span>',
+    'Address': true,
+    'BaseObject': true,
+    'Pointer': true,
+    'PaddedAddress': true,
+    'AddressSpace': true,
+    'Enumeration': true,
+    'Literal': true,
+    'NativeType': true,
+    'NoneObject': true,
+    'Struct': true,
+    'UnixTimeStamp': true,
+    '_EPROCESS': true,
+    'bool': true,
   };
 
   var getTemplate = function(item) {
@@ -58,30 +61,26 @@
       // generally happen by well behaving plugins that pass Address objects
       // to the renderer by it sometimes happens.
       if (angular.isNumber(item) && item > 10000) {
-        return templates['Address'];
+        return "Address"
 
         // Bools are sent as json objects.
       } else if (jQuery.type(item) == 'boolean') {
-        return templates['bool'];
+        return 'bool';
       } else {
-        return "<samp bo-bind='object'></samp>";
+        return jQuery.type(item);
       };
     }
 
     if (item.mro != null) {
       for (var i = 0; i < item.mro.length; ++i) {
-        var template = templates[item.mro[i]];
-        if (template !== undefined) {
-          return template
+        if (templates[item.mro[i]]) {
+          return item.mro[i];
         }
       }
     }
-
-    return "<samp bo-bind='object'></samp>";
   };
 
   module.directive('rekallObject', function($compile, $timeout) {
-
     return {
       restrict: 'E',
       scope: {
@@ -92,12 +91,12 @@
           return;
         };
 
-        var template = getTemplate(scope.object);
-        if (template) {
-          element.html($("<rekall-context-menu object='object' bindonce>").html(template));
-          $compile(element.contents())(scope);
+        scope.template = getTemplate(scope.object);
+        if (scope.template == null) {
+          console.log("No renderer for " + scope.object);
         };
       },
+      templateUrl: '/rekall-webconsole/components/runplugin/objectrenderer.html',
     };
   });
 })();

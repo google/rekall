@@ -6,36 +6,81 @@
                                'rekall.runplugin.pluginRegistry.service']);
 
   var serviceImplementation = function(
-    manuskriptCoreNodePluginRegistryService, rekallPluginRegistryService) {
-    var registeredActions = {};
+    manuskriptCoreNodePluginRegistryService, rekallPluginRegistryService, $modal) {
 
-    this.registerAction = function(objType, action, title, description) {
-      if (registeredActions[objType] === undefined) {
-        registeredActions[objType] = []
-      }
+    // These handlers are registered for each object type. When we render the
+    // object, we decide based on its MRO which handler should be responsible
+    // for its context menu.
 
-      registeredActions[objType].push({
-        'action': action,
-        'title': title,
-        'description': description
-      })
+    // function handler(obj):
 
+    // A handler must return an array of objects describing each context menu
+    // entry. Each object should have the following parameters:
+
+    // title: The name of the menu entry.
+    // description: The tooltip of the menu entry.
+    // action: A callable which will run when the menu entry is selected.
+    var registeredHandlers = {};
+
+    // Register a new object type handler.
+    this.registerHandler = function(objType, handler) {
+      registeredHandlers[objType] = handler;
     };
 
-    this.registerRunPluginAction = function(objType, pluginName, pluginArgumentsCallback,
-                                            title, description) {
-      this.registerAction(objType, function(obj, scope) {
+    this.menuItemsForObjectWithType = function(obj, objType) {
+      return registeredHandlers[objType](obj) || [];
+    };
+
+
+    // Returns a list of context menu entries for this object.
+    this.menuItemsForObject = function(obj) {
+      if (obj.mro) {
+        for (var i = 0; i < obj.mro.length; ++i) {
+          if (registeredHandlers[obj.mro[i]]) {
+            return registeredHandlers[obj.mro[i]](obj);
+          }
+        };
+      }
+
+      return [];
+    };
+
+
+    this.createNewRekallModal = function($scope, pluginName, pluginArgs) {
+      var newNode = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
+        'rekallplugin');
+
+      rekallPluginRegistryService.getPlugins(function(plugins) {
+        newNode.source = {
+          'plugin': plugins[pluginName],
+          'arguments': pluginArgs,
+        };
+
+        $scope.node = newNode;
+        $scope.node.state = "render";
+
+        // Open a model with the correct template.
+        $modal.open({
+          templateUrl: '/rekall-webconsole/components/runplugin/runplugin.html',
+          scope: $scope,
+          size: 'lg',
+        });
+
+      });
+    };
+
+    this.createNewRekallCell = function($scope, pluginName, pluginArgs) {
         var newNode = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
           'rekallplugin');
 
         rekallPluginRegistryService.getPlugins(function(plugins) {
           newNode.source = {
             'plugin': plugins[pluginName],
-            'arguments': pluginArgumentsCallback(obj),
+            'arguments': pluginArgs,
           };
-          newNode.state = 'render';
 
-          var nodesScope = scope;
+          var nodesScope = $scope;
+
           while (nodesScope !== undefined &&
                  nodesScope.nodes === undefined &&
                  nodesScope.addNode === undefined) {
@@ -45,45 +90,17 @@
           if (nodesScope !== undefined) {
             nodesScope.nodes.push(newNode);
             nodesScope.selection.node = newNode;
-            nodesScope.selection.nodeIndex = nodesScope.nodes.length - 1;
           } else {
             throw 'Nodes was not found.';
           }
+
+          nodesScope.renderNode(newNode);
         });
-
-      }, title, description);
     };
 
 
-    this.hasActions = function(obj) {
-      return this.actionsForObject(obj).length;
-    };
-
-    this.actionsForObject = function(obj) {
-      var actions = [];
-      if (obj.mro) {
-        for (var i = 0; i < obj.mro.length; ++i) {
-          var actionsList = registeredActions[obj.mro[i]];
-          if (actionsList === undefined) {
-            continue
-          }
-
-          for (var j = 0; j< actionsList.length; j++) {
-            var wrappedAction = function(action) {
-              return {
-                'action': function(scope) {
-                  return action.action(obj, scope);
-                }, // jshint ignore:line
-                'title': action.title,
-                'description': action.description
-              };
-            }
-            actions.push(wrappedAction(actionsList[j]));
-          }
-        }
-      }
-
-      return actions;
+    this.hasMenuItems = function(obj) {
+      return this.menuItemsForObject(obj).length;
     };
   };
 

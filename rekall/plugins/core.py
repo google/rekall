@@ -316,6 +316,9 @@ class LoadAddressSpace(plugin.Command):
         super(LoadAddressSpace, self).__init__(**kwargs)
         self.pas_spec = pas_spec
 
+    # Parse Address spaces from this specification. TODO: Support EPT
+    # specification and nesting.
+    ADDRESS_SPACE_RE = re.compile("([a-zA-Z0-9]+)@(0x[0-9a-zA-Z]+)")
     def ResolveAddressSpace(self, name=None):
         """Resolve the name into an address space.
 
@@ -348,6 +351,13 @@ class LoadAddressSpace(plugin.Command):
         if name == "P" or name == "Physical":
             return (self.session.physical_address_space or
                     self.GetPhysicalAddressSpace())
+
+        m = self.ADDRESS_SPACE_RE.match(name)
+        if m:
+            as_cls = addrspace.BaseAddressSpace.classes.get(m.group(1))
+            if as_cls:
+                return as_cls(session=self.session, dtb=int(m.group(2), 0),
+                              base=self.GetPhysicalAddressSpace())
 
         raise AttributeError("Address space specification %r invalid.", name)
 
@@ -653,10 +663,10 @@ class Lister(Printer):
 
 
 class DT(plugin.ProfileCommand):
-    """Print a symbol.
+    """Print a struct or other symbol.
 
-    Really just a convenience function for instantiating the object over the
-    dummy address space.
+    Really just a convenience function for instantiating the object and printing
+    all its members.
     """
 
     __name = "dt"
@@ -670,7 +680,11 @@ class DT(plugin.ProfileCommand):
         parser.add_argument("target",
                             help="Name of a struct definition.")
 
-    def __init__(self, offset=0, target=None, profile=None, **kwargs):
+        parser.add_argument("-a", "--address-space", default=None,
+                            help="The address space to use.")
+
+    def __init__(self, offset=0, target=None, profile=None, address_space=None,
+                 **kwargs):
         """Prints an object to the screen."""
         super(DT, self).__init__(**kwargs)
         self.profile = profile or self.session.profile
@@ -682,10 +696,42 @@ class DT(plugin.ProfileCommand):
         if not isinstance(target, basestring):
             raise plugin.PluginError("Target must be a string.")
 
+        load_as = self.session.plugins.load_as(session=self.session)
+        self.address_space = load_as.ResolveAddressSpace(address_space)
+
+    def render_Struct(self, renderer, struct):
+        renderer.format(
+            "[{0} {1}] @ {2:#08x} \n",
+            struct.obj_type, struct.obj_name or '', struct.obj_offset)
+
+        width_name = 0
+
+        fields = []
+        # Print all the fields sorted by offset within the struct.
+        for k in struct.members:
+            width_name = max(width_name, len(k))
+            obj = getattr(struct, k)
+            if obj == None:
+                obj = struct.m(k)
+
+            fields.append(
+                (getattr(obj, "obj_offset", struct.obj_offset) -
+                 struct.obj_offset, k, obj))
+
+        renderer.table_header(
+            [("Offset", "offset", "[addr]"),
+             ("Field", "field", "30"),
+             dict(name="Content", cname="content", details=True)])
+
+        for offset, k, v in sorted(fields):
+            renderer.table_row(offset, k, v)
+
     def render(self, renderer):
-        default_as = self.session.GetParameter("default_address_space")
         item = self.profile.Object(
-            self.target, offset=self.offset, vm=default_as)
+            self.target, offset=self.offset, vm=self.address_space)
+
+        if isinstance(item, obj.Struct):
+            return self.render_Struct(renderer, item)
 
         self.session.plugins.p(item).render(renderer)
 
