@@ -44,6 +44,7 @@ import urllib2
 import urlparse
 import zipfile
 
+from rekall import obj
 from rekall import registry
 from rekall import utils
 
@@ -118,8 +119,8 @@ class IOManager(object):
 
             return json.load(fd)
 
-        except IOError:
-            return None
+        except (IOError, ValueError):
+            return obj.NoneObject()
 
     def StoreData(self, name, data, raw=False, **options):
         """Stores the data in the named container member.
@@ -244,8 +245,10 @@ class ZipFileManager(IOManager):
                     "Zip files must have the .zip extensions.")
 
         self.fd = fd
-        self.file_name = os.path.normpath(os.path.abspath(urn))
-        self.canonical_name = os.path.splitext(os.path.basename(urn))[0]
+        if urn:
+            self.file_name = os.path.normpath(os.path.abspath(urn))
+            self.canonical_name = os.path.splitext(os.path.basename(urn))[0]
+
         self._OpenZipFile()
 
         # The set of outstanding writers. When all outstanding writers have been
@@ -262,8 +265,8 @@ class ZipFileManager(IOManager):
             elif self.mode == "r":
                 self.zip = zipfile.ZipFile(self.fd, mode="r")
 
-            else:
-                raise IOManagerError("Need a zip filename to write.")
+            elif self.mode == "a":
+                self.zip = zipfile.ZipFile(self.fd, mode="a")
 
         except zipfile.BadZipfile:
             raise IOManagerError("Unable to read zipfile.")

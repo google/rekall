@@ -77,7 +77,10 @@ def GetConfigFile():
     for path in search_path:
         try:
             with open(path, "rb") as fd:
-                return yaml.safe_load(fd)
+                result = yaml.safe_load(fd)
+                logging.debug("Loaded configuration from %s", path)
+                return result
+
         except (IOError, ValueError):
             pass
 
@@ -112,6 +115,14 @@ def MergeConfigOptions(state):
 
     for k, v in config_data.items():
         state.Set(k, v)
+
+
+def RemoveGlobalOptions(state):
+    """Remove all global options from state dictionary."""
+    for _, _, name, _, _ in OPTIONS:
+        state.pop(name, None)
+
+    return state
 
 
 def DeclareOption(short_name=None, name=None, default=None, group=None,

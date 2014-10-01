@@ -170,12 +170,14 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
 def RebuildHelp():
     """Rebuilds the plugin help profile."""
     help_dict = {}
+    plugin_metadata = {}
     result = {
         "$METADATA": dict(
             Type="Profile",
             ProfileClass="PluginHelp"
             ),
-        "$HELP": help_dict
+        "$HELP": help_dict,
+        "$PLUGINS": plugin_metadata,
         }
 
     for cls in plugin.Command.classes.values():
@@ -189,6 +191,9 @@ def RebuildHelp():
 
         doc = utils.SmartUnicode(info_plugin)
         help_dict[cls.__name__] = [default_args, doc]
+
+        command_metadata = plugin.CommandMetadata(cls)
+        plugin_metadata[cls.__name__] = command_metadata.Metadata()
 
     with gzip.GzipFile(filename="help_doc.gz", mode="wb") as outfd:
         outfd.write(json.dumps(result))

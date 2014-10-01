@@ -17,7 +17,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     'manuskript.configuration'].concat(manuskriptPluginsList));
 
   module.controller("ManuskriptAppController", function(
-    $scope, $modal, $timeout, $sce,
+    $scope, $modal, $timeout, $sce, $upload,
     manuskriptCoreNodePluginRegistryService, manuskriptNetworkService,
     manuskriptConfiguration) {
 
@@ -167,18 +167,18 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 
     /**
      * Adds new node to the list.
-     * @param {string} nodeType - Type of node to add.
      * @param {int=} beforeNodeIndex - Optional, if defined, the node will be
      *                                 inserted into the list of nodes before
      *                                 the element with this index.
      */
-    $scope.addNode = function(nodeType, beforeNodeIndex) {
+    $scope.addNode = function(NodeIndex) {
       // If the node is not specified we add it after the current selection.
-      if (beforeNodeIndex === undefined) {
-        beforeNodeIndex = $scope.nodes.indexOf($scope.selection.node);
-        if (beforeNodeIndex === -1) {
-          beforeNodeIndex = $scope.nodes.length;
-        };
+      if (NodeIndex === undefined) {
+        NodeIndex = $scope.nodes.indexOf($scope.selection.node);
+      };
+
+      if (NodeIndex === -1) {
+        NodeIndex = $scope.nodes.length;
       };
 
       var modalInstance = $modal.open({
@@ -195,7 +195,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
         var node = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
             typeKey);
 
-        $scope.nodes.splice(beforeNodeIndex, 0, node);
+        $scope.nodes.splice(NodeIndex + 1, 0, node);
         $scope.editNode(node);
       });
     };
@@ -366,6 +366,22 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 
     // If node order changes we refresh the server document.
     $scope.$watchCollection("nodes", $scope.uploadDocument);
+
+    $scope.uploadWorksheet = function($files) {
+      var file = $files[0];
+
+      $scope.upload = $upload.upload({
+        url: '/uploads/worksheet',
+        data: {
+          type: file.type
+        },
+        file: file,
+      }).success(function(data, status, headers, config) {
+        // When successfully uploaded we just refresh the entire page to start
+        // with a new state.
+        location.reload();
+      });
+    };
 
     // First time we run, we need to load the cells from the server.
     $scope.loadNodesFromServer();

@@ -38,7 +38,7 @@ class CheckProcFops(common.LinuxPlugin):
     @classmethod
     def args(cls, parser):
         super(CheckProcFops, cls).args(parser)
-        parser.add_argument("--all", action="store_true", default=False,
+        parser.add_argument("--all", type="Boolean", default=False,
                             help="Specify to see all the fops, even if they "
                             "are known.")
 

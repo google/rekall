@@ -23,7 +23,6 @@
 __author__ = "Mikhail Bushkov <realbushman@gmail.com>"
 
 
-import argparse
 import hashlib
 import logging
 import os
@@ -37,7 +36,6 @@ from flask import request
 
 from rekall.plugins.renderers import data_export
 from rekall import config
-from rekall import plugin
 from rekall import utils
 
 from flask_sockets import Sockets
@@ -172,7 +170,6 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
         return self.worksheet.Open(full_path)
 
 
-
 def GenerateCacheKey(state):
     data = json.dumps(state, sort_keys=True)
     hash = hashlib.md5(data).hexdigest()
@@ -229,28 +226,23 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
     def PlugListPluginsIntoApp(cls, app):
 
         @app.route("/rekall/plugins/all")
-        def list_all_plugins():   # pylint: disable=unused-variable
+        def list_all_plugins():  # pylint: disable=unused-variable
             session = app.config['rekall_session']
-            plugins = plugin.Command.GetActiveClasses(session)
 
-            result = {}
-            for plugin_cls in plugins:
-                plugin_def = {}
+            return jsonify(session.plugin_db.Serialize())
 
-                plugin_def["name"] = getattr(plugin_cls, "name", None)
+        @app.route("/rekall/symbol_search")
+        def search_symbol():  # pylint: disable=unused-variable
+            symbol = request.args.get("symbol", "")
+            results = []
+            if len(symbol) >= 3:
+                rekall_session = app.config["rekall_session"]
+                results = sorted(
+                    rekall_session.address_resolver.search_symbol(symbol+"*"))
 
-                if not plugin_def["name"]:
-                    continue
+                results = results[:10]
 
-                plugin_def["description"] = plugin_cls.__doc__
-
-                parser = FakeParser()
-                plugin_cls.args(parser)
-                plugin_def["arguments"] = parser.arguments
-
-                result[plugin_def["name"]] = plugin_def
-
-            return jsonify({"data": result})
+            return jsonify(dict(results=results))
 
     @classmethod
     def DownloadManager(cls, app):
@@ -308,6 +300,23 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                 'content-disposition': "attachment; filename=\"%s.zip\"" % (
                     request.args.get("filename", "unknown"))}
 
+        @app.route("/uploads/worksheet", methods=["POST"])
+        def upload_new_worksheet():  # pylint: disable=unused-variable
+            """Replace worksheet with uploaded file."""
+            worksheet = app.config['worksheet']
+
+            for uploaded_fd in request.files.itervalues():
+                with zipfile.ZipFile(
+                    uploaded_fd, mode="r") as zip_fd:
+                    for member in zip_fd.namelist():
+
+                        # Copy the file into the worksheet.
+                        with worksheet.Create(member) as out_fd:
+                            in_fd = zip_fd.open(member)
+                            utils.CopyFDs(in_fd, out_fd)
+
+            return "OK", 200
+
     @classmethod
     def PlugManageDocument(cls, app):
         sockets = Sockets(app)
@@ -363,8 +372,6 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             cell = json.loads(ws.receive())
             cell_id = cell["cell_id"]
             source = cell["source"]
-            plugin_data = source["plugin"]
-            plugin_name = plugin_data["name"]
             rekall_session = app.config["rekall_session"]
             worksheet = app.config["worksheet"]
 
@@ -376,35 +383,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                 ws.send(json.dumps(cache))
                 return
 
-            plugin_cls = plugin.Command.classes_by_name[plugin_name]
-
-            fake_parser = FakeParser()
-            plugin_cls.args(fake_parser)
-
-            cmdline_args = []
-            keyword_args = {}
-            for arg in fake_parser.arguments:
-                if arg["positional"]:
-                    value = source["arguments"][arg["name"]]
-                    if value is not None:
-                        cmdline_args.append(utils.SmartUnicode(value))
-
-                else:
-                    arg_value = source["arguments"].get(arg["name"], "")
-                    if arg_value == "":
-                        continue
-                    keyword_args[arg["name"]] = utils.SmartUnicode(arg_value)
-
-            for arg_name, arg_value in keyword_args.iteritems():
-                cmdline_args.extend(
-                    ["--" + arg_name, utils.SmartStr(arg_value)])
-
-            parser = argparse.ArgumentParser()
-            plugin_cls.args(parser)
-            kwargs = {}
-            for k, v in vars(parser.parse_args(cmdline_args)).items():
-                if v is not None:
-                    kwargs[k] = v
+            kwargs = source["arguments"]
 
             output = cStringIO.StringIO()
             renderer = WebConsoleRenderer(

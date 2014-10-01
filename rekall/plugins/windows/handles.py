@@ -20,7 +20,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from rekall import config
 from rekall import utils
 from rekall.plugins.windows import common
 
@@ -35,8 +34,7 @@ class Handles(common.WinProcessFilter):
         """Declare the command line args we need."""
         super(Handles, cls).args(parser)
         parser.add_argument(
-            "-t", "--object_types",
-            action=config.ArrayStringParser, nargs="+",
+            "-t", "--object_types", type="ArrayStringParser",
             help="Types of objects to show.")
 
 
@@ -92,14 +90,14 @@ class Handles(common.WinProcessFilter):
                                ("Access", "access", "[addr]"),
                                ("Type", "obj_type", "16"),
                                ("Details", "details", "")
-                               ])
+                              ])
 
         for task in self.filter_processes():
             for count, (handle, object_type, name) in enumerate(
-                self.enumerate_handles(task)):
+                    self.enumerate_handles(task)):
 
                 self.session.report_progress("%s: %s handles" % (
-                        task.ImageFileName, count))
+                    task.ImageFileName, count))
 
                 if self.object_list and object_type not in self.object_list:
                     continue

@@ -18,13 +18,47 @@
           description: 'View HexDump',
           action: function($scope) {
             rekallObjectActionsService.createNewRekallModal($scope, "dump", {
-              a: obj.vm,
+              address_space: obj.vm,
+              offset: obj.offset,
+            });
+          },
+        },
+        {
+          title: 'Disassemble',
+          description: 'Disassemble',
+          action: function($scope) {
+            rekallObjectActionsService.createNewRekallModal($scope, "dis", {
+              address_space: obj.vm,
               offset: obj.offset,
             });
           },
         },
       ];;
     });
+
+    rekallObjectActionsService.registerHandler('Address', function(obj) {
+      return [
+        {
+          title: 'HexDump',
+          description: 'View HexDump',
+          action: function($scope) {
+            rekallObjectActionsService.createNewRekallModal($scope, "dump", {
+              offset: obj.value,
+            });
+          },
+        },
+        {
+          title: 'Disassemble',
+          description: 'Disassemble',
+          action: function($scope) {
+            rekallObjectActionsService.createNewRekallModal($scope, "dis", {
+              offset: obj.value,
+            });
+          },
+        },
+      ];;
+    });
+
 
     rekallObjectActionsService.registerHandler('Struct', function(obj) {
 
@@ -36,7 +70,7 @@
             description: 'View Struct members',
             action: function($scope) {
               rekallObjectActionsService.createNewRekallModal($scope, "dt", {
-                a: obj.vm,
+                address_space: obj.vm,
                 offset: obj.offset,
                 target: obj.type_name
               });
@@ -101,7 +135,7 @@
             description: 'View HexDump',
             action: function($scope) {
               rekallObjectActionsService.createNewRekallModal($scope, "dump", {
-                a: obj.vm,
+                address_space: obj.vm,
                 offset: obj.target,
               });
             },

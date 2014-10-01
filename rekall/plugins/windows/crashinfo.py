@@ -93,7 +93,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
             help="The destination path to write the crash dump.")
 
         parser.add_argument(
-            "--rebuild", default=False, action="store_true",
+            "--rebuild", default=False, type="Boolean",
             help="Rebuild the KDBG data block.")
 
     def __init__(self, destination=None, rebuild=False, **kwargs):

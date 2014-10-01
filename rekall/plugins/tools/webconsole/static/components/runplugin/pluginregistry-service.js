@@ -20,14 +20,14 @@
 
       var self = this;
       return $http.get('/rekall/plugins/all', {cache: true}).success(function(response) {
-      	for (var key in response.data) {
-	  response.data[key].short_description = firstLineOnly(  // jshint ignore:line
-	      response.data[key].description);
-	}
+        for (var key in response) {
+          response[key].short_description = firstLineOnly(  // jshint ignore:line
+              response[key].description);
+        }
 
-        self.plugins = response.data;
+        self.plugins = response;
 
-        successCallback(response.data);
+        successCallback(response);
       });
     };
   };

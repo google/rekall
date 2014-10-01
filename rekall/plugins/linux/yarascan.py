@@ -18,12 +18,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import sys
 import yara
 
-from rekall import constants
 from rekall import plugin
-from rekall import scan
 from rekall import utils
 from rekall.plugins import yarascanner
 from rekall.plugins.linux import common
@@ -48,8 +45,9 @@ class YaraScan(common.LinProcessFilter):
                             help="If provided we scan for this yarra "
                             "expression.")
 
-        parser.add_argument("--scan_physical", default=False, action="store_true",
-                            help="If specified we scan the physcial address space.")
+        parser.add_argument(
+            "--scan_physical", default=False, type="Boolean",
+            help="If specified we scan the physcial address space.")
 
     def __init__(self, string=None, scan_physical=False, yara_file=None,
                  yara_expression=None, **kwargs):
@@ -91,8 +89,8 @@ class YaraScan(common.LinProcessFilter):
 
     def render_scan_physical(self, renderer):
         """This method scans the process memory using the VAD."""
-        for rule, address, _, hit in self.generate_hits(
-            self.physical_address_space):
+        for rule, address, _, _ in self.generate_hits(
+                self.physical_address_space):
             renderer.format("Rule: {0}\n", rule)
 
             context = self.physical_address_space.read(address, 0x40)
@@ -101,20 +99,15 @@ class YaraScan(common.LinProcessFilter):
     def render_kernel_scan(self, renderer):
         modules = self.session.plugins.lsmod()
 
-        for rule, address, _, hit in self.generate_hits(
-            self.kernel_address_space):
+        for rule, address, _, _ in self.generate_hits(
+                self.kernel_address_space):
             renderer.format("Rule: {0}\n", rule)
 
             # Find out who owns this hit.
             owner = modules.find_module(address)
             if owner:
                 renderer.format("Owner: {0}\n", owner.name)
-                filename = "kernel.{0:#x}.{1:#x}.dmp".format(
-                    owner.obj_offset, address)
             else:
-                filename = "kernel.{0:#x}.dmp".format(
-                    address)
-
                 renderer.format("Owner: (Unknown Kernel Memory)\n")
 
             context = self.kernel_address_space.read(address, 0x40)
@@ -123,7 +116,7 @@ class YaraScan(common.LinProcessFilter):
     def render_task_scan(self, renderer, task):
         task_as = task.get_process_address_space()
 
-        for rule, address, _, hit in self.generate_hits(task_as):
+        for rule, address, _, _ in self.generate_hits(task_as):
             renderer.format("Rule: {0}\n", rule)
 
             renderer.format("Owner: {0}\n", task.comm)

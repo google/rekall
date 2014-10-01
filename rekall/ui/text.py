@@ -794,9 +794,12 @@ class TextTable(renderer.BaseTable):
             *[c.render_row(x, **options) for c, x in zip(self.columns, row)],
              tablesep=self.options.get("tablesep", " "))
 
-    def render_row(self, row=None, highlight=None, **options):
+    def render_row(self, row=None, highlight=None, annotation=False, **options):
         """Write the row to the output."""
-        if self.deferred_rows is None:
+        if annotation:
+            self.renderer.format(*row)
+
+        elif self.deferred_rows is None:
             return self.write_row(self.get_row(*row, **options),
                                   highlight=highlight)
         else:

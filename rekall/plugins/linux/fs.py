@@ -199,10 +199,10 @@ class Mls(Mfind):
         """Declare the command line args we accept."""
         super(Mls, cls).args(parser)
         parser.add_argument(
-            "-r", "--recursive", default=False, action="store_true",
+            "-r", "--recursive", default=False, type="Boolean",
             help="Recursive listing")
         parser.add_argument(
-            "-u", "--unallocated", default=False, action="store_true",
+            "-u", "--unallocated", default=False, type="Boolean",
             help="Show files that have no inode information.")
 
     def __init__(self, recursive=False, unallocated=False, **kwargs):

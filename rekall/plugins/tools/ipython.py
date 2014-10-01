@@ -24,6 +24,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import os
 import site
 
+from rekall import constants
 from rekall import testlib
 from rekall import plugin
 from rekall import kb
@@ -34,6 +35,59 @@ try:
     from rekall import ipython_support
 except ImportError:
     ipython_support = None
+
+
+def IPython012Support(user_session):
+    """Launch the ipython session for post 0.12 versions.
+
+    Returns:
+      False if we failed to use IPython. True if the session was run and exited.
+    """
+    if ipython_support:
+        # This must be run here because the IPython shell messes with our user
+        # namespace above (by adding its own help function).
+        user_session.PrepareLocalNamespace()
+
+        return ipython_support.Shell(user_session)
+
+
+def NotebookSupport(user_session):
+    engine = user_session.ipython_engine
+    if not engine:
+        return False
+
+    if engine == "notebook":
+        argv = ["notebook", "-c",
+                "from rekall import interactive; "
+                "interactive.ImportEnvironment();", "--autocall", "2"]
+        import IPython
+
+        IPython.start_ipython(argv=argv)
+        return True
+
+    else:
+        raise RuntimeError("Unknown ipython mode %s" % engine)
+
+
+def NativePythonSupport(user_session):
+    """Launch the rekall session using the native python interpreter.
+
+    Returns:
+      False if we failed to use IPython. True if the session was run and exited.
+    """
+    # If the ipython shell is not available, we can use the native python shell.
+    import code
+
+    # Try to enable tab completion
+    try:
+        import rlcompleter, readline  # pylint: disable=W0612
+        readline.parse_and_bind("tab: complete")
+    except ImportError:
+        pass
+
+    # Prepare the session for running within the native python interpreter.
+    user_session.PrepareLocalNamespace()
+    code.interact(banner=constants.BANNER, local=user_session._locals)  # pylint: disable=protected-access
 
 
 class Notebook(plugin.Command):
@@ -52,7 +106,7 @@ class TestNoteBook(testlib.DisabledTest):
     PARAMETERS = dict(commandline="notebook")
 
 
-class Rekall(plugin.Command):
+class Rekall(plugin.PhysicalASMixin, plugin.Command):
     """Starts or modifies a new rekall analysis session.
 
     This plugin is probably only useful within the interactive shell. It
@@ -153,4 +207,21 @@ class PagingLimitHook(kb.ParameterHook):
             return text_renderer.curses.tigetnum("lines")
 
         return int(os.environ.get("ROWS", 50))
+
+
+class InteractiveShell(plugin.PhysicalASMixin, plugin.Command):
+    """An interactive shell for Rekall."""
+
+    name = "shell"
+
+    def render(self, renderer):
+        self.session.mode = "Interactive"
+
+        # Try to launch the session using something.
+        if self.session.state.ipython_engine == "notebook":
+            ipython_support.NotebookSupport(self.session)
+
+        else:
+            _ = (IPython012Support(self.session) or
+                 NativePythonSupport(self.session))
 

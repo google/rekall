@@ -1078,7 +1078,7 @@ class ParsePDB(plugin.Command):
             "should be given as 6.1")
 
         parser.add_argument(
-            "--concise", default=False, action="store_true",
+            "--concise", default=False, type="Boolean",
             help="Specify this to emit less detailed information.")
 
     def __init__(self, filename=None, profile_class=None, windows_version=None,

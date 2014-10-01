@@ -24,10 +24,10 @@
 
 # pylint: disable=protected-access
 
+import collections
 import logging
 import re
 
-from rekall import config
 from rekall import scan
 from rekall import obj
 from rekall import kb
@@ -283,7 +283,7 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
     def args(cls, parser):
         super(PoolScannerPlugin, cls).args(parser)
         parser.add_argument(
-            "--scan_in_kernel", default=False, action="store_true",
+            "--scan_in_kernel", default=False, type="Boolean",
             help="Scan in the kernel address space")
 
     def __init__(self, address_space=None, scan_in_kernel=False, **kwargs):
@@ -372,22 +372,23 @@ class WinProcessFilter(WindowsCommandPlugin):
         super(WinProcessFilter, cls).args(parser)
 
         parser.add_argument("--eprocess",
-                            action=config.ArrayIntParser, nargs="+",
+                            type="ArrayIntParser",
                             help="Kernel addresses of eprocess structs.")
 
         parser.add_argument("--phys_eprocess",
-                            action=config.ArrayIntParser, nargs="+",
+                            type="ArrayIntParser",
                             help="Physical addresses of eprocess structs.")
 
         parser.add_argument("--pid",
-                            action=config.ArrayIntParser, nargs="+",
+                            type="ArrayIntParser",
                             help="One or more pids of processes to select.")
 
-        parser.add_argument("--proc_regex", default=None,
+        parser.add_argument("--proc_regex", default=None, type="RegEx",
                             help="A regex to select a process by name.")
 
         parser.add_argument(
-            "--method", choices=dict(cls.METHODS), nargs="+",
+            "--method", choices=list(cls.METHODS), type="ChoiceArray",
+            default=list(cls.METHODS),
             help="Method to list processes (Default uses all methods).")
 
     def __init__(self, pid=None, eprocess=None, phys_eprocess=None,
@@ -406,7 +407,7 @@ class WinProcessFilter(WindowsCommandPlugin):
            method: Methods to use for process listing.
         """
         super(WinProcessFilter, self).__init__(**kwargs)
-        self.methods = method or sorted(dict(self.METHODS))
+        self.methods = method or sorted(self.METHODS)
 
         if isinstance(phys_eprocess, (int, long)):
             phys_eprocess = [phys_eprocess]
@@ -576,7 +577,8 @@ class WinProcessFilter(WindowsCommandPlugin):
         for proc in self.list_from_eprocess():
             seen.add(proc.obj_offset)
 
-        for k, handler in self.METHODS:
+        for k in self.METHODS:
+            handler = self.METHODS[k]
             if k in self.methods:
                 if k not in self.cache:
                     self.cache[k] = set()
@@ -592,10 +594,11 @@ class WinProcessFilter(WindowsCommandPlugin):
         return sorted([self.profile._EPROCESS(x) for x in seen],
                       key=lambda x: x.pid)
 
-    METHODS = [
+    # Maintain the order of methods.
+    METHODS = collections.OrderedDict([
         ("PsActiveProcessHead", list_from_PsActiveProcessHead),
         ("CSRSS", list_from_csrss_handles),
         ("PspCidTable", list_from_pspcid),
         ("Sessions", list_from_sessions),
         ("Handles", list_from_handle_tables),
-        ]
+        ])

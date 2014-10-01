@@ -30,23 +30,12 @@ import textwrap
 
 from rekall import addrspace
 from rekall import args
-from rekall import config
 from rekall import constants
 from rekall import registry
 from rekall import plugin
 from rekall import obj
 from rekall import testlib
 from rekall import utils
-
-class DummyParser(object):
-    """A dummy object used to collect all defined args."""
-
-    def __init__(self):
-        self.args = {}
-
-    def add_argument(self, short_option, long_opt="", help=None, **_):
-        name = long_opt.lstrip("-") or short_option.lstrip("-")
-        self.args[name] = help or ""
 
 
 class Info(plugin.Command):
@@ -174,13 +163,12 @@ class Info(plugin.Command):
         if item is None:
             item = self.item
 
-        dummy_parser = DummyParser()
-        item.args(dummy_parser)
-        for x, y in dummy_parser.args.items():
+        metadata = plugin.CommandMetadata(item)
+        for x, y in metadata.args.items():
             # Normalize the option name to use _.
             x = x.replace("-", "_")
 
-            yield x, self._clean_up_doc(y)
+            yield x, self._clean_up_doc(y.get("help", ""))
 
     def render_item_info(self, item, renderer):
         """Render information about the specific item."""
@@ -674,7 +662,7 @@ class DT(plugin.ProfileCommand):
     @classmethod
     def args(cls, parser):
         super(DT, cls).args(parser)
-        parser.add_argument("offset", action=config.IntParser, default=0,
+        parser.add_argument("offset", type="IntParser", default=0,
                             help="Name of a struct definition.")
 
         parser.add_argument("target",
@@ -744,7 +732,7 @@ class Dump(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(Dump, cls).args(parser)
-        parser.add_argument("offset", action=config.IntParser,
+        parser.add_argument("offset", type="SymbolAddress",
                             help="An offset to hexdump.")
 
         parser.add_argument("-a", "--address_space", default=None,
@@ -843,7 +831,7 @@ class Grep(plugin.Command):
         parser.add_argument("--address_space", default="Kernel",
                             help="Name of the address_space to search.")
 
-        parser.add_argument("--offset", default=0, action=config.IntParser,
+        parser.add_argument("--offset", default=0, type="IntParser",
                             help="Start searching from this offset.")
 
         parser.add_argument("keyword",
@@ -921,11 +909,11 @@ class MemmapMixIn(object):
         """Declare the command line args we need."""
         super(MemmapMixIn, cls).args(parser)
         parser.add_argument(
-            "--coalesce", default=False, action="store_true",
+            "--coalesce", default=False, type="Boolean",
             help="Merge contiguous pages into larger ranges.")
 
         parser.add_argument(
-            "--all", default=False, action="store_true",
+            "--all", default=False, type="Boolean",
             help="Use the entire range of address space.")
 
     def __init__(self, coalesce=False, all=False, **kwargs):

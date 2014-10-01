@@ -106,7 +106,8 @@ config.DeclareOption("autodetect", group="Autodetection Overrides",
                      default=["nt_index", "osx", "pe", "rsds", "linux"],
                      help="Autodetection method.")
 
-config.DeclareOption("autodetect_threshold", default=1.0, action="store",
+config.DeclareOption("autodetect_threshold", default=1.0,
+                     group="Autodetection Overrides",
                      help="Worst acceptable match for profile autodetection." +
                      " (Default 1.0)",
                      type=float)

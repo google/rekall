@@ -55,5 +55,5 @@ class LinuxPsxView(common.LinProcessFilter):
 
             renderer.table_row(*row)
 
-    METHODS = common.LinProcessFilter.METHODS[:]
-    METHODS.append(("PidHashTable", list_from_pidhashtable))
+    METHODS = common.LinProcessFilter.METHODS.copy()
+    METHODS["PidHashTable"] = list_from_pidhashtable

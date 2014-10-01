@@ -17,6 +17,11 @@
         var addrValue = scope.object;
         var pad = scope.pad || 0;
 
+        if (angular.isString(addrValue)) {
+          scope.address = addrValue;
+          return;
+        };
+
         if (addrValue === undefined || addrValue === null) {
           scope.address = '-';
         } else {
@@ -25,25 +30,61 @@
           if (result.length < scope.pad) {
             result = new Array(14 - result.length).join('0') + result;
           }
-          scope.address = result;
+          scope.address = "0x" + result;
         }
       },
-      template: '<samp>0x<span bo-bind="address" /></samp>'
+      template: '<samp><span bo-bind="address" /></samp>'
     }
   });
+
+  module.directive('rekallInstruction', function ($compile) {
+    return {
+      restrict: 'E',
+      scope: {
+        object: '=',
+      },
+      link: function(scope, element, attrs) {
+        var links = [];
+        var format = scope.object.value;
+
+        var replacement_function = function(match, argPos, offset) {
+          var position = links.length;
+
+          links.push({
+            mro: ["Address"],
+            value: match
+          });
+          return "{" + position + "}";
+        }
+
+        format = format.replace(
+            /[a-z]+![a-zA-Z0-9@?]+(\s*[+]\s+0x[a-fA-F0-9]+)?/g, replacement_function);
+
+        format = format.replace(
+            /0x[0-9a-fA-F]+/g, replacement_function);
+
+        scope.element = {data: [format].concat(links)};
+
+        element.html("<rekall-free-format element='element'/>");
+        $compile(element.contents())(scope);
+      }
+    };
+  });
+
 
   // All the available templates - must be kept in sync with the
   // objectrenderer.html template.
   var templates = {
     'Address': true,
-    'BaseObject': true,
-    'Pointer': true,
-    'PaddedAddress': true,
     'AddressSpace': true,
+    'BaseObject': true,
     'Enumeration': true,
+    'Instruction': true,
     'Literal': true,
     'NativeType': true,
     'NoneObject': true,
+    'PaddedAddress': true,
+    'Pointer': true,
     'Struct': true,
     'UnixTimeStamp': true,
     '_EPROCESS': true,
@@ -61,7 +102,7 @@
       // generally happen by well behaving plugins that pass Address objects
       // to the renderer by it sometimes happens.
       if (angular.isNumber(item) && item > 10000) {
-        return "Address"
+        return "LiteralAddress"
 
         // Bools are sent as json objects.
       } else if (jQuery.type(item) == 'boolean') {

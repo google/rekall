@@ -11,6 +11,11 @@
       <div class="col-sm-6">
         <div class="row-fluid">
           <div class="col-sm-6 plugin-title">
+            <button type="button" class="btn btn-success"
+                    ng-click="renderNode()">
+              <span class="glyphicon glyphicon-ok"></span>
+            </button>
+
             <label>Plugin:</label>
           </div>
           <div class="input-group input-group-sm col-sm-6">
@@ -23,7 +28,7 @@
              scroll-to=".scroll-anchor">
           <table class="table table-condensed table-hover">
             <tbody>
-              <tr ng-repeat="plugin in pluginsValues | filter:{name:search.pluginName} | orderBy:'name'"
+              <tr ng-repeat="plugin in selected_plugins | orderBy:'plugin'"
                   ng-click="node.source.plugin = plugin"
                   ng-class="node.source.plugin === plugin && 'info scroll-anchor cursor-pointer'">
                 <td>
@@ -110,13 +115,14 @@
             <span class="glyphicon glyphicon-download"></span>
           </a>
         </div>
-        {{node.source.plugin.name}}
-        <div ng-if="node.source.arguments">
-          <div ng-repeat="(key, value) in node.source.arguments">
-            <a href="#" tooltip="{{key.help}}">{{key.name}}</a>
-            <small>{{value}}</small>
-          </div>
-        </div>
+        <span>
+          {{node.source.plugin.name}}
+          <span ng-if="node.source.arguments">
+            <span ng-repeat="(key, value) in node.source.arguments">
+              <var>{{key}}</var> =<rekall-object object="value" />
+            </span>
+          </span>
+        </span>
       </div>
     </div>
 

@@ -18,7 +18,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-"""This module manages the command line parsing logic."""
+"""This module manages the command line parsing logic.
+
+
+"""
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
@@ -41,38 +44,6 @@ config.DeclareOption(
     help="Show help about global paramters.")
 
 
-class MockArgParser(object):
-    def add_argument(self, short_flag="", long_flag="", dest="", **_):
-        if short_flag.startswith("--"):
-            flag = short_flag
-        elif long_flag.startswith("--"):
-            flag = long_flag
-        elif dest:
-            flag = dest
-        else:
-            flag = short_flag
-
-        # This function will be called by the args() class method, and we just
-        # keep track of the args this module defines.
-        arg_name = flag.strip("-").replace("-", "_")
-
-        self.args[arg_name] = None
-
-    def build_args_dict(self, cls, namespace):
-        """Build a dict suitable for **kwargs from the namespace."""
-        self.args = {}
-
-        # Discover all the args this module uses.
-        cls.args(self)
-
-        for key in self.args:
-            value = getattr(namespace, key, None)
-            if value is not None:
-                self.args[key] = value
-
-        return self.args
-
-
 class RekallHelpFormatter(argparse.RawDescriptionHelpFormatter):
     def add_argument(self, action):
         # Allow us to suppress an arg from the --help output for those options
@@ -84,8 +55,9 @@ class RekallHelpFormatter(argparse.RawDescriptionHelpFormatter):
 class RekallArgParser(argparse.ArgumentParser):
     ignore_errors = False
 
-    def __init__(self, **kwargs):
+    def __init__(self, session=None, **kwargs):
         kwargs["formatter_class"] = RekallHelpFormatter
+        self.session = session
         super(RekallArgParser, self).__init__(**kwargs)
 
     def error(self, message):
@@ -192,10 +164,13 @@ def _TruncateARGV(argv):
 
     return short_argv
 
-def LoadProfileIntoSession(parser, argv, user_session):
-    # Figure out the profile.
-    argv = argv or sys.argv
-    known_args, _ = parser.parse_known_args(args=_TruncateARGV(argv))
+def ParseGlobalArgs(parser, argv, user_session):
+    """Parse some session wide args which must be done before anything else."""
+    # Register global args.
+    config.RegisterArgParser(parser)
+
+    # Parse the known args.
+    known_args, _ = parser.parse_known_args(args=argv)
 
     with user_session.state as state:
         config.MergeConfigOptions(state)
@@ -222,6 +197,7 @@ def LoadProfileIntoSession(parser, argv, user_session):
     # plugins with args.
     LoadPlugins(user_session.state.plugin)
 
+    # Possibly restore the session from a file.
     session_filename = getattr(known_args, "session_filename", None)
     if session_filename:
         try:
@@ -237,48 +213,137 @@ def LoadProfileIntoSession(parser, argv, user_session):
             pass
 
 
+def FindPlugin(argv=None, user_session=None):
+    """Search the argv for the first occurrence of a valid plugin name.
+
+    Returns a mutated argv where the plugin is moved to the front. If a plugin
+    is not found we assume the plugin is "shell" (i.e. the interactive session).
+
+    This maintains backwards compatibility with the old global/plugin specific
+    options. In the current implementation, the plugin name should probably come
+    first:
+
+    rekal pslist -v -f foo.elf --pid 4
+
+    but this still works:
+
+    rekal -v -f foo.elf pslist --pid 4
+    """
+    result = argv[:]
+    for i, item in enumerate(argv):
+        if item in user_session.plugin_db.db:
+            result.pop(i)
+            return item, result
+
+    return "shell", result
+
+
+def ConfigureCommandLineParser(command_metadata, parser, critical=False):
+    """Apply the plugin configuration to an argparse parser.
+
+    This method is the essential glue between the abstract plugin metadata and
+    argparse.
+
+    The main intention is to de-couple the plugin's args definition from arg
+    parser's specific implementation. The plugin then conveys semantic meanings
+    about its arguments rather than argparse implementation specific
+    details. Note that args are parsed through other mechanisms in a number of
+    cases so this gives us flexibility to implement arbitrary parsing:
+
+    - Directly provided to the plugin in the constructor.
+    - Parsed from json from the web console.
+    """
+
+    group = parser.add_argument_group(
+        "Plugin %s options" % command_metadata.plugin_cls.name)
+
+    for name, options in command_metadata.args.iteritems():
+        kwargs = options.copy()
+        name = kwargs.pop("name", None) or name
+        required = kwargs.pop("required", False)
+
+        positional_args = []
+        short_opt = kwargs.pop("short_opt")
+
+        # A positional arg is allows to be specified without a flag.
+        if kwargs.pop("positional"):
+            positional_args.append(name)
+
+            # If a position arg is optional we need to specify nargs=?
+            if not required:
+                kwargs["nargs"] = "?"
+
+        # Otherwise argparse wants to have - in front of the arg.
+        else:
+            if short_opt:
+                positional_args.append("-" + short_opt)
+
+            positional_args.append("--" + name)
+
+        arg_type = kwargs.pop("type", None)
+        if arg_type == "ArrayIntParser":
+            kwargs["action"] = config.ArrayIntParser
+            kwargs["nargs"] = "+"
+
+        elif arg_type == "IntParser":
+            kwargs["action"] = config.IntParser
+
+        elif arg_type == "Boolean":
+            kwargs["action"] = "store_true"
+
+        # Multiple entries of choices (requires a choices paramter).
+        elif arg_type == "ChoiceArray":
+            kwargs["nargs"] = "+"
+
+        # Skip option if not critical.
+        critical_arg = kwargs.pop("critical", False)
+        if critical and critical_arg:
+            group.add_argument(*positional_args, **kwargs)
+            continue
+
+        if not (critical or critical_arg):
+            group.add_argument(*positional_args, **kwargs)
+
+
 def parse_args(argv=None, user_session=None):
     """Parse the args from the command line argv."""
+    if argv is None:
+        argv = sys.argv[1:]
+
+    # The plugin name is taken from the command line, but it is not enough to
+    # know which specific implementation will be used. For example there are 3
+    # classes implementing the pslist plugin WinPsList, LinPsList and OSXPsList.
+    plugin_name, argv = FindPlugin(argv, user_session)
+
     parser = RekallArgParser(
         description=constants.BANNER,
         conflict_handler='resolve',
-        add_help=False,
+        add_help=True,
         epilog="When no module is provided, drops into interactive mode",
         formatter_class=RekallHelpFormatter)
 
-    config.RegisterArgParser(parser)
+    # Add all critical parameters. Critical parameters are those which are
+    # common to all implementations of a certain plugin and are required in
+    # order to choose from these implementations. For example, the profile or
+    # filename are usually used to select the specific implementation of a
+    # plugin.
+    for metadata in user_session.plugin_db.MetadataByName(plugin_name):
+        ConfigureCommandLineParser(metadata, parser, critical=True)
 
-    # First load the profile to enable the module selection (which depends on
-    # the profile).
-    LoadProfileIntoSession(parser, argv, user_session)
+    # Parse the global and critical args from the command line.
+    ParseGlobalArgs(parser, argv, user_session)
 
-    # Add module specific args.
-    subparsers = parser.add_subparsers(
-        description="The following plugins can be selected.",
-        metavar="Plugin",
-        )
+    # Find the specific implementation of the plugin that applies here. For
+    # example, we have 3 different pslist implementations depending on the
+    # specific profile loaded.
+    command_metadata = user_session.plugin_db.GetActivePlugin(plugin_name)
+    if not command_metadata:
+        raise plugin.PluginError(
+            "Plugin %s is not available for this configuration" % plugin_name)
 
-    parsers = {}
-
-    # Add module specific parser for each module.
-    classes = []
-    for cls in plugin.Command.classes.values():
-        if (cls.name and cls.is_active(user_session) and not
-            cls.interactive):
-            classes.append(cls)
-
-    for cls in sorted(classes, key=lambda x: x.name):
-        docstring = cls.__doc__ or " No Docs "
-        doc = docstring.splitlines()[0] or " No Docs "
-        name = cls.name
-        try:
-            module_parser = parsers[name]
-        except KeyError:
-            parsers[name] = module_parser = subparsers.add_parser(
-                cls.name, help=doc, description=docstring)
-
-            cls.args(module_parser)
-            module_parser.set_defaults(module=cls.name)
+    # Configure the arg parser for this command's options.
+    plugin_cls = command_metadata.plugin_cls
+    ConfigureCommandLineParser(command_metadata, parser)
 
     # Parse the final command line.
     result = parser.parse_args(argv)
@@ -288,4 +353,4 @@ def parse_args(argv=None, user_session=None):
         parser.print_help()
         sys.exit(-1)
 
-    return result
+    return plugin_cls, result

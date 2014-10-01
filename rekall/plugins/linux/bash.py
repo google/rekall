@@ -82,10 +82,10 @@ class BashProfile64(basic.ProfileLP64, basic.BasicClasses):
     # types come from bash's ./lib/readline/history.h
     bash_vtype_64 = {
         "_hist_entry": [24, {
-                "line": [0, ["Pointer", dict(target="String")]],
-                "timestamp": [8, ["Pointer", dict(target="String")]],
-                "data": [16, ["Pointer", dict(target="String")]],
-                }],
+            "line": [0, ["Pointer", dict(target="String")]],
+            "timestamp": [8, ["Pointer", dict(target="String")]],
+            "data": [16, ["Pointer", dict(target="String")]],
+            }],
         }
 
     def __init__(self, **kwargs):
@@ -101,10 +101,10 @@ class BashProfile32(basic.Profile32Bits, basic.BasicClasses):
     # types come from bash's ./lib/readline/history.h
     bash_vtype_32 = {
         "_hist_entry": [0xC, {
-                "line": [0, ["Pointer", dict(target="String")]],
-                "timestamp": [4, ["Pointer", dict(target="String")]],
-                "data": [8, ["Pointer", dict(target="String")]],
-                }],
+            "line": [0, ["Pointer", dict(target="String")]],
+            "timestamp": [4, ["Pointer", dict(target="String")]],
+            "data": [8, ["Pointer", dict(target="String")]],
+            }],
         }
 
     def __init__(self, **kwargs):
@@ -123,10 +123,9 @@ class BashHistory(common.LinProcessFilter):
     def args(cls, parser):
         """Declare the command line args we need."""
         super(BashHistory, cls).args(parser)
-        parser.add_argument("--scan_entire_address_space", default=False,
-                            action="store_true",
-                            help="Scan the entire process address space, "
-                            "not only the heap.")
+        parser.add_argument(
+            "--scan_entire_address_space", default=False, type="Boolean",
+            help="Scan the entire process address space, not only the heap.")
 
     def __init__(self, scan_entire_address_space=None, **kwargs):
         super(BashHistory, self).__init__(**kwargs)
@@ -158,7 +157,7 @@ class BashHistory(common.LinProcessFilter):
                                ("Name", "name", "<20"),
                                ("Timestamp", "time", "<24"),
                                ("Command", "command", "<20"),
-                               ])
+                              ])
 
         for task in self.filter_processes():
             process_as = task.get_process_address_space()

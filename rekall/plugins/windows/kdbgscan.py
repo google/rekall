@@ -102,7 +102,7 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
     @classmethod
     def args(cls, parser):
         super(KDBGScan, cls).args(parser)
-        parser.add_argument("--full_scan", default=False, action="store_true",
+        parser.add_argument("--full_scan", default=False, type="Boolean",
                             help="Scan the full address space.")
 
 
@@ -129,8 +129,8 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
 
         # Yield actual objects here
         for kdbg in scanner.scan(
-            obj.Pointer.integer_to_address(start),
-            end - start):
+                obj.Pointer.integer_to_address(start),
+                end - start):
             yield kdbg
 
     def render(self, renderer):
@@ -146,7 +146,7 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
 
             renderer.format("{0:<30}: {1:#x}\n", "Offset (V)", kdbg.obj_offset)
             renderer.format("{0:<30}: {1:#x}\n", "Offset (P)", kdbg.obj_vm.vtop(
-                    kdbg.obj_offset))
+                kdbg.obj_offset))
 
             # These fields can be gathered without dereferencing
             # any pointers, thus they're available always

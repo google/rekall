@@ -36,8 +36,11 @@ class WinPsList(common.WinProcessFilter):
 
     eprocess = None
 
-    def __init__(self, **kwargs):
-        """Lists the processes by following the _EPROCESS.PsActiveList.
+    @classmethod
+    def args(cls, metadata):
+        super(WinPsList, cls).args(metadata)
+        metadata.set_description("""
+        Lists the processes by following the _EPROCESS.PsActiveList.
 
         In the windows operating system, processes are linked together through a
         doubly linked list. This plugin follows the list around, printing
@@ -52,8 +55,7 @@ class WinPsList(common.WinProcessFilter):
            its list.
 
         This plugin supports both approaches.
-        """
-        super(WinPsList, self).__init__(**kwargs)
+        """)
 
     def render(self, renderer):
 
@@ -190,7 +192,7 @@ class Threads(common.WinProcessFilter):
                 cc.SwitchProcessContext(process=task)
 
                 for thread in task.ThreadListHead.list_of_type(
-                    "_ETHREAD", "ThreadListEntry"):
+                        "_ETHREAD", "ThreadListEntry"):
 
                     renderer.table_row(
                         thread,

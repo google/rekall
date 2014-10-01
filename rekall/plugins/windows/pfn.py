@@ -98,7 +98,7 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
     @classmethod
     def args(cls, parser):
         super(VtoP, cls).args(parser)
-        parser.add_argument("virtual_address", action=config.IntParser,
+        parser.add_argument("virtual_address", type="IntParser",
                             help="Specify to see all the fops, even if they "
                             "are known.")
 
@@ -640,7 +640,7 @@ class DTBScan(common.WinProcessFilter):
     @classmethod
     def args(cls, parser):
         super(DTBScan, cls).args(parser)
-        parser.add_argument("--limit", action=config.IntParser, default=0,
+        parser.add_argument("--limit", type="IntParser", default=0,
                             help="Stop scanning after this many mb.")
 
     def __init__(self, limit=None, **kwargs):

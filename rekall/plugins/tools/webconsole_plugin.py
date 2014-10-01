@@ -22,12 +22,15 @@
 
 __author__ = "Mikhail Bushkov <mbushkov@google.com>"
 
+import logging
 import os
 import sys
+import tempfile
 import webbrowser
 
 from rekall import io_manager
 from rekall import plugin
+from rekall import utils
 from rekall import testlib
 
 from rekall.plugins.tools.webconsole import pythoncall
@@ -68,22 +71,22 @@ class WebConsole(plugin.Command):
     def args(cls, parser):
         super(WebConsole, cls).args(parser)
 
-        parser.add_argument("worksheet",
-                            help="The worksheet file name to use.")
+        parser.add_argument("worksheet", required=False,
+                            help="The worksheet file name to use (optional). "
+                            "If not specified we start with a new file.")
 
         parser.add_argument("--host", default="localhost",
                             help="Host for the web console to use.")
 
-        parser.add_argument("--port", default=0, type=int,
+        parser.add_argument("--port", default=0, type="IntParser",
                             help="Port for the web console to use.")
 
-        parser.add_argument("--debug", default=False, action='store_true',
+        parser.add_argument("--debug", default=False, type="Boolean",
                             help="Start in the debug mode (will monitor "
                             "changes in the resources and reload them as "
                             "needed.")
 
-        parser.add_argument("--no_browser", default=False,
-                            action='store_true',
+        parser.add_argument("--no_browser", default=False, type="Boolean",
                             help="Don't open webconsole in the default "
                             "browser.")
 
@@ -94,12 +97,7 @@ class WebConsole(plugin.Command):
         self.port = port
         self.debug = debug
         self.no_browser = no_browser
-        if worksheet is None:
-            raise plugin.PluginError(
-                "A worksheet file name must be provided. This is used "
-                "to save the worksheet.")
-
-        self.worksheet_fd = io_manager.Factory(worksheet, mode="a")
+        self.pre_load = worksheet
 
     def server_post_activate_callback(self, server):
         # Update the port number, because the server may have launched on a
@@ -113,33 +111,47 @@ class WebConsole(plugin.Command):
                 "Server running at http://%s:%d\n" % (self.host, self.port))
 
     def render(self, renderer):
-        renderer.format("Starting Manuskript web console.")
-        renderer.format("Press Ctrl-c to return to the interactive shell.")
+        renderer.format("Starting Manuskript web console.\n")
+        renderer.format("Press Ctrl-c to return to the interactive shell.\n")
 
-        app = manuskript_server.InitializeApp(
-            plugins=[manuskript_plugins.PlainText,
-                     manuskript_plugins.Markdown,
-                     pythoncall.RekallPythonCall,
-                     runplugin.RekallRunPlugin,
-                     RekallWebConsole],
-            config=dict(
-                rekall_session=self.session,
-                worksheet=self.worksheet_fd,
-                ))
 
-        # Use blueprint as an easy way to serve static files.
-        bp = Blueprint('rekall-webconsole', __name__,
-                       static_url_path="/rekall-webconsole",
-                       static_folder=STATIC_PATH)
-        @bp.after_request
-        def add_header(response):  # pylint: disable=unused-variable
-            response.headers['Cache-Control'] = 'no-cache, no-store'
-            return response
-        app.register_blueprint(bp)
+        with tempfile.NamedTemporaryFile(delete=False) as temp_fd:
+            logging.info("Using working file %s", temp_fd.name)
 
-        server = pywsgi.WSGIServer((self.host, self.port), app,
-                                   handler_class=WebSocketHandler)
-        server.serve_forever()
+            # We need to copy the pre load file into the working file.
+            if self.pre_load:
+                with open(self.pre_load, "rb") as in_fd:
+                    utils.CopyFDs(in_fd, temp_fd)
+
+                logging.info("Initialized from %s", self.pre_load)
+
+            self.worksheet_fd = io_manager.ZipFileManager(fd=temp_fd, mode="a")
+
+            app = manuskript_server.InitializeApp(
+                plugins=[manuskript_plugins.PlainText,
+                         manuskript_plugins.Markdown,
+                         pythoncall.RekallPythonCall,
+                         runplugin.RekallRunPlugin,
+                         RekallWebConsole],
+                config=dict(
+                    rekall_session=self.session,
+                    worksheet=self.worksheet_fd,
+                    ))
+
+            # Use blueprint as an easy way to serve static files.
+            bp = Blueprint('rekall-webconsole', __name__,
+                           static_url_path="/rekall-webconsole",
+                           static_folder=STATIC_PATH)
+
+            @bp.after_request
+            def add_header(response):  # pylint: disable=unused-variable
+                response.headers['Cache-Control'] = 'no-cache, no-store'
+                return response
+            app.register_blueprint(bp)
+
+            server = pywsgi.WSGIServer((self.host, self.port), app,
+                                       handler_class=WebSocketHandler)
+            server.serve_forever()
 
 
 class TestWebConsole(testlib.DisabledTest):

@@ -223,7 +223,7 @@ class VAD(common.WinProcessFilter):
             help="A regular expression to filter VAD filenames.")
 
         parser.add_argument(
-            "--offset", default=None, type=config.IntParser,
+            "--offset", default=None, type="IntParser",
             help="Only print the vad corresponding to this offset.")
 
     def __init__(self, *args, **kwargs):

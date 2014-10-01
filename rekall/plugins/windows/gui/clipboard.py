@@ -36,7 +36,7 @@ class Clipboard(common.WinProcessFilter):
     @classmethod
     def args(cls, parser):
         parser.add_argument("-v", "--verbose", default=False,
-                            action="store_true",
+                            type="Boolean",
                             help="Dump more information")
 
     def __init__(self, verbose=False, **kwargs):

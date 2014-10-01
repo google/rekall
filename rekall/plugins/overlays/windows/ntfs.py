@@ -3,7 +3,6 @@ import array
 import struct
 
 from rekall import addrspace
-from rekall import config
 from rekall import plugin
 from rekall import obj
 from rekall.plugins.overlays import basic
@@ -470,9 +469,8 @@ class FLS(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(FLS, cls).args(parser)
-        parser.add_argument(
-            "mfts", action=config.ArrayIntParser, nargs="+",
-            help="MFT entries to list.")
+        parser.add_argument("mfts", type="ArrayIntParser",
+                            help="MFT entries to list.")
 
     def __init__(self, mfts=None, **kwargs):
         super(FLS, self).__init__(**kwargs)

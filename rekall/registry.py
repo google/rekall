@@ -106,7 +106,6 @@ class MetaclassRegistry(UniqueObjectIdMetaclass):
         if cls_initializer:
             cls_initializer()
 
-
     @classmethod
     def _install_constructors(mcs, cls):
         def ByName(self, name):

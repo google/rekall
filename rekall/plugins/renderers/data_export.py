@@ -44,17 +44,19 @@ class DataExportRenderer(json_renderer.JsonRenderer):
     name = "data"
 
     def table_row(self, *args, **options):
-        result = {}
+        result = options.copy()
         for i, arg in enumerate(args):
             column_spec = self.table.column_specs[i].copy()
             column_spec.update(options)
 
             object_renderer = self.object_renderers[i]
+            if object_renderer is not None:
+                column_spec["type"] = object_renderer
 
             column_name = column_spec.get("cname", column_spec.get("name"))
             if column_name:
                 result[column_name] = self.encoder.Encode(
-                    arg, type=object_renderer, **column_spec)
+                    arg, **column_spec)
 
         self.SendMessage(["r", result])
 
@@ -79,6 +81,13 @@ class DataExportObjectRenderer(json_renderer.StateBasedObjectRenderer):
 
 class DataExportNoneObjectRenderer(json_storage.NoneObjectRenderer):
     renderers = ["DataExportRenderer"]
+
+
+class DataExportInstructionRenderer(DataExportObjectRenderer):
+    renders_type = "Instruction"
+
+    def GetState(self, item, **_):
+        return dict(value=unicode(item))
 
 
 class DataExportBaseObjectRenderer(DataExportObjectRenderer):

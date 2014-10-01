@@ -35,7 +35,6 @@ import time
 import traceback
 
 from rekall import addrspace
-from rekall import args as args_module
 from rekall import config
 from rekall import constants
 from rekall import entity
@@ -50,19 +49,11 @@ from rekall.ui import renderer
 from rekall.ui import json_renderer
 
 
-# Top level args.
-config.DeclareOption("-p", "--profile", group="Autodetection Overrides",
-                     help="Name of the profile to load. This is the "
-                     "filename of the profile found in the profiles "
-                     "directory. Profiles are searched in the profile "
-                     "path order.")
-
 config.DeclareOption(
     "--profile_path", default=[], action="append",
     help="Path to search for profiles. This can take "
     "any form supported by the IO Manager (e.g. zip files, "
     "directories, URLs etc)")
-
 
 config.DeclareOption("-f", "--filename",
                      help="The raw image to load.")
@@ -78,14 +69,29 @@ config.DeclareOption(
     help="If specified we write output to this file.")
 
 
-class Container(object):
-    """Just a container."""
+class PluginContainer(object):
+    """A container for plugins."""
+
+    def __init__(self, session):
+        self.session = session
 
     def __getattr__(self, attr):
-        return obj.NoneObject("Attribute %s not found", attr)
+        """Resolve plugin dynamically.
 
-    def __str__(self):
-        return str(self.__dict__.keys())
+        Plugins may not be active depending on the current configuration.
+        """
+        # Try to see if the requested plugin is active right now.
+        metadata = self.session.plugin_db.GetActivePlugin(attr)
+        if metadata == None:
+            return metadata
+
+        return obj.Curry(metadata.plugin_cls, session=self.session)
+
+    def __dir__(self):
+        """Enumerate all active plugins in the current configuration."""
+        return [
+            cls.name for cls in plugin.Command.GetActiveClasses(self.session)
+            if cls.name]
 
 
 class Cache(utils.AttributeDict):
@@ -156,32 +162,10 @@ class Configuration(Cache):
         filename = self.get('filename')
         if self.get('filename') != self._loaded_filename:
             self._loaded_filename = filename
+            self['base_filename'] = os.path.basename(filename)
+
             if self.session:
                 self.session.Reset()
-
-                load_as = self.session.plugins.load_as()
-                if load_as.GetPhysicalAddressSpace():
-                    self['base_filename'] = os.path.basename(filename)
-                    # We just loaded a new image, reset the session and try to
-                    # load the profile.
-
-                    # This may fire off the profile auto-detection code if a
-                    # profile was not provided by the user.
-                    profile_parameter = self.session.GetParameter("profile")
-                    if profile_parameter:
-                        self.session.profile = self.session.LoadProfile(
-                            profile_parameter)
-                        if self.session.profile == None:
-                            raise ValueError(repr(self.profile))
-
-                    # The profile has just changed, we need to update the
-                    # runners.
-                    self.UpdateRunners()
-
-                else:
-                    raise IOError(
-                        "Unable to load image file %s (Does the file exist?)" %
-                        filename)
 
     def _set_profile_path(self):
         # Flush the profile cache if we change the profile path.
@@ -299,6 +283,16 @@ class Session(object):
         entity.EntityManager.initialize()
         self.entities = entity.EntityManager(session=self)
 
+        # A container for active plugins. This is done so that the interactive
+        # console can see which plugins are active by simply command completing
+        # on this object.
+        self.plugins = PluginContainer(self)
+
+        # This is a copy of the plugin metadata database.
+        self.plugin_db = plugin.PluginMetadataDatabase(self)
+
+        # The inventories is a local cache of all profiles available from all
+        # repositories.
         self.inventories = {}
         with self:
             self.UpdateFromConfigObject()
@@ -362,12 +356,6 @@ class Session(object):
 
         Active plugins may change based on the profile/filename etc.
         """
-        self.plugins = Container()
-        for cls in plugin.Command.GetActiveClasses(self):
-            name = cls.name
-            if name:
-                setattr(self.plugins, name, obj.Curry(cls, session=self))
-
         # Install parameter hooks.
         self._parameter_hooks = {}
         for cls in kb.ParameterHook.classes.values():
@@ -461,12 +449,13 @@ class Session(object):
                                    *pos_args, **kwargs)
 
     def _GetPluginObj(self, plugin_obj, *pos_args, **kwargs):
-        flags = kwargs.pop("flags", None)
-
         if isinstance(plugin_obj, basestring):
             plugin_name = plugin_obj
-        elif isinstance(plugin_obj, plugin.Command):
+
+        elif issubclass(plugin_obj, plugin.Command):
             plugin_name = plugin_obj.name
+            plugin_cls = plugin_obj
+
         else:
             raise TypeError(
                 "First parameter should be a plugin name or instance.")
@@ -480,13 +469,9 @@ class Session(object):
                     "this profile?", plugin_name)
                 return
 
-            # If the args came from the command line parse them now:
-            if flags:
-                kwargs = args_module.MockArgParser().build_args_dict(
-                    plugin_cls, flags)
-
-            # Instantiate the plugin object.
-            return plugin_cls(*pos_args, **kwargs)
+        # Instantiate the plugin object.
+        kwargs["session"] = self
+        return plugin_cls(*pos_args, **kwargs)
 
     def _RunPlugin(self, plugin_obj, *pos_args, **kwargs):
         ui_renderer = kwargs.pop("renderer", None)
@@ -604,7 +589,7 @@ class Session(object):
 
                         inventory = self.inventories[path]["$INVENTORY"]
                         if (filename not in inventory and
-                            filename + ".gz" not in inventory):
+                                filename + ".gz" not in inventory):
                             logging.debug(
                                 "Skipped profile %s from %s (Not in inventory)",
                                 filename, path)
@@ -753,13 +738,22 @@ class InteractiveSession(JsonSerializableSession):
 
             self.UpdateFromConfigObject()
 
-    def UpdateRunners(self):
-        super(InteractiveSession, self).UpdateRunners()
+    def PrepareLocalNamespace(self):
+        session = self._locals['session'] = self
+        # Prepopulate the namespace with our most important modules.
+        self._locals['obj'] = obj
+        self._locals['profile'] = self.profile
+        self._locals['v'] = session.v
+
+        # Some useful modules which should be available always.
+        self._locals["sys"] = sys
+        self._locals["os"] = os
 
         if not self.help_profile:
             self.help_profile = self.LoadProfile("help_doc")
 
-        self._locals['plugins'] = Container()
+        self._locals['plugins'] = PluginContainer(self)
+
         for cls in plugin.Command.GetActiveClasses(self):
             default_args, doc = "", ""
             if self.help_profile:
@@ -780,25 +774,10 @@ class InteractiveSession(JsonSerializableSession):
 
     def reset(self):
         """Reset the current session by making a new session."""
-        self._prepare_local_namespace()
+        self.PrepareLocalNamespace()
 
     def RunPlugin(self, *args, **kwargs):
         self.last = super(InteractiveSession, self).RunPlugin(*args, **kwargs)
-
-    def _prepare_local_namespace(self):
-        session = self._locals['session'] = self
-        # Prepopulate the namespace with our most important modules.
-        self._locals['addrspace'] = addrspace
-        self._locals['obj'] = obj
-        self._locals['profile'] = self.profile
-        self._locals['v'] = session.v
-
-        # Add all plugins to the local namespace and to their own container.
-        self.UpdateRunners()
-
-        # Some useful modules which should be available always.
-        self._locals["sys"] = sys
-        self._locals["os"] = os
 
     def v(self):
         """Re-execute the previous command."""

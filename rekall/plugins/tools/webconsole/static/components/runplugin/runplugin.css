@@ -106,3 +106,16 @@ addrpad {
 .modal-lg {
     width: 80%;
 }
+
+.rekall-input.ng-invalid {
+    color:white;
+    background: red;
+}
+
+.rekall-logo img {
+    opacity: 0.4;
+}
+
+.rekall-logo {
+    text-align: center;
+}

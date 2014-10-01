@@ -9,6 +9,10 @@
   <span bo-if="!object.details">
     <span bo-switch="template">
 
+      <span bo-switch-when="LiteralAddress">
+        <addrpad object="object" />
+      </span>
+
       <span bo-switch-when="Address">
         <addrpad object="object.value" />
       </span>
@@ -45,6 +49,9 @@
         <samp bo-bind="object.type_name"/>@<addrpad object="object.offset"/>
       </span>
 
+      <span bo-switch-when="Instruction">
+        <rekall-instruction object="object" />
+      </span>
       <span bo-switch-when="Struct">
         <addrpad object="object.offset" />
       </span>

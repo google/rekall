@@ -18,7 +18,7 @@
     rekallPluginRegistryService, rekallJsonDecoderService) {
 
     $scope.search = {
-      pluginName: ''
+      pluginName: null
     };
 
     $scope.plugins = [];
@@ -34,12 +34,18 @@
     // If the plugin changes, we need to modify the arguments.
     $scope.$watch('node.source.plugin', function() {
       if ($scope.node.source.plugin) {
-        $scope.requiredArguments = $filter('filter')($scope.node.source.plugin.arguments, {
-          required: true
-        });
-        $scope.optionalArguments = $filter('filter')($scope.node.source.plugin.arguments, {
-          required: false
-        });
+        $scope.requiredArguments = [];
+        $scope.optionalArguments = [];
+
+        for (var i=0; i<$scope.node.source.plugin.arguments.length; i++) {
+          var arg = $scope.node.source.plugin.arguments[i];
+
+          if (arg.required != null) {
+            $scope.requiredArguments.push(arg);
+          } else {
+            $scope.optionalArguments.push(arg);
+          }
+        }
       }
     });
 
@@ -107,6 +113,32 @@
     $scope.$watch('node.state', function() {
       if ($scope.node.state == 'render') {
         $scope.pushSources($scope.node);
+      };
+
+      if ($scope.node.state == 'edit') {
+        $scope.search.pluginName = $scope.node.source.plugin.name || "";
+      };
+
+    });
+
+
+    $scope.$watch("search.pluginName", function(name) {
+      $scope.selected_plugins = [];
+
+      if (!$scope.pluginsValues) {
+        return;
+      };
+
+      for (var i=0; i<$scope.pluginsValues.length; i++) {
+        var plugin = $scope.pluginsValues[i];
+
+        if (plugin.name.indexOf(name) == 0) {
+          $scope.selected_plugins.push(plugin);
+        };
+      };
+
+      if ($scope.selected_plugins.length == 1) {
+        $scope.node.source.plugin = $scope.selected_plugins[0];
       };
     });
 

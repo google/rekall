@@ -126,7 +126,7 @@ class DarwinKASLRMixin(object):
     def args(cls, parser):
         super(DarwinKASLRMixin, cls).args(parser)
 
-        parser.add_argument("--vm_kernel_slide", action=config.IntParser,
+        parser.add_argument("--vm_kernel_slide", type="IntParser",
                             help="OS X 10.8 and later: kernel ASLR slide.")
 
     def __init__(self, vm_kernel_slide=None, **kwargs):
@@ -432,25 +432,25 @@ class DarwinProcessFilter(DarwinPlugin):
     def args(cls, parser):
         super(DarwinProcessFilter, cls).args(parser)
         parser.add_argument("--pid",
-                            action=config.ArrayIntParser, nargs="+",
+                            type="ArrayIntParser",
                             help="One or more pids of processes to select.")
 
         parser.add_argument("--proc_regex", default=None,
                             help="A regex to select a process by name.")
 
         parser.add_argument("--phys_proc",
-                            action=config.ArrayIntParser, nargs="+",
+                            type="ArrayIntParser",
                             help="Physical addresses of proc structs.")
 
-        parser.add_argument("--proc", action=config.ArrayIntParser, nargs="+",
+        parser.add_argument("--proc", type="ArrayIntParser",
                             help="Kernel addresses of proc structs.")
 
-        parser.add_argument("--first", action=config.IntParser,
+        parser.add_argument("--first", type="IntParser",
                             help="Kernel addresses of first proc to start "
                             "following.")
 
         parser.add_argument(
-            "--method", choices=cls.METHODS, nargs="+",
+            "--method", choices=list(cls.METHODS), nargs="+",
             help="Method to list processes (Default uses all methods).")
 
 

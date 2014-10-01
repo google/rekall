@@ -15,7 +15,11 @@
       </thead>
       <tbody>
         <tr ng-repeat="row in rows">
-          <td ng-repeat="item in row" no-watch style="font-size: 90%" >
+          <td ng-if="row.options.annotation">
+            <rekall-free-format element="row" />
+          </td>
+          <td ng-if="!row.options.annotation"
+              ng-repeat="item in row" no-watch style="font-size: 90%" >
             <rekall-object object="item.data" />
           </td>
         </tr>

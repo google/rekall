@@ -44,7 +44,7 @@
           return false;
         };
 
-        if (scope.object !== null &&
+        if (scope.object != null &&
             rekallObjectActionsService.hasMenuItems(scope.object)) {
 
           // This object has actions.

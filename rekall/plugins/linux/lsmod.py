@@ -38,11 +38,11 @@ class Lsmod(common.LinuxPlugin):
         """Declare the command line args we need."""
         super(Lsmod, cls).args(parser)
         parser.add_argument(
-            "-S", "--sections", default=False, action="store_true",
+            "-S", "--sections", default=False, type="Boolean",
             help="Display section addresses.")
 
         parser.add_argument(
-            "-P", "--parameters", default=False, action="store_true",
+            "-P", "--parameters", default=False, type="Boolean",
             help="Display module parameters.")
 
     def __init__(self, sections=None, parameters=None, **kwargs):

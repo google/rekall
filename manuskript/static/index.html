@@ -46,77 +46,93 @@
 
     <!-- Navigation bar -->
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation" bindonce>
-      <div class="navbar-header">
-        <a class="navbar-brand" bo-text="pageTitle"></a>
-      </div>
       <div class="container-fluid">
-        <div class="btn-group right-padded">
-          <button type="button" class="btn btn-default navbar-btn" ng-click="addNode()">
-            <span class="glyphicon glyphicon-plus"></span> Add
-          </button>
-          <button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown">
-            <span class="caret" style="margin-top: 8px; margin-bottom: 8px"></span>
-          </button>
-          <ul class="dropdown-menu" role="menu">
-            <li role="presentation" ng-class="selection.node == null && 'disabled'">
-              <a role="menuitem" ng-click="addNodeBefore(selection.node)"
-                 href="#">Insert Before Current</a>
-            </li>
-            <li role="presentation" ng-class="selection.node == null && 'disabled'">
-              <a role="menuitem" ng-click="addNodeAfter(selection.node)"
-                 href="#">Insert After Current</a>
-            </li>
-            <li role="presentation">
-              <a role="menuitem" ng-click="addNode()" href="#">Append To The End</a>
-            </li>
-          </ul>
-        </div>
+        <div class="col-md-2"></div>
+        <div class="col-md-6">
+          <div class="navbar-header">
+            <a class="navbar-brand" bo-text="pageTitle"></a>
+          </div>
 
-        <div class="btn-group">
-          <a target="_self" class="btn btn-default"
-             tooltip="Download the worksheet." tooltip-placement="bottom"
-             tooltip-append-to-body
-             href="/downloads/worksheet">
-            <span class="glyphicon glyphicon-save"></span>
-          </a>
-        </div>
+          <!-- Toolbar -->
+          <div class="btn-group right-padded">
+            <button type="button" class="btn btn-default navbar-btn" ng-click="addNode()">
+              <span class="glyphicon glyphicon-plus"></span> Add
+            </button>
+            <button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown">
+              <span class="caret" style="margin-top: 8px; margin-bottom: 8px"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li role="presentation" ng-class="selection.node == null && 'disabled'">
+                <a role="menuitem" ng-click="addNodeBefore(selection.node)"
+                   href="#">Insert Before Current</a>
+              </li>
+              <li role="presentation" ng-class="selection.node == null && 'disabled'">
+                <a role="menuitem" ng-click="addNodeAfter(selection.node)"
+                   href="#">Insert After Current</a>
+              </li>
+              <li role="presentation">
+                <a role="menuitem" ng-click="addNode(-1)" href="#">Append To The End</a>
+              </li>
+            </ul>
+          </div>
 
-        <div class="btn-group right-padded">
-          <button type="button" class="btn btn-default"
-                  ng-disabled="selection.node == null || selection.node.state == 'edit'"
-                  ng-click="editNode(selection.node)">
-            <span class="glyphicon glyphicon-edit"></span>
-          </button>
-          <button type="button"
-                  ng-class="selection.node.state == 'edit' && 'btn btn-success' || 'btn btn-default'"
-                  ng-disabled="selection.node.state != 'edit'"
-                  ng-click="renderNode()">
-            <span class="glyphicon glyphicon-ok"></span>
-          </button>
-        </div>
+          <div class="btn-group">
+            <a target="_self" class="btn btn-default"
+               tooltip="Download the worksheet." tooltip-placement="bottom"
+               tooltip-append-to-body
+               href="/downloads/worksheet">
+              <span class="glyphicon glyphicon-floppy-save"></span>
+            </a>
+          </div>
 
-        <div class="btn-group right-padded">
-          <button type="button" class="btn btn-default" ng-disabled="!canMoveNodeUp(selection.node)"
-                  ng-click="moveNodeUp(selection.node)">
-            <span class="glyphicon glyphicon-arrow-up"></span>
-          </button>
-          <button type="button" class="btn btn-default"
-                  ng-disabled="!canMoveNodeDown(selection.node)"
-                  ng-click="moveNodeDown(selection.node)">
-            <span class="glyphicon glyphicon-arrow-down"></span>
-          </button>
-        </div>
+          <div class="btn-group">
+            <div class="btn btn-default upload"
+               tooltip="Open an existing worksheet." tooltip-placement="bottom"
+               tooltip-append-to-body
+               ng-file-select="uploadWorksheet($files)">
+              <span class="glyphicon glyphicon-floppy-open"></span>
+            </div>
+          </div>
 
-        <div class="btn-group">
-          <button type="button" class="btn btn-default"
-                  ng-disabled="0 && selection.node == null"
-                  ng-click="loadNodesFromServer()">
-            <span class="glyphicon glyphicon-repeat"></span>
-          </button>
-          <button type="button" class="btn btn-default" ng-disabled="selection.node == null"
-                  ng-click="removeNode(selection.node)">
-            <span class="glyphicon glyphicon-trash"></span>
-          </button>
+          <div class="btn-group right-padded">
+            <button type="button" class="btn btn-default"
+                    ng-disabled="selection.node == null || selection.node.state == 'edit'"
+                    ng-click="editNode(selection.node)">
+              <span class="glyphicon glyphicon-edit"></span>
+            </button>
+            <button type="button"
+                    ng-class="selection.node.state == 'edit' && 'btn btn-success' || 'btn btn-default'"
+                    ng-disabled="selection.node.state != 'edit'"
+                    ng-click="renderNode()">
+              <span class="glyphicon glyphicon-ok"></span>
+            </button>
+          </div>
+
+          <div class="btn-group right-padded">
+            <button type="button" class="btn btn-default" ng-disabled="!canMoveNodeUp(selection.node)"
+                    ng-click="moveNodeUp(selection.node)">
+              <span class="glyphicon glyphicon-arrow-up"></span>
+            </button>
+            <button type="button" class="btn btn-default"
+                    ng-disabled="!canMoveNodeDown(selection.node)"
+                    ng-click="moveNodeDown(selection.node)">
+              <span class="glyphicon glyphicon-arrow-down"></span>
+            </button>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" class="btn btn-default"
+                    ng-disabled="0 && selection.node == null"
+                    ng-click="loadNodesFromServer()">
+              <span class="glyphicon glyphicon-repeat"></span>
+            </button>
+            <button type="button" class="btn btn-default" ng-disabled="selection.node == null"
+                    ng-click="removeNode(selection.node)">
+              <span class="glyphicon glyphicon-trash"></span>
+            </button>
+          </div>
+
+
         </div>
       </div>
     </nav>
@@ -125,6 +141,18 @@
     <div class="container-fluid" id="cells">
       <div class="col-md-2"></div>
       <div class="col-md-8" id="main">
+        <div ng-if="nodes.length == 0">
+          <div class="page-header">
+            <h1>Welcome to Rekall Memory Forensics
+              <small>We can remember it for you wholesale!</small>
+            </h1>
+            <div class="alert alert-success" role="alert">Add a new Cell to get started</div>
+            <div class="rekall-logo">
+              <img src="/rekall-webconsole/images/Rekall.png"
+                   class="img-thumbnail" />
+            </div>
+          </div>
+        </div>
         <div ng-repeat="node in nodes" ng-click="selection.node = node">
 
           <div ng-include="getIncludedFile(node)" ng-class="cellClass(node)">

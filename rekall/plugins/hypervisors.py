@@ -528,14 +528,15 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         """Declare the command line args we accept."""
         super(VmScan, cls).args(parser)
         parser.add_argument(
-            "--offset", action=config.IntParser, default=0,
+            "--offset", type="IntParser", default=0,
             help="Offset in the physical image to start the scan.")
+
         parser.add_argument(
-            "--show_all", default=False,
-            action="store_true", help="Also show VMs that failed validation.")
+            "--show_all", default=False, type="Boolean",
+            help="Also show VMs that failed validation.")
+
         parser.add_argument(
-            "--no_validation", default=False,
-            action="store_true",
+            "--no_validation", default=False, type="Boolean",
             help=("[DEBUG SETTING] Disable validation of VMs."))
 
     def __init__(self, offset=0, no_validation=False, show_all=False, **kwargs):

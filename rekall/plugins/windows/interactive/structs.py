@@ -24,7 +24,6 @@ examining a memory image.
 import itertools
 
 # pylint: disable=protected-access
-from rekall import config
 from rekall import obj
 from rekall import utils
 from rekall.plugins.windows import common
@@ -41,10 +40,10 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
         parser.add_argument("offset",
                             help="A virtual address to analyze.")
 
-        parser.add_argument("--search", type=config.IntParser, default=0x100,
+        parser.add_argument("--search", type="IntParser", default=0x100,
                             help="How far back to search for pool tag.")
 
-        parser.add_argument("--size", type=config.IntParser, default=0x100,
+        parser.add_argument("--size", type="IntParser", default=0x100,
                             help="How many elements to identify.")
 
     def __init__(self, offset=0, search=0x100, size=0x100, **kwargs):
@@ -153,6 +152,6 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
                                ("Content", "content", "")])
 
         for relative_offset, info in self.GuessMembers(
-            self.offset, size=self.size, search=self.search):
+                self.offset, size=self.size, search=self.search):
             renderer.table_row(relative_offset, " ".join(
                 [utils.SmartStr(x).encode("string-escape") for x in info]))

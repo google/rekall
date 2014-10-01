@@ -59,7 +59,7 @@ class UserHandles(win32k_core.Win32kPluginMixin,
             "--type", default=None,
             help="Filter handle type by this Regular Expression.")
 
-        parser.add_argument("--free", default=False, action="store_true",
+        parser.add_argument("--free", default=False, type="Boolean",
                             help="Also include free handles.")
 
     def __init__(self, type=None, free=False, **kwargs):

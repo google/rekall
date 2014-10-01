@@ -23,7 +23,6 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 # pylint: disable=protected-access
 
-import os
 import pdb
 import logging
 import sys
@@ -31,17 +30,10 @@ import sys
 
 from rekall import args
 from rekall import config
-from rekall import constants
-from rekall import obj
 from rekall import session
 
 # Import and register the core plugins
 from rekall import plugins  # pylint: disable=unused-import
-
-try:
-    from rekall import ipython_support
-except ImportError:
-    ipython_support = None
 
 
 config.DeclareOption(
@@ -52,58 +44,6 @@ config.DeclareOption(
 config.DeclareOption(
     "-s", "--session_filename", default=None,
     help="If specified we save and restore the session from this filename.")
-
-
-def IPython012Support(user_session):
-    """Launch the ipython session for post 0.12 versions.
-
-    Returns:
-      False if we failed to use IPython. True if the session was run and exited.
-    """
-    if ipython_support:
-        # This must be run here because the IPython shell messes with our user
-        # namespace above (by adding its own help function).
-        user_session._prepare_local_namespace()
-
-        return ipython_support.Shell(user_session)
-
-
-def NotebookSupport(user_session):
-    engine = user_session.ipython_engine
-    if not engine:
-        return False
-
-    if engine == "notebook":
-        argv = ["notebook", "-c",
-                "from rekall import interactive; "
-                "interactive.ImportEnvironment();", "--autocall", "2"]
-        import IPython
-
-        IPython.start_ipython(argv=argv)
-        return True
-    else:
-        raise RuntimeError("Unknown ipython mode %s" % engine)
-
-
-def NativePythonSupport(user_session):
-    """Launch the rekall session using the native python interpreter.
-
-    Returns:
-      False if we failed to use IPython. True if the session was run and exited.
-    """
-    # If the ipython shell is not available, we can use the native python shell.
-    import code
-
-    # Try to enable tab completion
-    try:
-        import rlcompleter, readline  # pylint: disable=W0612
-        readline.parse_and_bind("tab: complete")
-    except ImportError:
-        pass
-
-    # Prepare the session for running within the native python interpreter.
-    user_session._prepare_local_namespace()
-    code.interact(banner=constants.BANNER, local=user_session._locals)
 
 
 def main(argv=None):
@@ -119,7 +59,7 @@ def main(argv=None):
     # New user interactive session (with extra bells and whistles).
     user_session = session.InteractiveSession()
 
-    flags = args.parse_args(argv=argv, user_session=user_session)
+    plugin_cls, flags = args.parse_args(argv=argv, user_session=user_session)
 
     # Determine if an external script needs to be run first.
     if getattr(flags, "run", None):
@@ -127,36 +67,19 @@ def main(argv=None):
         user_session._locals["session"] = user_session
         exec open(flags.run) in user_session._locals
 
-    # Run a module and do not drop into the shell.
-    if getattr(flags, "module", None):
-        # Run the module
-        try:
-            # Explicitly disable our handling of the pager since we are not
-            # running in interactive mode.
-            user_session.RunPlugin(flags.module, flags=flags)
-        except Exception as e:
-            if getattr(flags, "debug", None):
-                pdb.post_mortem(sys.exc_info()[2])
-            else:
-                logging.error("%s. Try --debug for more information." % e)
-
-    else:
-        # Interactive session, turn off object access logging since in
-        # interactive mode, the user may use arbitrary object members.
-        os.environ.pop(obj.ProfileLog.ENVIRONMENT_VAR, None)
-
-        user_session.mode = "Interactive"
-
-        # Try to launch the session using something.
-        if user_session.state.ipython_engine == "notebook":
-            ipython_support.NotebookSupport(user_session)
+    try:
+        # Run the plugin with plugin specific args.
+        user_session.RunPlugin(plugin_cls, **config.RemoveGlobalOptions(
+            vars(flags)))
+    except Exception as e:
+        if getattr(flags, "debug", None):
+            pdb.post_mortem(sys.exc_info()[2])
         else:
-            _ = (IPython012Support(user_session) or
-                 NativePythonSupport(user_session))
+            logging.error("%s. Try --debug for more information." % e)
 
     # Right before we exit we check if we need to save the current session.
     if user_session.state.session_filename and (
-        user_session.state.dirty or user_session.state.cache.dirty):
+            user_session.state.dirty or user_session.state.cache.dirty):
         user_session.SaveToFile(user_session.state.session_filename)
 
 

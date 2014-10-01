@@ -6,10 +6,54 @@
         <h5><small>{{argument.help}}</small></h5>
       </div>
     </td>
-    <td width="50%"><input style="height: 23px; width: 80%"
-                           type="text"
-                           class="form-control input-sm"
-                           ng-placeholder="argument.default"
-                           ng-model="filledArguments[argument.name]"></input></td>
+    <td width="50%">
+      <span ng-switch="argument.type">
+        <input ng-switch-when="IntParser"
+           type="text" rekall-int
+           class="form-control input-sm rekall-input"
+           ng-placeholder="argument.default"
+           ng-model="filledArguments[argument.name]"/>
+
+        <input ng-switch-when="ArrayIntParser"
+           type="text" rekall-int-array
+           class="form-control input-sm rekall-input"
+           ng-placeholder="argument.default"
+           ng-model="filledArguments[argument.name]"/>
+
+        <select ng-switch-when="ChoiceArray" size=5 multiple
+                class="form-control input-sm rekall-input"
+                ng-placeholder="argument.default"
+                ng-options="choice for choice in argument.choices"
+                ng-model="filledArguments[argument.name]"/>
+
+        <select ng-switch-when="Choices"
+                class="form-control input-sm rekall-input"
+                ng-placeholder="argument.default"
+                ng-options="choice for choice in argument.choices"
+                ng-model="filledArguments[argument.name]"/>
+
+        <input ng-switch-when="Boolean"
+               type="checkbox"
+               class="input-sm rekall-input"
+               ng-placeholder="argument.default"
+               ng-model="filledArguments[argument.name]"/>
+
+        <span ng-switch-when="SymbolAddress">
+          <input type="text"
+                 placeholder="Symbol name or address"
+                 ng-model="filledArguments[argument.name]"
+                 typeahead="name for name in getSymbols($viewValue)"
+                 typeahead-loading="loadingSymbols" class="form-control">
+
+          <i ng-show="loadingSymbols" class="glyphicon glyphicon-refresh"/>
+        </span>
+
+        <input ng-switch-default
+           type="text"
+           class="form-control input-sm rekall-input"
+           ng-placeholder="argument.default"
+           ng-model="filledArguments[argument.name]"/>
+
+    </td>
   </tr>
 </table>

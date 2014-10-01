@@ -38,10 +38,13 @@ except Exception:
 import distorm3
 import re
 
-from rekall import config
 from rekall import plugin
 from rekall import obj
 from rekall import testlib
+
+
+class Instruction(unicode):
+    """A Decoded instruction."""
 
 
 class Disassemble(plugin.Command):
@@ -53,7 +56,7 @@ class Disassemble(plugin.Command):
     def args(cls, parser):
         super(Disassemble, cls).args(parser)
         parser.add_argument(
-            "offset",
+            "offset", type="SymbolAddress",
             help="An offset to disassemble. This can also be the name of "
             "a symbol with an optional offset. For example: "
             "tcpip!TcpCovetNetBufferList.")
@@ -62,23 +65,24 @@ class Disassemble(plugin.Command):
                             help="The address space to use.")
 
         parser.add_argument(
-            "-l", "--length", action=config.IntParser,
+            "-l", "--length", type="IntParser",
             help="The number of instructions (lines) to disassemble.")
 
         parser.add_argument(
-            "-e", "--end", default=None, action=config.IntParser,
+            "-e", "--end", default=None, type="IntParser",
             help="The end address to disassemble up to.")
 
         parser.add_argument(
-            "--mode", default=None,
+            "--mode", default="auto", choices=["auto", "I386", "AMD64"],
+            type="Choices",
             help="Disassemble Mode (AMD64 or I386). Defaults to profile arch.")
 
         parser.add_argument(
-            "--suppress_headers", default=False, action="store_true",
+            "--suppress_headers", default=False, type="Boolean",
             help="If set we do not write table headers.")
 
         parser.add_argument(
-            "--branch", default=False, action="store_true",
+            "--branch", default=False, type="Boolean",
             help="If set we follow all branches to cover all code.")
 
     def __init__(self, offset=0, address_space=None, length=None, end=None,
@@ -102,9 +106,10 @@ class Disassemble(plugin.Command):
         self._visited = set()
         self.follow_branches = branch
         self.suppress_headers = suppress_headers
-        self.mode = mode or self.session.profile.metadata(
-            "arch", "I386")
+        if mode == "auto":
+            mode = self.session.profile.metadata("arch", "I386")
 
+        self.mode = mode
         if self.mode == "I386":
             self.distorm_mode = distorm3.Decode32Bits
         else:
@@ -128,6 +133,9 @@ class Disassemble(plugin.Command):
                 int(offset), data, self.distorm_mode)
 
             for offset, size, instruction, hexdump in iterable:
+                instruction = Instruction(instruction)
+                hexdump = unicode(hexdump)
+
                 if offset in self._visited:
                     return
 
@@ -232,7 +240,7 @@ class Disassemble(plugin.Command):
             [dict(type="TreeNode", name="Address", cname="cmd_address",
                   child=dict(formatstring='[addrpad]')),
              ('Rel', "relative_address", '>4'),
-#             ('Op Codes', "opcode", '<20'),
+             ('Op Codes', "opcode", '<20'),
              ('Instruction', "instruction", '<30'),
              ('Comment', "comment", "")],
             suppress_headers=self.suppress_headers)
@@ -241,7 +249,7 @@ class Disassemble(plugin.Command):
         self._visited.clear()
         for depth, offset, size, hexdump, instruction in self.disassemble(
                 self.offset):
-            relative = ""
+            relative = None
             comment = ""
 
             resolver = self.session.address_resolver
@@ -253,15 +261,16 @@ class Disassemble(plugin.Command):
                     "Disassembled %s: 0x%x", f_name, offset)
 
                 if offset - f_offset == 0:
-                    renderer.format("------ %s ------\n" % f_name)
+                    renderer.table_row("------ %s ------\n" % f_name,
+                                       annotation=True)
 
                 comment = self.find_reference(offset, size, instruction)
                 if offset - f_offset < 0x1000:
-                    relative = "%x" % (offset - f_offset)
+                    relative = offset - f_offset
 
             renderer.table_row(
-                offset, relative, #hexdump,
-                instruction, comment, depth=depth)
+                offset, relative, hexdump,
+                instruction, Instruction(comment), depth=depth)
 
         # Continue from where we left off when the user calls us again with the
         # v() plugin.

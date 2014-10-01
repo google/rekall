@@ -25,7 +25,6 @@
 import logging
 import re
 
-from rekall import config
 from rekall import kb
 from rekall import obj
 from rekall import plugin
@@ -75,8 +74,8 @@ class LinuxFindKASLR(AbstractLinuxCommandPlugin):
         expected_physical_offset = virtual_offset - page_offset
 
         for hit in SlideScanner(
-            address_space=self.physical_address_space,
-            session=self.session).scan():
+                address_space=self.physical_address_space,
+                session=self.session).scan():
             vm_kernel_slide = int(hit - expected_physical_offset)
 
             yield vm_kernel_slide
@@ -178,27 +177,25 @@ class LinProcessFilter(LinuxPlugin):
     @classmethod
     def args(cls, parser):
         super(LinProcessFilter, cls).args(parser)
-        parser.add_argument("--pid",
-                            action=config.ArrayIntParser, nargs="+",
+        parser.add_argument("--pid", type="ArrayIntParser",
                             help="One or more pids of processes to select.")
 
         parser.add_argument("--proc_regex", default=None,
                             help="A regex to select a process by name.")
 
-        parser.add_argument("--phys_task",
-                            action=config.ArrayIntParser, nargs="+",
+        parser.add_argument("--phys_task", type="ArrayIntParser",
                             help="Physical addresses of task structs.")
 
         parser.add_argument(
-            "--task", action=config.ArrayIntParser, nargs="+",
+            "--task", type="ArrayIntParser",
             help="Kernel addresses of task structs.")
 
-        parser.add_argument("--task_head", action=config.IntParser,
+        parser.add_argument("--task_head", type="IntParser",
                             help="Use this as the first task to follow "
                             "the list.")
 
         parser.add_argument(
-            "--method", choices=dict(cls.METHODS), nargs="+",
+            "--method", choices=list(cls.METHODS), nargs="+",
             help="Method to list processes (Default uses all methods).")
 
     def __init__(self, pid=None, proc_regex=None, phys_task=None, task=None,
@@ -214,7 +211,7 @@ class LinProcessFilter(LinuxPlugin):
         """
         super(LinProcessFilter, self).__init__(**kwargs)
 
-        self.methods = method or sorted(dict(self.METHODS))
+        self.methods = method or sorted(self.METHODS)
 
         if isinstance(phys_task, (int, long)):
             phys_task = [phys_task]
@@ -280,7 +277,7 @@ class LinProcessFilter(LinuxPlugin):
         for proc in self.list_from_task_head():
             seen.add(proc.obj_offset)
 
-        for k, handler in self.METHODS:
+        for k, handler in self.METHODS.items():
             if k in self.methods:
                 if k not in self.cache:
                     self.cache[k] = set()
@@ -316,7 +313,7 @@ class LinProcessFilter(LinuxPlugin):
                 if int(task.pid) in self.pids:
                     yield task
                 elif self.proc_regex and self.proc_regex.match(
-                    utils.SmartUnicode(task.comm)):
+                        utils.SmartUnicode(task.comm)):
                     yield task
 
 
@@ -343,9 +340,9 @@ class LinProcessFilter(LinuxPlugin):
         # Now we get the task_struct object from the list entry.
         return our_list_entry.dereference_as("task_struct", "tasks")
 
-    METHODS = [
-        ("InitTask", list_from_init_task),
-        ]
+    METHODS = {
+        "InitTask": list_from_init_task,
+    }
 
 
 class HeapScannerMixIn(object):
@@ -355,14 +352,14 @@ class HeapScannerMixIn(object):
         super(HeapScannerMixIn, self).__init__(**kwargs)
         self.task = task
 
-    def scan(self, offset=0, maxlen=2**64):
+    def scan(self, offset=0, maxlen=2**64): # pylint: disable=unused-argument
         for vma in self.task.mm.mmap.walk_list("vm_next"):
             start = max(vma.vm_start, self.task.mm.start_brk)
             end = min(vma.vm_end, self.task.mm.brk)
 
             # Only use the vmas inside the heap area.
             for hit in super(HeapScannerMixIn, self).scan(
-                offset=start, maxlen=end-start):
+                    offset=start, maxlen=end-start):
                 yield hit
 
 

@@ -239,6 +239,8 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
         if module:
             return self.LoadProfileForModule(module)
 
+        return obj.NoneObject()
+
     def _format_address_from_profile(self, profile, address):
         nearest_offset, name = profile.get_nearest_constant_by_address(
             address)

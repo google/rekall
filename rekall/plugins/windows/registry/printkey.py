@@ -47,7 +47,7 @@ class PrintKey(registry.RegistryPlugin):
                             help="Registry key to print.")
 
         parser.add_argument("-r", "--recursive", default=False,
-                            action="store_true",
+                            type="Boolean",
                             help='If set print the entire subtree.')
 
 

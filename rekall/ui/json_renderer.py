@@ -583,9 +583,9 @@ class JsonRenderer(renderer_module.BaseRenderer):
         result = []
         for i, arg in enumerate(args):
             result.append(self.encoder.Encode(
-                arg, type=self.object_renderers[i], **kwargs))
+                arg, type=self.object_renderers[i]))
 
-        self.SendMessage(["r", result])
+        self.SendMessage(["r", result, kwargs])
 
     def write_data_stream(self):
         if self.data:
