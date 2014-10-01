@@ -3,6 +3,7 @@
     <!-- third-party stylesheets -->
     <link rel="stylesheet" href="static/bower_components/bootstrap/dist/css/bootstrap.css">
     <link rel="stylesheet" href="static/bower_components/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="static/bower_components/angular-hotkeys/build/hotkeys.min.css">
 
     <!-- internal stylesheets -->
     <link rel="stylesheet" href="static/index.css">
@@ -23,6 +24,7 @@
     <script src="static/bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
     <script src="static/bower_components/angular-bindonce/bindonce.js"></script>
     <script src="static/bower_components/ng-file-upload/angular-file-upload.js"></script>
+    <script src="static/bower_components/angular-hotkeys/build/hotkeys.min.js"></script>
 
     <!-- internal dependencies -->
     <script src="static/components/core/addnode-dialog-controller.js"></script>
@@ -30,6 +32,7 @@
     <script src="static/components/core/core.js"></script>
     <script src="static/components/core/fastrepeat-directive.js"></script>
     <script src="static/components/core/fileinput-directive.js"></script>
+    <script src="static/components/core/file-selector-controller.js"></script>
     <script src="static/components/core/network-service.js"></script>
     <script src="static/components/core/nodepluginregistry-service.js"></script>
     <script src="static/components/core/onaltenter-directive.js"></script>
@@ -37,7 +40,6 @@
     <script src="static/components/core/splitlist-directive.js"></script>
 
     <!-- manuskript-plugins -->
-
     <script src="static/load-controller.js"></script>
     <script src="static/app-controller.js"></script>
     <script src="static/app.js"></script>
@@ -47,50 +49,69 @@
     <!-- Navigation bar -->
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation" bindonce>
       <div class="container-fluid">
-        <div class="col-md-2"></div>
+        <div class="col-md-2">
+          <span class="label label-info">
+            {{worksheet_filename}}
+          </span>
+        </div>
+
         <div class="col-md-6">
           <div class="navbar-header">
             <a class="navbar-brand" bo-text="pageTitle"></a>
           </div>
 
           <!-- Toolbar -->
-          <div class="btn-group right-padded">
+          <div class="btn-group btn-group-sm">
             <button type="button" class="btn btn-default navbar-btn" ng-click="addNode()">
-              <span class="glyphicon glyphicon-plus"></span> Add
+              <span class="glyphicon glyphicon-plus"></span> Cell
             </button>
-            <button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown">
-              <span class="caret" style="margin-top: 8px; margin-bottom: 8px"></span>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-              <li role="presentation" ng-class="selection.node == null && 'disabled'">
-                <a role="menuitem" ng-click="addNodeBefore(selection.node)"
-                   href="#">Insert Before Current</a>
-              </li>
-              <li role="presentation" ng-class="selection.node == null && 'disabled'">
-                <a role="menuitem" ng-click="addNodeAfter(selection.node)"
-                   href="#">Insert After Current</a>
-              </li>
-              <li role="presentation">
-                <a role="menuitem" ng-click="addNode(-1)" href="#">Append To The End</a>
-              </li>
-            </ul>
-          </div>
-
-          <div class="btn-group">
-            <a target="_self" class="btn btn-default"
-               tooltip="Download the worksheet." tooltip-placement="bottom"
-               tooltip-append-to-body
-               href="/downloads/worksheet">
-              <span class="glyphicon glyphicon-floppy-save"></span>
-            </a>
+            <div class="btn-group btn-group-sm">
+              <button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown">
+                <div class="caret"></div>&nbsp;
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li role="presentation" ng-class="selection.node == null && 'disabled'">
+                  <a role="menuitem" ng-click="addNodeBefore(selection.node)"
+                     href="#">Insert Before Current</a>
+                </li>
+                <li role="presentation" ng-class="selection.node == null && 'disabled'">
+                  <a role="menuitem" ng-click="addNodeAfter(selection.node)"
+                     href="#">Insert After Current</a>
+                </li>
+                <li role="presentation">
+                  <a role="menuitem" ng-click="addNode(-1)" href="#">Append To The End</a>
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div class="btn-group">
             <div class="btn btn-default upload"
                tooltip="Open an existing worksheet." tooltip-placement="bottom"
                tooltip-append-to-body
+               ng-click="openWorksheet()">
+              <span class="glyphicon glyphicon-folder-open"></span>
+            </div>
+
+            <div class="btn btn-default upload"
+               tooltip="Save worksheet." tooltip-placement="bottom"
+               tooltip-append-to-body
+               ng-click="saveWorksheet()">
+              <span class="glyphicon glyphicon-floppy-disk"></span>
+            </div>
+
+            <a target="_self" class="btn btn-default"
+               tooltip="Download the worksheet." tooltip-placement="bottom"
+               tooltip-append-to-body
+               href="/downloads/worksheet">
+              <span class="glyphicon glyphicon-cloud-download"></span>
+            </a>
+
+            <div class="btn btn-default upload"
+               tooltip="Upload a new worksheet." tooltip-placement="bottom"
+               tooltip-append-to-body
                ng-file-select="uploadWorksheet($files)">
-              <span class="glyphicon glyphicon-floppy-open"></span>
+              <span class="glyphicon glyphicon-cloud-upload"></span>
             </div>
           </div>
 

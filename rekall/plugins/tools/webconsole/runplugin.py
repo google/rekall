@@ -23,10 +23,11 @@
 __author__ = "Mikhail Bushkov <realbushman@gmail.com>"
 
 
+import cStringIO
 import hashlib
 import logging
 import os
-import cStringIO
+import stat
 import traceback
 import zipfile
 
@@ -36,6 +37,7 @@ from flask import request
 
 from rekall.plugins.renderers import data_export
 from rekall import config
+from rekall import io_manager
 from rekall import utils
 
 from flask_sockets import Sockets
@@ -300,23 +302,6 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                 'content-disposition': "attachment; filename=\"%s.zip\"" % (
                     request.args.get("filename", "unknown"))}
 
-        @app.route("/uploads/worksheet", methods=["POST"])
-        def upload_new_worksheet():  # pylint: disable=unused-variable
-            """Replace worksheet with uploaded file."""
-            worksheet = app.config['worksheet']
-
-            for uploaded_fd in request.files.itervalues():
-                with zipfile.ZipFile(
-                    uploaded_fd, mode="r") as zip_fd:
-                    for member in zip_fd.namelist():
-
-                        # Copy the file into the worksheet.
-                        with worksheet.Create(member) as out_fd:
-                            in_fd = zip_fd.open(member)
-                            utils.CopyFDs(in_fd, out_fd)
-
-            return "OK", 200
-
     @classmethod
     def PlugManageDocument(cls, app):
         sockets = Sockets(app)
@@ -337,8 +322,104 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         def rekall_load_nodes(ws):  # pylint: disable=unused-variable
             worksheet = app.config["worksheet"]
             cells = worksheet.GetData("notebook_cells") or []
-            ws.send(json.dumps(cells))
 
+            result = dict(filename=worksheet.file_name,
+                          cells=cells)
+
+            ws.send(json.dumps(result))
+
+        @app.route("/worksheet/load_file")
+        def load_new_worksheet():  # pylint: disable=unused-variable
+            session = app.config['rekall_session']
+            worksheet_dir = session.GetParameter("notebook_dir", ".")
+            path = os.path.normpath(request.args.get("path", ""))
+            full_path = os.path.join(worksheet_dir, "./" + path)
+
+            # First check that this is a valid Rekall file.
+            try:
+                fd = io_manager.ZipFileManager(full_path, mode="a")
+                if not fd.GetData("notebook_cells"):
+                    raise IOError
+            except IOError:
+                return "File is not a valid Rekall File.", 500
+
+            old_worksheet = app.config["worksheet"]
+            old_worksheet.Close()
+
+            app.config["worksheet"] = fd
+
+            return "Worksheet is updated", 200
+
+        @app.route("/worksheet/save_file")
+        def save_current_worksheet():  # pylint: disable=unused-variable
+            """Save the current worksheet into worksheet directory."""
+            worksheet = app.config['worksheet']
+            session = app.config['rekall_session']
+            worksheet_dir = session.GetParameter("notebook_dir", ".")
+            path = os.path.normpath(request.args.get("path", ""))
+            full_path = os.path.join(worksheet_dir, "./" + path)
+
+            with open(full_path, "wb") as out_zip:
+                with zipfile.ZipFile(
+                    out_zip, mode="w",
+                    compression=zipfile.ZIP_DEFLATED) as out_fd:
+                    cells = worksheet.GetData("notebook_cells") or []
+                    out_fd.writestr("notebook_cells", json.dumps(cells))
+
+                    for cell in cells:
+                        # Copy all the files under this cell id:
+                        path = "%s/" % cell["id"]
+                        for filename in worksheet.ListFiles():
+                            if filename.startswith(path):
+                                with worksheet.Open(filename) as in_fd:
+                                    # Limit reading to a reasonable size (10Mb).
+                                    out_fd.writestr(
+                                        filename, in_fd.read(100000000))
+
+            worksheet.Close()
+
+            app.config["worksheet"] = io_manager.ZipFileManager(
+                full_path, mode="a")
+
+            return "Worksheet is saved", 200
+
+        @app.route("/worksheet/list_files")
+        def list_files_in_worksheet_dir():  # pylint: disable=unused-variable
+            session = app.config['rekall_session']
+            worksheet_dir = session.GetParameter("notebook_dir", ".")
+            path = os.path.normpath(request.args.get("path", ""))
+            full_path = os.path.join(worksheet_dir, "./" + path)
+
+            try:
+                result = []
+                for filename in os.listdir(full_path):
+                    file_stat = os.stat(os.path.join(full_path, filename))
+                    file_type = "file"
+                    if stat.S_ISDIR(file_stat.st_mode):
+                        file_type = "directory"
+
+                    result.append(dict(name=filename, type=file_type,
+                                       size=file_stat.st_size))
+
+                return jsonify(files=result)
+            except (IOError, OSError) as e:
+                return str(e), 500
+
+        @app.route("/uploads/worksheet", methods=["POST"])
+        def upload_new_worksheet():  # pylint: disable=unused-variable
+            """Replace worksheet with uploaded file."""
+            worksheet = app.config['worksheet']
+            session = app.config['rekall_session']
+            worksheet_dir = session.GetParameter("notebook_dir", ".")
+
+            for in_fd in request.files.itervalues():
+                path = os.path.normpath(in_fd.filename)
+                full_path = os.path.join(worksheet_dir, "./" + path)
+
+                with open(full_path, "wb") as out_fd:
+                    utils.CopyFDs(in_fd, out_fd)
+
+            return "OK", 200
 
         @app.route("/downloads/worksheet")
         def download_worksheet():  # pylint: disable=unused-variable

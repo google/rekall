@@ -14,10 +14,11 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     'manuskript.core.network.service',
     'manuskript.load.controller',
     'pasvaz.bindonce',
+    'cfp.hotkeys',
     'manuskript.configuration'].concat(manuskriptPluginsList));
 
   module.controller("ManuskriptAppController", function(
-    $scope, $modal, $timeout, $sce, $upload,
+    $scope, $modal, $timeout, $sce, $upload, hotkeys,
     manuskriptCoreNodePluginRegistryService, manuskriptNetworkService,
     manuskriptConfiguration) {
 
@@ -153,6 +154,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       }
     };
     $scope.$watch('selection.node', selectionChangeHandler);
+    $scope.$watchCollection('nodes', selectionChangeHandler);
 
     /**
      * If selection changes during an edit, move the previous node into the
@@ -171,33 +173,37 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      *                                 inserted into the list of nodes before
      *                                 the element with this index.
      */
-    $scope.addNode = function(NodeIndex) {
+    $scope.addNode = function(nodeIndex, nodeType) {
       // If the node is not specified we add it after the current selection.
-      if (NodeIndex === undefined) {
-        NodeIndex = $scope.nodes.indexOf($scope.selection.node);
+      if (nodeIndex == null) {
+        nodeIndex = $scope.nodes.indexOf($scope.selection.node);
       };
 
-      if (NodeIndex === -1) {
-        NodeIndex = $scope.nodes.length;
+      if (nodeIndex === -1) {
+        nodeIndex = $scope.nodes.length;
       };
 
-      var modalInstance = $modal.open({
-        templateUrl: 'static/components/core/addnode-dialog.html',
-        controller: 'AddNodeDialogController',
-        resolve: {
-          items: function() {
-            return $scope.listPlugins();
-          }
-        }
-      });
-
-      modalInstance.result.then(function(typeKey) {
+      var addNodeType = function(typeKey) {
         var node = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
             typeKey);
 
-        $scope.nodes.splice(NodeIndex + 1, 0, node);
+        $scope.nodes.splice(nodeIndex + 1, 0, node);
         $scope.editNode(node);
-      });
+      }
+
+      if (nodeType == null) {
+        var modalInstance = $modal.open({
+          templateUrl: 'static/components/core/addnode-dialog.html',
+          controller: 'AddNodeDialogController',
+          resolve: {
+            items: function() {
+              return $scope.listPlugins();
+            }
+          }
+        }).result.then(addNodeType);
+      } else {
+        addNodeType(nodeType);
+      };
     };
 
     /**
@@ -256,8 +262,11 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      */
     $scope.moveNodeUp = function(node) {
       var nodeIndex = $scope.nodes.indexOf(node);
-      $scope.nodes.splice(nodeIndex, 1);
-      $scope.nodes.splice(nodeIndex - 1, 0, node);
+
+      if (nodeIndex > 0) {
+        $scope.nodes.splice(nodeIndex, 1);
+        $scope.nodes.splice(nodeIndex - 1, 0, node);
+      };
     }
 
     /**
@@ -265,8 +274,11 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      */
     $scope.moveNodeDown = function(node) {
       var nodeIndex = $scope.nodes.indexOf(node);
-      $scope.nodes.splice(nodeIndex, 1);
-      $scope.nodes.splice(nodeIndex + 1, 0, node);
+
+      if (nodeIndex < $scope.nodes.length - 1) {
+        $scope.nodes.splice(nodeIndex, 1);
+        $scope.nodes.splice(nodeIndex + 1, 0, node);
+      };
     }
 
     /**
@@ -312,6 +324,8 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      * @returns {string} A url of the AngularJS template for the given node.
      */
     $scope.getIncludedFile = function(node) {
+      if (node ==null) return;
+
       var pluginDescriptor = manuskriptCoreNodePluginRegistryService.getPlugin(node.type);
       if (pluginDescriptor.templateUrl) {
         return $sce.trustAsResourceUrl(pluginDescriptor.templateUrl);
@@ -334,8 +348,12 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       $scope.removeAllNodes();
 
       manuskriptNetworkService.callServer('rekall/load_nodes', {
-        onmessage: function(cells) {
-          $scope.nodes = cells;
+        onmessage: function(result) {
+          if (result.filename) {
+            var components = result.filename.split("/");
+            $scope.worksheet_filename = components[components.length-1];
+          }
+          $scope.nodes = result.cells;
           $scope.renderAllNodes();
           $scope.$apply();
         }});
@@ -382,6 +400,153 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
         location.reload();
       });
     };
+
+    // Save the current worksheet on the server in the worksheet directory.
+    $scope.saveWorksheet = function() {
+      var newScope = $scope.$new(true);
+
+      $modal.open({
+        templateUrl: 'static/components/core/file-selector-new.html',
+        controller: 'FileSelectorController',
+        scope: newScope,
+      });
+    };
+
+    $scope.openWorksheet = function() {
+      var newScope = $scope.$new(true);
+
+      $modal.open({
+        templateUrl: 'static/components/core/file-selector.html',
+        controller: 'FileSelectorController',
+        scope: newScope,
+      });
+    };
+
+
+    hotkeys.bindTo($scope)
+      .add({
+        combo: 'ctrl+a',
+        description: 'Add new cell after selection.',
+        callback: function(event) {
+          event.preventDefault();
+          $scope.addNode();
+
+          return false;
+        }
+      })
+
+      .add({
+        combo: 'ctrl+o',
+        description: 'Open worksheet.',
+        callback: function(event, hotkey) {
+          // Stop the browser's ctrl-o shortcut.
+          event.preventDefault();
+          $scope.openWorksheet();
+
+          return false;
+        }
+      })
+
+      .add({
+        combo: 'ctrl+up',
+        description: 'Move cell up.',
+        callback: function () {
+          $scope.moveNodeUp($scope.selection.node);
+        },
+      })
+
+      .add({
+        combo: 'ctrl+down',
+        description: 'Move cell down.',
+        callback: function () {
+          $scope.moveNodeDown($scope.selection.node);
+        },
+      })
+
+      .add({
+        combo: 'shift+up',
+        description: 'Move cell selection up.',
+        callback: function () {
+          if ($scope.selection.node == null) {
+            $scope.selection.node = $scope.nodes[0];
+            return;
+          };
+
+          var nodeIndex = $scope.nodes.indexOf($scope.selection.node);
+          if (nodeIndex > 0) {
+            $scope.selection.node = $scope.nodes[nodeIndex - 1];
+          }
+        },
+      })
+
+      .add({
+        combo: 'shift+down',
+        description: 'Move cell selection down.',
+        callback: function () {
+          if ($scope.selection.node == null) {
+            $scope.selection.node = $scope.nodes[$scope.nodes.length - 1];
+            return;
+          };
+
+
+          var nodeIndex = $scope.nodes.indexOf($scope.selection.node);
+          if (nodeIndex < $scope.nodes.length - 1) {
+            $scope.selection.node = $scope.nodes[nodeIndex + 1];
+          }
+        },
+      })
+
+      .add({
+        combo: 'ctrl+x',
+        description: 'Delete selected cell.',
+        callback: function () {
+          if ($scope.selection.node != null) {
+            $scope.removeNode($scope.selection.node);
+          };
+        },
+      })
+
+      .add({
+        combo: 'ctrl+enter',
+        description: 'Edit/Submit selected cell.',
+        callback: function () {
+          var node = $scope.selection.node;
+
+          if (node != null) {
+            if (node.state == "edit") {
+              $scope.renderNode(node);
+            } else {
+              $scope.editNode(node);
+            };
+          };
+        },
+      });
+
+
+    // Add the shortcuts for the manuskript plugins.
+    var plugins = $scope.listPlugins();
+    for (var pluginName in plugins) {
+      var item = plugins[pluginName];
+
+      if (item.hotkey) {
+        hotkeys.bindTo($scope).add({
+          combo: "c " + item.hotkey,
+          description: item.description,
+          callback: function(event, hotkey) {
+            event.preventDefault();
+
+            for (var name in plugins) {
+              if (hotkey.description == plugins[name].description) {
+                $scope.addNode(null, name);
+                return false;
+              };
+            }
+
+            return false;
+          }
+        })
+      };
+    }
 
     // First time we run, we need to load the cells from the server.
     $scope.loadNodesFromServer();

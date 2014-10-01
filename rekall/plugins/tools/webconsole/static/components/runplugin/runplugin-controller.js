@@ -116,7 +116,13 @@
       };
 
       if ($scope.node.state == 'edit') {
-        $scope.search.pluginName = $scope.node.source.plugin.name || "";
+        $scope.pluginFocus = true;
+
+        if ($scope.node.source.plugin) {
+          $scope.search.pluginName = $scope.node.source.plugin.name;
+        } else {
+          $scope.search.pluginName = "";
+        }
       };
 
     });
@@ -129,6 +135,11 @@
         return;
       };
 
+      if (!$scope.search.pluginName) {
+        $scope.selected_plugins = $scope.pluginsValues;
+        return;
+      };
+
       for (var i=0; i<$scope.pluginsValues.length; i++) {
         var plugin = $scope.pluginsValues[i];
 
@@ -138,7 +149,11 @@
       };
 
       if ($scope.selected_plugins.length == 1) {
-        $scope.node.source.plugin = $scope.selected_plugins[0];
+        if($scope.node.source.plugin == null ||
+           $scope.node.source.plugin.name != $scope.selected_plugins[0].name) {
+          $scope.node.source.plugin = $scope.selected_plugins[0];
+          $scope.node.source.arguments = {};
+        }
       };
     });
 

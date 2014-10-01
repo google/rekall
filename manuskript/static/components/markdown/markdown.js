@@ -7,6 +7,7 @@
   module.run(function(manuskriptCoreNodePluginRegistryService) {
     manuskriptCoreNodePluginRegistryService.registerPlugin('markdown', {
       description: 'Markdown',
+      hotkey: 'm',
       defaultNode: function() {
         return {
           type: 'markdown',

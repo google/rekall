@@ -10,6 +10,7 @@
     manuskriptCoreNodePluginRegistryService.registerPlugin('fileupload', {
       description: 'Upload Files',
       templateUrl: '/rekall-webconsole/components/fileupload/fileupload.html',
+      hotkey: 'u',
       defaultNode: function() {
         return {
           type: 'fileupload',

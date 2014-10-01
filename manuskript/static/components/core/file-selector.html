@@ -1,0 +1,26 @@
+<div class="panel panel-default" bindonce>
+  <div class="panel-heading"><h3>Select Rekall file to Open.<h3></div>
+
+  <!-- Table -->
+  <div class="panel-body minimized">
+    <table class="table">
+      <tr>
+        <th>
+          <a ng-click="previousDir()" class="cursor-pointer">
+            <span class="glyphicon glyphicon-hand-up"></span>
+          </a>
+          {{filename}}
+          <span class="label label-warning" ng-if="error" tooltip="{{error}}">Error</span>
+        </th>
+      </tr>
+
+      <tr ng-repeat="file in files">
+        <td>
+          <a ng-click="updatePath(file)" class="cursor-pointer">
+            {{file.name}}
+          </a>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>

@@ -4,6 +4,15 @@
 </div>
 <div class="modal-body">
   <div class="list-group">
-    <a ng-repeat="(typeKey, type) in items" href="#" data-dismiss="modal" class="list-group-item" ng-click="ok(typeKey)">{{type.description}}</a>
+    <a ng-repeat="(typeKey, type) in items"
+       href="#"
+       data-dismiss="modal"
+       class="list-group-item"
+       ng-click="ok(typeKey)">
+      {{type.description}}
+      <span ng-if="type.hotkey">
+        ({{type.hotkey}})
+      </span>
+    </a>
   </div>
 </div>

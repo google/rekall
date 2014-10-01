@@ -1,0 +1,19 @@
+{
+  "name": "angular-hotkeys",
+  "version": "1.4.5",
+  "main": [
+    "build/hotkeys.min.js",
+    "build/hotkeys.min.css"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components",
+    "test",
+    "example"
+  ],
+  "devDependencies": {
+    "mousetrap": "~1.4.6",
+    "angular-mocks": "~1.2.15"
+  }
+}

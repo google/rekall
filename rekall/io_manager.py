@@ -316,6 +316,9 @@ class ZipFileManager(IOManager):
             if self.mode in ["w", "a"]:
                 self._OpenZipFile(mode="a")
 
+    def Close(self):
+        self.zip.close()
+
     def __str__(self):
         return "ZipFile:%s" % self.file_name
 

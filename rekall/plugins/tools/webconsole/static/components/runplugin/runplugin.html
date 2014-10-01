@@ -19,8 +19,12 @@
             <label>Plugin:</label>
           </div>
           <div class="input-group input-group-sm col-sm-6">
-            <input class="form-control" type="text" ng-model="search.pluginName"></input>
-            <span class="input-group-addon"><span class= "glyphicon glyphicon-search"></span></span>
+            <input class="form-control" type="text"
+                   focus-on="pluginFocus"
+                   ng-model="search.pluginName" />
+            <span class="input-group-addon">
+              <span class="glyphicon glyphicon-search" />
+            </span>
           </div>
         </div>
 

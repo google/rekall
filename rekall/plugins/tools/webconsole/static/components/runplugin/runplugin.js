@@ -9,6 +9,7 @@
     manuskriptCoreNodePluginRegistryService.registerPlugin('rekallplugin', {
       description: 'Rekall Plugin',
       templateUrl: '/rekall-webconsole/components/runplugin/runplugin.html',
+      hotkey: 'r',
       defaultNode: function() {
         return {
           type: 'rekallplugin',

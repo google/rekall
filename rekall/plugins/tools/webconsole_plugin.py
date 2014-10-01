@@ -115,7 +115,7 @@ class WebConsole(plugin.Command):
         renderer.format("Press Ctrl-c to return to the interactive shell.\n")
 
 
-        with tempfile.NamedTemporaryFile(delete=False) as temp_fd:
+        with tempfile.NamedTemporaryFile(delete=True) as temp_fd:
             logging.info("Using working file %s", temp_fd.name)
 
             # We need to copy the pre load file into the working file.
@@ -125,33 +125,37 @@ class WebConsole(plugin.Command):
 
                 logging.info("Initialized from %s", self.pre_load)
 
-            self.worksheet_fd = io_manager.ZipFileManager(fd=temp_fd, mode="a")
+            self.worksheet_fd = io_manager.ZipFileManager(
+                temp_fd.name, mode="a")
 
-            app = manuskript_server.InitializeApp(
-                plugins=[manuskript_plugins.PlainText,
-                         manuskript_plugins.Markdown,
-                         pythoncall.RekallPythonCall,
-                         runplugin.RekallRunPlugin,
-                         RekallWebConsole],
-                config=dict(
-                    rekall_session=self.session,
-                    worksheet=self.worksheet_fd,
-                    ))
+            try:
+                app = manuskript_server.InitializeApp(
+                    plugins=[manuskript_plugins.PlainText,
+                             manuskript_plugins.Markdown,
+                             pythoncall.RekallPythonCall,
+                             runplugin.RekallRunPlugin,
+                             RekallWebConsole],
+                    config=dict(
+                        rekall_session=self.session,
+                        worksheet=self.worksheet_fd,
+                        ))
 
-            # Use blueprint as an easy way to serve static files.
-            bp = Blueprint('rekall-webconsole', __name__,
-                           static_url_path="/rekall-webconsole",
-                           static_folder=STATIC_PATH)
+                # Use blueprint as an easy way to serve static files.
+                bp = Blueprint('rekall-webconsole', __name__,
+                               static_url_path="/rekall-webconsole",
+                               static_folder=STATIC_PATH)
 
-            @bp.after_request
-            def add_header(response):  # pylint: disable=unused-variable
-                response.headers['Cache-Control'] = 'no-cache, no-store'
-                return response
-            app.register_blueprint(bp)
+                @bp.after_request
+                def add_header(response):  # pylint: disable=unused-variable
+                    response.headers['Cache-Control'] = 'no-cache, no-store'
+                    return response
+                app.register_blueprint(bp)
 
-            server = pywsgi.WSGIServer((self.host, self.port), app,
-                                       handler_class=WebSocketHandler)
-            server.serve_forever()
+                server = pywsgi.WSGIServer((self.host, self.port), app,
+                                           handler_class=WebSocketHandler)
+                server.serve_forever()
+            finally:
+                self.worksheet_fd.Close()
 
 
 class TestWebConsole(testlib.DisabledTest):
