@@ -22,10 +22,11 @@ Darwin entity collectors - common code.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from rekall import entity_collector
+from rekall.entities import collector
+from rekall.entities import definitions
 
 
-class DarwinEntityCollector(entity_collector.EntityCollector):
+class DarwinEntityCollector(collector.EntityCollector):
     """Base class for all Darwin collectors."""
 
     __abstract = True
@@ -68,7 +69,7 @@ class DarwinNetworkInterfaceCollector(DarwinEntityCollector):
 
         for ifnet in ifnet_head.walk_list("if_link.tqe_next"):
             yield [
-                self.entity_manager.NetworkInterface(
+                definitions.NetworkInterface(
                     name="%s%d" % (
                         ifnet.if_name.deref(),
                         ifnet.if_unit),
@@ -77,6 +78,6 @@ class DarwinNetworkInterfaceCollector(DarwinEntityCollector):
                         for tqe
                         in ifnet.if_addrhead.tqh_first.walk_list(
                             "ifa_link.tqe_next")]),
-                self.entity_manager.MemoryObject(
+                definitions.MemoryObject(
                     base_object=ifnet,
                     type="ifnet")]

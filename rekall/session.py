@@ -37,7 +37,6 @@ import traceback
 from rekall import addrspace
 from rekall import config
 from rekall import constants
-from rekall import entity
 from rekall import io_manager
 from rekall import kb
 from rekall import obj
@@ -45,6 +44,7 @@ from rekall import plugin
 from rekall import registry
 from rekall import utils
 
+from rekall.entities import manager
 from rekall.ui import renderer
 from rekall.ui import json_renderer
 
@@ -280,8 +280,7 @@ class Session(object):
         # having to hit the profile repository all the time.
         self.profile_cache = {}
 
-        entity.EntityManager.initialize()
-        self.entities = entity.EntityManager(session=self)
+        self.entities = manager.EntityManager(session=self)
 
         # A container for active plugins. This is done so that the interactive
         # console can see which plugins are active by simply command completing
@@ -361,9 +360,6 @@ class Session(object):
         for cls in kb.ParameterHook.classes.values():
             if cls.is_active(self) and cls.name:
                 self._parameter_hooks[cls.name] = cls(session=self)
-
-        # Tell the entity manager to update the list of collectors.
-        self.entities.update_collectors()
 
     def __getattr__(self, attr):
         """This will only get called if the attribute does not exist."""

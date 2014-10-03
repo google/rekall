@@ -18,13 +18,16 @@
 #
 
 """
-Provides facilities for non-destructive merging of collections.
+The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
+
 
 import itertools
 
 from rekall import obj
+
+from rekall.entities import definitions
 
 
 class Superposition(object):
@@ -51,6 +54,7 @@ class Superposition(object):
     human-readable way, and calls to __getitem__ are proxied to each of the
     variants of the superposition, returning a new superposition of the results.
     """
+
     def __init__(self, variants):
         self.variants = variants
 
@@ -66,8 +70,7 @@ class Superposition(object):
         if len(variants) == 1:
             return variants.pop()
         elif not variants:
-            return obj.NoneObject(
-                "No non-null scalars in merge.")
+            return obj.NoneObject("No non-null scalars in merge.")
 
         return cls(variants)
 
@@ -115,6 +118,22 @@ def SuperpositionMergeNamedTuples(x, y):
     if tuple_cls != type(y):
         raise ValueError("Cannot merge namedtuples of different types.")
 
-    return tuple_cls(
-        *[Superposition.merge_scalars(mx, my)
-            for mx, my in itertools.izip(x, y)])
+    return tuple_cls(*[Superposition.merge_scalars(mx, my)
+                       for mx, my in itertools.izip(x, y)])
+
+
+def MergeComponentContainers(x, y):
+    new_components = []
+
+    # Skipping component idx 0 (Entity)
+    for idx, component in enumerate(x[1:]):
+        new_components.append(SuperpositionMergeNamedTuples(
+            component,
+            y[idx + 1]))
+
+    # Entity component is merged using slightly simpler rules.
+    new_entity = definitions.Entity(
+        identity=x.Entity.identity | y.Entity.identity,
+        collectors=x.Entity.collectors | y.Entity.collectors)
+
+    return type(x)(new_entity, *new_components)

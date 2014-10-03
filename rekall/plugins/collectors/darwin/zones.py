@@ -22,6 +22,8 @@ Collectors that deal with Darwin zone allocator.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall.entities import definitions
+
 from rekall.plugins.collectors.darwin import common
 
 
@@ -38,14 +40,14 @@ class DarwinZoneCollector(common.DarwinEntityCollector):
 
         for zone in first_zone.walk_list("next_zone"):
             yield [
-                self.entity_manager.AllocationZone(
+                definitions.AllocationZone(
                     name=zone.zone_name.deref(),
                     count_active=int(zone.count),
                     count_free=int(zone.m("sum_count") - zone.count),
                     element_size=zone.elem_size,
                     tracks_pages=bool(zone.m("use_page_list")),
                     allows_foreign=bool(zone.allows_foreign)),
-                self.entity_manager.MemoryObject(
+                definitions.MemoryObject(
                     base_object=zone,
                     type="zone")]
 
@@ -68,15 +70,16 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
     type_name = None
 
     def collect(self, hint=None):
-        for element, state in self.collect_base_objects(hint=hint):
-            yield self.entity_manager.MemoryObject(
+        for element, state in self.collect_base_objects(
+                zone_name=self.zone_name):
+            yield definitions.MemoryObject(
                 base_object=element,
                 type=self.type_name,
                 state=state)
 
-    def collect_base_objects(self, hint=None):
+    def collect_base_objects(self, zone_name):
         zone_entity = self.entity_manager.find_first_by_attribute(
-            "AllocationZone/name", self.zone_name)
+            "AllocationZone/name", zone_name)
         zone = zone_entity["MemoryObject/base_object"]
 
         seen_offsets = set()
@@ -160,6 +163,28 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
                     seen_pages=seen_pages,
                     state=state):
                 yield validated_element
+
+
+class DarwinZoneBufferCollector(DarwinZoneElementCollector):
+    collects = ["Buffer/purpose=zones"]
+    type_name = "int"  # Dummy type.
+
+    def collect(self, hint=None):
+        for zone in self.entity_manager.find_by_component("AllocationZone"):
+            for element, state in self.collect_base_objects(
+                    zone_name=zone["AllocationZone/name"]):
+                yield definitions.Buffer(
+                    address=(element.obj_offset, element.obj_vm.dtb),
+                    size=zone["AllocationZone/element_size"],
+                    contents=element.obj_vm.read(
+                        element.obj_offset,
+                        zone["AllocationZone/element_size"]),
+                    state=state,
+                    purpose="zones",
+                    context=zone.identity)
+
+    def validate_element(self, _):
+        return True
 
 
 class DarwinZoneVnodeCollector(DarwinZoneElementCollector):

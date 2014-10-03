@@ -19,6 +19,9 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
+import re
+
+from rekall import utils
 from rekall.plugins.darwin import common
 
 
@@ -46,6 +49,34 @@ class DarwinListZones(common.DarwinPlugin):
                 zone["AllocationZone/element_size"],
                 zone["AllocationZone/tracks_pages"],
                 zone["AllocationZone/allows_foreign"])
+
+
+class DarwinDumpZone(common.DarwinPlugin):
+    """Dumps an allocation zone's contents."""
+
+    __name = "dump_zone"
+
+    @classmethod
+    def args(cls, parser):
+        super(DarwinDumpZone, cls).args(parser)
+        parser.add_argument("--zone", default="buf.512")
+
+    def __init__(self, zone="buf.512", **kwargs):
+        super(DarwinDumpZone, self).__init__(**kwargs)
+        self.zone_name = zone
+
+    def render(self, renderer):
+        # This is a temporary solution to the fact that we don't have
+        # a query planner yet. TODO: remove once Manager can plan this correcty.
+        self.session.entities.collect_for("Buffer/purpose=zones")
+        
+        for entity in self.session.entities.find_by_attribute(
+                "Buffer/context", self.session.entities.identify({
+                    "AllocationZone/name": self.zone_name})):
+            utils.WriteHexdump(
+                renderer=renderer,
+                data=entity["Buffer/contents"],
+                base=entity["Buffer/address"][0])
 
 
 class DarwinDeadProcesses(common.DarwinPlugin):

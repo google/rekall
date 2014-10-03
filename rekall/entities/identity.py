@@ -18,7 +18,7 @@
 #
 
 """
-The Rekall Memory Forensics entity layer.
+The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
@@ -40,6 +40,7 @@ class Identity(object):
     either their UID or their username, with each being equally valid and
     unique (within the scope of one system).
     """
+
     def __init__(self):
         pass
 
@@ -168,6 +169,7 @@ class AlternateIdentity(Identity):
     (For example, two memory addresses are equivalent if their offsets are the
     same *and* their DTB value is the same.)
     """
+
     def __init__(self, indices=None, identity_dict=None, global_prefix=None):
         super(AlternateIdentity, self).__init__()
 
@@ -198,7 +200,7 @@ class AlternateIdentity(Identity):
 
     def __eq__(self, other):
         if ((not isinstance(other, AlternateIdentity)) or
-            (self.global_prefix != other.global_prefix)):
+                (self.global_prefix != other.global_prefix)):
             return False
 
         return self.indices & other.indices

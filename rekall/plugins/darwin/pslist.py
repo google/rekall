@@ -114,7 +114,7 @@ class DawrinPSTree(common.DarwinPlugin):
 
         for proc, level in self.recurse_proc(root_proc, 0):
             renderer.table_row(
-                proc.p_pid, proc.p_pgrpid, proc.p_uid,
+                proc.p_pid, proc.p_ppid, proc.p_uid,
                 "." * level, proc.p_comm)
 
     def recurse_proc(self, proc, level):

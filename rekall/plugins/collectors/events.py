@@ -22,12 +22,12 @@ The Rekall Memory Forensics entity layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from rekall import components
-from rekall import entity_collector
-from rekall import identity
+from rekall.entities import definitions
+from rekall.entities import collector
+from rekall.entities import identity
 
 
-class EventInferenceCollector(entity_collector.EntityCollector):
+class EventInferenceCollector(collector.EntityCollector):
     """Generates Events from entities that have Timestamps."""
 
     collects = ["Event"]
@@ -36,14 +36,15 @@ class EventInferenceCollector(entity_collector.EntityCollector):
     def is_active(cls, session):
         return True
 
+    # pylint: disable=protected-access
     def collect(self, hint=None):
         for entity in self.entity_manager.find_by_component("Timestamps"):
-            for field in components.Timestamps._fields:
+            for field in definitions.Timestamps._fields:
                 timestamp = getattr(entity.components.Timestamps, field)
                 if timestamp is not None:
                     yield [
                         identity.UniqueIdentity(),
-                        self.entity_manager.Event(
+                        definitions.Event(
                             target=entity.identity,
                             timestamp=timestamp,
                             action=field.replace("_at", ""))]

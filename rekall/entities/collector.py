@@ -18,7 +18,7 @@
 #
 
 """
-The Rekall Memory Forensics entity layer.
+The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 

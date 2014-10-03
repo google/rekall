@@ -22,7 +22,9 @@ Collectors for files, handles, sockets and similar.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from rekall import identity
+from rekall.entities import definitions
+from rekall.entities import identity
+
 from rekall.plugins.collectors.darwin import common
 from rekall.plugins.collectors.darwin import zones
 
@@ -61,18 +63,18 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
 
                 yield [
                     resource_identity,
-                    manager.MemoryObject(
+                    definitions.MemoryObject(
                         base_object=fg_data,
                         type=fg_data.obj_type)]
 
                 yield [
                     handle_identity,
-                    manager.Handle(
+                    definitions.Handle(
                         process=process.identity,
                         fd=fd,
                         flags=flags,
                         resource=resource_identity),
-                    manager.MemoryObject(
+                    definitions.MemoryObject(
                         base_object=fileproc,
                         type="fileproc")]
 
@@ -110,7 +112,7 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
             # result due to PID reuse - still, it's better than nothing.
             yield [
                 identity.UniqueIdentity(),
-                manager.Event(
+                definitions.Event(
                     actor=manager.identify({
                         "Process/pid": socket.last_pid}),
                     target=entity.identity,
@@ -120,10 +122,10 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
             if family in ("AF_INET", "AF_INET6"):
                 yield [
                     entity.identity,
-                    manager.Named(
+                    definitions.Named(
                         name=socket.human_name,
                         kind="IP Connection"),
-                    manager.Connection(
+                    definitions.Connection(
                         addressing_family=family,
                         state=socket.tcp_state,
                         protocols=(
@@ -144,10 +146,10 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
 
                 yield [
                     entity.identity,
-                    manager.Named(
+                    definitions.Named(
                         name=socket.human_name,
                         kind="Unix Socket"),
-                    manager.Connection(
+                    definitions.Connection(
                         addressing_family="AF_UNIX",
                         src_addr="0x%x" % int(socket.so_pcb),
                         dst_addr="0x%x" % int(socket.unp_conn),
@@ -158,26 +160,26 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
                 # There may be a vnode here - if so, yield it.
                 if path:
                     yield [
-                        manager.File(
+                        definitions.File(
                             path=path,
                             type="socket"),
-                        manager.Named(
+                        definitions.Named(
                             name=path,
                             kind="Socket"),
-                        manager.MemoryObject(
+                        definitions.MemoryObject(
                             base_object=socket.vnode.deref(),
                             type="vnode")]
             else:
                 yield [
                     entity.identity,
-                    manager.Connection(
+                    definitions.Connection(
                         addressing_family=family,
                         protocols=(family,))]
 
 
 class DarwinFileCollector(common.DarwinEntityCollector):
     """Collects files based on vnodes."""
-    collects = ["File", "Permissions", "Timestamps"]
+    collects = ["File", "Permissions", "Timestamps", "Named"]
     _name = "files"
 
     def collect(self, hint=None):
@@ -185,32 +187,38 @@ class DarwinFileCollector(common.DarwinEntityCollector):
         for entity in manager.find_by_attribute("MemoryObject/type", "vnode"):
             vnode = entity["MemoryObject/base_object"]
             path = vnode.full_path
+            file_identity = manager.identify({
+                "File/path": path}) | entity.identity
 
             components = [
-                manager.File(
+                file_identity,
+                definitions.File(
                     path=path),
-                manager.Named(
-                    name=path,
-                    kind="File"),
-                manager.MemoryObject(
+                definitions.Named(
+                    name=path),
+                definitions.MemoryObject(
                     base_object=vnode,
                     type="vnode")]
 
-            # Parse HFS-specific metadata
-            if vnode.v_mount.mnt_vfsstat.f_fstypename == "hfs":
+            # Parse HFS-specific metadata. We could look at the mountpoint and
+            # see if the filesystem is actually HFS, but it turns out that
+            # cnodes are also used for stuff like the dev filesystem, so let's
+            # just try and see if there's one that looks valid and go with it.
+            cnode = vnode.v_data.dereference_as("cnode")
+            if cnode.c_rwlock == cnode:
                 cattr = vnode.v_data.dereference_as("cnode").c_attr
 
                 # HFS+ stores timestamps as UTC.
-                components.append(manager.Timestamps(
+                components.append(definitions.Timestamps(
                     created_at=cattr.ca_ctime,
                     modified_at=cattr.ca_mtime,
                     accessed_at=cattr.ca_atime,
                     backup_at=cattr.ca_btime))
 
-                components.append(manager.Permissions(
-                    owner=manager.identify({
-                        "User/uid": cattr.ca_uid,
-                        "User/username": None})))
+            posix_cred = vnode.v_cred.cr_posix
+            components.append(definitions.Permissions(
+                owner=manager.identify({
+                    "User/uid": posix_cred.cr_ruid})))
 
             yield components
 
@@ -218,10 +226,11 @@ class DarwinFileCollector(common.DarwinEntityCollector):
 class UnpListCollector(common.DarwinEntityCollector):
     """Walks the global unpcb lists and returns the unix sockets.
 
-    See here: https://github.com/opensource-apple/xnu/blob/10.9/bsd/kern/uipc_usrreq.c#L121
+    See here:
+        github.com/opensource-apple/xnu/blob/10.9/bsd/kern/uipc_usrreq.c#L121
     """
 
-    collects = ["MemoryObject/type=socket"]
+    collects = ["MemoryObject/type=socket", "Named/kind=Unix Socket"]
 
     def collect(self, hint=None):
         for head_const in ["_unp_dhead", "_unp_shead"]:
@@ -231,8 +240,8 @@ class UnpListCollector(common.DarwinEntityCollector):
 
             for unp in lhead.lh_first.walk_list("unp_link.le_next"):
                 yield [
-                    self.entity_manager.MemoryObject(
+                    definitions.MemoryObject(
                         base_object=unp.unp_socket,
                         type="socket"),
-                    self.entity_manager.Named(
+                    definitions.Named(
                         kind="Unix Socket")]

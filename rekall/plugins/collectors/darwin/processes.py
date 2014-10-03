@@ -22,6 +22,8 @@ Darwin Process collectors.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall.entities import definitions
+
 from rekall.plugins.collectors.darwin import common
 from rekall.plugins.collectors.darwin import zones
 
@@ -46,17 +48,26 @@ class DarwinProcParser(common.DarwinEntityCollector):
             process_identity = manager.identify({
                 "Process/pid": proc.pid})
 
+            # kern_proc.c:2706
+            session = proc.p_pgrp.pg_session
+            if session:
+                session_identity = manager.identify({
+                    "MemoryObject/base_object": session})
+            else:
+                session_identity = None
+
             yield [
                 # Reuse the base object identity but also use the PID.
                 process_identity | entity.identity,
-                manager.Timestamps(
+                definitions.Timestamps(
                     created_at=proc.p_start),
-                manager.Process(
+                definitions.Process(
                     pid=proc.pid,
                     command=str(proc.p_comm),
-                    parent=manager.identify({"Process/pid": proc.pid}),
-                    user=user_identity),
-                manager.Named(
+                    parent=manager.identify({"Process/pid": proc.p_ppid}),
+                    user=user_identity,
+                    session=session_identity),
+                definitions.Named(
                     name="%s (pid=%d)" % (proc.p_comm, proc.pid),
                     kind="Process")]
 
@@ -65,7 +76,7 @@ class DarwinProcParser(common.DarwinEntityCollector):
             # Once we have more robustness in listing users this can go away.
             yield [
                 user_identity,
-                manager.User(uid=proc.p_uid)]
+                definitions.User(uid=proc.p_uid)]
 
 
 class DarwinPgrpHashProcessCollector(common.DarwinEntityCollector):
@@ -107,7 +118,7 @@ class DarwinPgrpHashProcessCollector(common.DarwinEntityCollector):
             for pgrp in slot.lh_first.walk_list("pg_hash.le_next"):
                 for proc in pgrp.pg_members.lh_first.walk_list(
                         "p_pglist.le_next"):
-                    yield self.entity_manager.MemoryObject(
+                    yield definitions.MemoryObject(
                         base_object=proc,
                         type="proc")
 
@@ -135,7 +146,7 @@ class DarwinTaskProcessCollector(common.DarwinEntityCollector):
             if not proc:
                 continue
 
-            yield self.entity_manager.MemoryObject(
+            yield definitions.MemoryObject(
                 base_object=proc,
                 type="proc")
 
@@ -155,7 +166,7 @@ class DarwinAllprocProcessCollector(common.DarwinEntityCollector):
         allproc = self.profile.get_constant_object(
             "_allproc", target="proclist")
         for proc in allproc.lh_first.p_list:
-            yield self.entity_manager.MemoryObject(
+            yield definitions.MemoryObject(
                 base_object=proc,
                 type="proc")
 
@@ -200,7 +211,7 @@ class DarwinPidHashProcessCollector(common.DarwinEntityCollector):
                 if not proc:
                     continue
 
-                yield self.entity_manager.MemoryObject(
+                yield definitions.MemoryObject(
                     base_object=proc,
                     type="proc")
 
