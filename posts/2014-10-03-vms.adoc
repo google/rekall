@@ -512,13 +512,13 @@ VM #0 [2 vCORE, I386]                                  VM     True 0xDEB1B01E <1
 **************************************************
 VM #1 [2 vCORE, AMD64]                                 VM     True 0x14128D01E <2>
 **************************************************
-VM #2 [4 vCORE, AMD64]                                 VM     True 0x17725001E <4>
+VM #2 [4 vCORE, AMD64]                                 VM     True 0x17725001E <3>
 **************************************************
 ....
 
 <1> Windows XP SP2 32bits running on VirtualBox.
 <2> Windows 7 X64 running on VMWare.
-<4> 64-bit Linux VM running on VMWare.
+<3> 64-bit Linux VM running on VMWare.
 
 Now you can run plugins on any VM by using the --ept parameter on the command line.
 
