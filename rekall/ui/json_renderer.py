@@ -41,6 +41,12 @@ class EncodingError(KeyError):
     """Raised if we can not encode the object properly."""
 
 
+class RobustEncoder(json.JSONEncoder):
+    def default(self, o):
+        logging.error("Unable to encode %r as json, replacing with None", o)
+        return None
+
+
 class JsonObjectRenderer(renderer_module.ObjectRenderer):
     """An ObjectRenderer for Json encoding.
 
@@ -590,7 +596,8 @@ class JsonRenderer(renderer_module.BaseRenderer):
     def write_data_stream(self):
         if self.data:
             # Just dump out the json object.
-            self.fd.write(json.dumps(self.data, separators=(',', ':')))
+            self.fd.write(json.dumps(self.data, cls=RobustEncoder,
+                                     separators=(',', ':')))
             self.fd.flush()
 
     def flush(self):

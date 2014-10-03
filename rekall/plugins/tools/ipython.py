@@ -25,7 +25,6 @@ import os
 import site
 
 from rekall import constants
-from rekall import testlib
 from rekall import plugin
 from rekall import kb
 from rekall.plugins import core
@@ -51,24 +50,6 @@ def IPython012Support(user_session):
         return ipython_support.Shell(user_session)
 
 
-def NotebookSupport(user_session):
-    engine = user_session.ipython_engine
-    if not engine:
-        return False
-
-    if engine == "notebook":
-        argv = ["notebook", "-c",
-                "from rekall import interactive; "
-                "interactive.ImportEnvironment();", "--autocall", "2"]
-        import IPython
-
-        IPython.start_ipython(argv=argv)
-        return True
-
-    else:
-        raise RuntimeError("Unknown ipython mode %s" % engine)
-
-
 def NativePythonSupport(user_session):
     """Launch the rekall session using the native python interpreter.
 
@@ -90,23 +71,7 @@ def NativePythonSupport(user_session):
     code.interact(banner=constants.BANNER, local=user_session._locals)  # pylint: disable=protected-access
 
 
-class Notebook(plugin.Command):
-    """Launch the IPython notebook."""
-
-    __name = "notebook"
-
-    def render(self, renderer):
-        renderer.format("Starting IPython notebook.")
-        renderer.format("Press Ctrl-c to return to the interactive shell.")
-        ipython_support.NotebookSupport(self.session)
-
-
-class TestNoteBook(testlib.DisabledTest):
-    """Disable the test for this command to avoid bringing up the notebook."""
-    PARAMETERS = dict(commandline="notebook")
-
-
-class Rekall(plugin.PhysicalASMixin, plugin.Command):
+class Rekall(plugin.Command):
     """Starts or modifies a new rekall analysis session.
 
     This plugin is probably only useful within the interactive shell. It
@@ -214,14 +179,12 @@ class InteractiveShell(plugin.PhysicalASMixin, plugin.Command):
 
     name = "shell"
 
+    PHYSICAL_AS_REQUIRED = False
+
     def render(self, renderer):
         self.session.mode = "Interactive"
 
-        # Try to launch the session using something.
-        if self.session.state.ipython_engine == "notebook":
-            ipython_support.NotebookSupport(self.session)
-
-        else:
-            _ = (IPython012Support(self.session) or
-                 NativePythonSupport(self.session))
+        # Try to launch the session using ipython or bare python.
+        if not IPython012Support(self.session):
+            NativePythonSupport(self.session)
 

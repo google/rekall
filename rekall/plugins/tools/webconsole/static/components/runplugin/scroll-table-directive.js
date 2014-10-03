@@ -78,7 +78,7 @@
           adjustScroll();
         });
 
-        $scope.$watch('collection', function() {
+        $scope.$watch('collection.length', function() {
           scroll_pane.scroll();
         });
 
@@ -115,6 +115,35 @@
 
         // Watch the height scope variable and adjust the table accordingly.
         $scope.$watch("height", updateHeight);
+
+        $scope.toggleTreeNode = function(row) {
+          row.opened = !row.opened;
+
+          // Update visibility for direct children
+          for (var i=row.count+1; i<$scope.collection.length; i++) {
+            var tested_row = $scope.collection[i];
+
+            // Opening a new branch - only show direct children.
+            if (row.opened && tested_row.depth == row.depth + 1) {
+                tested_row.visible = true;
+
+            // Closing a branch - hide all deeper nodes.
+            } else if (tested_row.depth > row.depth) {
+                tested_row.visible = false
+            };
+
+            // If this row is shallower that the current row we can stop.
+            if (tested_row.depth <= row.depth) {
+              break;
+            };
+          };
+
+          // If we close the tree we might need to expose some more rows in the
+          // table.
+          $timeout(adjustScroll);
+
+          return false;
+        };
       },
     };
   });

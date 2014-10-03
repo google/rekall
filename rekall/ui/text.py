@@ -1081,6 +1081,9 @@ class TreeNodeObjectRenderer(TextObjectRenderer):
         return heading
 
     def render_row(self, target, depth=0, child=None, **options):
+        if child is None:
+            child = {}
+
         if self.child:
             child_cell = self.child.render_row(target, **child)
         else:

@@ -44,7 +44,9 @@ class DataExportRenderer(json_renderer.JsonRenderer):
     name = "data"
 
     def table_row(self, *args, **options):
-        result = options.copy()
+        # Encode the options and merge them with the table row. This allows
+        # plugins to send additional data about the row in options.
+        result = self.encoder.Encode(options)
         for i, arg in enumerate(args):
             column_spec = self.table.column_specs[i].copy()
             column_spec.update(options)

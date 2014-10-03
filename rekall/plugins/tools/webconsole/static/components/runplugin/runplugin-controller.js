@@ -23,13 +23,15 @@
 
     $scope.plugins = [];
 
-    rekallPluginRegistryService.getPlugins(function(result) {
-      $scope.plugins = result;
-      $scope.pluginsValues = [];
-      for (var key in $scope.plugins) {
-        $scope.pluginsValues.push($scope.plugins[key]);
-      }
-    });
+    var getPlugins = function() {
+      rekallPluginRegistryService.getPlugins(function(result) {
+        $scope.plugins = result;
+        $scope.pluginsValues = [];
+        for (var key in $scope.plugins) {
+          $scope.pluginsValues.push($scope.plugins[key]);
+        }
+      });
+    };
 
     // If the plugin changes, we need to modify the arguments.
     $scope.$watch('node.source.plugin', function() {
@@ -117,6 +119,9 @@
 
       if ($scope.node.state == 'edit') {
         $scope.pluginFocus = true;
+
+        // Refresh the plugin list.
+        getPlugins();
 
         if ($scope.node.source.plugin) {
           $scope.search.pluginName = $scope.node.source.plugin.name;

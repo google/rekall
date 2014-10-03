@@ -14,14 +14,21 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="row in rows">
-          <td ng-if="row.options.annotation">
-            <rekall-free-format element="row" />
-          </td>
-          <td ng-if="!row.options.annotation"
-              ng-repeat="item in row" no-watch style="font-size: 90%" >
-            <rekall-object object="item.data" />
-          </td>
+        <tr ng-repeat="row in rows" ng-if="row.visible">
+            <td ng-repeat="item in row.data" no-watch style="font-size: 90%" >
+              <span bo-if="item.tree" style="margin-left: {{row.depth}}em"
+                    class="rekall-tree">
+                <span bo-if="!row.branch" style="margin-left: 15px"/>
+                <a bo-if="row.branch"
+                   ng-click="toggleTreeNode(row)" >
+                  <span ng-class="{'glyphicon-expand': !row.opened,
+                                   'glyphicon-collapse-down': row.opened}"
+                        class="glyphicon" />
+                </a>
+              </span>
+              <rekall-object object="item.data" />
+            </td>
+          </span>
         </tr>
       </tbody>
     </table>

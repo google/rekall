@@ -273,7 +273,7 @@ class VAD(common.WinProcessFilter):
 
     def render_vadroot(self, renderer, vad_root, task):
         renderer.table_header([('VAD', 'offset', '[addrpad]'),
-                               ('lev', 'depth', '>3'),
+                               ('lev', 'level', '>3'),
                                ('Start Addr', 'start_pfn', '[addrpad]'),
                                ('End Addr', 'end_pfn', '[addrpad]'),
                                ('com', 'com', '!>4'),

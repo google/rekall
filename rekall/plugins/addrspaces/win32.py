@@ -119,7 +119,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
             fmt_string, result)))
 
         self.dtb = self.memory_parameters["CR3"]
-        self.session.SetParameter("dtb", int(self.dtb))
+        self.session.SetCache("dtb", int(self.dtb))
 
         offset = struct.calcsize(fmt_string)
 
@@ -131,7 +131,7 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
         # available.
         kernel_base = self.memory_parameters["KernBase"]
         if kernel_base > 0:
-            self.session.SetParameter("kernel_base", kernel_base)
+            self.session.SetCache("kernel_base", kernel_base)
 
     def _read_chunk(self, addr, length):
         offset, available_length = self._get_available_buffer(addr, length)

@@ -402,7 +402,7 @@ class LoadAddressSpace(plugin.Command):
             for address_space in find_dtb.address_space_hits():
                 with self.session:
                     self.session.kernel_address_space = address_space
-                    self.session.SetParameter("dtb", address_space.dtb)
+                    self.session.SetCache("dtb", address_space.dtb)
                     break
 
             if self.session.kernel_address_space is None:
@@ -424,7 +424,7 @@ class LoadAddressSpace(plugin.Command):
 
         # Set the default address space for plugins like disassemble and dump.
         if not self.session.GetParameter("default_address_space"):
-            self.session.SetParameter(
+            self.session.SetCache(
                 "default_address_space", self.session.kernel_address_space)
 
         return self.session.kernel_address_space
@@ -472,10 +472,6 @@ class LoadAddressSpace(plugin.Command):
 
         if base_as:
             logging.info("Autodetected physical address space %s", base_as)
-        else:
-            logging.error("Failed to autodetect image file format. "
-                          "Try running plugins.load_as with the pas_spec "
-                          "parameter.")
 
         return base_as
 

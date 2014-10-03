@@ -56,7 +56,7 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
 
             file_offset += run.PageCount * self.PAGE_SIZE
 
-        self.session.SetParameter(
+        self.session.SetCache(
             "dtb", int(self.header.DirectoryTableBase))
 
     def check_file(self):

@@ -153,7 +153,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
             logging.debug("_EPROCESS.ThreadListHead does not reflect.")
             return
 
-        self.session.SetParameter("idle_process", eprocess)
+        self.session.SetCache("idle_process", eprocess)
 
         return address_space
 
@@ -571,7 +571,7 @@ class WinProcessFilter(WindowsCommandPlugin):
         self.cache = self.session.GetParameter("pslist_cache")
         if not self.cache:
             self.cache = {}
-            self.session.SetParameter("pslist_cache", self.cache)
+            self.session.SetCache("pslist_cache", self.cache)
 
         seen = set()
         for proc in self.list_from_eprocess():

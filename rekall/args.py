@@ -173,8 +173,6 @@ def ParseGlobalArgs(parser, argv, user_session):
     known_args, _ = parser.parse_known_args(args=argv)
 
     with user_session.state as state:
-        config.MergeConfigOptions(state)
-
         for arg, value in vars(known_args).items():
             state.Set(arg, value)
 
@@ -231,7 +229,7 @@ def FindPlugin(argv=None, user_session=None):
     """
     result = argv[:]
     for i, item in enumerate(argv):
-        if item in user_session.plugin_db.db:
+        if item in user_session.plugins.plugin_db.db:
             result.pop(i)
             return item, result
 
@@ -327,7 +325,7 @@ def parse_args(argv=None, user_session=None):
     # order to choose from these implementations. For example, the profile or
     # filename are usually used to select the specific implementation of a
     # plugin.
-    for metadata in user_session.plugin_db.MetadataByName(plugin_name):
+    for metadata in user_session.plugins.plugin_db.MetadataByName(plugin_name):
         ConfigureCommandLineParser(metadata, parser, critical=True)
 
     # Parse the global and critical args from the command line.
@@ -336,7 +334,7 @@ def parse_args(argv=None, user_session=None):
     # Find the specific implementation of the plugin that applies here. For
     # example, we have 3 different pslist implementations depending on the
     # specific profile loaded.
-    command_metadata = user_session.plugin_db.GetActivePlugin(plugin_name)
+    command_metadata = user_session.plugins.Metadata(plugin_name)
     if not command_metadata:
         raise plugin.PluginError(
             "Plugin %s is not available for this configuration" % plugin_name)

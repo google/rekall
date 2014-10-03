@@ -330,6 +330,8 @@ class PhysicalASMixin(object):
     This class ensures a valid physical AS exists or an exception is raised.
     """
 
+    PHYSICAL_AS_REQUIRED = True
+
     @classmethod
     def args(cls, metadata):
         super(PhysicalASMixin, cls).args(metadata)
@@ -357,7 +359,7 @@ class PhysicalASMixin(object):
             self.session.plugins.load_as().GetPhysicalAddressSpace()
             self.physical_address_space = self.session.physical_address_space
 
-        if not self.physical_address_space:
+        if self.PHYSICAL_AS_REQUIRED and not self.physical_address_space:
             raise PluginError("Physical address space is not set. "
                               "(Try plugins.load_as)")
 

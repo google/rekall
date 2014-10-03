@@ -142,7 +142,7 @@ class DarwinKASLRMixin(object):
             return
 
         if vm_kernel_slide is not None:
-            self.session.SetParameter("vm_kernel_slide", vm_kernel_slide)
+            self.session.SetCache("vm_kernel_slide", vm_kernel_slide)
 
 
 class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
@@ -212,7 +212,7 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
             vm_kernel_slide = int(hit - expected_offset)
 
             if self._validate_vm_kernel_slide(vm_kernel_slide):
-                self.session.SetParameter("catfish_offset", hit)
+                self.session.SetCache("catfish_offset", hit)
                 yield vm_kernel_slide
 
     def vm_kernel_slide(self):

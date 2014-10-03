@@ -115,7 +115,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
     @classmethod
     def args(cls, parser):
         parser.add_argument(
-            "-f", "--filename", default=None,
+            "-F", "--pdb_filename", default=None,
             help="The filename of the executable to get the PDB file for.")
 
         parser.add_argument(
@@ -125,9 +125,9 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
 
         super(FetchPDB, cls).args(parser)
 
-    def __init__(self, filename=None, guid=None, **kwargs):
+    def __init__(self, pdb_filename=None, guid=None, **kwargs):
         super(FetchPDB, self).__init__(**kwargs)
-        self.filename = filename
+        self.filename = pdb_filename
         self.guid = guid
 
     def render(self, renderer):
@@ -152,7 +152,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
 
         elif self.filename is None:
             raise RuntimeError(
-                "Filename must be provided when GUI is specified.")
+                "Filename must be provided when GUID is specified.")
 
         else:
             self.pdb_filename = self.filename

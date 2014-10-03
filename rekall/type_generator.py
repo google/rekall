@@ -283,7 +283,7 @@ class Disassembler(DynamicParser):
             disassembler_cache.Put(
                 (self.start, self.length, self.end), disassembly)
 
-            self.session.SetParameter("disassembler_cache", disassembler_cache)
+            self.session.SetCache("disassembler_cache", disassembler_cache)
 
         hits = {}
         contexts = {}

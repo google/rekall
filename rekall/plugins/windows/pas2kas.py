@@ -72,7 +72,7 @@ class WinPas2Vas(common.WinProcessFilter):
         self.maps = self.session.GetParameter("process_maps")
         if self.maps == None:
             self.maps = {}
-            self.session.SetParameter("process_maps", self.maps)
+            self.session.SetCache("process_maps", self.maps)
 
     def BuildMaps(self):
         if "Kernel" not in self.maps:

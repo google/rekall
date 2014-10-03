@@ -27,6 +27,7 @@ import re
 
 from rekall import config
 from rekall import kb
+from rekall import obj
 from rekall import registry
 from rekall import scan
 from rekall import utils
@@ -79,7 +80,7 @@ class DetectionMethod(object):
         dtb = self.session.GetParameter("dtb")
         if dtb:
             address_space = find_dtb_plugin.CreateAS(dtb)
-            self.session.SetParameter("default_address_space", address_space)
+            self.session.SetCache("default_address_space", address_space)
             return profile
 
         for address_space in find_dtb_plugin.address_space_hits():
@@ -89,8 +90,8 @@ class DetectionMethod(object):
 
             # Start off with a default address space of the kernel.
             with self.session as session:
-                session.SetParameter("default_address_space", address_space)
-                session.SetParameter("dtb", address_space.dtb)
+                session.SetCache("default_address_space", address_space)
+                session.SetCache("dtb", address_space.dtb)
 
             return profile
 
@@ -207,7 +208,7 @@ class PEImageFileDetector(DetectionMethod):
                 base=address_space, profile=self.pe_profile)
 
             self.session.kernel_address_space = pe_as
-            self.session.SetParameter("default_image_base", pe_as.image_base)
+            self.session.SetCache("default_image_base", pe_as.image_base)
 
             machine_type = pe_as.nt_header.FileHeader.Machine
             if machine_type == "IMAGE_FILE_MACHINE_AMD64":
@@ -321,7 +322,7 @@ class DarwinIndexDetector(DetectionMethod):
                     "New best match: %s (%.0f%% match)",
                     profile_name, match * 100)
 
-                self.session.SetParameter("catfish_offset", offset)
+                self.session.SetCache("catfish_offset", offset)
 
                 return profile
 
@@ -416,12 +417,14 @@ class ProfileHook(kb.ParameterHook):
             # Try to load the physical_address_space so we can scan it.
             if not self.session.plugins.load_as().GetPhysicalAddressSpace():
                 # No physical address space - nothing to do here.
-                return
+                return obj.NoneObject("No Physical Address Space.")
 
-        # Only do something only if we are allowed to autodetect profiles.
-        if not self.session.GetParameter("no_autodetect"):
-            profile_obj = self.ScanProfiles()
+        # Clear the profile for the duration of the scan.
+        self.session.profile = obj.NoneObject("Unset")
 
-            # Update the session profile.
-            self.session.profile = profile_obj
-            return profile_obj
+        profile_obj = self.ScanProfiles()
+
+        # Update the session profile.
+        self.session.profile = profile_obj
+
+        return profile_obj

@@ -39,6 +39,7 @@ from rekall.plugins.renderers import data_export
 from rekall import config
 from rekall import io_manager
 from rekall import utils
+from rekall.ui import json_renderer
 
 from flask_sockets import Sockets
 
@@ -128,7 +129,9 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
         self.queue = []
 
     def SendMessage(self, message):
-        self.ws.send(json.dumps([message]))
+        self.ws.send(json.dumps([message],
+                                cls=json_renderer.RobustEncoder))
+
         self.queue.append(message)
 
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
@@ -230,8 +233,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         @app.route("/rekall/plugins/all")
         def list_all_plugins():  # pylint: disable=unused-variable
             session = app.config['rekall_session']
-
-            return jsonify(session.plugin_db.Serialize())
+            return jsonify(session.plugins.plugin_db.Serialize())
 
         @app.route("/rekall/symbol_search")
         def search_symbol():  # pylint: disable=unused-variable

@@ -126,10 +126,45 @@
         }
 
         var decodedData = decode(columnData, state);
-        row.push({data: decodedData});
+        var column_data = {
+          data: decodedData,
+        };
+
+        // Special modeling of tree-table nodes.
+        if (column.type == "TreeNode") {
+          column_data.tree = true;
+        };
+
+        row.push(column_data);
       }
 
-      lastElement.rows.push(row);
+      var row_metadata = {
+        data: row,
+        count: lastElement.rows.length,
+        depth: data.depth,
+        visible: true,
+      };
+
+      if (data.depth !== undefined) {
+        // Is this part of the tree opened?
+        row_metadata.opened = false;
+
+        // Only show the top level by default.
+        if (data.depth > 0) {
+          row_metadata.visible = false;
+        };
+      };
+
+      // We can decide if the last row was a branch or a leaf now.
+      if (lastElement.rows.length > 0) {
+        var previous_row = lastElement.rows[lastElement.rows.length-1];
+
+        if (row_metadata.depth > previous_row.depth) {
+          previous_row.branch = true;
+        };
+      };
+
+      lastElement.rows.push(row_metadata);
     };
 
     var progressHandler = function(data, state) {

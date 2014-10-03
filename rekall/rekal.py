@@ -47,15 +47,6 @@ config.DeclareOption(
 
 
 def main(argv=None):
-    # IPython notebook launches the IPython kernel by re-spawning the main
-    # binary with its own command line args. This hack traps this and diverts
-    # execution to IPython itself.
-    if len(sys.argv) > 2 and sys.argv[1] == "-c":
-        to_run = sys.argv[2]
-        if ".kernelapp" in to_run:
-            exec(to_run)
-            return
-
     # New user interactive session (with extra bells and whistles).
     user_session = session.InteractiveSession()
 

@@ -27,7 +27,6 @@ import logging
 import re
 import readline
 
-from rekall import config
 from rekall import constants
 
 try:
@@ -39,10 +38,6 @@ except ImportError:
         embed = None
 
 from IPython.config.loader import Config
-
-
-config.DeclareOption("--ipython_engine",
-                     help="IPython engine, e.g. notebook.")
 
 
 def RekallCompleter(self, text):
@@ -73,7 +68,7 @@ def RekallCompleter(self, text):
         # Only complete if there is exactly one object which matches and a space
         # was typed after it. e.g.: pslist <cursor>
         if (global_matches and len(global_matches) == 1 and
-            len(command_parts) > 1):
+                len(command_parts) > 1):
 
             # Get the object and ask it about the list of default args.
             obj = self.namespace.get(global_matches.pop())
@@ -132,44 +127,4 @@ def Shell(user_session):
 
     shell(local_ns=user_session._locals)
 
-    return True
-
-
-
-def NotebookSupport(_):
-
-    # The following only reveals hidden imports to pyinstaller.
-    if False:
-        # pylint: disable=unused-variable
-        import IPython.html.auth.login
-        import IPython.html.auth.logout
-        import IPython.html.base.handlers
-        import IPython.html.nbconvert.handlers
-        import IPython.html.notebook.handlers
-        import IPython.html.notebookapp
-        import IPython.html.services.clusters.handlers
-        import IPython.html.services.kernels.handlers
-        import IPython.html.services.nbconvert.handlers
-        import IPython.html.services.notebooks.handlers
-        import IPython.html.services.sessions.handlers
-        import IPython.html.tree.handlers
-        import IPython.kernel.ioloop
-        import IPython.kernel.zmq.kernelapp
-
-        import rekall.interactive
-
-        import zmq.backend.cython
-        import zmq.eventloop.ioloop
-
-    argv = ["notebook", "-c",
-            "from rekall import interactive; "
-            "interactive.ImportEnvironment();", "--autocall", "2",
-            "--notebook-dir",
-            config.GetConfigFile().get("notebook_dir",
-                                       config.GetHomeDir())
-            ]
-
-    import IPython
-
-    IPython.start_ipython(argv=argv)
     return True
