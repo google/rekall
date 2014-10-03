@@ -286,7 +286,7 @@ it:
 * We can ask the processor to read (+VMREAD+) and write to it (+VMWRITE+).
 * We can see the effect each operation has on the 4KB page.
 
-_Mariano et al_ <<madhmf>> devised the following method:
+_Graziano et al_ <<madhmf>> devised the following method:
 
 1. Start with a blank (zero'd out) memory region.
 2. Instruct the CPU to use this region.
@@ -300,7 +300,7 @@ example, fields used for error-reporting that you cannot write to.
 So they devised a second method. Not all fields are writable but all of them
 are readable. Instead:
 
-1. Prefill the memory region with values tha represent the offset within the
+1. Prefill the memory region with values that represent the offset within the
 region a value is located.
 2. Instruct the CPU to use this region.
 3. +VMREAD+ a single field.
