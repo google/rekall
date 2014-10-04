@@ -440,7 +440,7 @@ class LoadAddressSpace(plugin.Command):
                                 key=lambda x: x.order)
 
         while 1:
-            logging.debug("Voting round")
+            logging.debug("Voting round with base: %s", base_as)
             found = False
             for cls in address_spaces:
                 # Only try address spaces which claim to support images.
@@ -454,7 +454,7 @@ class LoadAddressSpace(plugin.Command):
                     logging.debug("Succeeded instantiating %s", base_as)
                     found = True
                     break
-                except (AssertionError, addrspace.ASAssertionError, IOError), e:
+                except (AssertionError, addrspace.ASAssertionError), e:
                     logging.debug("Failed instantiating %s: %s",
                                   cls.__name__, e)
                     error.append_reason(cls.__name__, e)
@@ -658,20 +658,20 @@ class DT(plugin.ProfileCommand):
     @classmethod
     def args(cls, parser):
         super(DT, cls).args(parser)
-        parser.add_argument("offset", type="IntParser", default=0,
-                            help="Name of a struct definition.")
-
         parser.add_argument("target",
                             help="Name of a struct definition.")
+
+        parser.add_argument("offset", type="IntParser", default=0,
+                            required=False, help="Name of a struct definition.")
 
         parser.add_argument("-a", "--address-space", default=None,
                             help="The address space to use.")
 
-    def __init__(self, offset=0, target=None, profile=None, address_space=None,
+    def __init__(self, offset=0, target=None, address_space=None,
                  **kwargs):
         """Prints an object to the screen."""
         super(DT, self).__init__(**kwargs)
-        self.profile = profile or self.session.profile
+
         self.offset = offset
         self.target = target
         if target is None:

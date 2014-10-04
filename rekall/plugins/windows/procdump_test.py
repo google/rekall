@@ -21,8 +21,6 @@
 #
 
 """Tests for the procexecdump plugins."""
-import os
-
 from rekall import testlib
 
 

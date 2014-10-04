@@ -76,6 +76,8 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
             "_DMP_HEADER", offset=self.offset, vm=self.base)
 
         if self.header.DumpType != "Full Dump":
+            # Here we rely on the WindowsCrashBMP AS to run before us. Therefore
+            # we fail hard if this is not a valid legacy crash format.
             raise IOError("This is not a full memory crash dump. "
                           "Kernel crash dumps are not supported.")
 

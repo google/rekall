@@ -28,29 +28,4 @@ from rekall import testlib
 class TestHandles(testlib.RekallBaseUnitTestCase):
     """Test the Handler module."""
 
-    PARAMETERS = dict(commandline="handles --pid 1484")
-
-    def testHandle(self):
-        """Test the modules plugin."""
-        previous = self.baseline['output']
-        current = self.current['output']
-
-        # Compare virtual addresses.
-        self.assertIntegerListEqual(
-            sorted(self.ExtractColumn(current, 0, 2)),
-            sorted(self.ExtractColumn(previous, 0, 2)))
-
-        # Compare Handle.
-        self.assertListEqual(
-            sorted(self.ExtractColumn(previous, 2, 2)),
-            sorted(self.ExtractColumn(current, 2, 2)))
-
-        # Compare Type
-        self.assertListEqual(
-            sorted(self.ExtractColumn(previous, 4, 2)),
-            sorted(self.ExtractColumn(current, 4, 2)))
-
-        # Compare details.
-        self.assertListEqual(
-            sorted(self.ExtractColumn(previous, 5, 2)),
-            sorted(self.ExtractColumn(current, 5, 2)))
+    PARAMETERS = dict(commandline="handles --pid %(pid)s")

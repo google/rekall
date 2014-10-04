@@ -49,13 +49,13 @@
     <!-- Navigation bar -->
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation" bindonce>
       <div class="container-fluid">
-        <div class="col-md-2">
+        <div class="col-md-{{margin_width}}">
           <span class="label label-info">
             {{worksheet_filename}}
           </span>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-{{main_width}}">
           <div class="navbar-header">
             <a class="navbar-brand" bo-text="pageTitle"></a>
           </div>
@@ -139,6 +139,10 @@
                     ng-click="moveNodeDown(selection.node)">
               <span class="glyphicon glyphicon-arrow-down"></span>
             </button>
+            <button type="button" class="btn btn-default"
+                    ng-click="toggleMainWidth()">
+              <span class="glyphicon glyphicon-resize-horizontal"></span>
+            </button>
           </div>
 
           <div class="btn-group">
@@ -160,8 +164,8 @@
 
     <!-- List of all the nodes. -->
     <div class="container-fluid" id="cells">
-      <div class="col-md-2"></div>
-      <div class="col-md-8" id="main">
+      <div class="col-md-{{margin_width}}"></div>
+      <div class="col-md-{{main_width}}" id="main">
         <div ng-if="nodes.length == 0">
           <div class="page-header">
             <h1>Welcome to Rekall Memory Forensics

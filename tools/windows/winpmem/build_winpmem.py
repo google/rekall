@@ -28,7 +28,7 @@ import shutil
 
 VERSION = "1.6.1"
 PATH_TO_DDK = r"C:\WinDDK\7600.16385.1"
-PATH_TO_VS = r"C:\Program Files\Microsoft SDKs\Windows\v7.1"
+PATH_TO_VS = r"C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\Tools"
 
 def BuildProgram(principal="test", store=None, signtool_params=""):
     args = dict(path=PATH_TO_VS,
@@ -83,7 +83,9 @@ def BuildDriver(arch, target, principal="test", store=None, signtool_params=""):
                 arch=arch,
                 target=target, store="",
                 principal=principal, signtool_params=signtool_params,
-                cwd=os.getcwd())
+                cwd=os.getcwd(),
+                drive=os.path.splitdrive(os.getcwd())[0]
+                )
 
     if store:
         args["store"] = " /s %s " % store
@@ -97,8 +99,10 @@ def BuildDriver(arch, target, principal="test", store=None, signtool_params=""):
     cmd = (r"cmd /k %(path)s\bin\setenv.bat %(path)s chk %(arch)s %(target)s "
            "no_oacr" % args)
 
+    print "Launching %s" % cmd
+
     pipe = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
-    pipe.communicate("cd \"%(cwd)s\" && build /w \n" % args)
+    pipe.communicate("%(drive)s\ncd \"%(cwd)s\" && build /w \n" % args)
 
     output_path = r"release/%(arch2)s/winpmem.sys" % args
 
@@ -106,11 +110,11 @@ def BuildDriver(arch, target, principal="test", store=None, signtool_params=""):
         driver_data = fd.read()
 
     # Before we proceed we need to make sure the binaries have no write support.
-    if ("test" not in principal and "Write Supported" in driver_data):
+    if "test" not in principal and "Write Supported" in driver_data:
         raise RuntimeError("Tried to sign binaries with write support!!!!!")
 
     pipe = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
-    cmd = ("cd \"%(cwd)s\" && "
+    cmd = ("%(drive)s\ncd \"%(cwd)s\" && "
            "Signtool sign /v %(store)s /n %(principal)s %(signtool_params)s "
            "/t http://timestamp.verisign.com/scripts/timestamp.dll "
            "release\\%(arch2)s\\winpmem.sys"
@@ -144,11 +148,28 @@ def BuildSignedProductionBinaries():
     BuildProgram(**args)
 
 def BuildTestSignedBinries():
-    args = dict(store="PrivateCertStore",
-                principal="test")
-    BuildDriver("x64", "WIN7", **args)
-    BuildDriver("x86", "WXP", **args)
-    BuildProgram(**args)
+    # Test signed binaries are built with write support.
+    data = open("winpmem.h").read()
+    if re.search("PMEM_WRITE_ENABLED [01]", data):
+        new_data = re.sub(
+            "PMEM_WRITE_ENABLED [01]", "PMEM_WRITE_ENABLED 1", data)
+
+        try:
+            with open("winpmem.h", "wb") as fd:
+                fd.write(new_data)
+
+            args = dict(store="PrivateCertStore",
+                        principal="test")
+            BuildDriver("x64", "WIN7", **args)
+            BuildDriver("x86", "WXP", **args)
+            BuildProgram(**args)
+        finally:
+            with open("winpmem.h", "wb") as fd:
+                fd.write(data)
+
+    else:
+        raise RuntimeError("Unable to turn on write support")
+
 
 CleanUpOldFiles()
 BuildTestSignedBinries()

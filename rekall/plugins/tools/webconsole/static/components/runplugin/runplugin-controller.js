@@ -21,8 +21,7 @@
       pluginName: null
     };
 
-    $scope.plugins = [];
-
+    // Updates the plugins
     var getPlugins = function() {
       rekallPluginRegistryService.getPlugins(function(result) {
         $scope.plugins = result;
@@ -132,34 +131,42 @@
 
     });
 
-
+    // When the user updates the plugin name we re-filter the plugin list from
+    // the server to present the possible matches. NOTE: We need to re-fetch the
+    // plugin list from the server each time because the list of available
+    // plugins may have changed unexpectadely.
     $scope.$watch("search.pluginName", function(name) {
       $scope.selected_plugins = [];
 
-      if (!$scope.pluginsValues) {
-        return;
-      };
+      rekallPluginRegistryService.getPlugins(function(plugins) {
+        var pluginValues = [];
 
-      if (!$scope.search.pluginName) {
-        $scope.selected_plugins = $scope.pluginsValues;
-        return;
-      };
-
-      for (var i=0; i<$scope.pluginsValues.length; i++) {
-        var plugin = $scope.pluginsValues[i];
-
-        if (plugin.name.indexOf(name) == 0) {
-          $scope.selected_plugins.push(plugin);
-        };
-      };
-
-      if ($scope.selected_plugins.length == 1) {
-        if($scope.node.source.plugin == null ||
-           $scope.node.source.plugin.name != $scope.selected_plugins[0].name) {
-          $scope.node.source.plugin = $scope.selected_plugins[0];
-          $scope.node.source.arguments = {};
+        for (var key in plugins) {
+          pluginValues.push(plugins[key]);
         }
-      };
+
+        if (!$scope.search.pluginName) {
+          $scope.selected_plugins = pluginValues;
+          return;
+        };
+
+        for (var i=0; i<pluginValues.length; i++) {
+          var plugin = pluginValues[i];
+
+          if (plugin.name.indexOf(name) == 0) {
+            $scope.selected_plugins.push(plugin);
+          };
+        };
+
+        // If there is only one match - select it automatically.
+        if ($scope.selected_plugins.length == 1) {
+          if($scope.node.source.plugin == null ||
+             $scope.node.source.plugin.name != $scope.selected_plugins[0].name) {
+            $scope.node.source.plugin = $scope.selected_plugins[0];
+            $scope.node.source.arguments = {};
+          }
+        };
+      });
     });
 
     $scope.minimizeToggle = function($event) {

@@ -138,8 +138,16 @@ class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
                            "EWF signature not present")
 
             filename = base.fname
+        else:
+            # Check if the file is really an ewf file.
+            with open(filename, "rb") as base:
+                self.as_assert(base.read(6) == "\x45\x56\x46\x09\x0D\x0A",
+                               "EWF signature not present")
 
         self.name = self.filename = filename
+
+        # If this is not a valid EWF file we fail hard (allow IOError to
+        # bubble).
         fhandle = ewf_open([self.filename])
 
         super(EWFAddressSpace, self).__init__(

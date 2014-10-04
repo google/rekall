@@ -438,17 +438,17 @@ class DwarfParser(plugin.Command):
         super(DwarfParser, cls).args(parser)
 
         parser.add_argument(
-            "filename", default=None,
+            "dwarf_filename", default=None,
             help="The filename of the PDB file.")
 
         parser.add_argument(
             "--profile_class", default="Linux64",
             help="The name of the profile implementation. ")
 
-    def __init__(self, filename=None, profile_class=None, **kwargs):
+    def __init__(self, dwarf_filename=None, profile_class=None, **kwargs):
         super(DwarfParser, self).__init__(**kwargs)
 
-        self.parser = DWARFParser(open(filename, "rb"), self.session)
+        self.parser = DWARFParser(open(dwarf_filename, "rb"), self.session)
         self.profile_class = profile_class
 
     def render(self, renderer):

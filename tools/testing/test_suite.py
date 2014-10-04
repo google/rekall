@@ -169,7 +169,8 @@ exit 0
         self.threadpool = threadpool.ThreadPool(self.FLAGS.processes)
 
         # The path that contains all the baselines.
-        self.test_directory = os.path.dirname(self.FLAGS.config)
+        self.test_directory = os.path.dirname(
+            os.path.abspath(self.FLAGS.config))
 
         # The path that we write all files to.
         self.output_dir = os.path.join(
@@ -322,7 +323,7 @@ exit 0
             if x.startswith("--"):
                 kwargs[x[2:]] = y
 
-        s = session.Session(**kwargs)
+        s = session.InteractiveSession(**kwargs)
 
         # A map of all the specialized tests which are defined. Only include
         # those classes which are active for the currently selected profile.
@@ -349,8 +350,8 @@ exit 0
 
             # Automatically create a new test based on testlib.SimpleTestCase.
             result.append(type(
-                    "Test%s" % cls.__name__, (testlib.SimpleTestCase,),
-                    dict(PARAMETERS=dict(commandline=cls.name))))
+                "Test%s" % cls.__name__, (testlib.SimpleTestCase,),
+                dict(PARAMETERS=dict(commandline=cls.name))))
 
         return result
 
@@ -416,7 +417,7 @@ exit 0
                     self.BuildBaselineTask(config_options, plugin_cls)
                 else:
                     self.threadpool.AddTask(self.BuildBaselineTask, [
-                            config_options, plugin_cls])
+                        config_options, plugin_cls])
 
             else:
                 # process == 0 means we run tests in series.
@@ -492,12 +493,13 @@ exit 0
                 if self.FLAGS.verbose:
                     for test_case, error in result.errors + result.failures:
                         self.renderer.write("Error in %s: %s" % (
-                                plugin_cls.__name__, error))
+                            plugin_cls.__name__, error))
 
 def main(_):
     start = time.time()
     # We dont want a pager for the main view.
-    renderer = text.TextRenderer(session=session.Session(pager="-"))
+    user_session = session.InteractiveSession(pager="-")
+    renderer = text.TextRenderer(session=user_session)
     with renderer.start():
         with RekallTester(renderer=renderer) as tester:
             tester.RunTests()

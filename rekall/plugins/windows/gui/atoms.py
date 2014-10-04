@@ -33,10 +33,10 @@ class PoolScanAtom(common.PoolScanner):
 
         self.checks = [
             ('PoolTagCheck', dict(tag=self.profile.get_constant(
-                        "PoolTag_Atom"))),
+                "PoolTag_Atom"))),
 
             ('CheckPoolSize', dict(
-                    min_size=self.profile.get_obj_size("_RTL_ATOM_TABLE"))),
+                min_size=self.profile.get_obj_size("_RTL_ATOM_TABLE"))),
 
             ('CheckPoolType', dict(paged=True, non_paged=True, free=True)),
             ]
@@ -49,6 +49,7 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
 
     @classmethod
     def args(cls, parser):
+        super(AtomScan, cls).args(parser)
         parser.add_argument(
             "-S", "--sort-by",
             choices=["atom", "refcount", "offset"], default="offset",

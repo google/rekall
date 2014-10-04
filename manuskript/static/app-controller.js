@@ -22,7 +22,20 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     manuskriptCoreNodePluginRegistryService, manuskriptNetworkService,
     manuskriptConfiguration) {
 
+    $scope.margin_width = 2;
+    $scope.main_width = 8;
+
     $scope.pageTitle = manuskriptConfiguration.pageTitle || "Manuskript";
+
+    $scope.toggleMainWidth = function() {
+      if ($scope.margin_width == 2) {
+        $scope.margin_width = 0;
+        $scope.main_width = 12;
+      } else {
+        $scope.margin_width = 2;
+        $scope.main_width = 8;
+      };
+    };
 
 
     /**

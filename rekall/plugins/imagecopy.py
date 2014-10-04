@@ -24,6 +24,7 @@
 import os
 
 from rekall import plugin
+from rekall import testlib
 
 
 class ImageCopy(plugin.PhysicalASMixin, plugin.Command):
@@ -98,3 +99,7 @@ class ImageCopy(plugin.PhysicalASMixin, plugin.Command):
 
                     renderer.RenderProgress(
                         "Writing offset %s" % self.human_readable(offset))
+
+
+class TestImageCopy(testlib.HashChecker):
+    PARAMETERS = dict(commandline="imagecopy -O %(tempdir)s/output_image.raw")

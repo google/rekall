@@ -39,7 +39,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
     @classmethod
     def args(cls, parser):
         super(PEInfo, cls).args(parser)
-        parser.add_argument("--image-base", default=0,
+        parser.add_argument("--image-base", default=0, type="SymbolAddress",
                             help="The base of the image.")
 
         parser.add_argument("executable", default=None, nargs='?',

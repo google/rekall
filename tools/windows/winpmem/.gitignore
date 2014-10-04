@@ -1,0 +1,4 @@
+*.log
+objchk*
+*.exe
+binaries

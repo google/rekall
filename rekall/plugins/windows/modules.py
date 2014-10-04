@@ -170,6 +170,8 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
 
     __name = "version_scan"
 
+    PHYSICAL_AS_REQUIRED = False
+
     @classmethod
     def args(cls, parser):
         """Declare the command line args we need."""
@@ -177,25 +179,25 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
         parser.add_argument("--name_regex",
                             help="Filter module names by this regex.")
 
-        parser.add_argument("--filename",
+        parser.add_argument("scan-filename", required=False,
                             help="Optional file to scan. If not specified "
                             "we scan the physical address space.")
 
-    def __init__(self, name_regex=None, filename=None, **kwargs):
+    def __init__(self, name_regex=None, scan_filename=None, **kwargs):
         """List kernel modules by walking the PsLoadedModuleList."""
         super(VersionScan, self).__init__(**kwargs)
         self.name_regex = re.compile(name_regex or ".", re.I)
-        if filename is not None:
+        if scan_filename is not None:
             load_as = self.session.plugins.load_as()
             self.physical_address_space = load_as.GuessAddressSpace(
-                filename=filename)
+                filename=scan_filename)
 
     def ScanVersions(self):
         """Scans the physical AS for RSDS structures."""
         guids = set()
         pe_profile = self.session.LoadProfile("pe")
         scanner = RSDSScanner(address_space=self.physical_address_space,
-                              session=self.session)
+                              session=self.session, profile=pe_profile)
 
         for hit in scanner.scan():
             rsds = pe_profile.CV_RSDS_HEADER(

@@ -258,13 +258,15 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
     for name, options in command_metadata.args.iteritems():
         kwargs = options.copy()
         name = kwargs.pop("name", None) or name
-        required = kwargs.pop("required", False)
 
         positional_args = []
         short_opt = kwargs.pop("short_opt")
 
         # A positional arg is allows to be specified without a flag.
         if kwargs.pop("positional"):
+            # By default positional args are required.
+            required = kwargs.pop("required", True)
+
             positional_args.append(name)
 
             # If a position arg is optional we need to specify nargs=?

@@ -26,6 +26,8 @@ import logging
 import os
 import sys
 import tempfile
+import time
+import threading
 import webbrowser
 
 from rekall import io_manager
@@ -86,28 +88,29 @@ class WebConsole(plugin.Command):
                             "changes in the resources and reload them as "
                             "needed.")
 
-        parser.add_argument("--no_browser", default=False, type="Boolean",
-                            help="Don't open webconsole in the default "
+        parser.add_argument("--browser", default=False, type="Boolean",
+                            help="Open webconsole in the default "
                             "browser.")
 
     def __init__(self, host="localhost", port=0, debug=False,
-                 no_browser=False, worksheet=None, **kwargs):
+                 browser=False, worksheet=None, **kwargs):
         super(WebConsole, self).__init__(**kwargs)
         self.host = host
         self.port = port
         self.debug = debug
-        self.no_browser = no_browser
+        self.browser = browser
         self.pre_load = worksheet
 
     def server_post_activate_callback(self, server):
+        time.sleep(1)
+
         # Update the port number, because the server may have launched on a
         # random port.
-        self.port = server.server_address[1]
-        if not self.no_browser:
+        self.port = server.server_port
+        if self.browser:
             webbrowser.open("http://%s:%d" % (self.host, self.port))
         else:
             sys.stderr.write(
-                "\nSupressing web browser (--no_browser flag). "
                 "Server running at http://%s:%d\n" % (self.host, self.port))
 
     def render(self, renderer):
@@ -116,7 +119,7 @@ class WebConsole(plugin.Command):
 
 
         with tempfile.NamedTemporaryFile(delete=True) as temp_fd:
-            logging.info("Using working file %s", temp_fd.name)
+            logging.info("Using working file %s", temp_fd.name + "_")
 
             # We need to copy the pre load file into the working file.
             if self.pre_load:
@@ -126,7 +129,7 @@ class WebConsole(plugin.Command):
                 logging.info("Initialized from %s", self.pre_load)
 
             self.worksheet_fd = io_manager.ZipFileManager(
-                temp_fd.name, mode="a")
+                temp_fd.name + ".zip", mode="a")
 
             try:
                 app = manuskript_server.InitializeApp(
@@ -153,6 +156,11 @@ class WebConsole(plugin.Command):
 
                 server = pywsgi.WSGIServer((self.host, self.port), app,
                                            handler_class=WebSocketHandler)
+
+                t = threading.Thread(target=self.server_post_activate_callback,
+                                     args=(server,))
+                t.start()
+
                 server.serve_forever()
             finally:
                 self.worksheet_fd.Close()

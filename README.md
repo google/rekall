@@ -13,7 +13,7 @@ The Rekall distribution is available from: <http://www.rekall-forensic.com/>
 
 Rekall should run on any platform that supports [Python](http://www.python.org)
 
-Rekall supports investigations of the following x86 bit memory images:
+Rekall supports investigations of the following 32bit and 64bit memory images:
 
 - Microsoft Windows XP Service Pack 2 and 3
 - Microsoft Windows 7 Service Pack 0 and 1
@@ -23,6 +23,11 @@ Rekall supports investigations of the following x86 bit memory images:
 
 Rekall also provides a complete memory sample acquisition capability for all
 major operating systems (see the tools directory).
+
+Additionally Rekall now features a complete GUI for writing reports, and driving
+analysis, try it out with:
+
+```rekall webconsole --browser```
 
 ## Quick start
 
@@ -39,11 +44,8 @@ Rekall makes a major stable release):
 To have all the dependencies installed. You still need to have python and pip
 installed first.
 
-To be able to run the ipython notebook, the following are also required:
-
-```pip install Jinja2 MarkupSafe Pygments astroid pyzmq tornado wsgiref```
-
-If you want to use the yarascan plugin, install [yara and yara-python](http://plusvic.github.io/yara/).
+If you want to use the yarascan plugin, install [yara and
+yara-python](http://plusvic.github.io/yara/).
 
 For windows, Rekall is also available as a self contained installer
 package. Please check the download page for the most appropriate installer to

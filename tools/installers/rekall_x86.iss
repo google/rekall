@@ -1,13 +1,17 @@
+#define WINPMEM_VERSION '1.6.1'
+#define REKALL_VERSION '1.1.0'
+#define REKALL_CODENAME 'Buchenegg'
+
 [Files]
 ; Extra Binaries to add to the package.
-Source: C:\Python27.32\Lib\site-packages\distorm3\distorm3.dll; DestDir: {app}
+Source: C:\Python27.32\Lib\site-packages\distorm3\distorm3.dll; DestDir: {app}\dlls
 ; Source: C:\Python27.32\DLLs\libyara.dll; DestDir: {app}\dlls
 Source: C:\Windows\system32\MSVCR100.dll; DestDir: {app}
 Source: C:\Windows\system32\MSVCP100.dll; DestDir: {app}
 
 ; Winpmem tool
-Source: ..\..\..\rekall.downloads\WinPmem\winpmem_1.6.0.exe; DestDir: {app}
-Source: ..\..\..\rekall.downloads\WinPmem\winpmem_write_1.6.0.exe; DestDir: {app}
+Source: ..\windows\winpmem\winpmem_{#WINPMEM_VERSION}.exe; DestDir: {app}
+Source: ..\windows\winpmem\winpmem_write_{#WINPMEM_VERSION}.exe; DestDir: {app}
 
 ; PyInstaller files.
 DestDir: {app}; Source: ..\..\dist\rekal\*; Excludes: "_MEI"; Flags: recursesubdirs
@@ -22,9 +26,9 @@ AppCopyright=GPLv2
 AppPublisher=Rekall Team
 AppPublisherURL=http://www.rekall-forensic.com/
 AppName=Rekall
-AppVerName=Rekall v1.0.3 Albis
+AppVerName=Rekall v{#REKALL_VERSION} {#REKALL_CODENAME}
 DefaultDirName={pf}\Rekall
-VersionInfoVersion=1.0.3
+VersionInfoVersion={#REKALL_VERSION}
 ; ArchitecturesAllowed=x86
 VersionInfoCompany=Rekall Inc.
 VersionInfoDescription=Rekall Memory Forensic Framework
@@ -33,7 +37,7 @@ VersionInfoProductName=Rekall Memory Forensic Framework
 MinVersion=5.01.2600sp1
 PrivilegesRequired=poweruser
 TimeStampsInUTC=true
-OutputBaseFilename=Rekall_1.0.3_Albis_x86
+OutputBaseFilename=Rekall_{#REKALL_VERSION}_{#REKALL_CODENAME}_x86
 VersionInfoTextVersion=Rekall Memory Forensic Framework
 InfoAfterFile=..\..\README.md
 LicenseFile=..\..\LICENSE.txt

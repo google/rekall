@@ -13,19 +13,13 @@
     };
 
     this.getPlugins = function(successCallback) {
-      if (this.plugins != null) {
-        successCallback(this.plugins);
-        return;
-      }
-
       var self = this;
-      return $http.get('/rekall/plugins/all', {cache: true}).success(function(response) {
+
+      return $http.get('/rekall/plugins/all').success(function(response) {
         for (var key in response) {
           response[key].short_description = firstLineOnly(  // jshint ignore:line
               response[key].description);
         }
-
-        self.plugins = response;
 
         successCallback(response);
       });

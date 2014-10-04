@@ -248,6 +248,8 @@ class ProfileCommand(Command):
 
     __abstract = True
 
+    PROFILE_REQUIRED = True
+
     @classmethod
     def args(cls, metadata):
         # Top level args.
@@ -266,7 +268,13 @@ class ProfileCommand(Command):
         # needed. This might be slightly unexpected: When command line
         # completing the available plugins we will trigger profile autodetection
         # in order to determine which plugins are active.
-        return session.GetParameter("profile") != None
+        profile = (super(ProfileCommand, cls).is_active(session) and
+                   session.GetParameter("profile") != None)
+        if cls.PROFILE_REQUIRED:
+            return profile
+
+        else:
+            return True
 
     def __init__(self, profile=None, **kwargs):
         """Baseclass for all plugins which accept a profile.
@@ -276,9 +284,15 @@ class ProfileCommand(Command):
         """
         super(ProfileCommand, self).__init__(**kwargs)
 
-        # Require a valid profile.
-        self.profile = profile or self.session.profile
-        if not self.profile and not self.session.GetParameter("profile"):
+        # If a profile was provided we must set it into the session and then use
+        # it. (The new profile must control the presence of other dependent
+        # plugins and so forms part of the session's state.).
+        if profile is not None:
+            with self.session:
+                self.session.SetParameter("profile", profile)
+
+        self.profile = self.session.profile
+        if self.PROFILE_REQUIRED and not self.profile:
             raise PluginError("Profile not specified. (use vol(plugins.info) "
                               "to see available profiles.).")
 

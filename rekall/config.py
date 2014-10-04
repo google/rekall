@@ -119,6 +119,8 @@ def MergeConfigOptions(state):
 
 def RemoveGlobalOptions(state):
     """Remove all global options from state dictionary."""
+    state.pop("SUPPRESS", None)
+
     for _, _, name, _, _ in OPTIONS:
         state.pop(name, None)
 
@@ -204,7 +206,9 @@ class IntParser(argparse.Action):
         return value
 
     def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, self.parse_int(values))
+        if isinstance(values, basestring):
+            values = self.parse_int(values)
+        setattr(namespace, self.dest, values)
 
 
 class ArrayIntParser(IntParser):

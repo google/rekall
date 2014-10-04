@@ -121,7 +121,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
         parser.add_argument(
             "--guid", default=None,
             help="The GUID of the pdb file. If provided, the pdb filename must."
-            "be provided in the --filename parameter.")
+            "be provided in the --pdb_filename parameter.")
 
         super(FetchPDB, cls).args(parser)
 
@@ -1063,7 +1063,7 @@ class ParsePDB(plugin.Command):
         super(ParsePDB, cls).args(parser)
 
         parser.add_argument(
-            "-f", "--filename", default=None, required=True,
+            "pdb_filename", default=None, required=True,
             help="The filename of the PDB file.")
 
         parser.add_argument(
@@ -1081,10 +1081,10 @@ class ParsePDB(plugin.Command):
             "--concise", default=False, type="Boolean",
             help="Specify this to emit less detailed information.")
 
-    def __init__(self, filename=None, profile_class=None, windows_version=None,
-                 metadata=None, concise=False, **kwargs):
+    def __init__(self, pdb_filename=None, profile_class=None,
+                 windows_version=None, metadata=None, concise=False, **kwargs):
         super(ParsePDB, self).__init__(**kwargs)
-        self.filename = filename
+        self.filename = pdb_filename
         self.metadata = metadata or {}
         self.concise = concise
 
@@ -1107,7 +1107,7 @@ class ParsePDB(plugin.Command):
                 except IndexError:
                     break
 
-        self.tpi = PDBParser(filename, self.session)
+        self.tpi = PDBParser(self.filename, self.session)
 
     NATIVE_TYPE_SIZE = {
         "unsigned char": 1,

@@ -27,6 +27,7 @@ import site
 from rekall import constants
 from rekall import plugin
 from rekall import kb
+from rekall import testlib
 from rekall.plugins import core
 from rekall.ui import text as text_renderer
 
@@ -174,12 +175,14 @@ class PagingLimitHook(kb.ParameterHook):
         return int(os.environ.get("ROWS", 50))
 
 
-class InteractiveShell(plugin.PhysicalASMixin, plugin.Command):
+class InteractiveShell(plugin.PhysicalASMixin, plugin.ProfileCommand):
     """An interactive shell for Rekall."""
 
     name = "shell"
 
+    # The following dependencies are optional.
     PHYSICAL_AS_REQUIRED = False
+    PROFILE_REQUIRED = False
 
     def render(self, renderer):
         self.session.mode = "Interactive"
@@ -188,3 +191,6 @@ class InteractiveShell(plugin.PhysicalASMixin, plugin.Command):
         if not IPython012Support(self.session):
             NativePythonSupport(self.session)
 
+
+class InteractiveShellTest(testlib.DisabledTest):
+    PARAMETERS = dict(commandline="shell")

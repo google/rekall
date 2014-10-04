@@ -1141,10 +1141,11 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
     @property
     def indices(self):
-        return ("%s(0x%x, dtb=0x%x)" % (
+        return "%s(%#x, vm=%s)" % (
             self.obj_type,
-            self.obj_vm.dtb,
-            self.obj_offset),)
+            self.obj_offset,
+            self.obj_vm,
+            )
 
     def __int__(self):
         """Return our offset as an integer.

@@ -201,10 +201,9 @@ class Configuration(Cache):
 
     _loaded_filename = None
 
-    def __init__(self, session=None, **kwargs):
-        super(Configuration, self).__init__(**kwargs)
+    def __init__(self, session=None):
+        super(Configuration, self).__init__()
         self.session = session
-        self.update(**kwargs)
 
         # These will be processed on exit from the context manager.
         self._pending_parameters = {}
@@ -239,7 +238,7 @@ class Configuration(Cache):
             del self['profile']
             self['filename'] = filename
 
-            self.session.GetParameter("profile")
+            #self.session.GetParameter("profile")
 
         return filename
 
@@ -367,13 +366,7 @@ class Session(object):
     _address_resolver = None
 
     def __init__(self, **kwargs):
-        # Store user configurable attributes here. These will be read/written to
-        # the configuration file.
-        self.state = Configuration(self, cache=Cache(), **kwargs)
-
         self.progress = ProgressDispatcher()
-        self.profile = obj.NoneObject("Set this to a valid profile "
-                                      "(e.g. type profiles. and tab).")
 
         # Cache the profiles we get from LoadProfile() below.
         # TODO: This should probably be also done on disk somewhere to avoid
@@ -396,6 +389,15 @@ class Session(object):
         # indexed by the current process_context which can be found from
         # session.GetParameter("process_context").
         self.context_cache = {}
+
+        # Store user configurable attributes here. These will be read/written to
+        # the configuration file.
+        self.state = Configuration(session=self)
+        with self.state:
+            self.state.Set("cache", Cache())
+
+            for k, v in kwargs.items():
+                self.state.Set(k, v)
 
     def __enter__(self):
         # Allow us to update the state context manager.
@@ -859,8 +861,6 @@ class InteractiveSession(JsonSerializableSession):
         # Fill the session with helpful defaults.
         self.pager = obj.NoneObject("Set this to your favourite pager.")
 
-        super(InteractiveSession, self).__init__()
-
         # Prepare the local namespace for the interactive session.
         self._locals = DynamicNameSpace(
             session=self,
@@ -875,13 +875,16 @@ class InteractiveSession(JsonSerializableSession):
             **(env or {})
             )
 
+        super(InteractiveSession, self).__init__()
+
         # Configure the session from the config file and kwargs.
-        with self:
-            if use_config_file:
+        if use_config_file:
+            with self.state:
                 config.MergeConfigOptions(self.state)
 
-            for k, v in kwargs.items():
-                self.SetParameter(k, v)
+            with self.state:
+                for k, v in kwargs.items():
+                    self.state.Set(k, v)
 
     def RunPlugin(self, *args, **kwargs):
         self.last = super(InteractiveSession, self).RunPlugin(*args, **kwargs)
