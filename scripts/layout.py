@@ -99,7 +99,7 @@ def blog_nav(page=None):
 
     items.sort(reverse=True)
     result = ""
-    for _, post in items[:5]:
+    for _, post in items[:15]:
         result += """
   <ul class="nav nav-stacked">
      <h2>{post.title}</h2>
@@ -386,8 +386,8 @@ def _MakeDownloadPageContentTable(page, release=None):
             url = name
             name = os.path.basename(name)
         else:
-            url = "https://github.com/google/rekall/releases/download/"
-            url += (page.release or release) + "/" + name
+            url = "https://github.com/google/rekall/releases/"
+            url += (page.release or release) + "/"
 
         result += """
 <tr>
@@ -456,3 +456,61 @@ def redirect(page=None):
 </body>
 </html>
 """.format(page=page)
+
+
+def images(page=None):
+    """Shows a gallery of images from a directory."""
+
+    files = sorted(os.listdir(page.image_path))
+
+    result = '''
+<div  id="carousel-example-generic"  class="carousel slide" data-ride="carousel">
+'''
+    result += '<ol class="carousel-indicators">'
+    for i, filename in enumerate(files):
+        active = ""
+        if i == 0:
+            active = 'active'
+
+        result += u"""
+          <li  data-target="#carousel-example-generic"
+               data-slide-to="{i}" class="{active}"></li>
+""".format(page=page, filename=filename, i=i, active=active)
+
+    result += "</ol>"
+
+    result += '<div class="carousel-inner">'
+    for i, filename in enumerate(files):
+        active = ""
+        if i == 0:
+            active = 'active'
+
+        result += u"""
+       <div class="item {active}">
+          <img src="/{page.image_path}/{filename}"/>
+       </div>
+""".format(page=page, filename=filename, active=active)
+    result += '</div>'
+
+
+    result += """
+  <!-- Controls -->
+  <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+    <span class="glyphicon glyphicon-chevron-left"></span>
+  </a>
+  <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+    <span class="glyphicon glyphicon-chevron-right"></span>
+  </a>
+"""
+
+    result += """
+</div>
+<script>
+    $('.carousel').carousel({
+        interval: 3000,
+    })
+</script>
+"""
+    page.content += result
+
+    return default(page)

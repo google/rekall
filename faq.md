@@ -6,6 +6,43 @@ title: Frequently Asked Questions (FAQ).
 
 # Frequently Asked Questions (FAQ).
 
+<div id="repository"></div>
+
+#### Rekall wants to access the internet for each profile, but my machine has no net access?
+
+Rekall's profile repository is rather large and grows all the time. We dont want
+to ship Rekall with hundreds of MB of profile data embedded in the tool. We
+therefore access the repository to fetch profiles on demand.
+
+If you dont want to access the internet each time you can copy the entire
+profile repository locally and then just use it from your local machine. Since
+the profile repository is a git repository you can just check it out:
+
+```
+git clone https://github.com/google/rekall-profiles.git
+```
+
+You can then just keep it up to date by running:
+
+```
+git pull
+```
+
+from within this directory. Alternatively you can just download the latest
+snapshot as a zip file (you do not need the git tool in that case):
+```
+wget https://github.com/google/rekall-profiles/archive/master.zip
+```
+
+You will now need to edit your ~/.rekallrc file to use your local directory copy
+instead of the web copy:
+```
+profile_path:
+   - /home/scudette/rekall-profiles
+   - https://raw.githubusercontent.com/google/rekall-profiles/master
+```
+
+
 <div id="profile"></div>
 
 #### Rekall fails with "Unable to load profile from any repository". What gives?
@@ -13,6 +50,30 @@ title: Frequently Asked Questions (FAQ).
 Rekall requires accurate profiles to operate. This is similar to the way the
 windows kernel debugger works - in order to analyse a windows image, the kernel
 debugger needs to obtain debugging symbols from the microsoft debugging server.
+
+Since Rekall now uses indexes in its repository for autodetection you need to
+reindex the profile repository after you add a new GUID. This is the preferred
+way because Rekall will then be able to autodetect your profile afterwards:
+
+1. The first step is to figure out the precise version of the windows kernel
+   this image has. We do this by scanning for the GUID of the **ntoskrnl.exe**
+   process from the image itself.
+2. Check out the profile repository as explained above.
+3. Add you new GUID to v1.0/src/guids.txt
+4. Now change directory to the v1.0/ directory.
+5. Run the profile management tool:
+
+```
+python ~/rekall/tools/profiles/build_profile_repo.py src/guids.txt
+```
+
+This will automatically notice the new GUIDs in the file, download them from
+Microsoft, parse them and update all indexes. You can send us a pull request to
+update the public repository if you like :-).
+
+Alternatively you can just download the pdb file yourself and convert it. This
+will work but you will have to provide the new profile through the --profile
+command line arg.
 
 To generate a profile file for an image, simple use the **fetch_pdb** and
 **parse_pdb** plugins. For example, suppose you have a memory image which you
@@ -28,10 +89,10 @@ are not quite sure what exact version of Windows it is.
 3. Finally we convert the pdb file into Rekall's own json format.
 
 ```
-$ rekal -f ~/images/win7.elf --profile None version_scan | grep ntkrnl
+$ rekal -f ~/images/win7.elf version_scan --name ntkrnl
 0x0000027bb5fc f8e2a8b5c9b74bf4a6e4a48f180099942 ntkrnlmp.pdb
 
-$ rekal fetch_pdb --dump-dir . --filename ntkrnlmp.pdb --guid f8e2a8b5c9b74bf4a6e4a48f180099942
+$ rekal fetch_pdb --dump-dir . --pdb_filename ntkrnlmp.pdb --guid f8e2a8b5c9b74bf4a6e4a48f180099942
 Trying to fetch http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/F8E2A8B5C9B74BF4A6E4A48F180099942/ntkrnlmp.pd_
 Received 2675077 bytes
 Extracting cabinet: ./ntkrnlmp.pd_

@@ -99,12 +99,66 @@ ript>
 
   <div class="col-md-8">
     <h1>Frequently Asked Questions (FAQ).</h1>
+<div id="repository"></div>
+
+<h4>Rekall wants to access the internet for each profile, but my machine has no net access?</h4>
+<p>Rekall&rsquo;s profile repository is rather large and grows all the time. We dont want
+to ship Rekall with hundreds of MB of profile data embedded in the tool. We
+therefore access the repository to fetch profiles on demand.</p>
+<p>If you dont want to access the internet each time you can copy the entire
+profile repository locally and then just use it from your local machine. Since
+the profile repository is a git repository you can just check it out:</p>
+<div class="highlight"><pre><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="o">:</span><span class="c1">//github.com/google/rekall-profiles.git</span>
+</pre></div>
+
+
+<p>You can then just keep it up to date by running:</p>
+<div class="highlight"><pre><span class="n">git</span> <span class="n">pull</span>
+</pre></div>
+
+
+<p>from within this directory. Alternatively you can just download the latest
+snapshot as a zip file (you do not need the git tool in that case):</p>
+<div class="highlight"><pre><span class="n">wget</span> <span class="n">https</span><span class="o">:</span><span class="c1">//github.com/google/rekall-profiles/archive/master.zip</span>
+</pre></div>
+
+
+<p>You will now need to edit your ~/.rekallrc file to use your local directory copy
+instead of the web copy:</p>
+<div class="highlight"><pre><span class="nl">profile_path:</span>
+   <span class="o">-</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">scudette</span><span class="o">/</span><span class="n">rekall</span><span class="o">-</span><span class="n">profiles</span>
+   <span class="o">-</span> <span class="n">https</span><span class="o">:</span><span class="c1">//raw.githubusercontent.com/google/rekall-profiles/master</span>
+</pre></div>
+
+
 <div id="profile"></div>
 
 <h4>Rekall fails with &ldquo;Unable to load profile from any repository&rdquo;. What gives?</h4>
 <p>Rekall requires accurate profiles to operate. This is similar to the way the
 windows kernel debugger works - in order to analyse a windows image, the kernel
 debugger needs to obtain debugging symbols from the microsoft debugging server.</p>
+<p>Since Rekall now uses indexes in its repository for autodetection you need to
+reindex the profile repository after you add a new GUID. This is the preferred
+way because Rekall will then be able to autodetect your profile afterwards:</p>
+<ol>
+<li>The first step is to figure out the precise version of the windows kernel
+   this image has. We do this by scanning for the GUID of the <strong>ntoskrnl.exe</strong>
+   process from the image itself.</li>
+<li>Check out the profile repository as explained above.</li>
+<li>Add you new GUID to v1.0/src/guids.txt</li>
+<li>Now change directory to the v1.0/ directory.</li>
+<li>Run the profile management tool:</li>
+</ol>
+<div class="highlight"><pre><span class="n">python</span> <span class="o">~/</span><span class="n">rekall</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">profiles</span><span class="o">/</span><span class="n">build_profile_repo</span><span class="p">.</span><span class="n">py</span> <span class="n">src</span><span class="o">/</span><span class="n">guids</span><span class="p">.</span><span class="n">txt</span>
+</pre></div>
+
+
+<p>This will automatically notice the new GUIDs in the file, download them from
+Microsoft, parse them and update all indexes. You can send us a pull request to
+update the public repository if you like :-).</p>
+<p>Alternatively you can just download the pdb file yourself and convert it. This
+will work but you will have to provide the new profile through the &ndash;profile
+command line arg.</p>
 <p>To generate a profile file for an image, simple use the <strong>fetch_pdb</strong> and
 <strong>parse_pdb</strong> plugins. For example, suppose you have a memory image which you
 are not quite sure what exact version of Windows it is.</p>
@@ -122,10 +176,10 @@ are not quite sure what exact version of Windows it is.</p>
 <p>Finally we convert the pdb file into Rekall&rsquo;s own json format.</p>
 </li>
 </ol>
-<div class="highlight"><pre><span class="err">$</span> <span class="n">rekal</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/</span><span class="n">images</span><span class="o">/</span><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="o">--</span><span class="n">profile</span> <span class="n">None</span> <span class="n">version_scan</span> <span class="o">|</span> <span class="n">grep</span> <span class="n">ntkrnl</span>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">rekal</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/</span><span class="n">images</span><span class="o">/</span><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="n">version_scan</span> <span class="o">--</span><span class="n">name</span> <span class="n">ntkrnl</span>
 <span class="mh">0x0000027bb5fc</span> <span class="n">f8e2a8b5c9b74bf4a6e4a48f180099942</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span>
 
-<span class="err">$</span> <span class="n">rekal</span> <span class="n">fetch_pdb</span> <span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">dir</span> <span class="p">.</span> <span class="o">--</span><span class="n">filename</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">guid</span> <span class="n">f8e2a8b5c9b74bf4a6e4a48f180099942</span>
+<span class="err">$</span> <span class="n">rekal</span> <span class="n">fetch_pdb</span> <span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">dir</span> <span class="p">.</span> <span class="o">--</span><span class="n">pdb_filename</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">guid</span> <span class="n">f8e2a8b5c9b74bf4a6e4a48f180099942</span>
 <span class="n">Trying</span> <span class="n">to</span> <span class="n">fetch</span> <span class="n">http</span><span class="o">:</span><span class="c1">//msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/F8E2A8B5C9B74BF4A6E4A48F180099942/ntkrnlmp.pd_</span>
 <span class="n">Received</span> <span class="mi">2675077</span> <span class="n">bytes</span>
 <span class="n">Extracting</span> <span class="n">cabinet</span><span class="o">:</span> <span class="p">.</span><span class="o">/</span><span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pd_</span>
