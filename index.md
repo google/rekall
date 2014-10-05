@@ -17,6 +17,9 @@ further work into this exciting area of research.
 
 The Rekall distribution is available from: <http://www.rekall-forensic.com/>
 
+Github project page: <https://github.com/google/rekall>
+
+
 Rekall should run on any platform that supports [Python](http://www.python.org)
 
 Rekall supports investigations of the following 32bit and 64bit memory images:
