@@ -53,3 +53,15 @@ not in the Volatility codebase.
 Rekall strives to advance the state of the art in memory analysis, implementing
 the best algorithms currently available and a complete memory acquisition and
 analysis solution for at least Windows, OSX and Linux.
+
+## The Rekall Team
+
+The following people deserve special mention and thanks as current Rekall core
+contributors:
+
+- Adam Sindelar
+- Andreas Moser
+- Jordi Sanchez
+- Michael Cohen
+- Misha Bushkov
+
