@@ -61,6 +61,7 @@ contributors:
 
 - Adam Sindelar
 - Andreas Moser
+- Johannes Stuettgen
 - Jordi Sanchez
 - Michael Cohen
 - Misha Bushkov
