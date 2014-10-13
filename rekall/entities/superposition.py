@@ -115,7 +115,7 @@ def SuperpositionMergeNamedTuples(x, y):
         return x or y or None
 
     tuple_cls = type(x)
-    if tuple_cls != type(y):
+    if not isinstance(y, tuple_cls):
         raise ValueError("Cannot merge namedtuples of different types.")
 
     return tuple_cls(*[Superposition.merge_scalars(mx, my)

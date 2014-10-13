@@ -33,7 +33,8 @@ class DarwinEntityCollector(collector.EntityCollector):
 
     @classmethod
     def is_active(cls, session):
-        return session.profile.metadata("os") == "darwin"
+        return (super(DarwinEntityCollector, cls).is_active(session) and
+                session.profile.metadata("os") == "darwin")
 
 
 class DarwinNetworkInterfaceCollector(DarwinEntityCollector):
@@ -58,9 +59,9 @@ class DarwinNetworkInterfaceCollector(DarwinEntityCollector):
       https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/if_var.h#L816
     """
 
-    collects = ["NetworkInterface", "MemoryObject/type=ifnet"]
+    outputs = ["NetworkInterface", "MemoryObject/type=ifnet"]
 
-    def collect(self, hint=None):
+    def collect(self, hint=None, ingest=None):
         ifnet_head = self.profile.get_constant_object(
             "_dlil_ifnet_head",
             target="Pointer",

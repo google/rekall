@@ -29,14 +29,14 @@ from rekall.plugins.collectors.darwin import zones
 
 
 class DarwinTerminalUserInferor3000(common.DarwinEntityCollector):
-    collects = ["User"]
+    outputs = ["User"]
 
-    def collect(self, hint=None):
+    def collect(self, hint=None, ingest=None):
         # This is necessary because we need to have full files and permissions
         # collected. TODO: remove this once the manager is smart enough to
         # get complete results on deref.
-        self.entity_manager.collect_for("Permissions")
-        for terminal in self.entity_manager.find_by_component("Terminal"):
+        self.manager.collect_for("Permissions")
+        for terminal in self.manager.find_by_component("Terminal"):
             owner = terminal["Terminal/file"]["Permissions/owner"]
             user = terminal["Terminal/session"]["Session/user"]
 
@@ -46,7 +46,7 @@ class DarwinTerminalUserInferor3000(common.DarwinEntityCollector):
 
 
 class DarwinTTYZoneCollector(zones.DarwinZoneElementCollector):
-    collects = ["MemoryObject/type=tty"]
+    outputs = ["MemoryObject/type=tty"]
     zone_name = "ttys"
     type_name = "tty"
 
@@ -55,10 +55,10 @@ class DarwinTTYZoneCollector(zones.DarwinZoneElementCollector):
 
 
 class DarwinTTYParser(common.DarwinEntityCollector):
-    collects = ["Terminal", "MemoryObject/type=vnode"]
+    outputs = ["Terminal", "MemoryObject/type=vnode"]
 
-    def collect(self, hint=None):
-        for entity in self.entity_manager.find_by_attribute(
+    def collect(self, hint=None, ingest=None):
+        for entity in self.manager.find_by_attribute(
                 "MemoryObject/type", "tty"):
             tty = entity["MemoryObject/base_object"]
             session = tty.t_session
@@ -71,9 +71,9 @@ class DarwinTTYParser(common.DarwinEntityCollector):
             yield [
                 entity.identity,
                 definitions.Terminal(
-                    session=self.entity_manager.identify({
+                    session=self.manager.identify({
                         "MemoryObject/base_object": session}),
-                    file=self.entity_manager.identify({
+                    file=self.manager.identify({
                         "MemoryObject/base_object": vnode}))]
 
 
@@ -82,14 +82,14 @@ class DarwinSessionParser(common.DarwinEntityCollector):
 
     _name = "sessions"
 
-    collects = [
+    outputs = [
         "Session",
         "User",
         "MemoryObject/type=tty",
         "MemoryObject/type=proc"]
 
-    def collect(self, hint=None):
-        for entity in self.entity_manager.find_by_attribute(
+    def collect(self, hint=None, ingest=None):
+        for entity in self.manager.find_by_attribute(
                 "MemoryObject/type", "session"):
             session = entity["MemoryObject/base_object"]
 
@@ -97,7 +97,7 @@ class DarwinSessionParser(common.DarwinEntityCollector):
             # them later.
             username = str(session.s_login).replace("\x00", "")
             if username:
-                user_identity = self.entity_manager.identify({
+                user_identity = self.manager.identify({
                     "User/username": username})
                 yield [
                     user_identity,
@@ -107,7 +107,7 @@ class DarwinSessionParser(common.DarwinEntityCollector):
                 user_identity = None
 
             sid = session.s_sid
-            session_identity = self.entity_manager.identify({
+            session_identity = self.manager.identify({
                 "Session/sid": sid}) | entity.identity
 
             if session.s_ttyp:
@@ -129,7 +129,7 @@ class DarwinSessionParser(common.DarwinEntityCollector):
 class DarwinSessionZoneCollector(zones.DarwinZoneElementCollector):
     """Collects sessions from the sessions allocation zone."""
 
-    collects = ["MemoryObject/type=session"]
+    outputs = ["MemoryObject/type=session"]
     zone_name = "session"
     type_name = "session"
 
@@ -140,9 +140,9 @@ class DarwinSessionZoneCollector(zones.DarwinZoneElementCollector):
 class DarwinSessionCollector(common.DarwinEntityCollector):
     """Collects sessions."""
 
-    collects = ["MemoryObject/type=session"]
+    outputs = ["MemoryObject/type=session"]
 
-    def collect(self, hint=None):
+    def collect(self, hint=None, ingest=None):
         session_hash_table_size = self.profile.get_constant_object(
             "_sesshash", "unsigned long")
 

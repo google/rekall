@@ -18,32 +18,19 @@
 #
 
 """
-The Rekall Entity Layer.
+Windows entity collectors - common code.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall.entities import collector
 
-class EntityLookupTable(object):
-    """Lookup table for entities."""
 
-    def __init__(self, key_name, key_func, entity_manager):
-        self.key_name = key_name
-        self.key_func = key_func
-        self.manager = entity_manager
-        self.table = {}
+class WindowsEntityCollector(collector.EntityCollector):
+    """Base class for all Windows collectors."""
 
-    def update_index(self, entities):
-        for entity in entities:
-            for key in self.key_func(entity):
-                if key:
-                    self.table.setdefault(key, set()).add(entity.identity)
+    __abstract = True
 
-    def lookup(self, *keys):
-        unique_results = set()
-
-        for key in keys:
-            for identity in self.table.get(key, []):
-                for entity in self.manager.find_by_identity(identity):
-                    unique_results.add(entity)
-
-        return unique_results
+    @classmethod
+    def is_active(cls, session):
+        return (super(WindowsEntityCollector, cls).is_active(session) and
+                session.profile.metadata("os") == "windows")

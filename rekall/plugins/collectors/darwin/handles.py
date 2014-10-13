@@ -22,6 +22,7 @@ Collectors for files, handles, sockets and similar.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall.entities import collector
 from rekall.entities import definitions
 from rekall.entities import identity
 
@@ -32,14 +33,16 @@ from rekall.plugins.collectors.darwin import zones
 class DarwinHandleCollector(common.DarwinEntityCollector):
     """Collects handles from fileprocs (like OS X lsof is implemented)."""
 
-    collects = [
+    outputs = [
         "Handle",
         "MemoryObject/type=fileproc",
         "MemoryObject/type=vnode",
         "MemoryObject/type=socket"]
 
-    def collect(self, hint=None):
-        manager = self.entity_manager
+    run_cost = collector.CostEnum.VeryHighCost
+
+    def collect(self, hint=None, ingest=None):
+        manager = self.manager
         for process in manager.find_by_component("Process"):
             proc = process.components.MemoryObject.base_object
 
@@ -80,7 +83,7 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
 
 
 class DarwinSocketZoneCollector(zones.DarwinZoneElementCollector):
-    collects = ["MemoryObject/type=socket"]
+    outputs = ["MemoryObject/type=socket"]
     zone_name = "socket"
     type_name = "socket"
 
@@ -92,17 +95,18 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
     """Searches for all memory objects that are sockets and parses them."""
 
     _name = "sockets"
-    collects = [
+    outputs = [
         "Connection",
         "Handle",
         "Event",
         "Timestamps",
         "File/type=socket",
         "MemoryObject/type=vnode"]
+    ingests = "MemoryObject/type=socket"
 
-    def collect(self, hint=None):
-        manager = self.entity_manager
-        for entity in manager.find_by_attribute("MemoryObject/type", "socket"):
+    def collect(self, hint=None, ingest=None):
+        manager = self.manager
+        for entity in ingest:
             socket = entity["MemoryObject/base_object"]
             family = socket.addressing_family
 
@@ -179,26 +183,21 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
 
 class DarwinFileCollector(common.DarwinEntityCollector):
     """Collects files based on vnodes."""
-    collects = ["File", "Permissions", "Timestamps", "Named"]
+    outputs = ["File", "Permissions", "Timestamps", "Named"]
     _name = "files"
+    ingests = "MemoryObject/type=vnode"
 
-    def collect(self, hint=None):
-        manager = self.entity_manager
-        for entity in manager.find_by_attribute("MemoryObject/type", "vnode"):
+    def collect(self, hint=None, ingest=None):
+        manager = self.manager
+        for entity in ingest:
             vnode = entity["MemoryObject/base_object"]
             path = vnode.full_path
-            file_identity = manager.identify({
-                "File/path": path}) | entity.identity
 
-            components = [
-                file_identity,
-                definitions.File(
-                    path=path),
-                definitions.Named(
-                    name=path),
-                definitions.MemoryObject(
-                    base_object=vnode,
-                    type="vnode")]
+            components = [entity.identity,
+                          definitions.File(
+                              path=path),
+                          definitions.Named(
+                              name=path)]
 
             # Parse HFS-specific metadata. We could look at the mountpoint and
             # see if the filesystem is actually HFS, but it turns out that
@@ -230,9 +229,9 @@ class UnpListCollector(common.DarwinEntityCollector):
         github.com/opensource-apple/xnu/blob/10.9/bsd/kern/uipc_usrreq.c#L121
     """
 
-    collects = ["MemoryObject/type=socket", "Named/kind=Unix Socket"]
+    outputs = ["MemoryObject/type=socket", "Named/kind=Unix Socket"]
 
-    def collect(self, hint=None):
+    def collect(self, hint=None, ingest=None):
         for head_const in ["_unp_dhead", "_unp_shead"]:
             lhead = self.session.get_constant_object(
                 head_const,

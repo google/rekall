@@ -108,7 +108,7 @@ class Entity(object):
     def __init__(self, components, copies_count=1, entity_manager=None):
         self.components = components
         self.copies_count = copies_count
-        self.entity_manager = entity_manager
+        self.manager = entity_manager
 
     @property
     def identity(self):
@@ -134,6 +134,20 @@ class Entity(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def strict_superset(self, other):
+        """Is this entity a strict superset of other?"""
+        # Compare both component containers, but skip the Entity component.
+        other_components = other.components[1:]
+        for cidx, component in enumerate(self.components[1:]):
+            other_comp = other_components[cidx]
+            if other_comp is None:
+                continue
+
+            if component is None or not component.strict_superset(other_comp):
+                return False
+
+        return True
 
     def __repr__(self):
         keyvals = []
@@ -193,11 +207,20 @@ class Entity(object):
         # Automatically ask the entity manager to add indexing for
         # identity-based attributes. This is a good heuristic for optimal
         # performance.
-        self.entity_manager.add_attribute_lookup(key)
+        self.manager.add_attribute_lookup(key)
 
-        for entity in self.entity_manager.find_by_attribute(
+        for entity in self.manager.find_by_attribute(
                 key, self.identity):
             yield entity
+
+    def matches_query(self, query):
+        """Would this entity match the supplied query?
+
+        Currently this is a stub implementation and will be replaced with
+        a call into the query implementation once that's done.
+        """
+        attribute, value = query.split("=", 1)
+        return self.get_raw(attribute) == value
 
     def get_raw(self, key):
         """Get raw value of the key, no funny bussiness.
@@ -246,7 +269,7 @@ class Entity(object):
 
         for value in values:
             if isinstance(value, identity.Identity):
-                for entity in self.entity_manager.find_by_identity(value):
+                for entity in self.manager.find_by_identity(value):
                     yield entity
             else:
                 yield value
@@ -332,8 +355,6 @@ class Entity(object):
             self.components, other.components)
         self.copies_count = self.copies_count + other.copies_count
 
-        return self
-
     def union(self, other):
         """Returns a new entity that is a union of x and y.
 
@@ -349,7 +370,7 @@ class Entity(object):
             components=superposition.MergeComponentContainers(
                 self.components, other.components),
             copies_count=self.copies_count + other.copies_count,
-            entity_manager=self.entity_manager)
+            entity_manager=self.manager)
 
     def __ior__(self, other):
         return self.update(other)

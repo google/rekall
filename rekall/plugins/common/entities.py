@@ -23,7 +23,7 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 import sys
 
 from rekall import plugin
-from rekall.entities import definitions
+from rekall.entities import component as entity_component
 
 
 class DebugCollector(plugin.Command):
@@ -42,7 +42,7 @@ class DebugCollector(plugin.Command):
         return None
 
     def __init__(self, collector=None, **kwargs):
-        super(DumpCollector, self).__init__(**kwargs)
+        super(DebugCollector, self).__init__(**kwargs)
         self.collector = self.find_collector(collector)
 
     def render(self, renderer):
@@ -50,13 +50,14 @@ class DebugCollector(plugin.Command):
             renderer.write(str(result))
             renderer.write("\n\n")
 
-class ListCollectors(plugin.Command):
+
+class EntityStats(plugin.Command):
     """Lists all active entity collectors and how many entities they collect.
 
     This will collect ALL currently collectable entities and may be slow!
     """
 
-    __name = "list_collectors"
+    __name = "entity_stats"
 
     def render(self, renderer):
         renderer.table_header([
@@ -64,7 +65,7 @@ class ListCollectors(plugin.Command):
             ("Entities collected", "count_entities", ">30"),
             ("Active collectors", "count_collectors", ">30")])
 
-        for component_name in definitions.ComponentContainer._fields:
+        for component_name in sorted(entity_component.Component.classes.keys()):
             collector_count = 0
             for collector in self.session.entities.collectors:
                 if collector.can_collect(component_name):

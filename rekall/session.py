@@ -67,6 +67,10 @@ config.DeclareOption(
     "--output", default=None,
     help="If specified we write output to this file.")
 
+config.DeclareOption(
+    "--max_collector_cost", default=4, type=int,
+    help="If specified, collectors with higher cost will not be used.")
+
 
 class PluginContainer(object):
     """A container for plugins.

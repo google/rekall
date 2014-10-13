@@ -170,20 +170,16 @@ class AlternateIdentity(Identity):
     same *and* their DTB value is the same.)
     """
 
-    def __init__(self, indices=None, identity_dict=None, global_prefix=None):
+    def __init__(self, identity_dict=None, global_prefix=None):
         super(AlternateIdentity, self).__init__()
 
         self.global_prefix = global_prefix
+        self.identity_dict = identity_dict
+        self._indices = set(self.indices_from_dict(global_prefix=global_prefix,
+                                                   identity_dict=identity_dict))
 
-        if indices:
-            self._indices = set(indices)
-        else:
-            self._indices = set()
-
-        if identity_dict:
-            self._indices.update(self.indices_from_dict(
-                global_prefix=global_prefix,
-                identity_dict=identity_dict))
+        # Used to quickly rule out equality checks.
+        self.key_canary = set(identity_dict)
 
     @staticmethod
     def indices_from_dict(global_prefix, identity_dict):
@@ -203,7 +199,25 @@ class AlternateIdentity(Identity):
                 (self.global_prefix != other.global_prefix)):
             return False
 
-        return self.indices & other.indices
+        matching_keys = self.key_canary & other.key_canary
+        if not matching_keys:
+            return None  # Undecidable - no key overlap.
+
+        matching_indices = self.indices & other.indices
+        if not matching_indices:
+            return False
+
+        # If some keys matched but not others then that's a consistency error
+        # most likely caused by faulty collector logic. By blowing up here
+        # we preserve the integrity of the database, but this is a programmer
+        # error and likely means that the data isn't reliable anyway.
+        if len(matching_keys) != len(matching_indices):
+            raise RuntimeError(
+                "Identity logic error! Identity %s matches %s on %d keys, "
+                "but only %d values." % (
+                    self, other, len(matching_keys), len(matching_indices)))
+
+        return True
 
     @property
     def indices(self):
@@ -213,6 +227,11 @@ class AlternateIdentity(Identity):
         return "(%s)" % ";".join(["%s/%s=%s" % x for x in self.indices])
 
     def union(self, other):
+        if self != other:
+            raise RuntimeError(
+                "Attempting to merge identities %s and %s which are unequal.")
+
         return AlternateIdentity(
-            indices=self.indices | other.indices,
+            identity_dict=dict(
+                self.identity_dict.items() + other.identity_dict.items()),
             global_prefix=self.global_prefix)

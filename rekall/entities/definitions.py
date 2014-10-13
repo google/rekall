@@ -41,8 +41,7 @@ Entity = component.DeclareComponent(
     "Entity", "A special component that's always present.",
     component.Field("identity", "Identity", "The identity."),
     component.Field("collectors", [str],
-                    "The collectors that touched this entity."))
-
+                    "The collectors that contributed to this entity."))
 
 Named = component.DeclareComponent(
     "Named", "Human-readable identifying information.",
@@ -93,6 +92,7 @@ Process = component.DeclareComponent(
                     "The path to the binary or the command that executed."),
     component.Field("arguments", [str],
                     "List of arguments."),
+    component.Field("is_64bit", bool, "Is the process running in 64bit."),
     component.Field("session",
                     "Identity", "The session this process belongs to."))
 

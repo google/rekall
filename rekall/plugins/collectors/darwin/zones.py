@@ -22,6 +22,7 @@ Collectors that deal with Darwin zone allocator.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall.entities import collector
 from rekall.entities import definitions
 
 from rekall.plugins.collectors.darwin import common
@@ -29,9 +30,9 @@ from rekall.plugins.collectors.darwin import common
 
 class DarwinZoneCollector(common.DarwinEntityCollector):
     """Lists all allocation zones."""
-    collects = ["AllocationZone", "MemoryObject/type=zone"]
+    outputs = ["AllocationZone", "MemoryObject/type=zone"]
 
-    def collect(self, hint=None):
+    def collect(self, hint=None, ingest=None):
         first_zone = self.profile.get_constant_object(
             "_first_zone",
             target="Pointer",
@@ -69,7 +70,7 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
     zone_name = None
     type_name = None
 
-    def collect(self, hint=None):
+    def collect(self, hint=None, ingest=None):
         for element, state in self.collect_base_objects(
                 zone_name=self.zone_name):
             yield definitions.MemoryObject(
@@ -78,7 +79,7 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
                 state=state)
 
     def collect_base_objects(self, zone_name):
-        zone_entity = self.entity_manager.find_first_by_attribute(
+        zone_entity = self.manager.find_first_by_attribute(
             "AllocationZone/name", zone_name)
         zone = zone_entity["MemoryObject/base_object"]
 
@@ -166,11 +167,12 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
 
 
 class DarwinZoneBufferCollector(DarwinZoneElementCollector):
-    collects = ["Buffer/purpose=zones"]
+    outputs = ["Buffer/purpose=zones"]
     type_name = "int"  # Dummy type.
+    run_cost = collector.CostEnum.VeryHighCost
 
-    def collect(self, hint=None):
-        for zone in self.entity_manager.find_by_component("AllocationZone"):
+    def collect(self, hint=None, ingest=None):
+        for zone in self.manager.find_by_component("AllocationZone"):
             for element, state in self.collect_base_objects(
                     zone_name=zone["AllocationZone/name"]):
                 yield definitions.Buffer(
@@ -188,7 +190,7 @@ class DarwinZoneBufferCollector(DarwinZoneElementCollector):
 
 
 class DarwinZoneVnodeCollector(DarwinZoneElementCollector):
-    collects = ["MemoryObject/type=vnode"]
+    outputs = ["MemoryObject/type=vnode"]
     zone_name = "vnodes"
     type_name = "vnode"
 

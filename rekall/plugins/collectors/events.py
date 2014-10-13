@@ -30,21 +30,21 @@ from rekall.entities import identity
 class EventInferenceCollector(collector.EntityCollector):
     """Generates Events from entities that have Timestamps."""
 
-    collects = ["Event"]
+    outputs = ["Event"]
+    run_cost = collector.CostEnum.NoCost
 
     @classmethod
     def is_active(cls, session):
         return True
 
     # pylint: disable=protected-access
-    def collect(self, hint=None):
-        for entity in self.entity_manager.find_by_component("Timestamps"):
-            for field in definitions.Timestamps._fields:
-                timestamp = getattr(entity.components.Timestamps, field)
-                if timestamp is not None:
-                    yield [
-                        identity.UniqueIdentity(),
-                        definitions.Event(
-                            target=entity.identity,
-                            timestamp=timestamp,
-                            action=field.replace("_at", ""))]
+    def collect(self, hint=None, ingest=None):
+        for entity in self.manager.find_by_component("Timestamps"):
+            for field in definitions.Timestamps.component_fields:
+                timestamp = getattr(entity.components.Timestamps, field.name)
+                action = field.name.replace("_at", "")
+                if timestamp:
+                    yield [identity.UniqueIdentity(),
+                           definitions.Event(target=entity.identity,
+                                             timestamp=timestamp,
+                                             action=action)]

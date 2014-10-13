@@ -31,14 +31,14 @@ from rekall.plugins.collectors.darwin import zones
 class DarwinProcParser(common.DarwinEntityCollector):
     """Takes the proc structs found by various collectors and parses them."""
 
-    collects = [
+    outputs = [
         "Process",
         "User",
         "Timestamps",
         "Named/kind=process"]
 
-    def collect(self, hint=None):
-        manager = self.entity_manager
+    def collect(self, hint=None, ingest=None):
+        manager = self.manager
         for entity in manager.find_by_attribute(
                 "MemoryObject/type", "proc"):
 
@@ -89,9 +89,9 @@ class DarwinPgrpHashProcessCollector(common.DarwinEntityCollector):
     """
 
     _name = "pgrphash"
-    collects = ["MemoryObject/type=proc"]
+    outputs = ["MemoryObject/type=proc"]
 
-    def collect(self, hint=None):
+    def collect(self, hint=None, ingest=None):
         # Note that _pgrphash is initialized through:
         #
         # xnu-1699.26.8/bsd/kern/kern_proc.c:195
@@ -133,9 +133,9 @@ class DarwinTaskProcessCollector(common.DarwinEntityCollector):
     """
 
     _name = "tasks"
-    collects = ["MemoryObject/type=proc"]
+    outputs = ["MemoryObject/type=proc"]
 
-    def collect(self, hint=None):
+    def collect(self, hint=None, ingest=None):
         tasks = self.profile.get_constant_object(
             "_tasks",
             target="queue_entry",
@@ -160,9 +160,9 @@ class DarwinAllprocProcessCollector(common.DarwinEntityCollector):
     """
 
     _name = "allproc"
-    collects = ["MemoryObject/type=proc"]
+    outputs = ["MemoryObject/type=proc"]
 
-    def collect(self, hint=None):
+    def collect(self, hint=None, ingest=None):
         allproc = self.profile.get_constant_object(
             "_allproc", target="proclist")
         for proc in allproc.lh_first.p_list:
@@ -193,9 +193,9 @@ class DarwinPidHashProcessCollector(common.DarwinEntityCollector):
     # table.
 
     _name = "pidhash"
-    collects = ["MemoryObject/type=proc"]
+    outputs = ["MemoryObject/type=proc"]
 
-    def collect(self, hint=None):
+    def collect(self, hint=None, ingest=None):
         pid_hash_table = self.profile.get_constant_object(
             "_pidhashtbl",
             target="Pointer",
@@ -219,7 +219,7 @@ class DarwinPidHashProcessCollector(common.DarwinEntityCollector):
 class DarwinDeadProcessCollector(zones.DarwinZoneElementCollector):
     """Lists dead processes using the proc allocation zone."""
 
-    collects = ["MemoryObject/type=proc"]
+    outputs = ["MemoryObject/type=proc"]
     zone_name = "proc"
     type_name = "proc"
 

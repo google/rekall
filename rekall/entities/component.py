@@ -233,6 +233,34 @@ class Component(object):
             raise ValueError("Unknown attributes %s on component %s" % (
                 kwargs, self.name))
 
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+
+        for idx, val in enumerate(self._contents):
+            if val != other[idx]:
+                return False
+
+        return True
+
+    def strict_superset(self, other):
+        """Is this component a strict superset of other?"""
+        if not isinstance(other, type(self)):
+            return False
+
+        for idx, val in enumerate(self._contents):
+            other_val = other[idx]
+            if other_val is None:
+                continue
+
+            if val != other_val:
+                return False
+
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __getitem__(self, key):
         if isinstance(key, int):
             return self._contents[key]
