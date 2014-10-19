@@ -24,6 +24,7 @@ import re
 from rekall import utils
 from rekall.plugins.darwin import common
 
+from rekall.entities.query import expression
 
 class DarwinListZones(common.DarwinPlugin):
     """List all the allocation zones."""
@@ -66,13 +67,16 @@ class DarwinDumpZone(common.DarwinPlugin):
         self.zone_name = zone
 
     def render(self, renderer):
-        # This is a temporary solution to the fact that we don't have
-        # a query planner yet. TODO: remove once Manager can plan this correcty.
-        self.session.entities.collect_for("Buffer/purpose=zones")
-        
-        for entity in self.session.entities.find_by_attribute(
-                "Buffer/context", self.session.entities.identify({
-                    "AllocationZone/name": self.zone_name})):
+        for entity in self.session.entities.find(
+                expression.Intersection(
+                    expression.Equivalence(
+                        expression.Binding("Buffer/purpose"),
+                        expression.Literal("zones")),
+                    expression.Let(
+                        "Buffer/context",
+                        expression.Equivalence(
+                            expression.Binding("AllocationZone/name"),
+                            expression.Literal(self.zone_name))))):
             utils.WriteHexdump(
                 renderer=renderer,
                 data=entity["Buffer/contents"],
@@ -86,8 +90,10 @@ class DarwinDeadProcesses(common.DarwinPlugin):
 
     def render(self, renderer):
         # Find the proc zone from the allocator.
-        proc_zone = self.session.entities.find_first_by_attribute(
-            "AllocationZone/name", "proc")["MemoryObject/base_object"]
+        proc_zone = self.session.entities.find_first(
+            expression.Equivalence(
+                expression.Binding("AllocationZone/name"),
+                expression.Literal("proc")))["MemoryObject/base_object"]
 
         # Walk over the free list and get all proc objects.
         procs = []

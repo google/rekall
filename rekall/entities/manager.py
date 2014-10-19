@@ -22,6 +22,7 @@ The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+import itertools
 import logging
 
 from rekall.entities import collector as entity_collector
@@ -31,6 +32,10 @@ from rekall.entities import definitions
 from rekall.entities import identity as entity_id
 from rekall.entities import lookup_table as entity_lookup
 
+from rekall.entities.query import dependency as query_dependency
+from rekall.entities.query import expression
+from rekall.entities.query import matcher as query_matcher
+
 
 class IngestionPipeline(object):
     """Keeps track of new and updated entities during collection."""
@@ -39,28 +44,20 @@ class IngestionPipeline(object):
 
     def __init__(self, queries):
         self.queues = {}
+        self.matchers = {}
         for query in queries:
             self.queues[query] = []
+            self.matchers[query] = query_matcher.QueryMatcher(query)
 
     def seed(self, query, entities):
         """Set up the queue for query with entities."""
-        self.queues[query] = [(e, None) for e in entities]
+        self.queues[query] = list(entities)
         if self.queues[query]:
             self.empty = False
 
-    def find(self, query, trigger):
-        """Return entities available for the query and the trigger.
-
-        Arguments:
-            trigger: Can be either 'new' or 'change'. If 'change' entities
-            marked as 'new' will be returned as well, but not vice-versa.
-        """
-        for entity, effect in self.queues[query]:
-            if trigger == "new" and effect == "change":
-                # Collector only wants new entities and this is a change.
-                continue
-
-            yield entity
+    def find(self, query):
+        """Return entities available to satisfy the query."""
+        return self.queues[query]
 
     def fill(self, ingest, collector):
         """Fills appropriate queues with entities from ingest.
@@ -69,30 +66,30 @@ class IngestionPipeline(object):
             ingest: An iterable containing entities and effects of adding them.
                 The effects are a dict of:
                     None: How many entities were duplicates, including contents.
-                    "change": How many entities changed by merging.
+                    "update": How many entities changed by merging.
                     "new": How many new entities created.
                     "fill": How many entities were enqueued for ingestion by
                         other collectors.
             collector: The collector object from which ingest was collected.
         """
-        counts = {None: 0, "change": 0, "new": 0, "fill": 0}
-        outputs = set(collector.outputs)
+        counts = {None: 0, "update": 0, "new": 0, "fill": 0}
+
         for entity, effect in ingest:
             counts[effect] += 1
 
             if effect is None:
                 continue
 
-            for query in self.queries & outputs:
-                if entity.matches_query(query):
-                    self.queues[query].append((entity, effect))
+            for query in self.queries:
+                if self.matchers[query].match(entity):
+                    self.queues[query].append(entity)
                     counts["fill"] += 1
                     self.empty = False
 
         logging.debug(
             "%s results: %d new, %d updated, %d sent to ingest. "
             "pipeline, %d duplicates.",
-            collector.name, counts["new"], counts["change"],
+            collector.name, counts["new"], counts["update"],
             counts["fill"], counts[None])
 
         return counts
@@ -114,9 +111,7 @@ class IngestionPipeline(object):
 class EntityManager(object):
     """Database of entities."""
 
-    __is_initialized = False
-
-    __active_collector_names = None
+    # Names of collectors that have produced all they're going to produce.
     finished_collectors = None
 
     # Dict of entities keyed by their identity.
@@ -127,6 +122,7 @@ class EntityManager(object):
         self.session = session
         self.finished_collectors = set()
         self._collectors = {}
+        self.cached_query_dependencies = {}
 
         # Lookup table on component name is such a common use case that we
         # always have it on. This actually speeds up searches by attribute that
@@ -210,7 +206,7 @@ class EntityManager(object):
 
             The effect can be one of:
             None: No new information learned.
-            "change": As result of this call, data in one or more entities was
+            "update": As result of this call, data in one or more entities was
                 updated and entities may have merged.
             "new": A new entity was added.
         """
@@ -233,13 +229,19 @@ class EntityManager(object):
         if existing_entities:
             if (len(existing_entities) == 1 and
                     existing_entities[0].strict_superset(entity)):
-                # There is no new data to be gained by merging.
+                # No new data, but let's give the collector credit for finding
+                # what we already knew.
+                entity_comp = existing_entities[0].components.Entity
+                entity_comp._mutate(
+                    member="collectors",
+                    value=entity_comp.collectors.union([source_collector]))
+
                 return existing_entities[0], None
 
             for existing_entity in existing_entities:
                 # Entities exist for this already, but are not equivalent to
                 # the entity we found. Merge everything.
-                effect = "change"
+                effect = "update"
                 entity.update(existing_entity)
                 indices.update(existing_entity.indices)
 
@@ -274,7 +276,7 @@ class EntityManager(object):
         # Only use the entities that actually have the component to build the
         # index.
         lookup_table.update_index(
-            self.find_by_component(component, complete_results=False))
+            self.find(expression.ComponentLiteral(component), complete=False))
 
         self.lookup_tables[key] = lookup_table
 
@@ -286,10 +288,13 @@ class EntityManager(object):
         alternate identity and (b) not yet present in this entity manager. In
         that case, multiple entities may match.
         """
+        results = set()
         for index in identity.indices:
             entity = self.entities.get(index, None)
             if entity:
-                yield entity
+                results.add(entity)
+
+        return list(results)
 
     def find_by_component(self, component, complete_results=True):
         """Yields all entities that have the component.
@@ -297,77 +302,70 @@ class EntityManager(object):
         Arguments:
             complete_results: If True, will attempt to collect the component.
         """
+        query = expression.ComponentLiteral(component)
         if complete_results:
-            self.collect_for(component)
+            self.collect_for(query)
 
-        return self.lookup_tables["components"].lookup(component)
+        return list(self.lookup_tables["components"].lookup(component))
 
     def find_by_collector(self, collector):
-        return self.lookup_tables["collectors"].lookup(str(collector))
-
-    def find_by_attribute(self, key, value, complete_results=True):
-        """Yields all entities where component.attribute == value.
-
-        Arguments:
-            key: Path to the value formed of <component>.<attribute>. E.g:
-                Process.pid, or User.username.
-            value: Value, compared against using the == operator
-            complete_results: If False, will only hit cache. If True, will also
-                collect the component.
-
-        Yields:
-            Instances of entity that match the search criteria.
-        """
-        component, _ = key.split("/")
-        lookup_table = self.lookup_tables.get(key, None)
-
-        if lookup_table:
-            # Sweet, we have an index for this.
-            if complete_results:
-                self.collect_for((key, value))
-
-            for entity in lookup_table.lookup(value):
-                yield entity
-        else:
-            # No index to support the query. We can use the component index
-            # to only search entities for which this makes sense. However,
-            # we must take care to only trigger the collectors we need, as
-            # opposed to all collectors that touch the component.
-            if complete_results:
-                self.collect_for((key, value))
-            for entity in self.find_by_component(component=component,
-                                                 complete_results=False):
-                if entity.get_raw(key) == value:
-                    yield entity
-
-    def find_first_by_attribute(self, *args, **kwargs):
-        """Convenience method - returns first result of find_by_attribute."""
-        for entity in self.find_by_attribute(*args, **kwargs):
-            return entity
+        return list(self.lookup_tables["collectors"].lookup(str(collector)))
 
     def collectors_for(self, wanted):
         """Finds the active collectors that can satisfy the query.
 
         For format of the wanted query, see EntityCollector.can_collect.
         """
+        collectors = self.cached_query_dependencies.get(wanted, None)
+        if collectors:
+            return collectors
+
+        dependency_finder = query_dependency.DependencyFinder(wanted)
+        include, exclude = dependency_finder.run()
+
+        # A collector is a match if any of its promises match any of the
+        # dependencies of the query.
+        matched_collectors = []
         for collector in self.collectors:
-            if collector.can_collect(wanted):
-                yield collector
+            for promise, dependency in itertools.product(
+                    collector.promises, include):
+                if dependency.match(promise):
+                    matched_collectors.append(collector)
+                    break
+
+        # A collector is yielded unless each one of its promises matches
+        # an exclusion from dependencies.
+        collectors = set()
+        for collector in matched_collectors:
+            for promise, exclusion in itertools.product(
+                    collector.promises, exclude):
+                if not exclusion.match(promise):
+                    collectors.add(collector)
+                    break
+            else:
+                # No exclusions.
+                collectors.add(collector)
+
+        self.cached_query_dependencies[wanted] = collectors
+        return collectors
 
     def find(self, query, complete=True):
         """Runs the query and yields entities that match.
-
-        This is a temporary implementation and currently only intended
-        for use with simple 'Component/attribute=value' queries.
 
         Arguments:
             complete: If True, will trigger collectors as necessary, to ensure
             completness of results.
         """
-        # TODO: Implement a query language.
-        attribute, value = query.split("=", 1)
-        return self.find_by_attribute(attribute, value,
-                                      complete_results=complete)
+        if complete:
+            self.collect_for(query)
+
+        # Try to satisfy the query using available lookup tables.
+        search = entity_lookup.EntityQuerySearch(query)
+        return search.search(self.entities, self.lookup_tables)
+
+    def find_first(self, query, complete=True):
+        for entity in self.find(query, complete):
+            return entity
 
     # pylint: disable=protected-access
     def collect_for(self, wanted, use_hint=False):
@@ -384,107 +382,117 @@ class EntityManager(object):
         else:
             hint = None
 
-        # Firstly, we find all the collectors that satisfy wanted, plus their
-        # dependencies, minus the collectors we have already run. During this
-        # step we also make a list of all the ingestion queries we'll have
-        # to satisfy later.
+        # Plan execution.
         self.update_collectors()
+
+        # Used as FIFO queue.
         to_process = list(self.collectors_for(wanted))
-        collectors = set()
-        ingestion_queries = set()
+        collectors_seen = set(self.finished_collectors)
+
+        # Collectors with an ingest query are de-facto parsers for things
+        # produced by collectors with no ingest query. They may run repeatedly
+        # as required.
+        repeated = list()
+
+        # Collectors with no dependencies (my favorite).
+        non_ingesting = list()
+
+        # Queries that collectors depend on.
+        queries = set()
 
         while to_process:
-            collector = to_process.pop()
-
-            if collector.name in self.finished_collectors:
+            collector = to_process.pop(0)
+            if collector.name in collectors_seen:
                 continue
 
-            collectors.add(collector)
-
+            collectors_seen.add(collector.name)
             if collector.ingests:
-                ingestion_queries.add(collector.ingests)
-                # Also add any collectors that satisfy the ingestion query.
-                for dependency in self.collectors_for(collector.ingests):
-                    if dependency not in collectors:
-                        logging.debug(
-                            "Ingestion query '%s' of collector %s depends on "
-                            "collector %s.", collector.ingests, collector.name,
-                            dependency.name)
-                        to_process.append(dependency)
+                logging.debug("%s (ingests '%s') deferred.",
+                              collector.name, collector.ingests)
+                repeated.append(collector)
+                queries.add(collector.ingests)
 
-        if not collectors:
-            # Don't need to run anything - we're already populated.
+                for dependency in self.collectors_for(collector.ingests):
+                    logging.debug(
+                        "Collector %s depends on collector %s for its ingest "
+                        "query '%s'.",
+                        collector.name, dependency.name, collector.ingests)
+                    if dependency.name not in collectors_seen:
+                        to_process.append(dependency)
+            else:
+                logging.debug("%s (no dependencies) will run immediately.",
+                              collector.name)
+                non_ingesting.append(collector)
+
+        if not collectors_seen.difference(self.finished_collectors):
+            # Looks like we're already populated - no need to do anything.
             return
 
-        ingestion_pipeline = IngestionPipeline(queries=ingestion_queries)
+        # Mark as finished unless a hint was used.
+        if not hint:
+            for collector in collectors_seen:
+                self.finished_collectors.add(collector)
 
-        logging.debug("%d collectors scheduled for query %s",
-                      len(collectors), wanted)
+        # Execution stage 1: no dependencies.
+        logging.debug("%d non-ingesting collectors will now run once.",
+                      len(non_ingesting))
 
-        # Seed the pipeline by running ingestion queries on our current state.
-        for query in ingestion_queries:
-            logging.debug("Seeding the ingestion pipeline for '%s'.", query)
-            results = list(self.find(query, complete=False))
-            ingestion_pipeline.seed(query=query, entities=results)
+        for collector in non_ingesting:
+            effects = {None: 0, "new": 0, "update": 0}
+            for _, effect in self.collect(collector, hint=hint):
+                effects[effect] += 1
 
-        # Secondly, run collectors which don't ingest anything and build a list
-        # of collectors which do ingest.
-        ingesting_collectors = []
-        for collector in collectors:
-            if collector.ingests:
-                logging.debug("Ingesting collector %s deferred.",
-                              collector.name)
-                ingesting_collectors.append(collector)
-                continue
+            logging.debug(
+                "%s produced %d new entities, %d updated and %d duplicates",
+                collector.name, effects["new"], effects["update"],
+                effects[None])
 
-            logging.debug("Non-ingesting collector %s will now run.",
-                          collector.name)
+        if not repeated:
+            # No ingesting collectors scheduled. We're done.
+            return
 
-            ingestion_pipeline.fill(
-                ingest=self.collect(collector, hint=hint),
-                collector=collector)
+        # Seeding stage for ingesting collectors.
+        in_pipeline = IngestionPipeline(queries=queries)
+        out_pipeline = IngestionPipeline(queries=queries)
+        for query in queries:
+            results = self.find(query, complete=False)
+            in_pipeline.seed(query, results)
+            logging.debug("Pipeline seeded with %d entities matching '%s'",
+                          len(results), query)
 
-        # Now spin on the remaining collectors until they empty the ingestion
-        # pipeline (stop producing new results).
-        filling_pipeline = IngestionPipeline(ingestion_queries)
-        while not ingestion_pipeline.empty:
-            logging.debug("Ingestion pipeline is not empty.")
+        # Execution stage 2: collectors with dependencies.
 
-            # Collectors will read from ingestion pipeline and fill the
-            # filling pipeline. At the end of each spin the ingestion pipeline
-            # is refilled from the filling pipeline and the filling pipeline
-            # is emptied.
-            for collector in ingesting_collectors:
-                collector_input = list(
-                    ingestion_pipeline.find(query=collector.ingests,
-                                            trigger=collector.trigger))
+        # Collectors should run in FIFO order:
+        repeated.reverse()
+
+        # This will spin until none of the remaining collectors want to run.
+        while not in_pipeline.empty:
+            # Collectors will read from the in_pipeline and fill the
+            # out_pipeline. At the end of each spin the pipelines swap and
+            # the new out_pipeline is flushed.
+            for collector in repeated:
+                collector_input = list(in_pipeline.find(collector.ingests))
 
                 if not collector_input:
-                    continue  # Pipeline isn't empty, but has nothing for this.
+                    logging.debug(
+                        "No input for query %s of collector %s.",
+                        collector.ingests, collector.name)
+                    continue  # No new hits for this collector.
 
                 logging.debug(
-                    "Ingestion pipeline found %d entities for %s.",
-                    len(collector_input), collector.name)
+                    "Ingestion pipeline found %d new entities for query %s of "
+                    "collector %s.",
+                    len(collector_input), collector.ingests, collector.name)
 
                 # Feed output back into the pipeline.
-                filling_pipeline.fill(
-                    collector=collector,
-                    ingest=self.collect(
-                        collector=collector,
-                        ingest=collector_input,
-                        hint=hint))
+                results = self.collect(collector=collector,
+                                       ingest=collector_input,
+                                       hint=hint)
+                out_pipeline.fill(collector=collector,
+                                  ingest=results)
 
-            ingestion_pipeline, filling_pipeline = (filling_pipeline,
-                                                    ingestion_pipeline)
-            filling_pipeline.flush()
-
-        # And we're done. We can't mark collectors as finished if a hint was
-        # used because it may have prevented them from producing all results.
-        # Subsequent collection without a hint will produce duplicates but
-        # they will be deduplicated and not cause any problems.
-        if not hint:
-            for collector in collectors:
-                self.finished_collectors.add(collector.name)
+            in_pipeline, out_pipeline = out_pipeline, in_pipeline
+            out_pipeline.flush()
 
     def collect(self, collector, hint=None, ingest=None):
         """Runs the collector, registers output and yields any new entities."""

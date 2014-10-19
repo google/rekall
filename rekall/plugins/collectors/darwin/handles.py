@@ -26,6 +26,8 @@ from rekall.entities import collector
 from rekall.entities import definitions
 from rekall.entities import identity
 
+from rekall.entities.query import expression
+
 from rekall.plugins.collectors.darwin import common
 from rekall.plugins.collectors.darwin import zones
 
@@ -38,12 +40,13 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
         "MemoryObject/type=fileproc",
         "MemoryObject/type=vnode",
         "MemoryObject/type=socket"]
+    ingests = expression.ComponentLiteral("Process")
 
     run_cost = collector.CostEnum.VeryHighCost
 
     def collect(self, hint=None, ingest=None):
         manager = self.manager
-        for process in manager.find_by_component("Process"):
+        for process in ingest:
             proc = process.components.MemoryObject.base_object
 
             for fd, fileproc, flags in proc.get_open_files():
@@ -102,10 +105,12 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
         "Timestamps",
         "File/type=socket",
         "MemoryObject/type=vnode"]
-    ingests = "MemoryObject/type=socket"
+
+    ingests = expression.Equivalence(
+        expression.Binding("MemoryObject/type"),
+        expression.Literal("socket"))
 
     def collect(self, hint=None, ingest=None):
-        manager = self.manager
         for entity in ingest:
             socket = entity["MemoryObject/base_object"]
             family = socket.addressing_family
@@ -114,10 +119,11 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
             # This isn't perfect, because more processes could have handles
             # on the same thing and for older sockets, this may yield the wrong
             # result due to PID reuse - still, it's better than nothing.
+
             yield [
                 identity.UniqueIdentity(),
                 definitions.Event(
-                    actor=manager.identify({
+                    actor=self.manager.identify({
                         "Process/pid": socket.last_pid}),
                     target=entity.identity,
                     action="accessed",
@@ -185,7 +191,9 @@ class DarwinFileCollector(common.DarwinEntityCollector):
     """Collects files based on vnodes."""
     outputs = ["File", "Permissions", "Timestamps", "Named"]
     _name = "files"
-    ingests = "MemoryObject/type=vnode"
+    ingests = expression.Equivalence(
+        expression.Binding("MemoryObject/type"),
+        expression.Literal("vnode"))
 
     def collect(self, hint=None, ingest=None):
         manager = self.manager
@@ -214,10 +222,11 @@ class DarwinFileCollector(common.DarwinEntityCollector):
                     accessed_at=cattr.ca_atime,
                     backup_at=cattr.ca_btime))
 
-            posix_cred = vnode.v_cred.cr_posix
-            components.append(definitions.Permissions(
-                owner=manager.identify({
-                    "User/uid": posix_cred.cr_ruid})))
+            posix_uid = vnode.v_cred.cr_posix.cr_ruid
+            if posix_uid:
+                components.append(definitions.Permissions(
+                    owner=manager.identify({
+                        "User/uid": posix_uid})))
 
             yield components
 

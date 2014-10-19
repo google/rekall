@@ -27,6 +27,8 @@ from rekall.entities import definitions
 from rekall.plugins.collectors.darwin import common
 from rekall.plugins.collectors.darwin import zones
 
+from rekall.entities.query import expression
+
 
 class DarwinProcParser(common.DarwinEntityCollector):
     """Takes the proc structs found by various collectors and parses them."""
@@ -37,11 +39,13 @@ class DarwinProcParser(common.DarwinEntityCollector):
         "Timestamps",
         "Named/kind=process"]
 
+    ingests = expression.Equivalence(
+        expression.Binding("MemoryObject/type"),
+        expression.Literal("proc"))
+
     def collect(self, hint=None, ingest=None):
         manager = self.manager
-        for entity in manager.find_by_attribute(
-                "MemoryObject/type", "proc"):
-
+        for entity in ingest:
             proc = entity["MemoryObject/base_object"]
             user_identity = manager.identify({
                 "User/uid": proc.p_uid})

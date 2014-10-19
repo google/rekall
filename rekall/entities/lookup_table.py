@@ -22,6 +22,100 @@ The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall.entities.query import expression
+from rekall.entities.query import matcher
+from rekall.entities.query import visitor
+
+
+class EntityQuerySearch(visitor.QueryVisitor):
+    """Tries to solve the query using available indexing."""
+
+    def search(self, entities, lookup_tables):
+        self.entities = entities
+        self.lookup_tables = lookup_tables
+        return self.run()
+
+    def visit_Sorted(self, expr):
+        results = self.visit(expr.expression)
+
+        return sorted(results, key=lambda result: result[expr.binding])
+
+    def visit_ComponentLiteral(self, expr):
+        return self.__as_entities(
+            self.lookup_tables["components"].table.get(expr.value, []))
+
+    def visit_Intersection(self, expr):
+        results = set(self.visit(expr.children[0]))
+        for child in expr.children[1:]:
+            results.intersection_update(self.visit(child))
+
+        return results
+
+    def visit_Union(self, expr):
+        results = set()
+        for child in expr.children:
+            results.update(self.visit(child))
+
+        return results
+
+    def __slow_solve(self, expr):
+        slow_matcher = matcher.QueryMatcher(expr)
+        entities = set()
+        for entity in self.entities.itervalues():
+            if slow_matcher.match(entity):
+                entities.add(entity)
+
+        return entities
+
+    def __as_entities(self, identities):
+        entities = set()
+        for identity in identities:
+            # identity.indices is a set, hence the loop.
+            for index in identity.indices:
+                entities.add(self.entities[index])
+                break
+
+        return entities
+
+    def _solve_equivalence(self, expr, binding, literal):
+        table = self.lookup_tables.get(binding.value, None)
+        if table:
+            # Sweet, we have exact index for this.
+            return self.__as_entities(table.table.get(literal.value, set()))
+
+        # Don't have an exact index, but can prefilter by component index.
+        component, _ = binding.value.split("/", 1)
+        slow_matcher = matcher.QueryMatcher(expr)
+        entities = set()
+        candidates = self.lookup_tables["components"].table.get(component, [])
+        for identity in candidates:
+            for index in identity.indices:
+                # identity.indices is a set, hence the loop.
+                entity = self.entities[index]
+                if slow_matcher.match(entity):
+                    entities.add(entity)
+
+                break
+
+        return entities
+
+    def visit_Equivalence(self, expr):
+        if len(expr.children) != 2:
+            return self.__slow_solve(expr)
+
+        x, y = expr.children
+        if (isinstance(x, expression.Binding) and
+                isinstance(y, expression.Literal)):
+            return self._solve_equivalence(expr, x, y)
+        elif (isinstance(x, expression.Literal) and
+              isinstance(y, expression.Binding)):
+            return self._solve_equivalence(expr, y, x)
+
+        return self.__slow_solve(expr)
+
+    def visit_Expression(self, expr):
+        return self.__slow_solve(expr)
+
 
 class EntityLookupTable(object):
     """Lookup table for entities."""

@@ -27,6 +27,8 @@ from rekall.entities import definitions
 
 from rekall.plugins.collectors.darwin import common
 
+from rekall.entities.query import expression
+
 
 class DarwinZoneCollector(common.DarwinEntityCollector):
     """Lists all allocation zones."""
@@ -69,19 +71,23 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
 
     zone_name = None
     type_name = None
+    ingests = expression.ComponentLiteral("AllocationZone")
 
     def collect(self, hint=None, ingest=None):
         for element, state in self.collect_base_objects(
-                zone_name=self.zone_name):
+                zone_name=self.zone_name, ingest=ingest):
             yield definitions.MemoryObject(
                 base_object=element,
                 type=self.type_name,
                 state=state)
 
-    def collect_base_objects(self, zone_name):
-        zone_entity = self.manager.find_first_by_attribute(
-            "AllocationZone/name", zone_name)
-        zone = zone_entity["MemoryObject/base_object"]
+    def collect_base_objects(self, zone_name, ingest):
+        zone = None
+        for entity in ingest:
+            if entity["AllocationZone/name"] == zone_name:
+                zone_entity = entity
+                zone = entity["MemoryObject/base_object"]
+                break
 
         seen_offsets = set()
         seen_pages = set()
@@ -109,10 +115,9 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
 
         # Some zones track the pages they've been given - if this data is
         # available then process those pages as well.
-        lists = {
-            "all_free": "freed",
-            "all_used": "allocated",
-            "intermediate": "unknown"}
+        lists = {"all_free": "freed",
+                 "all_used": "allocated",
+                 "intermediate": "unknown"}
         if zone_entity["AllocationZone/tracks_pages"]:
             for purpose in lists.keys():
                 for validated_element in self._process_page_list(
@@ -169,12 +174,13 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
 class DarwinZoneBufferCollector(DarwinZoneElementCollector):
     outputs = ["Buffer/purpose=zones"]
     type_name = "int"  # Dummy type.
+    ingests = expression.ComponentLiteral("AllocationZone")
     run_cost = collector.CostEnum.VeryHighCost
 
     def collect(self, hint=None, ingest=None):
-        for zone in self.manager.find_by_component("AllocationZone"):
+        for zone in ingest:
             for element, state in self.collect_base_objects(
-                    zone_name=zone["AllocationZone/name"]):
+                    zone_name=zone["AllocationZone/name"], ingest=ingest):
                 yield definitions.Buffer(
                     address=(element.obj_offset, element.obj_vm.dtb),
                     size=zone["AllocationZone/element_size"],

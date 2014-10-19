@@ -1081,10 +1081,11 @@ class BaseAddressComparisonMixIn(object):
         # 64 bit addresses are always sign extended so we need to clear the top
         # bits.
         try:
-            return method(Pointer.integer_to_address(self.__int__()),
-                          Pointer.integer_to_address(other.__int__()))
+            other_address = Pointer.integer_to_address(other.__int__())
         except AttributeError:
-            return False
+            other_address = None
+
+        return method(Pointer.integer_to_address(self.__int__()), other_address)
 
     def __eq__(self, other):
         return self.__comparator__(other, operator.__eq__)
@@ -1141,11 +1142,11 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
     @property
     def indices(self):
-        return "%s(%#x, vm=%s)" % (
+        return ("%s(%#x, vm=%s)" % (
             self.obj_type,
             self.obj_offset,
             self.obj_vm,
-            )
+            ),)
 
     def __int__(self):
         """Return our offset as an integer.

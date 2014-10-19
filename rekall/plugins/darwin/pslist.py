@@ -23,15 +23,17 @@ import os
 from rekall.plugins import core
 from rekall.plugins.darwin import common
 
+from rekall.entities.query import expression
 
 class DarwinPsxView(common.DarwinPlugin):
     __name = "psxview"
 
     def render(self, renderer):
-        collector_names = [
-            c.name for c
-            in self.session.entities.collectors_for("MemoryObject/type=proc")]
-        collector_names.sort()
+        collectors = self.session.entities.collectors_for(
+            expression.Equivalence(
+                expression.Binding("MemoryObject/type"),
+                expression.Literal("proc")))
+        collector_names = sorted([collector.name for collector in collectors])
 
         headers = [
             ("Offset (V)", "offset_v", "[addrpad]"),
@@ -47,7 +49,8 @@ class DarwinPsxView(common.DarwinPlugin):
         renderer.table_header(headers)
 
         for entity in sorted(
-                self.session.entities.find_by_component("Process"),
+                self.session.entities.find(expression.ComponentLiteral(
+                    "Process")),
                 key=lambda e: e["Process/pid"]):
             row = [
                 entity["MemoryObject/base_object"],

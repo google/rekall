@@ -25,8 +25,11 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 from rekall import obj
 
 from rekall.entities import component as entity_component
+from rekall.entities import definitions
 from rekall.entities import identity
 from rekall.entities import superposition
+
+from rekall.entities.query import expression
 
 
 class Entity(object):
@@ -156,8 +159,7 @@ class Entity(object):
                 val = repr(val)  # Base objects' __str__ results are massive.
             keyvals.append("\t%s = %s" % (key, val))
 
-        return "Entity(ID: %s;\n%s)" % (self.identity,
-                                        "\n".join(keyvals))
+            return "Entity(ID: %s;\n%s)" % (self.identity, "\n".join(keyvals))
 
     def __str__(self):
         return self.__unicode__()
@@ -209,18 +211,10 @@ class Entity(object):
         # performance.
         self.manager.add_attribute_lookup(key)
 
-        for entity in self.manager.find_by_attribute(
-                key, self.identity):
-            yield entity
-
-    def matches_query(self, query):
-        """Would this entity match the supplied query?
-
-        Currently this is a stub implementation and will be replaced with
-        a call into the query implementation once that's done.
-        """
-        attribute, value = query.split("=", 1)
-        return self.get_raw(attribute) == value
+        return self.manager.find(
+            expression.Equivalence(
+                expression.Binding(key),
+                expression.Literal(self.identity)))
 
     def get_raw(self, key):
         """Get raw value of the key, no funny bussiness.
@@ -232,7 +226,7 @@ class Entity(object):
             key: Property path in form of Component.attribute.
         """
         try:
-            component_name, attribute = key.split("/")
+            component_name, attribute = key.split("/", 1)
         except ValueError:
             raise ValueError("%s is not a valid key." % key)
 
@@ -346,13 +340,31 @@ class Entity(object):
     def __getitem__(self, key):
         return self.get(key)
 
+    def _merge_containers(self, other):
+        """Merge component containers from self and other into new container."""
+        new_components = []
+        x = self.components
+        y = other.components
+
+        # Skipping component idx 0 (Entity)
+        for idx, component in enumerate(x[1:]):
+            new_components.append(superposition.SuperpositionMergeNamedTuples(
+                component,
+                y[idx + 1]))
+
+        # Entity component is merged using slightly simpler rules.
+        new_entity_component = definitions.Entity(
+            identity=x.Entity.identity | y.Entity.identity,
+            collectors=x.Entity.collectors | y.Entity.collectors)
+
+        return type(x)(new_entity_component, *new_components)
+
     def update(self, other):
         """Changes this entity to include information from other.
 
         This is not a part of the API - only EntityManager should use this.
         """
-        self.components = superposition.MergeComponentContainers(
-            self.components, other.components)
+        self.components = self._merge_containers(other)
         self.copies_count = self.copies_count + other.copies_count
 
     def union(self, other):
@@ -367,8 +379,7 @@ class Entity(object):
             raise AttributeError("Can't do union unless both are equal.")
 
         return Entity(
-            components=superposition.MergeComponentContainers(
-                self.components, other.components),
+            components=self._merge_containers(other),
             copies_count=self.copies_count + other.copies_count,
             entity_manager=self.manager)
 

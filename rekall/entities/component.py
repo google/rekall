@@ -29,6 +29,8 @@ import operator
 
 from rekall import registry
 
+from rekall.entities import superposition
+
 
 # DeclareComponent will ensure this namedtuple has a field for every type of
 # component we define in rekall.entities.definitions. It's used as a
@@ -216,7 +218,7 @@ class Field(object):
 
 
 class Component(object):
-    # __slots__ = ("_contents", "_object_id")
+    __slots__ = ("_contents", "_object_id")
     component_fields = None
     component_name = None
     component_docstring = None
@@ -250,13 +252,25 @@ class Component(object):
 
         for idx, val in enumerate(self._contents):
             other_val = other[idx]
-            if other_val is None:
+            if other_val == None:
                 continue
 
-            if val != other_val:
+            superval = superposition.Superposition.coerce(val)
+            if not superval.strict_superset(other_val):
                 return False
 
         return True
+
+    def _mutate(self, member, value):
+        """Changes the component by setting component.member to value.
+
+        The entity system uses this internally as optimization in some
+        very specific cases. Not intended for normal use.
+        """
+        for idx, field in enumerate(self.component_fields):
+            if field.name == member:
+                self._contents[idx] = value
+                return
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -274,7 +288,7 @@ def DeclareComponent(name, docstring, *fields):
 
     # Subclass Component, overriding the component_* class variables.
     props = dict(
-        # __slots__=(),
+        __slots__=(),
         component_fields=fields,
         component_name=name,
         component_docstring=docstring)

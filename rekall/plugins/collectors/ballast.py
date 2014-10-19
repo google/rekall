@@ -22,32 +22,33 @@ The Rekall Memory Forensics entity layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+import time
+
+from rekall import config
+
 from rekall.entities import definitions
 from rekall.entities import collector
-from rekall.entities import identity
-
-from rekall.entities.query import expression
 
 
-class EventInferenceCollector(collector.EntityCollector):
-    """Generates Events from entities that have Timestamps."""
+config.DeclareOption(
+    "--generate_ballast", default=0, action=config.IntParser,
+    help="If specified, fill the entity database with this many fake entries.")
 
-    outputs = ["Event"]
-    ingests = expression.ComponentLiteral("Timestamps")
-    run_cost = collector.CostEnum.NoCost
+
+class BallastGenerator(collector.EntityCollector):
+    """Generates ballast entities to stress-test the entity system."""
+
+    outputs = ["Timestamps", "Named"]
 
     @classmethod
     def is_active(cls, session):
-        return True
+        return session.GetParameter("generate_ballast") > 0
 
-    # pylint: disable=protected-access
     def collect(self, hint=None, ingest=None):
-        for entity in ingest:
-            for field in definitions.Timestamps.component_fields:
-                timestamp = getattr(entity.components.Timestamps, field.name)
-                action = field.name.replace("_at", "")
-                if timestamp:
-                    yield [identity.UniqueIdentity(),
-                           definitions.Event(target=entity.identity,
-                                             timestamp=timestamp,
-                                             action=action)]
+        for i in range(self.count):
+            yield [
+                definitions.Named(
+                    name="Ballast entry #%d" % i,
+                    kind="Ballast"),
+                definitions.Timestamps(
+                    created_at=self.profile.UnixTimeStamp(value=time.time()))]

@@ -172,7 +172,6 @@ class AlternateIdentity(Identity):
 
     def __init__(self, identity_dict=None, global_prefix=None):
         super(AlternateIdentity, self).__init__()
-
         self.global_prefix = global_prefix
         self.identity_dict = identity_dict
         self._indices = set(self.indices_from_dict(global_prefix=global_prefix,
@@ -184,6 +183,10 @@ class AlternateIdentity(Identity):
     @staticmethod
     def indices_from_dict(global_prefix, identity_dict):
         for attribute, value in identity_dict.iteritems():
+            if value == None:
+                raise ValueError(
+                    "None (%s) cannot be used as index." % value)
+
             indices = getattr(value, "indices", None)
             if indices:
                 # This means the value supports indexing, like an identity or
@@ -229,7 +232,8 @@ class AlternateIdentity(Identity):
     def union(self, other):
         if self != other:
             raise RuntimeError(
-                "Attempting to merge identities %s and %s which are unequal.")
+                "Attempting to merge identities %s and %s which are unequal.",
+                self, other)
 
         return AlternateIdentity(
             identity_dict=dict(

@@ -25,6 +25,8 @@ import itertools
 from rekall.plugins.darwin import common
 from rekall.plugins.darwin import lsof
 
+from rekall.entities.query import expression
+
 
 class DarwinArp(common.DarwinPlugin):
     """Show information about arp tables."""
@@ -252,14 +254,18 @@ class DarwinNetstat(common.DarwinPlugin):
             ("Comm", "comm", "20")])
 
         inet_connections = itertools.chain(
-            sorted(
-                self.session.entities.find_by_attribute(
-                    "Connection/addressing_family", "AF_INET"),
-                key=lambda e: e["Connection/src_addr"]),
-            sorted(
-                self.session.entities.find_by_attribute(
-                    "Connection/addressing_family", "AF_INET6"),
-                key=lambda e: e["Connection/src_addr"]))
+            self.session.entities.find(
+                expression.Sorted(
+                    "Connection/src_addr",
+                    expression.Equivalence(
+                        expression.Binding("Connection/addressing_family"),
+                        expression.Literal("AF_INET")))),
+            self.session.entities.find(
+                expression.Sorted(
+                    "Connection/src_addr",
+                    expression.Equivalence(
+                        expression.Binding("Connection/addressing_family"),
+                        expression.Literal("Connection/AF_INET6")))))
 
         for connection in inet_connections:
             # More than one process could have handles on this.
@@ -285,10 +291,12 @@ class DarwinNetstat(common.DarwinPlugin):
             ("Pid", "pid", "18"),
             ("Comm", "comm", "20")])
 
-        for connection in sorted(
-                self.session.entities.find_by_attribute(
-                    "Connection/addressing_family", "AF_UNIX"),
-                key=lambda e: e["Connection/src_addr"]):
+        for connection in self.session.entities.find(
+                expression.Sorted(
+                    "Connection/src_addr",
+                    expression.Equivalence(
+                        expression.Binding("Connection/addressing_family"),
+                        expression.Literal("AF_UNIX")))):
             processes = connection["&Handle/resource"]["Handle/process"]
             renderer.table_row(
                 connection["Connection/src_addr"],

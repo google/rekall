@@ -25,13 +25,17 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 from rekall.entities import collector
 from rekall.entities import definitions
 
+from rekall.entities.query import expression
+
 from rekall.plugins.collectors.windows import common
 
 
 class WindowsHandleCollector(common.WindowsEntityCollector):
     _name = "handles"
     outputs = ["MemoryObject/type=_EPROCESS"]
-    ingests = "MemoryObject/type=_EPROCESS"
+    ingests = expression.Equivalence(
+        expression.Binding("MemoryObject/type"),
+        expression.Literal("_EPROCESS"))
     run_cost = collector.CostEnum.VeryHighCost
 
     def collect(self, hint=None, ingest=None):
@@ -48,7 +52,9 @@ class WindowsHandleCollector(common.WindowsEntityCollector):
 class WindowsProcessParser(common.WindowsEntityCollector):
     _name = "proc"
     outputs = ["Process", "Named/kind=Process", "Timestamps"]
-    ingests = "MemoryObject/type=_EPROCESS"
+    ingests = expression.Equivalence(
+        expression.Binding("MemoryObject/type"),
+        expression.Literal("_EPROCESS"))
 
     def collect(self, hint=None, ingest=None):
         for entity in ingest:

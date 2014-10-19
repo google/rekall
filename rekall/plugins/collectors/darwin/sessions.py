@@ -27,19 +27,24 @@ from rekall.entities import definitions
 from rekall.plugins.collectors.darwin import common
 from rekall.plugins.collectors.darwin import zones
 
+from rekall.entities.query import expression
+
 
 class DarwinTerminalUserInferor3000(common.DarwinEntityCollector):
     outputs = ["User"]
+    ingests = expression.Intersection(
+        expression.ComponentLiteral("Terminal"),
+        expression.Let(
+            "Terminal/file",
+            expression.ComponentLiteral("Permissions")),
+        expression.Let(
+            "Terminal/session",
+            expression.ComponentLiteral("Session")))
 
     def collect(self, hint=None, ingest=None):
-        # This is necessary because we need to have full files and permissions
-        # collected. TODO: remove this once the manager is smart enough to
-        # get complete results on deref.
-        self.manager.collect_for("Permissions")
-        for terminal in self.manager.find_by_component("Terminal"):
+        for terminal in ingest:
             owner = terminal["Terminal/file"]["Permissions/owner"]
             user = terminal["Terminal/session"]["Session/user"]
-
             # Now tell the manager that these two users are the same user.
             if owner and user:
                 yield user.identity | owner.identity
@@ -56,10 +61,12 @@ class DarwinTTYZoneCollector(zones.DarwinZoneElementCollector):
 
 class DarwinTTYParser(common.DarwinEntityCollector):
     outputs = ["Terminal", "MemoryObject/type=vnode"]
+    ingests = expression.Equivalence(
+        expression.Binding("MemoryObject/type"),
+        expression.Literal("tty"))
 
     def collect(self, hint=None, ingest=None):
-        for entity in self.manager.find_by_attribute(
-                "MemoryObject/type", "tty"):
+        for entity in ingest:
             tty = entity["MemoryObject/base_object"]
             session = tty.t_session
             vnode = session.s_ttyvp
@@ -88,9 +95,12 @@ class DarwinSessionParser(common.DarwinEntityCollector):
         "MemoryObject/type=tty",
         "MemoryObject/type=proc"]
 
+    ingests = expression.Equivalence(
+        expression.Binding("MemoryObject/type"),
+        expression.Literal("session"))
+
     def collect(self, hint=None, ingest=None):
-        for entity in self.manager.find_by_attribute(
-                "MemoryObject/type", "session"):
+        for entity in ingest:
             session = entity["MemoryObject/base_object"]
 
             # Have to sanitize the usernames to prevent issues when comparing

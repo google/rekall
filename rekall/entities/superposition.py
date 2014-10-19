@@ -27,8 +27,6 @@ import itertools
 
 from rekall import obj
 
-from rekall.entities import definitions
-
 
 class Superposition(object):
     """Represents multiple possible values of a single variable.
@@ -64,15 +62,22 @@ class Superposition(object):
         for scalar in scalars:
             if isinstance(scalar, Superposition):
                 variants.update(scalar.variants)
-            elif scalar:
+            elif scalar != None:
                 variants.add(scalar)
 
         if len(variants) == 1:
             return variants.pop()
         elif not variants:
-            return obj.NoneObject("No non-null scalars in merge.")
+            return None
 
         return cls(variants)
+
+    @classmethod
+    def coerce(cls, value):
+        if isinstance(value, cls):
+            return value
+
+        return cls(set([value]))
 
     def __unicode__(self):
         results = []
@@ -105,6 +110,12 @@ class Superposition(object):
     def __iter__(self):
         return self.variants.__iter__()
 
+    def strict_superset(self, other):
+        if not isinstance(other, Superposition):
+            return other in self.variants
+
+        return self.variants.issuperset(other.variants)
+
 
 def SuperpositionMergeNamedTuples(x, y):
     """Merges namedtuples x and y using superpositions.
@@ -120,20 +131,3 @@ def SuperpositionMergeNamedTuples(x, y):
 
     return tuple_cls(*[Superposition.merge_scalars(mx, my)
                        for mx, my in itertools.izip(x, y)])
-
-
-def MergeComponentContainers(x, y):
-    new_components = []
-
-    # Skipping component idx 0 (Entity)
-    for idx, component in enumerate(x[1:]):
-        new_components.append(SuperpositionMergeNamedTuples(
-            component,
-            y[idx + 1]))
-
-    # Entity component is merged using slightly simpler rules.
-    new_entity = definitions.Entity(
-        identity=x.Entity.identity | y.Entity.identity,
-        collectors=x.Entity.collectors | y.Entity.collectors)
-
-    return type(x)(new_entity, *new_components)
