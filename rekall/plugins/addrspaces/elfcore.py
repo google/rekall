@@ -62,25 +62,26 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         self.as_assert(self.elf64_hdr.e_type == "ET_CORE",
                        "Elf file is not a core file.")
 
-        # Iterate over all the section headers and map the runs.
-        for section in self.elf64_hdr.e_phoff:
-            if section.p_type == "PT_LOAD":
-                # Some load sections are empty.
-                if (section.p_filesz == 0 or
-                    section.p_filesz != section.p_memsz):
+        # Iterate over all the program headers and map the runs.
+        for segment in self.elf64_hdr.e_phoff:
+            if segment.p_type == "PT_LOAD":
+                # Some load segments are empty.
+                if (segment.p_filesz == 0 or
+                    segment.p_filesz != segment.p_memsz):
                     continue
 
                 # Add the run to the memory map.
-                self.runs.insert((int(section.p_paddr),  # Virtual Addr
-                                  int(section.p_offset), # File Addr
-                                  int(section.p_memsz))) # Length
+                virtual_address = int(segment.p_paddr) or int(segment.p_vaddr)
+                self.runs.insert((virtual_address,  # Virtual Addr
+                                  int(segment.p_offset), # File Addr
+                                  int(segment.p_memsz))) # Length
 
-            elif section.p_type == PT_PMEM_METADATA:
+            elif segment.p_type == PT_PMEM_METADATA:
                 # Allow the file to be extended if users want to append
                 # metadata to the file.
 
-                to_read = max(1000000, int(section.p_filesz))
-                data = self.base.read(section.p_offset, to_read)
+                to_read = max(1000000, int(segment.p_filesz))
+                data = self.base.read(segment.p_offset, to_read)
                 data = data.split("\x00")[0]
                 if data:
                     self.LoadMetadata(data)
@@ -108,3 +109,36 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
             if metadata in self.metadata:
                 self.session.SetParameter(
                     session_param, self.metadata[metadata])
+
+
+class KCoreAddressSpace(Elf64CoreDump):
+    """A Linux kernel's /proc/kcore file also maps the entire physical ram.
+
+    http://lxr.free-electrons.com/source/Documentation/x86/x86_64/mm.txt
+
+    ffff880000000000 - ffffc7ffffffffff (=64 TB) direct mapping of all phys. memory
+    """
+
+    # We must run before the regular Elf64CoreDump address space in the voting
+    # order.
+    order = Elf64CoreDump.order - 1
+
+    __name = "elf64"
+    __image = True
+
+    def __init__(self, **kwargs):
+        super(KCoreAddressSpace, self).__init__(**kwargs)
+
+        # Collect all ranges between ffff880000000000 - ffffc7ffffffffff
+        runs = []
+
+        for vaddr, paddr, length in self.runs:
+            if 0xffff880000000000 < vaddr < 0xffffc7ffffffffff:
+                runs.append((vaddr - 0xffff880000000000, paddr, length))
+
+        self.as_assert(runs, "No kcore compatible virtual ranges.")
+        self.runs.clear()
+        for x in runs:
+            self.runs.insert(x)
+
+
