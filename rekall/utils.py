@@ -193,7 +193,6 @@ class FastStore(object):
         if lock:
             self.lock = threading.RLock()
 
-
     @Synchronized
     def Expire(self):
         """Expires old cache entries."""
