@@ -82,7 +82,21 @@ PDB_TO_SYS = {
     "ntkrpamp.pdb": "nt",
     "win32k.pdb": "win32k",
     "tcpip.pdb": "tcpip",
+    "tcpip6.pdb": "tcpip",
+    "tcpipreg.pdb": "tcpip",
     }
+
+FILENAMES_TO_TRY = [
+    "ntkrnlmp.pdb",
+    "ntkrnlpa.pdb",
+    "ntkrpamp.pdb",
+    "ntoskrnl.pdb",
+    "tcpip6.pdb",
+    "tcpip.pdb",
+    "tcpipreg.pdb",
+    "win32k.pdb",
+    ]
+
 
 def EnsurePathExists(path):
     try:
@@ -96,7 +110,7 @@ def BuildProfile(pdb_filename, profile_path, metadata):
     try:
         session.RunPlugin(
             "parse_pdb",
-            filename=pdb_filename,
+            pdb_filename=pdb_filename,
             output=profile_path,
             metadata=metadata)
 
@@ -106,7 +120,7 @@ def BuildProfile(pdb_filename, profile_path, metadata):
     except Exception:
         print "Error during profile %s" % pdb_filename
         print ("You can run it manually: "
-               "rekall parse_pdb --filename=%r --output=%r --metadata=%r" %
+               "rekall parse_pdb --pdb_filename=%r --output=%r --metadata=%r" %
                (pdb_filename, profile_path, metadata))
         traceback.print_exc()
 
@@ -116,29 +130,56 @@ def BuildProfile(pdb_filename, profile_path, metadata):
 
 def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
     changed_files = set()
+    new_filenames = {}
+    unsuccessful = set()
+
     pool = multiprocessing.Pool(NUMBER_OF_CORES)
     for line in open(guidfile_path):
-        if line.startswith("#"):
+
+        line = line.strip()
+        if line.startswith("#") or line == "":
             continue
 
-        guid, pdb_filename = line.strip().split(" ", 2)
-
-        # We dont care about this pdb.
-        if pdb_filename not in PDB_TO_SYS:
+        try:
+          guid, pdb_filename = line.split(" ", 2)
+          # We dont care about this pdb.
+          if pdb_filename not in PDB_TO_SYS:
             continue
+
+        except ValueError:
+          guid, pdb_filename = line, None
 
         # Fetch the pdb from the MS symbol server.
-        profile_path = os.path.join(PDB_TO_SYS[pdb_filename], "GUID", guid)
         pdb_path = os.path.join("src", "pdb")
         pdb_out_filename = os.path.join(pdb_path, "%s.pdb" % guid)
 
+        if not pdb_filename:
+            for candidate_filename in FILENAMES_TO_TRY:
+                try:
+                    session.RunPlugin(
+                        "fetch_pdb",
+                        pdb_filename=candidate_filename, guid=guid,
+                        dump_dir=pdb_path)
+                    os.rename(os.path.join(pdb_path, candidate_filename),
+                              pdb_out_filename)
+                except Exception as e:
+                    continue
+
+                pdb_filename = candidate_filename
+                new_filenames[guid] = pdb_filename
+                break
+        if not pdb_filename:
+            unsuccessful.add(guid)
+            continue
+
+        profile_path = os.path.join(PDB_TO_SYS[pdb_filename], "GUID", guid)
         # Do not export the profile if we already have it.
         if rebuild or not os.access(profile_path + ".gz", os.R_OK):
             # Dont bother downloading the pdb file if we already have it.
             if not os.access(pdb_out_filename, os.R_OK):
                 session.RunPlugin(
                     "fetch_pdb",
-                    filename=pdb_filename, guid=guid,
+                    pdb_filename=pdb_filename, guid=guid,
                     dump_dir=pdb_path)
 
                 os.rename(os.path.join(pdb_path, pdb_filename),
@@ -163,6 +204,16 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
     # Wait here until all the pool workers are done.
     pool.close()
     pool.join()
+
+    if new_filenames:
+        print "Found %d new file names:" % len(new_filenames)
+        for guid, filename in sorted(new_filenames.items()):
+            print "%s %s" % (guid, filename)
+
+    if unsuccessful:
+        print "Unable to download pdbs for:"
+        for guid in sorted(unsuccessful):
+          print guid
 
     return changed_files
 
