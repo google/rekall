@@ -1,8 +1,8 @@
 FileSaver.js
 ============
 
-FileSaver.js implements the HTML5 W3C `saveAs()` [FileSaver][1] interface in browsers that do
-not natively support it. There is a [FileSaver.js demo][2] that demonstrates saving
+FileSaver.js implements the HTML5 W3C `saveAs()` FileSaver interface in browsers that do
+not natively support it. There is a [FileSaver.js demo][1] that demonstrates saving
 various media types.
 
 FileSaver.js is the solution to saving files on the client-side, and is perfect for
@@ -20,7 +20,7 @@ Supported Browsers
 | Firefox 20+    | Blob          | Yes          | 800 MiB       | None         |
 | Firefox < 20   | data: URI     | No           | n/a           | [Blob.js](https://github.com/eligrey/Blob.js) |
 | Chrome         | Blob          | Yes          | 345 MiB       | None         |
-| Chrome for Android | Blob      | Yes          | ?             | None         |
+| Chrome for Android | Blob      | Yes          | 345 MiB       | None         |
 | IE 10+         | Blob          | Yes          | 600 MiB       | None         |
 | Opera 15+      | Blob          | Yes          | 345 MiB       | None         |
 | Opera < 15     | data: URI     | No           | n/a           | [Blob.js](https://github.com/eligrey/Blob.js) |
@@ -31,21 +31,19 @@ Feature detection is possible:
 
 ```js
 try {
-    var isFileSaverSupported = !!new Blob();
+    var isFileSaverSupported = !!new Blob;
 } catch (e) {}
 ```
 
 ### IE < 10
 
-It is possible to save HTML documents (and only HTML documents) in IE < 10 without Flash-based
-polyfills. See [sudodoki's comment](https://github.com/eligrey/FileSaver.js/issues/56#issuecomment-30917476)
-for more information on how to accomplish this.
+It is possible to save text files in IE < 10 without Flash-based polyfills.
+See [ChenWenBrian's `saveTextAs()`](https://github.com/ChenWenBrian/FileSaver.js#examples) for more details.
 
 ### Safari 6.1+
 
 Blobs may be opened instead of saved sometimes—you may have to direct your Safari users to manually
-press <kbd>⌘</kbd>+<kbd>S</kbd> to save the file after it is opened. Further information is available
-[on the issue tracker](https://github.com/eligrey/FileSaver.js/issues/12).
+press <kbd>⌘</kbd>+<kbd>S</kbd> to save the file after it is opened. Using the `application/octet-stream` MIME type to force downloads [can cause issues in Safari](https://github.com/eligrey/FileSaver.js/issues/12#issuecomment-47247096).
 
 Syntax
 ------
@@ -83,8 +81,18 @@ Note: The standard HTML5 `canvas.toBlob()` method is not available in all browse
 
 ![Tracking image](https://in.getclicky.com/212712ns.gif)
 
-  [1]: http://www.w3.org/TR/file-writer-api/#the-filesaver-interface
-  [2]: http://eligrey.com/demos/FileSaver.js/
+  [1]: http://eligrey.com/demos/FileSaver.js/
   [3]: https://developer.mozilla.org/en-US/docs/DOM/Blob
   [4]: https://github.com/eligrey/Blob.js
   [5]: https://github.com/eligrey/canvas-toBlob.js
+
+Contributing
+------------
+
+The `FileSaver.js` distribution file is compiled with Uglify.js like so:
+
+```bash
+uglifyjs FileSaver.js --comments /@source/ > FileSaver.min.js
+```
+
+Please make sure you build a production version before submitting a pull request.

@@ -59,6 +59,20 @@
 						elm.addClass(angular.isArray(value) ? value.join(' ') : value);
 					}
 				};
+				var transclude = function (transcluder, scope)
+				{
+					transcluder.transclude(scope, function (clone)
+					{
+						var parent = transcluder.element.parent();
+						var afterNode = transcluder.element && transcluder.element[transcluder.element.length - 1];
+						var parentNode = parent && parent[0] || afterNode && afterNode.parentNode;
+						var afterNextSibling = (afterNode && afterNode.nextSibling) || null;
+						angular.forEach(clone, function (node)
+						{
+							parentNode.insertBefore(node, afterNextSibling);
+						});
+					});
+				};
 
 				var ctrl =
 				{
@@ -88,8 +102,26 @@
 						{
 							if (newValue === undefined) return;
 							that.removeWatcher();
-							that.runBinders();
+							that.checkBindonce(newValue);
 						}, true);
+					},
+
+					checkBindonce: function (value)
+					{
+						var that = this, promise = (value.$promise) ? value.$promise.then : value.then;
+						// since Angular 1.2 promises are no longer
+						// undefined until they don't get resolved
+						if (typeof promise === 'function')
+						{
+							promise(function ()
+							{
+								that.runBinders();
+							});
+						}
+						else
+						{
+							that.runBinders();
+						}
 					},
 
 					removeWatcher: function ()
@@ -113,17 +145,7 @@
 								case 'boIf':
 									if (toBoolean(value))
 									{
-										binder.transclude(binder.scope.$new(), function (clone)
-										{
-											var parent = binder.element.parent();
-											var afterNode = binder.element && binder.element[binder.element.length - 1];
-											var parentNode = parent && parent[0] || afterNode && afterNode.parentNode;
-											var afterNextSibling = (afterNode && afterNode.nextSibling) || null;
-											angular.forEach(clone, function (node)
-											{
-												parentNode.insertBefore(node, afterNextSibling);
-											});
-										});
+										transclude(binder, binder.scope.$new());
 									}
 									break;
 								case 'boSwitch':
@@ -133,18 +155,7 @@
 										binder.scope.$eval(binder.attrs.change);
 										angular.forEach(selectedTranscludes, function (selectedTransclude)
 										{
-											selectedTransclude.transclude(binder.scope.$new(), function (clone)
-											{
-												var parent = selectedTransclude.element.parent();
-												var afterNode = selectedTransclude.element && selectedTransclude.element[selectedTransclude.element.length - 1];
-												var parentNode = parent && parent[0] || afterNode && afterNode.parentNode;
-												var afterNextSibling = (afterNode && afterNode.nextSibling) || null;
-												angular.forEach(clone, function (node)
-												{
-													parentNode.insertBefore(node, afterNextSibling);
-												});
-
-											});
+											transclude(selectedTransclude, binder.scope.$new());
 										});
 									}
 									break;
@@ -203,27 +214,15 @@
 					}
 				};
 
-				return ctrl;
+				angular.extend(this, ctrl);
 			}],
 
 			link: function (scope, elm, attrs, bindonceController)
 			{
-				var value = (attrs.bindonce) ? scope.$eval(attrs.bindonce) : true;
+				var value = attrs.bindonce && scope.$eval(attrs.bindonce);
 				if (value !== undefined)
 				{
-					// since Angular 1.2 promises are no longer 
-					// undefined until they don't get resolved
-					if (value.then && typeof value.then === 'function')
-					{
-						value.then(function ()
-						{
-							bindonceController.runBinders();
-						});
-					}
-					else
-					{
-						bindonceController.runBinders();
-					}
+					bindonceController.checkBindonce(value);
 				}
 				else
 				{
@@ -257,8 +256,8 @@
 
 		{ directiveName: 'boIf', transclude: 'element', terminal: true, priority: 1000 },
 		{ directiveName: 'boSwitch', require: 'boSwitch', controller: function () { this.cases = {}; } },
-		{ directiveName: 'boSwitchWhen', transclude: 'element', priority: 800, require: '^boSwitch', },
-		{ directiveName: 'boSwitchDefault', transclude: 'element', priority: 800, require: '^boSwitch', }
+		{ directiveName: 'boSwitchWhen', transclude: 'element', priority: 800, require: '^boSwitch' },
+		{ directiveName: 'boSwitchDefault', transclude: 'element', priority: 800, require: '^boSwitch' }
 	],
 	function (boDirective)
 	{

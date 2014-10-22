@@ -42,6 +42,9 @@ class EncodingError(KeyError):
 
 
 class RobustEncoder(json.JSONEncoder):
+    def __init__(self, **_):
+        super(RobustEncoder, self).__init__(separators=(',', ':'))
+
     def default(self, o):
         logging.error("Unable to encode %r as json, replacing with None", o)
         return None
