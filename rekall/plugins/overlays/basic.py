@@ -238,6 +238,18 @@ class Flags(obj.NativeType):
 
         return "%s (%s)" % (super(Flags, self).__repr__(), abridged)
 
+    def write(self, data):
+        if isinstance(data, basestring):
+            value = 0
+            for item in data.split("|"):
+                item = item.strip()
+                mask = self.maskmap.get(item, 0)
+                value |= mask
+
+            data = value
+
+        return self.target_obj.write(data)
+
     def __getattr__(self, attr):
         mask = self.maskmap.get(attr)
         if not mask:
@@ -288,7 +300,6 @@ class Enumeration(obj.NativeType):
         # Due to the way JSON serializes dicts, we must always operate on the
         # choices dict with string keys.
         self.choices = dict((str(k), v) for k, v in choices.iteritems())
-        self.reverse_choices = None
         self.default = default
         if callable(value):
             value = value(self.obj_parent)
@@ -316,6 +327,9 @@ class Enumeration(obj.NativeType):
         return self.value
 
     def write(self, data):
+        if data in self.reverse_choices:
+            data = self.reverse_choices.get(data)
+
         return self.target_obj.write(data)
 
     def __hash__(self):
@@ -340,9 +354,14 @@ class Enumeration(obj.NativeType):
         return "%s (%s)" % (super(Enumeration, self).__repr__(),
                             self.__str__())
 
+    _reverse_choices = None
+    @property
+    def reverse_choices(self):
+        if self._reverse_choices is None:
+            self._reverse_choices = {v: int(k) for k, v in self.choices.items()}
+        return self._reverse_choices
+
     def __getattr__(self, attr):
-        if self.reverse_choices is None:
-            self.reverse_choices = {v: int(k) for k, v in self.choices.items()}
         value = self.reverse_choices.get(attr, None)
         if value is None:
             raise AttributeError(attr)

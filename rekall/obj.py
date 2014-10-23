@@ -1293,6 +1293,10 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
             seen.add(item.obj_offset)
             yield item
 
+    def GetData(self):
+        """Returns the raw data of this struct."""
+        return self.obj_vm.read(self.obj_offset, self.obj_size)
+
 
 ## Profiles are the interface for creating/interpreting
 ## objects

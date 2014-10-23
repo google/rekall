@@ -150,6 +150,10 @@ class WriteableAddressSpaceMixIn(object):
         # All addresses are valid, we just grow the file there.
         return True
 
+    def end(self):
+        self.fhandle.seek(0, 2)
+        return self.fhandle.tell()
+
     def read(self, addr, length):
         # Just null pad the file - even if we read past the end.
         self.fhandle.seek(addr)
@@ -172,6 +176,13 @@ class WriteableAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
         super(WriteableAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
 
 
+class WritableFDAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
+    """An address space which can be initialized from a file handle.
+
+    Note that file handle must be writable.
+    """
+
+
 class DummyAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
     """An AS which always returns nulls."""
     __name = 'dummy'
@@ -180,3 +191,7 @@ class DummyAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
         super(DummyAddressSpace, self).__init__(
             session=session,
             fhandle=StringIO.StringIO(size * "\x00"))
+
+    def getvalue(self):
+        """Dump the entire address space as a byte string."""
+        return self.fhandle.getvalue()

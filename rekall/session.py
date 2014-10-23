@@ -541,7 +541,7 @@ class Session(object):
         if isinstance(plugin_obj, basestring):
             plugin_name = plugin_obj
 
-        elif issubclass(plugin_obj, plugin.Command):
+        elif utils.issubclass(plugin_obj, plugin.Command):
             plugin_name = plugin_obj.name
             plugin_cls = plugin_obj
 

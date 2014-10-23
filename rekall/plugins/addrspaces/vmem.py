@@ -44,8 +44,12 @@ class VMemAddressSpace(addrspace.RunBasedAddressSpace):
         super(VMemAddressSpace, self).__init__(base=base, **kwargs)
 
         vmss_location = base.fname[:-4] + "vmss"
-        vmss_as = standard.FileAddressSpace(
-            filename=vmss_location, session=self.session)
+        try:
+            vmss_as = standard.FileAddressSpace(
+                filename=vmss_location, session=self.session)
+        except IOError:
+            # If we fail to open the vmss file it is not a proper vmem file.
+            raise addrspace.ASAssertionError
 
         vmss_profile = VMWareProfile(session=self.session)
         self.header = vmss_profile._VMWARE_HEADER(vm=vmss_as)

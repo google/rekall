@@ -21,6 +21,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """These are various utilities for rekall."""
+import __builtin__
 import bisect
 import importlib
 import itertools
@@ -800,3 +801,22 @@ def CopyFDs(in_fd, out_fd, length=2**64):
 
         out_fd.write(data)
         length -= len(data)
+
+
+def issubclass(obj, cls):    # pylint: disable=redefined-builtin
+    """A sane implementation of issubclass.
+
+    See http://bugs.python.org/issue10569
+
+    Python bare issubclass must be protected by an isinstance test first since
+    it can only work on types and raises when provided something which is not a
+    type.
+
+    Args:
+      obj: Any object or class.
+      cls: The class to check against.
+
+    Returns:
+      True if obj is a subclass of cls and False otherwise.
+    """
+    return isinstance(obj, type) and __builtin__.issubclass(obj, cls)

@@ -142,3 +142,52 @@ class KCoreAddressSpace(Elf64CoreDump):
             self.runs.insert(x)
 
 
+def WriteElfFile(address_space, outfd, session=None):
+    """Convert the address_space to an ELF Core dump file.
+
+    The Core dump will be written to outfd which is expected to have a .write()
+    method.
+    """
+    runs = list(address_space.get_available_addresses())
+
+    elf_profile = elf.ELFProfile(session=session)
+    elf64_pheader = elf_profile.elf64_phdr()
+    elf64_pheader.p_type = "PT_LOAD"
+    elf64_pheader.p_align = 0x1000
+    elf64_pheader.p_flags = "PF_R"
+
+    elf64_header = elf_profile.elf64_hdr()
+    elf64_header.e_ident = elf64_header.e_ident.signature
+    elf64_header.e_type = 'ET_CORE'
+    elf64_header.e_phoff = elf64_header.obj_end
+    elf64_header.e_ehsize = elf64_header.obj_size
+    elf64_header.e_phentsize = elf64_pheader.obj_size
+    elf64_header.e_phnum = len(runs)
+    elf64_header.e_shnum = 0  # We don't have any sections.
+
+    # Where we start writing data.
+    file_offset = (elf64_header.obj_size +
+                   # One Phdr for each run.
+                   len(runs) * elf64_pheader.obj_size)
+
+    outfd.write(elf64_header.GetData())
+    for offset, _, length in runs:
+        elf64_pheader.p_paddr = offset
+        elf64_pheader.p_memsz = length
+        elf64_pheader.p_offset = file_offset
+        elf64_pheader.p_filesz = length
+
+        outfd.write(elf64_pheader.GetData())
+
+        file_offset += length
+
+    # Now just copy all the runs
+    total_data = 0
+    for offset, _, length in runs:
+        while length > 0:
+            data = address_space.read(offset, min(10000000, length))
+            session.report_progress("Writing %sMb", total_data/1024/1024)
+            outfd.write(data)
+            length -= len(data)
+            offset += len(data)
+            total_data += len(data)
