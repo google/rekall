@@ -17,7 +17,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""Provides the primitives needed to disassemble code using distorm3."""
+"""
+Provides the primitives needed to disassemble code using capstone,
+unless it's not available on the system, then the code falls back to
+using diStorm3.
+"""
 
 # This stuff is just here to make pyinstaller pick up on it. Due to the way
 # distorm3 uses ctypes, pyinstaller misses the imports. Note that the following
@@ -35,12 +39,88 @@ try:
 except Exception:
     pass
 
-import distorm3
+try:
+    import capstone
+except Exception:
+    import distorm3
+
 import re
+import binascii
 
 from rekall import plugin
 from rekall import obj
 from rekall import testlib
+
+class Disassembler(object):
+
+    __abstract = True
+
+    def __init__(self, mode):
+        self.mode = mode
+
+    def disasm(self, data, offset):
+        """ Starts disassembly of data """
+
+    def decode(self, insn):
+        """ Decodes the current instruction """
+
+
+class Capstone(Disassembler):
+
+    def __init__(self, mode):
+        super(Capstone, self).__init__(mode)
+
+        if self.mode == "I386":
+            self.cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        elif self.mode == "AMD64":
+            self.cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_64)
+        else:
+            raise NotImplementedError("No disassembler available for this arch.")
+
+    def disasm(self, data, offset):
+        return self.cs.disasm(data, int(offset))
+
+    def decode(self, insn):
+        instruction = Instruction("%s %s" % (str.upper(insn.mnemonic),insn.op_str))
+        hexdump = unicode(binascii.hexlify(insn.bytes))
+
+        return insn.address, insn.size, instruction, hexdump
+
+class Distorm3(Disassembler):
+
+    def __init__(self, mode):
+        super(Distorm3, self).__init__(mode)
+
+        if self.mode == "I386":
+            self.distorm_mode = distorm3.Decode32Bits
+        elif self.mode == "AMD64":
+            self.distorm_mode = distorm3.Decode64Bits
+        else:
+            raise NotImplementedError("No disassembler available for this arch.")
+
+    def disasm(self, data, offset):
+        return distorm3.DecodeGenerator(
+            int(offset), data, self.distorm_mode)
+
+    def decode(self, insn):
+        (offset, size, instruction, hexdump) = insn
+        instruction = Instruction(instruction)
+        hexdump = unicode(hexdump)
+
+        return offset, size, instruction, hexdump
+
+class DisasmFactory(object):
+
+    @classmethod
+    def get(cls, mode):
+        try:
+            return Capstone(mode)
+
+        except Exception:
+            pass
+
+        return Distorm3(mode)
+
 
 
 class Instruction(unicode):
@@ -109,11 +189,7 @@ class Disassemble(plugin.Command):
         if mode == "auto":
             mode = self.session.profile.metadata("arch", "I386")
 
-        self.mode = mode
-        if self.mode == "I386":
-            self.distorm_mode = distorm3.Decode32Bits
-        else:
-            self.distorm_mode = distorm3.Decode64Bits
+        self.dis = DisasmFactory.get(mode)
 
     def disassemble(self, offset, depth=0):
         """Disassemble the number of instructions required.
@@ -129,12 +205,8 @@ class Disassemble(plugin.Command):
             # By default read 2 pages.
             data = self.address_space.read(buffer_offset, 0x2000)
 
-            iterable = distorm3.DecodeGenerator(
-                int(offset), data, self.distorm_mode)
-
-            for offset, size, instruction, hexdump in iterable:
-                instruction = Instruction(instruction)
-                hexdump = unicode(hexdump)
+            for insn in self.dis.disasm(data, int(offset)):
+                offset, size, instruction, hexdump = self.dis.decode(insn)
 
                 if offset in self._visited:
                     return
@@ -221,7 +293,10 @@ class Disassemble(plugin.Command):
         Disassembles code starting at address for a number of bytes
         given by the length parameter (default: 128).
 
-        Note: This feature requires distorm, available at
+        Note: This feature requires capstone, available at
+            http://www.capstone-engine.org/
+
+        or distorm, available at
             http://www.ragestorm.net/distorm/
 
         The mode is '32bit' or '64bit'. If not supplied, the disasm
