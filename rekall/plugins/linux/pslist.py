@@ -85,6 +85,8 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
         # See: arch/x86/include/asm/processor.h
         if self.session.profile.metadata("arch") == "I386":
             max_task_size = 0x80000000
+        elif self.session.profile.metadata("arch") == "MIPS":
+            max_task_size = 0x80000000
         else:
             max_task_size = (1 << 47) - task_as.PAGE_SIZE
         max_memory = task.mm.task_size or max_task_size

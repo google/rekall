@@ -282,6 +282,9 @@ class FindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
             if self.profile.metadata("os") == "windows":
                 impl = "WindowsIA32PagedMemoryPae"
 
+        elif architecture == "MIPS":
+            impl = "MipsAddressSpace"
+
         else:
             impl = 'IA32PagedMemory'
 

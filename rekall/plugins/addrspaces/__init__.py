@@ -10,6 +10,7 @@ from rekall.plugins.addrspaces import crash
 # from a hibernation file (like imagecopy).
 # from rekall.plugins.addrspaces import hibernate
 from rekall.plugins.addrspaces import intel
+from rekall.plugins.addrspaces import mips
 from rekall.plugins.addrspaces import macho
 from rekall.plugins.addrspaces import mmap_address_space
 from rekall.plugins.addrspaces import standard

@@ -892,6 +892,8 @@ class Linux(basic.BasicClasses):
                     profile.set_metadata("pae", True)
             except ValueError:
                 pass
+        elif profile.metadata("arch") == "MIPS":
+            basic.ProfileMIPS32Bits.Initialize(profile)
         elif profile.metadata("arch") == "AMD64":
             basic.ProfileLP64.Initialize(profile)
 

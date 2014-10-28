@@ -113,6 +113,17 @@ class IA32PagedMemoryObjectRenderer(
 
         return state
 
+class MIPSPagedMemoryObjectRenderer(
+    json_renderer.BaseAddressSpaceObjectRenderer):
+    renders_type = "MipsAddressSpace"
+
+    def GetState(self, item, **options):
+        state = super(MIPSPagedMemoryObjectRenderer, self).GetState(
+            item, **options)
+        state["dtb"] = item.dtb
+
+        return state
+
 
 class SessionObjectRenderer(json_renderer.StateBasedObjectRenderer):
     renders_type = "Session"

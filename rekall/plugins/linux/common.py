@@ -129,6 +129,9 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
             return (profile.get_constant("_text", False) -
                     profile.get_constant("phys_startup_64", False))
 
+        elif profile.metadata("arch") == "MIPS":
+            return 0x80000000
+
         else:
             raise RuntimeError("No profile architecture set.")
 
@@ -150,6 +153,9 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
         """Tries to locate the DTB."""
         PAGE_OFFSET = self.GetPageOffset(self.profile)
         if self.profile.metadata("arch") == "I386":
+            yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
+
+        elif self.profile.metadata("arch") == "MIPS":
             yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
 
         else:

@@ -673,7 +673,7 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         elif self.mode == "AMD64":
             self.distorm_mode = distorm3.Decode64Bits
         else:
-            raise RuntimeError("Invalid mode %s" % self.mode)
+	    self.distorm_mode = None
 
         self.decompose_cache = []
 
@@ -730,6 +730,9 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
           A tuple of source, destination Function objects which are the
           targets for jumps.
         """
+        if self.distorm_mode == None:
+            return
+
         for op in self.Decompose(size=size):
             iat_loc = None
 
@@ -764,9 +767,10 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
           size: Stop after decoding this much data. If specified we ignore
             the instructions parameter.
         """
-        if len(self.decompose_cache) < instructions:
-            self.decompose_cache = list(self._Decompose(
-                instructions=instructions, size=size))
+        if self.distorm_mode :
+            if len(self.decompose_cache) < instructions:
+                self.decompose_cache = list(self._Decompose(
+                    instructions=instructions, size=size))
 
         return self.decompose_cache
 
@@ -811,6 +815,9 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         Returns:
           Another Function object at the matched position or None.
         """
+        if self.distorm_mode == None:
+            return None
+
         terms = []
         for e in expressions:
             if isinstance(e, basestring):
@@ -842,6 +849,9 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         new function disassebles exactly to the same offset of this
         function.
         """
+        if self.distorm_mode == None:
+            return None
+
         while 1:
             offset = self.obj_offset - length
             result = self.obj_profile.Function(vm=self.obj_vm, offset=offset)
@@ -860,6 +870,9 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
 
     def Disassemble(self, instructions=10):
         """Generate some instructions."""
+        if self.distorm_mode == None:
+            return
+
         overlap = 0x100
         data = ''
         offset = self.obj_offset
@@ -877,8 +890,22 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
                 if count >= instructions:
                     return
 
-
 # We define three kinds of basic profiles, a 32 bit one and two 64 bit ones.
+class ProfileMIPS32Bits(obj.Profile):
+    """Basic profile for 32 bit MIPS systems."""
+    METADATA = dict(
+        arch="MIPS",
+        data_model="BE32"
+        )
+
+    @classmethod
+    def Initialize(cls, profile):
+        super(ProfileMIPS32Bits, cls).Initialize(profile)
+        profile.add_classes(native_types.BE32)
+        profile.add_constants(PoolAlignment=8, MAX_FAST_REF=7,
+                              MaxPointer=2**32-1)
+
+
 class Profile32Bits(obj.Profile):
     """Basic profile for 32 bit systems."""
     METADATA = dict(
