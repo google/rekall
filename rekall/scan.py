@@ -157,6 +157,9 @@ class BaseScanner(object):
             # Store where this chunk will start. Absolute offset.
             chunk_offset = start
 
+            buffer_as = addrspace.BufferAddressSpace(
+                session=self.session)
+
             # Keep scanning this range as long as the current chunk isn't
             # past the end of the range or the end of the scanner.
             while chunk_offset < end and chunk_offset < range_end:
@@ -187,11 +190,9 @@ class BaseScanner(object):
                 phys_chunk_offset = phys_start + (chunk_offset - range_start)
 
                 # Consume the next block in this range.
-                buffer_as = addrspace.BufferAddressSpace(
-                    session=self.session,
-                    data=overlap + self.address_space.base.read(
+                buffer_as.assign_buffer(
+                    overlap + self.address_space.base.read(
                         phys_chunk_offset, chunk_size),
-
                     base_offset=chunk_offset - len(overlap))
 
                 if self.overlap > 0:
