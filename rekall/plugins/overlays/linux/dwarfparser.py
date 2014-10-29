@@ -26,10 +26,12 @@ from elftools.dwarf import dwarfinfo
 from elftools.dwarf import enums
 from elftools.dwarf import structs as dwarf_structs
 from elftools.elf import elffile
+from elftools.common.py3compat import itervalues
+from elftools.dwarf.descriptions import describe_attr_value
 
 from rekall import plugin
 from rekall import utils
-
+import logging
 
 def PatchPyElftools():
     """Upgrade pyelftools to support DWARF 4.
@@ -110,8 +112,8 @@ class DIETag(object):
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value
         elif ("DW_AT_sibling" in self.attributes and
-              self.attributes["DW_AT_sibling"].value in self.types):
-            return self.types[self.attributes["DW_AT_sibling"].value].name
+              self.attributes["DW_AT_sibling"].value+self.die.cu.cu_offset in self.types):
+            return self.types[self.attributes["DW_AT_sibling"].value + self.die.cu.cu_offset].name
         else:
             return "__unnamed_%s" % self.die.offset
 
@@ -403,13 +405,34 @@ class DWARFParser(object):
         # different compilation units, but rekall does not have CU
         # resolution right now so we assume they are all the same.
         parents = []
+        section_offset = self._dwarfinfo.debug_info_sec.global_offset
         for cu in self._dwarfinfo.iter_CUs():
             parents.append(cu)
 
+            die_depth = 0
             for die in cu.iter_DIEs():
+                logging.debug('%d %s<%x>: %s' % (
+                    die_depth,
+                    "\t" * die_depth,
+                    die.offset,
+                    ('%s' % die.tag) if not die.is_null() else ''))
                 if die.is_null():
+                    die_depth -= 1
                     parents = parents[:-1]
                     continue
+
+                for attr in itervalues(die.attributes):
+                    name = attr.name
+                    # Unknown attribute values are passed-through as integers
+                    if isinstance(name, int):
+                        name = 'Unknown AT value: %x' % name
+                    logging.debug('%d %s    <%2x>   %-18s: %s' % (
+                        die_depth,
+                        "\t" * die_depth,
+                        attr.offset,
+                        name,
+                        describe_attr_value(
+                            attr, die, section_offset)))
 
                 # Record the type in this DIE.
                 t = self.types[die.offset] = DIEFactory(
@@ -417,6 +440,8 @@ class DWARFParser(object):
 
                 if die.has_children:
                     parents.append(t)
+                    die_depth += 1
+
 
     def VType(self):
         """Build a vtype for this module's dwarf information."""
