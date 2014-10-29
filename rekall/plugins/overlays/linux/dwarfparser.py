@@ -112,8 +112,8 @@ class DIETag(object):
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value
         elif ("DW_AT_sibling" in self.attributes and
-              self.attributes["DW_AT_sibling"].value in self.types):
-            return self.types[self.attributes["DW_AT_sibling"].value].name
+              self.attributes["DW_AT_sibling"].value+self.die.cu.cu_offset in self.types):
+            return self.types[self.attributes["DW_AT_sibling"].value + self.die.cu.cu_offset].name
         else:
             return "__unnamed_%s" % self.die.offset
 
