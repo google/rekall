@@ -29,10 +29,10 @@ class DarwinPsxView(common.DarwinPlugin):
     __name = "psxview"
 
     def render(self, renderer):
-        collectors, _ = self.session.entities.analyze(
+        collectors = self.session.entities.analyze(
             expression.Equivalence(
                 expression.Binding("MemoryObject/type"),
-                expression.Literal("proc")))
+                expression.Literal("proc")))["collectors"]
         collector_names = sorted([collector.name for collector in collectors])
 
         headers = [

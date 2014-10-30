@@ -89,6 +89,9 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
                 zone = entity["MemoryObject/base_object"]
                 break
 
+        if zone is None:
+            return
+
         seen_offsets = set()
         seen_pages = set()
 
@@ -174,11 +177,26 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
 class DarwinZoneBufferCollector(DarwinZoneElementCollector):
     outputs = ["Buffer/purpose=zones"]
     type_name = "int"  # Dummy type.
+
     ingests = expression.ComponentLiteral("AllocationZone")
+    enforce_hint = True
     run_cost = collector.CostEnum.VeryHighCost
 
     def collect(self, hint=None, ingest=None):
+        # If given a hint, we analyze it and see if it can tell us the
+        # name of the allocation zone this is looking for.
+        hinted_zone = None
+        if hint:
+            for dependency in self.manager.analyze(hint)["dependencies"]:
+                if (dependency.component == "AllocationZone" and
+                        dependency.attribute == "name"):
+                    hinted_zone = dependency.value
+                    break
+
         for zone in ingest:
+            if hinted_zone and zone["AllocationZone/name"] != hinted_zone:
+                continue
+
             for element, state in self.collect_base_objects(
                     zone_name=zone["AllocationZone/name"], ingest=ingest):
                 yield definitions.Buffer(

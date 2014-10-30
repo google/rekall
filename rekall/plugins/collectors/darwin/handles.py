@@ -41,6 +41,7 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
         "MemoryObject/type=vnode",
         "MemoryObject/type=socket"]
     ingests = expression.ComponentLiteral("Process")
+    filter_ingest = True
 
     run_cost = collector.CostEnum.VeryHighCost
 
@@ -109,6 +110,7 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
     ingests = expression.Equivalence(
         expression.Binding("MemoryObject/type"),
         expression.Literal("socket"))
+    filter_ingest = True
 
     def collect(self, hint=None, ingest=None):
         for entity in ingest:

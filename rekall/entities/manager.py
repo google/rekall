@@ -22,6 +22,7 @@ The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+import copy
 import itertools
 import logging
 
@@ -66,31 +67,40 @@ class IngestionPipeline(object):
             ingest: An iterable containing entities and effects of adding them.
                 The effects are a dict of:
                     None: How many entities were duplicates, including contents.
-                    "update": How many entities changed by merging.
-                    "new": How many new entities created.
+                    entity_collector.EffectEnum.Merged: How many entities
+                        changed by merging.
+                    entity_collector.EffectEnum.Added: How many new entities
+                        created.
                     "fill": How many entities were enqueued for ingestion by
                         other collectors.
             collector: The collector object from which ingest was collected.
         """
-        counts = {None: 0, "update": 0, "new": 0, "fill": 0}
+
+        counts = {entity_collector.EffectEnum.Duplicate: 0,
+                  entity_collector.EffectEnum.Merged: 0,
+                  entity_collector.EffectEnum.Added: 0,
+                  entity_collector.EffectEnum.Enqueued: 0}
 
         for entity, effect in ingest:
             counts[effect] += 1
 
-            if effect is None:
+            if effect == entity_collector.EffectEnum.Duplicate:
                 continue
 
             for query in self.queries:
                 if self.matchers[query].match(entity):
                     self.queues[query].append(entity)
-                    counts["fill"] += 1
+                    counts[entity_collector.EffectEnum.Enqueued] += 1
                     self.empty = False
 
         logging.debug(
             "%s results: %d new, %d updated, %d sent to ingest. "
             "pipeline, %d duplicates.",
-            collector.name, counts["new"], counts["update"],
-            counts["fill"], counts[None])
+            collector.name,
+            counts[entity_collector.EffectEnum.Added],
+            counts[entity_collector.EffectEnum.Merged],
+            counts[entity_collector.EffectEnum.Enqueued],
+            counts[entity_collector.EffectEnum.Duplicate])
 
         return counts
 
@@ -211,10 +221,10 @@ class EntityManager(object):
             Tuple of entity and the effect of the new information.
 
             The effect can be one of:
-            None: No new information learned.
-            "update": As result of this call, data in one or more entities was
-                updated and entities may have merged.
-            "new": A new entity was added.
+            EffectEnum.Duplicate: No new information learned.
+            EffectEnum.Merged: As result of this call, data in one or more
+                entities was updated and entities may have merged.
+            EffectEnum.Added: A new entity was added.
         """
         kwargs = {}
         for component in components:
@@ -231,7 +241,7 @@ class EntityManager(object):
         indices = entity.indices
 
         existing_entities = list(self.find_by_identity(identity))
-        effect = "new"
+        effect = entity_collector.EffectEnum.Added
         if existing_entities:
             if (len(existing_entities) == 1 and
                     existing_entities[0].strict_superset(entity)):
@@ -242,12 +252,13 @@ class EntityManager(object):
                     member="collectors",
                     value=entity_comp.collectors.union([source_collector]))
 
-                return existing_entities[0], None
+                return (existing_entities[0],
+                        entity_collector.EffectEnum.Duplicate)
 
             for existing_entity in existing_entities:
                 # Entities exist for this already, but are not equivalent to
                 # the entity we found. Merge everything.
-                effect = "update"
+                effect = entity_collector.EffectEnum.Merged
                 entity.update(existing_entity)
                 indices.update(existing_entity.indices)
 
@@ -353,13 +364,19 @@ class EntityManager(object):
     def analyze(self, wanted):
         """Finds collectors and indexing suggestions for the query.
 
-        Returns a tuple of:
-            - list of collectors to run
-            - list of attributes to consider indexing for
+        Returns a dict of:
+            - collectors: list of collectors to run
+            - lookups: list of attributes to consider indexing for
+            - dependencies: list of SimpleDependency instances to include
+            - exclusions: list of SimpleDependency instances to exclude
         """
         analysis = self.cached_query_analyses.get(wanted, None)
         if analysis:
-            return (list(analysis[0]), analysis[1])
+            # We want to make a copy exactly one level deep.
+            analysis_copy = {}
+            for key, value in analysis.iteritems():
+                analysis_copy[key] = copy.copy(value)
+            return analysis_copy
 
         analyzer = query_analyzer.QueryAnalyzer(wanted)
         include, exclude, suggested_indices = analyzer.run()
@@ -387,7 +404,10 @@ class EntityManager(object):
                 # No exclusions.
                 collectors.add(collector)
 
-        analysis = (list(collectors), suggested_indices)
+        analysis = dict(collectors=list(collectors),
+                        lookups=suggested_indices,
+                        dependencies=include,
+                        exclusions=exclude)
         self.cached_query_analyses[wanted] = analysis
         return analysis
 
@@ -428,7 +448,9 @@ class EntityManager(object):
         self.update_collectors()
 
         # to_process is used as a FIFO queue below.
-        to_process, suggested_indices = self.analyze(wanted)
+        analysis = self.analyze(wanted)
+        to_process = analysis["collectors"]
+        suggested_indices = analysis["lookups"]
 
         # Create indices as suggested by the analyzer.
         for attribute in suggested_indices:
@@ -461,8 +483,8 @@ class EntityManager(object):
 
                 # Discard the indexing suggestions for ingestion queries
                 # because they don't represent normal usage.
-                additional_dependencies, _ = self.analyze(collector.ingests)
-                for dependency in additional_dependencies:
+                additional = self.analyze(collector.ingests)["collectors"]
+                for dependency in additional:
                     logging.debug(
                         "Collector %s depends on collector %s for its ingest "
                         "query '%s'.",
@@ -483,24 +505,30 @@ class EntityManager(object):
             "dependencies to satisfy query %s.",
             len(non_ingesting), len(repeated), wanted)
 
-        # Mark as finished unless a hint was used.
-        if not hint:
-            for collector in collectors_seen:
-                self.finished_collectors.add(collector)
-
         # Execution stage 1: no dependencies.
         logging.debug("%d non-ingesting collectors will now run once.",
                       len(non_ingesting))
 
         for collector in non_ingesting:
-            effects = {None: 0, "new": 0, "update": 0}
+            effects = {entity_collector.EffectEnum.Duplicate: 0,
+                       entity_collector.EffectEnum.Merged: 0,
+                       entity_collector.EffectEnum.Added: 0}
+
+            if use_hint or collector.enforce_hint:
+                hint = wanted
+            else:
+                hint = None
+                self.finished_collectors.add(collector)
+
             for _, effect in self.collect(collector, hint=hint):
                 effects[effect] += 1
 
             logging.debug(
                 "%s produced %d new entities, %d updated and %d duplicates",
-                collector.name, effects["new"], effects["update"],
-                effects[None])
+                collector.name,
+                effects[entity_collector.EffectEnum.Added],
+                effects[entity_collector.EffectEnum.Merged],
+                effects[entity_collector.EffectEnum.Duplicate])
 
         if not repeated:
             # No ingesting collectors scheduled. We're done.
@@ -526,18 +554,26 @@ class EntityManager(object):
             # out_pipeline. At the end of each spin the pipelines swap and
             # the new out_pipeline is flushed.
             for collector in repeated:
-                collector_input = list(in_pipeline.find(collector.ingests))
-
+                collector_input = in_pipeline.find(collector.ingests)
                 if not collector_input:
-                    logging.debug(
-                        "No input for query %s of collector %s.",
-                        collector.ingests, collector.name)
-                    continue  # No new hits for this collector.
+                    logging.debug("Skipping %s (no new entities to ingest.)",
+                                  collector.name)
 
-                logging.debug(
-                    "Ingestion pipeline found %d new entities for query %s of "
-                    "collector %s.",
-                    len(collector_input), collector.ingests, collector.name)
+                if collector.filter_ingest:
+                    logging.debug(
+                        "Running %s with ingest set of %d (will be filtered.)",
+                        collector.name, len(collector_input))
+                    collector_input = collector.ingest_filter(
+                        hint=hint, ingest=collector_input)
+                else:
+                    logging.debug(
+                        "Running %s with ingest set of %d.",
+                        collector.name, len(collector_input))
+
+                if use_hint or collector.enforce_hint:
+                    hint = wanted
+                else:
+                    hint = None
 
                 # Feed output back into the pipeline.
                 results = self.collect(collector=collector,
@@ -548,6 +584,10 @@ class EntityManager(object):
 
             in_pipeline, out_pipeline = out_pipeline, in_pipeline
             out_pipeline.flush()
+
+        for collector in repeated:
+            if not use_hint and not collector.enforce_hint:
+                self.finished_collectors.add(collector.name)
 
     def collect(self, collector, hint=None, ingest=None):
         """Runs the collector, registers output and yields any new entities."""

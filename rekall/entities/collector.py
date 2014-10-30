@@ -37,6 +37,15 @@ class CostEnum(object):
     VeryHighCost = 4
 
 
+class EffectEnum(object):
+    """Various outcomes of registering an entity."""
+
+    Enqueued = 0  # Entity was enqueued for processing.
+    Added = 1  # Result is a new entity.
+    Merged = 2  # Result is an udpated (merged) entity.
+    Duplicate = 3  # No new data.
+
+
 class EntityCollector(object):
     """Base class for entity collectors.
 
@@ -45,15 +54,52 @@ class EntityCollector(object):
     entities with the EntityManager, deciding whether the collector should be
     called for manager-driven queries and ensuring collection is only done once
     per cache lifetime.
+
+    Intended subclass overrides:
+    ============================
+
+    ### self.outputs (ivar, required):
+    Override with a list of collection promises. Each promise should represent
+    a component the collector yields on a call to collect, like so:
+
+    outputs = ["Process", "Timestamps"]
+
+    The collector may also specify a value it guarantees will be set on the
+    entities it yields. The format for doing so is:
+
+    outputs = ["MemoryObject/type=proc"]
+
+    The collector is not required to actually deliver on all of its promises,
+    but it is not allowed to yield something it didn't promise.
+
+    ### self.ingests (ivar, optional):
+    Specifying an ingestion query will turn the collector into a parser.
+    The manager will call the collect method with the output of the ingest
+    query, and it may do so more than once.
+
+    ### self.filter_ingest (ivar, optional):
+    Costly collectors can flip this variable to True, which will cause the
+    manager to call self.ingest_filter to prefilter the ingestion set, giving
+    the collector the opportunity to filter out entities it has parsed before.
+
+    ### self.run_cost (ivar, optional):
+    Should be set to a CostEnum value, estimating how expensive the collector is
+    in terms of performance.
+
+    ### self.enforce_hint (ivar, optional):
+    If True, the manager will always supply a hint to the collect function. If
+    False, the manager will only supply a hint when it's collecting for
+    artifacts.
     """
 
-    outputs = []  # Subclasses must override. See 'can_collect' below.
+    outputs = []  # Subclasses must override. See above.
     _promises = None  # Promises (SimpleDependency) generated from outputs.
 
     ingests = None  # Subclasses may override.
 
-    # Used to decide which collectors to enable.
     run_cost = CostEnum.NormalCost
+    enforce_hint = False
+    filter_ingest = False
 
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
@@ -63,6 +109,7 @@ class EntityCollector(object):
     def __init__(self, entity_manager=None):
         self.manager = entity_manager
         self.session = entity_manager.session
+        self._indices_seen = set()
 
     @property
     def profile(self):
@@ -91,6 +138,22 @@ class EntityCollector(object):
 
         Running collect with a non-null hint will not flip this."""
         return self.name in self.manager.finished_collectors
+
+    # pylint: disable=unused-argument
+    def ingest_filter(self, hint=None, ingest=None):
+        """Filter the ingest set. Use to prevent parsing the same thing twice.
+
+        Default implementation of the ingest filter will keep a set of entities
+        it has processed before and filter those out. Subclasses can override.
+
+        NOTE: Ingest filter is disabled by default - subclasses that wish the
+        manager to enable it must signal so by setting filter_ingest to True.
+        """
+        for entity in ingest:
+            if not entity.indices & self._indices_seen:
+                yield entity
+
+            self._indices_seen |= entity.indices
 
     def collect(self, hint=None, ingest=None):
         """Override to yield components - analogous to 'calculate', but typed.
