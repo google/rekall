@@ -33,7 +33,7 @@ VOID IoUnload(IN PDRIVER_OBJECT DriverObject) {
   UNICODE_STRING DeviceLinkUnicodeString;
   PDEVICE_OBJECT pDeviceObject = NULL;
   PDEVICE_EXTENSION ext= NULL;
-  
+
   if (DriverObject == NULL)
     return;
 
@@ -45,7 +45,7 @@ VOID IoUnload(IN PDRIVER_OBJECT DriverObject) {
 
   if(ext->pte_mmapper)
     pte_mmap_windows_delete(ext->pte_mmapper);
-  
+
   IoDeleteDevice(pDeviceObject);
 }
 
@@ -343,7 +343,6 @@ NTSTATUS wddDispatchDeviceControl(IN PDEVICE_OBJECT DeviceObject,
   IoCompleteRequest(Irp,IO_NO_INCREMENT);
   return status;
 }
-
 
 DRIVER_INITIALIZE DriverEntry;
 NTSTATUS DriverEntry (IN PDRIVER_OBJECT DriverObject,

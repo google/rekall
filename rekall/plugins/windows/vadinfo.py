@@ -29,9 +29,11 @@
 # the following reference:
 # "The VAD Tree: A Process-Eye View of Physical Memory," Brendan Dolan-Gavitt
 
+# pylint: disable=protected-access
+
 import re
 
-from rekall import config
+from rekall import plugin
 from rekall import scan
 from rekall import utils
 from rekall.plugins import core
@@ -80,7 +82,7 @@ class VADInfo(common.WinProcessFilter):
                                ("endaddr", "endaddr", "[addrpad]"),
                                ("Tag", "Tag", "3"),
                                ("tagval", "tagval", ""),
-                               ], suppress_headers=True)
+                              ], suppress_headers=True)
         renderer.table_row("VAD node @",
                            vad.obj_offset,
                            "Start",
@@ -193,7 +195,7 @@ class VADWalk(VADInfo):
                                    ("Start", "start", "[addrpad]"),
                                    ("End", "end", "[addrpad]"),
                                    ("Tag", "tag", "4"),
-                                   ])
+                                  ])
             for vad in task.RealVadRoot.traverse():
                 # Ignore Vads with bad tags (which we explicitly include as
                 # None)
@@ -240,12 +242,10 @@ class VAD(common.WinProcessFilter):
             yield self.find_file_in_task(addr, task)
 
     def find_file_in_task(self, addr, task):
-        resolver = self._cache.get(task)
-        if resolver is None:
-            resolver = self._cache[task] = self._make_cache(task)
-
+        resolver = self.GetVadsForProcess(task)
         try:
-            return resolver.find_le(addr)
+            if resolver:
+                return resolver.find_le(addr)
         except ValueError:
             return None
 
@@ -256,9 +256,22 @@ class VAD(common.WinProcessFilter):
 
         for vad in task.RealVadRoot.traverse():
             result.insert(
-                (vad.Start, vad.End, self._get_filename(vad)))
+                (vad.Start, vad.End, self._get_filename(vad), vad))
 
         return result
+
+    def GetVadsForProcess(self, task):
+        try:
+            resolver = self._cache[task]
+        except KeyError:
+            # Break the recursion by placing a None for the resolver. The
+            # self._make_cache() call will run the vad plugin which might
+            # resolve a VAD PTE, calling this code. This means that we can only
+            # use non-VAD PTEs to read the VAD itself.
+            self._cache[task] = None
+            resolver = self._cache[task] = self._make_cache(task)
+
+        return resolver
 
     def _get_filename(self, vad):
         filename = ""
@@ -291,7 +304,7 @@ class VAD(common.WinProcessFilter):
                 continue
 
             if (self.offset is not None and
-                    not vad.Start < self.offset < vad.End):
+                    not vad.Start <= self.offset <= vad.End):
                 continue
 
             exe = ""
@@ -319,10 +332,112 @@ class VAD(common.WinProcessFilter):
             self.render_vadroot(renderer, task.RealVadRoot, task)
 
 
+class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
+    """Show physical addresses for all VAD pages."""
+
+    name = "vadmap"
+
+    def _GetPTE(self, vtop_plugin, vaddr):
+        address_space = self.session.GetParameter("default_address_space")
+        for type, _, addr in vtop_plugin.vtop(vaddr, address_space):
+            if type == "pte":
+                return self.profile._MMPTE(
+                    addr, vm=self.physical_address_space)
+
+        # If the PDE is invalid it means search the Vad. We just return an empty
+        # PTE here to trigger this search.
+        return self.profile._MMPTE(vm=self.physical_address_space)
+
+    def _GenerateVADRuns(self, vad):
+        vtop = self.session.plugins.vtop()
+        pte_plugin = self.session.plugins.pte()
+        offset = vad.Start
+        end = vad.End
+
+        while offset < end:
+            pte = self._GetPTE(vtop, offset)
+            metadata = pte_plugin.ResolvePTE(pte, offset)
+
+            yield offset, metadata
+
+            offset += 0x1000
+            self.session.report_progress("Inspecting 0x%08X", offset)
+
+    def render(self, renderer):
+        for task in self.filter_processes():
+            renderer.section()
+            renderer.format("Pid: {0} {1}\n", task.UniqueProcessId,
+                            task.ImageFileName)
+
+            headers = [
+                ('Virt Addr', 'virt_addr', '[addrpad]'),
+                ('Offset', 'offset', '[addrpad]'),
+                ('Length', 'length', '[addr]'),
+                ('Type', 'type', '20s'),
+                ('Comments', 'comments', "")]
+
+            if self.verbosity < 5:
+                headers.pop(1)
+
+            renderer.table_header(headers)
+
+            with self.session.plugins.cc() as cc:
+                cc.SwitchProcessContext(task)
+
+                resolver = self.session.address_resolver
+                old_offset = 0
+                old_vaddr = 0
+                length = 0x1000
+                old_metadata = {}
+                for _, _, _, vad in resolver.GetVADs():
+                    # Skip guard regions for Wow64.
+                    if vad.CommitCharge >= 0x7fffffff:
+                        continue
+
+                    for vaddr, metadata in self._GenerateVADRuns(vad):
+                        offset = metadata.pop("offset", None)
+
+                        if ((offset is None or old_offset is None or
+                             self.verbosity < 5 or
+                             offset == old_offset + length) and
+                                metadata == old_metadata and
+                                vaddr == old_vaddr + length):
+                            length += 0x1000
+                            continue
+
+                        type = old_metadata.pop("type", None)
+                        if type:
+                            comment = ",".join(
+                                ["%s: %s" % (k, v)
+                                 for k, v in sorted(old_metadata.items())])
+
+                            row = [old_vaddr, old_offset, length, type, comment]
+                            if self.verbosity < 5:
+                                row.pop(1)
+
+                            renderer.table_row(*row)
+
+                        old_metadata = metadata
+                        old_vaddr = vaddr
+                        old_offset = offset
+                        length = 0x1000
+
+
 class VADDump(core.DirectoryDumperMixin, VAD):
     """Dumps out the vad sections to a file"""
 
     __name = "vaddump"
+
+    @classmethod
+    def args(cls, parser):
+        super(VADDump, cls).args(parser)
+        parser.add_argument("--max_size", type="IntParser",
+                            default=100*1024*1024,
+                            help="Maximum file size to dump.")
+
+    def __init__(self, max_size=100*1024*1024, **kwargs):
+        super(VADDump, self).__init__(**kwargs)
+        self.max_size = max_size
 
     def render(self, renderer):
         for task in self.filter_processes():
@@ -346,22 +461,30 @@ class VADDump(core.DirectoryDumperMixin, VAD):
                     "Process does not have a valid address space.\n")
                 continue
 
-            for vad in task.RealVadRoot.traverse():
-                # Find the start and end range
-                start = vad.Start
-                end = vad.End
+            with self.session.plugins.cc() as cc:
+                cc.SwitchProcessContext(task)
 
-                filename = "{0}.{1:x}.{2:08x}-{3:08x}.dmp".format(
-                    name, offset, start, end)
+                for vad in task.RealVadRoot.traverse():
+                    # Find the start and end range
+                    start = vad.Start
+                    end = vad.End
 
-                with renderer.open(directory=self.dump_dir,
-                                   filename=filename,
-                                   mode='wb') as fd:
-                    self.session.report_progress("Dumping %s" % filename)
-                    self.CopyToFile(task_space, start, end + 1, fd)
-                    renderer.table_row(
-                        start, end, end-start, filename,
-                        self._get_filename(vad))
+                    filename = "{0}.{1:x}.{2:08x}-{3:08x}.dmp".format(
+                        name, offset, start, end)
+
+                    with renderer.open(directory=self.dump_dir,
+                                       filename=filename,
+                                       mode='wb') as fd:
+                        if end - start > self.max_size:
+                            renderer.table_row(start, end, end-start,
+                                               "Skipped - Region too large")
+                            continue
+
+                        self.session.report_progress("Dumping %s" % filename)
+                        self.CopyToFile(task_space, start, end + 1, fd)
+                        renderer.table_row(
+                            start, end, end-start, filename,
+                            self._get_filename(vad))
 
 
 class VadScanner(scan.BaseScanner):

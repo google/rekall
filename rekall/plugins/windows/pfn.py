@@ -26,7 +26,6 @@
 
 # pylint: disable=protected-access
 
-from rekall import config
 from rekall import testlib
 from rekall import obj
 from rekall import plugin
@@ -54,41 +53,41 @@ class PFNModification(obj.ProfileModification):
     def modify(cls, profile):
         # Some shortcuts to the most important information.
         profile.add_overlay({
-                '_MMPTE': [None, {
-                        'Valid': lambda x: x.u.Hard.Valid,
-                        'PFN': lambda x: x.u.Hard.PageFrameNumber,
-                        }],
-                '_MMPFN': [None, {
-                        "Type": [0, ["ValueEnumeration", dict(
-                                    value=lambda x: x.u3.e1.PageLocation,
-                                    choices={
-                                        0: 'ZeroedPageList',
-                                        1: 'FreePageList',
-                                        2: 'StandbyPageList',
-                                        3: 'ModifiedPageList',
-                                        4: 'ModifiedNoWritePageList',
-                                        5: 'BadPageList',
-                                        6: 'ActiveAndValid',
-                                        7: 'TransitionPage'
-                                        }
-                                    )]],
-                        }],
-                '_KDDEBUGGER_DATA64': [None, {
-                        # This is the pointer to the PFN database.
-                        'MmPfnDatabase': [None, ['Pointer', dict(
-                                    target="Pointer",
-                                    target_args=dict(
-                                        target="Array",
-                                        target_args=dict(target="_MMPFN"),
-                                        ))]],
-                        }],
-                })
+            '_MMPTE': [None, {
+                'Valid': lambda x: x.u.Hard.Valid,
+                'PFN': lambda x: x.u.Hard.PageFrameNumber,
+                }],
+            '_MMPFN': [None, {
+                "Type": [0, ["ValueEnumeration", dict(
+                    value=lambda x: x.u3.e1.PageLocation,
+                    choices={
+                        0: 'ZeroedPageList',
+                        1: 'FreePageList',
+                        2: 'StandbyPageList',
+                        3: 'ModifiedPageList',
+                        4: 'ModifiedNoWritePageList',
+                        5: 'BadPageList',
+                        6: 'ActiveAndValid',
+                        7: 'TransitionPage'
+                        }
+                    )]],
+                }],
+            '_KDDEBUGGER_DATA64': [None, {
+                # This is the pointer to the PFN database.
+                'MmPfnDatabase': [None, ['Pointer', dict(
+                    target="Pointer",
+                    target_args=dict(
+                        target="Array",
+                        target_args=dict(target="_MMPFN"),
+                        ))]],
+                }],
+            })
         profile.add_classes({
-                "ValueEnumeration": ValueEnumeration,
-                })
+            "ValueEnumeration": ValueEnumeration,
+            })
 
 
-class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
+class VtoP(plugin.KernelASMixin, plugin.PhysicalASMixin, plugin.ProfileCommand):
     """Prints information about the virtual to physical translation."""
 
     __name = "vtop"
@@ -99,8 +98,7 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
     def args(cls, parser):
         super(VtoP, cls).args(parser)
         parser.add_argument("virtual_address", type="IntParser",
-                            help="Specify to see all the fops, even if they "
-                            "are known.")
+                            help="The Virtual Address to examine.")
 
         parser.add_argument("-a", "--address_space", default=None,
                             help="The address space to use.")
@@ -142,28 +140,29 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
         pte_value = address_space.read_long_phys(pte_addr)
         yield "pte", pte_value, pte_addr
 
-        if not address_space.entry_present(pde_value):
+        phys_addr = address_space.get_phys_addr(vaddr, pte_value)
+        if phys_addr is None:
             yield "Invalid PTE", None, None
             return
 
-        yield ("PTE mapped",
-               address_space.get_phys_addr(vaddr, pte_value),
-               pte_addr)
+        yield ("PTE mapped", phys_addr, pte_addr)
 
     def _vtop_32bit_pae(self, vaddr, address_space):
         """An implementation specific to the 32 bit PAE intel AS."""
+        transition_valid_mask = 1 << 11 | 1
+
         pdpte_addr = ((address_space.dtb & 0xfffffff0) |
                       ((vaddr & 0x7FC0000000) >> 27))
 
-        pdpte_value = address_space._read_long_long_phys(pdpte_addr)
+        pdpte_value = address_space.read_long_long_phys(pdpte_addr)
         yield "pdpte", pdpte_value, pdpte_addr
 
-        if not address_space.entry_present(pdpte_value):
+        if not pdpte_value & transition_valid_mask:
             yield "Invalid PDPTE", None, None
             return
 
         pde_addr = (pdpte_value & 0xfffff000) | ((vaddr & 0x3fe00000) >> 18)
-        pde_value = address_space.read_long_phys(pde_addr)
+        pde_value = address_space.read_long_long_phys(pde_addr)
         yield "pde", pde_value, pde_addr
 
         if not address_space.entry_present(pde_value):
@@ -176,34 +175,32 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
             return
 
         pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x1ff000) >> 9)
-        pte_value = address_space.read_long_phys(pte_addr)
+        pte_value = address_space.read_long_long_phys(pte_addr)
+
         yield "pte", pte_value, pte_addr
-
-        if not address_space.entry_present(pde_value):
-            yield "Invalid PTE", None, None
-            return
-
-        yield ("PTE mapped",
-               address_space.get_phys_addr(vaddr, pte_value),
-               pte_addr)
 
     def _vtop_64bit(self, vaddr, address_space):
         """An implementation specific to the 64 bit intel address space."""
+        transition_valid_mask = 1 << 11 | 1
+
         pml4e_addr = ((address_space.dtb & 0xffffffffff000) |
                       ((vaddr & 0xff8000000000) >> 36))
 
-        pml4e_value = address_space._read_long_long_phys(pml4e_addr)
+        pml4e_value = address_space.read_long_long_phys(pml4e_addr)
         yield "pml4e", pml4e_value, pml4e_addr
 
-        if not address_space.entry_present(pml4e_value):
+        if not pml4e_value & transition_valid_mask:
             yield "Invalid PDE", None, None
             return
 
         pdpte_addr = ((pml4e_value & 0xffffffffff000) |
                       ((vaddr & 0x7FC0000000) >> 27))
 
-        pdpte_value = address_space._read_long_long_phys(pdpte_addr)
+        pdpte_value = address_space.read_long_long_phys(pdpte_addr)
         yield "pdpte", pdpte_value, pdpte_addr
+
+        if not pdpte_value & transition_valid_mask:
+            yield "Invalid PDPTE", None, None
 
         if address_space.page_size_flag(pdpte_value):
             yield "One Gig page", address_space.get_one_gig_paddr(
@@ -212,29 +209,22 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
 
         pde_addr = ((pdpte_value & 0xffffffffff000) |
                     ((vaddr & 0x3fe00000) >> 18))
-        pde_value = address_space.read_long_phys(pde_addr)
+        pde_value = address_space.read_long_long_phys(pde_addr)
         yield "pde", pde_value, pde_addr
 
-        if not address_space.entry_present(pde_value):
+        if not pde_value & transition_valid_mask:
             yield "Invalid PDE", None, None
-            return
+            pte_value = 0
 
-        if address_space.page_size_flag(pde_value):
+        elif address_space.page_size_flag(pde_value):
             yield "Large page mapped", address_space.get_four_meg_paddr(
                 vaddr, pde_value), None
             return
 
-        pte_addr = (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
-        pte_value = address_space.read_long_phys(pte_addr)
-        yield "pte", pte_value, pte_addr
-
-        if not address_space.entry_present(pte_value):
-            yield "Invalid PTE", None, None
-            return
-
-        yield ("PTE mapped",
-               address_space.get_phys_addr(vaddr, pte_value),
-               pte_addr)
+        else:
+            pte_addr = (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
+            pte_value = address_space.read_long_long_phys(pte_addr)
+            yield "pte", pte_value, pte_addr
 
     def vtop(self, virtual_address, address_space=None):
         """Translate the virtual_address using the address_space."""
@@ -257,18 +247,43 @@ class VtoP(plugin.KernelASMixin, plugin.ProfileCommand):
 
         for name, value, address in self.vtop(self.address, self.address_space):
             if address:
-                renderer.format("{0}@ {2:#08x} = {1:#08x}\n",
-                                name, value, address)
+                # Properly format physical addresses.
+                renderer.format(
+                    "{0}@ {1} = {2:#08x}\n",
+                    name,
+                    self.physical_address_space.describe(address),
+                    value or 0)
             elif value:
-                renderer.format("{0} {1:#08x}\n", name, value)
+                renderer.format("{0} {1}\n",
+                                name,
+                                self.physical_address_space.describe(value))
             else:
                 renderer.format("{0}\n", name)
 
+            if name == "pte":
+                # Analyze the PTE in detail. This follows the algorithm in
+                # WindowsAMD64PagedMemory.get_phys_addr().
+                pte_plugin = self.session.plugins.pte(address, "P",
+                                                      self.address)
+
+                pte_plugin.render(renderer)
+
+                phys_addr = self.address_space.get_phys_addr(
+                    self.address, value)
+                if phys_addr:
+                    renderer.format("PTE mapped at 0x{0:08X}\n", phys_addr)
+                else:
+                    renderer.format("Invalid PTE\n")
+
+        # The below re-does all the analysis using the address space. It should
+        # agree!
         physical_address = self.address_space.vtop(self.address)
         if physical_address is None:
             renderer.format("Physical Address Invalid\n")
         else:
-            renderer.format("Physical Address {0:#08x}\n", physical_address)
+            renderer.format(
+                "Physical Address {0}\n",
+                self.physical_address_space.describe(physical_address))
 
 
 class PFNInfo(common.WindowsCommandPlugin):
@@ -315,7 +330,7 @@ class PFNInfo(common.WindowsCommandPlugin):
             raise RuntimeError("PFN not provided.")
 
         # Return the pfn record.
-        return self.pfn_database[pfn]
+        return self.pfn_database.deref()[pfn]
 
     def render(self, renderer):
         pfn = self.pfn
@@ -364,32 +379,185 @@ class PFNInfo(common.WindowsCommandPlugin):
 
 
 class PTE(common.WindowsCommandPlugin):
-    """Prints information about a PTE."""
+    """Prints information about a PTE.
 
+    This plugin essentially explains the algorithm implemented in
+    WindowsAMD64PagedMemory.get_phys_addr().
+    """
     __name = "pte"
 
+    @classmethod
+    def args(cls, parser):
+        super(PTE, cls).args(parser)
+        parser.add_argument("pte_address", type="IntParser",
+                            help="The address of the PTE.")
 
-    def __init__(self, virtual_address=None, pte_address=None, **kwargs):
+        parser.add_argument("--address_space", default="P",
+                            help="The address space to use.")
+
+        parser.add_argument("--virtual_address", type="IntParser",
+                            help="The virtual address that this pte is for.")
+
+    def __init__(self, pte_address=None, address_space="P",
+                 virtual_address=None, **kwargs):
         """Prints information about a PTE.
 
         Similar to windbg's !pte extension.
-
-        Args:
-          virtual_address: The virtual address to describe.
-          pte_address: An address of a PTE record.
         """
         super(PTE, self).__init__(**kwargs)
-        self.vtop = VtoP(session=self.session)
+        load_as = self.session.plugins.load_as(session=self.session)
+        self.address_space = load_as.ResolveAddressSpace(address_space)
         self.pte_address = pte_address
         self.virtual_address = virtual_address
+        self.default_address_space = self.session.GetParameter(
+            "default_address_space")
 
+    def _ResolveProtoPTE(self, pte, virtual_address):
+        # Page is pointing to a subsection.
+        if not pte.u.Hard.Valid and pte.u.Proto.Prototype:
+            subsection = pte.u.Subsect.Subsection
+
+            # Calculate the file offset.
+            file_offset = ((pte - subsection.SubsectionBase) * 0x1000 +
+                           subsection.StartingSector * 512)
+
+            return dict(
+                type="File Mapping",
+                filename=subsection.ControlArea.FilePointer.FileName.v(),
+                offset=file_offset)
+
+        # When a prototype PTE has (v=0, p=0, t=0) and PageFileHigh=0 it is
+        # definitely demand page.
+        soft = pte.u.Soft
+        if not (soft.Valid or soft.Prototype or soft.Transition or
+                soft.PageFileHigh):
+            return dict(type="Demand Zero")
+
+        return self.ResolvePTE(pte, virtual_address)
+
+    def ResolvePTE(self, pte, virtual_address):
+        """Resolves the virtual_address using the PTE.
+
+        Given a PTE and a virtual address, returns information about where to
+        find the data in the page.
+
+        This is basically the same algorithm as the render() method except we
+        don't render anything.
+        """
+        desc, pte = self.default_address_space.DeterminePTEType(
+            pte, virtual_address)
+
+        if desc == "Prototype":
+            return self._ResolveProtoPTE(pte.Proto, virtual_address)
+
+        # This is a prototype into a vad region.
+        elif desc == "Vad":
+            resolver = self.session.address_resolver
+            start, _, _, mmvad = resolver.FindProcessVad(virtual_address)
+
+            # The MMVAD does not have any prototypes.
+            if mmvad.m("FirstPrototypePte") == None:
+                return dict(type="Demand Zero")
+
+            else:
+                pte = mmvad.FirstPrototypePte[(virtual_address - start) >> 12]
+                return self._ResolveProtoPTE(pte.reference(), virtual_address)
+
+        elif desc == "Pagefile":
+            return dict(
+                type="Pagefile",
+                number=pte.PageFileLow,
+                offset=pte.PageFileHigh * 0x1000)
+
+        elif desc == "Valid":
+            return dict(
+                type="Valid",
+                offset=pte.PageFrameNumber * 0x1000 | (virtual_address & 0xFFF))
+
+        elif desc == "Transition":
+            return dict(
+                type="Transition",
+                offset=pte.PageFrameNumber * 0x1000 | (virtual_address & 0xFFF))
+
+        return dict(type="Unknown")
+
+    def RenderPrototypePTE(self, pte, renderer):
+        """Analyze the prototype PTE's target."""
+        # Resolve this Prototype PTE recursively.
+        pte_plugin = self.session.plugins.pte(pte, address_space=pte.obj_vm)
+
+        # If the prototype is Valid or in Transition, just show it with the
+        # plugin..
+        if pte.u.Hard.Valid or (
+                not pte.u.Trans.Prototype and pte.u.Trans.Transition):
+            pte_plugin.render(renderer)
+
+        # Page is pointing to a subsection.
+        elif pte.u.Proto.Prototype:
+            renderer.format(
+                "Prototype PTE backed by file.\n{0}\n", pte.u.Subsect)
+
+            subsection = pte.u.Subsect.Subsection
+
+            renderer.format(
+                "Filename: {0}\n",
+                subsection.ControlArea.FilePointer.FileName)
+
+            # Calculate the file offset.
+            file_offset = ((pte.reference() - subsection.SubsectionBase) *
+                           0x1000 + subsection.StartingSector * 512)
+
+            renderer.format("File Offset: {0} (0x{0:x})\n", file_offset)
+
+        # Prototype PTE is a Demand Zero page
+        elif pte.u.Soft.PageFileHigh == 0:
+            renderer.format("Demand Zero\n{0}\n", pte.u.Soft)
+
+        else:
+            pte_plugin.render(renderer)
 
     def render(self, renderer):
-        if self.virtual_address is not None:
-            for name, _, _ in self.vtop.vtop(
-                self.virtual_address, self.kernel_address_space):
-                if name == "pte":
-                    break
+        pte = self.profile._MMPTE(self.pte_address, vm=self.address_space)
+        desc, pte = self.default_address_space.DeterminePTEType(
+            pte, self.virtual_address)
+
+        renderer.format(
+            "\nPTE Contains {1:#x}\nPTE Type: {2}\n{0}\n",
+            pte, pte.cast("_MMPTE").u.Long, desc)
+
+        if desc == "Prototype":
+            self.RenderPrototypePTE(pte.Proto.deref(), renderer)
+
+        # This is a prototype into a vad region.
+        elif desc == "Vad":
+            renderer.format("Prototype PTE is found in VAD\n")
+            if not self.virtual_address:
+                renderer.format(
+                    "Specify virtual_address to further resolve PTE.\n")
+
+            task = self.session.GetParameter("process_context")
+            vad_plugin = self.session.plugins.vad(
+                eprocess=task, offset=self.virtual_address)
+            vad_plugin.render(renderer)
+
+            resolver = self.session.address_resolver
+            hit = resolver.FindProcessVad(self.virtual_address)
+            if hit:
+                start, _, _, mmvad = hit
+                # The MMVAD does not have any prototypes.
+                if mmvad.m("FirstPrototypePte") == None:
+                    renderer.format("Demand Zero page\n")
+
+                else:
+                    renderer.format("\n_MMVAD.FirstPrototypePte: {0:#x}\n",
+                                    mmvad.FirstPrototypePte)
+                    pte = mmvad.FirstPrototypePte[
+                        (self.virtual_address - start) >> 12]
+
+                    renderer.format("PTE is at {0:#x}\n", pte)
+                    self.RenderPrototypePTE(pte, renderer)
+            else:
+                renderer.format("Demand Zero page\n")
 
 
 class PtoV(common.WinProcessFilter):
@@ -613,7 +781,7 @@ class DTBScan2(common.WindowsCommandPlugin):
         renderer.table_header([("DTB", "dtb", "[addrpad]"),
                                ("Base", "dtb", "[addrpad]"),
                                ("Phys", "dtb", "[addrpad]"),
-                               ])
+                              ])
 
         # On 64 bit images DTBs are aligned to page boundaries.
         dtb_step = 0x1000

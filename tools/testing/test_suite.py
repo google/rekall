@@ -158,6 +158,8 @@ elif [ "$1" == "meld" ]; then
    meld %(src)s %(dest)s
 elif [ "$1" == "diff" ]; then
    diff %(src)s %(dest)s
+elif [ "$1" == "run" ]; then
+   %(command)s
 else
    less %(src)s
 fi
@@ -447,6 +449,10 @@ exit 0
 
         for test_case in test_cases:
             result = unittest.TestResult()
+            return_code = current_run.get("return_code", 0)
+            if return_code != 0:
+                result.errors.append(("return_code", return_code))
+
             test_case(result)
 
             current_run["errors"] = dict(
@@ -459,7 +465,9 @@ exit 0
                     self.test_directory, plugin_cls.__name__)
 
                 fd.write(self.BASELINE_TEMPLATE % dict(
-                    src=fd.name, dest=baseline_filename))
+                    src=fd.name, dest=baseline_filename,
+                    command=current_run["options"].get(
+                        "executed_command", "echo hello")))
 
                 fd.write(json.dumps(current_run, indent=4))
 

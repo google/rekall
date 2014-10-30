@@ -26,7 +26,7 @@
 #define VERBOSE_DEBUG 0
 
 #define PMEM_DEVICE_NAME L"pmem"
-#define PMEM_VERSION "v1.6.1"
+#define PMEM_VERSION "v1.6.2"
 #define PMEM_POOL_TAG 0x4d454d50
 
 // In order to enable writing this must be set to 1 and the

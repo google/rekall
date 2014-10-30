@@ -552,6 +552,9 @@ class NativeType(NumericProxyMixIn, BaseObject):
     def __init__(self, value=None, format_string=None, **kwargs):
         super(NativeType, self).__init__(**kwargs)
         self.format_string = format_string
+        if callable(value):
+            value = value(self.obj_parent)
+
         self.value = value
 
     def write(self, data):
@@ -635,6 +638,12 @@ class BitField(NativeType):
         # proxy again.
         return False
 
+    def __repr__(self):
+        return " [{0}({1}-{2}):{3}]: 0x{4:08X}".format(
+            self.obj_type, self.start_bit, self.end_bit, self.obj_name,
+            self.v())
+
+
     def __nonzero__(self):
         return self != 0
 
@@ -650,7 +659,7 @@ class Pointer(NativeType):
              to instantiate it.
            target_args: The target will receive these as kwargs.
         """
-        super(Pointer, self).__init__(**kwargs)
+        super(Pointer, self).__init__(value=value, **kwargs)
 
         if value is not None:
             self.obj_offset = None
@@ -695,7 +704,10 @@ class Pointer(NativeType):
         return self.obj_vm.is_valid_address(self.v())
 
     def __getitem__(self, item):
-        return self.dereference()[item]
+        """Indexing a pointer treats it like a C array."""
+        res = self.dereference()
+        res.obj_offset = item * self.obj_size + res.obj_offset
+        return res
 
     def dereference(self, vm=None):
         offset = self.v()
@@ -703,7 +715,7 @@ class Pointer(NativeType):
         # Casts into the correct AS:
         vm = vm or self.obj_vm
 
-        if vm.is_valid_address(offset):
+        if offset:
             kwargs = copy.deepcopy(self.target_args)
             kwargs.update(dict(offset=offset,
                                vm=vm, profile=self.obj_profile,
@@ -769,6 +781,16 @@ class Pointer(NativeType):
             context=self.obj_context, profile=self.obj_profile)
 
     def __sub__(self, other):
+        if isinstance(other, Pointer):
+            if not isinstance(other, self.__class__):
+                raise TypeError("Can not subtract non related pointers.")
+
+            # Find out our target size for pointer arithmetics.
+            self.target_size = (self.target_size or
+                                self.obj_profile.Object(self.target).obj_size)
+
+            return (int(self) - int(other)) / self.target_size
+
         return self.__add__(-other)
 
     def __iadd__(self, other):
@@ -1136,6 +1158,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
         self.members = members
         self.struct_size = struct_size
+        self._cache = {}
 
     def __hash__(self):
         return hash(self.indices)
@@ -1215,12 +1238,16 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         To access a field which has been renamed in different OS versions.
         """
         ACCESS_LOG.LogFieldAccess(self.obj_profile.name, self.obj_type, attr)
+        result = self._cache.get(attr)
+        if result is not None:
+            return result
 
         # Allow subfields to be gotten via this function.
         if "." in attr:
             result = self
             for sub_attr in attr.split("."):
                 result = result.m(sub_attr)
+            self._cache[attr] = result
             return result
 
         if attr in self.members:
@@ -1249,6 +1276,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         except Error, e:
             result = NoneObject(str(e))
 
+        self._cache[attr] = result
         return result
 
     def __getattr__(self, attr):

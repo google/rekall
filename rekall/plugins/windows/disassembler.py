@@ -75,13 +75,15 @@ class Capstone(Disassembler):
         elif self.mode == "AMD64":
             self.cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_64)
         else:
-            raise NotImplementedError("No disassembler available for this arch.")
+            raise NotImplementedError(
+                "No disassembler available for this arch.")
 
     def disasm(self, data, offset):
         return self.cs.disasm(data, int(offset))
 
     def decode(self, insn):
-        instruction = Instruction("%s %s" % (str.upper(insn.mnemonic),insn.op_str))
+        instruction = Instruction("%s %s" % (str.upper(insn.mnemonic),
+                                             insn.op_str))
         hexdump = unicode(binascii.hexlify(insn.bytes))
 
         return insn.address, insn.size, instruction, hexdump
@@ -96,7 +98,8 @@ class Distorm3(Disassembler):
         elif self.mode == "AMD64":
             self.distorm_mode = distorm3.Decode64Bits
         else:
-            raise NotImplementedError("No disassembler available for this arch.")
+            raise NotImplementedError(
+                "No disassembler available for this arch.")
 
     def disasm(self, data, offset):
         return distorm3.DecodeGenerator(
@@ -166,7 +169,7 @@ class Disassemble(plugin.Command):
             help="If set we follow all branches to cover all code.")
 
     def __init__(self, offset=0, address_space=None, length=None, end=None,
-                 mode=None, suppress_headers=False, branch=False,
+                 mode="auto", suppress_headers=False, branch=False,
                  **kwargs):
         super(Disassemble, self).__init__(**kwargs)
         load_as = self.session.plugins.load_as(session=self.session)

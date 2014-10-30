@@ -268,15 +268,25 @@ class FindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
         # The virtual address space implementation is chosen by the profile.
         architecture = self.profile.metadata("arch")
         if architecture == "AMD64":
-            as_class = addrspace.BaseAddressSpace.classes['AMD64PagedMemory']
+            impl = "AMD64PagedMemory"
+
+            # Add specific support for windows.
+            if self.profile.metadata("os") == "windows":
+                impl = "WindowsAMD64PagedMemory"
 
         # PAE profiles go with the pae address space.
         elif architecture == "I386" and self.profile.metadata("pae"):
-            as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemoryPae']
+            impl = 'IA32PagedMemoryPae'
+
+            # Add specific support for windows.
+            if self.profile.metadata("os") == "windows":
+                impl = "WindowsIA32PagedMemoryPae"
 
         else:
-            as_class = addrspace.BaseAddressSpace.classes['IA32PagedMemory']
+            impl = 'IA32PagedMemory'
 
+
+        as_class = addrspace.BaseAddressSpace.classes[impl]
         return as_class
 
 
@@ -574,8 +584,15 @@ class DirectoryDumperMixin(object):
         """
         BUFFSIZE = 1024 * 1024
 
-        for offset, _, length in address_space.get_address_ranges(start, end):
-            outfd.seek(offset - start)
+        for offset, _, length in address_space.get_available_addresses(
+                start=start):
+
+            if offset >= end:
+                break
+
+            out_offset = offset - start
+            self.session.report_progress("Dumping %s Mb", out_offset/BUFFSIZE)
+            outfd.seek(out_offset)
             i = offset
 
             # Now copy the region in fixed size buffers.
@@ -669,7 +686,7 @@ class DT(plugin.ProfileCommand):
         parser.add_argument("-a", "--address-space", default=None,
                             help="The address space to use.")
 
-    def __init__(self, offset=0, target=None, address_space=None,
+    def __init__(self, target=None, offset=0, address_space=None,
                  **kwargs):
         """Prints an object to the screen."""
         super(DT, self).__init__(**kwargs)

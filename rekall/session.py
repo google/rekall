@@ -470,9 +470,7 @@ class Session(object):
         parameter, we first check in the state, and only if the parameter does
         not exist, we check the cache.
         """
-        result = None
-        if item in self.state:
-            result = self.state[item]
+        result = self.state.get(item)
 
         # None in the state dict means that the cache is empty. This is
         # different from a NoneObject() returned (which represents a cacheable
@@ -556,6 +554,9 @@ class Session(object):
         elif utils.issubclass(plugin_obj, plugin.Command):
             plugin_name = plugin_obj.name
             plugin_cls = plugin_obj
+
+        elif isinstance(plugin_obj, plugin.Command):
+            return plugin_obj
 
         else:
             raise TypeError(
@@ -900,6 +901,8 @@ class InteractiveSession(JsonSerializableSession):
         self.session_name = session_name or "Default session"
         self.session_id = self._new_session_id()
 
+        super(InteractiveSession, self).__init__()
+
         # Prepare the local namespace for the interactive session.
         self.locals = DynamicNameSpace(
             session=self,
@@ -916,8 +919,6 @@ class InteractiveSession(JsonSerializableSession):
             # Pass additional environment.
             **(env or {})
             )
-
-        super(InteractiveSession, self).__init__()
 
         with self.state:
             self.state.Set("session_list", self.session_list)

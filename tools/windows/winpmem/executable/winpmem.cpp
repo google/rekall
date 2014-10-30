@@ -38,9 +38,11 @@ __int64 WinPmem::pad(__int64 length) {
     if(!WriteFile(out_fd_, buffer_,
                   to_write, &bytes_written, NULL) ||
        bytes_written != to_write) {
-      Log(TEXT("Failed to write padding... Aborting\n"));
+      LogLastError(TEXT("Failed to write padding"));
       goto error;
     };
+
+    out_offset += bytes_written;
 
     start += bytes_written;
     Log(TEXT("."));
@@ -94,9 +96,11 @@ __int64 WinPmem::copy_memory(unsigned __int64 start, unsigned __int64 end) {
     if(!WriteFile(out_fd_, buffer_, bytes_read,
                   &bytes_written, NULL) ||
        bytes_written != bytes_read) {
-      Log(TEXT("Failed to write image file... Aborting.\n"));
+      LogLastError(TEXT("Failed to write image file"));
       goto error;
     };
+
+    out_offset += bytes_written;
 
     if((count % 50) == 0) {
       Log(TEXT("\n%02lld%% 0x%08llX "), (start * 100) / max_physical_memory_,
@@ -220,6 +224,7 @@ __int64 WinPmem::set_acquisition_mode(unsigned __int32 mode) {
   if(!DeviceIoControl(fd_, PMEM_CTRL_IOCTRL, &mode, 4, NULL, 0,
                       &size, NULL)) {
     Log(TEXT("Failed to set acquisition mode %lu "), mode);
+    LogLastError(L"");
     print_mode_(mode);
     Log(TEXT("\n"));
     return -1;
@@ -288,20 +293,179 @@ __int64 WinPmem::write_coredump() {
     goto exit;
   };
 
-  __int64 offset = 0;
   for(i=0; i < info.NumberOfRuns.QuadPart; i++) {
     copy_memory(info.Run[i].start, info.Run[i].start + info.Run[i].length);
-    offset = info.Run[i].start + info.Run[i].length;
   };
+
+  // Remember where we wrote the last metadata header.
+  last_header_offset_ = out_offset;
 
   if(!WriteFile(out_fd_, metadata_, metadata_len_, &metadata_len_, NULL)) {
     LogError(TEXT("Can not write metadata.\n"));
   }
 
+  out_offset += metadata_len_;
+
+  if(pagefile_path_) {
+    write_page_file();
+  };
+
  exit:
   CloseHandle(out_fd_);
   out_fd_ = INVALID_HANDLE_VALUE;
   return status;
+};
+
+
+void WinPmem::CreateChildProcess(TCHAR *command, HANDLE stdout_wr) {
+  PROCESS_INFORMATION piProcInfo;
+  STARTUPINFO siStartInfo;
+  BOOL bSuccess = FALSE;
+
+  // Set up members of the PROCESS_INFORMATION structure.
+  ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
+
+  // Set up members of the STARTUPINFO structure.
+  // This structure specifies the STDIN and STDOUT handles for redirection.
+  ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
+  siStartInfo.cb = sizeof(STARTUPINFO);
+  siStartInfo.hStdInput = NULL;
+  siStartInfo.hStdOutput = stdout_wr;
+  siStartInfo.hStdError = stdout_wr;
+  siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+  Log(L"Launching %s\n", command);
+
+  // Create the child process.
+  bSuccess = CreateProcess(NULL,
+                           command,       // command line
+                           NULL,          // process security attributes
+                           NULL,          // primary thread security attributes
+                           TRUE,          // handles are inherited
+                           0,             // creation flags
+                           NULL,          // use parent's environment
+                           NULL,          // use parent's current directory
+                           &siStartInfo,  // STARTUPINFO pointer
+                           &piProcInfo);  // receives PROCESS_INFORMATION
+
+  // If an error occurs, exit the application.
+  if ( ! bSuccess ) {
+    LogLastError(L"Unable to launch process.");
+    return;
+  }
+
+  // Close handles to the child process and its primary thread.
+  // Some applications might keep these handles to monitor the status
+  // of the child process, for example.
+  CloseHandle(piProcInfo.hProcess);
+  CloseHandle(piProcInfo.hThread);
+  CloseHandle(stdout_wr);
+}
+
+
+// Copy the pagefile to the current place in the output file.
+void WinPmem::write_page_file() {
+  unsigned __int64 pagefile_offset = out_offset;
+  int count = 0;
+  int total_mb_read = 0;
+  TCHAR path[MAX_PATH + 1];
+  TCHAR filename[MAX_PATH + 1];
+
+  if(!GetTempPath(MAX_PATH, path)) {
+    LogError(TEXT("Unable to determine temporary path."));
+    goto error;
+  }
+
+  // filename is now the random path.
+  GetTempFileName(path, L"fls", 0, filename);
+
+  Log(L"Extracting fcat to %s\n", filename);
+  if(extract_file_(WINPMEM_FCAT_EXECUTABLE, filename)<0) {
+    goto error;
+  };
+
+  SECURITY_ATTRIBUTES saAttr;
+  HANDLE stdout_rd = NULL;
+  HANDLE stdout_wr = NULL;
+
+  saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+  saAttr.bInheritHandle = TRUE;
+  saAttr.lpSecurityDescriptor = NULL;
+
+  // Create a pipe for the child process's STDOUT.
+  if (!CreatePipe(&stdout_rd, &stdout_wr, &saAttr, 0)) {
+    LogLastError(L"StdoutRd CreatePipe");
+    goto error;
+  };
+
+  // Ensure the read handle to the pipe for STDOUT is not inherited.
+  SetHandleInformation(stdout_rd, HANDLE_FLAG_INHERIT, 0);
+  TCHAR *command_line = aswprintf(L"%s %s \\\\.\\%s", filename,
+                                  &pagefile_path_[3],
+                                  pagefile_path_);
+
+  CreateChildProcess(command_line, stdout_wr);
+  Log(L"Preparing to read pagefile.\n");
+  while (1) {
+    DWORD bytes_read = buffer_size_;
+    DWORD bytes_written = 0;
+
+    if(!ReadFile(stdout_rd, buffer_, bytes_read, &bytes_read, NULL)) {
+      break;
+    };
+
+    count += bytes_read;
+    if (count > 1024 * 1024) {
+      count -= 1024*1024;
+      if (total_mb_read % 50 == 0) {
+        Log(L"\n% 5dMb ", total_mb_read);
+      };
+
+      total_mb_read += 1;
+      Log(L".");
+    };
+
+
+    if(!WriteFile(out_fd_, buffer_, bytes_read, &bytes_written, NULL) ||
+       bytes_written != bytes_read) {
+      LogLastError(L"Failed to write image file");
+      goto error;
+    };
+
+    out_offset += bytes_written;
+  };
+
+ error:
+  Log(L"\n");
+
+  // Write another metadata header.
+  {
+    char *metadata = asprintf("# PMEM\n"
+                              "---\n"
+                              "PreviousHeader: %#llx\n"
+                              "PagefileOffset: %#llx\n"
+                              "PagefileSize: %#llx\n"
+                              "...\n",
+                              last_header_offset_,
+                              pagefile_offset,
+                              out_offset - pagefile_offset
+                              );
+    if(metadata) {
+      DWORD metadata_len = strlen(metadata);
+      DWORD bytes_written = 0;
+
+      if(!WriteFile(out_fd_, metadata, metadata_len, &bytes_written, NULL) ||
+         bytes_written != metadata_len) {
+        LogLastError(L"Failed to write image file");
+      };
+
+      out_offset += bytes_written;
+      free(metadata);
+    };
+  };
+
+  DeleteFile(filename);
+  return;
 };
 
 
@@ -357,17 +521,19 @@ WinPmem::WinPmem():
   buffer_size_(1024*1024),
   buffer_(NULL),
   suppress_output(FALSE),
-  service_name(PMEM_SERVICE_NAME) {
+  service_name(PMEM_SERVICE_NAME),
+  max_physical_memory_(0),
+  mode_(PMEM_MODE_AUTO),
+  default_mode_(PMEM_MODE_AUTO),
+  metadata_(NULL),
+  metadata_len_(0),
+  driver_filename_(NULL),
+  driver_is_tempfile_(false),
+  out_offset(0),
+  pagefile_path_(NULL) {
   buffer_ = new char[buffer_size_];
   _tcscpy_s(last_error, TEXT(""));
-  max_physical_memory_ = 0;
-  mode_ = PMEM_MODE_AUTO;
-  default_mode_ = PMEM_MODE_AUTO;
-  metadata_ = NULL;
-  metadata_len_ = 0;
-  driver_filename_ = NULL;
-  driver_is_tempfile_ = false;
-  }
+}
 
 WinPmem::~WinPmem() {
   if (fd_ != INVALID_HANDLE_VALUE) {
@@ -399,25 +565,29 @@ void WinPmem::Log(const TCHAR *message, ...) {
   va_end(ap);
 };
 
-__int64 WinPmem::extract_file_(__int64 driver_id) {
-  if (!driver_filename_) {
-    TCHAR path[MAX_PATH + 1];
-    TCHAR filename[MAX_PATH + 1];
 
-    // Gets the temp path env string (no guarantee it's a valid path).
-    if(!GetTempPath(MAX_PATH, path)) {
-      LogError(TEXT("Unable to determine temporary path."));
-      goto error;
-    }
+void WinPmem::LogLastError(TCHAR *message) {
+  TCHAR *buffer;
+  DWORD dw = GetLastError();
 
-    GetTempFileName(path, service_name, 0, filename);
-    set_driver_filename(filename);
+  FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR)&buffer,
+        0, NULL );
 
-    driver_is_tempfile_ = true;
-  };
+  Log(L"%s", message);
+  Log(L": %s\n", buffer);
 
+};
+
+__int64 WinPmem::extract_file_(__int64 resource_id, TCHAR *filename) {
   // Locate the driver resource in the .EXE file.
-  HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(driver_id), L"FILE");
+  HRSRC hRes = FindResource(NULL, MAKEINTRESOURCE(resource_id), L"FILE");
   if (hRes == NULL) {
     LogError(TEXT("Could not locate driver resource."));
     goto error;
@@ -438,10 +608,8 @@ __int64 WinPmem::extract_file_(__int64 driver_id) {
   DWORD size = SizeofResource(NULL, hRes);
 
   // Now open the filename and write the driver image on it.
-  HANDLE out_fd = CreateFile(driver_filename_, GENERIC_WRITE, 0, NULL,
+  HANDLE out_fd = CreateFile(filename, GENERIC_WRITE, 0, NULL,
                              CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-  Log(L"Extracting driver to %s\n", driver_filename_);
 
   if(out_fd == INVALID_HANDLE_VALUE) {
     LogError(TEXT("Can not create temporary file."));
@@ -452,7 +620,6 @@ __int64 WinPmem::extract_file_(__int64 driver_id) {
     LogError(TEXT("Can not write to temporary file."));
     goto error_file;
   }
-
   CloseHandle(out_fd);
 
   return 1;
@@ -463,6 +630,7 @@ __int64 WinPmem::extract_file_(__int64 driver_id) {
  error_resource:
  error:
   return -1;
+
 };
 
 
@@ -482,6 +650,26 @@ void WinPmem::set_driver_filename(TCHAR *driver_filename) {
     };
   };
 }
+
+void WinPmem::set_pagefile_path(TCHAR *path) {
+  DWORD res;
+
+  if(pagefile_path_) {
+    free(pagefile_path_);
+    pagefile_path_ = NULL;
+  };
+
+  if (path) {
+    pagefile_path_ = (TCHAR *)malloc(MAX_PATH * sizeof(TCHAR));
+    if (pagefile_path_) {
+      res = GetFullPathName(path, MAX_PATH,
+                            pagefile_path_, NULL);
+    };
+
+    // Split at the drive letter. C:\pagefile.sys
+    pagefile_path_[2] = 0;
+  };
+};
 
 __int64 WinPmem::install_driver() {
   SC_HANDLE scm, service;
@@ -689,9 +877,11 @@ __int64 WinPmem::write_coredump_header_(struct PmemMemoryInfo *info) {
 
   header_size = sizeof(header);
   if(!WriteFile(out_fd_, &header, header_size, &header_size, NULL)) {
-    Log(TEXT("Failed to write header... Aborting.\n"));
+    LogLastError(TEXT("Failed to write header"));
     goto error;
   };
+
+  out_offset += header_size;
 
   for(i=0; i<info->NumberOfRuns.QuadPart; i++) {
     PHYSICAL_MEMORY_RANGE range = info->Run[i];
@@ -711,23 +901,29 @@ __int64 WinPmem::write_coredump_header_(struct PmemMemoryInfo *info) {
 
     header_size = sizeof(pheader);
     if(!WriteFile(out_fd_, &pheader, header_size, &header_size, NULL)) {
-      Log(TEXT("Failed to write header... Aborting.\n"));
+      LogLastError(TEXT("Failed to write header"));
       goto error;
     };
+
+    out_offset += header_size;
 
   };
 
   // Add a header for the metadata so it can be easily found in the file.
   RtlZeroMemory(&pheader, sizeof(Elf64_Phdr));
   pheader.type = PT_PMEM_METADATA;
+
+  // The metadata section will be written at the end of the
   pheader.off = file_offset;
   pheader.filesz = metadata_len_;
 
   header_size = sizeof(pheader);
   if(!WriteFile(out_fd_, &pheader, header_size, &header_size, NULL)) {
-    Log(TEXT("Failed to write header... Aborting.\n"));
+    LogLastError(TEXT("Failed to write header"));
     goto error;
   };
+
+  out_offset += header_size;
 
   return 1;
 
@@ -743,18 +939,63 @@ __int64 WinPmem::extract_driver(TCHAR *driver_filename) {
 __int64 WinPmem64::extract_driver() {
   // 64 bit drivers use PTE acquisition by default.
   default_mode_ = PMEM_MODE_PTE;
-  return extract_file_(WINPMEM_64BIT_DRIVER);
+
+  if (!driver_filename_) {
+    TCHAR path[MAX_PATH + 1];
+    TCHAR filename[MAX_PATH + 1];
+
+    // Gets the temp path env string (no guarantee it's a valid path).
+    if(!GetTempPath(MAX_PATH, path)) {
+      LogError(TEXT("Unable to determine temporary path."));
+      goto error;
+    }
+
+    GetTempFileName(path, service_name, 0, filename);
+    set_driver_filename(filename);
+
+    driver_is_tempfile_ = true;
+  };
+
+  Log(L"Extracting driver to %s\n", driver_filename_);
+
+  return extract_file_(WINPMEM_64BIT_DRIVER, driver_filename_);
+
+ error:
+  return -1;
 }
 
 __int64 WinPmem32::extract_driver() {
   // 32 bit acquisition defaults to physical device.
   default_mode_ = PMEM_MODE_PHYSICAL;
-  return extract_file_(WINPMEM_32BIT_DRIVER);
+
+  if (!driver_filename_) {
+    TCHAR path[MAX_PATH + 1];
+    TCHAR filename[MAX_PATH + 1];
+
+    // Gets the temp path env string (no guarantee it's a valid path).
+    if(!GetTempPath(MAX_PATH, path)) {
+      LogError(TEXT("Unable to determine temporary path."));
+      goto error;
+    }
+
+    GetTempFileName(path, service_name, 0, filename);
+    set_driver_filename(filename);
+
+    driver_is_tempfile_ = true;
+  };
+
+  Log(L"Extracting driver to %s\n", driver_filename_);
+
+  return extract_file_(WINPMEM_32BIT_DRIVER, driver_filename_);
+
+ error:
+  return -1;
 }
 
 
 #ifdef _WIN32
 #define vsnprintf _vsnprintf
+#define vsnwprintf _vsnwprintf
 #endif
 
 char *asprintf(const char *fmt, ...) {
@@ -785,6 +1026,45 @@ char *asprintf(const char *fmt, ...) {
       size *= 2;   /* twice the old size */
 
     np = (char *)realloc (p, size);
+    if (np == NULL) {
+      free(p);
+      return NULL;
+
+    } else {
+      p = np;
+    }
+
+  }
+}
+
+TCHAR *aswprintf(const TCHAR *fmt, ...) {
+  /* Guess we need no more than 1000 bytes. */
+  int n, size = 1000;
+  TCHAR *p, *np;
+  va_list ap;
+
+  p = (TCHAR *)malloc (size * sizeof(TCHAR));
+  if (!p)
+    return NULL;
+
+  while (1) {
+    /* Try to print in the allocated space. */
+    va_start(ap, fmt);
+    n = vsnwprintf (p, size, fmt, ap);
+    va_end(ap);
+
+    /* If that worked, return the string. */
+    if (n > -1 && n < size)
+      return p;
+
+    /* Else try again with more space. */
+    if (n > -1)    /* glibc 2.1 */
+      size = n+1;  /* precisely what is needed */
+
+    else           /* glibc 2.0 */
+      size *= 2;   /* twice the old size */
+
+    np = (TCHAR *)realloc (p, size * sizeof(TCHAR));
     if (np == NULL) {
       free(p);
       return NULL;

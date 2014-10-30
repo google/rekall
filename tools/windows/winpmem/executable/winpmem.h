@@ -8,7 +8,7 @@
 #include <varargs.h>
 
 // Executable version.
-#define PMEM_VERSION "1.6.1"
+#define PMEM_VERSION "1.6.2"
 #define PMEM_DEVICE_NAME "pmem"
 #define PMEM_SERVICE_NAME TEXT("pmem")
 
@@ -17,6 +17,7 @@ static TCHAR version[] = TEXT(PMEM_VERSION) TEXT(" ") TEXT(__DATE__);
 // These numbers are set in the resource editor for the FILE resource.
 #define WINPMEM_64BIT_DRIVER 104
 #define WINPMEM_32BIT_DRIVER 105
+#define WINPMEM_FCAT_EXECUTABLE 106
 
 #define PAGE_SIZE 0x1000
 
@@ -37,7 +38,8 @@ class WinPmem {
   virtual __int64 set_write_enabled();
   virtual __int64 set_acquisition_mode(unsigned __int32 mode);
   virtual void set_driver_filename(TCHAR *driver_filename);
-
+  virtual void set_pagefile_path(TCHAR *pagefile_path);
+  virtual void write_page_file();
   virtual void print_memory_info();
 
   // In order to create an image:
@@ -58,11 +60,14 @@ class WinPmem {
   virtual __int64 extract_driver(TCHAR *driver_filename);
 
  protected:
-  __int64 extract_file_(__int64 driver_id);
+  void CreateChildProcess(TCHAR *command, HANDLE g_hChildStd_OUT_Wr);
+
+  __int64 extract_file_(__int64 resource_id, TCHAR *filename);
   virtual __int64 write_coredump_header_(struct PmemMemoryInfo *info);
 
   virtual void LogError(TCHAR *message);
   virtual void Log(const TCHAR *message, ...);
+  virtual void LogLastError(TCHAR *message);
 
   __int64 pad(__int64 length);
   __int64 copy_memory(unsigned __int64 start, unsigned __int64 end);
@@ -81,14 +86,23 @@ class WinPmem {
   // This is the maximum size of memory calculated.
   unsigned __int64 max_physical_memory_;
 
+  // Current offset in output file (Total bytes written so far).
+  unsigned __int64 out_offset;
+
   // The current acquisition mode.
   unsigned __int32 mode_;
   unsigned __int32 default_mode_;
+
+  // The pagefile name to acquire.
+  TCHAR *pagefile_path_;
 
  private:
   void print_mode_(unsigned __int32 mode);
   char *metadata_;
   DWORD metadata_len_;
+
+  // The offset of the previous metadata header.
+  unsigned __int64 last_header_offset_;
 };
 
 class WinPmem32: public WinPmem {
@@ -149,3 +163,4 @@ struct PmemMemoryInfo {
 #pragma pack(pop)
 
 char *asprintf(const char *fmt, ...);
+TCHAR *aswprintf(const TCHAR *fmt, ...);

@@ -27,7 +27,6 @@
 # Note that as of version 1.6.0 WinPmem also uses ELF64 as the default imaging
 # format. Except that WinPmem stores image metadata in a YAML file stored in the
 # image. This address space supports both formats.
-
 import logging
 import yaml
 
@@ -61,13 +60,13 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
 
         self.as_assert(self.elf64_hdr.e_type == "ET_CORE",
                        "Elf file is not a core file.")
-
+        self.name = "%s|%s" % (self.__class__.__name__, self.base.name)
         # Iterate over all the program headers and map the runs.
         for segment in self.elf64_hdr.e_phoff:
             if segment.p_type == "PT_LOAD":
                 # Some load segments are empty.
                 if (segment.p_filesz == 0 or
-                    segment.p_filesz != segment.p_memsz):
+                        segment.p_filesz != segment.p_memsz):
                     continue
 
                 # Add the run to the memory map.
@@ -77,14 +76,14 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
                                   int(segment.p_memsz))) # Length
 
             elif segment.p_type == PT_PMEM_METADATA:
-                # Allow the file to be extended if users want to append
-                # metadata to the file.
+                self.LoadMetadata(segment.p_offset)
 
-                to_read = max(1000000, int(segment.p_filesz))
-                data = self.base.read(segment.p_offset, to_read)
-                data = data.split("\x00")[0]
-                if data:
-                    self.LoadMetadata(data)
+        # Search for the pmem footer signature.
+        footer = self.base.read(self.base.end() - 10000, 10000)
+        if "...\n" in footer[-6:]:
+            header_offset = footer.rfind("# PMEM")
+            if header_offset > 0:
+                self.LoadMetadata(self.base.end() - 10000 + header_offset)
 
     def check_file(self):
         """Checks the base file handle for sanity."""
@@ -96,19 +95,60 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         self.as_assert((self.base.read(0, 4) == "\177ELF"),
                        "Header signature invalid")
 
-    def LoadMetadata(self, data):
+    def LoadMetadata(self, offset):
         """Load the WinPmem metadata from the elf file."""
         try:
-            self.metadata.update(yaml.safe_load(data))
+            data = self.base.read(offset, 1024*1024)
+            yaml_file = data.split('...\n')[0]
+
+            metadata = yaml.safe_load(yaml_file)
         except (yaml.YAMLError, TypeError) as e:
             logging.error("Invalid file metadata, skipping: %s" % e)
             return
 
-        for session_param, metadata in (("dtb", "CR3"),
-                                        ("kernel_base", "KernBase")):
-            if metadata in self.metadata:
+        for session_param, metadata_key in (("dtb", "CR3"),
+                                            ("kernel_base", "KernBase")):
+            if metadata_key in metadata:
                 self.session.SetParameter(
-                    session_param, self.metadata[metadata])
+                    session_param, metadata[metadata_key])
+
+        previous_section = metadata.pop("PreviousHeader", None)
+        if previous_section is not None:
+            self.LoadMetadata(previous_section)
+
+        pagefile_offset = metadata.get("PagefileOffset", None)
+        pagefile_size = metadata.get("PagefileSize", None)
+
+        if pagefile_offset is not None and pagefile_size is not None:
+            self.LoadPageFile(pagefile_offset, pagefile_size)
+
+        self.metadata.update(metadata)
+
+    pagefile_offset = 0
+    pagefile_end = 0
+
+    def LoadPageFile(self, pagefile_offset, pagefile_size):
+        """We map the page file into the physical address space.
+
+        This allows us to treat all physical addresses equally - regardless if
+        they come from the memory or the page file.
+        """
+        # Map the pagefile after the end of the physical address space.
+        vaddr = self.end() + 0x10000
+
+        logging.info("Loading pagefile into physical offset %#08x", vaddr)
+        self.runs.insert((vaddr, pagefile_offset, pagefile_size))
+
+        # Remember the region for the pagefile.
+        self.pagefile_offset = vaddr
+        self.pagefile_end = vaddr + pagefile_size
+
+    def describe(self, addr):
+        if self.pagefile_offset <= addr <= self.pagefile_end:
+            return "%#x@Pagefile" % (
+                addr - self.pagefile_offset)
+
+        return "%#x" % addr
 
 
 class KCoreAddressSpace(Elf64CoreDump):

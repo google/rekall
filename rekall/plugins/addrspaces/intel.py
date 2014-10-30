@@ -27,23 +27,11 @@ import struct
 
 from rekall import addrspace
 from rekall import config
-from rekall import obj
 
 
 config.DeclareOption(name="dtb", group="Autodetection Overrides",
                      action=config.IntParser,
                      help="The DTB physical address.")
-
-
-class PhysicalAddress(object):
-    """A class to represent a physical address.
-
-    This object is supposed to be an opaque object which passes data between the
-    various query functions of an address space into the read function.
-
-    i.e. one can receive the PhysicalAddress() object by calling vtop() and then
-    pass it back to the read() method.
-    """
 
 
 class IA32PagedMemory(addrspace.PagedReader):
@@ -96,25 +84,14 @@ class IA32PagedMemory(addrspace.PagedReader):
         Returns whether or not the 'P' (Present) flag is on
         in the given entry
         '''
-        if entry:
-            if entry & 1:
-                return True
-
-            # The page is in transition and not a prototype.
-            # Thus, we will treat it as present.
-            if (entry & (1 << 11)) and not entry & (1 << 10):
-                return True
-
-        return False
+        return entry & 1
 
     def page_size_flag(self, entry):
         '''
         Returns whether or not the 'PS' (Page Size) flag is on
         in the given entry
         '''
-        if entry:
-            return entry & (1 << 7)
-        return False
+        return entry & (1 << 7)
 
     def pde_index(self, vaddr):
         '''
@@ -154,6 +131,9 @@ class IA32PagedMemory(addrspace.PagedReader):
         Bits 31:12 are from the PTE
         Bits 11:0 are from the original linear address
         '''
+        if not self.entry_present(pte_value):
+            return None
+
         return (pte_value & 0xfffff000) | (vaddr & 0xfff)
 
     def get_four_meg_paddr(self, vaddr, pde_value):
@@ -161,7 +141,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         Bits 31:22 are bits 31:22 of the PDE
         Bits 21:0 are from the original linear address
         '''
-        return  (pde_value & 0xffc00000) | (vaddr & 0x3fffff)
+        return (pde_value & 0xffc00000) | (vaddr & 0x3fffff)
 
     def vtop(self, vaddr):
         '''
@@ -171,8 +151,6 @@ class IA32PagedMemory(addrspace.PagedReader):
         '''
         pde_value = self.get_pde(vaddr)
         if not self.entry_present(pde_value):
-            # Add support for paged out PDE
-            # (insert buffalo here!)
             return None
 
         if self.page_size_flag(pde_value):
@@ -180,7 +158,6 @@ class IA32PagedMemory(addrspace.PagedReader):
 
         pte_value = self.get_pte(vaddr, pde_value)
         if not self.entry_present(pte_value):
-            # Add support for paged out PTE
             return None
 
         return self.get_phys_addr(vaddr, pte_value)
@@ -190,17 +167,10 @@ class IA32PagedMemory(addrspace.PagedReader):
         Returns an unsigned 32-bit integer from the address addr in
         physical memory. If unable to read from that location, returns None.
         '''
-        try:
-            string = self.base.read(addr, 4)
-        except IOError:
-            string = None
-        if not string:
-            return obj.NoneObject(
-                "Could not read_long_phys at offset " + str(addr))
-        (longval,) = struct.unpack('<I', string)
-        return longval
+        string = self.base.read(addr, 4)
+        return struct.unpack('<I', string)[0]
 
-    def get_available_addresses(self):
+    def get_available_addresses(self, start=0):
         """Enumerate all valid memory ranges.
 
         Yields:
@@ -212,6 +182,10 @@ class IA32PagedMemory(addrspace.PagedReader):
         # PDEs and PTEs we must test
         for pde in range(0, 0x400):
             vaddr = pde << 22
+            next_vaddr = (pde+1) << 22
+            if start > next_vaddr:
+                continue
+
             pde_value = self.get_pde(vaddr)
             if not self.entry_present(pde_value):
                 continue
@@ -232,10 +206,17 @@ class IA32PagedMemory(addrspace.PagedReader):
             data = self.base.read(pte_table_addr, 4 * 0x400)
             pte_table = struct.unpack("<" + "I" * 0x400, data)
 
+            tmp1 = vaddr
             for i, pte_value in enumerate(pte_table):
+                vaddr = tmp1 | i << 12
+                next_vaddr = tmp1 | ((i+1) << 12)
+
+                if start > next_vaddr:
+                    continue
+
                 if self.entry_present(pte_value):
-                    yield (vaddr | i << 12,
-                           self.get_phys_addr(vaddr | i << 12, pte_value),
+                    yield (vaddr,
+                           self.get_phys_addr(vaddr, pte_value),
                            0x1000)
 
     def __str__(self):
@@ -277,7 +258,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         Bits 2:0 are all 0
         '''
         pdpte_addr = (self.dtb & 0xffffffe0) | ((vaddr & 0xc0000000) >> 27)
-        return self._read_long_long_phys(pdpte_addr)
+        return self.read_long_long_phys(pdpte_addr)
 
     def get_pde(self, vaddr, pdpte):
         '''
@@ -289,7 +270,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         Bits 2:0 are 0
         '''
         pde_addr = (pdpte & 0xffffffffff000) | ((vaddr & 0x3fe00000) >> 18)
-        return self._read_long_long_phys(pde_addr)
+        return self.read_long_long_phys(pde_addr)
 
 
     def get_two_meg_paddr(self, vaddr, pde):
@@ -312,7 +293,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         Bits 2:0 are 0
         '''
         pte_addr = (pde & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
-        return self._read_long_long_phys(pte_addr)
+        return self.read_long_long_phys(pte_addr)
 
     def get_phys_addr(self, vaddr, pte):
         '''
@@ -322,6 +303,9 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         Bits 51:12 are from the PTE
         Bits 11:0 are from the original linear address
         '''
+        if not self.entry_present(pte):
+            return None
+
         return (pte & 0xffffffffff000) | (vaddr & 0xfff)
 
     def vtop(self, vaddr):
@@ -345,43 +329,43 @@ class IA32PagedMemoryPae(IA32PagedMemory):
             return self.get_two_meg_paddr(vaddr, pde)
 
         pte = self.get_pte(vaddr, pde)
-        if not self.entry_present(pte):
-            # Add support for paged out PTE
-            return None
 
         return self.get_phys_addr(vaddr, pte)
 
-    def _read_long_long_phys(self, addr):
+    def read_long_long_phys(self, addr):
         '''
         Returns an unsigned 64-bit integer from the address addr in
         physical memory. If unable to read from that location, returns None.
         '''
-        try:
-            string = self.base.read(addr, 8)
-        except IOError:
-            string = None
-        if not string:
-            return obj.NoneObject(
-                "Unable to read_long_long_phys at " + str(addr))
-        (longlongval,) = struct.unpack('<Q', string)
-        return longlongval
+        string = self.base.read(addr, 8)
+        return struct.unpack('<Q', string)[0]
 
-    def get_available_addresses(self):
+    def get_available_addresses(self, start=0):
         """A generator of address, length tuple for all valid memory regions."""
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
         # PDEs and PTEs we must test.
         for pdpte in range(0, 4):
             vaddr = pdpte << 30
+            next_vaddr = (pdpte+1) << 30
+            if start >= next_vaddr:
+                continue
+
             pdpte_value = self.get_pdpte(vaddr)
             if not self.entry_present(pdpte_value):
                 continue
 
+            tmp1 = vaddr
             for pde in range(0, 0x200):
-                vaddr = pdpte << 30 | (pde << 21)
+                vaddr = tmp1 | (pde << 21)
+                next_vaddr = tmp1 | ((pde+1) << 21)
+                if start >= next_vaddr:
+                    continue
+
                 pde_value = self.get_pde(vaddr, pdpte_value)
                 if not self.entry_present(pde_value):
                     continue
+
                 if self.page_size_flag(pde_value):
                     yield (vaddr,
                            self.get_two_meg_paddr(vaddr, pde_value),
@@ -398,8 +382,14 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                 data = self.base.read(pte_table_addr, 8 * 0x200)
                 pte_table = struct.unpack("<" + "Q" * 0x200, data)
 
+                tmp2 = vaddr
                 for i, pte_value in enumerate(pte_table):
                     if self.entry_present(pte_value):
-                        yield (vaddr | i << 12,
-                               self.get_phys_addr(vaddr | i << 12, pte_value),
+                        vaddr = tmp2 | i << 12
+                        next_vaddr = tmp2 | (i+1) << 12
+                        if start >= next_vaddr:
+                            continue
+
+                        yield (vaddr,
+                               self.get_phys_addr(vaddr, pte_value),
                                0x1000)

@@ -30,6 +30,40 @@ from rekall import utils
 
 from rekall.plugins.overlays.windows import pe_vtypes
 
+MM_PROTECTION_ENUM = utils.EnumerationFromDefines("""
+//
+00098 // Protection Bits part of the internal memory manager Protection Mask, from:
+00099 // http://reactos.org/wiki/Techwiki:Memory_management_in_the_Windows_XP_kernel
+00100 // https://www.reactos.org/wiki/Techwiki:Memory_Protection_constants
+00101 // and public assertions.
+00102 //
+00103 #define MM_ZERO_ACCESS         0
+00104 #define MM_READONLY            1
+00105 #define MM_EXECUTE             2
+00106 #define MM_EXECUTE_READ        3
+00107 #define MM_READWRITE           4
+00108 #define MM_WRITECOPY           5
+00109 #define MM_EXECUTE_READWRITE   6
+00110 #define MM_EXECUTE_WRITECOPY   7
+00111 #define MM_PROTECT_ACCESS      7
+00112
+00113 //
+00114 // These are flags on top of the actual protection mask
+00115 //
+00116 #define MM_NOCACHE            0x08
+00117 #define MM_GUARDPAGE          0x10
+00118 #define MM_WRITECOMBINE       0x18
+00119 #define MM_PROTECT_SPECIAL    0x18
+00120
+00121 //
+00122 // These are special cases
+00123 //
+00124 #define MM_DECOMMIT           (MM_ZERO_ACCESS | MM_GUARDPAGE)
+00125 #define MM_NOACCESS           (MM_ZERO_ACCESS | MM_WRITECOMBINE)
+00126 #define MM_OUTSWAPPED_KSTACK  (MM_EXECUTE_WRITECOPY | MM_WRITECOMBINE)
+00127 #define MM_INVALID_PROTECTION  0xFFFFFFFF
+""")
+
 
 windows_overlay = {
     '_UNICODE_STRING': [None, {
@@ -396,6 +430,49 @@ windows_overlay = {
     '_CM_NAME_CONTROL_BLOCK' : [None, {
         'Name' : [None, ['String', dict(length=lambda x: x.NameLength)]],
         }],
+
+    # Memory manager enums.
+    '_MMPTE_SOFTWARE': [None, {
+        "Protection": lambda x: x.cast(
+            "Enumeration",
+            choices=MM_PROTECTION_ENUM,
+            value=x.m("Protection")),
+        }],
+
+    '_MMPTE_PROTOTYPE': [None, {
+        "Protection": lambda x: x.cast(
+            "Enumeration",
+            choices=MM_PROTECTION_ENUM,
+            value=x.m("Protection")),
+
+        "Proto": lambda x: x.cast(
+            "Pointer",
+            target="_MMPTE",
+            value=x.m("ProtoAddress"),
+            vm=x.obj_session.GetParameter("default_address_space"),
+            ),
+        }],
+
+    '_MMPTE_SUBSECTION': [None, {
+        "Protection": lambda x: x.cast(
+            "Enumeration",
+            choices=MM_PROTECTION_ENUM,
+            value=x.m("Protection")),
+
+        "Subsection": lambda x: x.cast(
+            "Pointer",
+            target="_SUBSECTION",
+            value=x.m("SubsectionAddress"),
+            ),
+        }],
+
+    '_MMPTE_TRANSITION': [None, {
+        "Protection": lambda x: x.cast(
+            "Enumeration",
+            choices=MM_PROTECTION_ENUM,
+            value=x.m("Protection")),
+        }],
+
 }
 
 

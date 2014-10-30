@@ -26,7 +26,7 @@ import os
 import subprocess
 import shutil
 
-VERSION = "1.6.1"
+VERSION = "1.6.2"
 PATH_TO_DDK = r"C:\WinDDK\7600.16385.1"
 PATH_TO_VS = r"C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\Tools"
 
@@ -147,7 +147,7 @@ def BuildSignedProductionBinaries():
     BuildDriver("x86", "WXP", **args)
     BuildProgram(**args)
 
-def BuildTestSignedBinries():
+def BuildTestSignedBinaries():
     # Test signed binaries are built with write support.
     data = open("winpmem.h").read()
     if re.search("PMEM_WRITE_ENABLED [01]", data):
@@ -172,5 +172,5 @@ def BuildTestSignedBinries():
 
 
 CleanUpOldFiles()
-BuildTestSignedBinries()
+BuildTestSignedBinaries()
 BuildSignedProductionBinaries()

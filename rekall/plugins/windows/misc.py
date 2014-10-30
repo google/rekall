@@ -33,10 +33,10 @@ class WinPhysicalMap(common.WindowsCommandPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-                ("Phys Start", "phys", "[addrpad]"),
-                ("Phys End", "phys", "[addrpad]"),
-                ("Number of Pages", "pages", "10"),
-                ])
+            ("Phys Start", "phys", "[addrpad]"),
+            ("Phys End", "phys", "[addrpad]"),
+            ("Number of Pages", "pages", "10"),
+            ])
 
         descriptor = self.profile.get_constant_object(
             "MmPhysicalMemoryBlock",
@@ -73,7 +73,7 @@ class SetProcessContext(common.WinProcessFilter):
         self.SwitchProcessContext(self.process_context)
 
     def SwitchProcessContext(self, process=None):
-        if process is None:
+        if process == None:
             message = "Switching to Kernel context"
             self.session.SetCache("default_address_space",
                                   self.session.kernel_address_space)
@@ -253,9 +253,9 @@ class ImageInfo(common.WindowsCommandPlugin):
             "Kernel DTB", "%#x" % self.kernel_address_space.dtb)
 
         for desc, name, type in (
-            ("NT Build", "NtBuildLab", "String"),
-            ("NT Build Ex", "NtBuildLabEx", "String"),
-            ("Signed Drivers", "g_CiEnabled", "bool"),
+                ("NT Build", "NtBuildLab", "String"),
+                ("NT Build Ex", "NtBuildLabEx", "String"),
+                ("Signed Drivers", "g_CiEnabled", "bool"),
             ):
 
             renderer.table_row(
@@ -305,12 +305,12 @@ class Pools(common.WindowsCommandPlugin):
 
         # Non paged pool.
         for desc in vector_pool[0].dereference_as(
-            "Array",
-            target_args=dict(
-                count=self.profile.get_constant_object(
-                    "ExpNumberOfNonPagedPools", "unsigned int").v(),
-                target="_POOL_DESCRIPTOR",
-                )
+                "Array",
+                target_args=dict(
+                    count=self.profile.get_constant_object(
+                        "ExpNumberOfNonPagedPools", "unsigned int").v(),
+                    target="_POOL_DESCRIPTOR",
+                    )
             ):
             desc.PoolStart = self.profile.get_constant_object(
                 "MmNonPagedPoolStart", "Pointer")
@@ -344,11 +344,11 @@ class Pools(common.WindowsCommandPlugin):
 
 
         for desc in vector_pool[1].dereference_as(
-            "Array",
-            target_args=dict(
-                count=self.profile.get_constant_object(
-                    "ExpNumberOfPagedPools", "unsigned int").v() + 1,
-                target="_POOL_DESCRIPTOR",
+                "Array",
+                target_args=dict(
+                    count=self.profile.get_constant_object(
+                        "ExpNumberOfPagedPools", "unsigned int").v() + 1,
+                    target="_POOL_DESCRIPTOR",
                 )
             ):
             # Hard coded for 64 bit OS.
@@ -414,7 +414,7 @@ class PoolTracker(common.WindowsCommandPlugin):
                      ("NP Bytes", "nonpaged_bytes", ">10"),
                      ("P Alloc", "nonpaged", ">20"),
                      ("P Bytes", "nonpaged_bytes", ">10"),
-                     ],
+                    ],
             sort=("tag",)
             )
 
@@ -430,7 +430,7 @@ class PoolTracker(common.WindowsCommandPlugin):
                              item.NonPagedAllocs - item.NonPagedFrees),
                 item.NonPagedBytes,
                 "%s (%s)" % (item.PagedAllocs,
-                           item.PagedAllocs - item.PagedFrees),
+                             item.PagedAllocs - item.PagedFrees),
                 item.PagedBytes,
                 )
 
@@ -482,7 +482,7 @@ class ObjectTree(common.WindowsCommandPlugin):
         renderer.table_header([("_OBJECT_HEADER", "offset", "[addrpad]"),
                                ("Type", "type", "20"),
                                dict(name="Name", type="TreeNode"),
-                               ])
+                              ])
 
         root = self.profile.get_constant_object(
             "ObpRootDirectoryObject",

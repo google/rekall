@@ -196,7 +196,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                 output = self.TransformOutput(
                     config_options, open(tmp_filename).read(10 * 1024 * 1024))
 
-                baseline_data = dict(output=output.splitlines())
+                baseline_data = dict(output=output.splitlines(),
+                                     return_code=pipe.returncode)
 
                 return baseline_data
 

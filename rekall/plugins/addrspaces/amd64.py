@@ -72,7 +72,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         '''
         pml4e_addr = (
             self.dtb & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
-        return self._read_long_long_phys(pml4e_addr)
+        return self.read_long_long_phys(pml4e_addr)
 
     def get_pdpte(self, vaddr, pml4e):
         '''
@@ -83,7 +83,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         Bits 2:0 are all 0
         '''
         pdpte_addr = (pml4e & 0xffffffffff000) | ((vaddr & 0x7FC0000000) >> 27)
-        return self._read_long_long_phys(pdpte_addr)
+        return self.read_long_long_phys(pdpte_addr)
 
     def get_one_gig_paddr(self, vaddr, pdpte):
         '''
@@ -94,6 +94,8 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         Bits 29:0 are from the original linear address
         '''
         return (pdpte & 0xfffffc0000000) | (vaddr & 0x3fffffff)
+
+    lock = 0
 
     def vtop(self, vaddr):
         '''
@@ -121,46 +123,64 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             # Add support for paged out PDE
             return None
 
-        if self.page_size_flag(pde):
+        # Is this a 2 meg page?
+        if pde & 1 and self.page_size_flag(pde):
             return self.get_two_meg_paddr(vaddr, pde)
 
         pte = self.get_pte(vaddr, pde)
-        if not self.entry_present(pte):
-            # Add support for paged out PTE
-            return None
 
         return self.get_phys_addr(vaddr, pte)
 
-    def get_available_addresses(self):
-        '''
-        Return a list of lists of available memory pages.
-        Each entry in the list is the starting virtual address
-        and the size of the memory page.
-        '''
+    def get_available_addresses(self, start=0):
+        """Enumerate all available ranges.
+
+        Yields tuples of (vaddr, physical address, length) for all available
+        ranges in the virtual address space.
+        """
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
         # PDEs and PTEs we must test.
         for pml4e in range(0, 0x200):
             vaddr = pml4e << 39
+
+            next_vaddr = (pml4e + 1) << 39
+            if start >= next_vaddr:
+                continue
+
             pml4e_value = self.get_pml4e(vaddr)
             if not self.entry_present(pml4e_value):
                 continue
+
+            tmp1 = vaddr
             for pdpte in range(0, 0x200):
-                vaddr = (pml4e << 39) | (pdpte << 30)
+                vaddr = tmp1 | (pdpte << 30)
+
+                next_vaddr = tmp1 | ((pdpte+1) << 30)
+                if start >= next_vaddr:
+                    continue
+
                 pdpte_value = self.get_pdpte(vaddr, pml4e_value)
                 if not self.entry_present(pdpte_value):
                     continue
+
                 if self.page_size_flag(pdpte_value):
                     yield (vaddr,
                            self.get_one_gig_paddr(vaddr, pdpte_value),
                            0x40000000)
                     continue
+
                 tmp2 = vaddr
                 for pde in range(0, 0x200):
                     vaddr = tmp2 | (pde << 21)
+
+                    next_vaddr = tmp2 | ((pde + 1) << 21)
+                    if start >= next_vaddr:
+                        continue
+
                     pde_value = self.get_pde(vaddr, pdpte_value)
                     if not self.entry_present(pde_value):
                         continue
+
                     if self.page_size_flag(pde_value):
                         yield (vaddr,
                                self.get_two_meg_paddr(vaddr, pde_value),
@@ -177,12 +197,24 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                     data = self.base.read(pte_table_addr, 8 * 0x200)
                     pte_table = struct.unpack("<" + "Q" * 0x200, data)
 
-                    for i, pte_value in enumerate(pte_table):
-                        if self.entry_present(pte_value):
-                            out_vaddr = vaddr | i << 12
-                            yield (out_vaddr,
-                                   self.get_phys_addr(out_vaddr, pte_value),
-                                   0x1000)
+                    for x in self._get_available_PTEs(
+                            pte_table, vaddr, start=start):
+                        yield x
+
+    def _get_available_PTEs(self, pte_table, vaddr, start=0):
+        tmp3 = vaddr
+        for i, pte_value in enumerate(pte_table):
+            if not self.entry_present(pte_value):
+                continue
+
+            vaddr = tmp3 | i << 12
+            next_vaddr = tmp3 | ((i+1) << 12)
+            if start >= next_vaddr:
+                continue
+
+            yield (vaddr,
+                   self.get_phys_addr(vaddr, pte_value),
+                   0x1000)
 
 
 class VTxPagedMemory(AMD64PagedMemory):
@@ -242,7 +274,7 @@ class VTxPagedMemory(AMD64PagedMemory):
         # PML4 for VT-x is in the EPT, not the DTB as AMD64PagedMemory does.
         ept_pml4e_paddr = ((self._ept & 0xffffffffff000) |
                            ((vaddr & 0xff8000000000) >> 36))
-        return self._read_long_long_phys(ept_pml4e_paddr)
+        return self.read_long_long_phys(ept_pml4e_paddr)
 
     def __str__(self):
         return "%s@0x%08X" % (self.__class__.__name__, self._ept)

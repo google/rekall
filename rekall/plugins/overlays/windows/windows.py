@@ -22,6 +22,7 @@
 # pylint: disable=protected-access
 
 import re
+from rekall import obj
 
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import common
@@ -243,7 +244,7 @@ class Ntoskrnl(BasicPEProfile):
         # Windows 7 introduces TypeIndex into the object header.
         if profile.get_obj_offset("_OBJECT_HEADER", "TypeIndex") != None:
             if profile._EPROCESS().m(
-                "VadRoot.BalancedRoot").obj_type == "_MMADDRESS_NODE":
+                    "VadRoot.BalancedRoot").obj_type == "_MMADDRESS_NODE":
                 version = "6.1"
 
             elif profile._EPROCESS().m("VadRoot").obj_type == "_MM_AVL_TABLE":
@@ -300,7 +301,8 @@ class Ntoskrnl(BasicPEProfile):
 
     def GetImageBase(self):
         if not self.image_base:
-            self.image_base = self.session.GetParameter("kernel_base")
+            self.image_base = obj.Pointer.integer_to_address(
+                self.session.GetParameter("kernel_base"))
 
         return self.image_base
 

@@ -47,6 +47,8 @@ void help(TCHAR *ExeName)
       L"  -2    Use PTE remapping (AMD64 only - Default for 64bit OS).\n"
       L"  -3    Use PTE remapping with PCI instrospection (AMD64 Only).\n"
       L"  -e    Produce an ELF core dump.\n"
+      L"  -p    Also acquire the pagefile. \n"
+      L"        This flag may be followed by the pagefile path.\n"
       L"\n");
 
   Log(L"NOTE: an output filename of - will write the image to STDOUT.\n");
@@ -87,6 +89,8 @@ int _tmain(int argc, _TCHAR* argv[]) {
 
   WinPmem *pmem_handle = WinPmemFactory();
   TCHAR *driver_filename = NULL;
+  TCHAR *pagefile_path = L"C:\\pagefile.sys";
+  BOOL acquire_pagefile = FALSE;
 
   if(argc < 2) {
     goto error;
@@ -95,6 +99,15 @@ int _tmain(int argc, _TCHAR* argv[]) {
   for(i=1; i<argc; i++) {
     if(argv[i][0] == '-' && argv[i][1] != 0) {
       switch(argv[i][1]) {
+      case 'p': {
+        acquire_pagefile=TRUE;
+        // If the next option is not a flag, it is the name of the pagefile.
+        if (i+1<argc && argv[i+1][0] != '-') {
+          pagefile_path = argv[i+1];
+          i++;
+        };
+        break;
+      };
       case 'l': {
         only_load_driver=1;
         break;
@@ -167,6 +180,9 @@ int _tmain(int argc, _TCHAR* argv[]) {
 
   } else if (argv[i]) {
     pmem_handle->set_driver_filename(driver_filename);
+    if (acquire_pagefile) {
+      pmem_handle->set_pagefile_path(pagefile_path);
+    };
 
     status = pmem_handle->create_output_file(argv[i]);
 

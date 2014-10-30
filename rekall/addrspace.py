@@ -96,6 +96,10 @@ class BaseAddressSpace(object):
             raise ASAssertionError(
                 error or "Instantiation failed for unspecified reason")
 
+    def describe(self, addr):
+        """Return a string describing an address."""
+        return "%#x" % addr
+
     def read(self, unused_addr, length):
         """Should be overridden by derived classes."""
         if length > self.session.GetParameter("buffer_size"):
@@ -103,12 +107,18 @@ class BaseAddressSpace(object):
 
         return "\x00" * length
 
-    def get_available_addresses(self):
+    def get_available_addresses(self, start=0):
         """Generates address ranges (offset, phys_offset, size) for this AS.
 
         Address ranges must be returned ordered.
         """
+        _ = start
         return []
+
+    def end(self):
+        runs = list(self.get_available_addresses())
+        if runs:
+            return runs[-1][0] + runs[-1][2]
 
     def get_address_ranges(self, start=0, end=None):
         """Generates the address ranges which fall between start and end.
@@ -164,7 +174,7 @@ class BaseAddressSpace(object):
 
             # Try to join up adjacent pages as much as possible.
             if (voffset == contiguous_voffset + total_length and
-                poffset == contiguous_poffset + total_length):
+                    poffset == contiguous_poffset + total_length):
                 total_length += length
 
             else:
@@ -247,7 +257,7 @@ class BufferAddressSpace(BaseAddressSpace):
         self.data = self.data[:addr] + data + self.data[addr + len(data):]
         return True
 
-    def get_available_addresses(self):
+    def get_available_addresses(self, start=None):
         yield (self.base_offset, self.base_offset, len(self.data))
 
     def get_buffer_offset(self, offset):
@@ -364,8 +374,11 @@ class PagedReader(BaseAddressSpace):
         vaddr = self.vtop(addr)
         return vaddr != None and self.base.is_valid_address(vaddr)
 
-    def get_available_addresses(self):
+    def get_available_addresses(self, start=None):
         for vstart, pstart, length in self.get_available_pages():
+            if vstart * self.PAGE_SIZE > start:
+                continue
+
             yield (vstart * self.PAGE_SIZE,
                    pstart * self.PAGE_SIZE,
                    length * self.PAGE_SIZE)
@@ -442,9 +455,12 @@ class RunBasedAddressSpace(PagedReader):
     def is_valid_address(self, addr):
         return self.vtop(addr) is not None
 
-    def get_available_addresses(self):
-        for start, file_address, length in self.runs:
-            yield start, file_address, length
+    def get_available_addresses(self, start=0):
+        for run_start, file_address, length in self.runs:
+            if start > run_start + length:
+                continue
+
+            yield run_start, file_address, length
 
 
 

@@ -85,10 +85,28 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
         return result.lower()
 
-    def _FindProcessVad(self, address):
+    def FindProcessVad(self, address, cache_only=False):
+        """Find the VAD corresponding with the address.
+
+        If cache_only is specified we can only use cached values. If the cache
+        is empty we fail the request. This is needed to avoid recursion loops in
+        the address space.
+        """
+        if cache_only and self.vad is None:
+            return
+
+        self._EnsureInitialized()
         task = self.session.GetParameter("process_context")
-        if task and self.vad:
+        if task:
             return self.vad.find_file_in_task(address, task)
+
+    def GetVADs(self):
+        self._EnsureInitialized()
+        task = self.session.GetParameter("process_context")
+        if task:
+            return self.vad.GetVadsForProcess(task)
+
+        return []
 
     def _FindContainingModule(self, address):
         """Find the kernel module which contains the address."""
@@ -117,11 +135,11 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
             return containing_module.base, containing_module.size, name
 
         # Maybe the address is in userspace.
-        containing_VAD = self._FindProcessVad(address)
+        containing_VAD = self.FindProcessVad(address)
 
         # We find the vad and it
         if containing_VAD:
-            start, end, name = containing_VAD
+            start, end, name, _ = containing_VAD
             return start, end, self.NormalizeModuleName(name)
 
         # If we dont know anything about the address just return Nones.
@@ -273,9 +291,9 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                     name, address - offset)
 
             else:
-                hit = self._FindProcessVad(address)
+                hit = self.FindProcessVad(address)
                 if hit:
-                    start, end, name = hit
+                    start, end, name, _ = hit
                     if start < address < end:
                         profile = self.LoadProfileForDll(start, name)
                         return self._format_address_from_profile(
@@ -312,9 +330,9 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
             if symbol_name:
                 full_name = "%s!%s" % (module_name, symbol_name)
         else:
-            vad_desc = self._FindProcessVad(address)
+            vad_desc = self.FindProcessVad(address)
             if vad_desc:
-                start, _, full_name = vad_desc
+                start, _, full_name, _ = vad_desc
                 module_name = self.NormalizeModuleName(full_name)
                 nearest_offset = start
                 profile = self.LoadProfileForDll(start, full_name)

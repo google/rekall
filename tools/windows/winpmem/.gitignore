@@ -1,4 +1,5 @@
-*.log
+buildchk*
 objchk*
+*.sys
 *.exe
-binaries
+*.log

@@ -69,6 +69,9 @@ def main(argv=None):
         else:
             logging.error("%s. Try --debug for more information." % e)
 
+        # Exit with an error.
+        sys.exit(-1)
+
     # Right before we exit we check if we need to save the current session.
     if user_session.state.session_filename and (
             user_session.state.dirty or user_session.state.cache.dirty):
