@@ -34,5 +34,5 @@ class RekallPythonCall(manuskript_plugins.PythonCall):
         super(RekallPythonCall, cls).UpdatePythonShell(app, shell)
 
         rekall_session = app.config["rekall_session"]
-        shell.local_context = rekall_session._locals # pylint: disable=protected-access
+        shell.local_context = rekall_session.locals # pylint: disable=protected-access
         shell.global_context["session"] = rekall_session

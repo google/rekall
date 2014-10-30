@@ -199,7 +199,7 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
                 return str(value[1])
 
             else:
-                return list(self.DecodeFromJsonSafe(x, options) for x in value)
+                return list(self._decode_value(x, options) for x in value)
 
         # Decode json safe items literally.
         if isinstance(value, (unicode, int, long, float)):
@@ -443,7 +443,7 @@ class JsonDecoder(object):
                     item["obj_renderer"])
 
             elif "mro" in item:
-                mro = item.pop("mro")
+                mro = item.get("mro")
                 object_renderer_cls = JsonObjectRenderer.FromMRO(
                     mro, self.renderer)
 

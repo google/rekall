@@ -66,6 +66,12 @@
         </samp>
       </span>
 
+      <span bo-switch-when="VirtualMachine">
+        <samp class="process">
+          VM [<span bo-bind="object.num_cores"/> vCORE(s), <span bo-bind="object.guest_arch"/>]
+        </samp>
+      </span>
+
       <span bo-switch-when="bool">
         <span class="glyphicon"
               bo-class="{'glyphicon-ok': object, 'glyphicon-remove': !object}"/>

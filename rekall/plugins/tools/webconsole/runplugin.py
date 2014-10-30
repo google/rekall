@@ -135,25 +135,26 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
         self.queue.append(message)
 
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
-        if "%(" in message:
-            self.last_spin += 1
-            kwargs["spinner"] = self.spinner[
-                self.last_spin % len(self.spinner)]
+        if super(WebConsoleRenderer, self).RenderProgress():
+            if "%(" in message:
+                self.last_spin += 1
+                kwargs["spinner"] = self.spinner[
+                    self.last_spin % len(self.spinner)]
 
-            formatted_message = message % kwargs
-        elif args:
-            format_args = []
-            for arg in args:
-                if callable(arg):
-                    format_args.append(arg())
-                else:
-                    format_args.append(arg)
+                formatted_message = message % kwargs
+            elif args:
+                format_args = []
+                for arg in args:
+                    if callable(arg):
+                        format_args.append(arg())
+                    else:
+                        format_args.append(arg)
 
-            formatted_message = message % tuple(format_args)
-        else:
-            formatted_message = message
+                formatted_message = message % tuple(format_args)
+            else:
+                formatted_message = message
 
-        self.SendMessage(["p", formatted_message])
+            self.SendMessage(["p", formatted_message])
 
     def open(self, directory=None, filename=None, mode="rb"):
         if filename is None and directory is None:

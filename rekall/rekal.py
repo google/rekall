@@ -49,14 +49,15 @@ config.DeclareOption(
 def main(argv=None):
     # New user interactive session (with extra bells and whistles).
     user_session = session.InteractiveSession()
+    user_session.session_list.append(user_session)
 
     plugin_cls, flags = args.parse_args(argv=argv, user_session=user_session)
 
     # Determine if an external script needs to be run first.
     if getattr(flags, "run", None):
         # Export the session object to the external script.
-        user_session._locals["session"] = user_session
-        exec open(flags.run) in user_session._locals
+        user_session.locals["session"] = user_session
+        exec open(flags.run) in user_session.locals
 
     try:
         # Run the plugin with plugin specific args.

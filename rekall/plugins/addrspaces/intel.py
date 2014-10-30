@@ -79,15 +79,16 @@ class IA32PagedMemory(addrspace.PagedReader):
         super(IA32PagedMemory, self).__init__(**kwargs)
 
         ## We must be stacked on someone else:
-        self.as_assert(self.base != self, "No base Address Space")
+        if not self.base != self:
+            raise TypeError("No base Address Space")
 
         # If the underlying address space already knows about the dtb we use it.
         # Allow the dtb to be specified in the session.
         self.dtb = dtb or self.session.GetParameter("dtb")
 
-        self.as_assert(self.dtb != None,
-                       "No valid DTB specified. Try the find_dtb"
-                       " plugin to search for the dtb.")
+        if not self.dtb != None:
+            raise TypeError("No valid DTB specified. Try the find_dtb"
+                            " plugin to search for the dtb.")
         self.name = (name or 'Kernel AS') + "@%#x" % self.dtb
 
     def entry_present(self, entry):

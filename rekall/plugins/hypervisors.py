@@ -18,6 +18,8 @@ KNOWN_REVISION_IDS = {
     0x01: "VMWARE_NESTED",
     # KVM
     0x11e57ed0: "KVM_NESTED",
+    # XEN
+    0xda0400: "XEN_NESTED",
     # Intel VT-x microarchitectures.
     0x0d: "PENRYN",
     0x0e: "NEHALEM",
@@ -55,6 +57,9 @@ vmcs_overlay = {
         'IS_NESTED': lambda x: True,
         }],
     'KVM_NESTED_VMCS' : [None, {
+        'IS_NESTED': lambda x: True,
+        }],
+    'XEN_NESTED_VMCS' : [None, {
         'IS_NESTED': lambda x: True,
         }],
     }
@@ -229,7 +234,7 @@ class VirtualMachine(object):
     def guest_arch(self):
         """The architecture of the guest OS of the VM."""
         all_guest_as = set([self.get_vmcs_guest_as_type(v) for v in self.vmcss
-                           if self.is_valid_vmcs(v)])
+                            if self.is_valid_vmcs(v)])
         if len(all_guest_as) == 1:
             return all_guest_as.pop()
         return "???"
@@ -347,12 +352,12 @@ class VirtualMachine(object):
             self.host_rip = long(vmcs.HOST_RIP)
 
         if self.ept == None:
-            self.ept = long(vmcs.EPT_POINTER_FULL)
+            self.ept = long(vmcs.m("EPT_POINTER_FULL"))
 
         if self.host_rip != vmcs.HOST_RIP:
             raise UnrelatedVmcsError("VMCS HOST_RIP differ from the VM's")
 
-        if vmcs.EPT_POINTER_FULL != self.ept:
+        if vmcs.m("EPT_POINTER_FULL") != self.ept:
             raise UnrelatedVmcsError("VMCS EPT differs from the VM's")
 
         if validate:
@@ -387,7 +392,10 @@ class VirtualMachine(object):
 
         # If we are dealing with L1 VMCS, the address space to validate
         # is the same as the VMCS.
-        validation_as = self.get_vmcs_host_address_space(vmcs)
+        try:
+            validation_as = self.get_vmcs_host_address_space(vmcs)
+        except TypeError:
+            return False
 
         for vaddr, paddr, size in validation_as.get_available_addresses():
             if self.base_session:
@@ -415,30 +423,20 @@ class VirtualMachine(object):
 
         session_override = {
             "ept": self.ept_list,
-            "no_autodetect": False,
             "profile": None,
-            "module": None,
-            "run": None,
         }
-
-        sess = session.Session()
-        with sess.state as state:
-            for k, v in self.base_session.state.iteritems():
-                if k in session_override:
-                    state.Set(k, session_override.get(k))
-                elif k == "cache":
-                    continue
-                else:
-                    state.Set(k, v)
-
-        return sess
+        vm_session = self.base_session.clone(**session_override)
+        vm_session.session_name = "VM %s" % ','.join(['0x%X' % s for s
+                                                      in self.ept_list])
+        vm_session.Reset()
+        return vm_session
 
     def RunPlugin(self, plugin_name, *args, **kwargs):
         """Runs a plugin in the context of this virtual machine."""
         vm_sess = self.GetSession()
         return vm_sess.RunPlugin(plugin_name, *args, **kwargs)
 
-    def add_nested_vms(self, vm_list):
+    def add_nested_vms(self, vm_list, validate_all=True):
         """Tries to add the list of VMs as nested VMs of this one.
 
         To validate nested VMs, we need to see if its identifying VMCS are
@@ -464,10 +462,12 @@ class VirtualMachine(object):
                     if vm.is_valid_vmcs(vmcs):
                         continue
 
+                    # This step makes sure the VMCS is mapped in the
+                    # Level1 guest physical memory (us).
                     if (paddr <= vmcs.obj_offset and
                         vmcs.obj_offset < paddr+size):
-                        # VMCS is mapped in our physical AS. Now we need to
-                        # validate it.
+                        # Now we need to validate the VMCS under our context.
+                        # For this we need to fix the VMCS AS and its offset.
                         vm.set_parent(self)
                         vmcs_stored_vm = vmcs.obj_vm
                         vmcs_stored_offset = vmcs.obj_offset
@@ -476,8 +476,13 @@ class VirtualMachine(object):
                         # The new offset is the vaddr + the offset within the
                         # physical page. We need to do this when we're dealing
                         # with large/huge pages.
+                        # Note that vaddr here really means the physical
+                        # address of the L1 guest. paddr means the physical
+                        # address of the base AS (the host).
                         vmcs.obj_offset = vaddr + (paddr - vmcs.obj_offset)
                         if vm.validate_vmcs(vmcs):
+                            # This steps validates that the VMCS is mapped in
+                            # the Level1 guest hypervisor AS.
                             self.virtual_machines.update([vm])
                         else:
                             # Reset the VMCS settings
@@ -528,6 +533,12 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         """Declare the command line args we accept."""
         super(VmScan, cls).args(parser)
         parser.add_argument(
+            "--quick", default=False, type="Boolean",
+            help="Perform quick VM detection.")
+        parser.add_argument(
+            "--no_nested", default=False, type="Boolean",
+            help="Don't do nested VM detection.")
+        parser.add_argument(
             "--offset", type="IntParser", default=0,
             help="Offset in the physical image to start the scan.")
 
@@ -536,14 +547,21 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
             help="Also show VMs that failed validation.")
 
         parser.add_argument(
+            "--image_is_guest", default=False, type="Boolean",
+            help="The image is for a guest VM, not the host.")
+        parser.add_argument(
             "--no_validation", default=False, type="Boolean",
             help=("[DEBUG SETTING] Disable validation of VMs."))
 
-    def __init__(self, offset=0, no_validation=False, show_all=False, **kwargs):
+    def __init__(self, offset=0, show_all=False, image_is_guest=False,
+                 no_validation=False, quick=False, no_nested=False, **kwargs):
         super(VmScan, self).__init__(**kwargs)
         self._offset = offset
         self._validate = not no_validation
         self._show_all = show_all
+        self._image_is_guest = image_is_guest
+        self._quick = quick
+        self._no_nested = no_nested
         if not self._validate:
             self._show_all = True
 
@@ -562,49 +580,69 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         # You could use (HOST_RIP, HOST_CR3), but VMWare 10.X uses a different
         # HOST_CR3 per core. The EPTP, however, is the same and hardly any
         # virtualization product would ever want to have different EPTP's per
-        # core.
+        # core because more page tables would have to be maintained for the
+        # same VM.
         for host_rip, rip_vmcs_list in groupby(
+
             sorted(all_vmcs, key=lambda x: long(x.HOST_RIP)),
             lambda x: long(x.HOST_RIP)):
 
+            sorted_rip_vmcs_list = sorted(
+                rip_vmcs_list, key=lambda x: long(x.m("EPT_POINTER_FULL")))
+
             for ept, rip_ept_vmcs_list in groupby(
-                sorted(rip_vmcs_list, key=lambda x: long(x.EPT_POINTER_FULL)),
-                lambda x: long(x.EPT_POINTER_FULL)):
+                sorted_rip_vmcs_list,
+                lambda x: long(x.m("EPT_POINTER_FULL"))):
 
                 vm = VirtualMachine(host_rip=host_rip, ept=ept,
                                     session=self.session)
                 for vmcs in rip_ept_vmcs_list:
                     try:
                         # If a VMCS is nested we cannot do validation at this
-                        # step. However, if the physical address_space is a
-                        # VTxPagedMemory, as if you had run vmscan inside a VM,
-                        # by specifying the --ept parameter on the command line,
-                        # we can and should do validation here.
-                        if (vmcs.IS_NESTED
-                            and not isinstance(self.physical_address_space,
-                                               amd64.VTxPagedMemory)):
-                            # We cannot validate nested VMs at this point.
-                            vm.add_vmcs(vmcs, validate=False)
+                        # step unless the memory image is for a guest VM or the
+                        # physical address_space is a VTxPagedMemory. The
+                        # physical AS is a VTxPagedMemory when you specify the
+                        # --ept parameter on the command line.
+                        if vmcs.IS_NESTED:
+                            if (self._image_is_guest or
+                                self.physical_address_space.metadata("ept")):
+                                vm.add_vmcs(vmcs, validate=self._validate)
+                            else:
+                                vm.add_vmcs(vmcs, validate=False)
                         else:
                             vm.add_vmcs(vmcs, validate=self._validate)
+
+                        if vm.is_valid_vmcs(vmcs):
+                            if self._quick:
+                                break
                     except UnrelatedVmcsError:
-                        # This may happen when we analyze our own memory, when
-                        # the HOST_RIP/EPT that we grouped with has changed.
+                        # This may happen when we analyze live memory. When
+                        # the HOST_RIP/EPT that we grouped with has changed
+                        # between finding it and adding it to a vm, add_vmcs
+                        # may raise an UnrelatedVmcsError.
                         # Not much we can do other than skipping this VMCS.
                         continue
 
-                # Skip adding empty VMs, which can happen if we skipped vmcss.
-                if vm.vmcss:
-                    # We need to split nested and host VMs here. However, we
-                    # cannot use the is_nested method of vm, because the
-                    # potential nested VMs aren't technically nested yet
-                    # (i.e: don't have a parent) so we resort to checking if
-                    # all the VMCSs are of nested-type.
-                    may_be_nested = all([v.IS_NESTED for v in vm.vmcss])
-                    if self._validate and may_be_nested:
-                        nested_vms.append(vm)
-                    else:
-                        host_vms.append(vm)
+                # Discard empty VMs, which can happen if we skipped vmcss.
+                if not vm.vmcss:
+                    continue
+
+                # We need to split nested and host VMs here. However, we
+                # cannot use the is_nested method of VirtualMachine, because the
+                # potentially nested VMs aren't technically nested yet
+                # (i.e: don't have a parent). So we resort to checking if
+                # all the VMCSs are of nested-type.
+                may_be_nested = all([v.IS_NESTED for v in vm.vmcss])
+                if may_be_nested and not vm.is_valid:
+                    # Only add as nested VMs ones that haven't been validated
+                    # yet. This covers the case there image_is_guest is True
+                    # and they were validated as hosts.
+                    nested_vms.append(vm)
+                else:
+                    host_vms.append(vm)
+
+        if self._no_nested:
+            return host_vms
 
         # == NESTED VM validation
         # Only 1 level of nesting supported at the moment.
@@ -618,38 +656,43 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         else:
             candidate_hosts = []
 
+        # This step validates nested VMs. We try all candidate nested vms
+        # against all candidate hosts.
         for candidate_host_vm in candidate_hosts:
-            candidate_host_vm.add_nested_vms(nested_vms)
+            candidate_host_vm.add_nested_vms(nested_vms,
+                                             validate_all=not self._quick)
 
-        # Add all remaining VMs that werent able to guess the hierarchy of to
-        # the output vm list.
+        # Add all remaining VMs that we weren't able to guess the hierarchy of
+        # to the output vm list.
         host_vms.extend(nested_vms)
         return host_vms
 
 
     def render(self, renderer=None):
-        renderer.table_header([("Virtual machines", "description", "<36s"),
-                               ("Type", "type", ">20s"),
-                               ("Valid", "valid", ">8s"),
-                               ("EPT", "ept", "s")
-                               ])
+        renderer.table_header([
+            dict(name="Description", type="TreeNode", max_depth=5, child=dict(
+                type="VirtualizationNode", style="light", quick=self._quick)),
+            ("Type", "type", ">20s"),
+            ("Valid", "valid", ">8s"),
+            ("EPT", "ept", "s")
+            ])
+
         virtual_machines = self.get_vms()
 
         # At this point the hierarchy has been discovered.
-        for vm_idx, vm in enumerate(virtual_machines):
+        for vm in virtual_machines:
             # Skip invalid VMs.
             if not self._show_all and not vm.is_valid:
                 continue
-            self.render_vm(renderer, vm, vm_idx, indent_level=0)
-            # Separate each top-level VM
-            renderer.section()
+            self.render_vm(renderer, vm, indent_level=0)
 
-        if self.verbosity > 1:
+        if self.verbosity > 2:
             for vm in virtual_machines:
                 for vmcs in vm.vmcss:
                     if not self._show_all and not vm.is_valid_vmcs(vmcs):
                         continue
                     renderer.section("VMCS @ %#x" % vmcs.obj_offset)
+                    renderer.table_header([("Details", "details", "s")])
                     self.session.plugins.p(vmcs).render(renderer)
 
                 for nested_vm in vm.virtual_machines:
@@ -657,15 +700,15 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
                         if not self._show_all and not vm.is_valid_vmcs(vmcs):
                             continue
                         renderer.section("VMCS @ %#x" % vmcs.obj_offset)
+                        renderer.table_header([("Details", "details", "s")])
                         self.session.plugins.p(vmcs).render(renderer)
 
-    def render_vm(self, renderer, vm, vm_index, indent_level=0):
-        indentation = "  " * indent_level
-        vm_description = "{0:s}VM #{1:d} [{2:d} vCORE, {3:s}]"
-        vm_description = vm_description.format(
-            indentation, vm_index, vm.num_cores, vm.guest_arch)
+    def render_vm(self, renderer, vm, indent_level=0):
         vm_ept = ','.join(["0x%X" % e for e in vm.ept_list])
-        renderer.table_row(vm_description, 'VM', vm.is_valid, vm_ept)
+        renderer.table_row(vm, 'VM', vm.is_valid, vm_ept, depth=indent_level)
+
+        if isinstance(self.session, session.InteractiveSession):
+            self.session.add_session(vm.GetSession())
 
         if self.verbosity > 1:
             for vmcs in sorted(vm.vmcss,
@@ -675,12 +718,10 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
 
                 valid = vm.is_valid_vmcs(vmcs)
                 renderer.table_row(
-                    "{0:s}VMCS @ {1:#x} vCORE {2:X}".format(
-                        "  " * (indent_level+1), vmcs.obj_offset, vmcs.VPID),
-                    vmcs.obj_name, valid, '')
+                    vmcs,
+                    vmcs.obj_name, valid, '', depth=indent_level+1)
 
-        for nested_vm_idx, nested_vm in enumerate(vm.virtual_machines):
+        for nested_vm in vm.virtual_machines:
             if not self._show_all and not nested_vm.is_valid:
                 continue
-            self.render_vm(renderer, nested_vm, nested_vm_idx,
-                      indent_level=indent_level+2)
+            self.render_vm(renderer, nested_vm, indent_level=indent_level+1)

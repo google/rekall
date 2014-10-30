@@ -94,7 +94,8 @@ def Shell(user_session):
 
     cfg.PromptManager.in_template = (
         r'{color.LightCyan}'
-        r'{session.state.base_filename}'
+        r'[{session.session_id}] '
+        r'{session.session_name}'
         r'{color.LightBlue}{color.Green} \T> ')
 
     cfg.PromptManager.in2_template = (
@@ -106,7 +107,7 @@ def Shell(user_session):
     cfg.InteractiveShell.separate_out2 = ''
 
     shell = embed.InteractiveShellEmbed(
-        config=cfg, user_ns=user_session._locals)
+        config=cfg, user_ns=user_session.locals)
 
     shell.Completer.merge_completions = False
     shell.banner = constants.BANNER
@@ -115,7 +116,7 @@ def Shell(user_session):
 
     # Do we need to pre-run something?
     if user_session.run != None:
-        execfile(user_session.run, user_session._locals)
+        execfile(user_session.run, user_session.locals)
 
     # Workaround for completer bug.
     import IPython.core.completerlib
@@ -125,6 +126,6 @@ def Shell(user_session):
     # set it to ensure consistency.
     readline.set_completer_delims(' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?')
 
-    shell(local_ns=user_session._locals)
+    shell(local_ns=user_session.locals)
 
     return True

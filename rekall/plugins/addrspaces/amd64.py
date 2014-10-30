@@ -205,6 +205,7 @@ class VTxPagedMemory(AMD64PagedMemory):
 
     order = 20
     __image = True
+    _ept = None
 
     def __init__(self, ept=None, **kwargs):
         # A dummy DTB is passed to the base class so the DTB checks on
@@ -220,7 +221,7 @@ class VTxPagedMemory(AMD64PagedMemory):
         this_ept = None
         if isinstance(self.base, VTxPagedMemory):
             # Find our EPT, which will be the next one after the base one.
-            base_idx = ept_list.index(self.base.ept)
+            base_idx = ept_list.index(self.base._ept)
             try:
                 this_ept = ept_list[base_idx + 1]
             except IndexError:
@@ -229,8 +230,8 @@ class VTxPagedMemory(AMD64PagedMemory):
             this_ept = ept_list[0]
 
         self.as_assert(this_ept != None, "No more EPTs specified")
-        self.ept = this_ept
-        self.name = "VTxPagedMemory@%#x" % self.ept
+        self._ept = this_ept
+        self.name = "VTxPagedMemory@%#x" % self._ept
 
     def entry_present(self, entry):
         # A page entry being present depends only on bits 2:0 for EPT
@@ -239,9 +240,9 @@ class VTxPagedMemory(AMD64PagedMemory):
 
     def get_pml4e(self, vaddr):
         # PML4 for VT-x is in the EPT, not the DTB as AMD64PagedMemory does.
-        ept_pml4e_paddr = ((self.ept & 0xffffffffff000) |
+        ept_pml4e_paddr = ((self._ept & 0xffffffffff000) |
                            ((vaddr & 0xff8000000000) >> 36))
         return self._read_long_long_phys(ept_pml4e_paddr)
 
     def __str__(self):
-        return "%s@0x%08X" % (self.__class__.__name__, self.ept)
+        return "%s@0x%08X" % (self.__class__.__name__, self._ept)

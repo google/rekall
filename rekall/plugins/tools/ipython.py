@@ -21,6 +21,7 @@
 #
 
 __author__ = "Michael Cohen <scudette@google.com>"
+
 import os
 import site
 
@@ -69,28 +70,100 @@ def NativePythonSupport(user_session):
 
     # Prepare the session for running within the native python interpreter.
     user_session.PrepareLocalNamespace()
-    code.interact(banner=constants.BANNER, local=user_session._locals)  # pylint: disable=protected-access
+    code.interact(banner=constants.BANNER, local=user_session.locals)  # pylint: disable=protected-access
 
 
-class Rekall(plugin.Command):
-    """Starts or modifies a new rekall analysis session.
+class BaseSessionCommand(plugin.Command):
+    """Base class for all session management plugins."""
+    interactive = True
 
-    This plugin is probably only useful within the interactive shell. It
-    modifies the current state of the session. (The state can be viewed by
-    printing the session parameter.
+    @classmethod
+    def args(cls, parser):
+        super(BaseSessionCommand, cls).args(parser)
+
+        parser.add_argument("session_id",
+                            help="The session id to change to")
+
+    def __init__(self, session_id=None, **kwargs):
+        session = kwargs.pop("session")
+        super(BaseSessionCommand, self).__init__(session=session)
+        self.kwargs = kwargs
+        self.session_id = session_id
+
+    def _find_session(self, session_id):
+        """Finds a session by its id."""
+        for session in self.session.session_list:
+            if session.session_id == session_id:
+                return session
+        return None
+
+
+class SessionList(BaseSessionCommand):
+    """List the sessions available."""
+    __name = "slist"
+
+    def render(self, renderer):
+        for session in self.session.session_list:
+            renderer.format("%s [%d] %s\n" % (
+                (self.session == session) and "*" or " ",
+                session.session_id, session.session_name))
+
+
+class SessionSwitch(BaseSessionCommand):
+    """Changes the current session to the session with session_id."""
+    __name = "sswitch"
+
+    def render(self, renderer):
+        new_session = self._find_session(self.session_id)
+        if new_session:
+            self.session.locals["session"] = new_session
+        else:
+            renderer.format("Invalid session specified.\n")
+
+
+class SessionNew(BaseSessionCommand):
+    """Creates a new session by cloning the current one."""
+    __name = "snew"
+
+    def render(self, renderer):
+        new_session_name = (self.session_id or
+                            "Copy of %s" % self.session.session_name)
+        new_session = self.session.clone(session_name=new_session_name,
+                                         **self.kwargs)
+        self.session.add_session(new_session)
+
+        renderer.format("Created session [{0:s}] {1:s}\n",
+                        new_session.session_id, new_session.session_name)
+
+class SessionDelete(SessionSwitch):
+    """Delete a session."""
+    __name = "sdel"
+
+    def render(self, renderer):
+        session = self._find_session(self.session_id)
+        if session == None:
+            renderer.format("Invalid session id.\n")
+        elif session == self.session:
+            renderer.format("You can't delete your current session.\n")
+        else:
+            self.session.session_list.remove(session)
+
+
+class SessionMod(plugin.Command):
+    """Modifies parameters of the current analysis session.
 
     Any session parameters can be set here. For example:
 
-    rekal nocolors=True, paging_limit=10, pager="less"
+    smod nocolors=True, paging_limit=10, pager="less"
 
     """
-    __name = "rekal"
+    __name = "smod"
 
     interactive = True
 
     @classmethod
     def args(cls, parser):
-        super(Rekall, cls).args(parser)
+        super(SessionMod, cls).args(parser)
 
         parser.add_argument("--filename",
                             help="The name of the image file to analyze.")
@@ -103,17 +176,13 @@ class Rekall(plugin.Command):
                             "(e.g. notepad or less).")
 
     def __init__(self, session=None, **kwargs):
-        super(Rekall, self).__init__(session=session)
+        super(SessionMod, self).__init__(session=session)
         self.kwargs = kwargs
 
     def render(self, renderer):
-        renderer.format("Initializing Rekall session.\n")
         with self.session as s:
             for k, v in self.kwargs.items():
                 s.SetParameter(k, v)
-
-            s.UpdateFromConfigObject()
-
 
         renderer.format("Done!\n")
 

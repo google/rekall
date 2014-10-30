@@ -10,3 +10,4 @@ except ImportError:
     pass
 
 from rekall.plugins.renderers import windows
+from rekall.plugins.renderers import virtualization

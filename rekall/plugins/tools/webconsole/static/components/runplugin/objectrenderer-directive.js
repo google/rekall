@@ -89,6 +89,7 @@
     'UnixTimeStamp': true,
     '_EPROCESS': true,
     'bool': true,
+    'VirtualMachine': true,
   };
 
   var getTemplate = function(item) {

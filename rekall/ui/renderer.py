@@ -25,7 +25,7 @@ for the user (whatever that means).
 
 A Rekall plugin uses the renderer to produce output by providing it with a bunch
 of objects which are derived from the analysis stage. The renderer is then
-responsible for rendering these special objects using pluaggable
+responsible for rendering these special objects using pluggable
 ObjectRenderer() classes.
 
 1. The framework creates a BaseRenderer implementation (e.g. TextRenderer or

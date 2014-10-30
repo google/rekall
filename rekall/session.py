@@ -205,8 +205,8 @@ class Configuration(Cache):
 
     _loaded_filename = None
 
-    def __init__(self, session=None):
-        super(Configuration, self).__init__()
+    def __init__(self, session=None, **kwargs):
+        super(Configuration, self).__init__(**kwargs)
         self.session = session
 
         # These will be processed on exit from the context manager.
@@ -277,6 +277,19 @@ class Configuration(Cache):
         logging.info("Logging level set to %s", level)
         logging.getLogger().setLevel(int(level))
 
+    def _set_ept(self, ept, _):
+        self.session.Reset()
+        return ept
+
+    def _set_session_name(self, name, _):
+        self.session.session_name = name
+        return name
+
+    def _set_session_id(self, session_id, __):
+        if self.Get("session_id") == None:
+            return session_id
+        raise RuntimeError("Cannot modify the session id.")
+
     def Set(self, attr, value):
         hook = getattr(self, "_set_%s" % attr, None)
         if hook:
@@ -290,7 +303,6 @@ class Configuration(Cache):
                 self._pending_hooks.append(attr)
 
             self._pending_parameters[attr] = value
-
         else:
             super(Configuration, self).Set(attr, value)
 
@@ -741,6 +753,24 @@ class Session(object):
     def profile(self, value):
         self.state.cache.Set('profile', value)
 
+    def clone(self, session_name=None, **kwargs):
+        new_state = self.state.copy()
+        # Remove the cache from the copy so we start with a fresh cache.
+        new_state.pop("cache")
+        # session_ids are automatically generated so we need to pop it.
+        new_state.pop("session_id")
+        old_session_name = new_state.pop("session_name")
+        new_session_name = session_name or old_session_name
+        new_session = self.__class__(session_name=new_session_name, **new_state)
+        new_session.Reset()
+        new_session.locals = self.locals
+
+        # Now override all parameters as requested.
+        with new_session:
+            for k, v in kwargs.iteritems():
+                new_session.SetParameter(k, v)
+        return new_session
+
 
 class JsonSerializableSession(Session):
     """A session which can serialize its state into a Json file."""
@@ -784,20 +814,18 @@ class DynamicNameSpace(dict):
     """A namespace which dynamically reflects the currently active plugins."""
 
     def __init__(self, session=None, **kwargs):
-        self.session = session
         if session is None:
             raise RuntimeError("Session must be given.")
 
-        self.plugins = PluginContainer(session)
-        self.help_profile = self.session.LoadProfile("help_doc")
+        self.help_profile = session.LoadProfile("help_doc")
 
         super(DynamicNameSpace, self).__init__(
-            session=session, plugins=self.plugins,
+            session=session, plugins=session.plugins,
             **kwargs)
 
     def __iter__(self):
         res = set(super(DynamicNameSpace, self).__iter__())
-        res.update(self.plugins.__dir__())
+        res.update(self["plugins"].__dir__())
 
         return iter(res)
 
@@ -814,7 +842,7 @@ class DynamicNameSpace(dict):
         try:
             return super(DynamicNameSpace, self).__getitem__(item)
         except KeyError:
-            if getattr(self.plugins, item):
+            if getattr(self["session"].plugins, item):
                 return self._prepare_runner(item)
 
             raise KeyError(item)
@@ -828,7 +856,7 @@ class DynamicNameSpace(dict):
 
         # Create a runner for this plugin and set its documentation.
         runner = obj.Curry(
-            self.session.RunPlugin, name, default_arguments=default_args)
+            self["session"].RunPlugin, name, default_arguments=default_args)
 
         runner.__doc__ = doc
 
@@ -842,7 +870,10 @@ class InteractiveSession(JsonSerializableSession):
     interactive use.
     """
 
-    def __init__(self, env=None, use_config_file=True, **kwargs):
+    # A list of tuples (session_id, session) sorted by session id
+    session_list = []
+
+    def __init__(self, env=None, use_config_file=True, session_name=None, **kwargs):
         """Creates an interactive session.
 
         Args:
@@ -865,8 +896,12 @@ class InteractiveSession(JsonSerializableSession):
         # Fill the session with helpful defaults.
         self.pager = obj.NoneObject("Set this to your favourite pager.")
 
+        # Set the session name
+        self.session_name = session_name or "Default session"
+        self.session_id = self._new_session_id()
+
         # Prepare the local namespace for the interactive session.
-        self._locals = DynamicNameSpace(
+        self.locals = DynamicNameSpace(
             session=self,
 
             # Prepopulate the namespace with our most important modules.
@@ -875,11 +910,19 @@ class InteractiveSession(JsonSerializableSession):
             # Some useful modules which should be available always.
             sys=sys, os=os,
 
+            # A list of sessions.
+            session_list=self.session_list,
+
             # Pass additional environment.
             **(env or {})
             )
 
         super(InteractiveSession, self).__init__()
+
+        with self.state:
+            self.state.Set("session_list", self.session_list)
+            self.state.Set("session_name", self.session_name)
+            self.state.Set("session_id", self.session_id)
 
         # Configure the session from the config file and kwargs.
         if use_config_file:
@@ -889,6 +932,15 @@ class InteractiveSession(JsonSerializableSession):
             with self.state:
                 for k, v in kwargs.items():
                     self.state.Set(k, v)
+
+    def _new_session_id(self):
+        new_sid = 1
+        for session in InteractiveSession.session_list:
+            sid = session.session_id
+            if session.session_id == new_sid + 1:
+                break
+            new_sid += 1
+        return new_sid
 
     def RunPlugin(self, *args, **kwargs):
         self.last = super(InteractiveSession, self).RunPlugin(*args, **kwargs)
@@ -919,3 +971,9 @@ Config:
         """Swallow the error but report it."""
         logging.error("Failed running plugin %s: %s",
                       plugin_cls.name, e)
+
+    def add_session(self, session):
+        self.session_list.append(session)
+        self.session_list.sort(key=lambda x: x.session_id)
+
+
