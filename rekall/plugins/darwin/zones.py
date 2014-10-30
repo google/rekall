@@ -72,7 +72,7 @@ class DarwinDumpZone(common.DarwinPlugin):
                     expression.Equivalence(
                         expression.Binding("Buffer/purpose"),
                         expression.Literal("zones")),
-                    expression.Let(
+                    expression.LetAny(
                         "Buffer/context",
                         expression.Equivalence(
                             expression.Binding("AllocationZone/name"),

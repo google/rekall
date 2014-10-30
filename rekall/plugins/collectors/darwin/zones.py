@@ -182,7 +182,7 @@ class DarwinZoneBufferCollector(DarwinZoneElementCollector):
             for element, state in self.collect_base_objects(
                     zone_name=zone["AllocationZone/name"], ingest=ingest):
                 yield definitions.Buffer(
-                    address=(element.obj_offset, element.obj_vm.dtb),
+                    start=(element.obj_offset, element.obj_vm.dtb),
                     size=zone["AllocationZone/element_size"],
                     contents=element.obj_vm.read(
                         element.obj_offset,

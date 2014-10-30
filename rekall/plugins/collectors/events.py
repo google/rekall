@@ -42,12 +42,13 @@ class EventInferenceCollector(collector.EntityCollector):
 
     # pylint: disable=protected-access
     def collect(self, hint=None, ingest=None):
+        manager = self.manager
         for entity in ingest:
             for field in definitions.Timestamps.component_fields:
                 timestamp = getattr(entity.components.Timestamps, field.name)
                 action = field.name.replace("_at", "")
                 if timestamp:
-                    yield [identity.UniqueIdentity(),
+                    yield [manager.identify({identity.UniqueIndex(): None}),
                            definitions.Event(target=entity.identity,
                                              timestamp=timestamp,
                                              action=action)]

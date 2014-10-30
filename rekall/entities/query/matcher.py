@@ -22,6 +22,7 @@ The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall.entities.query import expression
 from rekall.entities.query import visitor
 
 
@@ -50,16 +51,37 @@ class QueryMatcher(visitor.QueryVisitor):
         return expr.value
 
     def visit_Binding(self, expr):
-        return self.bindings[expr.value]
+        return self.bindings.get_raw(expr.value)
 
     def visit_Let(self, expr):
-        # Use the context to get new bindings, evaluate, restore, return.
         saved_bindings = self.bindings
-        self.bindings = saved_bindings[expr.context]
-        result = self.visit(expr.expression)
-        self.bindings = saved_bindings
+        if isinstance(expr, expression.LetAny):
+            union_semantics = True
+        elif isinstance(expr, expression.LetEach):
+            union_semantics = False
+        else:
+            union_semantics = None
 
-        return result
+        try:
+            rebind_variants = list(saved_bindings.get_variants(expr.context))
+            if len(rebind_variants) > 1 and union_semantics is None:
+                raise ValueError(
+                    "More than one result for a Let expression is illegal. "
+                    "Use LetEach or LetAny to specify semantics.")
+
+            result = False
+            for rebind in rebind_variants:
+                self.bindings = rebind
+                result = self.visit(expr.expression)
+                if result and union_semantics:
+                    return result
+
+                if not result and not union_semantics:
+                    return False
+
+            return result
+        finally:
+            self.bindings = saved_bindings
 
     def visit_Sorted(self, expr):
         self.latest_sort_order.append(self.bindings[expr.binding])

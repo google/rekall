@@ -29,7 +29,7 @@ class DarwinPsxView(common.DarwinPlugin):
     __name = "psxview"
 
     def render(self, renderer):
-        collectors = self.session.entities.collectors_for(
+        collectors, _ = self.session.entities.analyze(
             expression.Equivalence(
                 expression.Binding("MemoryObject/type"),
                 expression.Literal("proc")))

@@ -46,7 +46,11 @@ class DebugCollector(plugin.Command):
         self.collector = self.find_collector(collector)
 
     def render(self, renderer):
-        for result in self.collector.collect():
+        ingest = None
+        if self.collector.ingests:
+            ingest = self.session.entities.find(self.collector.ingests)
+
+        for result in self.collector.collect(ingest=ingest):
             renderer.write(str(result))
             renderer.write("\n\n")
 

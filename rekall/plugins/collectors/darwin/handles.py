@@ -121,7 +121,7 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
             # result due to PID reuse - still, it's better than nothing.
 
             yield [
-                identity.UniqueIdentity(),
+                self.manager.identify({identity.UniqueIndex(): None}),
                 definitions.Event(
                     actor=self.manager.identify({
                         "Process/pid": socket.last_pid}),

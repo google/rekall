@@ -26,7 +26,7 @@ import re
 
 from rekall import registry
 
-from rekall.entities.query import dependency
+from rekall.entities.query import analyzer
 
 
 class CostEnum(object):
@@ -79,11 +79,11 @@ class EntityCollector(object):
 
     def _ensure_compile_promises(self):
         if not self._promises:
-            self._promises = [dependency.SimpleDependency.parse(output)
-                               for output in self.outputs]
+            self._promises = [analyzer.SimpleDependency.parse(output)
+                              for output in self.outputs]
 
         # All collectors return Entity.
-        self._promises.append(dependency.SimpleDependency("Entity"))
+        self._promises.append(analyzer.SimpleDependency("Entity"))
 
     @property
     def is_collected(self):

@@ -53,22 +53,26 @@ MemoryObject = component.DeclareComponent(
     "MemoryObject", "Stores base objects, mostly structs.",
     component.Field("base_object", "BaseObject", "An instance of BaseObject."),
     component.Field("type", str, "Class name of the base object."),
-    component.Field("state", {"free", "allocated"},
+    component.Field("state", {"freed", "allocated"},
                     "Allocation state (freed or not)."))
 
 
 Buffer = component.DeclareComponent(
     "Buffer", "Stores raw memory contents at a given address.",
-    component.Field("address", "Pointer",
-                    "Offset and DTB where the buffer lives."),
-    component.Field("size", int, "Size of buffer."),
-    component.Field("state", {"free", "allocated"},
+    component.Field("start", "Pointer",
+                    "Pointer to start of the buffer."),
+    component.Field("end", "Pointer",
+                    "Pointer to end of the buffer."),
+    component.Field("kind", {"flat", "ring"},
+                    "Ring buffer's end can be lower than its start."),
+    component.Field("size", int, "Size of the buffer (in bytes)."),
+    component.Field("state", {"freed", "allocated"},
                     "Allocation state (freed or not)."),
     component.Field("contents", str,
                     "Raw contents (contains unprintable characters)."),
     component.Field("purpose",
-                    {"zones", "terminal", "clipboard", "pipe",
-                     "socket", "mmap", "ubc"},
+                    {"zones", "terminal_input", "terminal_output",
+                     "clipboard", "pipe", "socket", "mmap", "ubc"},
                     "Use of the buffer, e.g. pipe, tty, mmap..."),
     component.Field("context", "Identity",
                     "Owner of the buffer, e.g. a zone, terminal..."))

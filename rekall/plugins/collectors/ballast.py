@@ -45,7 +45,7 @@ class BallastGenerator(collector.EntityCollector):
         return session.GetParameter("generate_ballast") > 0
 
     def collect(self, hint=None, ingest=None):
-        for i in range(self.count):
+        for i in range(self.session.GetParameter("generate_ballast")):
             yield [
                 definitions.Named(
                     name="Ballast entry #%d" % i,

@@ -992,6 +992,21 @@ class vm_map_entry(obj.Struct):
         return obj.NoneObject("VNode not found")
 
 
+class clist(obj.Struct):
+
+    @property
+    def recovered_contents(self):
+        """Gets the full contents of the ring buffer, which may be freed.
+        
+        This is different from getting the legal contents as with b_to_q [1]
+        because clists are only used by TTYs and they seem to always be all
+        marked as consumed, so b_to_q wouldn't let us see any content.
+        
+        1: github.com/opensource-apple/xnu/blob/10.9/bsd/kern/tty_subr.c#L358
+        """
+        return self.obj_vm.read(self.c_cs, self.c_cn)
+
+
 class proc(obj.Struct):
     def get_open_files(self):
         """Gets all open files (sockets, pipes...) owned by this proc.
@@ -1156,7 +1171,7 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
             LIST_ENTRY=LIST_ENTRY, queue_entry=queue_entry,
             sockaddr=sockaddr, sockaddr_dl=sockaddr_dl,
             vm_map_entry=vm_map_entry, proc=proc, vnode=vnode,
-            socket=socket,
+            socket=socket, clist=clist,
             # Support both forms with and without _class suffix.
             OSDictionary=OSDictionary, OSDictionary_class=OSDictionary,
             OSOrderedSet=OSOrderedSet, OSOrderedSet_class=OSOrderedSet,

@@ -32,7 +32,7 @@ from rekall.entities import definitions
 from rekall.entities import identity as entity_id
 from rekall.entities import lookup_table as entity_lookup
 
-from rekall.entities.query import dependency as query_dependency
+from rekall.entities.query import analyzer as query_analyzer
 from rekall.entities.query import expression
 from rekall.entities.query import matcher as query_matcher
 
@@ -122,7 +122,8 @@ class EntityManager(object):
         self.session = session
         self.finished_collectors = set()
         self._collectors = {}
-        self.cached_query_dependencies = {}
+        self.cached_query_analyses = {}
+        self.cached_collector_matchers = {}
 
         # Lookup table on component name is such a common use case that we
         # always have it on. This actually speeds up searches by attribute that
@@ -158,10 +159,15 @@ class EntityManager(object):
                 if cls.is_active(self.session):
                     continue
                 else:
+                    del self.cached_collector_matchers[key]
                     del self._collectors[key]
             else:
                 if cls.is_active(self.session):
-                    self._collectors[key] = cls(entity_manager=self)
+                    collector = cls(entity_manager=self)
+                    self._collectors[key] = collector
+                    if collector.ingests:
+                        matcher = query_matcher.QueryMatcher(collector.ingests)
+                        self.cached_collector_matchers[key] = matcher
 
     @property
     def identity_prefix(self):
@@ -181,11 +187,11 @@ class EntityManager(object):
             usual "Component/member") and expected values.
 
         Returns:
-            AlternateIdenity initialized with the identity dict and this
+            An instance of Identity initialized with the identity dict and this
             manager's global prefix.
         """
-        return entity_id.AlternateIdentity(global_prefix=self.identity_prefix,
-                                           identity_dict=identity_dict)
+        return entity_id.Identity.from_dict(global_prefix=self.identity_prefix,
+                                            identity_dict=identity_dict)
 
     # pylint: disable=protected-access
     def register_components(self, identity, components, source_collector):
@@ -280,30 +286,44 @@ class EntityManager(object):
 
         self.lookup_tables[key] = lookup_table
 
-    def find_by_identity(self, identity):
+    def find_by_identity(self, identity, complete=False):
         """Yield the entities that matches the identity.
 
         The number of entities yielded is almost always one or zero. The single
         exception to that rule is when the identity parameter is both: (a) a
         alternate identity and (b) not yet present in this entity manager. In
         that case, multiple entities may match.
+        
+        Arguments:
+            identity: The identity to search for.
+            complete: Should collectors be run to ensure complete results?
         """
+        if complete:
+            for _, attribute, value in identity.indices:
+                self.collect_for(
+                    expression.Equivalence(
+                        expression.Binding(attribute),
+                        expression.Literal(value)))
+
         results = set()
         for index in identity.indices:
             entity = self.entities.get(index, None)
             if entity:
                 results.add(entity)
 
+        if complete:
+            results = [self.parse(entity) for entity in results]
+
         return list(results)
 
-    def find_by_component(self, component, complete_results=True):
+    def find_by_component(self, component, complete=True):
         """Yields all entities that have the component.
 
         Arguments:
-            complete_results: If True, will attempt to collect the component.
+            complete: If True, will attempt to collect the component.
         """
         query = expression.ComponentLiteral(component)
-        if complete_results:
+        if complete:
             self.collect_for(query)
 
         return list(self.lookup_tables["components"].lookup(component))
@@ -311,17 +331,39 @@ class EntityManager(object):
     def find_by_collector(self, collector):
         return list(self.lookup_tables["collectors"].lookup(str(collector)))
 
-    def collectors_for(self, wanted):
-        """Finds the active collectors that can satisfy the query.
+    def parsers_for(self, entity):
+        """Finds collectors that can parse this entity."""
+        self.update_collectors()
+        for collector, matcher in self.cached_collector_matchers.iteritems():
+            if matcher.match(entity):
+                yield self._collectors[collector]
 
-        For format of the wanted query, see EntityCollector.can_collect.
+    def parse(self, entity):
+        """Parses the entity using available higher-order collectors."""
+        result = entity
+        for collector in self.parsers_for(entity):
+            for parsed, effect in self.collect(collector, ingest=[entity]):
+                if effect and parsed == entity:
+                    logging.debug(
+                        "Collector %s produced a hit in parser mode.",
+                        collector.name)
+                    result = parsed
+
+        return result
+
+    def analyze(self, wanted):
+        """Finds collectors and indexing suggestions for the query.
+
+        Returns a tuple of:
+            - list of collectors to run
+            - list of attributes to consider indexing for
         """
-        collectors = self.cached_query_dependencies.get(wanted, None)
-        if collectors:
-            return collectors
+        analysis = self.cached_query_analyses.get(wanted, None)
+        if analysis:
+            return analysis
 
-        dependency_finder = query_dependency.DependencyFinder(wanted)
-        include, exclude = dependency_finder.run()
+        analyzer = query_analyzer.QueryAnalyzer(wanted)
+        include, exclude, suggested_indices = analyzer.run()
 
         # A collector is a match if any of its promises match any of the
         # dependencies of the query.
@@ -346,8 +388,9 @@ class EntityManager(object):
                 # No exclusions.
                 collectors.add(collector)
 
-        self.cached_query_dependencies[wanted] = collectors
-        return collectors
+        analysis = (list(collectors), suggested_indices)
+        self.cached_query_analyses[wanted] = analysis
+        return analysis
 
     def find(self, query, complete=True):
         """Runs the query and yields entities that match.
@@ -385,8 +428,13 @@ class EntityManager(object):
         # Plan execution.
         self.update_collectors()
 
-        # Used as FIFO queue.
-        to_process = list(self.collectors_for(wanted))
+        # to_process is used as a FIFO queue below.
+        to_process, suggested_indices = self.analyze(wanted)
+
+        # Create indices as suggested by the analyzer.
+        for attribute in suggested_indices:
+            self.add_attribute_lookup(attribute)
+
         collectors_seen = set(self.finished_collectors)
 
         # Collectors with an ingest query are de-facto parsers for things
@@ -412,7 +460,10 @@ class EntityManager(object):
                 repeated.append(collector)
                 queries.add(collector.ingests)
 
-                for dependency in self.collectors_for(collector.ingests):
+                # Discard the indexing suggestions for ingestion queries
+                # because they don't represent normal usage.
+                additional_dependencies, _ = self.analyze(collector.ingests)
+                for dependency in additional_dependencies:
                     logging.debug(
                         "Collector %s depends on collector %s for its ingest "
                         "query '%s'.",
@@ -427,6 +478,11 @@ class EntityManager(object):
         if not collectors_seen.difference(self.finished_collectors):
             # Looks like we're already populated - no need to do anything.
             return
+
+        logging.info(
+            "Will now run %d first-order collectors and %d collectors with "
+            "dependencies to satisfy query %s.",
+            len(non_ingesting), len(repeated), wanted)
 
         # Mark as finished unless a hint was used.
         if not hint:

@@ -124,7 +124,7 @@ class Entity(object):
     @property
     def indices(self):
         """Returns all the keys that the entity will be accessible at."""
-        return set(self.identity.indices)
+        return self.identity.indices
 
     def __hash__(self):
         return hash(self.identity)
@@ -153,13 +153,14 @@ class Entity(object):
         return True
 
     def __repr__(self):
-        keyvals = []
-        for key, val in self.asdict().iteritems():
-            if isinstance(val, obj.BaseObject):
-                val = repr(val)  # Base objects' __str__ results are massive.
-            keyvals.append("\t%s = %s" % (key, val))
+        parts = []
+        for component in self.components:
+            if not component:
+                continue
 
-            return "Entity(ID: %s;\n%s)" % (self.identity, "\n".join(keyvals))
+            parts.append(repr(component))
+
+        return "Entity(\n%s)" % ",\n\n".join(parts)
 
     def __str__(self):
         return self.__unicode__()
@@ -192,7 +193,7 @@ class Entity(object):
 
         return result
 
-    def get_referencing_entities(self, key):
+    def get_referencing_entities(self, key, complete=False):
         """Finds entities that reference this entity by its identity.
 
         If other entities have an attribute that stores the identity of this
@@ -214,7 +215,8 @@ class Entity(object):
         return self.manager.find(
             expression.Equivalence(
                 expression.Binding(key),
-                expression.Literal(self.identity)))
+                expression.Literal(self.identity.first_index)),
+            complete=complete)
 
     def get_raw(self, key):
         """Get raw value of the key, no funny bussiness.
@@ -228,12 +230,17 @@ class Entity(object):
         try:
             component_name, attribute = key.split("/", 1)
         except ValueError:
+            # Maybe the key is just a component name?
+            component = getattr(self.components, key, None)
+            if component:
+                return component
+
             raise ValueError("%s is not a valid key." % key)
 
         component = getattr(self.components, component_name, None)
         return getattr(component, attribute, None)
 
-    def get_variants(self, key):
+    def get_variants(self, key, complete=False):
         """Yields all known values of key.
 
         Arguments:
@@ -245,7 +252,8 @@ class Entity(object):
         """
         # The & sigil denotes reverse lookup.
         if key.startswith("&"):
-            for entity in self.get_referencing_entities(key[1:]):
+            for entity in self.get_referencing_entities(
+                    key[1:], complete=complete):
                 yield entity
 
             return
@@ -263,12 +271,13 @@ class Entity(object):
 
         for value in values:
             if isinstance(value, identity.Identity):
-                for entity in self.manager.find_by_identity(value):
+                for entity in self.manager.find_by_identity(
+                        value, complete=complete):
                     yield entity
             else:
                 yield value
 
-    def get(self, key):
+    def get(self, key, complete=False):
         """Returns value of the key, or a superposition thereof.
 
         Out of the get_ functions, this is almost always the one you want.
@@ -328,9 +337,9 @@ class Entity(object):
         # If we get called with [x, y] python will pass us the keys as a tuple
         # of (x, y). The following behaves identically to dict.
         if isinstance(key, tuple):
-            return [self.get(_key) for _key in key]
+            return [self.get(_key, complete) for _key in key]
 
-        results = list(self.get_variants(key))
+        results = list(self.get_variants(key, complete=complete))
         if not results:
             return obj.NoneObject(
                 "Entity '%s' has no results for key '%s'" % (self, key))

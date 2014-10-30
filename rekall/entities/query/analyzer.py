@@ -24,6 +24,8 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import re
 
+from rekall.entities import definitions
+
 from rekall.entities.query import visitor
 
 
@@ -143,11 +145,13 @@ class SimpleDependency(Dependency):
 
     SHORTHAND = re.compile(r"([A-Z][a-zA-Z]+)(?:\/([a-z_]+)=(.+))?")
 
-    def __init__(self, component, attribute=None, value=None, flag=True):
+    def __init__(self, component, attribute=None, value=None, flag=True,
+                 weak=False):
         self.component = component
         self.attribute = attribute
         self.value = value
         self.flag = flag
+        self.weak = weak
         self.dependencies = set([self])
 
     @classmethod
@@ -199,10 +203,10 @@ class SimpleDependency(Dependency):
         return hash(self.astuple())
 
 
-class DependencyFinder(visitor.QueryVisitor):
-    """Given a query, find its dependencies on collectors.
+class QueryAnalyzer(visitor.QueryVisitor):
+    """Given a query, find its dependencies on collectors and indices.
 
-    In general terms, there are two types of dependencies we can detect:
+    In general terms, we can detect two kinds of collector dependencies:
 
     1) A query may depend on a specific component being populated - for example,
     'Process/pid is 5' will definitely require the Process component. The solver
@@ -217,22 +221,36 @@ class DependencyFinder(visitor.QueryVisitor):
     """
 
     def run(self):
-        """Finds dependencies and returns two sets for include and exclude.
+        """Analyzes query for dependencies on collectors and indices.
 
-        First return value: set of SimpleDependency instances to be included.
-        Second return value: set of SimpleDependency instance to be excluded.
+        Returns a tuple of:
+            - Set of SimpleDependency instances to be included.
+            - Set of SimpleDependency instances to be excluded.
+            - Set of names of attributes whose indices can speed up the query.
         """
+        self.latest_indices = set()
         result = self.visit(self.query)
         if isinstance(result, Dependency):
-            return result.normalize()
+            include, exclude = result.normalize()
+            return include, exclude, self.latest_indices
 
-        return result
+        return (), (), self.latest_indices
 
     def visit_Literal(self, expr):
         return expr.value
 
     def visit_Binding(self, expr):
         component, attribute = expr.value.split("/", 1)
+
+        # Certain types of fields should be considered weak dependencies, which
+        # means we definitely want to depend on the component, but if we can
+        # find a more specific dependency on the same component, the weak
+        # dependency may be discarded under certain circumstances.
+        component_cls = getattr(definitions, component)
+        field = component_cls.reflect_field(attribute)
+        if field.typedesc.type_name == "Identity":
+            return SimpleDependency(component, weak=True)
+
         return SimpleDependency(component, attribute)
 
     def visit_ComponentLiteral(self, expr):
@@ -269,6 +287,23 @@ class DependencyFinder(visitor.QueryVisitor):
         # If the above didn't return the we can't do anything smart about this.
         return self.visit_Expression(expr)
 
+    def _solve_Equivalence(self, dependency, value):
+        attribute_path = "%s/%s" % (dependency.component, dependency.attribute)
+
+        # Suggest that the manager build an index for component/attribute.
+        self.latest_indices.add(attribute_path)
+
+        # This is a hacky special case - in case the query we're analyzing is
+        # looking for a specific base object, our dependency should actually be
+        # on the type of the object instead of the memory offset.
+        if attribute_path == "MemoryObject/base_object":
+            dependency.attribute = "type"
+            dependency.value = value.obj_type
+        else:
+            dependency.value = value
+
+        return dependency
+
     def visit_Equivalence(self, expr):
         # Dependency inference is only available for binary equivalence with
         # one Binding and one expression that evals to a literal value, such
@@ -278,20 +313,19 @@ class DependencyFinder(visitor.QueryVisitor):
             y = self.visit(expr.children[1])
             if (isinstance(x, SimpleDependency)
                     and not isinstance(y, Dependency)):
-                x.value = y
-                return x
+                return self._solve_Equivalence(x, y)
             elif (isinstance(y, SimpleDependency)
                   and not isinstance(x, Dependency)):
-                y.value = x
-                return y
+                return self._solve_Equivalence(y, x)
 
         # If the above doesn't return the we can't infer much here and fall
         # through to the default behavior.
         return self.visit_Expression(expr)
 
     def visit_Union(self, expr):
-        # Add positive dependencies and simplify negative ones (exclusions) to
-        # component level.
+        # Add positive dependencies. Exclusions don't help us with unions and
+        # neither do weak dependencies, so they'll all get simplified down to
+        # a component dependency.
         seen = set()
         for child in expr.children:
             value = self.visit(child)
@@ -309,26 +343,57 @@ class DependencyFinder(visitor.QueryVisitor):
         return DependencySet(*seen)
 
     def visit_Intersection(self, expr):
-        # Add positive dependencies. If two, mutually-exclusive dependencies
-        # come up (both include and exclude a certain thing) then throw them
-        # out and create a simplified version (just the component).
-        seen = set()
+        # Add positive dependencies. Mutually-exclusive dependencies should be
+        # simplified to just the bare component dependency and weak dependencies
+        # should be discarded if a more specific dependency exists.
+
+        # This will require two passes. First pass will sort dependencies into
+        # weak ones (component-only but thrown out in favor of more specific),
+        # simple ones (component-only and override specific dependencies) and
+        # specific (component/attribute and value).
+        weak = set()
+        specific = set()
+        simple = set()
         for child in expr.children:
             value = self.visit(child)
             if not isinstance(value, Dependency):
                 continue
 
             for dependency in value.dependencies:
-                inverted = dependency.inverted()
-
-                if dependency.inverted() in seen:
-                    seen.discard(inverted)
-                    seen.discard(dependency)
-                    seen.add(dependency.simplified())
+                if dependency.weak:
+                    weak.add(dependency.component)
+                elif dependency.attribute:
+                    inverted = dependency.inverted()
+                    if inverted in specific:
+                        specific.discard(inverted)
+                        specific.discard(dependency)
+                        simple.add(dependency.component)
+                    else:
+                        specific.add(dependency)
                 else:
-                    seen.add(dependency)
+                    simple.add(dependency.component)
 
-        return DependencySet(*seen)
+        # Second pass will build up a list of dependencies according to the
+        # rules described above.
+        results = set()
+        for dependency in specific:
+            component = dependency.component
+            if component in simple:
+                results.add(SimpleDependency(component))
+                simple.discard(component)
+                continue
+            elif component in weak:
+                weak.discard(component)
+
+            results.add(dependency)
+
+        for component in simple:
+            results.add(SimpleDependency(component))
+
+        for component in weak:
+            results.add(SimpleDependency(component, weak=True))
+
+        return DependencySet(*results)
 
     def visit_Expression(self, expr):
         # Fall-through behavior for things we can't handle - simplify to

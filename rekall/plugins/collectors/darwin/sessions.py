@@ -59,8 +59,30 @@ class DarwinTTYZoneCollector(zones.DarwinZoneElementCollector):
         return tty.t_lock == tty
 
 
+class DarwinClistParser(common.DarwinEntityCollector):
+    outputs = ["Buffer/purpose=terminal_input",
+               "Buffer/purpose=terminal_output"]
+
+    ingests = expression.Equivalence(
+        expression.Binding("MemoryObject/type"),
+        expression.Literal("clist"))
+
+    def collect(self, hint=None, ingest=None):
+        for entity in ingest:
+            clist = entity["MemoryObject/base_object"]
+            yield [entity.identity,
+                   definitions.Buffer(kind="ring",
+                                      state="freed",
+                                      contents=clist.recovered_contents,
+                                      start=clist.c_cs,
+                                      end=clist.c_ce,
+                                      size=clist.c_cn)]
+
+
 class DarwinTTYParser(common.DarwinEntityCollector):
-    outputs = ["Terminal", "MemoryObject/type=vnode"]
+    outputs = ["Terminal", "MemoryObject/type=vnode", "MemoryObject/type=clist",
+               "Buffer/purpose=terminal_input",
+               "Buffer/purpose=terminal_output"]
     ingests = expression.Equivalence(
         expression.Binding("MemoryObject/type"),
         expression.Literal("tty"))
@@ -68,20 +90,31 @@ class DarwinTTYParser(common.DarwinEntityCollector):
     def collect(self, hint=None, ingest=None):
         for entity in ingest:
             tty = entity["MemoryObject/base_object"]
-            session = tty.t_session
+            session = tty.t_session.deref()
             vnode = session.s_ttyvp
 
-            yield definitions.MemoryObject(
-                base_object=vnode.deref(),
-                type="vnode")
+            # Yield just the stubs of the input and output ring buffers.
+            # DarwinClistParser will grab these if it cares.
+            yield [definitions.MemoryObject(base_object=tty.t_rawq,
+                                            type="clist"),
+                   definitions.Buffer(purpose="terminal_input",
+                                      context=entity.identity)]
+            yield [definitions.MemoryObject(base_object=tty.t_outq,
+                                            type="clist"),
+                   definitions.Buffer(purpose="terminal_output",
+                                      context=entity.identity)]
 
-            yield [
-                entity.identity,
-                definitions.Terminal(
-                    session=self.manager.identify({
-                        "MemoryObject/base_object": session}),
-                    file=self.manager.identify({
-                        "MemoryObject/base_object": vnode}))]
+            # Look, it has a vnode!
+            yield definitions.MemoryObject(base_object=vnode,
+                                           type="vnode")
+
+            # Last, but not least, the Terminal itself.
+            yield [entity.identity,
+                   definitions.Terminal(
+                       session=self.manager.identify({
+                           "MemoryObject/base_object": session}),
+                       file=self.manager.identify({
+                           "MemoryObject/base_object": vnode}))]
 
 
 class DarwinSessionParser(common.DarwinEntityCollector):
@@ -109,10 +142,9 @@ class DarwinSessionParser(common.DarwinEntityCollector):
             if username:
                 user_identity = self.manager.identify({
                     "User/username": username})
-                yield [
-                    user_identity,
-                    definitions.User(
-                        username=username)]
+                yield [user_identity,
+                       definitions.User(
+                           username=username)]
             else:
                 user_identity = None
 
@@ -129,11 +161,10 @@ class DarwinSessionParser(common.DarwinEntityCollector):
                 base_object=session.s_leader.deref(),
                 type="proc")
 
-            yield [
-                session_identity,
-                definitions.Session(
-                    user=user_identity,
-                    sid=sid)]
+            yield [session_identity,
+                   definitions.Session(
+                       user=user_identity,
+                       sid=sid)]
 
 
 class DarwinSessionZoneCollector(zones.DarwinZoneElementCollector):

@@ -45,6 +45,8 @@ CONTAINER_PROTOTYPE = ComponentContainer()
 class TypeDescriptor(object):
     """Defines a type descriptor, which can coerce values into target type."""
 
+    type_name = None
+
     def __init__(self):
         pass
 
@@ -53,7 +55,7 @@ class TypeDescriptor(object):
         return value
 
     def __repr__(self):
-        return None
+        return "%s" % type(self).__name__
 
     def __unicode__(self):
         return repr(self)
@@ -68,6 +70,7 @@ class ScalarDescriptor(object):
     def __init__(self, type_cls):
         super(ScalarDescriptor, self).__init__()
         self.type_cls = type_cls
+        self.type_name = type_cls.__name__
 
     def coerce(self, value):
         return self.type_cls(value)
@@ -97,9 +100,13 @@ class TypeNameDescriptor(TypeDescriptor):
         self.type_name = type_name
 
     def coerce(self, value):
-        if type(value).__name__ != self.type_name:
-            raise TypeError("%s is not of type %s and cannot be coerced.",
-                            value, self.type_name)
+        if type(value).__name__ != self.type_name and value != None:
+            raise TypeError(
+                "%s is not of type %s and cannot be coerced." % (
+                    value,
+                    self.type_name))
+
+        return value
 
     def __repr__(self):
         return "\"%s\" (type-name type)" % self.type_name
@@ -107,6 +114,8 @@ class TypeNameDescriptor(TypeDescriptor):
 
 class TupleDescriptor(TypeDescriptor):
     """Declared for tuple types; coerces each member to its respective type."""
+
+    type_name = "tuple"
 
     def __init__(self, tpl):
         super(TupleDescriptor, self).__init__()
@@ -122,6 +131,8 @@ class TupleDescriptor(TypeDescriptor):
 class ListDescriptor(TypeDescriptor):
     """Declared for nested types (e.g. list of ints)."""
 
+    type_name = "list"
+
     def __init__(self, member_type):
         super(ListDescriptor, self).__init__()
         self.member_type = TypeFactory(member_type)
@@ -136,18 +147,23 @@ class ListDescriptor(TypeDescriptor):
 class EnumDescriptor(TypeDescriptor):
     """Defines an enum type for a component attribute."""
 
+    type_name = "str"
+
     def __init__(self, *args):
         super(EnumDescriptor, self).__init__()
         self.legal_values = args
-        self.type_name = "str"
 
     def coerce(self, value):
         value = str(value)
         if value not in self.legal_values:
-            raise TypeError("%s is not a valid value for enum %s",
-                            value, self.legal_values)
+            raise TypeError(
+                "%s is not a valid value for enum %s" % (value,
+                                                         self.legal_values))
 
         return value
+
+    def __repr__(self):
+        return "{%s} (enum type)" % ", ".join(self.legal_values)
 
 
 def TypeFactory(type_desc):
@@ -200,6 +216,7 @@ class Field(object):
     docstring: Arbitrary documentation string for this attribute.
     typedesc: The type descriptor. Must be instance of TypeDescriptor or valid
         argument for TypeFactory.
+    exclude_analysis: This field should not be considered by the query analyzer.
     """
 
     def __init__(self, name, typedesc, docstring):
@@ -233,7 +250,13 @@ class Component(object):
 
         if kwargs:
             raise ValueError("Unknown attributes %s on component %s" % (
-                kwargs, self.name))
+                kwargs, self.component_name))
+
+    @classmethod
+    def reflect_field(cls, field_name):
+        for field in cls.component_fields:
+            if field.name == field_name:
+                return field
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -280,6 +303,32 @@ class Component(object):
             return self._contents[key]
 
         return getattr(self, key)
+
+    def asdict(self):
+        result = {}
+        for idx, field in enumerate(self.component_fields):
+            result[field.name] = self._contents[idx]
+
+        return result
+
+    def __repr__(self):
+        pairs = []
+        for key, val in self.asdict().iteritems():
+            pairs.append("%s=%s" % (key, repr(val)))
+
+        return "%s(%s)" % (self.component_name, ",\n\t".join(pairs))
+
+    def __unicode__(self):
+        pairs = []
+        for idx, field in enumerate(self.component_fields):
+            pairs.append("%s: %s" % (
+                field.name,
+                field.typedesc.coerce(self._contents[idx])))
+
+        return "%s(%s)" % (self.component_name, ",\n\t".join(pairs))
+
+    def __str__(self):
+        return self.__unicode__()
 
 
 # pylint: disable=protected-access

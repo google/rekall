@@ -22,6 +22,8 @@ The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall.entities import identity as entity_id
+
 from rekall.entities.query import expression
 from rekall.entities.query import matcher
 from rekall.entities.query import visitor
@@ -33,7 +35,7 @@ class EntityQuerySearch(visitor.QueryVisitor):
     def search(self, entities, lookup_tables):
         self.entities = entities
         self.lookup_tables = lookup_tables
-        return self.run()
+        return list(self.run())
 
     def visit_Sorted(self, expr):
         results = self.visit(expr.expression)
@@ -78,10 +80,14 @@ class EntityQuerySearch(visitor.QueryVisitor):
         return entities
 
     def _solve_equivalence(self, expr, binding, literal):
+        literal_value = literal.value
+        if isinstance(literal_value, entity_id.Identity):
+            literal_value = literal_value.first_index
+
         table = self.lookup_tables.get(binding.value, None)
         if table:
             # Sweet, we have exact index for this.
-            return self.__as_entities(table.table.get(literal.value, set()))
+            return self.__as_entities(table.table.get(literal_value, set()))
 
         # Don't have an exact index, but can prefilter by component index.
         component, _ = binding.value.split("/", 1)
@@ -89,13 +95,9 @@ class EntityQuerySearch(visitor.QueryVisitor):
         entities = set()
         candidates = self.lookup_tables["components"].table.get(component, [])
         for identity in candidates:
-            for index in identity.indices:
-                # identity.indices is a set, hence the loop.
-                entity = self.entities[index]
-                if slow_matcher.match(entity):
-                    entities.add(entity)
-
-                break
+            entity = self.entities[identity.first_index]
+            if slow_matcher.match(entity):
+                entities.add(entity)
 
         return entities
 
@@ -120,7 +122,13 @@ class EntityQuerySearch(visitor.QueryVisitor):
 class EntityLookupTable(object):
     """Lookup table for entities."""
 
+    @property
+    def cost_per_search(self):
+        return self.updates / self.searches
+
     def __init__(self, key_name, key_func, entity_manager):
+        self.searches = 0.0
+        self.updates = 0.0
         self.key_name = key_name
         self.key_func = key_func
         self.manager = entity_manager
@@ -129,11 +137,20 @@ class EntityLookupTable(object):
     def update_index(self, entities):
         for entity in entities:
             for key in self.key_func(entity):
-                if key:
+                self.updates += 1
+
+                # Identities need to be stored at each of their indices instead
+                # of by just one hash.
+                if isinstance(key, entity_id.Identity):
+                    for index in key.indices:
+                        self.table.setdefault(
+                            index, set()).add(entity.identity)
+                else:
                     self.table.setdefault(key, set()).add(entity.identity)
 
     def lookup(self, *keys):
         unique_results = set()
+        self.searches += 1
 
         for key in keys:
             for identity in self.table.get(key, []):

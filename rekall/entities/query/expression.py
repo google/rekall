@@ -105,6 +105,16 @@ class Let(Expression):
         return self.children[1]
 
 
+class LetAny(Let):
+    """Like Let, but handles multiple BINDINGS using intersection semantics."""
+    pass
+
+
+class LetEach(Let):
+    """Like Let, but handles multiple BINDINGS using union semantics."""
+    pass
+
+
 class Sorted(Expression):
     """Sorted(BINDING, SUBQUERY) sorts results of SUBQUERY by value of BINDING.
 
