@@ -100,6 +100,29 @@ ript>
   <div class="col-md-8">
     
   <ul class="nav nav-stacked">
+     <h2>Windows Virtual Address Translation and the Pagefile.</h2>
+     <h4>2014-10-25 Michael Cohen <scudette@gmail.com></h4>
+     
+A fundamental capability of any memory analysis framework is to reconstruct
+the virtual address space from the memory image. While in principle this task
+is documented by the Intel or AMD programmer manuals, in practice one needs to
+take into account operating system specific information to fully use all the
+information available.
+
+Rekall is the first open source memory forensic framework to currently take
+advantage of the pagefile during the analysis of windows systems. The WinPmem
+acquisition tool since version 1.6.2 is capable of automatically capturing the
+pagefile during acquisition.
+
+In this blog post we explore how Rekall translates virtual addresses into
+their physical offsets - a pre-requisite to being able to read process and
+kernel address spaces.
+
+     <p>
+     <a href="/posts/2014-10-25-pagefile.html">Read Post</a>
+     </p>
+  </ul>
+  <ul class="nav nav-stacked">
      <h2>Virtual Machine discovery and introspection</h2>
      <h4>2014-10-03 Jordi Sanchez <parki.san@gmail.com></h4>
      Rekall is the first memory forensic framework to support transparent analysis

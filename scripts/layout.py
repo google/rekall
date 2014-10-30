@@ -222,6 +222,7 @@ def embedded(page=None):
 <div class="row-fluid">
   <div class="col-md-2">
     {page.navigator}
+    <a href="{page.download}" class="btn btn-default">Download</a>
   </div>
   <div class="col-md-8" >
     {page.content}
