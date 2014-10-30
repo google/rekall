@@ -274,9 +274,8 @@ class EntityManager(object):
         logging.debug("Creating a lookup table for %s", key)
         component, _ = key.split("/")
 
-        lookup_table = entity_lookup.EntityLookupTable(
-            key_name=key,
-            key_func=lambda e: (e.get_raw(key),),
+        lookup_table = entity_lookup.AttributeLookupTable(
+            attribute=key,
             entity_manager=self)
 
         # Only use the entities that actually have the component to build the
@@ -293,7 +292,7 @@ class EntityManager(object):
         exception to that rule is when the identity parameter is both: (a) a
         alternate identity and (b) not yet present in this entity manager. In
         that case, multiple entities may match.
-        
+
         Arguments:
             identity: The identity to search for.
             complete: Should collectors be run to ensure complete results?
@@ -360,7 +359,7 @@ class EntityManager(object):
         """
         analysis = self.cached_query_analyses.get(wanted, None)
         if analysis:
-            return analysis
+            return (list(analysis[0]), analysis[1])
 
         analyzer = query_analyzer.QueryAnalyzer(wanted)
         include, exclude, suggested_indices = analyzer.run()

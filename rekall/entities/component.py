@@ -27,6 +27,7 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 import collections
 import operator
 
+from rekall import obj
 from rekall import registry
 
 from rekall.entities import superposition
@@ -64,7 +65,7 @@ class TypeDescriptor(object):
         return repr(self)
 
 
-class ScalarDescriptor(object):
+class ScalarDescriptor(TypeDescriptor):
     """Take an instance of type and calls its constructor to coerce."""
 
     def __init__(self, type_cls):
@@ -77,6 +78,31 @@ class ScalarDescriptor(object):
 
     def __repr__(self):
         return "%s (scalar type)" % self.type_cls.__name__
+
+
+class BaseObjectDescriptor(TypeDescriptor):
+    """Makes sure base objects are dereferenced."""
+
+    def __init__(self):
+        super(BaseObjectDescriptor, self).__init__()
+        self.type_cls = obj.BaseObject
+        self.type_name = "BaseObject"
+
+    def coerce(self, value):
+        if value == None:
+            return value
+
+        if not isinstance(value, obj.BaseObject):
+            raise TypeError(
+                "%s is not a BaseObject." % value)
+
+        if isinstance(value, obj.Pointer):
+            return value.deref()
+
+        return value
+
+    def __repr__(self):
+        return "BaseObject type"
 
 
 class NoneDescriptor(TypeDescriptor):
@@ -154,6 +180,9 @@ class EnumDescriptor(TypeDescriptor):
         self.legal_values = args
 
     def coerce(self, value):
+        if value == None:
+            return value
+
         value = str(value)
         if value not in self.legal_values:
             raise TypeError(

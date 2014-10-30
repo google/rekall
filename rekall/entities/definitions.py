@@ -51,7 +51,8 @@ Named = component.DeclareComponent(
 
 MemoryObject = component.DeclareComponent(
     "MemoryObject", "Stores base objects, mostly structs.",
-    component.Field("base_object", "BaseObject", "An instance of BaseObject."),
+    component.Field("base_object", component.BaseObjectDescriptor(),
+                    "An instance of BaseObject."),
     component.Field("type", str, "Class name of the base object."),
     component.Field("state", {"freed", "allocated"},
                     "Allocation state (freed or not)."))

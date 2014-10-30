@@ -249,7 +249,7 @@ class QueryAnalyzer(visitor.QueryVisitor):
         component_cls = getattr(definitions, component)
         field = component_cls.reflect_field(attribute)
         if field.typedesc.type_name == "Identity":
-            return SimpleDependency(component, weak=True)
+            return SimpleDependency(component, attribute, weak=True)
 
         return SimpleDependency(component, attribute)
 

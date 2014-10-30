@@ -22,6 +22,7 @@ The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall.entities import entity as entity_module
 from rekall.entities import identity as entity_id
 
 from rekall.entities.query import expression
@@ -158,3 +159,17 @@ class EntityLookupTable(object):
                     unique_results.add(entity)
 
         return unique_results
+
+
+class AttributeLookupTable(EntityLookupTable):
+    """Lookup table by attribute value."""
+
+    def __init__(self, attribute, entity_manager):
+        field = entity_module.Entity.reflect_attribute(attribute)
+        coerce_fn = field.typedesc.coerce
+
+        def key_func(entity):
+            return (coerce_fn(entity.get_raw(attribute)), )
+
+        super(AttributeLookupTable, self).__init__(attribute, key_func,
+                                                   entity_manager)

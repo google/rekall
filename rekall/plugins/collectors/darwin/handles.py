@@ -121,7 +121,7 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
             # result due to PID reuse - still, it's better than nothing.
 
             yield [
-                self.manager.identify({identity.UniqueIndex(): None}),
+                self.manager.identify({identity.UniqueIndex(): 0}),
                 definitions.Event(
                     actor=self.manager.identify({
                         "Process/pid": socket.last_pid}),
@@ -189,6 +189,7 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
 
 class DarwinFileCollector(common.DarwinEntityCollector):
     """Collects files based on vnodes."""
+
     outputs = ["File", "Permissions", "Timestamps", "Named"]
     _name = "files"
     ingests = expression.Equivalence(

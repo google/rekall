@@ -48,7 +48,7 @@ class EventInferenceCollector(collector.EntityCollector):
                 timestamp = getattr(entity.components.Timestamps, field.name)
                 action = field.name.replace("_at", "")
                 if timestamp:
-                    yield [manager.identify({identity.UniqueIndex(): None}),
+                    yield [manager.identify({identity.UniqueIndex(): 0}),
                            definitions.Event(target=entity.identity,
                                              timestamp=timestamp,
                                              action=action)]

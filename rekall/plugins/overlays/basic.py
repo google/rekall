@@ -105,6 +105,9 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def __unicode__(self):
         return self.v().decode("utf8", "replace").split("\x00")[0] or u""
 
+    def __len__(self):
+        return len(str(self))
+
     @property
     def indices(self):
         return (str(self),)
@@ -175,6 +178,9 @@ class UnicodeString(String):
 
     def __unicode__(self):
         return self.v().split("\x00")[0] or u""
+    
+    def __len__(self):
+        return len(unicode(self))
 
     def __repr__(self):
         value = utils.SmartStr(self)
@@ -333,6 +339,11 @@ class Enumeration(obj.NativeType):
         return self.target_obj.write(data)
 
     def __hash__(self):
+        # TODO: This hash function is dangerous, because the Enum compares
+        # as string or int, but hashes only as int. We need to implement a
+        # version of dict that supports multiple hash entries and then uncomment
+        # the exception:
+        # raise NotImplementedError("Enumerations are not hashable.")
         return hash(self.v())
 
     def __unicode__(self):

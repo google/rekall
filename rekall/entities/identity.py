@@ -39,7 +39,14 @@ class Identity(object):
 
     @classmethod
     def from_dict(cls, global_prefix, identity_dict):
-        indices = [(global_prefix, k, v) for k, v in identity_dict.iteritems()]
+        indices = []
+        for key, val in identity_dict.iteritems():
+            if val == None:
+                raise ValueError(
+                    "Identity index value for %s cannot be None." % key)
+
+            indices.append((global_prefix, key, val))
+
         return cls(indices, global_prefix)
 
     def __init__(self, indices=None, global_prefix=None):

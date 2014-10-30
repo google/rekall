@@ -36,7 +36,7 @@ darwin_overlay = {
         "p_list": [None, ["LIST_ENTRY"]],
         "p_sibling": [None, ["LIST_ENTRY"]],
 
-        "p_comm": [None, ["String", dict(length=17)]],
+        "p_comm": [None, ["UnicodeString", dict(length=17)]],
         "task": [None, ["Pointer", dict(
             target="task"
         )]],

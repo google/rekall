@@ -30,6 +30,34 @@ from rekall.plugins.collectors.darwin import zones
 from rekall.entities.query import expression
 
 
+class DarwinProcParentInferor(common.DarwinEntityCollector):
+    """Builds the parent-child relationships for processes."""
+
+    outputs = ["Process"]
+
+    ingests = expression.ComponentLiteral("Process")
+
+    def collect(self, hint=None, ingest=None):
+        by_pid = {}
+        to_decorate = []
+        for process in self.manager.find(self.ingests, complete=False):
+            by_pid[process["Process/pid"]] = process
+
+        for process in ingest:
+            by_pid.setdefault(process["Process/pid"], process)
+            to_decorate.append(process)
+
+        for process in to_decorate:
+            ppid = process["MemoryObject/base_object"].p_ppid
+            parent = by_pid.get(ppid, None)
+            if parent is None:
+                continue
+
+            yield [process.identity,
+                   definitions.Process(
+                       parent=parent.identity)]
+
+
 class DarwinProcParser(common.DarwinEntityCollector):
     """Takes the proc structs found by various collectors and parses them."""
 
@@ -50,7 +78,8 @@ class DarwinProcParser(common.DarwinEntityCollector):
             user_identity = manager.identify({
                 "User/uid": proc.p_uid})
             process_identity = manager.identify({
-                "Process/pid": proc.pid})
+                ("Process/pid", "Timestamps/created_at"): (proc.pid,
+                                                           proc.p_start)})
 
             # kern_proc.c:2706
             session = proc.p_pgrp.pg_session
@@ -68,7 +97,6 @@ class DarwinProcParser(common.DarwinEntityCollector):
                 definitions.Process(
                     pid=proc.pid,
                     command=str(proc.p_comm),
-                    parent=manager.identify({"Process/pid": proc.p_ppid}),
                     user=user_identity,
                     session=session_identity),
                 definitions.Named(
@@ -78,9 +106,8 @@ class DarwinProcParser(common.DarwinEntityCollector):
             # We don't know much about the user at this stage, but this
             # is still kind of useful in getting at least a list of UIDs.
             # Once we have more robustness in listing users this can go away.
-            yield [
-                user_identity,
-                definitions.User(uid=proc.p_uid)]
+            yield [user_identity,
+                   definitions.User(uid=proc.p_uid)]
 
 
 class DarwinPgrpHashProcessCollector(common.DarwinEntityCollector):
@@ -230,4 +257,7 @@ class DarwinDeadProcessCollector(zones.DarwinZoneElementCollector):
     _name = "deadprocs"
 
     def validate_element(self, proc):
-        return proc.p_argc > 0
+        return (proc.p_argc > 0
+                and len(proc.p_comm) > 0
+                and proc.p_start.v() > 0
+                and 99999 > proc.pid > 0)

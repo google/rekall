@@ -152,6 +152,22 @@ class Entity(object):
 
         return True
 
+    @property
+    def name(self):
+        name = self.get_raw("Named/name")
+        if name == None:
+            name = unicode(self.identity)
+
+        return name
+
+    @property
+    def kind(self):
+        kind = self.get_raw("Named/kind")
+        if kind == None:
+            kind = "Entity"
+
+        return kind
+
     def __repr__(self):
         parts = []
         for component in self.components:
@@ -166,15 +182,7 @@ class Entity(object):
         return self.__unicode__()
 
     def __unicode__(self):
-        name = self.get_raw("Named/name")
-        if name == None:
-            name = str(self.identity)
-
-        kind = self.get_raw("Named/kind")
-        if kind == None:
-            kind = "Entity"
-
-        return "%s: %s" % (kind, name)
+        return u"%s: %s" % (self.kind, self.name)
 
     # pylint: disable=protected-access
     def asdict(self):
@@ -348,6 +356,12 @@ class Entity(object):
 
     def __getitem__(self, key):
         return self.get(key)
+
+    @classmethod
+    def reflect_attribute(cls, attribute):
+        component, key = attribute.split("/", 1)
+        component_cls = getattr(definitions, component)
+        return component_cls.reflect_field(key)
 
     def _merge_containers(self, other):
         """Merge component containers from self and other into new container."""

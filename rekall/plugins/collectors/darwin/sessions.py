@@ -89,9 +89,23 @@ class DarwinTTYParser(common.DarwinEntityCollector):
 
     def collect(self, hint=None, ingest=None):
         for entity in ingest:
+            file_identity = None
+            session_identity = None
+
             tty = entity["MemoryObject/base_object"]
             session = tty.t_session.deref()
             vnode = session.s_ttyvp
+
+            if session:
+                session_identity = self.manager.identify({
+                    "MemoryObject/base_object": session})
+
+            if vnode:
+                # Look, it has a vnode!
+                yield definitions.MemoryObject(base_object=vnode,
+                                               type="vnode")
+                file_identity = self.manager.identify({
+                    "MemoryObject/base_object": vnode})
 
             # Yield just the stubs of the input and output ring buffers.
             # DarwinClistParser will grab these if it cares.
@@ -104,17 +118,11 @@ class DarwinTTYParser(common.DarwinEntityCollector):
                    definitions.Buffer(purpose="terminal_output",
                                       context=entity.identity)]
 
-            # Look, it has a vnode!
-            yield definitions.MemoryObject(base_object=vnode,
-                                           type="vnode")
-
             # Last, but not least, the Terminal itself.
             yield [entity.identity,
                    definitions.Terminal(
-                       session=self.manager.identify({
-                           "MemoryObject/base_object": session}),
-                       file=self.manager.identify({
-                           "MemoryObject/base_object": vnode}))]
+                       session=session_identity,
+                       file=file_identity)]
 
 
 class DarwinSessionParser(common.DarwinEntityCollector):
