@@ -26,61 +26,6 @@ from rekall import plugin
 from rekall.entities import component as entity_component
 
 
-class DebugCollector(plugin.Command):
-    __name = "debug_collector"
-
-    @classmethod
-    def args(cls, parser):
-        super(DebugCollector, cls).args(parser)
-        parser.add_argument("--collector")
-
-    def find_collector(self, collector_name):
-        for collector in self.session.entities.collectors:
-            if collector.name == collector_name:
-                return collector
-
-        return None
-
-    def __init__(self, collector=None, **kwargs):
-        super(DebugCollector, self).__init__(**kwargs)
-        self.collector = self.find_collector(collector)
-
-    def render(self, renderer):
-        ingest = None
-        if self.collector.ingests:
-            ingest = self.session.entities.find(self.collector.ingests)
-
-        for result in self.collector.collect(ingest=ingest):
-            renderer.write(str(result))
-            renderer.write("\n\n")
-
-
-class EntityStats(plugin.Command):
-    """Lists all active entity collectors and how many entities they collect.
-
-    This will collect ALL currently collectable entities and may be slow!
-    """
-
-    __name = "entity_stats"
-
-    def render(self, renderer):
-        renderer.table_header([
-            ("Component", "component", "30"),
-            ("Entities collected", "count_entities", ">30"),
-            ("Active collectors", "count_collectors", ">30")])
-
-        for component_name in sorted(entity_component.Component.classes.keys()):
-            collector_count = 0
-            for collector in self.session.entities.collectors:
-                if collector.can_collect(component_name):
-                    collector_count += 1
-
-            renderer.table_row(
-                component_name,
-                len(self.session.entities.find_by_component(component_name)),
-                collector_count)
-
-
 class ListEvents(plugin.Command):
     __name = "list_events"
 

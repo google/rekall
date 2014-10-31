@@ -31,18 +31,24 @@ from rekall.entities.query import expression
 
 
 class DarwinTerminalUserInferor3000(common.DarwinEntityCollector):
-    outputs = ["User"]
-    ingests = expression.Intersection(
-        expression.ComponentLiteral("Terminal"),
-        expression.Let(
-            "Terminal/file",
-            expression.ComponentLiteral("Permissions")),
-        expression.Let(
-            "Terminal/session",
-            expression.ComponentLiteral("Session")))
+    """Infers the relationship between usernames and UIDs using tty sessions."""
 
-    def collect(self, hint=None, ingest=None):
-        for terminal in ingest:
+    outputs = ["User"]
+
+    collect_args = dict(
+        terminals=expression.Intersection(
+            expression.ComponentLiteral("Terminal"),
+            expression.Let(
+                "Terminal/file",
+                expression.ComponentLiteral("Permissions")),
+            expression.Let(
+                "Terminal/session",
+                expression.ComponentLiteral("Session"))))
+
+    complete_input = True
+
+    def collect(self, hint, terminals):
+        for terminal in terminals:
             owner = terminal["Terminal/file"]["Permissions/owner"]
             user = terminal["Terminal/session"]["Session/user"]
             # Now tell the manager that these two users are the same user.
@@ -63,12 +69,13 @@ class DarwinClistParser(common.DarwinEntityCollector):
     outputs = ["Buffer/purpose=terminal_input",
                "Buffer/purpose=terminal_output"]
 
-    ingests = expression.Equivalence(
-        expression.Binding("MemoryObject/type"),
-        expression.Literal("clist"))
+    collect_args = dict(
+        clists=expression.Equivalence(
+            expression.Binding("MemoryObject/type"),
+            expression.Literal("clist")))
 
-    def collect(self, hint=None, ingest=None):
-        for entity in ingest:
+    def collect(self, hint, clists):
+        for entity in clists:
             clist = entity["MemoryObject/base_object"]
             yield [entity.identity,
                    definitions.Buffer(kind="ring",
@@ -83,12 +90,13 @@ class DarwinTTYParser(common.DarwinEntityCollector):
     outputs = ["Terminal", "MemoryObject/type=vnode", "MemoryObject/type=clist",
                "Buffer/purpose=terminal_input",
                "Buffer/purpose=terminal_output"]
-    ingests = expression.Equivalence(
-        expression.Binding("MemoryObject/type"),
-        expression.Literal("tty"))
+    collect_args = dict(
+        ttys=expression.Equivalence(
+            expression.Binding("MemoryObject/type"),
+            expression.Literal("tty")))
 
-    def collect(self, hint=None, ingest=None):
-        for entity in ingest:
+    def collect(self, hint, ttys):
+        for entity in ttys:
             file_identity = None
             session_identity = None
 
@@ -136,12 +144,13 @@ class DarwinSessionParser(common.DarwinEntityCollector):
         "MemoryObject/type=tty",
         "MemoryObject/type=proc"]
 
-    ingests = expression.Equivalence(
-        expression.Binding("MemoryObject/type"),
-        expression.Literal("session"))
+    collect_args = dict(
+        sessions=expression.Equivalence(
+            expression.Binding("MemoryObject/type"),
+            expression.Literal("session")))
 
-    def collect(self, hint=None, ingest=None):
-        for entity in ingest:
+    def collect(self, hint, sessions):
+        for entity in sessions:
             session = entity["MemoryObject/base_object"]
 
             # Have to sanitize the usernames to prevent issues when comparing
@@ -191,7 +200,7 @@ class DarwinSessionCollector(common.DarwinEntityCollector):
 
     outputs = ["MemoryObject/type=session"]
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         session_hash_table_size = self.profile.get_constant_object(
             "_sesshash", "unsigned long")
 

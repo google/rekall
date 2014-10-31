@@ -34,7 +34,7 @@ class DarwinZoneCollector(common.DarwinEntityCollector):
     """Lists all allocation zones."""
     outputs = ["AllocationZone", "MemoryObject/type=zone"]
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         first_zone = self.profile.get_constant_object(
             "_first_zone",
             target="Pointer",
@@ -71,19 +71,19 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
 
     zone_name = None
     type_name = None
-    ingests = expression.ComponentLiteral("AllocationZone")
+    collect_args = dict(zones=expression.ComponentLiteral("AllocationZone"))
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint, zones):
         for element, state in self.collect_base_objects(
-                zone_name=self.zone_name, ingest=ingest):
+                zone_name=self.zone_name, zones=zones):
             yield definitions.MemoryObject(
                 base_object=element,
                 type=self.type_name,
                 state=state)
 
-    def collect_base_objects(self, zone_name, ingest):
+    def collect_base_objects(self, zone_name, zones):
         zone = None
-        for entity in ingest:
+        for entity in zones:
             if entity["AllocationZone/name"] == zone_name:
                 zone_entity = entity
                 zone = entity["MemoryObject/base_object"]
@@ -178,11 +178,11 @@ class DarwinZoneBufferCollector(DarwinZoneElementCollector):
     outputs = ["Buffer/purpose=zones"]
     type_name = "int"  # Dummy type.
 
-    ingests = expression.ComponentLiteral("AllocationZone")
+    collect_args = dict(zones=expression.ComponentLiteral("AllocationZone"))
     enforce_hint = True
     run_cost = collector.CostEnum.VeryHighCost
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint, zones):
         # If given a hint, we analyze it and see if it can tell us the
         # name of the allocation zone this is looking for.
         hinted_zone = None
@@ -193,12 +193,12 @@ class DarwinZoneBufferCollector(DarwinZoneElementCollector):
                     hinted_zone = dependency.value
                     break
 
-        for zone in ingest:
+        for zone in zones:
             if hinted_zone and zone["AllocationZone/name"] != hinted_zone:
                 continue
 
             for element, state in self.collect_base_objects(
-                    zone_name=zone["AllocationZone/name"], ingest=ingest):
+                    zone_name=zone["AllocationZone/name"], zones=zones):
                 yield definitions.Buffer(
                     start=(element.obj_offset, element.obj_vm.dtb),
                     size=zone["AllocationZone/element_size"],

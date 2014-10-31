@@ -35,20 +35,20 @@ from rekall.plugins.collectors.darwin import zones
 class DarwinHandleCollector(common.DarwinEntityCollector):
     """Collects handles from fileprocs (like OS X lsof is implemented)."""
 
-    outputs = [
-        "Handle",
-        "MemoryObject/type=fileproc",
-        "MemoryObject/type=vnode",
-        "MemoryObject/type=socket"]
-    ingests = expression.ComponentLiteral("Process")
-    filter_ingest = True
+    _name = "handles"
+    outputs = ["Handle",
+               "MemoryObject/type=fileproc",
+               "MemoryObject/type=vnode",
+               "MemoryObject/type=socket"]
+    collect_args = dict(processes=expression.ComponentLiteral("Process"))
+    filter_input = True
 
     run_cost = collector.CostEnum.VeryHighCost
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint, processes):
         manager = self.manager
-        for process in ingest:
-            proc = process.components.MemoryObject.base_object
+        for process in processes:
+            proc = process["MemoryObject/base_object"]
 
             for fd, fileproc, flags in proc.get_open_files():
                 fg_data = fileproc.autocast_fg_data()
@@ -95,6 +95,34 @@ class DarwinSocketZoneCollector(zones.DarwinZoneElementCollector):
         return socket == socket.so_rcv.sb_so
 
 
+class DarwinSocketLastAccess(common.DarwinEntityCollector):
+    outputs = ["Event"]
+    collect_args = dict(processes=expression.ComponentLiteral("Process"),
+                        sockets=expression.Equivalence(
+                            expression.Binding("MemoryObject/type"),
+                            expression.Literal("socket")))
+    complete_input = True
+
+    def collect(self, hint, processes, sockets):
+        by_pid = {}
+        for process in processes:
+            by_pid[process["Process/pid"]] = process
+
+        for socket in sockets:
+            base_socket = socket["MemoryObject/base_object"]
+            process = by_pid[base_socket.last_pid]
+            if not process:
+                continue
+
+            yield [
+                self.manager.identify({identity.UniqueIndex(): 0}),
+                definitions.Event(
+                    actor=process.identity,
+                    action="accessed",
+                    target=socket.identity,
+                    category="latest")]
+
+
 class DarwinSocketCollector(common.DarwinEntityCollector):
     """Searches for all memory objects that are sockets and parses them."""
 
@@ -107,20 +135,17 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
         "File/type=socket",
         "MemoryObject/type=vnode"]
 
-    ingests = expression.Equivalence(
-        expression.Binding("MemoryObject/type"),
-        expression.Literal("socket"))
-    filter_ingest = True
+    collect_args = dict(
+        sockets=expression.Equivalence(
+            expression.Binding("MemoryObject/type"),
+            expression.Literal("socket")))
 
-    def collect(self, hint=None, ingest=None):
-        for entity in ingest:
+    filter_input = True
+
+    def collect(self, hint, sockets):
+        for entity in sockets:
             socket = entity["MemoryObject/base_object"]
             family = socket.addressing_family
-
-            # Try to guess the process that owns this from the last_pid member.
-            # This isn't perfect, because more processes could have handles
-            # on the same thing and for older sockets, this may yield the wrong
-            # result due to PID reuse - still, it's better than nothing.
 
             yield [
                 self.manager.identify({identity.UniqueIndex(): 0}),
@@ -194,13 +219,14 @@ class DarwinFileCollector(common.DarwinEntityCollector):
 
     outputs = ["File", "Permissions", "Timestamps", "Named"]
     _name = "files"
-    ingests = expression.Equivalence(
-        expression.Binding("MemoryObject/type"),
-        expression.Literal("vnode"))
+    collect_args = dict(
+        vnodes=expression.Equivalence(
+            expression.Binding("MemoryObject/type"),
+            expression.Literal("vnode")))
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint, vnodes):
         manager = self.manager
-        for entity in ingest:
+        for entity in vnodes:
             vnode = entity["MemoryObject/base_object"]
             path = vnode.full_path
 
@@ -226,7 +252,7 @@ class DarwinFileCollector(common.DarwinEntityCollector):
                     backup_at=cattr.ca_btime))
 
             posix_uid = vnode.v_cred.cr_posix.cr_ruid
-            if posix_uid:
+            if posix_uid and posix_uid != 0:
                 components.append(definitions.Permissions(
                     owner=manager.identify({
                         "User/uid": posix_uid})))
@@ -243,7 +269,7 @@ class UnpListCollector(common.DarwinEntityCollector):
 
     outputs = ["MemoryObject/type=socket", "Named/kind=Unix Socket"]
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         for head_const in ["_unp_dhead", "_unp_shead"]:
             lhead = self.session.get_constant_object(
                 head_const,

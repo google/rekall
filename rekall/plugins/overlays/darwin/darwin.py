@@ -1033,7 +1033,7 @@ class proc(obj.Struct):
         # [4]:
         # https://github.com/opensource-apple/xnu/blob/10.9/bsd/kern/kern_descrip.c#L2960
         last_fd = self.p_fd.fd_lastfile
-        ofiles = self.p_fd.fd_ofiles
+        ofiles = self.p_fd.fd_ofiles.deref()
         ofileflags = self.p_fd.fd_ofileflags
 
         for fd in xrange(last_fd + 1):  # xrange stops at N-1.

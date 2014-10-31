@@ -33,13 +33,16 @@ from rekall.plugins.collectors.windows import common
 class WindowsHandleCollector(common.WindowsEntityCollector):
     _name = "handles"
     outputs = ["MemoryObject/type=_EPROCESS"]
-    ingests = expression.Equivalence(
-        expression.Binding("MemoryObject/type"),
-        expression.Literal("_EPROCESS"))
+
+    collect_args = dict(
+        eprocesses=expression.Equivalence(
+            expression.Binding("MemoryObject/type"),
+            expression.Literal("_EPROCESS")))
+
     run_cost = collector.CostEnum.VeryHighCost
 
-    def collect(self, hint=None, ingest=None):
-        for entity in ingest:
+    def collect(self, hint, eprocesses):
+        for entity in eprocesses:
             eproc = entity["MemoryObject/base_object"]
             for handle in eproc.ObjectTable.handles():
                 resource_type = handle.get_object_type(eproc.obj_vm)
@@ -52,12 +55,13 @@ class WindowsHandleCollector(common.WindowsEntityCollector):
 class WindowsProcessParser(common.WindowsEntityCollector):
     _name = "proc"
     outputs = ["Process", "Named/kind=Process", "Timestamps"]
-    ingests = expression.Equivalence(
-        expression.Binding("MemoryObject/type"),
-        expression.Literal("_EPROCESS"))
+    collect_args = dict(
+        procs=expression.Equivalence(
+            expression.Binding("MemoryObject/type"),
+            expression.Literal("_EPROCESS")))
 
-    def collect(self, hint=None, ingest=None):
-        for entity in ingest:
+    def collect(self, hint, procs):
+        for entity in procs:
             eproc = entity["MemoryObject/base_object"]
             yield [
                 entity.identity | self.manager.identify({"Process/pid":
@@ -81,7 +85,7 @@ class WindowsPsActiveProcessHeadCollector(common.WindowsEntityCollector):
     _name = "PsActiveProcessHead"
     outputs = ["MemoryObject/type=_EPROCESS"]
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         phead = self.session.GetParameter("PsActiveProcessHead")
         for proc in phead.list_of_type("_EPROCESS", "ActiveProcessLinks"):
             yield definitions.MemoryObject(type="_EPROCESS",
@@ -92,7 +96,7 @@ class WindowsPspCidProcessCollector(common.WindowsEntityCollector):
     _name = "PspCidTable"
     outputs = ["MemoryObject/type=_EPROCESS"]
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         PspCidTable = self.profile.get_constant_object(
             "PspCidTable",
             target="Pointer",

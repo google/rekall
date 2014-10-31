@@ -33,7 +33,7 @@ class EventInferenceCollector(collector.EntityCollector):
     """Generates Events from entities that have Timestamps."""
 
     outputs = ["Event"]
-    ingests = expression.ComponentLiteral("Timestamps")
+    collect_args = dict(entities=expression.ComponentLiteral("Timestamps"))
     run_cost = collector.CostEnum.NoCost
 
     @classmethod
@@ -41,9 +41,9 @@ class EventInferenceCollector(collector.EntityCollector):
         return True
 
     # pylint: disable=protected-access
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint, entities=None):
         manager = self.manager
-        for entity in ingest:
+        for entity in entities:
             for field in definitions.Timestamps.component_fields:
                 timestamp = getattr(entity.components.Timestamps, field.name)
                 action = field.name.replace("_at", "")

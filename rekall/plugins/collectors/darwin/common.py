@@ -61,7 +61,7 @@ class DarwinNetworkInterfaceCollector(DarwinEntityCollector):
 
     outputs = ["NetworkInterface", "MemoryObject/type=ifnet"]
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         ifnet_head = self.profile.get_constant_object(
             "_dlil_ifnet_head",
             target="Pointer",

@@ -35,16 +35,14 @@ class DarwinProcParentInferor(common.DarwinEntityCollector):
 
     outputs = ["Process"]
 
-    ingests = expression.ComponentLiteral("Process")
+    collect_args = dict(processes=expression.ComponentLiteral("Process"))
+    complete_input = True
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint, processes):
         by_pid = {}
         to_decorate = []
-        for process in self.manager.find(self.ingests, complete=False):
+        for process in processes:
             by_pid[process["Process/pid"]] = process
-
-        for process in ingest:
-            by_pid.setdefault(process["Process/pid"], process)
             to_decorate.append(process)
 
         for process in to_decorate:
@@ -67,13 +65,14 @@ class DarwinProcParser(common.DarwinEntityCollector):
         "Timestamps",
         "Named/kind=process"]
 
-    ingests = expression.Equivalence(
-        expression.Binding("MemoryObject/type"),
-        expression.Literal("proc"))
+    collect_args = dict(
+        procs=expression.Equivalence(
+            expression.Binding("MemoryObject/type"),
+            expression.Literal("proc")))
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint, procs):
         manager = self.manager
-        for entity in ingest:
+        for entity in procs:
             proc = entity["MemoryObject/base_object"]
             user_identity = manager.identify({
                 "User/uid": proc.p_uid})
@@ -122,7 +121,7 @@ class DarwinPgrpHashProcessCollector(common.DarwinEntityCollector):
     _name = "pgrphash"
     outputs = ["MemoryObject/type=proc"]
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         # Note that _pgrphash is initialized through:
         #
         # xnu-1699.26.8/bsd/kern/kern_proc.c:195
@@ -166,7 +165,7 @@ class DarwinTaskProcessCollector(common.DarwinEntityCollector):
     _name = "tasks"
     outputs = ["MemoryObject/type=proc"]
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         tasks = self.profile.get_constant_object(
             "_tasks",
             target="queue_entry",
@@ -193,7 +192,7 @@ class DarwinAllprocProcessCollector(common.DarwinEntityCollector):
     _name = "allproc"
     outputs = ["MemoryObject/type=proc"]
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         allproc = self.profile.get_constant_object(
             "_allproc", target="proclist")
         for proc in allproc.lh_first.p_list:
@@ -226,7 +225,7 @@ class DarwinPidHashProcessCollector(common.DarwinEntityCollector):
     _name = "pidhash"
     outputs = ["MemoryObject/type=proc"]
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         pid_hash_table = self.profile.get_constant_object(
             "_pidhashtbl",
             target="Pointer",

@@ -58,6 +58,12 @@ class IngestionPipeline(object):
 
     def find(self, query):
         """Return entities available to satisfy the query."""
+        if isinstance(query, dict):
+            results = {}
+            for key, value in query.iteritems():
+                results[key] = self.find(value)
+            return results
+
         return self.queues[query]
 
     def fill(self, ingest, collector):
@@ -132,8 +138,8 @@ class EntityManager(object):
         self.session = session
         self.finished_collectors = set()
         self._collectors = {}
-        self.cached_query_analyses = {}
-        self.cached_collector_matchers = {}
+        self._cached_query_analyses = {}
+        self._cached_matchers = {}
 
         # Lookup table on component name is such a common use case that we
         # always have it on. This actually speeds up searches by attribute that
@@ -163,21 +169,16 @@ class EntityManager(object):
         return self._collectors.values()
 
     def update_collectors(self):
-        """Get all active collectors and index them by what they ingest."""
+        """Refresh the list of active collectors. Do a diff if possible."""
         for key, cls in entity_collector.EntityCollector.classes.iteritems():
             if key in self._collectors:
                 if cls.is_active(self.session):
                     continue
                 else:
-                    del self.cached_collector_matchers[key]
                     del self._collectors[key]
             else:
                 if cls.is_active(self.session):
-                    collector = cls(entity_manager=self)
-                    self._collectors[key] = collector
-                    if collector.ingests:
-                        matcher = query_matcher.QueryMatcher(collector.ingests)
-                        self.cached_collector_matchers[key] = matcher
+                    self._collectors[key] = cls(entity_manager=self)
 
     @property
     def identity_prefix(self):
@@ -341,19 +342,31 @@ class EntityManager(object):
     def find_by_collector(self, collector):
         return list(self.lookup_tables["collectors"].lookup(str(collector)))
 
+    def matcher_for(self, query):
+        matcher = self._cached_matchers.setdefault(
+            query, query_matcher.QueryMatcher(query))
+
+        return matcher
+
     def parsers_for(self, entity):
         """Finds collectors that can parse this entity."""
-        self.update_collectors()
-        for collector, matcher in self.cached_collector_matchers.iteritems():
-            if matcher.match(entity):
-                yield self._collectors[collector]
+        for collector in self.collectors:
+            if not collector.collect_args:
+                continue
+            for query_name, query in collector.collect_args.iteritems():
+                matcher = self.matcher_for(query)
+                if matcher.match(entity):
+                    yield collector, query_name
 
     def parse(self, entity):
         """Parses the entity using available higher-order collectors."""
         result = entity
-        for collector in self.parsers_for(entity):
-            for parsed, effect in self.collect(collector, ingest=[entity]):
-                if effect and parsed == entity:
+        for collector, collect_kwarg in self.parsers_for(entity):
+            collector_input = {collect_kwarg: [result]}
+            for parsed, effect in self.collect(collector=collector,
+                                               collector_input=collector_input,
+                                               hint=None):
+                if effect != entity_collector.EffectEnum.Duplicate:
                     logging.debug(
                         "Collector %s produced a hit in parser mode.",
                         collector.name)
@@ -370,7 +383,7 @@ class EntityManager(object):
             - dependencies: list of SimpleDependency instances to include
             - exclusions: list of SimpleDependency instances to exclude
         """
-        analysis = self.cached_query_analyses.get(wanted, None)
+        analysis = self._cached_query_analyses.get(wanted, None)
         if analysis:
             # We want to make a copy exactly one level deep.
             analysis_copy = {}
@@ -408,7 +421,7 @@ class EntityManager(object):
                         lookups=suggested_indices,
                         dependencies=include,
                         exclusions=exclude)
-        self.cached_query_analyses[wanted] = analysis
+        self._cached_query_analyses[wanted] = analysis
         return analysis
 
     def find(self, query, complete=True):
@@ -420,6 +433,13 @@ class EntityManager(object):
         """
         if complete:
             self.collect_for(query)
+
+        if isinstance(query, dict):
+            results = {}
+            for query_name, expr in query.iteritems():
+                results[query_name] = self.find(expr, complete=complete)
+
+            return results
 
         # Try to satisfy the query using available lookup tables.
         search = entity_lookup.EntityQuerySearch(query)
@@ -464,7 +484,7 @@ class EntityManager(object):
         repeated = list()
 
         # Collectors with no dependencies (my favorite).
-        non_ingesting = list()
+        simple = list()
 
         # Queries that collectors depend on.
         queries = set()
@@ -475,26 +495,29 @@ class EntityManager(object):
                 continue
 
             collectors_seen.add(collector.name)
-            if collector.ingests:
-                logging.debug("%s (ingests '%s') deferred.",
-                              collector.name, collector.ingests)
+            if collector.collect_args:
+                logging.debug("%s (collect_args '%s') deferred.",
+                              collector.name, collector.collect_args)
                 repeated.append(collector)
-                queries.add(collector.ingests)
+                queries |= set(collector.collect_args.itervalues())
 
                 # Discard the indexing suggestions for ingestion queries
                 # because they don't represent normal usage.
-                additional = self.analyze(collector.ingests)["collectors"]
+                additional = set()
+                for query in collector.collect_args.itervalues():
+                    additional |= set(self.analyze(query)["collectors"])
+
                 for dependency in additional:
                     logging.debug(
                         "Collector %s depends on collector %s for its ingest "
                         "query '%s'.",
-                        collector.name, dependency.name, collector.ingests)
+                        collector.name, dependency.name, collector.collect_args)
                     if dependency.name not in collectors_seen:
                         to_process.append(dependency)
             else:
                 logging.debug("%s (no dependencies) will run immediately.",
                               collector.name)
-                non_ingesting.append(collector)
+                simple.append(collector)
 
         if not collectors_seen.difference(self.finished_collectors):
             # Looks like we're already populated - no need to do anything.
@@ -503,13 +526,13 @@ class EntityManager(object):
         logging.info(
             "Will now run %d first-order collectors and %d collectors with "
             "dependencies to satisfy query %s.",
-            len(non_ingesting), len(repeated), wanted)
+            len(simple), len(repeated), wanted)
 
         # Execution stage 1: no dependencies.
         logging.debug("%d non-ingesting collectors will now run once.",
-                      len(non_ingesting))
+                      len(simple))
 
-        for collector in non_ingesting:
+        for collector in simple:
             effects = {entity_collector.EffectEnum.Duplicate: 0,
                        entity_collector.EffectEnum.Merged: 0,
                        entity_collector.EffectEnum.Added: 0}
@@ -554,22 +577,29 @@ class EntityManager(object):
             # out_pipeline. At the end of each spin the pipelines swap and
             # the new out_pipeline is flushed.
             for collector in repeated:
-                collector_input = in_pipeline.find(collector.ingests)
-                if not collector_input:
-                    logging.debug("Skipping %s (no new entities to ingest.)",
-                                  collector.name)
-
-                if collector.filter_ingest:
-                    logging.debug(
-                        "Running %s with ingest set of %d (will be filtered.)",
-                        collector.name, len(collector_input))
-                    collector_input = collector.ingest_filter(
-                        hint=hint, ingest=collector_input)
+                # If the collector wants complete input, we pull it from the
+                # database. If it just wants one entity at a time, we can use
+                # the ingestion pipeline. The semantics of both find methods
+                # are identical.
+                if collector.complete_input:
+                    collector_input = self.find(collector.collect_args,
+                                                complete=False)
                 else:
-                    logging.debug(
-                        "Running %s with ingest set of %d.",
-                        collector.name, len(collector_input))
+                    collector_input = in_pipeline.find(collector.collect_args)
 
+                # The collector requests its prefilter to be called.
+                if collector.filter_input:
+                    logging.debug("Running %s with input filter.",
+                                  collector.name)
+                    collector_input_filtered = {}
+                    for key, val in collector_input.iteritems():
+                        collector_input_filtered[key] = collector.input_filter(
+                            hint=hint, entities=val)
+                    collector_input = collector_input_filtered
+                else:
+                    logging.debug("Running %s.", collector.name)
+
+                # The collector requests that we always pass the query hint.
                 if use_hint or collector.enforce_hint:
                     hint = wanted
                 else:
@@ -577,11 +607,12 @@ class EntityManager(object):
 
                 # Feed output back into the pipeline.
                 results = self.collect(collector=collector,
-                                       ingest=collector_input,
+                                       collector_input=collector_input,
                                        hint=hint)
                 out_pipeline.fill(collector=collector,
                                   ingest=results)
 
+            # Swap & flush, rinse & repeat.
             in_pipeline, out_pipeline = out_pipeline, in_pipeline
             out_pipeline.flush()
 
@@ -589,9 +620,12 @@ class EntityManager(object):
             if not use_hint and not collector.enforce_hint:
                 self.finished_collectors.add(collector.name)
 
-    def collect(self, collector, hint=None, ingest=None):
+    def collect(self, collector, hint, collector_input=None):
         """Runs the collector, registers output and yields any new entities."""
-        for results in collector.collect(hint=hint, ingest=ingest):
+        if collector_input is None:
+            collector_input = {}
+
+        for results in collector.collect(hint=hint, **collector_input):
             if not isinstance(results, list):
                 # Just one component yielded.
                 results = [results]

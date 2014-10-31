@@ -72,14 +72,27 @@ class EntityCollector(object):
     The collector is not required to actually deliver on all of its promises,
     but it is not allowed to yield something it didn't promise.
 
-    ### self.ingests (ivar, optional):
-    Specifying an ingestion query will turn the collector into a parser.
-    The manager will call the collect method with the output of the ingest
-    query, and it may do so more than once.
+    ### self.collect_args (ivar, optional):
+    Collectors can specify the kind of input they want using a dictionary of
+    queries describing the input, keyed on the names of kwargs they should be
+    supplied as. The manager may call collectors with dependencies more than
+    once, as new data becomes available.
 
-    ### self.filter_ingest (ivar, optional):
+    Examples:
+
+    # ProcessParser wants proc structs. Its collect method will now receive
+    # a keyword arg 'procs' populated with entities matching the query.
+    collect_args = {"procs": "MemoryObject/type is 'proc'"}
+
+    # Socket/process relationship inference wants sockets and processes.
+    # Its collect method will now receive two keyword args - 'processes' with
+    # process entities, and 'sockets' with base object entities.
+    collect_args = {"processes": "has component Process",
+                    "sockets": "MemoryObject/type" is 'socket'}
+
+    ### self.filter_input (ivar, optional):
     Costly collectors can flip this variable to True, which will cause the
-    manager to call self.ingest_filter to prefilter the ingestion set, giving
+    manager to call self.input_filter to prefilter the ingestion set, giving
     the collector the opportunity to filter out entities it has parsed before.
 
     ### self.run_cost (ivar, optional):
@@ -90,16 +103,23 @@ class EntityCollector(object):
     If True, the manager will always supply a hint to the collect function. If
     False, the manager will only supply a hint when it's collecting for
     artifacts.
+
+    ### self.complete_input (ivar, optional):
+    If True, will cause the manager to always call the collect method with all
+    available results for the ingestion queries, even if they've been sent
+    before and haven't been updated since. The results can still be filtered
+    with filter_input.
     """
 
     outputs = []  # Subclasses must override. See above.
     _promises = None  # Promises (SimpleDependency) generated from outputs.
 
-    ingests = None  # Subclasses may override.
+    collect_args = None  # Subclasses may override.
 
     run_cost = CostEnum.NormalCost
     enforce_hint = False
-    filter_ingest = False
+    filter_input = False
+    complete_input = False
 
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
@@ -140,22 +160,22 @@ class EntityCollector(object):
         return self.name in self.manager.finished_collectors
 
     # pylint: disable=unused-argument
-    def ingest_filter(self, hint=None, ingest=None):
+    def input_filter(self, hint, entities=None):
         """Filter the ingest set. Use to prevent parsing the same thing twice.
 
         Default implementation of the ingest filter will keep a set of entities
         it has processed before and filter those out. Subclasses can override.
 
         NOTE: Ingest filter is disabled by default - subclasses that wish the
-        manager to enable it must signal so by setting filter_ingest to True.
+        manager to enable it must signal so by setting filter_input to True.
         """
-        for entity in ingest:
+        for entity in entities:
             if not entity.indices & self._indices_seen:
                 yield entity
 
             self._indices_seen |= entity.indices
 
-    def collect(self, hint=None, ingest=None):
+    def collect(self, hint):
         """Override to yield components - analogous to 'calculate', but typed.
 
         Subclasses should override this to yield components that represent the
