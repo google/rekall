@@ -1639,6 +1639,44 @@ Software PTE:</p></div>
 frame number in the page file (i.e. it must be multiplies by 0x1000 to get the
 file offset). The <tt>PageFileLow</tt> member is the number of pagefile (Windows
 supports up to 16 pagefiles).</p></div>
+<div class="paragraph"><p>Windows actually keeps data structures of the available pagefiles, their
+location and stats. I wrote the <tt>pagefiles</tt> plugin to show this information:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>   [1] Default session 12:25:54&gt; pagefiles
+   _MMPAGING_FILE Number  Size (b)        Filename
+   -------------- ------ ---------- --------------------
+   0xfa8001cae010   0    1207721984 \??\C:\pagefile.sys
+
+   [1] Default session 12:25:57&gt; print session.profile._MMPAGING_FILE(0xfa8001cae010)
+   [_MMPAGING_FILE _MMPAGING_FILE] @ 0xFA8001CAE010
+     0x00 Size                [unsigned long long:Size]: 0x00047FC6
+     0x08 MaximumSize         [unsigned long long:MaximumSize]: 0x0005DC00
+     0x10 MinimumSize         [unsigned long long:MinimumSize]: 0x0003E800
+     0x18 FreeSpace           [unsigned long long:FreeSpace]: 0x0000EF68
+     0x20 PeakUsage           [unsigned long long:PeakUsage]: 0x00043DF3
+     0x28 HighestPage         [unsigned long long:HighestPage]: 0x00000000
+     0x30 File               &lt;_FILE_OBJECT Pointer to [0xFA8001D15070] (File)&gt;
+     0x38 Entry              &lt;Array 2 x Pointer @ 0xFA8001CAE048&gt;
+     0x48 PageFileName       [_UNICODE_STRING PageFileName] @ 0xFA8001CAE058 (\??\C:\pagefile.sys)
+     0x58 Bitmap             &lt;_RTL_BITMAP Pointer to [0xFA8001D40000] (Bitmap)&gt;
+     0x60 EvictStoreBitmap   &lt;_RTL_BITMAP Pointer to [0x00000000] (EvictStoreBitmap)&gt;
+     0x68 BitmapHint          [unsigned long:BitmapHint]: 0x0001220C
+     0x6C LastAllocationSize  [unsigned long:LastAllocationSize]: 0x00000012
+     0x70 ToBeEvictedCount    [unsigned long:ToBeEvictedCount]: 0x00000000
+     0x74 BootPartition       [BitField(4-5):BootPartition]: 0x00000001
+     0x74 PageFileNumber      [BitField(0-4):PageFileNumber]: 0x00000000
+     0x74 Spare0              [BitField(5-16):Spare0]: 0x00000000
+     0x76 AdriftMdls          [BitField(0-1):AdriftMdls]: 0x00000000
+     0x76 Spare1              [BitField(1-16):Spare1]: 0x00000000
+     0x78 FileHandle         &lt;Void Pointer to [0xFFFF80000204] (FileHandle)&gt;
+     0x80 Lock                [unsigned long long:Lock]: 0x00000000
+     0x88 LockOwner          &lt;_ETHREAD Pointer to [0xFA8002D93061] (LockOwner)&gt;</tt></pre>
+</div></div>
+<div class="paragraph"><p>You can see the size of the pagefile, and also the allocation bitmap (which
+pages in the pagefile are currently used.). Note that the <tt>PageFileNumber</tt>
+associates the <tt>PageFileLow</tt> member of the <tt>_MMPTE_SOFTWARE</tt> struct with the
+pagefile path.</p></div>
 <div class="paragraph"><p>If we have the pagefile available, we can resolve the PTE immediately and read
 the data from the pagefile.</p></div>
 </div>
@@ -11034,7 +11072,7 @@ github if you find any bugs.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-10-31 00:46:20 CET
+Last updated 2014-10-31 12:29:26 CET
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>
