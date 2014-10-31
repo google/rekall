@@ -181,6 +181,15 @@ windows_overlay = {
         'UniqueThread' : [None, ['unsigned int']],
         }],
 
+    '_MMVAD': [None, {
+        'FirstPrototypePte': [None, ["Array", dict(
+            target="Pointer",
+            target_args=dict(
+                target="_MMPTE"
+                )
+            )]],
+        }],
+
     '_MMVAD_FLAGS': [None, {
         # Vad Protections. Also known as page protections. The
         # _MMVAD_FLAGS.Protection, 3-bits, is an index into

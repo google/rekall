@@ -997,11 +997,11 @@ class clist(obj.Struct):
     @property
     def recovered_contents(self):
         """Gets the full contents of the ring buffer, which may be freed.
-        
+
         This is different from getting the legal contents as with b_to_q [1]
         because clists are only used by TTYs and they seem to always be all
         marked as consumed, so b_to_q wouldn't let us see any content.
-        
+
         1: github.com/opensource-apple/xnu/blob/10.9/bsd/kern/tty_subr.c#L358
         """
         return self.obj_vm.read(self.c_cs, self.c_cn)

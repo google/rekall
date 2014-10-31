@@ -704,10 +704,23 @@ class Pointer(NativeType):
         return self.obj_vm.is_valid_address(self.v())
 
     def __getitem__(self, item):
-        """Indexing a pointer treats it like a C array."""
+        """Indexing a pointer indexes its target.
+
+        Note this is different than C which treats pointers as arrays:
+
+        struct foobar *p1;
+        struct foobar *p2[];
+
+        In C:
+        p[1] -> struct foobar
+        p[2] -> struct foobar *
+
+        In Rekall:
+        p[1] -> Not allowed since structs do not have [].
+        p[2] -> struct foobar.
+        """
         res = self.dereference()
-        res.obj_offset = item * self.obj_size + res.obj_offset
-        return res
+        return res[item]
 
     def dereference(self, vm=None):
         offset = self.v()
