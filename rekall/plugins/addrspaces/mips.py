@@ -37,6 +37,20 @@ pfn_shift = 11
 
 
 class MipsAddressSpace(addrspace.PagedReader):
+    '''
+    Address space to handle the MIPS Linux memory layout, which is:
+
+    0x0000 0000 - 0x7FFF FFFF  kuseg: User mapped pages
+    0x8000 0000 - 0x9FFF FFFF  k0seg: Kernel non paged memory, this maps to
+                                      address range 0x0000 0000 - 0x1FFF FFFF
+    0xA000 0000 - 0xBFFF FFFF  k1seg: Kernel non paged, non cached memory,
+                                      this maps to address range
+                                      0x0000 0000 - 0x1FFF FFFF
+    0xC000 0000 - 0xFFFF FFFF  k2seg: Kernel paged memory using init_mm.pgd
+
+    See page 8 on:
+      http://www.eecs.harvard.edu/~margo/cs161/notes/vm-mips.pdf
+    '''
     order = 70
 
     def __init__(self, name=None, dtb=None, **kwargs):
@@ -57,7 +71,10 @@ class MipsAddressSpace(addrspace.PagedReader):
         self.name = (name or 'Kernel AS') + "@%#x" % self.dtb
 
     def __pa(self, x):
-        return x - 0x80000000
+        if x >= 0xA0000000:
+            return x - 0xA0000000
+        else:
+            return x - 0x80000000
 
 
     def read_long_phys(self, addr):
