@@ -212,7 +212,9 @@ class LinuxConverter(ProfileConverter):
 
         self.profile_class = self.BASE_PROFILE_CLASS
         largest_offset = max(system_map.values())
-        if largest_offset > 2**32:
+        if "CONFIG_CPU_MIPS32" in result["$CONFIG"]:
+            result["$METADATA"]["arch"] = "MIPS"
+        elif largest_offset > 2**32:
             result["$METADATA"]["arch"] = "AMD64"
         else:
             result["$METADATA"]["arch"] = "I386"

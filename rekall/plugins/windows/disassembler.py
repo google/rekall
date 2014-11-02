@@ -74,6 +74,8 @@ class Capstone(Disassembler):
             self.cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
         elif self.mode == "AMD64":
             self.cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_64)
+        elif self.mode == "MIPS":
+            self.cs = capstone.Cs(capstone.CS_ARCH_MIPS, capstone.CS_MODE_32 + capstone.CS_MODE_BIG_ENDIAN)
         else:
             raise NotImplementedError(
                 "No disassembler available for this arch.")
@@ -156,7 +158,7 @@ class Disassemble(plugin.Command):
             help="The end address to disassemble up to.")
 
         parser.add_argument(
-            "--mode", default="auto", choices=["auto", "I386", "AMD64"],
+            "--mode", default="auto", choices=["auto", "I386", "AMD64", "MIPS"],
             type="Choices",
             help="Disassemble Mode (AMD64 or I386). Defaults to profile arch.")
 
