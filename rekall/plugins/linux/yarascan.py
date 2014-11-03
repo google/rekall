@@ -27,14 +27,14 @@ from rekall.plugins.linux import common
 
 
 
-class YaraScan(common.LinProcessFilter):
+class LinYaraScan(common.LinProcessFilter):
     """Scan using yara signatures."""
 
     __name = "yarascan"
 
     @classmethod
     def args(cls, parser):
-        super(YaraScan, cls).args(parser)
+        super(LinYaraScan, cls).args(parser)
         parser.add_argument("--string", default=None,
                             help="A verbatim string to search for.")
 
@@ -60,7 +60,7 @@ class YaraScan(common.LinProcessFilter):
           yara_file: The yara file to read.
           yara_expression: If provided we scan for this yarra expression.
         """
-        super(YaraScan, self).__init__(**kwargs)
+        super(LinYaraScan, self).__init__(**kwargs)
         if yara_expression:
             self.rules_source = yara_expression
             self.rules = yara.compile(source=self.rules_source)

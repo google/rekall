@@ -52,14 +52,14 @@ class HeapTimestampScanner(common.HeapScannerMixIn, TimestampScanner):
     pass
 
 
-class HistoryScanner(scan.PointerScanner):
+class LinHistoryScanner(scan.PointerScanner):
     """Scan for the realine history struct.
 
     This looks for references to the timestamps discovered by the
     TimestampScanner above.
     """
     def scan(self, **kwargs):
-        for hit in super(HistoryScanner, self).scan(**kwargs):
+        for hit in super(LinHistoryScanner, self).scan(**kwargs):
             timestamp_relative_offset = self.profile.get_obj_offset(
                 "_hist_entry", "timestamp")
 
@@ -70,7 +70,7 @@ class HistoryScanner(scan.PointerScanner):
             yield hist_entry
 
 
-class HeapHistoryScanner(common.HeapScannerMixIn, HistoryScanner):
+class HeapHistoryScanner(common.HeapScannerMixIn, LinHistoryScanner):
     """Only scan for history in the heap."""
 
 

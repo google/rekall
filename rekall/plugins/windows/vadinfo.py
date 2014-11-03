@@ -151,7 +151,8 @@ class VADInfo(common.WinProcessFilter):
         if vad.obj_type != "_MMVAD_SHORT":
             renderer.format(
                 "First prototype PTE: {0:08x} Last contiguous PTE: "
-                "{1:08x}\n", vad.FirstPrototypePte, vad.LastContiguousPte)
+                "{1:08x}\n", vad.FirstPrototypePte.obj_offset,
+                vad.LastContiguousPte)
 
             renderer.format("Flags2: {0}\n", vad.u2.VadFlags2)
 

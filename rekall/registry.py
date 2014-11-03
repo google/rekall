@@ -36,6 +36,8 @@ step, as soon as a module is imported, the plugin is registered.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import logging
+
 
 class classproperty(property):
     """A property that can be called on classes."""
@@ -92,8 +94,14 @@ class MetaclassRegistry(UniqueObjectIdMetaclass):
             return
 
         if not cls.__name__.startswith("Abstract"):
+            if cls.__name__ in cls.classes:
+                raise RuntimeError(
+                    "Multiple definitions for class %s (%s)" % (
+                        cls, cls.classes[cls.__name__]))
+
             cls.classes[cls.__name__] = cls
             name = getattr(cls, "name", None)
+
             cls.classes_by_name[name] = cls
             try:
                 if cls.top_level_class.include_plugins_as_attributes:

@@ -130,7 +130,8 @@ class WindowsPagedMemoryMixin(object):
 
         # Regular _MMPTE_SOFTWARE entry - return physical offset into pagefile.
         if self.pagefile_mapping is not None:
-            return pte.u.Soft.PageFileHigh * 0x1000 + self.pagefile_mapping
+            return (pte.u.Soft.PageFileHigh * 0x1000 + self.pagefile_mapping +
+                    (virtual_address & 0xFFF))
 
     def get_available_addresses(self, start=0):
         self.vads = list(self.session.address_resolver.GetVADs())
@@ -217,7 +218,8 @@ class WindowsPagedMemoryMixin(object):
                     return self._ResolveProtoPTE(pte, virtual_address)
 
             elif desc == "Pagefile" and self.pagefile_mapping:
-                return pte.PageFileHigh * 0x1000 + self.pagefile_mapping
+                return (pte.PageFileHigh * 0x1000 + self.pagefile_mapping +
+                        (virtual_address & 0xFFF))
 
         finally:
             self._resolve_vads = True

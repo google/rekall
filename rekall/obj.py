@@ -1026,6 +1026,32 @@ class Array(BaseObject):
         return self.count
 
 
+class PointerArray(Array):
+    """This is an optimized Array implementation for arrays of Pointers.
+
+    The idea is to decode all pointers at once.
+    """
+
+    def __init__(self, **kwargs):
+        super(PointerArray, self).__init__(target="Pointer", **kwargs)
+
+        if self.target_size == 8:
+            self.format_string = "<" + "Q" * self.count
+        else:
+            self.format_string = "<" + "I" * self.count
+
+        # Read all the data
+        data = self.obj_vm.read(self.obj_offset, self.target_size * self.count)
+        self._data = struct.unpack(self.format_string, data)
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __getitem__(self, pos):
+        return self.obj_profile.Pointer(
+            value=self._data[pos], vm=self.obj_vm, session=self.obj_session)
+
+
 class ListArray(Array):
     """An array of structs which do not all have the same size."""
 
@@ -1459,6 +1485,7 @@ class Profile(object):
                              'Void': Void,
                              'void': Void,
                              'Array': Array,
+                             'PointerArray': PointerArray,
                              'ListArray': ListArray,
                              'NativeType': NativeType,
                              'Struct': Struct})

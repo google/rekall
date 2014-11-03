@@ -75,7 +75,8 @@ class Capstone(Disassembler):
         elif self.mode == "AMD64":
             self.cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_64)
         elif self.mode == "MIPS":
-            self.cs = capstone.Cs(capstone.CS_ARCH_MIPS, capstone.CS_MODE_32 + capstone.CS_MODE_BIG_ENDIAN)
+            self.cs = capstone.Cs(capstone.CS_ARCH_MIPS, capstone.CS_MODE_32 +
+                                  capstone.CS_MODE_BIG_ENDIAN)
         else:
             raise NotImplementedError(
                 "No disassembler available for this arch.")
@@ -174,6 +175,7 @@ class Disassemble(plugin.Command):
                  mode="auto", suppress_headers=False, branch=False,
                  **kwargs):
         super(Disassemble, self).__init__(**kwargs)
+
         load_as = self.session.plugins.load_as(session=self.session)
         self.address_space = load_as.ResolveAddressSpace(address_space)
         resolver = self.session.address_resolver
@@ -192,7 +194,7 @@ class Disassemble(plugin.Command):
         self.follow_branches = branch
         self.suppress_headers = suppress_headers
         if mode == "auto":
-            mode = self.session.profile.metadata("arch", "I386")
+            mode = self.session.profile.metadata("arch") or "I386"
 
         self.dis = DisasmFactory.get(mode)
 

@@ -854,26 +854,22 @@ class _HANDLE_TABLE(obj.Struct):
         # _HANDLE_TABLE_ENTRY, otherwise, it means we are a table of pointers to
         # lower tables.
         if level == 0:
-            target = "_HANDLE_TABLE_ENTRY"
             table = self.obj_profile.Array(
-                offset=table_offset, target=target,
-                count=0x1000/self.obj_profile.get_obj_size(target),
-                parent=self)
+                offset=table_offset,
+                target="_HANDLE_TABLE_ENTRY",
+                size=0x1000)
 
             for entry in table:
                 yield self.get_item(entry)
 
         else:
-            target = "Pointer"
-            table = self.obj_profile.Array(
-                offset=table_offset,
-                target=target,
-                count=0x1000/self.obj_profile.get_obj_size(target),
-                parent=self)
+            table = self.obj_profile.PointerArray(
+                offset=table_offset, size=0x1000)
 
             for entry in table:
-                for item in self._make_handle_array(entry.v(), level-1):
-                    yield item
+                if entry:
+                    for item in self._make_handle_array(entry, level-1):
+                        yield item
 
     def handles(self):
         """ A generator which yields this process's handles

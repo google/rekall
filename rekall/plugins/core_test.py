@@ -19,31 +19,6 @@
 from rekall import testlib
 
 
-class TestInfo(testlib.SimpleTestCase):
-    """Test the Info plugin.
-
-    The Info module changes all the time as new plugins are added. We therefore
-    only check that some of the usual plugins are present.
-    """
-
-    PARAMETERS = dict(
-        commandline="info"
-        )
-
-    def testCase(self):
-        previous = set(
-            self.ExtractColumn(
-                list(self.SplitLines(self.baseline['output']))[1], 0))
-
-        current = set(
-            self.ExtractColumn(
-                list(self.SplitLines(self.current['output']))[1], 0))
-
-        # Its ok if the current result is a superset of the previous result.
-        self.assertEqual(previous - current, set())
-
-
-
 class TestGrep(testlib.SimpleTestCase):
     PARAMETERS = dict(
         commandline="grep %(keyword)s --offset %(offset)s"

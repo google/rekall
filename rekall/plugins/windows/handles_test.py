@@ -25,7 +25,7 @@
 from rekall import testlib
 
 
-class TestHandles(testlib.RekallBaseUnitTestCase):
+class TestHandles(testlib.SimpleTestCase):
     """Test the Handler module."""
 
     PARAMETERS = dict(commandline="handles --pid %(pid)s")

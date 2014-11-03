@@ -38,7 +38,7 @@ class Handles(common.WinProcessFilter):
             help="Types of objects to show.")
 
 
-    def __init__(self, object_types=None, silent=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         """Lists the handles for processes.
 
         Args:
@@ -46,16 +46,21 @@ class Handles(common.WinProcessFilter):
                         for example: object_types=["Process", "File"]).
           silent: Suppress less meaningful results
         """
-        super(Handles, self).__init__(**kwargs)
-        self.object_list = object_types
-        self.silent = silent
+        self.object_list = kwargs.pop("object_types", None)
+        self.silent = kwargs.pop("silent", False)
+
+        super(Handles, self).__init__(*args, **kwargs)
 
     def enumerate_handles(self, task):
         if task.ObjectTable.HandleTableList:
             for handle in task.ObjectTable.handles():
                 name = ""
                 object_type = handle.get_object_type(self.kernel_address_space)
+
                 if object_type == None:
+                    continue
+
+                if self.object_list and object_type not in self.object_list:
                     continue
 
                 elif object_type == "File":
@@ -99,9 +104,6 @@ class Handles(common.WinProcessFilter):
                 self.session.report_progress("%s: %s handles" % (
                     task.ImageFileName, count))
 
-                if self.object_list and object_type not in self.object_list:
-                    continue
-
                 if self.silent:
                     if len(utils.SmartUnicode(name).replace("'", "")) == 0:
                         continue
@@ -112,3 +114,4 @@ class Handles(common.WinProcessFilter):
                     handle.HandleValue,
                     handle.GrantedAccess,
                     object_type, name)
+
