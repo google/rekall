@@ -17,21 +17,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-from rekall import addrspace
+
 import struct
 
+from rekall import addrspace
+from rekall import config
+from rekall.plugins.addrspaces import intel
 
-pointer_size = 4
-page_shift = 12
-ptrs_per_pte = 1024
-ptrs_per_pgd = 1024
-user_ptrs_per_pgd = 512
-pgdir_shift = 22
-ptrs_page = 2048
-pfn_shift = 11
-
-
-class MipsAddressSpace(addrspace.PagedReader):
+class MIPS32PagedMemory(intel.IA32PagedMemory):
     '''
     Address space to handle the MIPS Linux memory layout, which is:
 
@@ -45,112 +38,116 @@ class MipsAddressSpace(addrspace.PagedReader):
 
     See page 8 on:
       http://www.eecs.harvard.edu/~margo/cs161/notes/vm-mips.pdf
+
+    Derives from IA32PagedMemory as the only major difference is the special
+    layout as shown above and minor details like no large pages and a difference
+    in the PTE to PFN translation, which is taken care of by the
+    pte_paddr function.
     '''
-    order = 70
 
-    def __init__(self, name=None, dtb=None, **kwargs):
-
-        super(MipsAddressSpace, self).__init__(**kwargs)
-
-        ## We must be stacked on someone else:
-        if not self.base != self:
-            raise TypeError("No base Address Space")
-
-        # If the underlying address space already knows about the dtb we use it.
-        # Allow the dtb to be specified in the session.
-        self.dtb = dtb or self.session.GetParameter("dtb")
-
-        if not self.dtb != None:
-            raise TypeError("No valid DTB specified. Try the find_dtb"
-                            " plugin to search for the dtb.")
-        self.name = (name or 'Kernel AS') + "@%#x" % self.dtb
-
-    def __pa(self, x):
-        if x >= 0xA0000000:
+    def _pa(self, x):
+        '''
+        Convert a physical address to the actual physical memory location.
+        '''
+        if x < 0x80000000:
+            return x
+        elif x >= 0xA0000000:
             return x - 0xA0000000
         else:
             return x - 0x80000000
 
+    def pde_entry_present(self, entry):
+        '''
+        MIPS32 doesn't have a valid flag on PDE's, they're always valid
+        '''
+        return True
+
+    def page_size_flag(self, entry):
+        '''
+        MIPS32 doesn't have a page size flag, always return False
+        '''
+        return False
 
     def read_long_phys(self, addr):
         '''
         Returns an unsigned 32-bit integer from the address addr in
         physical memory. If unable to read from that location, returns None.
         '''
-        string = self.base.read(addr & 0x7fffffff, 4)
+        string = self.base.read(self._pa(addr), 4)
         return struct.unpack('>I', string)[0]
 
-    def pgd_index(self, vaddr):
-        return (vaddr >> pgdir_shift) & (ptrs_per_pgd - 1)
-
-    def get_pgd(self, vaddr):
-        pgd_entry = self.dtb + self.pgd_index(vaddr) * pointer_size
-        return self.read_long_phys(pgd_entry)
-
-    def pte_pfn(self, pte):
-        return pte >> pfn_shift
-
-    def pte_index(self, pte):
-        return (pte >> page_shift) & (ptrs_per_pte - 1)
-
-    def get_pte(self, vaddr, pgd):
-        pgd_val = pgd & ~((1 << page_shift) - 1)
-        pgd_val = pgd_val + self.pte_index(vaddr) * pointer_size
-        return self.read_long_phys(pgd_val)
-
-    def get_paddr(self, vaddr, pte):
-        return ((self.pte_pfn(pte) << page_shift) |
-                (vaddr & ((1 << page_shift) - 1)))
-
-    def entry_present(self, entry):
-        if entry:
-            if entry & 1:
-                return True
-
-        return False
-
     def vtop(self, vaddr):
-        if vaddr == None:
-            return None
-
+        '''
+        Translates virtual addresses into physical offsets.
+        The function should return either None (no valid mapping)
+        or the offset in physical memory where the address maps.
+        '''
         if (vaddr >= 0x80000000) and (vaddr < 0xC0000000):
-            if self.base.is_valid_address(self.__pa(vaddr)):
-                return self.__pa(vaddr)
-            else:
-                return None
-        else:
-            pgd = self.get_pgd(vaddr)
+            return self._pa(vaddr)
 
-        pte = self.get_pte(vaddr, pgd)
-        if not pte:
-            return None
+        return super(MIPS32PagedMemory, self).vtop(vaddr)
 
-        if not self.entry_present(pte):
-            return None
+    def pte_paddr(self, pte):
+        '''
+        Return the physical address for the given PTE.
+        This should return:
+           (pte >> pfn_shift) << page_shift
 
-        return self.get_paddr(vaddr, pte)
+        On MIPS pfn_shift is 11, while page_shift is 12
+        '''
+        return pte << 1
 
     def get_available_addresses(self, start=0):
+        """Enumerate all valid memory ranges.
+
+        Yields:
+          tuples of (starting virtual address, size) for valid the memory
+          ranges.
+        """
         # Need to find out if we're mapping for kernel space
         # or userspace
-        sym = self.__pa(self.session.profile.get_constant('swapper_pg_dir'))
+        sym = self._pa(self.session.profile.get_constant('swapper_pg_dir'))
         if self.dtb == sym:
-            num_pgd = ptrs_per_pgd
+            num_pde = 1024
         else:
-            num_pgd = user_ptrs_per_pgd
-        for pgd_index in range(0, num_pgd):
-            vaddr = pgd_index << pgdir_shift
-            pgd = self.get_pgd(vaddr)
-            for pte_index in range(0, ptrs_per_pte):
-                va = vaddr + (pte_index << page_shift)
-                if start >= va:
-                    continue
-                if (va >= 0x80000000) and (va < 0xC0000000):
-                    if self.base.is_valid_address(self.__pa(va)):
-                        yield (va, self.__pa(va), self.PAGE_SIZE)
+            num_pde = 512
+
+        # Pages that hold PDEs and PTEs are 0x1000 bytes each.
+        # Each PDE and PTE is four bytes. Thus there are 0x1000 / 4 = 0x400
+        # PDEs and PTEs we must test
+        # On MIPS, the userspace PDEs are limited to 512 entries
+        for pde in range(0, num_pde):
+            vaddr = pde << 22
+            next_vaddr = (pde+1) << 22
+            if start > next_vaddr:
+                continue
+
+            if (vaddr >= 0x80000000) and (vaddr < 0xC0000000):
+                yield (vaddr, self._pa(vaddr), 1 << 22)
+                continue
+
+            pde_value = self.get_pde(vaddr)
+
+            # This reads the entire PTE table at once - On
+            # windows where IO is extremely expensive, its
+            # about 10 times more efficient than reading it
+            # one value at the time - and this loop is HOT!
+            pte_table_addr = ((pde_value & 0xfffff000) |
+                              ((vaddr & 0x3ff000) >> 10))
+
+            data = self.base.read(self._pa(pte_table_addr), 4 * 0x400)
+            pte_table = struct.unpack(">" + "I" * 0x400, data)
+
+            tmp1 = vaddr
+            for i, pte_value in enumerate(pte_table):
+                vaddr = tmp1 | i << 12
+                next_vaddr = tmp1 | ((i+1) << 12)
+
+                if start > next_vaddr:
                     continue
 
-                pte = self.get_pte(va, pgd)
-                if self.entry_present(pte):
-                    phys = self.get_paddr(va, pte)
-                    yield (va, phys, self.PAGE_SIZE)
+                if self.pte_entry_present(pte_value):
+                    yield (vaddr,
+                           self.get_phys_addr(vaddr, pte_value),
+                           0x1000)
+

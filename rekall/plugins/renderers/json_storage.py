@@ -111,7 +111,7 @@ class IA32PagedMemoryObjectRenderer(
 
 class MIPSPagedMemoryObjectRenderer(
         json_renderer.BaseAddressSpaceObjectRenderer):
-    renders_type = "MipsAddressSpace"
+    renders_type = "MIPS32PagedMemory"
 
     def GetState(self, item, **options):
         state = super(MIPSPagedMemoryObjectRenderer, self).GetState(
