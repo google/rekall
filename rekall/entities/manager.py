@@ -33,9 +33,9 @@ from rekall.entities import definitions
 from rekall.entities import identity as entity_id
 from rekall.entities import lookup_table as entity_lookup
 
-from rekall.entities.query import analyzer as query_analyzer
 from rekall.entities.query import expression
 from rekall.entities.query import matcher as query_matcher
+from rekall.entities.query import query as entity_query
 
 
 class IngestionPipeline(object):
@@ -99,14 +99,14 @@ class IngestionPipeline(object):
                     counts[entity_collector.EffectEnum.Enqueued] += 1
                     self.empty = False
 
-        logging.debug(
-            "%s results: %d new, %d updated, %d sent to ingest. "
-            "pipeline, %d duplicates.",
-            collector.name,
-            counts[entity_collector.EffectEnum.Added],
-            counts[entity_collector.EffectEnum.Merged],
-            counts[entity_collector.EffectEnum.Enqueued],
-            counts[entity_collector.EffectEnum.Duplicate])
+        if any(counts.itervalues()):
+            logging.debug(
+                "%s results: %d new, %d updated, %d requeued, %d duplicates.",
+                collector.name,
+                counts[entity_collector.EffectEnum.Added],
+                counts[entity_collector.EffectEnum.Merged],
+                counts[entity_collector.EffectEnum.Enqueued],
+                counts[entity_collector.EffectEnum.Duplicate])
 
         return counts
 
@@ -222,10 +222,10 @@ class EntityManager(object):
             Tuple of entity and the effect of the new information.
 
             The effect can be one of:
-            EffectEnum.Duplicate: No new information learned.
-            EffectEnum.Merged: As result of this call, data in one or more
-                entities was updated and entities may have merged.
-            EffectEnum.Added: A new entity was added.
+                EffectEnum.Duplicate: No new information learned.
+                EffectEnum.Merged: As result of this call, data in one or more
+                    entities was updated and entities may have merged.
+                EffectEnum.Added: A new entity was added.
         """
         kwargs = {}
         for component in components:
@@ -276,8 +276,8 @@ class EntityManager(object):
         """Adds a fast-lookup index for the component/attribute key path.
 
         This also causes the newly-created lookup table to rebuild its index.
-        Depending on how many entities already exist, this could possibly even
-        take a few hundred miliseconds.
+        Depending on how many entities already exist, building the index could
+        take a couple of seconds.
         """
         # Don't add the same one twice.
         if self.lookup_tables.get(key, None):
@@ -328,32 +328,40 @@ class EntityManager(object):
         return list(results)
 
     def find_by_component(self, component, complete=True):
-        """Yields all entities that have the component.
+        """Finds all entities that have the component.
 
         Arguments:
             complete: If True, will attempt to collect the component.
         """
-        query = expression.ComponentLiteral(component)
+        query = entity_query.Query(expression.ComponentLiteral(component))
         if complete:
             self.collect_for(query)
 
         return list(self.lookup_tables["components"].lookup(component))
 
     def find_by_collector(self, collector):
+        """Find all entities touched by the collector."""
         return list(self.lookup_tables["collectors"].lookup(str(collector)))
 
     def matcher_for(self, query):
+        """Returns a query matcher for the query (cached)."""
         matcher = self._cached_matchers.setdefault(
             query, query_matcher.QueryMatcher(query))
 
         return matcher
 
     def parsers_for(self, entity):
-        """Finds collectors that can parse this entity."""
+        """Finds collectors that can parse this entity.
+
+        Yields: tuples of:
+            - collector instance
+            - name of the keyword argument on the collect method under which
+              the entity should be passed to the collector.
+        """
         for collector in self.collectors:
-            if not collector.collect_args:
+            if not collector.collect_queries:
                 continue
-            for query_name, query in collector.collect_args.iteritems():
+            for query_name, query in collector.collect_queries.iteritems():
                 matcher = self.matcher_for(query)
                 if matcher.match(entity):
                     yield collector, query_name
@@ -383,6 +391,9 @@ class EntityManager(object):
             - dependencies: list of SimpleDependency instances to include
             - exclusions: list of SimpleDependency instances to exclude
         """
+        if not isinstance(wanted, entity_query.Query):
+            wanted = entity_query.Query(wanted)
+
         analysis = self._cached_query_analyses.get(wanted, None)
         if analysis:
             # We want to make a copy exactly one level deep.
@@ -391,8 +402,7 @@ class EntityManager(object):
                 analysis_copy[key] = copy.copy(value)
             return analysis_copy
 
-        analyzer = query_analyzer.QueryAnalyzer(wanted)
-        include, exclude, suggested_indices = analyzer.run()
+        include, exclude, suggested_indices = wanted.execute("QueryAnalyzer")
 
         # A collector is a match if any of its promises match any of the
         # dependencies of the query.
@@ -422,18 +432,24 @@ class EntityManager(object):
                         dependencies=include,
                         exclusions=exclude)
         self._cached_query_analyses[wanted] = analysis
+
         return analysis
 
-    def find(self, query, complete=True):
+    def find(self, query, complete=True, validate=True):
         """Runs the query and yields entities that match.
 
         Arguments:
-            complete: If True, will trigger collectors as necessary, to ensure
-            completness of results.
-        """
-        if complete:
-            self.collect_for(query)
+            query: Either an instance of the query AST, a query string, or a
+                   dictionary of queries. If a dict is given, a new dict will
+                   be returned with the same keys and values replaced with
+                   results.
 
+            complete: If True, will trigger collectors as necessary, to ensure
+                      completness of results.
+
+            validate: Will cause the query to be validated first (mostly for
+                      type errors.)
+        """
         if isinstance(query, dict):
             results = {}
             for query_name, expr in query.iteritems():
@@ -441,30 +457,34 @@ class EntityManager(object):
 
             return results
 
+        if not isinstance(query, entity_query.Query):
+            query = entity_query.Query(query)
+
+        if validate:
+            query.execute("QueryValidator")
+
+        if complete:
+            self.collect_for(query)
+
         # Try to satisfy the query using available lookup tables.
         search = entity_lookup.EntityQuerySearch(query)
         return search.search(self.entities, self.lookup_tables)
 
-    def find_first(self, query, complete=True):
-        for entity in self.find(query, complete):
+    def find_first(self, query, complete=True, validate=True):
+        """Like find, but returns just the first result."""
+        for entity in self.find(query, complete, validate):
             return entity
 
     # pylint: disable=protected-access
     def collect_for(self, wanted, use_hint=False):
-        """Will find the appropriate collectors to satisfy the query.
-
-        For format of the wanted query, see EntityCollector.can_collect.
+        """Will find and run the appropriate collectors to satisfy the query.
 
         If use_hint is set to True, 'wanted' will be passed on as hint to
         the collectors. This may result in faster collection, but may result
         in collectors having to run repeatedly.
         """
-        if use_hint:
-            hint = wanted
-        else:
-            hint = None
+        # Planning stage.
 
-        # Plan execution.
         self.update_collectors()
 
         # to_process is used as a FIFO queue below.
@@ -489,33 +509,32 @@ class EntityManager(object):
         # Queries that collectors depend on.
         queries = set()
 
+        # Build up a list of collectors to run, based on dependencies.
         while to_process:
             collector = to_process.pop(0)
             if collector.name in collectors_seen:
                 continue
 
             collectors_seen.add(collector.name)
-            if collector.collect_args:
-                logging.debug("%s (collect_args '%s') deferred.",
-                              collector.name, collector.collect_args)
+            if collector.collect_queries:
+                logging.debug("Collector %s deferred until stage 2.",
+                              collector.name)
                 repeated.append(collector)
-                queries |= set(collector.collect_args.itervalues())
+                queries |= set(collector.collect_queries.itervalues())
 
                 # Discard the indexing suggestions for ingestion queries
                 # because they don't represent normal usage.
                 additional = set()
-                for query in collector.collect_args.itervalues():
+                for query in collector.collect_queries.itervalues():
                     additional |= set(self.analyze(query)["collectors"])
 
                 for dependency in additional:
-                    logging.debug(
-                        "Collector %s depends on collector %s for its ingest "
-                        "query '%s'.",
-                        collector.name, dependency.name, collector.collect_args)
+                    logging.debug("Collector %s depends on collector %s.",
+                                  collector.name, dependency.name)
                     if dependency.name not in collectors_seen:
                         to_process.append(dependency)
             else:
-                logging.debug("%s (no dependencies) will run immediately.",
+                logging.debug("%s will run in stage 1.",
                               collector.name)
                 simple.append(collector)
 
@@ -529,8 +548,6 @@ class EntityManager(object):
             len(simple), len(repeated), wanted)
 
         # Execution stage 1: no dependencies.
-        logging.debug("%d non-ingesting collectors will now run once.",
-                      len(simple))
 
         for collector in simple:
             effects = {entity_collector.EffectEnum.Duplicate: 0,
@@ -541,7 +558,7 @@ class EntityManager(object):
                 hint = wanted
             else:
                 hint = None
-                self.finished_collectors.add(collector)
+                self.finished_collectors.add(collector.name)
 
             for _, effect in self.collect(collector, hint=hint):
                 effects[effect] += 1
@@ -554,17 +571,18 @@ class EntityManager(object):
                 effects[entity_collector.EffectEnum.Duplicate])
 
         if not repeated:
-            # No ingesting collectors scheduled. We're done.
+            # No higher-order collectors scheduled. We're done.
             return
 
-        # Seeding stage for ingesting collectors.
+        # Seeding stage for higher-order collectors.
         in_pipeline = IngestionPipeline(queries=queries)
         out_pipeline = IngestionPipeline(queries=queries)
         for query in queries:
             results = self.find(query, complete=False)
             in_pipeline.seed(query, results)
-            logging.debug("Pipeline seeded with %d entities matching '%s'",
-                          len(results), query)
+            if results:
+                logging.debug("Pipeline seeded with %d entities matching '%s'",
+                              len(results), query)
 
         # Execution stage 2: collectors with dependencies.
 
@@ -582,22 +600,19 @@ class EntityManager(object):
                 # the ingestion pipeline. The semantics of both find methods
                 # are identical.
                 if collector.complete_input:
-                    collector_input = self.find(collector.collect_args,
+                    collector_input = self.find(collector.collect_queries,
                                                 complete=False)
                 else:
-                    collector_input = in_pipeline.find(collector.collect_args)
+                    collector_input = in_pipeline.find(
+                        collector.collect_queries)
 
                 # The collector requests its prefilter to be called.
                 if collector.filter_input:
-                    logging.debug("Running %s with input filter.",
-                                  collector.name)
                     collector_input_filtered = {}
                     for key, val in collector_input.iteritems():
                         collector_input_filtered[key] = collector.input_filter(
                             hint=hint, entities=val)
                     collector_input = collector_input_filtered
-                else:
-                    logging.debug("Running %s.", collector.name)
 
                 # The collector requests that we always pass the query hint.
                 if use_hint or collector.enforce_hint:

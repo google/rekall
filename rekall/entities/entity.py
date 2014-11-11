@@ -90,17 +90,16 @@ class Entity(object):
     Public state members:
     =====================
 
-    identity: An instance of Identity, or subclass.
+    components: An instance of ComponentContainer, which is a fast container
+        object that actually stores the components of the entity.
 
-    components: An instance of components.ComponentTuple - see that class for
-        details.
+    manager: The manager this entity belongs to.
 
-    copies_count: The number of times this entity was discovered by different
-        collectors. Incremented with each merge.
+    Special Attributes:
+    ===================
 
-    collectors: A set of collector names that discovered this entity.
-
-    entity_manager: The manager this entity belongs to.
+    entity["Entity/identity"] (shorthand entity.identity, entity.indices)
+    entity["Entity/collectors"] (shorthand entity.collectors)
 
     ### References:
 
@@ -108,9 +107,8 @@ class Entity(object):
     http://en.wikipedia.org/wiki/Entity_component_system
     """
 
-    def __init__(self, components, copies_count=1, entity_manager=None):
+    def __init__(self, components, entity_manager=None):
         self.components = components
-        self.copies_count = copies_count
         self.manager = entity_manager
 
     @property
@@ -186,6 +184,7 @@ class Entity(object):
 
     # pylint: disable=protected-access
     def asdict(self):
+        """Returns a dict of all attributes and their values."""
         result = {}
         for component_name in entity_component.Component.classes.keys():
             component = getattr(self.components, component_name)
@@ -209,11 +208,11 @@ class Entity(object):
 
         For example, calling this on a process, one can find all the handles
         owned by the process by calling
-        process.get_referencing_entities("Handle.process").
+        process.get_referencing_entities("Handle/process").
 
         Arguments:
             key: The property path to the attribute on the other entities.
-                As usual, form is Component.attribute.
+                As usual, form is Component/attribute.
         """
         # Automatically ask the entity manager to add indexing for
         # identity-based attributes. This is a good heuristic for optimal
@@ -223,7 +222,7 @@ class Entity(object):
         return self.manager.find(
             expression.Equivalence(
                 expression.Binding(key),
-                expression.Literal(self.identity.first_index)),
+                expression.Literal(self.identity)),
             complete=complete)
 
     def get_raw(self, key):
@@ -233,7 +232,7 @@ class Entity(object):
         the raw value of the key.
 
         Arguments:
-            key: Property path in form of Component.attribute.
+            key: Property path in form of Component/attribute.
         """
         try:
             component_name, attribute = key.split("/", 1)
@@ -252,7 +251,7 @@ class Entity(object):
         """Yields all known values of key.
 
         Arguments:
-            key: The path to the attribute we want. For example: "Process.pid".
+            key: The path to the attribute we want. For example: "Process/pid".
 
         Yields:
             All known values of the key. This is usually exactly one value, but
@@ -302,7 +301,7 @@ class Entity(object):
         ===============================
 
         This method automatically recognizes attributes that reference other
-        entities and automatically looks them up and returns them. For example:
+        entities, looks them up and returns them. For example:
 
         entity["Process/parent"]  # Returns the parent process entity.
         entity["Process/parent"]["Process/pid"]  # PID of the parent.
@@ -359,9 +358,17 @@ class Entity(object):
 
     @classmethod
     def reflect_attribute(cls, attribute):
+        """Return an instance of Field describing the attribute."""
         component, key = attribute.split("/", 1)
-        component_cls = getattr(definitions, component)
+        component_cls = cls.reflect_component(component)
+        if not component_cls:
+            return
+
         return component_cls.reflect_field(key)
+
+    @classmethod
+    def reflect_component(cls, component):
+        return entity_component.Component.classes.get(component, None)
 
     def _merge_containers(self, other):
         """Merge component containers from self and other into new container."""
@@ -388,7 +395,6 @@ class Entity(object):
         This is not a part of the API - only EntityManager should use this.
         """
         self.components = self._merge_containers(other)
-        self.copies_count = self.copies_count + other.copies_count
 
     def union(self, other):
         """Returns a new entity that is a union of x and y.
@@ -403,7 +409,6 @@ class Entity(object):
 
         return Entity(
             components=self._merge_containers(other),
-            copies_count=self.copies_count + other.copies_count,
             entity_manager=self.manager)
 
     def __ior__(self, other):

@@ -24,9 +24,6 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 from rekall.entities import collector
 from rekall.entities import definitions
-from rekall.entities import identity
-
-from rekall.entities.query import expression
 
 from rekall.plugins.collectors.darwin import common
 from rekall.plugins.collectors.darwin import zones
@@ -40,7 +37,7 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
                "MemoryObject/type=fileproc",
                "MemoryObject/type=vnode",
                "MemoryObject/type=socket"]
-    collect_args = dict(processes=expression.ComponentLiteral("Process"))
+    collect_args = dict(processes="has component Process")
     filter_input = True
 
     run_cost = collector.CostEnum.VeryHighCost
@@ -97,10 +94,8 @@ class DarwinSocketZoneCollector(zones.DarwinZoneElementCollector):
 
 class DarwinSocketLastAccess(common.DarwinEntityCollector):
     outputs = ["Event"]
-    collect_args = dict(processes=expression.ComponentLiteral("Process"),
-                        sockets=expression.Equivalence(
-                            expression.Binding("MemoryObject/type"),
-                            expression.Literal("socket")))
+    collect_args = dict(processes="has component Process",
+                        sockets="MemoryObject/type is 'socket'")
     complete_input = True
 
     def collect(self, hint, processes, sockets):
@@ -114,8 +109,12 @@ class DarwinSocketLastAccess(common.DarwinEntityCollector):
             if not process:
                 continue
 
+            event_identity = self.manager.identify({
+                ("Event/actor", "Event/action", "Event/target",
+                 "Event/category"):
+                (process.identity, "accessed", socket.identity, "latest")})
             yield [
-                self.manager.identify({identity.UniqueIndex(): 0}),
+                event_identity,
                 definitions.Event(
                     actor=process.identity,
                     action="accessed",
@@ -135,10 +134,7 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
         "File/type=socket",
         "MemoryObject/type=vnode"]
 
-    collect_args = dict(
-        sockets=expression.Equivalence(
-            expression.Binding("MemoryObject/type"),
-            expression.Literal("socket")))
+    collect_args = dict(sockets="MemoryObject/type is 'socket'")
 
     filter_input = True
 
@@ -146,15 +142,6 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
         for entity in sockets:
             socket = entity["MemoryObject/base_object"]
             family = socket.addressing_family
-
-            yield [
-                self.manager.identify({identity.UniqueIndex(): 0}),
-                definitions.Event(
-                    actor=self.manager.identify({
-                        "Process/pid": socket.last_pid}),
-                    target=entity.identity,
-                    action="accessed",
-                    category="latest")]
 
             if family in ("AF_INET", "AF_INET6"):
                 yield [
@@ -219,10 +206,8 @@ class DarwinFileCollector(common.DarwinEntityCollector):
 
     outputs = ["File", "Permissions", "Timestamps", "Named"]
     _name = "files"
-    collect_args = dict(
-        vnodes=expression.Equivalence(
-            expression.Binding("MemoryObject/type"),
-            expression.Literal("vnode")))
+    collect_args = dict(vnodes="MemoryObject/type is 'vnode'")
+    filter_input = True
 
     def collect(self, hint, vnodes):
         manager = self.manager

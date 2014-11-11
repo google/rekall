@@ -23,6 +23,26 @@ The Rekall Entity Layer.
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 
+class QueryError(Exception):
+    def __init__(self, query, error, start=None, end=None):
+        super(QueryError, self).__init__(error)
+        self.query = query
+        self.start = start
+        if end is None and start is not None:
+            self.end = start + 1
+        else:
+            self.end = end
+        self.error = error
+
+    def __str__(self):
+        if self.start is not None:
+            return "%s\nEncountered at:\n%s >>> %s <<< %s" % (
+                self.error, self.query[0:self.start],
+                self.query[self.start:self.end], self.query[self.end:])
+
+        return "%s\nQuery:\n%s" % (self.error, self.query)
+
+
 class Expression(object):
     """Base class of the query AST.
 
@@ -33,6 +53,9 @@ class Expression(object):
     __abstract = True
     children = ()
     arity = 0
+    start = None
+    end = None
+    return_types = frozenset(["expression"])
 
     def __hash__(self):
         return hash((type(self), self.children))
@@ -43,7 +66,13 @@ class Expression(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __init__(self, *children):
+    def __init__(self, *children, **kwargs):
+        self.start = kwargs.pop("start", None)
+        self.end = kwargs.pop("end", None)
+
+        if kwargs:
+            raise ValueError("Unexpected argument(s) %s" % kwargs.keys())
+
         if self.arity and len(children) != self.arity:
             raise ValueError("%d-ary expression %s passed %d children." % (
                 self.arity, type(self).__name__, len(children)))
@@ -68,12 +97,14 @@ class ValueExpression(Expression):
 
 class Literal(ValueExpression):
     """Represents a literal, which is to say not-an-expression."""
-    pass
+
+    return_types = frozenset([None])
 
 
 class Binding(ValueExpression):
     """Represents a member of the evaluated object - attributes of entity."""
-    pass
+
+    return_types = frozenset([None])
 
 
 class ComponentLiteral(ValueExpression):
@@ -83,7 +114,7 @@ class ComponentLiteral(ValueExpression):
 
 class Complement(ValueExpression):
     """Logical NOT."""
-    pass
+    return_types = frozenset(["bool"])
 
 
 class Let(Expression):
@@ -94,6 +125,7 @@ class Let(Expression):
     Let("Process/parent", ComponentLiteral("Timestamps"))
     """
 
+    return_types = frozenset(["bool"])
     arity = 2
 
     @property
@@ -123,6 +155,7 @@ class Sorted(Expression):
     Sorted("Process/pid", ComponentLiteral("Process"))
     """
 
+    return_types = frozenset(["list"])
     arity = 2
 
     @property
@@ -143,30 +176,48 @@ class VariadicExpression(Expression):
 
 class Union(VariadicExpression):
     """Logical OR (variadic)."""
-    pass
+
+    return_types = frozenset(["bool"])
 
 
 class Intersection(VariadicExpression):
     """Logical AND (variadic)."""
-    pass
+
+    return_types = frozenset(["bool"])
 
 
-class Equivalence(VariadicExpression):
+class Relation(VariadicExpression):
+    __abstract = True
+
+    return_types = frozenset(["bool"])
+
+
+class Equivalence(Relation):
     """Logical == (variadic)."""
     pass
 
 
-class Addition(VariadicExpression):
+class Sum(VariadicExpression):
     """Arithmetic + (variadic)."""
-    pass
+    return_types = frozenset(["int", "long", "float", "complex"])
 
 
-class Multiplication(VariadicExpression):
+class Difference(VariadicExpression):
+    """Arithmetic - (variadic)."""
+    return_types = frozenset(["int", "long", "float", "complex"])
+
+
+class Product(VariadicExpression):
     """Arithmetic * (variadic)."""
-    pass
+    return_types = frozenset(["int", "long", "float", "complex"])
 
 
-class OrderedSet(VariadicExpression):
+class Quotient(VariadicExpression):
+    """Arithmetic / (variadic)."""
+    return_types = frozenset(["int", "long", "float", "complex"])
+
+
+class OrderedSet(Relation):
     """Abstract class to represent strict and non-strict ordering."""
     __abstract = True
 
@@ -176,6 +227,36 @@ class StrictOrderedSet(OrderedSet):
     pass
 
 
-class NonStrictOrderedSet(OrderedSet):
+class PartialOrderedSet(OrderedSet):
     """Great-or-equal than relation."""
     pass
+
+
+class ContainmentOrder(Relation):
+    """Inclusion of set 1 by set 2 and so on."""
+    pass
+
+
+class Membership(Relation):
+    """Membership of element in set."""
+    return_types = frozenset(["bool"])
+
+    @property
+    def element(self):
+        return self.children[0]
+
+    @property
+    def set(self):
+        return self.children[1]
+
+
+class RegexFilter(Relation):
+    return_types = frozenset(["bool"])
+
+    @property
+    def string(self):
+        return self.children[0]
+
+    @property
+    def regex(self):
+        return self.children[1]

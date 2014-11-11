@@ -22,12 +22,16 @@ The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall import registry
+
 
 class QueryVisitor(object):
     __abstract = True
+    __metaclass__ = registry.MetaclassRegistry
 
     def __init__(self, query):
         self.query = query
+        self.expression = query.expression
 
     def __hash__(self):
         return hash((type(self), self.query))
@@ -39,7 +43,7 @@ class QueryVisitor(object):
         return not self.__eq__(other)
 
     def run(self):
-        return self.visit(self.query)
+        return self.visit(self.expression)
 
     def visit(self, expression):
         # Walk the MRO and try to find a closest match for handler.

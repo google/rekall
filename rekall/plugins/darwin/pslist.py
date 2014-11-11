@@ -30,9 +30,7 @@ class DarwinPsxView(common.DarwinPlugin):
 
     def render(self, renderer):
         collectors = self.session.entities.analyze(
-            expression.Equivalence(
-                expression.Binding("MemoryObject/type"),
-                expression.Literal("proc")))["collectors"]
+            "MemoryObject/type == 'proc'")["collectors"]
         collector_names = sorted([collector.name for collector in collectors])
 
         headers = [
@@ -49,8 +47,7 @@ class DarwinPsxView(common.DarwinPlugin):
         renderer.table_header(headers)
 
         for entity in sorted(
-                self.session.entities.find(expression.ComponentLiteral(
-                    "Process")),
+                self.session.entities.find("has component Process"),
                 key=lambda e: e["Process/pid"]):
             row = [
                 entity["MemoryObject/base_object"],

@@ -27,6 +27,7 @@ import re
 from rekall import registry
 
 from rekall.entities.query import analyzer
+from rekall.entities.query import query as entity_query
 
 
 class CostEnum(object):
@@ -115,6 +116,7 @@ class EntityCollector(object):
     _promises = None  # Promises (SimpleDependency) generated from outputs.
 
     collect_args = None  # Subclasses may override.
+    collect_queries = None  # Will be populated automatically on init.
 
     run_cost = CostEnum.NormalCost
     enforce_hint = False
@@ -130,6 +132,7 @@ class EntityCollector(object):
         self.manager = entity_manager
         self.session = entity_manager.session
         self._indices_seen = set()
+        self._ensure_compile_queries()
 
     @property
     def profile(self):
@@ -151,6 +154,14 @@ class EntityCollector(object):
 
         # All collectors return Entity.
         self._promises.append(analyzer.SimpleDependency("Entity"))
+
+    def _ensure_compile_queries(self):
+        if self.collect_queries or self.collect_args is None:
+            return
+
+        self.collect_queries = {}
+        for arg, source in self.collect_args.iteritems():
+            self.collect_queries[arg] = entity_query.Query(source)
 
     @property
     def is_collected(self):

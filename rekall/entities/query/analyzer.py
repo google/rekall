@@ -220,6 +220,9 @@ class QueryAnalyzer(visitor.QueryVisitor):
     other than 'socket' will be excluded.
     """
 
+    def __init__(self, *args, **kwargs):
+        super(QueryAnalyzer, self).__init__(*args, **kwargs)
+
     def run(self):
         """Analyzes query for dependencies on collectors and indices.
 
@@ -229,7 +232,7 @@ class QueryAnalyzer(visitor.QueryVisitor):
             - Set of names of attributes whose indices can speed up the query.
         """
         self.latest_indices = set()
-        result = self.visit(self.query)
+        result = self.visit(self.expression)
         if isinstance(result, Dependency):
             include, exclude = result.normalize()
             return include, exclude, self.latest_indices
@@ -257,7 +260,8 @@ class QueryAnalyzer(visitor.QueryVisitor):
         return SimpleDependency(expr.value)
 
     def visit_Let(self, expr):
-        ctx_component, ctx_attribute = expr.context.split("/", 1)
+        context = expr.context.value
+        ctx_component, ctx_attribute = context.split("/", 1)
         dependency = SimpleDependency(ctx_component, ctx_attribute)
 
         value = self.visit(expr.expression)

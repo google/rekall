@@ -24,16 +24,14 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 from rekall.entities import definitions
 from rekall.entities import collector
-from rekall.entities import identity
-
-from rekall.entities.query import expression
 
 
 class EventInferenceCollector(collector.EntityCollector):
     """Generates Events from entities that have Timestamps."""
 
     outputs = ["Event"]
-    collect_args = dict(entities=expression.ComponentLiteral("Timestamps"))
+    collect_args = dict(entities="has component Timestamps")
+
     run_cost = collector.CostEnum.NoCost
 
     @classmethod
@@ -47,8 +45,15 @@ class EventInferenceCollector(collector.EntityCollector):
             for field in definitions.Timestamps.component_fields:
                 timestamp = getattr(entity.components.Timestamps, field.name)
                 action = field.name.replace("_at", "")
+                if not timestamp:
+                    continue
+
+                event_identity = manager.identify({
+                    ("Event/timestamp", "Event/action", "Event/target"):
+                    (timestamp, action, entity.identity)})
+
                 if timestamp:
-                    yield [manager.identify({identity.UniqueIndex(): 0}),
+                    yield [event_identity,
                            definitions.Event(target=entity.identity,
                                              timestamp=timestamp,
                                              action=action)]

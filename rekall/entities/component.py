@@ -74,6 +74,9 @@ class ScalarDescriptor(TypeDescriptor):
         self.type_name = type_cls.__name__
 
     def coerce(self, value):
+        if value == None:
+            return value
+
         return self.type_cls(value)
 
     def __repr__(self):
@@ -264,6 +267,8 @@ class Field(object):
 
 
 class Component(object):
+    """A high-performance container similar to namedtuple."""
+
     __slots__ = ("_contents", "_object_id")
     component_fields = None
     component_name = None

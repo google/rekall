@@ -22,8 +22,12 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import sys
 
+from rekall import config
 from rekall import plugin
+
 from rekall.entities import component as entity_component
+
+from rekall.entities.query import query as entity_query
 
 
 class ListEvents(plugin.Command):
@@ -62,3 +66,74 @@ class ListEvents(plugin.Command):
                 event["Event/actor"],
                 event["Event/action"],
                 event["Event/target"])
+
+
+config.DeclareOption(
+    "-E", "--entity_filter", default=None,
+    help="Filter to apply to all plugins backed by the entity layer.")
+
+
+class EntityFind(plugin.Command):
+    __name = "find"
+
+    @classmethod
+    def args(cls, parser):
+        super(EntityFind, cls).args(parser)
+        parser.add_positional_arg("query")
+        parser.add_argument("--explain", type="Boolean", default=False,
+                            help="Show which part of the query matched.")
+
+    def __init__(self, query=None, explain=None, **kwargs):
+        super(EntityFind, self).__init__(**kwargs)
+        self.query = entity_query.Query(query)
+        self.explain = explain
+
+    def render(self, renderer):
+        renderer.table_header([("Entity", "entity", "120")])
+        for entity in self.session.entities.find(self.query):
+            renderer.table_row(entity)
+            if self.explain:
+                match = self.query.execute("QueryMatcher", method="match",
+                                           bindings=entity,
+                                           match_backtrace=True)
+
+                source = self.query.expression_source(match.matched_expression)
+                explanation = "Explanation: %s >>> %s <<< %s\n" % source
+                renderer.write(explanation)
+
+
+class EntityDescribe(plugin.Command):
+    __name = "describe"
+
+    @classmethod
+    def args(cls, parser):
+        super(EntityDescribe, cls).args(parser)
+        parser.add_positional_arg("component")
+
+    def __init__(self, component=None, **kwargs):
+        super(EntityDescribe, self).__init__(**kwargs)
+        self.component = component
+
+    def render_component(self, renderer, component_cls):
+        renderer.section(
+            "%s: %s" % (component_cls.component_name,
+                        component_cls.component_docstring),
+            width=100)
+        renderer.table_header([
+            dict(name="Field", cname="field", width=20),
+            dict(name="Type", cname="type", width=20),
+            dict(name="Description", cname="description", width=50)])
+
+        for field in component_cls.component_fields:
+            renderer.table_row(field.name,
+                               field.typedesc.type_name,
+                               field.docstring)
+
+    def render(self, renderer):
+        if self.component:
+            return self.render_component(
+                renderer,
+                entity_component.Component.classes[self.component])
+
+        for component_cls in entity_component.Component.classes.itervalues():
+            self.render_component(renderer, component_cls)

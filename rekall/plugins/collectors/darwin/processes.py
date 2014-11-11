@@ -27,15 +27,13 @@ from rekall.entities import definitions
 from rekall.plugins.collectors.darwin import common
 from rekall.plugins.collectors.darwin import zones
 
-from rekall.entities.query import expression
-
 
 class DarwinProcParentInferor(common.DarwinEntityCollector):
     """Builds the parent-child relationships for processes."""
 
     outputs = ["Process"]
 
-    collect_args = dict(processes=expression.ComponentLiteral("Process"))
+    collect_args = dict(processes="has component Process")
     complete_input = True
 
     def collect(self, hint, processes):
@@ -65,10 +63,7 @@ class DarwinProcParser(common.DarwinEntityCollector):
         "Timestamps",
         "Named/kind=process"]
 
-    collect_args = dict(
-        procs=expression.Equivalence(
-            expression.Binding("MemoryObject/type"),
-            expression.Literal("proc")))
+    collect_args = dict(procs="MemoryObject/type is 'proc'")
 
     def collect(self, hint, procs):
         manager = self.manager

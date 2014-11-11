@@ -27,8 +27,6 @@ from rekall.entities import definitions
 from rekall.plugins.collectors.darwin import common
 from rekall.plugins.collectors.darwin import zones
 
-from rekall.entities.query import expression
-
 
 class DarwinTerminalUserInferor3000(common.DarwinEntityCollector):
     """Infers the relationship between usernames and UIDs using tty sessions."""
@@ -36,14 +34,8 @@ class DarwinTerminalUserInferor3000(common.DarwinEntityCollector):
     outputs = ["User"]
 
     collect_args = dict(
-        terminals=expression.Intersection(
-            expression.ComponentLiteral("Terminal"),
-            expression.Let(
-                "Terminal/file",
-                expression.ComponentLiteral("Permissions")),
-            expression.Let(
-                "Terminal/session",
-                expression.ComponentLiteral("Session"))))
+        terminals=("Terminal/file matches (has component Permissions) and "
+                   "Terminal/session"))
 
     complete_input = True
 
@@ -69,10 +61,7 @@ class DarwinClistParser(common.DarwinEntityCollector):
     outputs = ["Buffer/purpose=terminal_input",
                "Buffer/purpose=terminal_output"]
 
-    collect_args = dict(
-        clists=expression.Equivalence(
-            expression.Binding("MemoryObject/type"),
-            expression.Literal("clist")))
+    collect_args = dict(clists="MemoryObject/type is 'clist'")
 
     def collect(self, hint, clists):
         for entity in clists:
@@ -90,10 +79,7 @@ class DarwinTTYParser(common.DarwinEntityCollector):
     outputs = ["Terminal", "MemoryObject/type=vnode", "MemoryObject/type=clist",
                "Buffer/purpose=terminal_input",
                "Buffer/purpose=terminal_output"]
-    collect_args = dict(
-        ttys=expression.Equivalence(
-            expression.Binding("MemoryObject/type"),
-            expression.Literal("tty")))
+    collect_args = dict(ttys="MemoryObject/type is 'tty'")
 
     def collect(self, hint, ttys):
         for entity in ttys:
@@ -144,10 +130,7 @@ class DarwinSessionParser(common.DarwinEntityCollector):
         "MemoryObject/type=tty",
         "MemoryObject/type=proc"]
 
-    collect_args = dict(
-        sessions=expression.Equivalence(
-            expression.Binding("MemoryObject/type"),
-            expression.Literal("session")))
+    collect_args = dict(sessions="MemoryObject/type is 'session'")
 
     def collect(self, hint, sessions):
         for entity in sessions:

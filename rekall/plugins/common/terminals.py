@@ -38,8 +38,7 @@ class ListTerminals(plugin.Command):
             ("Recovered input (first 50 chars)", "input", "50"),
             ("Recovered output (first 125 chars)", "output", "125")])
 
-        for terminal in self.session.entities.find(
-                expression.ComponentLiteral("Terminal")):
+        for terminal in self.session.entities.find("has component Terminal"):
 
             buffer_in = self.session.entities.find_first(
                 expression.Intersection(

@@ -522,9 +522,7 @@ class DarwinProcessFilter(DarwinPlugin):
         """List deallocated proc structs using the zone allocator."""
         # Find the proc zone from the allocator.
         proc_zone = self.session.manager.find_first(
-            expression.Equivalence(
-                expression.Binding("AllocationZone/name"),
-                expression.Literal("proc")))["MemoryObject/base_object"]
+            "AllocationZone/name is 'proc'")["MemoryObject/base_object"]
 
         # Walk over the free list and get all the proc objects.
         obj_list = proc_zone.free_elements.walk_list("next")

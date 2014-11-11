@@ -123,16 +123,3 @@ class Identity(object):
 
         return Identity(indices=self.indices | other.indices,
                         global_prefix=self.global_prefix)
-
-
-class UniqueIndex(object):
-    """This object is not equal to any other object except itself."""
-
-    def __eq__(self, other):
-        return self is other
-
-    def __ne__(self, other):
-        return self is not other
-
-    def __hash__(self):
-        return id(self)

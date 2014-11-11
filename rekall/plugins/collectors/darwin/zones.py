@@ -27,8 +27,6 @@ from rekall.entities import definitions
 
 from rekall.plugins.collectors.darwin import common
 
-from rekall.entities.query import expression
-
 
 class DarwinZoneCollector(common.DarwinEntityCollector):
     """Lists all allocation zones."""
@@ -56,22 +54,13 @@ class DarwinZoneCollector(common.DarwinEntityCollector):
 
 
 class DarwinZoneElementCollector(common.DarwinEntityCollector):
-    """Lists memory pages used by the zone allocator.
-
-    The zones used by the allocator have a number of flags that influence how
-    their memory is managed. For the purposes of enumerating pages used by each
-    zone, the key flag is the 'use_page_list' flag, which makes the allocator
-    track memory pages assigned to each zone.
-
-    This plugin will currently enumerate pages for zones that have this flag
-    set, and no others.
-    """
+    """Lists all the valid elements in a given allocation zone."""
 
     __abstract = True
 
     zone_name = None
     type_name = None
-    collect_args = dict(zones=expression.ComponentLiteral("AllocationZone"))
+    collect_args = dict(zones="has component AllocationZone")
 
     def collect(self, hint, zones):
         for element, state in self.collect_base_objects(
@@ -96,7 +85,7 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
         seen_pages = set()
 
         # Each zone has a list of addresses that are either fresh or have been
-        # freed. We don't know which is which, so we'll walk them all an rely
+        # freed. We don't know which is which, so we'll walk them all and rely
         # on validation.
         for element in zone.free_elements.walk_list("next"):
             for validated_element in self._process_offset(
@@ -105,7 +94,7 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
                     seen_offsets=seen_offsets):
                 yield validated_element
 
-        # Having done that, we not have a list of addresses we already know are
+        # Having done that, we now have a list of addresses we already know are
         # designated as free. Now we'll process each of the pages that they
         # were on.
         for element in seen_offsets.copy():
@@ -116,8 +105,9 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
                     seen_offsets=seen_offsets):
                 yield validated_element
 
-        # Some zones track the pages they've been given - if this data is
-        # available then process those pages as well.
+        # Some zones track the pages they've been given (see flag
+        # use_page_list) - if this data is available then process those pages
+        # as well.
         lists = {"all_free": "freed",
                  "all_used": "allocated",
                  "intermediate": "unknown"}
@@ -150,7 +140,7 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
         seen_pages.add(page_start)
 
         limit = page_start + 4096 - element_size
-        # Page metadata is inlined at the end of each pages.
+        # Page metadata is inlined at the end of each page.
         limit -= self.profile.get_obj_size("zone_page_metadata")
 
         offset = page_start
@@ -175,10 +165,12 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
 
 
 class DarwinZoneBufferCollector(DarwinZoneElementCollector):
+    """Finds all valid offsets in an allocation zone as Buffers."""
+
     outputs = ["Buffer/purpose=zones"]
     type_name = "int"  # Dummy type.
 
-    collect_args = dict(zones=expression.ComponentLiteral("AllocationZone"))
+    collect_args = dict(zones="has component AllocationZone")
     enforce_hint = True
     run_cost = collector.CostEnum.VeryHighCost
 

@@ -27,6 +27,7 @@ from rekall.entities import identity as entity_id
 
 from rekall.entities.query import expression
 from rekall.entities.query import matcher
+from rekall.entities.query import query as entity_query
 from rekall.entities.query import visitor
 
 
@@ -44,7 +45,7 @@ class EntityQuerySearch(visitor.QueryVisitor):
         return sorted(results, key=lambda result: result[expr.binding])
 
     def visit_ComponentLiteral(self, expr):
-        return self.__as_entities(
+        return self._as_entities(
             self.lookup_tables["components"].table.get(expr.value, []))
 
     def visit_Intersection(self, expr):
@@ -61,8 +62,12 @@ class EntityQuerySearch(visitor.QueryVisitor):
 
         return results
 
-    def __slow_solve(self, expr):
-        slow_matcher = matcher.QueryMatcher(expr)
+    def _subquery(self, expr):
+        return entity_query.Query(expression=expr,
+                                  source=self.query.source)
+
+    def _slow_solve(self, expr):
+        slow_matcher = matcher.QueryMatcher(self._subquery(expr))
         entities = set()
         for entity in self.entities.itervalues():
             if slow_matcher.match(entity):
@@ -70,7 +75,7 @@ class EntityQuerySearch(visitor.QueryVisitor):
 
         return entities
 
-    def __as_entities(self, identities):
+    def _as_entities(self, identities):
         entities = set()
         for identity in identities:
             # identity.indices is a set, hence the loop.
@@ -88,11 +93,11 @@ class EntityQuerySearch(visitor.QueryVisitor):
         table = self.lookup_tables.get(binding.value, None)
         if table:
             # Sweet, we have exact index for this.
-            return self.__as_entities(table.table.get(literal_value, set()))
+            return self._as_entities(table.table.get(literal_value, set()))
 
         # Don't have an exact index, but can prefilter by component index.
         component, _ = binding.value.split("/", 1)
-        slow_matcher = matcher.QueryMatcher(expr)
+        slow_matcher = matcher.QueryMatcher(self._subquery(expr))
         entities = set()
         candidates = self.lookup_tables["components"].table.get(component, [])
         for identity in candidates:
@@ -104,7 +109,7 @@ class EntityQuerySearch(visitor.QueryVisitor):
 
     def visit_Equivalence(self, expr):
         if len(expr.children) != 2:
-            return self.__slow_solve(expr)
+            return self._slow_solve(expr)
 
         x, y = expr.children
         if (isinstance(x, expression.Binding) and
@@ -114,10 +119,10 @@ class EntityQuerySearch(visitor.QueryVisitor):
               isinstance(y, expression.Binding)):
             return self._solve_equivalence(expr, y, x)
 
-        return self.__slow_solve(expr)
+        return self._slow_solve(expr)
 
     def visit_Expression(self, expr):
-        return self.__slow_solve(expr)
+        return self._slow_solve(expr)
 
 
 class EntityLookupTable(object):
