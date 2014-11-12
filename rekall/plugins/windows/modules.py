@@ -37,7 +37,6 @@ class Modules(common.WindowsCommandPlugin):
     # A local cache for find_modules. Key is module base and value is the
     # _LDR_DATA_TABLE_ENTRY for the module.
     mod_lookup = None
-    modlist = None
 
     @classmethod
     def args(cls, parser):
@@ -58,6 +57,7 @@ class Modules(common.WindowsCommandPlugin):
         # specified from the command line (e.g.
         load_as = self.session.plugins.load_as(session=self.session)
         self.address_space = load_as.ResolveAddressSpace(address_space)
+        self.modlist = []
 
     def lsmod(self):
         """ A Generator for modules (uses _KPCR symbols) """

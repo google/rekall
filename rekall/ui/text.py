@@ -1000,6 +1000,15 @@ class TextRenderer(renderer.BaseRenderer):
     def open(self, directory=None, filename=None, mode="rb"):
         if filename is None and directory is None:
             raise IOError("Must provide a filename")
+
+        filename = utils.SmartStr(filename) or "Unknown%s" % self._object_id
+
+        # Filter the filename for illegal chars.
+        filename = re.sub(
+            r"[^a-zA-Z0-9_.{}\[\]\- ]",
+            lambda x: "%" + x.group(0).encode("hex"),
+            filename)
+
         if directory:
             filename = os.path.join(directory, "./", filename)
 

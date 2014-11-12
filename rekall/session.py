@@ -431,6 +431,10 @@ class Session(object):
         self.state.cache.clear()
 
     @property
+    def default_address_space(self):
+        return self.GetParameter("default_address_space")
+
+    @property
     def address_resolver(self):
         """A convenience accessor for the address resolver implementation.
 
@@ -976,5 +980,3 @@ Config:
     def add_session(self, session):
         self.session_list.append(session)
         self.session_list.sort(key=lambda x: x.session_id)
-
-

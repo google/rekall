@@ -436,9 +436,9 @@ class VADDump(core.DirectoryDumperMixin, VAD):
                             default=100*1024*1024,
                             help="Maximum file size to dump.")
 
-    def __init__(self, max_size=100*1024*1024, **kwargs):
-        super(VADDump, self).__init__(**kwargs)
-        self.max_size = max_size
+    def __init__(self, *args, **kwargs):
+        self.max_size = kwargs.pop("max_size", 100*1024*1024)
+        super(VADDump, self).__init__(*args, **kwargs)
 
     def render(self, renderer):
         for task in self.filter_processes():
@@ -476,6 +476,7 @@ class VADDump(core.DirectoryDumperMixin, VAD):
                     with renderer.open(directory=self.dump_dir,
                                        filename=filename,
                                        mode='wb') as fd:
+
                         if end - start > self.max_size:
                             renderer.table_row(start, end, end-start,
                                                "Skipped - Region too large")

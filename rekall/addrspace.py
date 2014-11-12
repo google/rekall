@@ -132,7 +132,8 @@ class BaseAddressSpace(object):
         if end is None:
             end = 0xfffffffffffff
 
-        for voffset, poffset, length in self._get_address_ranges():
+        for voffset, poffset, length in self._get_address_ranges(
+                start=start, end=end):
             # The entire range is below what is required - ignore it.
             if voffset + length < start:
                 continue
@@ -150,22 +151,17 @@ class BaseAddressSpace(object):
             if range_end > range_start:
                 yield range_start, phys_range_start, range_end - range_start
 
-    def _get_address_ranges(self):
+    def _get_address_ranges(self, start=0, end=None):
         """Generates merged address ranges from get_available_addresses()."""
-        try:
-            # Try to get this from the cache.
-            for x in self.cache.Get("Ranges"):
-                yield x
-
-            return
-        except KeyError:
-            pass
-
-        result = []
         contiguous_voffset = 0
         contiguous_poffset = 0
         total_length = 0
-        for (voffset, poffset, length) in self.get_available_addresses():
+        for (voffset, poffset, length) in self.get_available_addresses(
+                start=start):
+
+            if end and voffset > end:
+                break
+
             # This can take some time as we enumerate all the address ranges.
             if self.session:
                 self.session.report_progress(
@@ -178,9 +174,6 @@ class BaseAddressSpace(object):
                 total_length += length
 
             else:
-                result.append(
-                    (contiguous_voffset, contiguous_poffset, total_length))
-
                 yield (contiguous_voffset, contiguous_poffset, total_length)
 
                 # Reset the contiguous range.
@@ -189,13 +182,7 @@ class BaseAddressSpace(object):
                 total_length = length
 
         if total_length > 0:
-            result.append(
-                (contiguous_voffset, contiguous_poffset, total_length))
-
             yield (contiguous_voffset, contiguous_poffset, total_length)
-
-        # Cache this for next time.
-        self.cache.Put("Ranges", result)
 
     def is_valid_address(self, _addr):
         """ Tell us if the address is valid """

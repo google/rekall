@@ -30,6 +30,8 @@ metadata.
 """
 
 __author__ = "Michael Cohen <scudette@google.com>"
+import struct
+
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.windows import common
@@ -105,7 +107,7 @@ class WindowsPagedMemoryMixin(object):
 
         return desc, pte
 
-    def _ResolveProtoPTE(self, pte, virtual_address):
+    def ResolveProtoPTE(self, pte, virtual_address):
         """Second level resolution of prototype PTEs.
 
         This function resolves a prototype PTE. Some states must be interpreted
@@ -139,6 +141,45 @@ class WindowsPagedMemoryMixin(object):
                 WindowsPagedMemoryMixin, self).get_available_addresses(
                     start=start):
             yield ranges
+
+    def _get_available_PDEs(self, vaddr, pdpte_value, start):
+        tmp2 = vaddr
+        for pde in range(0, 0x200):
+            vaddr = tmp2 | (pde << 21)
+
+            next_vaddr = tmp2 | ((pde + 1) << 21)
+            if start >= next_vaddr:
+                continue
+
+            pde_value = self.get_pde(vaddr, pdpte_value)
+            if not self.entry_present(pde_value):
+                # An invalid PDE means we read the vad, i.e. it is the same as
+                # an array of zero PTEs.
+                for x in self._get_available_PTEs(
+                        [0] * 0x200, vaddr, start=start):
+                    yield x
+
+                continue
+
+            if self.page_size_flag(pde_value):
+                yield (vaddr,
+                       self.get_two_meg_paddr(vaddr, pde_value),
+                       0x200000)
+                continue
+
+            # This reads the entire PTE table at once - On
+            # windows where IO is extremely expensive, its
+            # about 10 times more efficient than reading it
+            # one value at the time - and this loop is HOT!
+            pte_table_addr = ((pde_value & 0xffffffffff000) |
+                              ((vaddr & 0x1ff000) >> 9))
+
+            data = self.base.read(pte_table_addr, 8 * 0x200)
+            pte_table = struct.unpack("<" + "Q" * 0x200, data)
+
+            for x in self._get_available_PTEs(
+                    pte_table, vaddr, start=start):
+                yield x
 
     def _get_available_PTEs(self, pte_table, vaddr, start=0):
         """Scan the PTE table and yield address ranges which are valid."""
@@ -204,7 +245,7 @@ class WindowsPagedMemoryMixin(object):
 
             desc, pte = self.DeterminePTEType(pte, virtual_address)
             if desc == "Prototype":
-                return self._ResolveProtoPTE(pte.Proto, virtual_address)
+                return self.ResolveProtoPTE(pte.Proto, virtual_address)
 
             # This is a prototype into a vad region.
             elif desc == "Vad":
@@ -215,7 +256,7 @@ class WindowsPagedMemoryMixin(object):
                     pte = mmvad.FirstPrototypePte[
                         (virtual_address - start) >> 12]
 
-                    return self._ResolveProtoPTE(pte, virtual_address)
+                    return self.ResolveProtoPTE(pte, virtual_address)
 
             elif desc == "Pagefile" and self.pagefile_mapping:
                 return (pte.PageFileHigh * 0x1000 + self.pagefile_mapping +
@@ -229,6 +270,29 @@ class WindowsIA32PagedMemoryPae(WindowsPagedMemoryMixin,
                                 intel.IA32PagedMemoryPae):
     """A Windows specific IA32PagedMemoryPae."""
 
+    def vtop(self, vaddr):
+        '''Translates virtual addresses into physical offsets.
+
+        The function should return either None (no valid mapping) or the offset
+        in physical memory where the address maps.
+        '''
+        pde_value = self.get_pde(vaddr)
+        if not self.entry_present(pde_value):
+            # If PDE is not valid the page table does not exist yet. According
+            # to
+            # http://i-web.i.u-tokyo.ac.jp/edu/training/ss/lecture/new-documents/Lectures/14-AdvVirtualMemory/AdvVirtualMemory.pdf
+            # slide 11 this is the same as PTE of zero - i.e. consult the VAD.
+            return self.get_phys_addr(vaddr, 0)
+
+        if self.page_size_flag(pde_value):
+            return self.get_four_meg_paddr(vaddr, pde_value)
+
+        pte_value = self.get_pte(vaddr, pde_value)
+        if not self.entry_present(pte_value):
+            return None
+
+        return self.get_phys_addr(vaddr, pte_value)
+
 
 class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin, amd64.AMD64PagedMemory):
     """A windows specific AMD64PagedMemory.
@@ -236,6 +300,43 @@ class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin, amd64.AMD64PagedMemory):
     Implements support for reading the pagefile if the base address space
     contains a pagefile.
     """
+
+    def vtop(self, vaddr):
+        '''Translates virtual addresses into physical offsets.
+
+        The function returns either None (no valid mapping) or the offset in
+        physical memory where the address maps.
+        '''
+        vaddr = long(vaddr)
+        pml4e = self.get_pml4e(vaddr)
+        if not self.entry_present(pml4e):
+            # Add support for paged out PML4E
+            return None
+
+        pdpte = self.get_pdpte(vaddr, pml4e)
+        if not self.entry_present(pdpte):
+            # Add support for paged out PDPTE
+            # Insert buffalo here!
+            return None
+
+        if self.page_size_flag(pdpte):
+            return self.get_one_gig_paddr(vaddr, pdpte)
+
+        pde = self.get_pde(vaddr, pdpte)
+        if not self.entry_present(pde):
+            # If PDE is not valid the page table does not exist yet. According
+            # to
+            # http://i-web.i.u-tokyo.ac.jp/edu/training/ss/lecture/new-documents/Lectures/14-AdvVirtualMemory/AdvVirtualMemory.pdf
+            # slide 11 this is the same PTE of zero.
+            return self.get_phys_addr(vaddr, 0)
+
+        # Is this a 2 meg page?
+        if self.page_size_flag(pde):
+            return self.get_two_meg_paddr(vaddr, pde)
+
+        pte = self.get_pte(vaddr, pde)
+
+        return self.get_phys_addr(vaddr, pte)
 
 
 class Pagefiles(common.WindowsCommandPlugin):
@@ -266,4 +367,3 @@ class Pagefiles(common.WindowsCommandPlugin):
             if pf:
                 renderer.table_row(
                     pf, pf.PageFileNumber, pf.Size * 0x1000, pf.PageFileName)
-

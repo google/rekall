@@ -90,7 +90,7 @@ class Handles(common.WinProcessFilter):
 
     def render(self, renderer):
         renderer.table_header([("_OBJECT_HEADER", "offset_v", "[addrpad]"),
-                               ("Pid", "pid", ">6"),
+                               dict(name="_EPROCESS", type="_EPROCESS"),
                                ("Handle", "handle", "[addr]"),
                                ("Access", "access", "[addr]"),
                                ("Type", "obj_type", "16"),
@@ -110,7 +110,7 @@ class Handles(common.WinProcessFilter):
 
                 renderer.table_row(
                     handle,
-                    task.UniqueProcessId,
+                    task,
                     handle.HandleValue,
                     handle.GrantedAccess,
                     object_type, name)

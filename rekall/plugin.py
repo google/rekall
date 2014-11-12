@@ -162,7 +162,7 @@ class Command(object):
     def name(cls):  # pylint: disable=no-self-argument
         return getattr(cls, "_%s__name" % cls.__name__, None)
 
-    def __init__(self, session=None, **kwargs):
+    def __init__(self, **kwargs):
         """The constructor for this command.
 
         Commands can take arbitrary named args and have access to the running
@@ -173,6 +173,7 @@ class Command(object):
             session by default, if not provided. This allows users to omit
             specifying many options.
         """
+        session = kwargs.pop("session", None)
         if kwargs:
             raise InvalidArgs(unicode(kwargs.keys()))
 

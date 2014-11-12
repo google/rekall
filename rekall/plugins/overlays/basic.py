@@ -178,7 +178,7 @@ class UnicodeString(String):
 
     def __unicode__(self):
         return self.v().split("\x00")[0] or u""
-    
+
     def __len__(self):
         return len(unicode(self))
 

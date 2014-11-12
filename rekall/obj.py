@@ -440,8 +440,12 @@ class BaseObject(object):
                                         target=self.obj_type)
 
     def cast(self, type_name=None, vm=None, **kwargs):
+        # Allow the caller to also change the offset, overriding the current
+        # object.
+        offset = kwargs.pop("offset", self.obj_offset)
+
         return self.obj_profile.Object(
-            type_name=type_name or self.obj_type, offset=self.obj_offset,
+            type_name=type_name or self.obj_type, offset=offset,
             vm=vm or self.obj_vm, parent=self.obj_parent,
             context=self.obj_context, **kwargs)
 
@@ -2019,6 +2023,9 @@ class Profile(object):
 
         if callable(field_overlay):
             return field_overlay
+
+        if callable(field_member):
+            return field_member
 
         # Check the overlay and type descriptor for sanity.
         if len(field_overlay) != 2 or not isinstance(field_overlay[1], list):

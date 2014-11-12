@@ -552,13 +552,14 @@ class DirectoryDumperMixin(object):
                             required=not cls.dump_dir_optional,
                             help=help)
 
-    def __init__(self, dump_dir=None, **kwargs):
+    def __init__(self, *args_, **kwargs):
         """Dump to a directory.
 
         Args:
           dump_dir: The directory where files should be dumped.
         """
-        super(DirectoryDumperMixin, self).__init__(**kwargs)
+        dump_dir = kwargs.pop("dump_dir", None)
+        super(DirectoryDumperMixin, self).__init__(*args_, **kwargs)
 
         self.dump_dir = (dump_dir or self.default_dump_dir or
                          self.session.GetParameter("dump_dir"))
@@ -699,47 +700,51 @@ class DT(plugin.ProfileCommand):
         if target is None:
             raise plugin.PluginError("You must specify something to print.")
 
-        if not isinstance(target, basestring):
-            raise plugin.PluginError("Target must be a string.")
-
         load_as = self.session.plugins.load_as(session=self.session)
         self.address_space = load_as.ResolveAddressSpace(address_space)
+
+        if isinstance(target, basestring):
+            self.target = self.profile.Object(
+                target, offset=self.offset, vm=self.address_space)
 
     def render_Struct(self, renderer, struct):
         renderer.format(
             "[{0} {1}] @ {2:#08x} \n",
             struct.obj_type, struct.obj_name or '', struct.obj_offset)
 
-        width_name = 0
+        renderer.table_header([
+            dict(name="Offset", type="TreeNode", max_depth=5,
+                 child=dict(formatstring="[addr]")),
+            ("Field", "field", "30"),
+            dict(name="Content", cname="content", details=True)])
 
+        self._render_Struct(renderer, struct)
+
+    def _render_Struct(self, renderer, struct, depth=0):
         fields = []
         # Print all the fields sorted by offset within the struct.
         for k in struct.members:
-            width_name = max(width_name, len(k))
-            obj = getattr(struct, k)
-            if obj == None:
-                obj = struct.m(k)
+            member = getattr(struct, k)
+            base_member = struct.m(k)
 
-            fields.append(
-                (getattr(obj, "obj_offset", struct.obj_offset) -
-                 struct.obj_offset, k, obj))
-
-        renderer.table_header(
-            [("Offset", "offset", "[addr]"),
-             ("Field", "field", "30"),
-             dict(name="Content", cname="content", details=True)])
+            fields.append((
+                base_member.obj_offset - struct.obj_offset, k, member))
 
         for offset, k, v in sorted(fields):
-            renderer.table_row(offset, k, v)
+            renderer.table_row(offset, k, v, depth=depth)
+            if isinstance(v, obj.Struct):
+                self._render_Struct(renderer, v, depth=depth+1)
 
     def render(self, renderer):
-        item = self.profile.Object(
-            self.target, offset=self.offset, vm=self.address_space)
+        item = self.target
+
+        if isinstance(item, obj.Pointer):
+            item = item.deref()
 
         if isinstance(item, obj.Struct):
             return self.render_Struct(renderer, item)
 
-        self.session.plugins.p(item).render(renderer)
+        self.session.plugins.p(self.target).render(renderer)
 
 
 class Dump(plugin.Command):

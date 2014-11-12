@@ -169,37 +169,41 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                            0x40000000)
                     continue
 
-                tmp2 = vaddr
-                for pde in range(0, 0x200):
-                    vaddr = tmp2 | (pde << 21)
+                for x in self._get_available_PDEs(vaddr, pdpte_value, start):
+                    yield x
 
-                    next_vaddr = tmp2 | ((pde + 1) << 21)
-                    if start >= next_vaddr:
-                        continue
+    def _get_available_PDEs(self, vaddr, pdpte_value, start):
+        tmp2 = vaddr
+        for pde in range(0, 0x200):
+            vaddr = tmp2 | (pde << 21)
 
-                    pde_value = self.get_pde(vaddr, pdpte_value)
-                    if not self.entry_present(pde_value):
-                        continue
+            next_vaddr = tmp2 | ((pde + 1) << 21)
+            if start >= next_vaddr:
+                continue
 
-                    if self.page_size_flag(pde_value):
-                        yield (vaddr,
-                               self.get_two_meg_paddr(vaddr, pde_value),
-                               0x200000)
-                        continue
+            pde_value = self.get_pde(vaddr, pdpte_value)
+            if not self.entry_present(pde_value):
+                continue
 
-                    # This reads the entire PTE table at once - On
-                    # windows where IO is extremely expensive, its
-                    # about 10 times more efficient than reading it
-                    # one value at the time - and this loop is HOT!
-                    pte_table_addr = ((pde_value & 0xffffffffff000) |
-                                      ((vaddr & 0x1ff000) >> 9))
+            if self.page_size_flag(pde_value):
+                yield (vaddr,
+                       self.get_two_meg_paddr(vaddr, pde_value),
+                       0x200000)
+                continue
 
-                    data = self.base.read(pte_table_addr, 8 * 0x200)
-                    pte_table = struct.unpack("<" + "Q" * 0x200, data)
+            # This reads the entire PTE table at once - On
+            # windows where IO is extremely expensive, its
+            # about 10 times more efficient than reading it
+            # one value at the time - and this loop is HOT!
+            pte_table_addr = ((pde_value & 0xffffffffff000) |
+                              ((vaddr & 0x1ff000) >> 9))
 
-                    for x in self._get_available_PTEs(
-                            pte_table, vaddr, start=start):
-                        yield x
+            data = self.base.read(pte_table_addr, 8 * 0x200)
+            pte_table = struct.unpack("<" + "Q" * 0x200, data)
+
+            for x in self._get_available_PTEs(
+                    pte_table, vaddr, start=start):
+                yield x
 
     def _get_available_PTEs(self, pte_table, vaddr, start=0):
         tmp3 = vaddr

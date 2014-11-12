@@ -34,6 +34,9 @@ import time
 
 def SmartStr(string, encoding="utf8"):
     """Forces the string to be an encoded byte string."""
+    if type(string) == unicode:
+        return string.encode("utf8", "ignore")
+
     try:
         return string.__unicode__().encode(encoding)
     except AttributeError:

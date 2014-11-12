@@ -238,6 +238,26 @@ class VtoP(plugin.KernelASMixin, plugin.PhysicalASMixin, plugin.ProfileCommand):
 
         return function(virtual_address, address_space)
 
+    def render_pte(self, address, value, renderer):
+        """Analyze the PTE in detail.
+
+        This follows the algorithm in WindowsAMD64PagedMemory.get_phys_addr().
+        """
+        pte_plugin = self.session.plugins.pte(address, "P",
+                                              self.address)
+
+        pte_plugin.render(renderer)
+
+        pte = self.profile._MMPTE()
+        pte.u.Long = value
+
+        phys_addr = self.address_space.ResolveProtoPTE(
+            pte, self.address)
+        if phys_addr:
+            renderer.format("PTE mapped at 0x{0:08X}\n", phys_addr)
+        else:
+            renderer.format("Invalid PTE\n")
+
     def render(self, renderer):
         if self.address is None:
             return
@@ -260,20 +280,13 @@ class VtoP(plugin.KernelASMixin, plugin.PhysicalASMixin, plugin.ProfileCommand):
             else:
                 renderer.format("{0}\n", name)
 
+            if name == "pde" and not value & 1:
+                self.render_pte(0, value, renderer)
+                break
+
             if name == "pte":
-                # Analyze the PTE in detail. This follows the algorithm in
-                # WindowsAMD64PagedMemory.get_phys_addr().
-                pte_plugin = self.session.plugins.pte(address, "P",
-                                                      self.address)
-
-                pte_plugin.render(renderer)
-
-                phys_addr = self.address_space.get_phys_addr(
-                    self.address, value)
-                if phys_addr:
-                    renderer.format("PTE mapped at 0x{0:08X}\n", phys_addr)
-                else:
-                    renderer.format("Invalid PTE\n")
+                self.render_pte(address, value, renderer)
+                break
 
         # The below re-does all the analysis using the address space. It should
         # agree!

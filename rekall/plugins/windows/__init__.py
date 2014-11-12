@@ -1,6 +1,7 @@
 # pylint: disable=unused-import
 
 from rekall.plugins.windows import address_resolver
+from rekall.plugins.windows import cache
 from rekall.plugins.windows import common
 from rekall.plugins.windows import connections
 from rekall.plugins.windows import connscan

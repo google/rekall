@@ -102,8 +102,7 @@ class DataExportBaseObjectRenderer(DataExportObjectRenderer):
         result.update(offset=item.obj_offset,
                       type_name=unicode(item.obj_type),
                       name=unicode(item.obj_name),
-                      vm=unicode(item.obj_vm),
-                      )
+                      vm=unicode(item.obj_vm))
 
         return result
 

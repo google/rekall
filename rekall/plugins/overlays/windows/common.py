@@ -103,7 +103,7 @@ windows_overlay = {
         'SystemExpirationDate': [None, ['WinFileTime', {}]],
 
         "NtSystemRoot": [None, ["UnicodeString"]],
-        }],
+    }],
 
     '_KPCR': [None, {
         # The processor block has varying names between windows versions so
@@ -182,8 +182,17 @@ windows_overlay = {
         }],
 
     '_MMVAD': [None, {
-        'FirstPrototypePte': [None, ["Array", dict(
-            target="Pointer",
+        'FirstPrototypePte': [None, ["Pointer", dict(
+            target="Array",
+            target_args=dict(
+                target="_MMPTE"
+                )
+            )]],
+        }],
+
+    '_MMVAD_LONG': [None, {
+        'FirstPrototypePte': [None, ["Pointer", dict(
+            target="Array",
             target_args=dict(
                 target="_MMPTE"
                 )
@@ -482,6 +491,63 @@ windows_overlay = {
             value=x.m("Protection")),
         }],
 
+    '_SECTION_OBJECT_POINTERS': [None, {
+        'DataSectionObject': [None, ['Pointer', dict(
+            target="_CONTROL_AREA"
+            )]],
+
+        'SharedCacheMap': [None, ['Pointer', dict(
+            target="_SHARED_CACHE_MAP"
+            )]],
+
+        'ImageSectionObject': [None, ['Pointer', dict(
+            target="_CONTROL_AREA"
+            )]],
+
+        }],
+
+    '_CONTROL_AREA': [None, {
+        'FilePointer': lambda x: x.m('FilePointer').dereference_as(
+            "_FILE_OBJECT"),
+
+        # The first subsection immediately follows the control area.
+        'FirstSubsection': lambda x: x.cast(
+            "_SUBSECTION", offset=x.obj_end),
+    }],
+
+    '_SUBSECTION': [None, {
+        'SubsectionBase': [None, ['Pointer', dict(
+            target='Array',
+            target_args=dict(
+                count=lambda x: x.PtesInSubsection.v(),
+                target='_MMPTE'
+            )
+        )]],
+    }],
+
+    '_SHARED_CACHE_MAP': [None, {
+        'FileObjectFastRef': lambda x: x.m('FileObjectFastRef').dereference_as(
+            "_FILE_OBJECT"),
+
+        'Vacbs': [None, ['Pointer', dict(
+            target="Array",
+            target_args=dict(
+                target="Pointer",
+                target_args=dict(
+                    target="_VACB"
+                )
+            )
+        )]],
+    }],
+
+    '_VACB_ARRAY_HEADER': [None, {
+        'VACBs': lambda x: x.cast(
+            "Array",
+            offset=x.obj_end,
+            target="_VACB",
+            count=4095
+        ),
+    }],
 }
 
 
@@ -538,7 +604,7 @@ class _UNICODE_STRING(obj.Struct):
         return unicode(self) == utils.SmartUnicode(other)
 
     def __unicode__(self):
-        return self.v() or u""
+        return self.v().strip("\x00") or u""
 
     def __repr__(self):
         value = utils.SmartStr(self)
@@ -572,7 +638,7 @@ class _SID(obj.Struct):
         wcs = "S-1-"
 
         if (self.IdentifierAuthority.Value[0] == 0 and
-            self.IdentifierAuthority.Value[1] == 0):
+                self.IdentifierAuthority.Value[1] == 0):
             wcs += "%lu" % (
                 self.IdentifierAuthority.Value[2] << 24 |
                 self.IdentifierAuthority.Value[3] << 16 |
@@ -712,7 +778,7 @@ class _MM_SESSION_SPACE(obj.Struct):
         one session.
         """
         for p in self.ProcessList.list_of_type(
-            "_EPROCESS", "SessionProcessLinks"):
+                "_EPROCESS", "SessionProcessLinks"):
             yield p
 
 
@@ -1002,6 +1068,10 @@ for _name, _y, _z in _OBJECT_HEADER.optional_headers:
         lambda x, y=_y, z=_z: x._GetOptionalHeader(y, z)))
 
 
+class _DEVICE_OBJECT(ObjectMixin, obj.Struct):
+    """A Device Object."""
+
+
 class _FILE_OBJECT(ObjectMixin, obj.Struct):
     """Class for file objects"""
 
@@ -1020,16 +1090,12 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
         of the device object to which the file belongs"""
         name = ""
         if self.DeviceObject:
-            object_hdr = self.obj_profile._OBJECT_HEADER(
-                offset=(self.DeviceObject.v() - self.obj_profile.get_obj_offset(
-                    "_OBJECT_HEADER", "Body")),
-                vm=self.obj_vm)
-
-            if object_hdr.NameInfo:
-                name = u"\\Device\\{0}".format(object_hdr.NameInfo.Name)
+            device_name = self.DeviceObject.ObjectHeader.NameInfo.Name
+            if device_name:
+                name = u"\\Device\\{0}".format(device_name)
 
         if self.FileName:
-            name += self.FileName.v()
+            name += unicode(self.FileName)
 
         return name
 
@@ -1197,7 +1263,7 @@ class _HEAP(obj.Struct):
 
         # Windows 7 has a linked list of segments.
         for x in self.SegmentList.list_of_type(
-            "_HEAP_SEGMENT", "SegmentListEntry"):
+                "_HEAP_SEGMENT", "SegmentListEntry"):
             yield x
 
 
@@ -1273,6 +1339,7 @@ def InitializeWindowsProfile(profile):
         '_OBJECT_HEADER': _OBJECT_HEADER,
         '_PSP_CID_TABLE': _PSP_CID_TABLE,
         '_FILE_OBJECT': _FILE_OBJECT,
+        '_DEVICE_OBJECT': _DEVICE_OBJECT,
         '_OBJECT_DIRECTORY': _OBJECT_DIRECTORY,
         '_EX_FAST_REF': _EX_FAST_REF,
         '_CM_KEY_BODY': _CM_KEY_BODY,
