@@ -154,9 +154,20 @@ class Entity(object):
     def name(self):
         name = self.get_raw("Named/name")
         if name == None:
-            name = unicode(self.identity)
+            key = unicode(self.identity.first_index[1])
+            val = self.identity.first_index[2]
 
-        return name
+            if isinstance(val, obj.Struct):
+                # Rekall uses the opposite meaning of repr and str from
+                # the entity layer. This is a temporary workaround until
+                # everything just uses renderers all the time.
+                val = repr(val)
+            else:
+                val = unicode(val)
+
+            return "%s: %s" % (key, val)
+
+        return unicode(name)
 
     @property
     def kind(self):
@@ -164,7 +175,7 @@ class Entity(object):
         if kind == None:
             kind = "Entity"
 
-        return kind
+        return unicode(kind)
 
     def __repr__(self):
         parts = []

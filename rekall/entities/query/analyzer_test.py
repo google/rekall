@@ -10,7 +10,9 @@ class AnalyzerTest(unittest.TestCase):
         return entity_query.Query(query).execute("QueryAnalyzer")
 
     def assertDepends(self, query, inclusions, exclusions=(), omissions=()):
-        include, exclude, _ = self.analyze(query)
+        analysis = self.analyze(query)
+        include = analysis.include
+        exclude = analysis.exclude
 
         for dep in inclusions:
             dependency = analyzer.SimpleDependency.parse(dep)

@@ -31,7 +31,7 @@ class Query(object):
     source = None
     expression = None
 
-    def __init__(self, source, expression=None):
+    def __init__(self, source, expression=None, params=None):
         if expression:
             self.source = source
             self.expression = expression
@@ -39,7 +39,7 @@ class Query(object):
 
         if isinstance(source, str):
             self.source = source
-            self.expression = efilter.Parser(source).parse()
+            self.expression = efilter.Parser(source, params=params).parse()
         elif isinstance(source, expr.Expression):
             self.expression = source
 
@@ -54,6 +54,9 @@ class Query(object):
         if not self.source:
             return None
 
+        if expression.start is None or expression.end is None:
+            return "", self.source, ""
+
         return (self.source[0:expression.start],
                 self.source[expression.start:expression.end],
                 self.source[expression.end:])
@@ -64,10 +67,13 @@ class Query(object):
         return func(**kwargs)
 
     def __str__(self):
-        if self.source:
-            return self.source
+        return unicode(self)
 
-        return str(self.expression)
+    def __unicode__(self):
+        if self.source:
+            return unicode(self.source)
+
+        return unicode(self.expression)
 
     def __repr__(self):
         if self.source:

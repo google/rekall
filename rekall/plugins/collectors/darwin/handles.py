@@ -40,7 +40,7 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
     collect_args = dict(processes="has component Process")
     filter_input = True
 
-    run_cost = collector.CostEnum.VeryHighCost
+    run_cost = collector.CostEnum.HighCost
 
     def collect(self, hint, processes):
         manager = self.manager

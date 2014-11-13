@@ -51,6 +51,13 @@ class TypeDescriptor(object):
     def __init__(self):
         pass
 
+    def chill_coerce(self, value):
+        """Like coerce, but is chill about getting exceptions."""
+        try:
+            return self.coerce(value)
+        except TypeError:
+            return value
+
     def coerce(self, value):
         """Return value as this type or raise TypeError if not convertible."""
         return value
@@ -251,10 +258,20 @@ class Field(object):
     exclude_analysis: This field should not be considered by the query analyzer.
     """
 
-    def __init__(self, name, typedesc, docstring):
+    component = None  # Needs to be set when the Field is attached to a
+    # component class.
+
+    def __init__(self, name, typedesc, docstring, width=20,
+                 hidden=False):
         self.name = name
         self.typedesc = TypeFactory(typedesc)
         self.docstring = docstring
+        self.width = width
+        self.hidden = hidden
+
+    @property
+    def path(self):
+        return "%s/%s" % (self.component.component_name, self.name)
 
     def __unicode__(self):
         return repr(self)
@@ -380,6 +397,10 @@ def DeclareComponent(name, docstring, *fields):
         props[field.name] = property(operator.itemgetter(idx))
 
     component_cls = type(name, (Component,), props)
+
+    # Attach a reference back to the component to each field.
+    for field in fields:
+        field.component = component_cls
 
     # Redefine ComponentContainer to add a field for the new component class.
     global ComponentContainer

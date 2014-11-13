@@ -394,7 +394,13 @@ class EntityManager(object):
         if not isinstance(wanted, entity_query.Query):
             wanted = entity_query.Query(wanted)
 
-        analysis = self._cached_query_analyses.get(wanted, None)
+        # We cache by the source and not the query because we want to reanalyze
+        # queries that are logically equivalent, but expressed differently, in
+        # order to have the right cursor positions stored for highlighting in
+        # GUI.
+        cache_key = wanted.source
+
+        analysis = self._cached_query_analyses.get(cache_key, None)
         if analysis:
             # We want to make a copy exactly one level deep.
             analysis_copy = {}
@@ -402,7 +408,10 @@ class EntityManager(object):
                 analysis_copy[key] = copy.copy(value)
             return analysis_copy
 
-        include, exclude, suggested_indices = wanted.execute("QueryAnalyzer")
+        analyzer = wanted.execute("QueryAnalyzer")
+        include = analyzer.include
+        exclude = analyzer.exclude
+        suggested_indices = analyzer.latest_indices
 
         # A collector is a match if any of its promises match any of the
         # dependencies of the query.
@@ -427,15 +436,36 @@ class EntityManager(object):
                 # No exclusions.
                 collectors.add(collector)
 
+        # A component is guaranteed if any dependency lists it. It is likely
+        # if collectors we depend on output it (though not guaranteed).
+        guaranteed_components = set(analyzer.expected_components)
+        possible_components = set()
+
+        for dependency in include:
+            component = dependency.component
+            if component in guaranteed_components:
+                continue
+            possible_components.add(dependency.component)
+
+        for collector in collectors:
+            for promise in collector.promises:
+                component = promise.component
+                if component in guaranteed_components:
+                    continue
+
+                possible_components.add(component)
+
         analysis = dict(collectors=list(collectors),
                         lookups=suggested_indices,
                         dependencies=include,
-                        exclusions=exclude)
-        self._cached_query_analyses[wanted] = analysis
+                        exclusions=exclude,
+                        guaranteed_components=guaranteed_components,
+                        possible_components=possible_components)
+        self._cached_query_analyses[cache_key] = analysis
 
         return analysis
 
-    def find(self, query, complete=True, validate=True):
+    def find(self, query, complete=True, validate=True, query_params=None):
         """Runs the query and yields entities that match.
 
         Arguments:
@@ -453,12 +483,14 @@ class EntityManager(object):
         if isinstance(query, dict):
             results = {}
             for query_name, expr in query.iteritems():
-                results[query_name] = self.find(expr, complete=complete)
+                results[query_name] = self.find(expr, complete=complete,
+                                                validate=validate,
+                                                query_params=query_params)
 
             return results
 
         if not isinstance(query, entity_query.Query):
-            query = entity_query.Query(query)
+            query = entity_query.Query(query, params=query_params)
 
         if validate:
             query.execute("QueryValidator")

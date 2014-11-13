@@ -73,13 +73,13 @@ class TokenizerTest(unittest.TestCase):
 
 
 class ParserTest(unittest.TestCase):
-    def assertQueryMatches(self, query, expected):
-        parser = efilter.Parser(query)
+    def assertQueryMatches(self, query, expected, params=None):
+        parser = efilter.Parser(query, params=params)
         actual = parser.parse()
         self.assertEqual(expected, actual)
 
-    def assertQueryRaises(self, query):
-        parser = efilter.Parser(query)
+    def assertQueryRaises(self, query, params=None):
+        parser = efilter.Parser(query, params=params)
         self.assertRaises(efilter.ParseError, parser.parse)
 
     def testLiterals(self):
@@ -255,6 +255,51 @@ class ParserTest(unittest.TestCase):
         query = "has component Process"
         expected = expression.ComponentLiteral("Process")
         self.assertQueryMatches(query, expected)
+
+    def testTemplateReplacements(self):
+        query = "Process/pid == {}"
+        params = [1]
+        exptected = expression.Equivalence(
+            expression.Binding("Process/pid"),
+            expression.Literal(1))
+        self.assertQueryMatches(query, exptected, params=params)
+
+        query = "Process/pid == {pid}"
+        params = {"pid": 1}
+        exptected = expression.Equivalence(
+            expression.Binding("Process/pid"),
+            expression.Literal(1))
+        self.assertQueryMatches(query, exptected, params=params)
+
+    def testParamFailures(self):
+        query = "{foo} == 1"
+        params = ["Process/pid"]
+        self.assertQueryRaises(query, params=params)
+
+        # Even fixing the above, the left side should be a literal, not a
+        # binding.
+        query = "{foo} == 1"
+        params = {"foo": "Process/pid"}
+        exptected = expression.Equivalence(
+            expression.Literal("Process/pid"),
+            expression.Literal(1))
+        self.assertQueryMatches(query, exptected, params=params)
+
+    def testParenParsing(self):
+        # This query should fail on the lose 'name' token:
+        query = ("Buffer/purpose is zones and any Buffer/context matches"
+                 " (Allocation/zone name is {zone_name})")
+        params = dict(zone_name="foo")
+        parser = efilter.Parser(query, params=params)
+        try:
+            parser.parse()
+        except efilter.ParseError as e:
+            self.assertEqual(e.token.value, 'name')
+
+    def testMultipleLiterals(self):
+        query = "Process/binding foo foo bar 15"
+        self.assertQueryRaises(query)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

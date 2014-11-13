@@ -18,23 +18,89 @@
 
 """This module implements entity renderers."""
 
+from rekall.entities import entity
+
 from rekall.ui import text
+
+
+class Dependency_TextObjectRenderer(text.TextObjectRenderer):
+    renders_type = "Dependency"
+    renderers = ["TextRenderer", "TestRenderer"]
+
+    def render_row(self, target, **_):
+        if target.flag:
+            prefix = "+"
+        else:
+            prefix = "-"
+
+        template = "{prefix} {component}"
+        if target.attribute:
+            template += "/{attribute}"
+
+        if target.value:
+            template += "={value}"
+
+        return text.Cell.FromString(
+            self.formatter.format(template, component=target.component,
+                                  prefix=prefix, attribute=target.attribute,
+                                  value=target.value))
+
+
+class Query_TextObjectRenderer(text.TextObjectRenderer):
+    renders_type = "Query"
+    renderers = ["TextRenderer", "TestRenderer"]
+
+    def render_row(self, target, query_highlight=None, **_):
+        if query_highlight is None:
+            return text.Cell.FromString(unicode(target))
+
+        return text.Cell.FromString(
+            self.formatter.format("{0} >>> {1} <<< {2}",
+                                  *target.expression_source(query_highlight)))
+
+
+class Identity_TextObjectRenderer(text.TextObjectRenderer):
+    renderes_type = "Identity"
+    renderers = ["TextRenderer", "TestRenderer"]
+
+    def render_row(self, target, **_):
+        return text.Cell.FromString(
+            self.formatter.format("({0}: {1})",
+                                  target.first_index[1],
+                                  target.first_index[2]))
 
 
 class Entity_TextObjectRenderer(text.TextObjectRenderer):
     renders_type = "Entity"
     renderers = ["TextRenderer", "TestRenderer"]
 
-    def __init__(self, *args, **options):
-        self.name = options.pop("name", "Entity")
-        self.style = options.pop("style", "short")
+    def __init__(self, *args, **kwargs):
+        self.style = kwargs.pop("style", "name")
 
-        super(Entity_TextObjectRenderer, self).__init__(*args, **options)
-        self.table = text.TextTable(
-            columns=[dict(name="Name", cname="name", width=30),
-                     dict(kind="Kind", cname="kind", width=20)],
-            renderer=self.renderer,
-            session=self.session)
+        self.name = kwargs.pop("name", "Entity")
+        self.attributes = []
+
+        for component in kwargs.pop("components", []) or []:
+            component_cls = entity.Entity.reflect_component(component)
+            for field in component_cls.component_fields:
+                if field.hidden:
+                    continue
+                self.attributes.append(field)
+
+        for attribute in kwargs.pop("attributes", []) or []:
+            self.attributes.append(entity.Entity.reflect_attribute(attribute))
+
+        super(Entity_TextObjectRenderer, self).__init__(*args, **kwargs)
+
+        columns = []
+        for attribute in self.attributes:
+            columns.append(dict(name=attribute.name,
+                                # type=attribute.typedesc.type_name,
+                                width=attribute.width))
+
+        self.table = text.TextTable(columns=columns,
+                                    renderer=self.renderer,
+                                    session=self.session)
 
     def render_header(self, **options):
         if self.style == "full":
@@ -48,8 +114,11 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
 
     def render_row(self, target, **options):
         if self.style == "full":
-            cells = self.table.get_row(target.name, target.kind)
+            values = [target[a.path] for a in self.attributes]
+            cells = self.table.get_row(*values)
             return text.Cell.Join(cells)
-        else:
+        elif self.style == "short":
             return text.Cell.FromString(
                 self.formatter.format("{0}: {1}", target.kind, target.name))
+        elif self.style == "name":
+            return text.Cell.FromString(target.name)

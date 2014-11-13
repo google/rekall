@@ -24,14 +24,29 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 
 class QueryError(Exception):
-    def __init__(self, query, error, start=None, end=None):
+    start = None
+    end = None
+    token = None
+    query = None
+
+    def __init__(self, query, error, start=None, end=None, token=None):
         super(QueryError, self).__init__(error)
         self.query = query
-        self.start = start
-        if end is None and start is not None:
-            self.end = start + 1
-        else:
+        self.token = token
+        if token:
+            self.start = token.start
+            self.end = token.end
+
+        # Allow caller to override start and end:
+        if start:
+            self.start = start
+
+        if end:
             self.end = end
+
+        if self.end is None and self.start is not None:
+            self.end = self.start + 1
+
         self.error = error
 
     def __str__(self):

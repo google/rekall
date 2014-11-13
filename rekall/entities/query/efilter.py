@@ -79,53 +79,79 @@ def TransformLetEach(let, **kwargs):
 # Operators - infix and prefix.
 
 Operator = collections.namedtuple("Operator",
-                                  "precedence assoc handler")
+                                  "precedence assoc handler docstring")
 
 # The order of precedence matters for generated matching rules, which is why
 # this is an OrderedDict.
 INFIX = collections.OrderedDict([
-    ("->", Operator(precedence=2, assoc="left", handler=expression.Let)),
-    ("+", Operator(precedence=3, assoc="left", handler=expression.Sum)),
-    ("-", Operator(precedence=3, assoc="left", handler=expression.Difference)),
-    ("*", Operator(precedence=5, assoc="left", handler=expression.Product)),
-    ("/", Operator(precedence=5, assoc="left", handler=expression.Quotient)),
+    ("->", Operator(precedence=2, assoc="left", handler=expression.Let,
+                    docstring="Shorthand for 'matches'.")),
+    ("+", Operator(precedence=3, assoc="left", handler=expression.Sum,
+                   docstring="Arithmetic addition.")),
+    ("-", Operator(precedence=3, assoc="left", handler=expression.Difference,
+                   docstring="Arithmetic subtraction.")),
+    ("*", Operator(precedence=5, assoc="left", handler=expression.Product,
+                   docstring="Arithmetic multiplication.")),
+    ("/", Operator(precedence=5, assoc="left", handler=expression.Quotient,
+                   docstring="Arithmetic division.")),
     ("==", Operator(precedence=2, assoc="left",
-                    handler=expression.Equivalence)),
+                    handler=expression.Equivalence,
+                    docstring="Equivalence (same as 'is').")),
     ("!=", Operator(precedence=2, assoc="left",
-                    handler=ComplementEquivalence)),
+                    handler=ComplementEquivalence,
+                    docstring="Inequivalence (same as 'is not').")),
     ("is not", Operator(precedence=2, assoc="left",
-                        handler=ComplementEquivalence)),
+                        handler=ComplementEquivalence,
+                        docstring="Inequivalence (same as '!=').")),
     ("is", Operator(precedence=2, assoc="left",
-                    handler=expression.Equivalence)),
+                    handler=expression.Equivalence,
+                    docstring="Equivalence (same as '==')")),
     ("not in", Operator(precedence=2, assoc="left",
-                        handler=ComplementMembership)),
+                        handler=ComplementMembership,
+                        docstring="Left-hand operand is not in list.")),
     ("in", Operator(precedence=2, assoc="left",
-                    handler=expression.Membership)),
+                    handler=expression.Membership,
+                    docstring="Left-hand operand is in list.")),
     (">", Operator(precedence=2, assoc="left",
-                   handler=expression.StrictOrderedSet)),
+                   handler=expression.StrictOrderedSet,
+                   docstring="Greater-than.")),
     (">=", Operator(precedence=2, assoc="left",
-                    handler=expression.PartialOrderedSet)),
+                    handler=expression.PartialOrderedSet,
+                    docstring="Equal-or-greater-than.")),
     ("<", Operator(precedence=2, assoc="left",
-                   handler=ReverseStrictOrderedSet)),
+                   handler=ReverseStrictOrderedSet,
+                   docstring="Less-than.")),
     ("<=", Operator(precedence=2, assoc="left",
-                    handler=ReversePartialOrderedSet)),
+                    handler=ReversePartialOrderedSet,
+                    docstring="Equal-or-less-than.")),
     ("matches", Operator(precedence=2, assoc="left",
-                         handler=expression.Let)),
+                         handler=expression.Let,
+                         docstring="Left-hand operand matched subquery.")),
     ("and", Operator(precedence=1, assoc="left",
-                     handler=expression.Intersection)),
-    ("or", Operator(precedence=0, assoc="left", handler=expression.Union)),
+                     handler=expression.Intersection,
+                     docstring="Logical AND.")),
+    ("or", Operator(precedence=0, assoc="left", handler=expression.Union,
+                    docstring="Logical OR.")),
     ("=~", Operator(precedence=2, assoc="left",
-                    handler=expression.RegexFilter)),
+                    handler=expression.RegexFilter,
+                    docstring="Left-hand operand matches regex.")),
 ])
 
 
 PREFIX = {
-    "not": Operator(precedence=6, assoc=None, handler=expression.Complement),
-    "-": Operator(precedence=4, assoc=None, handler=NegateValue),
+    "not": Operator(precedence=6, assoc=None, handler=expression.Complement,
+                    docstring="Logical NOT."),
+    "-": Operator(precedence=4, assoc=None, handler=NegateValue,
+                  docstring="Unary -."),
     "has component": Operator(precedence=7, assoc=None,
-                              handler=FlattenComponentLiteral),
-    "any": Operator(precedence=1, assoc=None, handler=TransformLetAny),
-    "each": Operator(precedence=1, assoc=None, handler=TransformLetEach),
+                              handler=FlattenComponentLiteral,
+                              docstring="Matching entity must have component."),
+    "any": Operator(precedence=1, assoc=None, handler=TransformLetAny,
+                    docstring=("Following 'matches' should succeed if "
+                               "any left-hand value matches.")),
+    "each": Operator(precedence=1, assoc=None, handler=TransformLetEach,
+                     docstring=("Following 'matches' should only "
+                                "succeed if all left-hand values match.")),
 }
 
 
@@ -201,7 +227,8 @@ class Tokenizer(object):
                 "emit", None),
         Pattern("comma", "INITIAL", r",",
                 "emit", None),
-        Pattern("literal", "INITIAL", r"([a-z]+)", "emit", None),
+        Pattern("literal", "INITIAL", r"([a-z_\.][a-z_\.0-9]+)", "emit", None),
+        Pattern("param", "INITIAL", r"\{([a-z_0-9]*)\}", "emit_param", None),
 
         # Numeric literals
         Pattern("literal", "INITIAL", r"(\d+\.\d+)", "emit_float", None),
@@ -231,6 +258,7 @@ class Tokenizer(object):
         self._position = 0
         self.limit = len(query)
         self.lookahead = []
+        self._param_idx = 0
 
     @property
     def position(self):
@@ -317,7 +345,8 @@ class Tokenizer(object):
 
             return token
 
-        self.error("Don't know how to match the next token.", self.position)
+        self.error("Don't know how to match next. Did you forget quotes?",
+                   self.position)
 
     def error(self, message, start, end=None):
         """Print a nice error."""
@@ -327,6 +356,15 @@ class Tokenizer(object):
     def emit(self, string, match, pattern, **_):
         """Emits a token using the current pattern match and pattern label."""
         return Token(name=pattern.label, value=string, start=match.start(),
+                     end=match.end())
+
+    def emit_param(self, match, pattern, **_):
+        param_name = match.group(1)
+        if not param_name:
+            param_name = self._param_idx
+            self._param_idx += 1
+
+        return Token(name=pattern.label, value=param_name, start=match.start(),
                      end=match.end())
 
     def emit_int(self, string, match, pattern, **_):
@@ -368,8 +406,15 @@ class Parser(object):
     operators and a few special cases for list literals and such.
     """
 
-    def __init__(self, query):
+    def __init__(self, query, params=None):
         self.tokenizer = Tokenizer(query)
+
+        if isinstance(params, list):
+            self.params = {}
+            for idx, val in enumerate(params):
+                self.params[idx] = val
+        else:
+            self.params = params
 
     @property
     def query(self):
@@ -381,6 +426,25 @@ class Parser(object):
         except ValueError as e:
             return self.error(e.message,
                               start_token=args[0])
+
+    def _escape_param(self, token):
+        param_name = token.value
+        value = self.params.get(param_name, None)
+        if value is None:
+            return self.error("No value provided for param %s" % param_name,
+                              token)
+
+        if (isinstance(value, int) or
+                isinstance(value, float) or
+                isinstance(value, complex) or
+                isinstance(value, long)):
+            return value
+
+        if isinstance(value, str):
+            return value.encode("string-escape")
+
+        return self.error(
+            "Cannot handle parameters of type %s" % type(value).__name__)
 
     def next_atom(self):
         token = self.tokenizer.next_token()
@@ -406,6 +470,10 @@ class Parser(object):
         if token.name == "literal":
             return expression.Literal(token.value, start=token.start,
                                       end=token.end)
+
+        if token.name == "param":
+            return expression.Literal(self._escape_param(token),
+                                      start=token.start, end=token.end)
 
         if token.name == "symbol":
             return expression.Binding(token.value, start=token.start,
@@ -443,10 +511,32 @@ class Parser(object):
                     self.error("Lists must end with a closing paren.",
                                self.tokenizer.current_token)
 
-                return expression.Literal(tuple(vals))
+                return expression.Literal(tuple(vals), start=token.start,
+                                          end=self.tokenizer.position)
 
             elif self.tokenizer.peek().name != "rparen":
-                return self.error("Unmatched left parenthesis.", token)
+                # We got here because there's still some stuff left to parse
+                # and the next token is not an rparen. That can mean that an
+                # infix operator is missing or that the parens are unmatched.
+                # Decide which is more likely and raise the appropriate error.
+                lparens = 1
+                rparens = 0
+                lookahead = 2
+                while self.tokenizer.peek(lookahead):
+                    if self.tokenizer.peek(lookahead).name == "lparen":
+                        lparens += 1
+                    elif self.tokenizer.peek(lookahead).name == "rparen":
+                        rparens += 1
+
+                    lookahead += 1
+
+                if lparens > rparens:
+                    return self.error("Ummatched left parenthesis.", token)
+                else:
+                    next_token = self.tokenizer.peek()
+                    return self.error(
+                        "Was not expecting %s here." % next_token.value,
+                        next_token)
 
             self.tokenizer.next_token()
             return expr
@@ -492,7 +582,16 @@ class Parser(object):
         return lhs
 
     def parse(self):
-        return self.next_expression(self.next_atom(), 0)
+        result = self.next_expression(self.next_atom(), 0)
+        # If we didn't consume the whole query then raise.
+        if self.tokenizer.peek():
+            token = self.tokenizer.peek()
+            return self.error(
+                "Unexpected %s '%s'. Were you looking for an operator?" %
+                (token.name, token.value),
+                token)
+
+        return result
 
     def error(self, message, start_token=None, end_token=None):
         start = self.tokenizer.position
@@ -505,4 +604,4 @@ class Parser(object):
             end = end_token.end
 
         raise ParseError(query=self.query, start=start, end=end,
-                         error=message)
+                         error=message, token=start_token)

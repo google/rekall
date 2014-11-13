@@ -132,6 +132,7 @@ class EntityCollector(object):
         self.manager = entity_manager
         self.session = entity_manager.session
         self._indices_seen = set()
+        self.collect_queries = {}
         self._ensure_compile_queries()
 
     @property
@@ -159,7 +160,6 @@ class EntityCollector(object):
         if self.collect_queries or self.collect_args is None:
             return
 
-        self.collect_queries = {}
         for arg, source in self.collect_args.iteritems():
             self.collect_queries[arg] = entity_query.Query(source)
 

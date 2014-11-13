@@ -68,15 +68,9 @@ class DarwinDumpZone(common.DarwinPlugin):
 
     def render(self, renderer):
         for entity in self.session.entities.find(
-                expression.Intersection(
-                    expression.Equivalence(
-                        expression.Binding("Buffer/purpose"),
-                        expression.Literal("zones")),
-                    expression.LetAny(
-                        "Buffer/context",
-                        expression.Equivalence(
-                            expression.Binding("AllocationZone/name"),
-                            expression.Literal(self.zone_name))))):
+                query=("Buffer/purpose is zones and any Buffer/context matches"
+                       " (AllocationZone/name is {zone_name})"),
+                query_params=dict(zone_name=self.zone_name)):
             utils.WriteHexdump(
                 renderer=renderer,
                 data=entity["Buffer/contents"],
@@ -91,9 +85,7 @@ class DarwinDeadProcesses(common.DarwinPlugin):
     def render(self, renderer):
         # Find the proc zone from the allocator.
         proc_zone = self.session.entities.find_first(
-            expression.Equivalence(
-                expression.Binding("AllocationZone/name"),
-                expression.Literal("proc")))["MemoryObject/base_object"]
+            "AllocationZone/name is proc")["MemoryObject/base_object"]
 
         # Walk over the free list and get all proc objects.
         procs = []

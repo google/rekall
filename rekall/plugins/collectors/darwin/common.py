@@ -26,6 +26,21 @@ from rekall.entities import collector
 from rekall.entities import definitions
 
 
+class UserNamer(collector.EntityCollector):
+
+    outputs = ["Named", "User"]
+    collect_args = dict(users="has component User")
+    run_cost = collector.CostEnum.NoCost
+
+    def collect(self, users, hint):
+        for user in users:
+            yield [
+                user.identity,
+                definitions.Named(
+                    kind="User",
+                    name=user["User/username"])]
+
+
 class DarwinEntityCollector(collector.EntityCollector):
     """Base class for all Darwin collectors."""
 

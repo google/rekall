@@ -88,18 +88,22 @@ NetworkInterface = component.DeclareComponent(
 
 Process = component.DeclareComponent(
     "Process", "A process.",
-    component.Field("pid", int, "PID, on systems that have one."),
+    component.Field("pid", int, "PID, on systems that have one.", width=6),
     component.Field("parent", "Identity",
-                    "Process that spawned this process."),
+                    "Process that spawned this process.", width=20),
     component.Field("user", "Identity",
-                    "The user with whose credentials this is running."),
+                    "The user with whose credentials this is running.",
+                    width=20),
     component.Field("command", str,
-                    "The path to the binary or the command that executed."),
+                    "The path to the binary or the command that executed.",
+                    width=30),
     component.Field("arguments", [str],
-                    "List of arguments."),
-    component.Field("is_64bit", bool, "Is the process running in 64bit."),
+                    "List of arguments.", width=40, hidden=True),
+    component.Field("is_64bit", bool, "Is the process running in 64bit.",
+                    width=10),
     component.Field("session",
-                    "Identity", "The session this process belongs to."))
+                    "Identity", "The session this process belongs to.",
+                    width=20))
 
 
 Terminal = component.DeclareComponent(
@@ -175,11 +179,12 @@ Event = component.DeclareComponent(
 Timestamps = component.DeclareComponent(
     "Timestamps",
     "Standard times, such as ctime, atime, mtime, ...",
-    component.Field("created_at", int, "Creation/start time."),
-    component.Field("destroyed_at", int, "Deletion/destruction/stop time."),
-    component.Field("accessed_at", int, "Access time."),
-    component.Field("modified_at", int, "Modification time."),
-    component.Field("backup_at", int, "Backup time."))
+    component.Field("created_at", int, "Creation/start time.", width=25),
+    component.Field("destroyed_at", int, "Deletion/destruction/stop time.",
+                    width=25),
+    component.Field("accessed_at", int, "Access time.", width=25),
+    component.Field("modified_at", int, "Modification time.", width=25),
+    component.Field("backup_at", int, "Backup time.", hidden=True, width=25))
 
 
 Permissions = component.DeclareComponent(

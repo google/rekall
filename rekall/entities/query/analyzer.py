@@ -146,13 +146,14 @@ class SimpleDependency(Dependency):
     SHORTHAND = re.compile(r"([A-Z][a-zA-Z]+)(?:\/([a-z_]+)=(.+))?")
 
     def __init__(self, component, attribute=None, value=None, flag=True,
-                 weak=False):
+                 weak=False, expression=None):
         self.component = component
         self.attribute = attribute
         self.value = value
         self.flag = flag
         self.weak = weak
         self.dependencies = set([self])
+        self.expression = expression
 
     @classmethod
     def parse(cls, promise):
@@ -169,12 +170,14 @@ class SimpleDependency(Dependency):
         return cls(*match.groups())
 
     def simplified(self):
-        return SimpleDependency(self.component, None, None, True)
+        return SimpleDependency(component=self.component,
+                                expression=self.expression)
 
     def inverted(self):
         """Returns a SimpleDependency with the flag flipped."""
-        return SimpleDependency(self.component, self.attribute, self.value,
-                                not self.flag)
+        return SimpleDependency(component=self.component, value=self.value,
+                                attribute=self.attribute, flag=(not self.flag),
+                                expression=self.expression)
 
     def astuple(self):
         return (self.component, self.attribute, self.value, self.flag)
@@ -220,8 +223,8 @@ class QueryAnalyzer(visitor.QueryVisitor):
     other than 'socket' will be excluded.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(QueryAnalyzer, self).__init__(*args, **kwargs)
+    include = ()
+    exclude = ()
 
     def run(self):
         """Analyzes query for dependencies on collectors and indices.
@@ -231,19 +234,23 @@ class QueryAnalyzer(visitor.QueryVisitor):
             - Set of SimpleDependency instances to be excluded.
             - Set of names of attributes whose indices can speed up the query.
         """
+        self.query.execute("QueryValidator")
         self.latest_indices = set()
+        self._let_stack = []  # How deep are we in Let expressions?
+        self.expected_components = set()
         result = self.visit(self.expression)
         if isinstance(result, Dependency):
-            include, exclude = result.normalize()
-            return include, exclude, self.latest_indices
+            self.include, self.exclude = result.normalize()
 
-        return (), (), self.latest_indices
+        return self
 
     def visit_Literal(self, expr):
         return expr.value
 
     def visit_Binding(self, expr):
         component, attribute = expr.value.split("/", 1)
+        if not self._let_stack:
+            self.expected_components.add(component)
 
         # Certain types of fields should be considered weak dependencies, which
         # means we definitely want to depend on the component, but if we can
@@ -252,19 +259,33 @@ class QueryAnalyzer(visitor.QueryVisitor):
         component_cls = getattr(definitions, component)
         field = component_cls.reflect_field(attribute)
         if field.typedesc.type_name == "Identity":
-            return SimpleDependency(component, attribute, weak=True)
+            return SimpleDependency(component=component, attribute=attribute,
+                                    weak=True, expression=expr)
 
-        return SimpleDependency(component, attribute)
+        return SimpleDependency(component=component, attribute=attribute,
+                                expression=expr)
 
     def visit_ComponentLiteral(self, expr):
+        if not self._let_stack:
+            self.expected_components.add(expr.value)
+
         return SimpleDependency(expr.value)
 
     def visit_Let(self, expr):
         context = expr.context.value
         ctx_component, ctx_attribute = context.split("/", 1)
-        dependency = SimpleDependency(ctx_component, ctx_attribute)
 
+        if not self._let_stack:
+            self.expected_components.add(ctx_component)
+
+        dependency = SimpleDependency(component=ctx_component,
+                                      attribute=ctx_attribute,
+                                      expression=expr)
+
+        self._let_stack.append(expr)
         value = self.visit(expr.expression)
+        self._let_stack.pop()
+
         if isinstance(value, Dependency):
             dependency = DependencySet(dependency, *value.dependencies)
 
@@ -272,7 +293,8 @@ class QueryAnalyzer(visitor.QueryVisitor):
 
     def visit_Sorted(self, expr):
         key_component, _ = expr.binding.split("/", 1)
-        dependency = SimpleDependency(key_component)
+        dependency = SimpleDependency(component=key_component,
+                                      expression=expr)
 
         value = self.visit(expr.expression)
         if isinstance(value, Dependency):
@@ -291,7 +313,7 @@ class QueryAnalyzer(visitor.QueryVisitor):
         # If the above didn't return the we can't do anything smart about this.
         return self.visit_Expression(expr)
 
-    def _solve_Equivalence(self, dependency, value):
+    def _solve_Equivalence(self, dependency, value, expr):
         attribute_path = "%s/%s" % (dependency.component, dependency.attribute)
 
         # Suggest that the manager build an index for component/attribute.
@@ -306,6 +328,7 @@ class QueryAnalyzer(visitor.QueryVisitor):
         else:
             dependency.value = value
 
+        dependency.expression = expr
         return dependency
 
     def visit_Equivalence(self, expr):
@@ -317,10 +340,10 @@ class QueryAnalyzer(visitor.QueryVisitor):
             y = self.visit(expr.children[1])
             if (isinstance(x, SimpleDependency)
                     and not isinstance(y, Dependency)):
-                return self._solve_Equivalence(x, y)
+                return self._solve_Equivalence(x, y, expr)
             elif (isinstance(y, SimpleDependency)
                   and not isinstance(x, Dependency)):
-                return self._solve_Equivalence(y, x)
+                return self._solve_Equivalence(y, x, expr)
 
         # If the above doesn't return the we can't infer much here and fall
         # through to the default behavior.
@@ -392,10 +415,12 @@ class QueryAnalyzer(visitor.QueryVisitor):
             results.add(dependency)
 
         for component in simple:
-            results.add(SimpleDependency(component))
+            results.add(SimpleDependency(component=component,
+                                         expression=expr))
 
         for component in weak:
-            results.add(SimpleDependency(component, weak=True))
+            results.add(SimpleDependency(component=component, weak=True,
+                                         expression=expr))
 
         return DependencySet(*results)
 
