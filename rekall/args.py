@@ -166,10 +166,22 @@ def _TruncateARGV(argv):
 
     return short_argv
 
+
+# Argparser stupidly matches short options for options it does not know yet
+# (with parse_known_args()). This list allows us to declare placeholders to
+# avoid the partial option matching behaviour in some cases.
+DISAMBIGUATE_OPTIONS = [
+    "profile",
+]
+
+
 def ParseGlobalArgs(parser, argv, user_session):
     """Parse some session wide args which must be done before anything else."""
     # Register global args.
     ConfigureCommandLineParser(config.OPTIONS, parser)
+
+    for opt in DISAMBIGUATE_OPTIONS:
+        parser.add_argument("--" + opt, dest="SUPPRESS")
 
     # Parse the known args.
     known_args, _ = parser.parse_known_args(args=argv)

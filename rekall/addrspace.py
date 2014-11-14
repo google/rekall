@@ -73,6 +73,11 @@ class BaseAddressSpace(object):
             session = base.session
 
         self.base = base
+        # This is the base address space which this address space reads from. In
+        # this context, this address space is used to read physical addresses as
+        # obtained from get_available_addresses().
+        self.phys_base = self
+
         self.profile = profile
         self.session = session
         if session is None:
@@ -110,7 +115,13 @@ class BaseAddressSpace(object):
     def get_available_addresses(self, start=0):
         """Generates address ranges (offset, phys_offset, size) for this AS.
 
+        NOTE!! The phys_offset here refers to an address read from the phys_base
+        member of this address space. I.e. it should be possible for callers to
+        call get_available_addresses() and then directly get data via
+        address_space.phys_base.read(phys_offset, length).
+
         Address ranges must be returned ordered.
+
         """
         _ = start
         return []
@@ -380,6 +391,10 @@ class RunBasedAddressSpace(PagedReader):
     def __init__(self, **kwargs):
         super(RunBasedAddressSpace, self).__init__(**kwargs)
         self.runs = utils.SortedCollection(key=lambda x: x[0])
+
+        # Our get_available_addresses() refers to the base address space we
+        # overlay on.
+        self.phys_base = self.base
 
     def _read_chunk(self, addr, length):
         """Read from addr as much as possible up to a length of length."""

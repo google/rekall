@@ -104,6 +104,10 @@ class IA32PagedMemory(addrspace.PagedReader):
         # Use a TLB to make this faster.
         self._tlb = TranslationLookasideBuffer(1000)
 
+        # Our get_available_addresses() refers to the base address space we
+        # overlay on.
+        self.phys_base = self.base
+
     def entry_present(self, entry):
         '''
         Returns whether or not the 'P' (Present) flag is on

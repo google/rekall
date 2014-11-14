@@ -240,6 +240,7 @@ class WindowsRSDSDetector(DetectionMethod):
     def DetectFromHit(self, hit, offset, address_space):
         # Try Windows by GUID:
         rsds = self.pe_profile.CV_RSDS_HEADER(offset=offset, vm=address_space)
+
         if (rsds.Signature.is_valid() and
                 str(rsds.Filename) in self.KERNEL_NAMES):
             profile = self.VerifyProfile("nt/GUID/%s" % rsds.GUID_AGE)

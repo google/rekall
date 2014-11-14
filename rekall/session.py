@@ -942,7 +942,6 @@ class InteractiveSession(JsonSerializableSession):
     def _new_session_id(self):
         new_sid = 1
         for session in InteractiveSession.session_list:
-            sid = session.session_id
             if session.session_id == new_sid + 1:
                 break
             new_sid += 1
