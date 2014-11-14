@@ -226,6 +226,7 @@ exit 0
                             "testing against it.")
 
         parser.add_argument("-i", "--inline", default=False,
+                            action="store_true",
                             help="If specified, output failures inline.")
 
         parser.add_argument("tests", nargs="*", help="Tests to run")
