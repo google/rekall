@@ -41,6 +41,14 @@ class TestVADWalk(testlib.SimpleTestCase):
         )
 
 
+class TestVADMap(testlib.SimpleTestCase):
+    """Test VADMap."""
+
+    PARAMETERS = dict(
+        commandline="vadmap --pid %(pid)s"
+        )
+
+
 class TestVad(testlib.RekallBaseUnitTestCase):
     """Test the vad module."""
 

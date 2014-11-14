@@ -76,7 +76,7 @@ class ImageCopy(plugin.PhysicalASMixin, plugin.Command):
             raise plugin.PluginError("Please provide an output-image filename")
 
         if (os.path.exists(self.output_image) and
-            os.path.getsize(self.output_image) > 1):
+                os.path.getsize(self.output_image) > 1):
             raise plugin.PluginError("Refusing to overwrite an existing file, "
                                      "please remove it before continuing")
 

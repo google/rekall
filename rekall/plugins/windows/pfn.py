@@ -87,7 +87,7 @@ class PFNModification(obj.ProfileModification):
             })
 
 
-class VtoP(plugin.KernelASMixin, plugin.PhysicalASMixin, plugin.ProfileCommand):
+class VtoP(common.WinProcessFilter):
     """Prints information about the virtual to physical translation."""
 
     __name = "vtop"
@@ -97,13 +97,10 @@ class VtoP(plugin.KernelASMixin, plugin.PhysicalASMixin, plugin.ProfileCommand):
     @classmethod
     def args(cls, parser):
         super(VtoP, cls).args(parser)
-        parser.add_argument("virtual_address", type="IntParser",
+        parser.add_argument("virtual_address", type="ArrayIntParser",
                             help="The Virtual Address to examine.")
 
-        parser.add_argument("-a", "--address_space", default=None,
-                            help="The address space to use.")
-
-    def __init__(self, virtual_address=None, address_space=None, **kwargs):
+    def __init__(self, virtual_address=(), **kwargs):
         """Prints information about the virtual to physical translation.
 
         This is similar to windbg's !vtop extension.
@@ -114,10 +111,11 @@ class VtoP(plugin.KernelASMixin, plugin.PhysicalASMixin, plugin.ProfileCommand):
             kernel_address_space).
         """
         super(VtoP, self).__init__(**kwargs)
-        load_as = self.session.plugins.load_as(session=self.session)
-        self.address_space = load_as.ResolveAddressSpace(address_space)
+        if not isinstance(virtual_address, (tuple, list)):
+            virtual_address = [virtual_address]
 
-        self.address = virtual_address
+        self.addresses = [self.session.address_resolver.get_address_by_name(x)
+                          for x in virtual_address]
 
     def _vtop_32bit(self, vaddr, address_space):
         """An implementation specific to the 32 bit intel address space."""
@@ -238,34 +236,46 @@ class VtoP(plugin.KernelASMixin, plugin.PhysicalASMixin, plugin.ProfileCommand):
 
         return function(virtual_address, address_space)
 
-    def render_pte(self, address, value, renderer):
+    def render_pte(self, address, value, renderer, vaddr):
         """Analyze the PTE in detail.
 
         This follows the algorithm in WindowsAMD64PagedMemory.get_phys_addr().
         """
-        pte_plugin = self.session.plugins.pte(address, "P",
-                                              self.address)
+        pte_plugin = self.session.plugins.pte(address, "P", vaddr)
 
         pte_plugin.render(renderer)
 
         pte = self.profile._MMPTE()
         pte.u.Long = value
 
-        phys_addr = self.address_space.ResolveProtoPTE(
-            pte, self.address)
+        phys_addr = self.address_space.ResolveProtoPTE(pte, vaddr)
         if phys_addr:
             renderer.format("PTE mapped at 0x{0:08X}\n", phys_addr)
         else:
             renderer.format("Invalid PTE\n")
 
     def render(self, renderer):
-        if self.address is None:
-            return
+        if self.filtering_requested:
+            with self.session.plugins.cc() as cc:
+                for task in self.filter_processes():
+                    cc.SwitchProcessContext(task)
+
+                    for vaddr in self.addresses:
+                        self.render_address(renderer, vaddr)
+
+        else:
+            # Use current process context.
+            for vaddr in self.addresses:
+                self.render_address(renderer, vaddr)
+
+    def render_address(self, renderer, vaddr):
+        renderer.section(name="{0:#08x}".format(vaddr))
+        self.address_space = self.session.GetParameter("default_address_space")
 
         renderer.format("Virtual {0:#08x} Page Directory 0x{1:08x}\n",
-                        self.address, self.address_space.dtb)
+                        vaddr, self.address_space.dtb)
 
-        for name, value, address in self.vtop(self.address, self.address_space):
+        for name, value, address in self.vtop(vaddr, self.address_space):
             if address:
                 # Properly format physical addresses.
                 renderer.format(
@@ -281,16 +291,16 @@ class VtoP(plugin.KernelASMixin, plugin.PhysicalASMixin, plugin.ProfileCommand):
                 renderer.format("{0}\n", name)
 
             if name == "pde" and not value & 1:
-                self.render_pte(0, value, renderer)
+                self.render_pte(0, value, renderer, vaddr)
                 break
 
             if name == "pte":
-                self.render_pte(address, value, renderer)
+                self.render_pte(address, value, renderer, vaddr)
                 break
 
         # The below re-does all the analysis using the address space. It should
         # agree!
-        physical_address = self.address_space.vtop(self.address)
+        physical_address = self.address_space.vtop(vaddr)
         if physical_address is None:
             renderer.format("Physical Address Invalid\n")
         else:

@@ -25,11 +25,18 @@ import sys
 
 from rekall import config
 from rekall import plugin
+from rekall import testlib
 
 from rekall.entities import component as entity_component
 
 from rekall.entities.query import expression as expr
 from rekall.entities.query import query as entity_query
+
+
+class TestListEvents(testlib.SortedComparison):
+    PARAMETERS = dict(
+        commandline="list_events"
+    )
 
 
 class ListEvents(plugin.Command):
@@ -75,6 +82,20 @@ config.DeclareOption(
     help="Filter to apply to all plugins backed by the entity layer.")
 
 
+class TestEntityFind(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline='find "Process/command =~ %(process)s"',
+        process="lsass"
+    )
+
+
+
+class TestEntityAnalyze(testlib.SortedComparison):
+    PARAMETERS = dict(
+        commandline='analyze "Process/command =~ lsass"'
+    )
+
+
 class EntityAnalyze(plugin.Command):
     __name = "analyze"
 
@@ -83,7 +104,8 @@ class EntityAnalyze(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(EntityAnalyze, cls).args(parser)
-        parser.add_positional_arg("query")
+        parser.add_argument("query", positional=True,
+                            help="The filter query to use")
 
     def __init__(self, query=None, **kwargs):
         super(EntityAnalyze, self).__init__(**kwargs)
@@ -185,11 +207,14 @@ class EntityFind(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(EntityFind, cls).args(parser)
-        parser.add_positional_arg("query")
+        parser.add_argument("query", positional=True,
+                            help="The filter query to use")
+
         parser.add_argument("--components", default=None, nargs="+",
                             type="str")
         parser.add_argument("--attributes", default=None, nargs="+",
                             type="str")
+
         parser.add_argument("--explain", type="Boolean", default=False,
                             help="Show which part of the query matched.")
 

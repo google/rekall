@@ -276,22 +276,34 @@ class WindowsIA32PagedMemoryPae(WindowsPagedMemoryMixin,
         The function should return either None (no valid mapping) or the offset
         in physical memory where the address maps.
         '''
-        pde_value = self.get_pde(vaddr)
-        if not self.entry_present(pde_value):
-            # If PDE is not valid the page table does not exist yet. According
-            # to
-            # http://i-web.i.u-tokyo.ac.jp/edu/training/ss/lecture/new-documents/Lectures/14-AdvVirtualMemory/AdvVirtualMemory.pdf
-            # slide 11 this is the same as PTE of zero - i.e. consult the VAD.
-            return self.get_phys_addr(vaddr, 0)
+        try:
+            return self._tlb.Get(vaddr)
+        except KeyError:
+            pdpte = self.get_pdpte(vaddr)
+            if not self.entry_present(pdpte):
+                return None
 
-        if self.page_size_flag(pde_value):
-            return self.get_four_meg_paddr(vaddr, pde_value)
+            pde = self.get_pde(vaddr, pdpte)
+            if not self.entry_present(pde):
+                # If PDE is not valid the page table does not exist
+                # yet. According to
+                # http://i-web.i.u-tokyo.ac.jp/edu/training/ss/lecture/new-documents/Lectures/14-AdvVirtualMemory/AdvVirtualMemory.pdf
+                # slide 11 this is the same as PTE of zero - i.e. consult the
+                # VAD.
+                if not self._resolve_vads:
+                    return None
 
-        pte_value = self.get_pte(vaddr, pde_value)
-        if not self.entry_present(pte_value):
-            return None
+                return self.get_phys_addr(vaddr, 0)
 
-        return self.get_phys_addr(vaddr, pte_value)
+            if self.page_size_flag(pde):
+                return self.get_two_meg_paddr(vaddr, pde)
+
+            pte = self.get_pte(vaddr, pde)
+
+            res = self.get_phys_addr(vaddr, pte)
+
+            self._tlb.Put(vaddr, res)
+            return res
 
 
 class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin, amd64.AMD64PagedMemory):
@@ -307,36 +319,44 @@ class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin, amd64.AMD64PagedMemory):
         The function returns either None (no valid mapping) or the offset in
         physical memory where the address maps.
         '''
-        vaddr = long(vaddr)
-        pml4e = self.get_pml4e(vaddr)
-        if not self.entry_present(pml4e):
-            # Add support for paged out PML4E
-            return None
+        try:
+            return self._tlb.Get(vaddr)
+        except KeyError:
+            vaddr = long(vaddr)
+            pml4e = self.get_pml4e(vaddr)
+            if not self.entry_present(pml4e):
+                # Add support for paged out PML4E
+                return None
 
-        pdpte = self.get_pdpte(vaddr, pml4e)
-        if not self.entry_present(pdpte):
-            # Add support for paged out PDPTE
-            # Insert buffalo here!
-            return None
+            pdpte = self.get_pdpte(vaddr, pml4e)
+            if not self.entry_present(pdpte):
+                # Add support for paged out PDPTE
+                # Insert buffalo here!
+                return None
 
-        if self.page_size_flag(pdpte):
-            return self.get_one_gig_paddr(vaddr, pdpte)
+            if self.page_size_flag(pdpte):
+                return self.get_one_gig_paddr(vaddr, pdpte)
 
-        pde = self.get_pde(vaddr, pdpte)
-        if not self.entry_present(pde):
-            # If PDE is not valid the page table does not exist yet. According
-            # to
-            # http://i-web.i.u-tokyo.ac.jp/edu/training/ss/lecture/new-documents/Lectures/14-AdvVirtualMemory/AdvVirtualMemory.pdf
-            # slide 11 this is the same PTE of zero.
-            return self.get_phys_addr(vaddr, 0)
+            pde = self.get_pde(vaddr, pdpte)
+            if not self.entry_present(pde):
+                # If PDE is not valid the page table does not exist
+                # yet. According to
+                # http://i-web.i.u-tokyo.ac.jp/edu/training/ss/lecture/new-documents/Lectures/14-AdvVirtualMemory/AdvVirtualMemory.pdf
+                # slide 11 this is the same PTE of zero.
+                if not self._resolve_vads:
+                    return None
 
-        # Is this a 2 meg page?
-        if self.page_size_flag(pde):
-            return self.get_two_meg_paddr(vaddr, pde)
+                return self.get_phys_addr(vaddr, 0)
 
-        pte = self.get_pte(vaddr, pde)
+            # Is this a 2 meg page?
+            if self.page_size_flag(pde):
+                return self.get_two_meg_paddr(vaddr, pde)
 
-        return self.get_phys_addr(vaddr, pte)
+            pte = self.get_pte(vaddr, pde)
+            res = self.get_phys_addr(vaddr, pte)
+
+            self._tlb.Put(vaddr, res)
+            return res
 
 
 class Pagefiles(common.WindowsCommandPlugin):

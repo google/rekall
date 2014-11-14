@@ -139,7 +139,7 @@ class WinPas2Vas(common.WinProcessFilter):
                 bisect.bisect(lookup_map, [physical_address, 2**64, 0, 0])-1]
 
             if (lookup_pa <= physical_address and
-                lookup_pa + length > physical_address):
+                    lookup_pa + length > physical_address):
                 # Yield the pid and the virtual offset
                 return lookup_va + physical_address - lookup_pa, task
         return None, None
@@ -154,7 +154,7 @@ class WinPas2Vas(common.WinProcessFilter):
 
         for physical_address in self.physical_address:
             for virtual_address, task in self.get_virtual_address(
-                physical_address):
+                    physical_address):
                 if task is 'Kernel':
                     renderer.table_row(physical_address, virtual_address,
                                        0, 'Kernel')
@@ -168,4 +168,4 @@ class WinPas2Vas(common.WinProcessFilter):
 class TestPas2Vas(testlib.SimpleTestCase):
     PARAMETERS = dict(
         commandline="pas2vas %(offset)s --pid 0 "
-        )
+    )

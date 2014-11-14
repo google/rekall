@@ -58,7 +58,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
         overlay = dict(tagDESKTOP=[None, {}],
                        tagWINDOWSTATION=[None, {}],
                        tagTHREADINFO=[None, {}],
-                       )
+                      )
 
         with self.session.plugins.cc() as cc:
             for task in self.session.plugins.pslist().filter_processes():
@@ -115,30 +115,30 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
             logging.debug("Checking tagWINDOWSTATION at %#x", offset)
             for o, info in self.analyze_struct.GuessMembers(offset, size=0x200):
                 if self._AddField(
-                    "Tag:Win", info, "rpwinstaNext", fields,
-                    [o, ["Pointer", dict(
-                        target="tagWINDOWSTATION"
+                        "Tag:Win", info, "rpwinstaNext", fields,
+                        [o, ["Pointer", dict(
+                            target="tagWINDOWSTATION"
                         )]]):
                     continue
 
                 elif self._AddField(
-                    "Tag:Des", info, "rpdeskList", fields,
-                    [o, ["Pointer", dict(
-                        target="tagDESKTOP"
+                        "Tag:Des", info, "rpdeskList", fields,
+                        [o, ["Pointer", dict(
+                            target="tagDESKTOP"
                         )]]):
                     continue
 
                 elif self._AddField(
-                    "Tag:AtmT", info, "pGlobalAtomTable", fields,
-                    [o, ["Pointer", dict(
-                        target="_RTL_ATOM_TABLE"
+                        "Tag:AtmT", info, "pGlobalAtomTable", fields,
+                        [o, ["Pointer", dict(
+                            target="_RTL_ATOM_TABLE"
                         )]]):
                     continue
 
                 elif self._AddField(
-                    "Const:win32k!gTerm", info, "pTerm", fields,
-                    [o, ["Pointer", dict(
-                        target="tagTERMINAL"
+                        "Const:win32k!gTerm", info, "pTerm", fields,
+                        [o, ["Pointer", dict(
+                            target="tagTERMINAL"
                         )]]):
                     continue
 
@@ -177,7 +177,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
             desktops.add(offset)
 
             for o, info in self.analyze_struct.GuessMembers(
-                offset, search=0x400):
+                    offset, search=0x400):
 
                 if self._AddField("Tag:Des", info, "rpdeskNext", fields,
                                   [o, ["Pointer", dict(
@@ -251,7 +251,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
     def _AnalyzeTagTHREADINFO(self, offset, fields):
         logging.debug("Checking tagTHREADINFO at %#x", offset)
         for o, info in self.analyze_struct.GuessMembers(
-            offset, size=0x400, search=0x600):
+                offset, size=0x400, search=0x600):
 
             if self._AddField("Tag:Thr", info, "pEThread", fields,
                               [o, ["Pointer", dict(
@@ -302,7 +302,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
         # Iterate over all tagTHREADINFO objects.
         thread_infos = set()
         for wndstation in self.wndstation().rpwinstaNext.walk_list(
-            "rpwinstaNext"):
+                "rpwinstaNext"):
             for desktop in wndstation.rpdeskList.walk_list("rpdeskNext"):
                 thread_info_pool = self.analyze_struct.SearchForPoolHeader(
                     desktop.PtiList.Flink.v(), search=0x600)

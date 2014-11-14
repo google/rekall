@@ -139,7 +139,7 @@ class VADInfo(common.WinProcessFilter):
         renderer.format(
             "Control Flags: {0}\n", control_area.u.Flags)
 
-        file_object = control_area.FilePointer.dereference()
+        file_object = control_area.FilePointer
         if file_object and file_object != 0:
             renderer.format(
                 "FileObject @{0:08x} FileBuffer @ {1:08x}          , "
@@ -151,7 +151,7 @@ class VADInfo(common.WinProcessFilter):
         if vad.obj_type != "_MMVAD_SHORT":
             renderer.format(
                 "First prototype PTE: {0:08x} Last contiguous PTE: "
-                "{1:08x}\n", vad.FirstPrototypePte.obj_offset,
+                "{1:08x}\n", vad.FirstPrototypePte[0],
                 vad.LastContiguousPte)
 
             renderer.format("Flags2: {0}\n", vad.u2.VadFlags2)

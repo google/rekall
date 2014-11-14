@@ -95,15 +95,15 @@ from rekall import registry
 
 
 config.DeclareOption(
-    "-v", "--verbose", default=False, action="store_true",
+    "-v", "--verbose", default=False, type="Boolean",
     help="Set logging to debug level.", group="Output control")
 
 config.DeclareOption(
-    "-q", "--quiet", default=False, action="store_true",
+    "-q", "--quiet", default=False, type="Boolean",
     help="Turn off logging to stderr.", group="Output control")
 
 config.DeclareOption(
-    "--debug", default=False, action="store_true",
+    "--debug", default=False, type="Boolean",
     help="If set we break into the debugger on error conditions.")
 
 

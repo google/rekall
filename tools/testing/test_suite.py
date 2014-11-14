@@ -383,6 +383,7 @@ exit 0
             if self.FLAGS.tests and plugin_cls.__name__ not in self.FLAGS.tests:
                 continue
 
+
             if plugin_cls.disabled:
                 continue
 

@@ -74,7 +74,7 @@ from rekall.ui import json_renderer
 
 
 class FileAddressSpaceObjectRenderer(
-    json_renderer.BaseAddressSpaceObjectRenderer):
+        json_renderer.BaseAddressSpaceObjectRenderer):
     renders_type = "FileAddressSpace"
 
     def GetState(self, item, **options):
@@ -83,10 +83,6 @@ class FileAddressSpaceObjectRenderer(
         state["filename"] = item.name
 
         return state
-
-
-class EWFAddressSpaceObjectRenderer(FileAddressSpaceObjectRenderer):
-    renders_type = "EWFAddressSpace"
 
 
 class AttributeDictObjectRenderer(json_renderer.StateBasedObjectRenderer):
@@ -103,7 +99,7 @@ class AttributeDictObjectRenderer(json_renderer.StateBasedObjectRenderer):
 
 
 class IA32PagedMemoryObjectRenderer(
-    json_renderer.BaseAddressSpaceObjectRenderer):
+        json_renderer.BaseAddressSpaceObjectRenderer):
     renders_type = "IA32PagedMemory"
 
     def GetState(self, item, **options):
@@ -114,7 +110,7 @@ class IA32PagedMemoryObjectRenderer(
         return state
 
 class MIPSPagedMemoryObjectRenderer(
-    json_renderer.BaseAddressSpaceObjectRenderer):
+        json_renderer.BaseAddressSpaceObjectRenderer):
     renders_type = "MipsAddressSpace"
 
     def GetState(self, item, **options):

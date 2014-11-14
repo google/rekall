@@ -73,7 +73,7 @@ setup(
         "pytz >= 2012",
         "ipython >= 2.0.0",
         "pycrypto >= 2.3.1",
-        "pyelftools >= 0.21",
+        "pyelftools >= 0.22",
         "distorm3 >= 0",
         "acora >= 1.8",
         "codegen >= 1.0",

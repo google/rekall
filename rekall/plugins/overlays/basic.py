@@ -458,13 +458,13 @@ class ListMixIn(object):
             if item not in seen:
                 seen.append(item)
 
-                Blink = item.m(self._backward).dereference()
+                Blink = item.m(self._backward)
                 if Blink.is_valid():
-                    stack.append(Blink)
+                    stack.append(Blink.dereference())
 
-                Flink = item.m(self._forward).dereference()
+                Flink = item.m(self._forward)
                 if Flink.is_valid():
-                    stack.append(Flink)
+                    stack.append(Flink.dereference())
 
     def list_of_type(self, type, member):
         result = []

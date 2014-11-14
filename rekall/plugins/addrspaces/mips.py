@@ -18,13 +18,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 from rekall import addrspace
-from rekall import config
-from rekall import obj
 import struct
 
-config.DeclareOption(name="dtb", group="Autodetection Overrides",
-                     action=config.IntParser,
-                     help="The DTB physical address.")
 
 pointer_size = 4
 page_shift = 12
@@ -104,11 +99,12 @@ class MipsAddressSpace(addrspace.PagedReader):
         return self.read_long_phys(pgd_val)
 
     def get_paddr(self, vaddr, pte):
-        return (self.pte_pfn(pte) << page_shift) | (vaddr & ((1 << page_shift) - 1))
+        return ((self.pte_pfn(pte) << page_shift) |
+                (vaddr & ((1 << page_shift) - 1)))
 
     def entry_present(self, entry):
         if entry:
-            if (entry & 1):
+            if entry & 1:
                 return True
 
         return False

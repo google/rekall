@@ -107,7 +107,7 @@ class BaseScanner(object):
         Args:
           offset: The starting offset in our current address space to scan.
 
-          maxlen: The maximum length to scan. If no provided we just scan until
+          maxlen: The maximum length to scan. If not provided we just scan until
             there is no data.
 
         Yields:
@@ -191,7 +191,7 @@ class BaseScanner(object):
 
                 # Consume the next block in this range.
                 buffer_as.assign_buffer(
-                    overlap + self.address_space.base.read(
+                    overlap + self.session.physical_address_space.read(
                         phys_chunk_offset, chunk_size),
                     base_offset=chunk_offset - len(overlap))
 

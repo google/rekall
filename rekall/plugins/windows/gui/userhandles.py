@@ -88,7 +88,7 @@ class UserHandles(win32k_core.Win32kPluginMixin,
 
                 # Skip pids that do not match.
                 if (self.filtering_requested and
-                    handle.Process.UniqueProcessId not in pids):
+                        handle.Process.UniqueProcessId not in pids):
                     continue
 
                 # Allow the user to match of handle type.
@@ -128,7 +128,7 @@ class UserHandles(win32k_core.Win32kPluginMixin,
                      ("Thread", "thread", "^8"),
                      ("Process", "process", "5"),
                      ("Process Name", "process_name", ""),
-                     ])
+                    ])
 
             renderer.table_row(
                 handle,
@@ -215,7 +215,7 @@ class Gahti(win32k_core.Win32kPluginMixin,
              ("Tag", "tag", "8"),
              ("fnDestroy", "fnDestroy", "[addrpad]"),
              ("Flags", "flags", ""),
-             ])
+            ])
 
         for session in self.session.plugins.sessions().session_spaces():
             for handle in self.gahti(session):
@@ -317,7 +317,7 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
              ("Flags", "flags", "10"),
              ("Function", "function", "[addrpad]"),
              ("Module", "module", ""),
-             ])
+            ])
 
         atoms_plugin = self.session.plugins.atoms()
         for session in self.session.plugins.sessions().session_spaces():

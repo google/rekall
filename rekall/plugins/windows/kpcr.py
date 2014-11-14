@@ -76,7 +76,7 @@ class KPCR(common.WindowsCommandPlugin):
                             current_thread, current_thread.Cid.UniqueThread,
                             current_thread.owning_process().ImageFileName,
                             current_thread.Cid.UniqueProcess,
-                            )
+                           )
 
         if idle_thread:
             renderer.format("{0:<30}: {1:#x} TID {2} ({3}:{4})\n",
@@ -84,7 +84,7 @@ class KPCR(common.WindowsCommandPlugin):
                             idle_thread, idle_thread.Cid.UniqueThread,
                             idle_thread.owning_process().ImageFileName,
                             idle_thread.Cid.UniqueProcess,
-                            )
+                           )
 
         if next_thread:
             renderer.format("{0:<30}: {1:#x} TID {2} ({3}:{4})\n",
@@ -93,7 +93,7 @@ class KPCR(common.WindowsCommandPlugin):
                             next_thread.Cid.UniqueThread,
                             next_thread.owning_process().ImageFileName,
                             next_thread.Cid.UniqueProcess,
-                            )
+                           )
 
         renderer.format("{0:<30}: CPU {1} ({2} @ {3} MHz)\n",
                         "Details",

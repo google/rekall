@@ -411,6 +411,10 @@ class TestConvertProfile(testlib.DisabledTest):
     PARAMETERS = dict(commandline="convert_profile")
 
 
+class TestBuildIndex(testlib.DisabledTest):
+    PARAMETERS = dict(commandline="build_index")
+
+
 class BuildIndex(plugin.Command):
     """Generate a profile index file based on an index specification.
 

@@ -31,7 +31,7 @@ from rekall.entities import collector
 
 
 config.DeclareOption(
-    "--generate_ballast", default=0, action=config.IntParser,
+    "--generate_ballast", default=0, type="IntParser",
     help="If specified, fill the entity database with this many fake entries.")
 
 

@@ -319,7 +319,7 @@ class LoadAddressSpace(plugin.Command):
 
     # Parse Address spaces from this specification. TODO: Support EPT
     # specification and nesting.
-    ADDRESS_SPACE_RE = re.compile("([a-zA-Z0-9]+)@(0x[0-9a-zA-Z]+)")
+    ADDRESS_SPACE_RE = re.compile("([a-zA-Z0-9]+)@((0x)?[0-9a-zA-Z]+)")
     def ResolveAddressSpace(self, name=None):
         """Resolve the name into an address space.
 
@@ -333,6 +333,8 @@ class LoadAddressSpace(plugin.Command):
 
         as_type@dtb_address: Instantiates the address space at the specified
             DTB. For example: amd64@0x18700
+
+        pid@pid_number: Use the process address space for the specified pid.
         """
         if name is None:
             result = self.session.GetParameter("default_address_space")
@@ -355,9 +357,16 @@ class LoadAddressSpace(plugin.Command):
 
         m = self.ADDRESS_SPACE_RE.match(name)
         if m:
+            arg = int(m.group(2), 0)
+            if m.group(1) == "pid":
+                for task in self.session.plugins.pslist(
+                        pid=arg).filter_processes():
+                    return task.get_process_address_space()
+                raise AttributeError("Process pid %s not found" % arg)
+
             as_cls = addrspace.BaseAddressSpace.classes.get(m.group(1))
             if as_cls:
-                return as_cls(session=self.session, dtb=int(m.group(2), 0),
+                return as_cls(session=self.session, dtb=arg,
                               base=self.GetPhysicalAddressSpace())
 
         raise AttributeError("Address space specification %r invalid.", name)
@@ -476,8 +485,9 @@ class LoadAddressSpace(plugin.Command):
                     continue
                 except Exception, e:
                     logging.error("Fatal Error: %s", e)
-                    if self.session.debug:
+                    if self.session.GetParameter("debug"):
                         pdb.post_mortem()
+
                     raise
 
             ## A full iteration through all the classes without anyone

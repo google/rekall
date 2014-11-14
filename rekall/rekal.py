@@ -61,8 +61,7 @@ def main(argv=None):
 
     try:
         # Run the plugin with plugin specific args.
-        user_session.RunPlugin(plugin_cls, **config.RemoveGlobalOptions(
-            vars(flags)))
+        user_session.RunPlugin(plugin_cls, **config.RemoveGlobalOptions(flags))
     except Exception as e:
         if getattr(flags, "debug", None):
             pdb.post_mortem(sys.exc_info()[2])

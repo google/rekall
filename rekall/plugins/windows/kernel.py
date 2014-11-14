@@ -60,8 +60,9 @@ class KernelBaseHook(kb.ParameterHook):
         else:
             kernel_boundary = 0x80000000
 
+        maxlen = 0xFFFFF87FFFFFFFFF - kernel_boundary
         kernel_boundary = obj.Pointer.integer_to_address(kernel_boundary)
-        for hit in scanner.scan(offset=kernel_boundary, maxlen=2**64):
+        for hit in scanner.scan(offset=kernel_boundary, maxlen=maxlen):
 
             # Search backwards for an MZ signature on the page boundary.
             page = hit & 0xFFFFFFFFFFFFF000

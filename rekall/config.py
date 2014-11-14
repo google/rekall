@@ -31,13 +31,118 @@ a library the configuration file has no effect.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import argparse
+import collections
 import logging
-import re
 import yaml
 import os
 
 from rekall import constants
+
+
+class CommandMetadata(object):
+    """A class that carried a plugin's configuration.
+
+    A plugin is responsible for declaring its metadata by calling this
+    configuration object's methods from the args() class method.
+
+    There are two things that plugin must declare:
+
+    add_*_arg(): Calling these functions declares an argument for this
+       plugin. See the documentation for that method for details.
+
+    add_metadata(): This method provides additional metadata about this plugin.
+    """
+
+    def __init__(self, plugin_cls=None):
+        self.args = collections.OrderedDict()
+        self.requirements = set()
+        self.plugin_cls = plugin_cls
+        if plugin_cls:
+            plugin_cls.args(self)
+
+        self.description = (plugin_cls.__doc__ or
+                            plugin_cls.__init__.__doc__ or "")
+
+    def set_description(self, description):
+        self.description = description
+
+    def add_positional_arg(self, name, type="string"):
+        """Declare a positional arg."""
+        self.args[name] = dict(type=type)
+
+    def add_argument(self, short_opt, long_opt=None, **options):
+        """Add a new argument to the command.
+
+        This method is used in the args() class method to add a new command line
+        arg to the plugin. It is similar to the argparse add_argument() method
+        but it adds a type parameter which conveys higher level information
+        about the argument. Currently supported types:
+
+        - ArrayIntParser: A list of integers (possibly encoded as hex strings).
+        - ArrayStringParser: A list of strings.
+        - Float: A float.
+        - IntParser: An integer (possibly encoded as a hex string).
+        - Boolean: A flag - true/false.
+        - ChoiceArray: A comma separated list of strings which must be from the
+            choices parameter.
+        """
+        if "action" in options:
+            raise RuntimeError("Action keyword is deprecated.")
+
+        if not isinstance(options.get("type", ""), str):
+            raise RuntimeError("Type must be a string.")
+
+        # Is this a positional arg?
+        positional = options.pop("positional", True)
+
+        # For now we support option names with leading --.
+        if long_opt is None:
+            long_opt = short_opt
+            short_opt = ""
+
+        if long_opt.startswith("-"):
+            long_opt = long_opt.lstrip("-")
+            short_opt = short_opt.lstrip("-")
+            positional = False
+
+        name = long_opt
+        options["short_opt"] = short_opt
+        options["positional"] = positional
+        options["name"] = name
+
+        self.args[name] = options
+
+    def add_requirement(self, requirement):
+        """Add a requirement for this plugin.
+
+        Currently supported requirements:
+         - profile: A profile must exist for this plugin to run.
+
+         - physical_address_space: A Physical Address Space (i.e. an image file)
+           must exist for this plugin to work.
+        """
+        self.requirements.add(requirement)
+
+    def Metadata(self):
+        return dict(requirements=list(self.requirements),
+                    arguments=self.args.values(), name=self.plugin_cls.name,
+                    description=self.description)
+
+    def ApplyDefaults(self, args):
+        """Update args with the defaults.
+
+        If an option in args is None, we update it with the default value for
+        this option.
+        """
+        for name, options in self.args.iteritems():
+            if options.get("dest") == "SUPPRESS":
+                continue
+
+            name = name.replace("-", "_")
+            if args[name] is None:
+                args[name] = options.get("default")
+
+        return args
 
 def GetHomeDir():
     return (os.environ.get("HOME") or      # Unix
@@ -54,8 +159,9 @@ DEFAULT_CONFIGURATION = dict(
     notebook_dir=GetHomeDir(),
     )
 
-
-OPTIONS = []
+# Global options control the framework's own flags. They are not associated with
+# any one plugin.
+OPTIONS = CommandMetadata()
 
 
 def GetConfigFile():
@@ -89,11 +195,6 @@ def GetConfigFile():
 
 def MergeConfigOptions(state):
     """Read the config file and apply the config options to the session."""
-    # First apply the defaults:
-    for _, _, name, default, _ in OPTIONS:
-        if default is not None:
-            state.Set(name, default)
-
     config_data = GetConfigFile()
     # An empty configuration file - we try to initialize a new one.
     if not config_data:
@@ -113,6 +214,11 @@ def MergeConfigOptions(state):
     if not config_data:
         config_data = DEFAULT_CONFIGURATION
 
+    # First apply the defaults:
+    for name, options in OPTIONS.args.iteritems():
+        if name not in config_data:
+            config_data[name] = options.get("default")
+
     for k, v in config_data.items():
         state.Set(k, v)
 
@@ -121,126 +227,14 @@ def RemoveGlobalOptions(state):
     """Remove all global options from state dictionary."""
     state.pop("SUPPRESS", None)
 
-    for _, _, name, _, _ in OPTIONS:
+    for name in OPTIONS.args:
         state.pop(name, None)
 
     return state
 
 
-def DeclareOption(short_name=None, name=None, default=None, group=None,
-                  **kwargs):
-    """Declare a config option for command line and config file.
-
-    Arguments:
-        short_name: The one-letter name of the flag (like -v).
-        name: The long name of the flag (like --verbose).
-        default: The default value.
-        group: Arguments from the same group are rendered together.
-
-        The remaining keyword arguments are passed on to the argument parser
-        (see RekallArgParser).
-    """
-    if name is None:
-        name = short_name
-        short_name = None
-
-    name = name.strip("-")
-    if short_name:
-        short_name = short_name.strip("-")
-
-    OPTIONS.append((group, short_name, name, default, kwargs))
-
-
-def RegisterArgParser(parser):
-    """Register the options into the parser."""
-    groups = {}
-
-    for group, short_name, name, _, kwargs in sorted(OPTIONS):
-        if not name.startswith("--"):
-            name = "--" + name
-
-        if short_name and not short_name.startswith("-"):
-            short_name = "-" + short_name
-
-        kwargs["default"] = argparse.SUPPRESS
-        if group:
-            try:
-                arg_group = groups[group]
-            except KeyError:
-                groups[group] = arg_group = parser.add_argument_group(group)
-
-            if short_name:
-                arg_group.add_argument(short_name, name, **kwargs)
-            else:
-                arg_group.add_argument(name, **kwargs)
-
-        else:
-            if short_name:
-                parser.add_argument(short_name, name, **kwargs)
-            else:
-                parser.add_argument(name, **kwargs)
-
-
-class IntParser(argparse.Action):
-    """Class to parse ints either in hex or as ints."""
-    def parse_int(self, value):
-        # Support suffixes
-        multiplier = 1
-        m = re.search("(.*)(mb|kb|m|k)", value)
-        if m:
-            value = m.group(1)
-            suffix = m.group(2).lower()
-            if suffix in ("mb", "m"):
-                multiplier = 1024 * 1024
-            elif suffix in ("kb", "k"):
-                multiplier = 1024
-
-        try:
-            if value.startswith("0x"):
-                value = int(value, 16) * multiplier
-            else:
-                value = int(value) * multiplier
-        except ValueError:
-            raise argparse.ArgumentError(self, "Invalid integer value")
-
-        return value
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        if isinstance(values, basestring):
-            values = self.parse_int(values)
-        setattr(namespace, self.dest, values)
-
-
-class ArrayIntParser(IntParser):
-    """Parse input as a comma separated list of integers.
-
-    We support input in the following forms:
-
-    --pid 1,2,3,4,5
-
-    --pid 1 2 3 4 5
-
-    --pid 0x1 0x2 0x3
-    """
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        result = []
-        if isinstance(values, basestring):
-            values = [values]
-
-        for value in values:
-            result.extend([self.parse_int(x) for x in value.split(",")])
-
-        setattr(namespace, self.dest, result)
-
-
-class ArrayStringParser(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        result = []
-        if isinstance(values, basestring):
-            values = [values]
-
-        for value in values:
-            result.extend([x for x in value.split(",")])
-
-        setattr(namespace, self.dest, result)
+def DeclareOption(*args, **kwargs):
+    """Declare a config option for command line and config file."""
+    # Options can not be positional!
+    kwargs["positional"] = False
+    OPTIONS.add_argument(*args, **kwargs)

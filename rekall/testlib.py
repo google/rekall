@@ -173,6 +173,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
             return {}
 
         if baseline_commandline:
+            baseline_commandline = "- %s" % baseline_commandline
             for k, v in config_options.items():
                 # prepend all global options to the command line.
                 if k.startswith("-"):
@@ -377,6 +378,18 @@ class SimpleTestCase(RekallBaseUnitTestCase):
 
         # Compare the entire table
         self.assertEqual(previous, current)
+
+
+class SortedComparison(SimpleTestCase):
+
+    __abstract = True
+
+    def testCase(self):
+        previous = sorted(self.baseline['output'])
+        current = sorted(self.current['output'])
+
+        # Compare the entire table
+        self.assertListEqual(previous, current)
 
 
 class DisabledTest(RekallBaseUnitTestCase):

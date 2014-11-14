@@ -27,6 +27,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
 import logging
+import re
 import os
 import sys
 import zipfile
@@ -34,13 +35,14 @@ import zipfile
 from rekall import config
 from rekall import constants
 from rekall import plugin
+from rekall import utils
 
 
-config.DeclareOption("--plugin", default=[], nargs="+",
+config.DeclareOption("--plugin", default=[], type="ArrayStringParser",
                      help="Load user provided plugin bundle.")
 
 config.DeclareOption(
-    "-h", "--help", default=False, action="store_true",
+    "-h", "--help", default=False, type="Boolean",
     help="Show help about global paramters.")
 
 
@@ -167,14 +169,24 @@ def _TruncateARGV(argv):
 def ParseGlobalArgs(parser, argv, user_session):
     """Parse some session wide args which must be done before anything else."""
     # Register global args.
-    config.RegisterArgParser(parser)
+    ConfigureCommandLineParser(config.OPTIONS, parser)
 
     # Parse the known args.
     known_args, _ = parser.parse_known_args(args=argv)
 
     with user_session.state as state:
         for arg, value in vars(known_args).items():
-            state.Set(arg, value)
+            # Argparse tries to interpolate defaults into the parsed data in the
+            # event that the args are not present - even when calling
+            # parse_known_args. Before we get to this point, the config system
+            # has already set the state from the config file, so if we allow
+            # argparse to set the default we would override the config file
+            # (with the defaults). We solve this by never allowing argparse
+            # itself to handle the defaults. We always set default=None, when
+            # configuring the parser, and rely on the
+            # config.MergeConfigOptions() to set the defaults.
+            if value is not None:
+                state.Set(arg, value)
 
         # Enforce the appropriate logging level if user supplies the --verbose
         # or --quiet command line flags.
@@ -193,7 +205,12 @@ def ParseGlobalArgs(parser, argv, user_session):
 
     # Now load the third party user plugins. These may introduce additional
     # plugins with args.
-    LoadPlugins(user_session.state.plugin)
+    if user_session.state.plugin:
+        LoadPlugins(user_session.state.plugin)
+
+        # External files might have introduced new plugins - rebuild the plugin
+        # DB.
+        user_session.plugins.plugin_db.Rebuild()
 
     # Possibly restore the session from a file.
     session_filename = getattr(known_args, "session_filename", None)
@@ -252,18 +269,42 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
     - Parsed from json from the web console.
     """
 
-    group = parser.add_argument_group(
-        "Plugin %s options" % command_metadata.plugin_cls.name)
+    # This is used to allow the user to break the command line arbitrarily.
+    parser.add_argument('-', dest='__dummy', action="store_true",
+                        help="A do nothing arg. Useful to separate options "
+                        "which table multiple args from positional. Can be "
+                        "specified many times.")
+
+    try:
+        groups = parser.groups
+    except AttributeError:
+        groups = parser.groups = {
+            "None": parser.add_argument_group("Global options")
+        }
+
+    if command_metadata.plugin_cls:
+        groups[command_metadata.plugin_cls.name] = parser.add_argument_group(
+            "Plugin %s options" % command_metadata.plugin_cls.name)
 
     for name, options in command_metadata.args.iteritems():
         kwargs = options.copy()
         name = kwargs.pop("name", None) or name
+        kwargs.pop("default", None)
+
+        group_name = kwargs.pop("group", None)
+        if group_name is None and command_metadata.plugin_cls:
+            group_name = command_metadata.plugin_cls.name
+
+        group = groups.get(group_name)
+        if group is None:
+            groups[group_name] = group = parser.add_argument_group(group_name)
 
         positional_args = []
-        short_opt = kwargs.pop("short_opt")
+
+        short_opt = kwargs.pop("short_opt", None)
 
         # A positional arg is allows to be specified without a flag.
-        if kwargs.pop("positional"):
+        if kwargs.pop("positional", None):
             # By default positional args are required.
             required = kwargs.pop("required", True)
 
@@ -282,11 +323,18 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
 
         arg_type = kwargs.pop("type", None)
         if arg_type == "ArrayIntParser":
-            kwargs["action"] = config.ArrayIntParser
+            kwargs["action"] = ArrayIntParser
+            kwargs["nargs"] = "+"
+
+        if arg_type == "ArrayStringParser":
+            kwargs["action"] = ArrayStringParser
             kwargs["nargs"] = "+"
 
         elif arg_type == "IntParser":
-            kwargs["action"] = config.IntParser
+            kwargs["action"] = IntParser
+
+        elif arg_type == "Float":
+            kwargs["type"] = float
 
         elif arg_type == "Boolean":
             kwargs["action"] = "store_true"
@@ -294,6 +342,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
         # Multiple entries of choices (requires a choices paramter).
         elif arg_type == "ChoiceArray":
             kwargs["nargs"] = "+"
+            kwargs["action"] = ChoiceArrayParser
 
         # Skip option if not critical.
         critical_arg = kwargs.pop("critical", False)
@@ -310,17 +359,20 @@ def parse_args(argv=None, user_session=None):
     if argv is None:
         argv = sys.argv[1:]
 
-    # The plugin name is taken from the command line, but it is not enough to
-    # know which specific implementation will be used. For example there are 3
-    # classes implementing the pslist plugin WinPsList, LinPsList and OSXPsList.
-    plugin_name, argv = FindPlugin(argv, user_session)
-
     parser = RekallArgParser(
         description=constants.BANNER,
         conflict_handler='resolve',
         add_help=True,
         epilog="When no module is provided, drops into interactive mode",
         formatter_class=RekallHelpFormatter)
+
+    # Parse the global and critical args from the command line.
+    ParseGlobalArgs(parser, argv, user_session)
+
+    # The plugin name is taken from the command line, but it is not enough to
+    # know which specific implementation will be used. For example there are 3
+    # classes implementing the pslist plugin WinPsList, LinPsList and OSXPsList.
+    plugin_name, argv = FindPlugin(argv, user_session)
 
     # Add all critical parameters. Critical parameters are those which are
     # common to all implementations of a certain plugin and are required in
@@ -329,9 +381,6 @@ def parse_args(argv=None, user_session=None):
     # plugin.
     for metadata in user_session.plugins.plugin_db.MetadataByName(plugin_name):
         ConfigureCommandLineParser(metadata, parser, critical=True)
-
-    # Parse the global and critical args from the command line.
-    ParseGlobalArgs(parser, argv, user_session)
 
     # Find the specific implementation of the plugin that applies here. For
     # example, we have 3 different pslist implementations depending on the
@@ -353,4 +402,96 @@ def parse_args(argv=None, user_session=None):
         parser.print_help()
         sys.exit(-1)
 
+    # Apply the defaults to the parsed args.
+    result = utils.AttributeDict(vars(result))
+    result.pop("__dummy", None)
+
+    command_metadata.ApplyDefaults(result)
+
     return plugin_cls, result
+
+
+## Parser for special args.
+
+class IntParser(argparse.Action):
+    """Class to parse ints either in hex or as ints."""
+    def parse_int(self, value):
+        # Support suffixes
+        multiplier = 1
+        m = re.search("(.*)(mb|kb|m|k)", value)
+        if m:
+            value = m.group(1)
+            suffix = m.group(2).lower()
+            if suffix in ("mb", "m"):
+                multiplier = 1024 * 1024
+            elif suffix in ("kb", "k"):
+                multiplier = 1024
+
+        try:
+            if value.startswith("0x"):
+                value = int(value, 16) * multiplier
+            else:
+                value = int(value) * multiplier
+        except ValueError:
+            raise argparse.ArgumentError(self, "Invalid integer value")
+
+        return value
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if isinstance(values, basestring):
+            values = self.parse_int(values)
+        setattr(namespace, self.dest, values)
+
+
+class ArrayIntParser(IntParser):
+    """Parse input as a comma separated list of integers.
+
+    We support input in the following forms:
+
+    --pid 1,2,3,4,5
+
+    --pid 1 2 3 4 5
+
+    --pid 0x1 0x2 0x3
+    """
+
+    def Validate(self, value):
+        return self.parse_int(value)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        result = []
+        if isinstance(values, basestring):
+            values = [values]
+
+        for value in values:
+            result.extend([self.Validate(x) for x in value.split(",")])
+
+        setattr(namespace, self.dest, result)
+
+
+class ChoiceArrayParser(ArrayIntParser):
+
+    def __init__(self, *args, **kwargs):
+        self._choices = kwargs.pop("choices", [])
+        super(ChoiceArrayParser, self).__init__(*args, **kwargs)
+
+    def Validate(self, value):
+        if value not in self._choices:
+            raise argparse.ArgumentError(
+                None, "Choice %r not valid. Valid choices are %s" % (
+                    value, self._choices))
+
+        return value
+
+
+class ArrayStringParser(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        result = []
+
+        if isinstance(values, basestring):
+            values = [values]
+
+        for value in values:
+            result.extend([x for x in value.split(",")])
+
+        setattr(namespace, self.dest, result)

@@ -888,7 +888,7 @@ class PE(object):
         for directory in import_directory:
             dll = directory.Name.dereference()
             for thunk in directory.FirstThunk.dereference():
-                function = thunk.u1.Function.cast("Pointer")
+                function = thunk.u1.Function
 
                 yield dll, function, thunk.u1.Ordinal
 
@@ -1078,4 +1078,3 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
             addr += len(data)
 
         return result
-

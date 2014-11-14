@@ -49,11 +49,11 @@ config.DeclareOption(
     help="The pager to use when output is larger than a screen full.")
 
 config.DeclareOption(
-    "--paging_limit", default=None, group="Interface", type=int,
+    "--paging_limit", default=None, group="Interface", type="IntParser",
     help="The number of output lines before we invoke the pager.")
 
 config.DeclareOption(
-    "--nocolors", default=False, action="store_true", group="Interface",
+    "--nocolors", default=False, type="Boolean", group="Interface",
     help="If set suppress outputting colors.")
 
 
@@ -431,8 +431,8 @@ class Colorizer(object):
     def Render(self, target, foreground=None, background=None):
         """Decorate the string with the ansii escapes for the color."""
         if (not self.terminal_capable or
-            foreground not in self.COLOR_MAP or
-            foreground not in self.COLOR_MAP):
+                foreground not in self.COLOR_MAP or
+                foreground not in self.COLOR_MAP):
             return utils.SmartUnicode(target)
 
         escape_seq = ""
@@ -588,6 +588,9 @@ class Cell(object):
             # Pad the line to the required width.
             result.lines.append(
                 wrapped_line + " " * (width - len(wrapped_line)))
+
+        if not result.lines:
+            result.lines = [""]
 
         result.Justify()
         return result
@@ -781,7 +784,7 @@ class TextTable(renderer.BaseTable):
         """Returns a Cell formed by joining all the column headers."""
         # Get each column to write its own header and then we join them all up.
         return Cell.Join(*[c.render_header() for c in self.columns],
-                          tablesep=self.options.get("tablesep", " "))
+                         tablesep=self.options.get("tablesep", " "))
 
     def get_row(self, *row, **options):
         """Format the row into a single Cell spanning all output columns.
@@ -795,7 +798,7 @@ class TextTable(renderer.BaseTable):
         """
         return Cell.Join(
             *[c.render_row(x, **options) for c, x in zip(self.columns, row)],
-             tablesep=self.options.get("tablesep", " "))
+            tablesep=self.options.get("tablesep", " "))
 
     def render_row(self, row=None, highlight=None, annotation=False, **options):
         """Write the row to the output."""
@@ -1001,11 +1004,14 @@ class TextRenderer(renderer.BaseRenderer):
         if filename is None and directory is None:
             raise IOError("Must provide a filename")
 
+        if directory is None:
+            directory, filename = os.path.split(filename)
+
         filename = utils.SmartStr(filename) or "Unknown%s" % self._object_id
 
         # Filter the filename for illegal chars.
         filename = re.sub(
-            r"[^a-zA-Z0-9_.{}\[\]\- ]",
+            r"[^a-zA-Z0-9_.@{}\[\]\- ]",
             lambda x: "%" + x.group(0).encode("hex"),
             filename)
 

@@ -22,7 +22,14 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import re
 
+from rekall import config
 from rekall import obj
+
+
+config.DeclareOption(
+    "--name_resolution_strategies", default=["Module", "Symbol", "Export"],
+    group="Interface", type="ChoiceArray",
+    choices=["Module", "Symbol", "Export"])
 
 
 class AddressResolverMixin(object):
@@ -124,7 +131,7 @@ class AddressResolverMixin(object):
 
         try:
             return int(name)
-        except ValueError:
+        except (ValueError, TypeError):
             pass
 
         if not isinstance(name, basestring):

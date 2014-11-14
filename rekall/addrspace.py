@@ -72,7 +72,7 @@ class BaseAddressSpace(object):
         if session is None and base is not None:
             session = base.session
 
-        self.base = base or self
+        self.base = base
         self.profile = profile
         self.session = session
         if session is None:
@@ -224,7 +224,6 @@ class BufferAddressSpace(BaseAddressSpace):
         super(BufferAddressSpace, self).__init__(**kwargs)
         self.fname = "Buffer"
         self.data = data
-        self.base = self
         self.base_offset = base_offset
 
     def assign_buffer(self, data, base_offset=0):

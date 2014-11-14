@@ -49,7 +49,7 @@ from rekall.ui import json_renderer
 
 
 config.DeclareOption(
-    "--profile_path", default=[], action="append",
+    "--profile_path", default=[], type="ArrayStringParser",
     help="Path to search for profiles. This can take "
     "any form supported by the IO Manager (e.g. zip files, "
     "directories, URLs etc)")
@@ -59,7 +59,7 @@ config.DeclareOption("-f", "--filename",
 
 config.DeclareOption(
     "--buffer_size", default=20*1024*1024,
-    action=config.IntParser,
+    type="IntParser",
     help="The maximum size of buffers we are allowed to read. "
     "This is used to control Rekall memory usage.")
 
@@ -68,7 +68,7 @@ config.DeclareOption(
     help="If specified we write output to this file.")
 
 config.DeclareOption(
-    "--max_collector_cost", default=4, type=int,
+    "--max_collector_cost", default=4, type="IntParser",
     help="If specified, collectors with higher cost will not be used.")
 
 
@@ -228,8 +228,9 @@ class Configuration(Cache):
         - Update the filename
         - Reload the profile and possibly autodetect it.
         """
-        # This is used by the ipython prompt.
-        self.Set('base_filename', os.path.basename(filename))
+        if filename:
+            # This is used by the ipython prompt.
+            self.Set('base_filename', os.path.basename(filename))
 
         # Reset any caches.
         if self.session:

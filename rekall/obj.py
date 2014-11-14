@@ -325,8 +325,8 @@ class BaseObject(object):
              the vtype language definition.
         """
         if kwargs:
-            logging.error("Unknown keyword args {0} for {1}".format(
-                kwargs, self.__class__.__name__))
+            logging.error("Unknown keyword args %s for %s",
+                          kwargs, self.__class__.__name__)
 
         self.obj_type = type_name
 
@@ -341,7 +341,7 @@ class BaseObject(object):
         self.obj_session = session
 
         if profile is None:
-            logging.critical("Profile must be provided to %s" % self)
+            logging.critical("Profile must be provided to %s", self)
             raise RuntimeError("Profile must be provided")
 
     @property
@@ -389,8 +389,7 @@ class BaseObject(object):
 
         the later form is not going to work when X is a NoneObject.
         """
-        result = self.obj_vm.is_valid_address(self.obj_offset)
-        return result
+        return self.is_valid()
 
     def __eq__(self, other):
         return self.v() == other or (
@@ -417,10 +416,10 @@ class BaseObject(object):
         return (self.v(),)
 
     def m(self, memname):
-        return NoneObject("No member {0}".format(memname))
+        return NoneObject("No member {0}", memname)
 
     def is_valid(self):
-        return self.obj_vm.is_valid_address(self.obj_offset)
+        return True
 
     def deref(self, vm=None):
         """An alias for dereference - less to type."""
@@ -428,8 +427,7 @@ class BaseObject(object):
 
     def dereference(self, vm=None):
         _ = vm
-        return NoneObject("Can't dereference {0}".format(
-            self.obj_name), self.obj_profile)
+        return NoneObject("Can't dereference {0}", self.obj_name)
 
     def reference(self):
         """Produces a pointer to this object.
@@ -457,8 +455,7 @@ class BaseObject(object):
         allow for this.
         """
         _ = vm
-        return NoneObject("No value for {0}".format(
-            self.obj_name), self.obj_profile)
+        return NoneObject("No value for {0}", self.obj_name)
 
     def __str__(self):
         return utils.SmartStr(self)
@@ -585,13 +582,13 @@ class NativeType(NumericProxyMixIn, BaseObject):
 
         data = self.obj_vm.read(self.obj_offset, self.obj_size)
         if not data:
-            return NoneObject("Unable to read {0} bytes from {1}".format(
-                self.obj_size, self.obj_offset))
+            return NoneObject("Unable to read {0} bytes from {1}",
+                              self.obj_size, self.obj_offset)
 
-        (val,) = struct.unpack(self.format_string, data)
+        # Cache this for next time.
+        (self.value,) = struct.unpack(self.format_string, data)
 
-        self.value = val
-        return val
+        return self.value
 
     def cdecl(self):
         return self.obj_name
@@ -705,7 +702,8 @@ class Pointer(NativeType):
 
     def is_valid(self):
         """ Returns if what we are pointing to is valid """
-        return self.obj_vm.is_valid_address(self.v())
+        # Null pointers are invalid.
+        return self.v() != 0
 
     def __getitem__(self, item):
         """Indexing a pointer indexes its target.
@@ -749,10 +747,11 @@ class Pointer(NativeType):
                 # Target not valid, return void.
                 result = Void(**kwargs)
 
-            return result
-        else:
-            return NoneObject("Pointer {0} @ {1} invalid".format(
-                self.obj_name, self.v()))
+            if result.is_valid():
+                return result
+
+        return NoneObject("Pointer {0} @ {1} invalid",
+                          self.obj_name, self.v())
 
     def __dir__(self):
         return dir(self.dereference())
@@ -1011,9 +1010,6 @@ class Array(BaseObject):
             return [self[i] for i in xrange(start, stop, step)]
 
         offset = self.target_size * pos + self.obj_offset
-        if not self.obj_vm.is_valid_address(offset):
-            return NoneObject("Invalid offset %s" % offset)
-
         return self.obj_profile.Object(
             self.target, offset=offset, vm=self.obj_vm,
             parent=self, profile=self.obj_profile,
@@ -1280,7 +1276,6 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
         To access a field which has been renamed in different OS versions.
         """
-        ACCESS_LOG.LogFieldAccess(self.obj_profile.name, self.obj_type, attr)
         result = self._cache.get(attr)
         if result is not None:
             return result
@@ -1293,17 +1288,17 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
             self._cache[attr] = result
             return result
 
-        if attr in self.members:
+        element = self.members.get(attr)
+        if element is not None:
             # Allow the element to be a callable rather than a list - this is
             # useful for aliasing member names
-            element = self.members[attr]
             if callable(element):
                 return element(self)
 
             offset, cls = element
         else:
-            return NoneObject(u"Struct {0} has no member {1}".format(
-                self.obj_name, attr))
+            return NoneObject(u"Struct {0} has no member {1}",
+                              self.obj_name, attr)
 
         if callable(offset):
             ## If offset is specified as a callable its an absolute
@@ -1498,7 +1493,7 @@ class Profile(object):
 
     def __init__(self, name=None, session=None, metadata=None, **kwargs):
         if kwargs:
-            logging.error("Unknown keyword args {0}".format(kwargs))
+            logging.error("Unknown keyword args %s", kwargs)
 
         if name is None:
             name = self.__class__.__name__
@@ -1733,9 +1728,9 @@ class Profile(object):
 
                 elif v[0] == None:
                     logging.warning(
-                        "{0} has no offset in object {1}. Check that vtypes "
-                        "has a concrete definition for it.".format(
-                            k, type_name))
+                        "%s has no offset in object %s. Check that vtypes "
+                        "has a concrete definition for it.",
+                        k, type_name)
                 else:
                     members[k] = (v[0], self.list_to_type(k, v[1]))
 
@@ -2142,7 +2137,7 @@ class Profile(object):
         return Curry(self.Object, attr)
 
     def Object(self, type_name=None, offset=None, vm=None, name=None,
-               parent=None, context=None, session=None, **kwargs):
+               parent=None, context=None, **kwargs):
         """ A function which instantiates the object named in type_name (as
         a string) from the type in profile passing optional args of
         kwargs.
@@ -2164,18 +2159,16 @@ class Profile(object):
           parent: The object can maintain a reference to its parent object.
         """
         name = name or type_name
-        if session is None:
-            session = self.session
 
         # Ensure we are called correctly.
-        if not isinstance(name, basestring):
+        if name.__class__ not in (unicode, str):
             raise ValueError("Type name must be a string")
 
         if offset is None:
             offset = 0
             if vm is None:
                 vm = addrspace.BaseAddressSpace.classes["DummyAddressSpace"](
-                    size=self.get_obj_size(name) or 0, session=session)
+                    size=self.get_obj_size(name) or 0, session=self.session)
 
         else:
             offset = int(offset)
@@ -2189,11 +2182,12 @@ class Profile(object):
 
         # If the cache contains a None, this member is not represented by a
         # vtype (it might be a pure object class or a constant).
-        if self.types[type_name] is not None:
-            result = self.types[type_name](
-                offset=offset, vm=vm, name=name,
-                parent=parent, context=context,
-                session=session, **kwargs)
+        cls = self.types[type_name]
+        if cls is not None:
+            result = cls(offset=offset, vm=vm, name=name,
+                         parent=parent, context=context,
+                         session=self.session, **kwargs)
+
             return result
 
         elif type_name in self.object_classes:
@@ -2204,7 +2198,7 @@ class Profile(object):
                 name=name,
                 parent=parent,
                 context=context,
-                session=session,
+                session=self.session,
                 **kwargs)
 
             if isinstance(result, Struct):
@@ -2217,8 +2211,8 @@ class Profile(object):
 
         else:
             # If we get here we have no idea what the type is supposed to be?
-            return NoneObject("Cant find object {0} in profile {1}?".format(
-                type_name, self))
+            return NoneObject("Cant find object %s in profile %s?",
+                              type_name, self)
 
     def __unicode__(self):
         return u"<%s profile %s (%s)>" % (

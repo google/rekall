@@ -144,6 +144,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
         if pool_header:
             name = (pool_header.ProcessBilled.name or
                     str(pool_header.Tag).encode("string-escape"))
+
             renderer.format(
                 "{0:#x} is inside pool allocation with tag '{1}' ({2:#x})\n",
                 self.offset, name, pool_header)

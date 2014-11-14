@@ -361,7 +361,10 @@ class Disassemble(plugin.Command):
 
 class TestDisassemble(testlib.SimpleTestCase):
     PARAMETERS = dict(
-        commandline="dis -l %(length)s %(func)s",
+        # We want to test symbol discovery via export table detection so turn it
+        # on.
+        commandline=("dis -l %(length)s %(func)s "
+                     "--name_resolution_strategies Export"),
         func=0x805031be,
         length=20
         )

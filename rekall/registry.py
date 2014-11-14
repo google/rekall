@@ -36,8 +36,6 @@ step, as soon as a module is imported, the plugin is registered.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import logging
-
 
 class classproperty(property):
     """A property that can be called on classes."""

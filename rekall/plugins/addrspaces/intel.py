@@ -27,11 +27,33 @@ import struct
 
 from rekall import addrspace
 from rekall import config
+from rekall import utils
+
+config.DeclareOption(
+    "dtb", group="Autodetection Overrides",
+    type="IntParser", help="The DTB physical address.")
 
 
-config.DeclareOption(name="dtb", group="Autodetection Overrides",
-                     action=config.IntParser,
-                     help="The DTB physical address.")
+PAGE_SHIFT = 12
+PAGE_MASK = ~ 0xFFF
+
+
+class TranslationLookasideBuffer(utils.FastStore):
+    """An implementation of a TLB."""
+
+    def Get(self, vaddr):
+        result = super(TranslationLookasideBuffer, self).Get(
+            vaddr >> PAGE_SHIFT)
+
+        if result is not None:
+            return result + (vaddr & 0xFFF)
+
+    def Put(self, vaddr, paddr):
+        if paddr is not None:
+            paddr = paddr & PAGE_MASK
+
+        super(TranslationLookasideBuffer, self).Put(
+            vaddr >> PAGE_SHIFT, paddr)
 
 
 class IA32PagedMemory(addrspace.PagedReader):
@@ -67,7 +89,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         super(IA32PagedMemory, self).__init__(**kwargs)
 
         ## We must be stacked on someone else:
-        if not self.base != self:
+        if not self.base:
             raise TypeError("No base Address Space")
 
         # If the underlying address space already knows about the dtb we use it.
@@ -78,6 +100,9 @@ class IA32PagedMemory(addrspace.PagedReader):
             raise TypeError("No valid DTB specified. Try the find_dtb"
                             " plugin to search for the dtb.")
         self.name = (name or 'Kernel AS') + "@%#x" % self.dtb
+
+        # Use a TLB to make this faster.
+        self._tlb = TranslationLookasideBuffer(1000)
 
     def entry_present(self, entry):
         '''
@@ -149,18 +174,25 @@ class IA32PagedMemory(addrspace.PagedReader):
         The function should return either None (no valid mapping)
         or the offset in physical memory where the address maps.
         '''
-        pde_value = self.get_pde(vaddr)
-        if not self.entry_present(pde_value):
-            return None
+        try:
+            return self._tlb.Get(vaddr)
+        except KeyError:
+            pde_value = self.get_pde(vaddr)
+            if not self.entry_present(pde_value):
+                return None
 
-        if self.page_size_flag(pde_value):
-            return self.get_four_meg_paddr(vaddr, pde_value)
+            if self.page_size_flag(pde_value):
+                return self.get_four_meg_paddr(vaddr, pde_value)
 
-        pte_value = self.get_pte(vaddr, pde_value)
-        if not self.entry_present(pte_value):
-            return None
+            pte_value = self.get_pte(vaddr, pde_value)
+            if not self.entry_present(pte_value):
+                return None
 
-        return self.get_phys_addr(vaddr, pte_value)
+            res = self.get_phys_addr(vaddr, pte_value)
+
+            self._tlb.Put(vaddr, res)
+            return res
+
 
     def read_long_phys(self, addr):
         '''
@@ -272,7 +304,6 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         pde_addr = (pdpte & 0xffffffffff000) | ((vaddr & 0x3fe00000) >> 18)
         return self.read_long_long_phys(pde_addr)
 
-
     def get_two_meg_paddr(self, vaddr, pde):
         '''
         Return the offset in a 2MB memory page from the given virtual
@@ -314,23 +345,29 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         The function returns either None (no valid mapping)
         or the offset in physical memory where the address maps.
         '''
-        pdpte = self.get_pdpte(vaddr)
-        if not self.entry_present(pdpte):
-            # Add support for paged out PDPTE
-            # Insert buffalo here!
-            return None
+        try:
+            return self._tlb.Get(vaddr)
+        except KeyError:
+            pdpte = self.get_pdpte(vaddr)
+            if not self.entry_present(pdpte):
+                # Add support for paged out PDPTE
+                # Insert buffalo here!
+                return None
 
-        pde = self.get_pde(vaddr, pdpte)
-        if not self.entry_present(pde):
-            # Add support for paged out PDE
-            return None
+            pde = self.get_pde(vaddr, pdpte)
+            if not self.entry_present(pde):
+                # Add support for paged out PDE
+                return None
 
-        if self.page_size_flag(pde):
-            return self.get_two_meg_paddr(vaddr, pde)
+            if self.page_size_flag(pde):
+                return self.get_two_meg_paddr(vaddr, pde)
 
-        pte = self.get_pte(vaddr, pde)
+            pte = self.get_pte(vaddr, pde)
 
-        return self.get_phys_addr(vaddr, pte)
+            res = self.get_phys_addr(vaddr, pte)
+
+            self._tlb.Put(vaddr, res)
+            return res
 
     def read_long_long_phys(self, addr):
         '''

@@ -34,7 +34,7 @@ class WinSSDT(common.WindowsCommandPlugin):
 
     def _find_process_context(self, table_ptr, cc):
         for proc in self.session.plugins.pslist(
-            proc_regex="csrss").filter_processes():
+                proc_regex="csrss").filter_processes():
 
             cc.SwitchProcessContext(proc)
             table_ptr.obj_vm = self.session.GetParameter(
@@ -77,17 +77,20 @@ class WinSSDT(common.WindowsCommandPlugin):
         with cc:
             for i, descriptor in enumerate(ssdt.Descriptors):
                 table_ptr = descriptor.KiServiceTable
-                if not table_ptr.is_valid():
+
+                # Sometimes the table is not mapped. In this case we need to
+                # find a process context which maps the win32k.sys driver.
+                if table_ptr[0] == 0:
                     table_ptr = self._find_process_context(table_ptr, cc)
 
-                table = table_ptr.deref()
-                renderer.section("Table %s @ %#x" % (i, table_ptr.v()))
+                renderer.section(
+                    "Table %s @ %#x" % (i, table_ptr[0].obj_offset))
 
                 renderer.table_header([("Entry", "entry", "[addr]"),
                                        ("Target", "target", "[addrpad]"),
                                        ("Symbol", "symbol", "")])
 
                 if self.profile.metadata("arch") == "AMD64":
-                    self._render_x64_table(table, renderer)
+                    self._render_x64_table(table_ptr, renderer)
                 else:
-                    self._render_x86_table(table, renderer)
+                    self._render_x86_table(table_ptr, renderer)

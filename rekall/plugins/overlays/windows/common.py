@@ -29,6 +29,8 @@ from rekall import obj
 from rekall import utils
 
 from rekall.plugins.overlays.windows import pe_vtypes
+from rekall.plugins.overlays.windows import undocumented
+
 
 MM_PROTECTION_ENUM = utils.EnumerationFromDefines("""
 //
@@ -112,7 +114,7 @@ windows_overlay = {
         'IDT': lambda x: x.m("IDT") or x.m("IdtBase"),
         'GDT': lambda x: x.m("GDT") or x.m("GdtBase"),
         'KdVersionBlock': [None, ['Pointer', dict(
-            target='_KDDEBUGGER_DATA64')]],
+            target='_DBGKD_GET_VERSION64')]],
         }],
 
     '_KPRCB': [None, {
@@ -440,7 +442,7 @@ windows_overlay = {
 
     '_DISPATCHER_HEADER': [None, {
         "Type": [None, ["Enumeration", dict(
-            enum_name="_KOBJECTS",
+            choices=undocumented.ENUMS["_KOBJECTS"],
             target="unsigned char",
             )]],
         }],
@@ -660,6 +662,18 @@ class _SID(obj.Struct):
 
 class _EPROCESS(obj.Struct):
     """ An extensive _EPROCESS with bells and whistles """
+
+    def is_valid(self):
+        """Validate the _EPROCESS."""
+        # PID must be in a reasonable range.
+        if self.pid < 0 or self.pid > 0xFFFF:
+            return False
+
+        # Dispatch header must be for a process object.
+        if self.Pcb.Header.Type != "ProcessObject":
+            return False
+
+        return True
 
     @property
     def Peb(self):
@@ -1123,23 +1137,43 @@ class _EX_FAST_REF(obj.Struct):
     def __init__(self, target=None, **kwargs):
         self.target = target
         super(_EX_FAST_REF, self).__init__(**kwargs)
+        end_bit = self.RefCnt.end_bit
+        self.mask = ~ (2 ** end_bit - 1)
+        self._object = None
+
+    def is_valid(self):
+        if self.Object.v() == 0:
+            return False
+
+        return True
+
+    @property
+    def Object(self):
+        if self._object is None:
+            result = self.m("Object")
+            self._object = result.cast(value=result.v() & self.mask)
+
+        return self._object
 
     def dereference(self, vm=None):
         if self.target is None:
             raise AttributeError(
                 "No target specified for dereferencing an _EX_FAST_REF.")
 
-        return self.dereference_as(self.target)
+        if not self.is_valid():
+            return obj.NoneObject("_EX_FAST_REF not valid")
 
-    def dereference_as(self, type_name, parent=None, vm=None, **kwargs):
+        return self.Object.dereference_as(self.target)
+
+    def dereference_as(self, type_name, parent=None, **kwargs):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the
         specified type.
         """
+        if not self.is_valid():
+            return obj.NoneObject("_EX_FAST_REF not valid")
+
         parent = parent or self.obj_parent or self
-        MAX_FAST_REF = self.obj_profile.constants['MAX_FAST_REF']
-        return self.obj_profile.Object(
-            type_name=type_name, offset=self.m("Object").v() & ~MAX_FAST_REF,
-            vm=vm or self.obj_vm, parent=parent, **kwargs)
+        return self.Object.dereference_as(type_name, parent=parent, **kwargs)
 
     def __getattr__(self, attr):
         return getattr(self.dereference(), attr)

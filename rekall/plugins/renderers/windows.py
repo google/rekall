@@ -45,7 +45,8 @@ class EPROCESSDataExport(data_export.DataExportBaseObjectRenderer):
                 )
             )
 
-        return json_renderer.JsonObjectRenderer.EncodeToJsonSafe(self, result)
+        res = json_renderer.JsonObjectRenderer.EncodeToJsonSafe(self, result)
+        return res
 
     def Summary(self, item, **_):
         return "%s (%s)" % (item.get("Cybox", {}).get("Name", ""),

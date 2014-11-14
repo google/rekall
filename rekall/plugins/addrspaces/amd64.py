@@ -22,6 +22,7 @@
 
 """ This is based on Jesse Kornblum's patch to clean up the standard AS's.
 """
+# pylint: disable=protected-access
 
 import struct
 
@@ -29,8 +30,8 @@ from rekall import config
 from rekall.plugins.addrspaces import intel
 
 
-config.DeclareOption(name="ept", group="Virtualization support",
-                     action=config.ArrayIntParser,
+config.DeclareOption("ept", group="Virtualization support",
+                     type="ArrayIntParser",
                      help="The EPT physical address.")
 
 
@@ -247,7 +248,7 @@ class VTxPagedMemory(AMD64PagedMemory):
         # A dummy DTB is passed to the base class so the DTB checks on
         # IA32PagedMemory don't bail out. We require the DTB to never be used
         # for page translation outside of get_pml4e.
-        AMD64PagedMemory.__init__(self, dtb=0xFFFFFFFF, **kwargs)
+        super(VTxPagedMemory, self).__init__(dtb=0xFFFFFFFF, **kwargs)
 
         # Reset the DTB, in case a plugin or AS relies on us providing one.
         self.dtb = None

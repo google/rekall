@@ -114,4 +114,3 @@ class Handles(common.WinProcessFilter):
                     handle.HandleValue,
                     handle.GrantedAccess,
                     object_type, name)
-

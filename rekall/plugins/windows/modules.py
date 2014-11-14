@@ -179,7 +179,7 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
         parser.add_argument("--name_regex",
                             help="Filter module names by this regex.")
 
-        parser.add_argument("scan-filename", required=False,
+        parser.add_argument("scan_filename", required=False,
                             help="Optional file to scan. If not specified "
                             "we scan the physical address space.")
 

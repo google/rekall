@@ -28,6 +28,7 @@ from rekall import utils
 from rekall.plugins.common import address_resolver
 from rekall.plugins.windows import common
 from rekall.plugins.overlays.windows import pe_vtypes
+from rekall.plugins.overlays.windows import windows
 
 
 class KernelModule(object):
@@ -188,11 +189,12 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                 "default_address_space"))
 
         constants = {}
-        for _, func, name, _ in peinfo.pe_helper.ExportDirectory():
-            self.session.report_progress("Merging export table: %s", name)
-            func_offset = func.v()
-            if not result.get_constant_by_address(func_offset):
-                constants[str(name or "")] = func_offset - module_base
+        if "Export" in self.session.GetParameter("name_resolution_strategies"):
+            for _, func, name, _ in peinfo.pe_helper.ExportDirectory():
+                self.session.report_progress("Merging export table: %s", name)
+                func_offset = func.v()
+                if not result.get_constant_by_address(func_offset):
+                    constants[str(name or "")] = func_offset - module_base
 
         result.add_constants(constants_are_addresses=True, **constants)
 
@@ -225,13 +227,14 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                                              address_space=module.obj_vm)
 
         constants = {}
-        for _, func, name, _ in peinfo.pe_helper.ExportDirectory():
-            self.session.report_progress("Merging export table: %s", name)
-            func_offset = func.v()
-            if not result.get_constant_by_address(func_offset):
-                constants[str(name or "")] = func_offset - module_base
+        if "Export" in self.session.GetParameter("name_resolution_strategies"):
+            for _, func, name, _ in peinfo.pe_helper.ExportDirectory():
+                self.session.report_progress("Merging export table: %s", name)
+                func_offset = func.v()
+                if not result.get_constant_by_address(func_offset):
+                    constants[str(name or "")] = func_offset - module_base
 
-        result.add_constants(constants_are_addresses=True, **constants)
+            result.add_constants(constants_are_addresses=True, **constants)
 
         self.profiles[module_name] = result
 
@@ -470,18 +473,22 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
         self.modules_by_name[module.name] = module
         self.section_map.insert((module.base, module))
 
-        # Extract all exported symbols into the profile's symbol table.
-        for _, func, name, _ in self.pe_helper.ExportDirectory():
-            func_address = func.v()
-            try:
-                symbols[utils.SmartUnicode(name)] = func_address
-            except ValueError:
-                continue
+        if "Export" in self.session.GetParameter("name_resolution_strategies"):
+            # Extract all exported symbols into the profile's symbol table.
+            for _, func, name, _ in self.pe_helper.ExportDirectory():
+                func_address = func.v()
+                try:
+                    symbols[utils.SmartUnicode(name)] = func_address
+                except ValueError:
+                    continue
 
-        # Load the profile for this binary.
-        self.pe_profile = self.session.LoadProfile("%s/GUID/%s" % (
-            utils.SmartUnicode(self.pe_helper.RSDS.Filename).split(".")[0],
-            self.pe_helper.RSDS.GUID_AGE))
+        if "Symbol" in self.session.GetParameter("name_resolution_strategies"):
+            # Load the profile for this binary.
+            self.pe_profile = self.session.LoadProfile("%s/GUID/%s" % (
+                utils.SmartUnicode(self.pe_helper.RSDS.Filename).split(".")[0],
+                self.pe_helper.RSDS.GUID_AGE))
+        else:
+            self.pe_profile = windows.BasicPEProfile(session=self.session)
 
         self.pe_profile.image_base = self.image_base
 

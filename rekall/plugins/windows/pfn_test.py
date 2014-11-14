@@ -25,6 +25,20 @@ import json
 
 from rekall import testlib
 
+class TestVtoP(testlib.SimpleTestCase):
+    # Create a test case by running the vadmap plugin and selecting at least one
+    # virtual address from each type.
+    PARAMETERS = dict(
+        commandline="vtop --pid %(pid)s - %(vaddr)s",
+        vaddr="0x00010000 0x00036000"
+    )
+
+class TestPTE(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="pte %(pte)s",
+        pte="0x3286b8"
+    )
+
 
 class TestPFN(testlib.RekallBaseUnitTestCase):
     """Test the pfn module."""

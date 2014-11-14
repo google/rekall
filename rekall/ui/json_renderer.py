@@ -235,7 +235,7 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
         # Store the mro of the item.
         state["mro"] = self.get_mro(item)
 
-        # Store an object ID for this item to ensure that the decoded can re-use
+        # Store an object ID for this item to ensure that the decoder can re-use
         # objects if possible. The ID is globally unique for this object and
         # does not change.
         try:
@@ -270,7 +270,7 @@ class BaseObjectRenderer(StateBasedObjectRenderer):
                     name=unicode(item.obj_name),
                     vm=item.obj_vm,
                     profile=item.obj_profile
-                    )
+                   )
 
 
 class BaseAddressSpaceObjectRenderer(StateBasedObjectRenderer):

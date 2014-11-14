@@ -395,8 +395,9 @@ class _HANDLEENTRY(obj.Struct):
     def ProcessOwned(self):
         """Handles of these types are always process owned"""
         return str(self.bType) in [
-                                'TYPE_MENU', 'TYPE_CURSOR', 'TYPE_TIMER',
-                                'TYPE_CALLPROC', 'TYPE_ACCELTABLE']
+            'TYPE_MENU', 'TYPE_CURSOR', 'TYPE_TIMER',
+            'TYPE_CALLPROC', 'TYPE_ACCELTABLE']
+
     @property
     def Thread(self):
         """Return the ETHREAD if its thread owned"""

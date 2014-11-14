@@ -41,6 +41,9 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
 
     def __init__(self, **kwargs):
         super(WindowsCrashDumpSpace32, self).__init__(**kwargs)
+
+        self.as_assert(self.base != None, "No base address space provided")
+
         self.offset = 0
         self.fname = ''
 

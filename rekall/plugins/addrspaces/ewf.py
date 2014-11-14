@@ -39,20 +39,25 @@ class EWFAddressSpace(addrspace.BaseAddressSpace):
     order = 20
     __image = True
 
-    def __init__(self, base=None, **kwargs):
+    def __init__(self, **kwargs):
         super(EWFAddressSpace, self).__init__(**kwargs)
 
         # Fail quickly if this is not an EWF file.
-        self.as_assert(base != None, "No base address space provided")
+        self.as_assert(self.base != None, "No base address space provided")
 
-        self.as_assert(base.read(0, 6) == "\x45\x56\x46\x09\x0D\x0A",
+        self.as_assert(self.base.read(0, 6) == "\x45\x56\x46\x09\x0D\x0A",
                        "EWF signature not present")
 
         # Now try to open it as an ewf file.
-        self.ewf_file = ewf.EWFFile(session=self.session, address_space=base)
+        self.ewf_file = ewf.EWFFile(
+            session=self.session, address_space=self.base)
 
     def read(self, offset, length):
-        return self.ewf_file.read(offset, length)
+        res = self.ewf_file.read(offset, length)
+        if len(res) < length:
+            res += "\x00" * (length - len(res))
 
-    def get_available_addresses(self):
+        return res
+
+    def get_available_addresses(self, start=0):
         yield (0, 0, self.ewf_file.size)

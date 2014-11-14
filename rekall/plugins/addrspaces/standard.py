@@ -69,7 +69,7 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
         (longval,) = struct.unpack('=I', string)
         return longval
 
-    def get_available_addresses(self):
+    def get_available_addresses(self, start=0):
         yield (0, 0, self.fsize)
 
     def is_valid_address(self, addr):

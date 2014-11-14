@@ -21,9 +21,10 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import collections
+
 import StringIO
 
+from rekall import config
 from rekall import obj
 from rekall import registry
 from rekall.ui import text as text_renderer
@@ -39,92 +40,6 @@ class PluginError(Error):
 
 class InvalidArgs(Error):
     """Invalid arguments."""
-
-
-class CommandMetadata(object):
-    """A class that carried a plugin's configuration.
-
-    A plugin is responsible for declaring its metadata by calling this
-    configuration object's methods from the args() class method.
-
-    There are two things that plugin must declare:
-
-    add_*_arg(): Calling these functions declares an argument for this
-       plugin. See the documentation for that method for details.
-
-    add_metadata(): This method provides additional metadata about this plugin.
-    """
-
-    def __init__(self, plugin_cls):
-        self.args = collections.OrderedDict()
-        self.requirements = set()
-        self.plugin_cls = plugin_cls
-        plugin_cls.args(self)
-        self.description = (plugin_cls.__doc__ or
-                            plugin_cls.__init__.__doc__ or "")
-
-    def set_description(self, description):
-        self.description = description
-
-    def add_positional_arg(self, name, type="string"):
-        """Declare a positional arg."""
-        self.args[name] = dict(type=type)
-
-    def add_argument(self, short_opt, long_opt=None, **options):
-        """Add a new argument to the command.
-
-        This method is used in the args() class method to add a new command line
-        arg to the plugin. It is similar to the argparse add_argument() method
-        but it adds a type parameter which conveys higher level information
-        about the argument. Currently supported types:
-
-        - ArrayIntParser: A list of integers (possibly encoded as hex strings).
-        - IntParser: An integer (possibly encoded as a hex string).
-        - Boolean: A flag - true/false.
-        - ChoiceArray: A comma separated list of strings which must be from the
-            choices parameter.
-        """
-        if "action" in options:
-            raise RuntimeError("Action keyword is deprecated.")
-
-        if not isinstance(options.get("type", ""), str):
-            raise RuntimeError("Type must be a string.")
-
-        # Is this a positional arg?
-        positional = True
-
-        # For now we support option names with leading --.
-        if long_opt is None:
-            long_opt = short_opt
-            short_opt = ""
-
-        if long_opt.startswith("-"):
-            long_opt = long_opt.lstrip("-")
-            short_opt = short_opt.lstrip("-")
-            positional = False
-
-        name = long_opt
-        options["short_opt"] = short_opt
-        options["positional"] = positional
-        options["name"] = name
-
-        self.args[name] = options
-
-    def add_requirement(self, requirement):
-        """Add a requirement for this plugin.
-
-        Currently supported requirements:
-         - profile: A profile must exist for this plugin to run.
-
-         - physical_address_space: A Physical Address Space (i.e. an image file)
-           must exist for this plugin to work.
-        """
-        self.requirements.add(requirement)
-
-    def Metadata(self):
-        return dict(requirements=list(self.requirements),
-                    arguments=self.args.values(), name=self.plugin_cls.name,
-                    description=self.description)
 
 
 class Command(object):
@@ -402,12 +317,16 @@ class PluginMetadataDatabase(object):
     """A database of all the currently registered plugin's metadata."""
 
     def __init__(self, session):
-        self.db = {}
         self.session = session
+        self.Rebuild()
+
+    def Rebuild(self):
+        self.db = {}
+
         for plugin_cls in Command.classes.itervalues():
             plugin_name = plugin_cls.name
             self.db.setdefault(plugin_name, []).append(
-                CommandMetadata(plugin_cls))
+                config.CommandMetadata(plugin_cls))
 
     def MetadataByName(self, name):
         """Return all Implementations that implement command name."""
