@@ -204,7 +204,7 @@ exit 0
 
         parser.add_argument("-v", "--verbose", default=False,
                             action="store_true",
-                            help="Number of concurrent workers.")
+                            help="Output verbosity.")
 
         parser.add_argument("-e", "--executable",
                             default="rekall ",
@@ -224,6 +224,9 @@ exit 0
                             action="store_true",
                             help="If specified rebuild the baseline instead of "
                             "testing against it.")
+
+        parser.add_argument("-i", "--inline", default=False,
+                            help="If specified, output failures inline.")
 
         parser.add_argument("tests", nargs="*", help="Tests to run")
 
@@ -383,7 +386,6 @@ exit 0
             if self.FLAGS.tests and plugin_cls.__name__ not in self.FLAGS.tests:
                 continue
 
-
             if plugin_cls.disabled:
                 continue
 
@@ -491,18 +493,23 @@ exit 0
                          output_path, baseline_filename],
                         stdout=diff_fd)
 
+                if self.FLAGS.inline:
+                    print open(output_path).read()
+
                 self.renderer.table_row(
                     plugin_cls.__name__,
                     self.renderer.colorizer.Render("FAIL", foreground="RED"),
                     current_run.get("time_used", 0),
                     baseline_data.get("time_used", 0),
                     fd.name)
+
                 self.failures.append(plugin_cls.__name__)
 
                 if self.FLAGS.verbose:
                     for test_case, error in result.errors + result.failures:
                         self.renderer.write("Error in %s: %s" % (
                             plugin_cls.__name__, error))
+
 
 def main(_):
     start = time.time()
@@ -518,6 +525,11 @@ def main(_):
         "%s Seconds.\n" % (len(tester.successes) + len(tester.failures),
                            len(tester.successes), len(tester.failures),
                            tester.rebuilt, int(time.time() - start)))
+
+    # Return an error when any tests failed.
+    if tester.failures:
+        sys.exit(-1)
+
 
 if __name__ == "__main__":
     main(sys.argv)
