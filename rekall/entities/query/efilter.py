@@ -215,7 +215,7 @@ class Tokenizer(object):
     """
     patterns = [
         # Keywords, operators and symbols
-        Pattern("symbol", "INITIAL", r"(\&?[A-Z][a-z]+\/[a-z_]+)",
+        Pattern("symbol", "INITIAL", r"(\&?[A-Z][A-Za-z0-9]+\/[a-z0-9_]+)",
                 "emit", None),
         Pattern("infix", "INITIAL", EnumAsPattern(INFIX.keys()),
                 "emit", None),
@@ -427,24 +427,14 @@ class Parser(object):
             return self.error(e.message,
                               start_token=args[0])
 
-    def _escape_param(self, token):
+    def _replace_param(self, token):
         param_name = token.value
         value = self.params.get(param_name, None)
         if value is None:
             return self.error("No value provided for param %s" % param_name,
                               token)
 
-        if (isinstance(value, int) or
-                isinstance(value, float) or
-                isinstance(value, complex) or
-                isinstance(value, long)):
-            return value
-
-        if isinstance(value, str):
-            return value.encode("string-escape")
-
-        return self.error(
-            "Cannot handle parameters of type %s" % type(value).__name__)
+        return value
 
     def next_atom(self):
         token = self.tokenizer.next_token()
@@ -472,7 +462,7 @@ class Parser(object):
                                       end=token.end)
 
         if token.name == "param":
-            return expression.Literal(self._escape_param(token),
+            return expression.Literal(self._replace_param(token),
                                       start=token.start, end=token.end)
 
         if token.name == "symbol":

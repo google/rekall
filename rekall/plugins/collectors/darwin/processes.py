@@ -57,11 +57,11 @@ class DarwinProcParentInferor(common.DarwinEntityCollector):
 class DarwinProcParser(common.DarwinEntityCollector):
     """Takes the proc structs found by various collectors and parses them."""
 
-    outputs = [
-        "Process",
-        "User",
-        "Timestamps",
-        "Named/kind=process"]
+    outputs = ["Process",
+               "User",
+               "Timestamps",
+               "Named/kind=process",
+               "MemoryObject/type=session"]
 
     collect_args = dict(procs="MemoryObject/type is 'proc'")
 
@@ -72,26 +72,41 @@ class DarwinProcParser(common.DarwinEntityCollector):
             user_identity = manager.identify({
                 "User/uid": proc.p_uid})
             process_identity = manager.identify({
-                ("Process/pid", "Timestamps/created_at"): (proc.pid,
-                                                           proc.p_start)})
+                ("Process/pid", "Timestamps/created_at"): (
+                    proc.pid,
+                    proc.p_start.as_datetime())})
 
             # kern_proc.c:2706
             session = proc.p_pgrp.pg_session
             if session:
                 session_identity = manager.identify({
                     "MemoryObject/base_object": session})
+
+                yield definitions.MemoryObject(base_object=session,
+                                               type="session")
             else:
                 session_identity = None
+
+            cr3 = proc.task.map.pmap.pm_cr3
+            if cr3:
+                cr3_ptr = proc.obj_profile.Pointer(
+                    vm=self.session.physical_address_space,
+                    target="void",
+                    value=proc.task.map.pmap.pm_cr3)
+            else:
+                cr3_ptr = None
 
             yield [
                 # Reuse the base object identity but also use the PID.
                 process_identity | entity.identity,
                 definitions.Timestamps(
-                    created_at=proc.p_start),
+                    created_at=proc.p_start.as_datetime()),
                 definitions.Process(
                     pid=proc.pid,
                     command=str(proc.p_comm),
                     user=user_identity,
+                    cr3=cr3_ptr,
+                    is_64bit=proc.task.map.pmap.pm_task_map == "TASK_MAP_64BIT",
                     session=session_identity),
                 definitions.Named(
                     name="%s (pid=%d)" % (proc.p_comm, proc.pid),

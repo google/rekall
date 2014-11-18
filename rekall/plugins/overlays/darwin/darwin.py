@@ -1109,7 +1109,9 @@ class vnode(obj.Struct):
                 logging.warning("vnode at 0x%x is orphaned.", int(_vnode))
                 return "<Orphan>"
 
-        return "/" + "/".join((unicode(x) for x in reversed(result) if x))
+        path = "/" + "/".join((str(x) for x in reversed(result) if x))
+        return unicode(path.encode("string-escape"))
+        # return "/" + "/".join((unicode(x) for x in reversed(result) if x))
 
     @property
     def human_type(self):

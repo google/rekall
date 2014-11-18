@@ -34,11 +34,17 @@ class UserNamer(collector.EntityCollector):
 
     def collect(self, users, hint):
         for user in users:
+            username = user["User/username"]
+            uid = user["User/uid"]
+            if not (username and uid):
+                continue
+
+            name = "%s (uid=%d)" % (username, uid)
             yield [
                 user.identity,
                 definitions.Named(
                     kind="User",
-                    name=user["User/username"])]
+                    name=name)]
 
 
 class DarwinEntityCollector(collector.EntityCollector):

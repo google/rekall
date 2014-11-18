@@ -23,6 +23,9 @@ The Rekall Entity Layer.
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 
+from rekall.entities.query import expression
+
+
 class Identity(object):
     """Uniquely identifies something like a process or a user.
 
@@ -49,9 +52,32 @@ class Identity(object):
 
         return cls(indices, global_prefix)
 
+    def as_query(self):
+        """A query that'll match entities with this identity."""
+        union = []
+        for _, keys, vals in self.indices:
+            if isinstance(keys, tuple):
+                intersection = []
+                for idx, key in enumerate(keys):
+                    intersection.append(
+                        expression.Equivalence(
+                            expression.Binding(key),
+                            expression.Literal(vals[idx])))
+
+                union.append(expression.Intersection(*intersection))
+            else:
+                union.append(expression.Equivalence(
+                    expression.Binding(keys),
+                    expression.Literal(vals)))
+
+        if len(union) == 1:
+            return union[0]
+
+        return expression.Union(*union)
+
     def __init__(self, indices=None, global_prefix=None):
-        self.key_canary = set([attribute for _, attribute, _ in indices])
-        self.indices = set(indices)
+        self.key_canary = frozenset([attribute for _, attribute, _ in indices])
+        self.indices = frozenset(indices)
         self.global_prefix = global_prefix
 
         for index in indices:

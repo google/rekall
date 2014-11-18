@@ -22,17 +22,10 @@ The Rekall Memory Forensics entity layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-import time
-
-from rekall import config
+import datetime
 
 from rekall.entities import definitions
 from rekall.entities import collector
-
-
-config.DeclareOption(
-    "--generate_ballast", default=0, type="IntParser",
-    help="If specified, fill the entity database with this many fake entries.")
 
 
 class BallastGenerator(collector.EntityCollector):
@@ -51,4 +44,4 @@ class BallastGenerator(collector.EntityCollector):
                     name="Ballast entry #%d" % i,
                     kind="Ballast"),
                 definitions.Timestamps(
-                    created_at=self.profile.UnixTimeStamp(value=time.time()))]
+                    created_at=datetime.datetime.fromtimestamp(0))]

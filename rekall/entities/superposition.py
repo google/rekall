@@ -58,19 +58,33 @@ class Superposition(object):
 
     @classmethod
     def merge_scalars(cls, *scalars):
-        variants = set()
+        # TODO (adam): This method should be using sets, but it currently can't,
+        # because there is a requirement for implementing __hash__ expressed
+        # as, in essence, A == B -> hash(A) == hash(B), and some types in
+        # rekall (entities, enums, etc.) currently violate this rule.
+        #
+        # A robust solution to this problem is to implement a hashing protocol
+        # for these types instead of trying to stick them in primitive sets
+        # and dicts. Once we've done that, this method should be optimized by
+        # using containers that support that hashing protocol.
+        #
+        # I think the following is currently O(n^2), which kind of sucks, but
+        # luckily, N is almost always 2 or 3.
+        variants = []
         for scalar in scalars:
             if isinstance(scalar, Superposition):
-                variants.update(scalar.variants)
-            elif scalar != None:
-                variants.add(scalar)
+                for var in scalar.variants:
+                    if var not in variants:
+                        variants.append(var)
+            elif scalar != None and scalar not in variants:
+                variants.append(scalar)
 
         if len(variants) == 1:
             return variants.pop()
         elif not variants:
             return None
 
-        return cls(variants)
+        return cls(set(variants))
 
     @classmethod
     def coerce(cls, value):

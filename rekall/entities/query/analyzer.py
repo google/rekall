@@ -143,7 +143,7 @@ class SimpleDependency(Dependency):
             when a query specifically asks for things that != a certain value.
     """
 
-    SHORTHAND = re.compile(r"([A-Z][a-zA-Z]+)(?:\/([a-z_]+)=(.+))?")
+    SHORTHAND = re.compile(r"([A-Z][a-zA-Z0-9]+)(?:\/([a-z0-9_]+)=(.+))?")
 
     def __init__(self, component, attribute=None, value=None, flag=True,
                  weak=False, expression=None):
@@ -257,7 +257,7 @@ class QueryAnalyzer(visitor.QueryVisitor):
         # find a more specific dependency on the same component, the weak
         # dependency may be discarded under certain circumstances.
         component_cls = getattr(definitions, component)
-        field = component_cls.reflect_field(attribute)
+        field = component_cls.reflect_attribute(attribute)
         if field.typedesc.type_name == "Identity":
             return SimpleDependency(component=component, attribute=attribute,
                                     weak=True, expression=expr)
@@ -286,17 +286,6 @@ class QueryAnalyzer(visitor.QueryVisitor):
         value = self.visit(expr.expression)
         self._let_stack.pop()
 
-        if isinstance(value, Dependency):
-            dependency = DependencySet(dependency, *value.dependencies)
-
-        return dependency
-
-    def visit_Sorted(self, expr):
-        key_component, _ = expr.binding.split("/", 1)
-        dependency = SimpleDependency(component=key_component,
-                                      expression=expr)
-
-        value = self.visit(expr.expression)
         if isinstance(value, Dependency):
             dependency = DependencySet(dependency, *value.dependencies)
 

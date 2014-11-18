@@ -53,7 +53,7 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
                 # The above can return None if the data in memory is invalid.
                 # There's nothing we can do about that, other than rely on
                 # collector redundancy. Skip.
-                if fg_data == None:
+                if not fg_data:
                     continue
 
                 # In addition to yielding the handle, we will also yield the
@@ -128,6 +128,9 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
     _name = "sockets"
     outputs = [
         "Connection",
+        "OSILayer3",
+        "OSILayer4",
+        "Socket",
         "Handle",
         "Event",
         "Timestamps",
@@ -141,7 +144,7 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
     def collect(self, hint, sockets):
         for entity in sockets:
             socket = entity["MemoryObject/base_object"]
-            family = socket.addressing_family
+            family = str(socket.addressing_family)
 
             if family in ("AF_INET", "AF_INET6"):
                 yield [
@@ -150,15 +153,16 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
                         name=socket.human_name,
                         kind="IP Connection"),
                     definitions.Connection(
-                        addressing_family=family,
-                        state=socket.tcp_state,
-                        protocols=(
-                            "IPv4" if family == "AF_INET" else "IPv6",
-                            socket.l4_protocol),
+                        protocol_family=family.replace("AF_", "")),
+                    definitions.OSILayer3(
                         src_addr=socket.src_addr,
-                        src_bind=socket.src_port,
                         dst_addr=socket.dst_addr,
-                        dst_bind=socket.dst_port)]
+                        protocol="IPv4" if family == "AF_INET" else "IPv6"),
+                    definitions.OSILayer4(
+                        src_port=socket.src_port,
+                        dst_port=socket.dst_port,
+                        protocol=socket.l4_protocol,
+                        state=socket.tcp_state)]
             elif family == "AF_UNIX":
                 if socket.vnode:
                     path = socket.vnode.full_path
@@ -174,12 +178,12 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
                         name=socket.human_name,
                         kind="Unix Socket"),
                     definitions.Connection(
-                        addressing_family="AF_UNIX",
-                        src_addr="0x%x" % int(socket.so_pcb),
-                        dst_addr="0x%x" % int(socket.unp_conn),
-                        protocols=("Unix", socket.unix_type),
-                        src_bind=socket.get_socketinfo_attr("unsi_addr"),
-                        file_bind=file_identity)]
+                        protocol_family="UNIX"),
+                    definitions.Socket(
+                        type=socket.unix_type,
+                        file=file_identity,
+                        address="0x%x" % int(socket.so_pcb),
+                        connected="0x%x" % int(socket.unp_conn))]
 
                 # There may be a vnode here - if so, yield it.
                 if path:
@@ -196,9 +200,10 @@ class DarwinSocketCollector(common.DarwinEntityCollector):
             else:
                 yield [
                     entity.identity,
+                    definitions.Named(
+                        kind="Unknown Socket"),
                     definitions.Connection(
-                        addressing_family=family,
-                        protocols=(family,))]
+                        protocol_family=family.replace("AF_", ""))]
 
 
 class DarwinFileCollector(common.DarwinEntityCollector):
@@ -219,7 +224,8 @@ class DarwinFileCollector(common.DarwinEntityCollector):
                           definitions.File(
                               path=path),
                           definitions.Named(
-                              name=path)]
+                              name=path,
+                              kind="File")]
 
             # Parse HFS-specific metadata. We could look at the mountpoint and
             # see if the filesystem is actually HFS, but it turns out that
@@ -231,10 +237,10 @@ class DarwinFileCollector(common.DarwinEntityCollector):
 
                 # HFS+ stores timestamps as UTC.
                 components.append(definitions.Timestamps(
-                    created_at=cattr.ca_ctime,
-                    modified_at=cattr.ca_mtime,
-                    accessed_at=cattr.ca_atime,
-                    backup_at=cattr.ca_btime))
+                    created_at=cattr.ca_ctime.as_datetime(),
+                    modified_at=cattr.ca_mtime.as_datetime(),
+                    accessed_at=cattr.ca_atime.as_datetime(),
+                    backup_at=cattr.ca_btime.as_datetime()))
 
             posix_uid = vnode.v_cred.cr_posix.cr_ruid
             if posix_uid and posix_uid != 0:

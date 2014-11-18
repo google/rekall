@@ -32,6 +32,11 @@ class Query(object):
     expression = None
 
     def __init__(self, source, expression=None, params=None):
+        if isinstance(source, Query):
+            self.source = source.source
+            self.expression = source.expression
+            return
+
         if expression:
             self.source = source
             self.expression = expression

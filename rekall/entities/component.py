@@ -27,10 +27,10 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 import collections
 import operator
 
-from rekall import obj
 from rekall import registry
 
 from rekall.entities import superposition
+from rekall.entities import types
 
 
 # DeclareComponent will ensure this namedtuple has a field for every type of
@@ -43,234 +43,30 @@ ComponentContainer = collections.namedtuple("ComponentContainer", [])
 CONTAINER_PROTOTYPE = ComponentContainer()
 
 
-class TypeDescriptor(object):
-    """Defines a type descriptor, which can coerce values into target type."""
-
-    type_name = None
-
-    def __init__(self):
-        pass
-
-    def chill_coerce(self, value):
-        """Like coerce, but is chill about getting exceptions."""
-        try:
-            return self.coerce(value)
-        except TypeError:
-            return value
-
-    def coerce(self, value):
-        """Return value as this type or raise TypeError if not convertible."""
-        return value
-
-    def __repr__(self):
-        return "%s" % type(self).__name__
-
-    def __unicode__(self):
-        return repr(self)
-
-    def __str__(self):
-        return repr(self)
-
-
-class ScalarDescriptor(TypeDescriptor):
-    """Take an instance of type and calls its constructor to coerce."""
-
-    def __init__(self, type_cls):
-        super(ScalarDescriptor, self).__init__()
-        self.type_cls = type_cls
-        self.type_name = type_cls.__name__
-
-    def coerce(self, value):
-        if value == None:
-            return value
-
-        return self.type_cls(value)
-
-    def __repr__(self):
-        return "%s (scalar type)" % self.type_cls.__name__
-
-
-class BaseObjectDescriptor(TypeDescriptor):
-    """Makes sure base objects are dereferenced."""
-
-    def __init__(self):
-        super(BaseObjectDescriptor, self).__init__()
-        self.type_cls = obj.BaseObject
-        self.type_name = "BaseObject"
-
-    def coerce(self, value):
-        if value == None:
-            return value
-
-        if not isinstance(value, obj.BaseObject):
-            raise TypeError(
-                "%s is not a BaseObject." % value)
-
-        if isinstance(value, obj.Pointer):
-            return value.deref()
-
-        return value
-
-    def __repr__(self):
-        return "BaseObject type"
-
-
-class NoneDescriptor(TypeDescriptor):
-    "NoneDescriptor doesn't care."
-
-    def __init__(self):
-        super(NoneDescriptor, self).__init__()
-
-    def coerce(self, value):
-        return value
-
-    def __repr__(self):
-        return "untyped (NoneDescriptor)"
-
-
-class TypeNameDescriptor(TypeDescriptor):
-    """Defined using type name instead of type class - can only validate."""
-
-    def __init__(self, type_name):
-        super(TypeNameDescriptor, self).__init__()
-        self.type_name = type_name
-
-    def coerce(self, value):
-        if type(value).__name__ != self.type_name and value != None:
-            raise TypeError(
-                "%s is not of type %s and cannot be coerced." % (
-                    value,
-                    self.type_name))
-
-        return value
-
-    def __repr__(self):
-        return "\"%s\" (type-name type)" % self.type_name
-
-
-class TupleDescriptor(TypeDescriptor):
-    """Declared for tuple types; coerces each member to its respective type."""
-
-    type_name = "tuple"
-
-    def __init__(self, tpl):
-        super(TupleDescriptor, self).__init__()
-        self.types = [TypeFactory(x) for x in tpl]
-
-    def coerce(self, value):
-        return tuple(self.types[i](x) for i, x in enumerate(value))
-
-    def __repr__(self):
-        return "(%s)" % ", ".join(self.types)
-
-
-class ListDescriptor(TypeDescriptor):
-    """Declared for nested types (e.g. list of ints)."""
-
-    type_name = "list"
-
-    def __init__(self, member_type):
-        super(ListDescriptor, self).__init__()
-        self.member_type = TypeFactory(member_type)
-
-    def coerce(self, value):
-        return [self.member_type.coerce(x) for x in value]
-
-    def __repr__(self):
-        return "[%s] (list type)" % self.member_type
-
-
-class EnumDescriptor(TypeDescriptor):
-    """Defines an enum type for a component attribute."""
-
-    type_name = "str"
-
-    def __init__(self, *args):
-        super(EnumDescriptor, self).__init__()
-        self.legal_values = args
-
-    def coerce(self, value):
-        if value == None:
-            return value
-
-        value = str(value)
-        if value not in self.legal_values:
-            raise TypeError(
-                "%s is not a valid value for enum %s" % (value,
-                                                         self.legal_values))
-
-        return value
-
-    def __repr__(self):
-        return "{%s} (enum type)" % ", ".join(self.legal_values)
-
-
-def TypeFactory(type_desc):
-    """Creates the appropriate TypeDescriptor or subclass instance.
-
-    If given a type instance, will create TypeDescriptor (most common use).
-
-    If given a string, will interpret is as name of class and create
-    a TypeNameDescriptor.
-
-    If given a set, will interpret it as enum and create EnumDescriptor.
-
-    If given a tuple, will interpret as composite attribute and create a
-    TupleDescriptor.
-
-    If given a list, will interpret is as a nested type and create a
-    ListDescriptor.
-    """
-    if isinstance(type_desc, TypeDescriptor):
-        # Fall through for stuff defined explictly.
-        return type_desc
-
-    if isinstance(type_desc, type):
-        return ScalarDescriptor(type_desc)
-
-    if isinstance(type_desc, str):
-        return TypeNameDescriptor(type_desc)
-
-    if type_desc is None:
-        return NoneDescriptor()
-
-    if isinstance(type_desc, set):
-        return EnumDescriptor(*type_desc)
-
-    if isinstance(type_desc, tuple):
-        return TupleDescriptor(type_desc)
-
-    if isinstance(type_desc, list):
-        return ListDescriptor(type_desc[0])
-
-    raise TypeError("%s is not a valid type descriptor.", type_desc)
-
-
-class Field(object):
-    """Defines a component attribute.
-
-    Arguments:
-
-    name: name for the attribute - must be valid python property name.
-    docstring: Arbitrary documentation string for this attribute.
-    typedesc: The type descriptor. Must be instance of TypeDescriptor or valid
-        argument for TypeFactory.
-    exclude_analysis: This field should not be considered by the query analyzer.
+class Attribute(object):
+    """Represents an attribute, which can be a field or an alias.
+
+    Properties:
+    name: This is the property name on the Component subclass. E.g. "pid".
+    typedesc: Instance of Typedesc or subclass, describing the type.
+    docstring: Docstring needs no docstring.
+    component: Component subclass that owns this attribute (e.g. Process)
+    hidden: Is this visible in result printouts by default?
+    width: How wide is the result by default? (Number of characters.)
     """
 
-    component = None  # Needs to be set when the Field is attached to a
-    # component class.
-
-    def __init__(self, name, typedesc, docstring, width=20,
-                 hidden=False):
+    def __init__(self, name, typedesc, docstring, component=None,
+                 hidden=False, width=20):
         self.name = name
-        self.typedesc = TypeFactory(typedesc)
+        self.typedesc = types.TypeFactory(typedesc)
         self.docstring = docstring
-        self.width = width
+        self.component = component
         self.hidden = hidden
+        self.width = width
 
     @property
     def path(self):
+        """Fully-qualified name, including component. E.g. 'Process/pid'."""
         return "%s/%s" % (self.component.component_name, self.name)
 
     def __unicode__(self):
@@ -280,7 +76,39 @@ class Field(object):
         return repr(self)
 
     def __repr__(self):
-        return "Field(%s, type=%s)" % (self.name, self.typedesc)
+        return "%s(%s, type=%s)" % (type(self).__name__,
+                                    self.name, self.typedesc)
+
+
+class AttributePath(Attribute):
+    """This is returned by reflection API in some special cases."""
+
+    def __init__(self, attribute, path):
+        super(AttributePath, self).__init__(name=attribute.name,
+                                            typedesc=attribute.typedesc,
+                                            docstring=attribute.docstring,
+                                            component=attribute.component,
+                                            hidden=True,
+                                            width=attribute.width)
+        self._path = path
+
+    @property
+    def path(self):
+        return self._path
+
+
+class Field(Attribute):
+    """Defines a component attribute that's actually stored in the component."""
+
+
+class Alias(Attribute):
+    """Defines a component attribute that's an alias for another attribute."""
+
+    def __init__(self, *args, **kwargs):
+        self.alias = kwargs.pop("alias")
+        kwargs.setdefault("hidden", True)
+        kwargs["typedesc"] = "IdentityDescriptor"
+        super(Alias, self).__init__(*args, **kwargs)
 
 
 class Component(object):
@@ -288,6 +116,7 @@ class Component(object):
 
     __slots__ = ("_contents", "_object_id")
     component_fields = None
+    component_attributes = None
     component_name = None
     component_docstring = None
 
@@ -295,19 +124,25 @@ class Component(object):
     __metaclass__ = registry.MetaclassRegistry
 
     def __init__(self, *args, **kwargs):
-        self._contents = list(args)
-        for field in self.component_fields[len(args):]:
-            self._contents.append(kwargs.pop(field.name, None))
+        self._set_values(args, kwargs)
 
         if kwargs:
             raise ValueError("Unknown attributes %s on component %s" % (
                 kwargs, self.component_name))
 
+    def _set_values(self, args, kwargs):
+        self._contents = []
+        for idx, arg in enumerate(args):
+            typedesc = self.component_fields[idx].typedesc
+            self._contents.append(typedesc.coerce(arg))
+
+        for field in self.component_fields[len(args):]:
+            value = kwargs.pop(field.name, None)
+            self._contents.append(field.typedesc.coerce(value))
+
     @classmethod
-    def reflect_field(cls, field_name):
-        for field in cls.component_fields:
-            if field.name == field_name:
-                return field
+    def reflect_attribute(cls, attribute_name):
+        return cls.component_attributes.get(attribute_name, None)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -383,15 +218,22 @@ class Component(object):
 
 
 # pylint: disable=protected-access
-def DeclareComponent(name, docstring, *fields):
+def DeclareComponent(name, docstring, *attributes):
     """Defines a new component."""
+    fields = []
+    indexed_attributes = {}
+    for attribute in attributes:
+        if isinstance(attribute, Field):
+            fields.append(attribute)
+
+        indexed_attributes[attribute.name] = attribute
 
     # Subclass Component, overriding the component_* class variables.
-    props = dict(
-        __slots__=(),
-        component_fields=fields,
-        component_name=name,
-        component_docstring=docstring)
+    props = dict(__slots__=(),
+                 component_fields=fields,
+                 component_attributes=indexed_attributes,
+                 component_name=name,
+                 component_docstring=docstring)
 
     for idx, field in enumerate(fields):
         props[field.name] = property(operator.itemgetter(idx))
@@ -399,8 +241,8 @@ def DeclareComponent(name, docstring, *fields):
     component_cls = type(name, (Component,), props)
 
     # Attach a reference back to the component to each field.
-    for field in fields:
-        field.component = component_cls
+    for attribute in attributes:
+        attribute.component = component_cls
 
     # Redefine ComponentContainer to add a field for the new component class.
     global ComponentContainer

@@ -528,6 +528,53 @@ class NoneObjectTextRenderer(TextObjectRenderer):
         return Cell.FromString("-")
 
 
+class DatetimeTextRenderer(TextObjectRenderer):
+    renders_type = "datetime"
+
+    def render_row(self, target, **_):
+        return Cell.FromString(target.strftime("%Y-%m-%d %H:%M:%S%z"))
+
+
+class StructTextRenderer(TextObjectRenderer):
+    renders_type = "Struct"
+    
+    def render_row(self, target, style="short", **_):
+        if style == "address":
+            return Cell.FromString("0x%0.12x" % target.obj_offset)
+
+        if style == "short":
+            return Cell.FromString(repr(target))
+
+        if style == "full":
+            return Cell.FromString(unicode(target))
+
+
+class PointerTextRenderer(TextObjectRenderer):
+    renders_type = "Pointer"
+    
+    def render_row(self, target, style="short", **_):
+        if style == "address" or style == "short" and target.target == "void":
+            return Cell.FromString("0x%0.12x" % target.v())
+
+        if style == "short":
+            return Cell.FromString("(%s *) 0x%0.12x" % (target.target,
+                                                        target.v()))
+
+        if style == "full":
+            return Cell.FromString(unicode(target))
+
+
+class VoidTextRenderer(TextObjectRenderer):
+    renders_type = "Void"
+
+    def render_row(self, target, style="address", **_):
+        if style == "address":
+            return Cell.FromString("0x%0.12x" % target.v())
+
+        if style in ("short", "full"):
+            return Cell.FromString(repr(target))
+
+
 class NoneTextRenderer(NoneObjectTextRenderer):
     renders_type = "NoneType"
 
@@ -747,14 +794,18 @@ class TextTable(renderer.BaseTable):
                 session=self.session, table=self, renderer=self.renderer,
                 **column_specs))
 
-        sort_order = options.get("sort")
-        if sort_order:
+        self.sort_key_func = options.get(
+            "sort_key_func",
+            self._build_sort_key_function(options.get("sort")))
+
+        if self.sort_key_func:
             self.deferred_rows = []
-            self.sort_key_func = self._build_sort_key_function(
-                sort_order)
 
     def _build_sort_key_function(self, sort_cnames):
         """Builds a function that takes a row and returns keys to sort on."""
+        if not sort_cnames:
+            return None
+
         cnames_to_indices = {}
         for idx, column_spec in enumerate(self.column_specs):
             cnames_to_indices[column_spec["cname"]] = idx
@@ -804,7 +855,6 @@ class TextTable(renderer.BaseTable):
         """Write the row to the output."""
         if annotation:
             self.renderer.format(*row)
-
         elif self.deferred_rows is None:
             return self.write_row(self.get_row(*row, **options),
                                   highlight=highlight)
@@ -813,6 +863,7 @@ class TextTable(renderer.BaseTable):
 
     def flush(self):
         if self.deferred_rows:
+            self.session.report_progress("TextRenderer: sorting %(spinner)s")
             self.deferred_rows.sort(key=self.sort_key_func)
 
             for row, options in self.deferred_rows:

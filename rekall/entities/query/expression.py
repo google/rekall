@@ -162,26 +162,6 @@ class LetEach(Let):
     pass
 
 
-class Sorted(Expression):
-    """Sorted(BINDING, SUBQUERY) sorts results of SUBQUERY by value of BINDING.
-
-    Example:
-    # Returns processes ordered by PID:
-    Sorted("Process/pid", ComponentLiteral("Process"))
-    """
-
-    return_types = frozenset(["list"])
-    arity = 2
-
-    @property
-    def binding(self):
-        return self.children[0]
-
-    @property
-    def expression(self):
-        return self.children[1]
-
-
 class VariadicExpression(Expression):
     """Represents an expression with variable arity."""
 

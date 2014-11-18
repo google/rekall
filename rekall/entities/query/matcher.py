@@ -151,10 +151,6 @@ class QueryMatcher(visitor.QueryVisitor):
         finally:
             self.bindings = saved_bindings
 
-    def visit_Sorted(self, expr):
-        self.latest_sort_order.append(self.bindings[expr.binding])
-        return self.visit(expr.expression)
-
     def visit_ComponentLiteral(self, expr):
         return getattr(self.bindings.components, expr.value)
 

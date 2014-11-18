@@ -29,7 +29,7 @@ class DarwinLsof(common.DarwinProcessFilter):
     structures.
     """
 
-    __name = "lsof"
+    __name = "old_lsof"
 
     def lsof(self, proc_sort_key=None):
         """Get all open files (sockets, vnodes, etc.) for all processes.

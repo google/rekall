@@ -76,29 +76,41 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
 
     def __init__(self, *args, **kwargs):
         self.style = kwargs.pop("style", "name")
-
         self.name = kwargs.pop("name", "Entity")
+
+        # Build up the list of columns we want to display.
+        columns = kwargs.pop("columns", [])
         self.attributes = []
+        for column in columns:
+            if "/" in column:
+                attribute_obj = entity.Entity.reflect_attribute(column)
+                if not attribute_obj:
+                    raise ValueError("Attribute %s doesn't exist." % column)
+                self.attributes.append(attribute_obj)
+            else:
+                component_cls = entity.Entity.reflect_component(column)
+                if not component_cls:
+                    raise ValueError("Component %s doesn't exist." % column)
 
-        for component in kwargs.pop("components", []) or []:
-            component_cls = entity.Entity.reflect_component(component)
-            for field in component_cls.component_fields:
-                if field.hidden:
-                    continue
-                self.attributes.append(field)
+                for attribute in component_cls.component_fields:
+                    if attribute.hidden:
+                        continue
 
-        for attribute in kwargs.pop("attributes", []) or []:
-            self.attributes.append(entity.Entity.reflect_attribute(attribute))
+                    self.attributes.append(attribute)
+
+        if not self.attributes:
+            self.attributes = [entity.Entity.reflect_attribute("Named/name"),
+                               entity.Entity.reflect_attribute("Named/kind")]
 
         super(Entity_TextObjectRenderer, self).__init__(*args, **kwargs)
 
-        columns = []
+        renderer_columns = []
         for attribute in self.attributes:
-            columns.append(dict(name=attribute.name,
-                                # type=attribute.typedesc.type_name,
-                                width=attribute.width))
+            renderer_columns.append(dict(name=attribute.name,
+                                         # type=attribute.typedesc.type_name,
+                                         width=attribute.width))
 
-        self.table = text.TextTable(columns=columns,
+        self.table = text.TextTable(columns=renderer_columns,
                                     renderer=self.renderer,
                                     session=self.session)
 

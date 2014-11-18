@@ -124,11 +124,10 @@ class DarwinSessionParser(common.DarwinEntityCollector):
 
     _name = "sessions"
 
-    outputs = [
-        "Session",
-        "User",
-        "MemoryObject/type=tty",
-        "MemoryObject/type=proc"]
+    outputs = ["Session",
+               "User",
+               "MemoryObject/type=tty",
+               "MemoryObject/type=proc"]
 
     collect_args = dict(sessions="MemoryObject/type is 'session'")
 
@@ -164,7 +163,10 @@ class DarwinSessionParser(common.DarwinEntityCollector):
             yield [session_identity,
                    definitions.Session(
                        user=user_identity,
-                       sid=sid)]
+                       sid=sid),
+                   definitions.Named(
+                       name="SID %d" % int(sid),
+                       kind="Session")]
 
 
 class DarwinSessionZoneCollector(zones.DarwinZoneElementCollector):

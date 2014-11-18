@@ -34,9 +34,9 @@ class DarwinPsxView(common.DarwinPlugin):
         collector_names = sorted([collector.name for collector in collectors])
 
         headers = [
-            ("Offset (V)", "offset_v", "[addrpad]"),
-            ("Comm", "comm", "20s"),
-            ("PID", "pid", ">6")]
+            dict(name="Offset (V)", cname="offset_v", style="address"),
+            dict(name="Comm", cname="comm", width=20),
+            dict(name="PID", cname="pid", width=6)]
 
         for collector_name in collector_names:
             headers.append((
@@ -58,36 +58,6 @@ class DarwinPsxView(common.DarwinPlugin):
                 row.append(collector_name in entity.collectors)
 
             renderer.table_row(*row)
-
-
-class DarwinPsList(common.DarwinProcessFilter):
-    __name = "pslist"
-
-    def render(self, renderer):
-        renderer.table_header([
-            ("Offset (V)", "offset_v", "[addrpad]"),
-            ("Name", "file_name", "20s"),
-            ("PID", "pid", ">6"),
-            ("PPID", "ppid", ">6"),
-            ("UID", "uid", ">6"),
-            ("GID", "gid", ">6"),
-            ("Bits", "bits", "12"),
-            ("DTB", "dtb", "[addrpad]"),
-            ("Start Time", "start_time", ">24"),
-        ])
-
-        for proc in self.filter_processes():
-            renderer.table_row(
-                proc,
-                proc.p_comm,
-                proc.p_pid,
-                proc.p_pgrpid,
-                proc.p_uid,
-                proc.p_gid,
-                proc.task.map.pmap.pm_task_map,
-                proc.task.map.pmap.pm_cr3,
-                proc.p_start,
-            )
 
 
 class DawrinPSTree(common.DarwinPlugin):

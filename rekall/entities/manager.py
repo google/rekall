@@ -66,7 +66,7 @@ class IngestionPipeline(object):
 
         return self.queues[query]
 
-    def fill(self, ingest, collector):
+    def fill(self, ingest, collector, wanted_matcher=None, wanted_handler=None):
         """Fills appropriate queues with entities from ingest.
 
         Arguments:
@@ -92,6 +92,9 @@ class IngestionPipeline(object):
 
             if effect == entity_collector.EffectEnum.Duplicate:
                 continue
+
+            if wanted_handler and wanted_matcher.match(entity):
+                wanted_handler(entity)
 
             for query in self.queries:
                 if self.matchers[query].match(entity):
@@ -166,7 +169,7 @@ class EntityManager(object):
     @property
     def collectors(self):
         self.update_collectors()
-        return self._collectors.values()
+        return self._collectors
 
     def update_collectors(self):
         """Refresh the list of active collectors. Do a diff if possible."""
@@ -201,8 +204,23 @@ class EntityManager(object):
             An instance of Identity initialized with the identity dict and this
             manager's global prefix.
         """
+        # Cast values to their correct types.
+        cast_dict = {}
+        for key, val in identity_dict.iteritems():
+            if isinstance(key, tuple):
+                cast_vals = []
+                for idx, attr in enumerate(key):
+                    attribute = entity_module.Entity.reflect_attribute(attr)
+                    cast_vals.append(attribute.typedesc.coerce(val[idx]))
+                cast_val = tuple(cast_vals)
+            else:
+                attribute = entity_module.Entity.reflect_attribute(key)
+                cast_val = attribute.typedesc.coerce(val)
+
+            cast_dict[key] = cast_val
+
         return entity_id.Identity.from_dict(global_prefix=self.identity_prefix,
-                                            identity_dict=identity_dict)
+                                            identity_dict=cast_dict)
 
     # pylint: disable=protected-access
     def register_components(self, identity, components, source_collector):
@@ -227,6 +245,11 @@ class EntityManager(object):
                     entities was updated and entities may have merged.
                 EffectEnum.Added: A new entity was added.
         """
+        if self.session:
+            self.session.report_progress(
+                "Collecting %(collector)s %(spinner)s",
+                collector=source_collector)
+
         kwargs = {}
         for component in components:
             kwargs[component.component_name] = component
@@ -239,7 +262,7 @@ class EntityManager(object):
             entity_manager=self,
             components=entity_component.CONTAINER_PROTOTYPE._replace(**kwargs))
 
-        indices = entity.indices
+        indices = set(entity.indices)
 
         existing_entities = list(self.find_by_identity(identity))
         effect = entity_collector.EffectEnum.Added
@@ -310,11 +333,7 @@ class EntityManager(object):
             complete: Should collectors be run to ensure complete results?
         """
         if complete:
-            for _, attribute, value in identity.indices:
-                self.collect_for(
-                    expression.Equivalence(
-                        expression.Binding(attribute),
-                        expression.Literal(value)))
+            self.collect_for(identity.as_query())
 
         results = set()
         for index in identity.indices:
@@ -358,8 +377,8 @@ class EntityManager(object):
             - name of the keyword argument on the collect method under which
               the entity should be passed to the collector.
         """
-        for collector in self.collectors:
-            if not collector.collect_queries:
+        for collector in self.collectors.itervalues():
+            if len(collector.collect_queries) != 1:
                 continue
             for query_name, query in collector.collect_queries.iteritems():
                 matcher = self.matcher_for(query)
@@ -416,7 +435,7 @@ class EntityManager(object):
         # A collector is a match if any of its promises match any of the
         # dependencies of the query.
         matched_collectors = []
-        for collector in self.collectors:
+        for collector in self.collectors.itervalues():
             for promise, dependency in itertools.product(
                     collector.promises, include):
                 if dependency.match(promise):
@@ -502,13 +521,28 @@ class EntityManager(object):
         search = entity_lookup.EntityQuerySearch(query)
         return search.search(self.entities, self.lookup_tables)
 
+    def stream(self, query, handler, query_params=None):
+        query = entity_query.Query(query, params=query_params)
+        seen = set()
+
+        def _deduplicator(entity):
+            if entity in seen:
+                return
+
+            seen.add(entity)
+            handler(entity)
+
+        self.collect_for(query, result_stream_handler=_deduplicator)
+        for entity in self.find(query, complete=False):
+            _deduplicator(entity)
+
     def find_first(self, query, complete=True, validate=True):
         """Like find, but returns just the first result."""
         for entity in self.find(query, complete, validate):
             return entity
 
     # pylint: disable=protected-access
-    def collect_for(self, wanted, use_hint=False):
+    def collect_for(self, wanted, use_hint=False, result_stream_handler=None):
         """Will find and run the appropriate collectors to satisfy the query.
 
         If use_hint is set to True, 'wanted' will be passed on as hint to
@@ -517,11 +551,16 @@ class EntityManager(object):
         """
         # Planning stage.
 
+        if callable(result_stream_handler):
+            wanted_matcher = query_matcher.QueryMatcher(wanted)
+        else:
+            wanted_matcher = None
+
         self.update_collectors()
 
         # to_process is used as a FIFO queue below.
         analysis = self.analyze(wanted)
-        to_process = analysis["collectors"]
+        to_process = analysis["collectors"][:]
         suggested_indices = analysis["lookups"]
 
         # Create indices as suggested by the analyzer.
@@ -592,7 +631,10 @@ class EntityManager(object):
                 hint = None
                 self.finished_collectors.add(collector.name)
 
-            for _, effect in self.collect(collector, hint=hint):
+            for entity, effect in self.collect(collector, hint=hint):
+                if result_stream_handler and wanted_matcher.match(entity):
+                    result_stream_handler(entity)
+
                 effects[effect] += 1
 
             logging.debug(
@@ -656,8 +698,11 @@ class EntityManager(object):
                 results = self.collect(collector=collector,
                                        collector_input=collector_input,
                                        hint=hint)
+
                 out_pipeline.fill(collector=collector,
-                                  ingest=results)
+                                  ingest=results,
+                                  wanted_handler=result_stream_handler,
+                                  wanted_matcher=wanted_matcher)
 
             # Swap & flush, rinse & repeat.
             in_pipeline, out_pipeline = out_pipeline, in_pipeline

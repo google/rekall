@@ -22,14 +22,16 @@ The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+import logging
+
 from rekall import obj
 
 from rekall.entities import component as entity_component
-from rekall.entities import definitions
 from rekall.entities import identity
 from rekall.entities import superposition
+from rekall.entities import types
 
-from rekall.entities.query import expression
+from rekall.entities.query import query
 
 
 class Entity(object):
@@ -152,8 +154,19 @@ class Entity(object):
 
     @property
     def name(self):
+        """Name of the entity, if set (Named/name). If not, takes a guess."""
         name = self.get_raw("Named/name")
-        if name == None:
+
+        if name:
+            try:
+                return unicode(name)
+            except UnicodeDecodeError:
+                logging.warning(
+                    "Could not decode Named/name '%s' as unicode.",
+                    name.encode("string-escape"))
+                name = None
+
+        if not name:
             key = unicode(self.identity.first_index[1])
             val = self.identity.first_index[2]
 
@@ -211,7 +224,7 @@ class Entity(object):
 
         return result
 
-    def get_referencing_entities(self, key, complete=False):
+    def get_referencing_entities(self, key, complete=True):
         """Finds entities that reference this entity by its identity.
 
         If other entities have an attribute that stores the identity of this
@@ -231,9 +244,7 @@ class Entity(object):
         self.manager.add_attribute_lookup(key)
 
         return self.manager.find(
-            expression.Equivalence(
-                expression.Binding(key),
-                expression.Literal(self.identity)),
+            query.Query("%s is {}" % key, params=[self.identity]),
             complete=complete)
 
     def get_raw(self, key):
@@ -256,7 +267,13 @@ class Entity(object):
             raise ValueError("%s is not a valid key." % key)
 
         component = getattr(self.components, component_name, None)
-        return getattr(component, attribute, None)
+        if component is None:
+            return None
+
+        try:
+            return getattr(component, attribute)
+        except AttributeError:
+            return component.reflect_attribute(attribute)
 
     def get_variants(self, key, complete=False):
         """Yields all known values of key.
@@ -284,6 +301,8 @@ class Entity(object):
 
         if isinstance(values, superposition.Superposition):
             values = values.variants
+        elif isinstance(values, entity_component.Alias):
+            values = self.get_variants(values.alias, complete)
         else:
             values = (values,)
 
@@ -332,6 +351,16 @@ class Entity(object):
 
         entity["&Handle/process"]  # Returns all handles this process has open.
 
+        In most cases, this is unnecessary and aliases can be used instead.
+
+        For example:
+
+        entity["&Handle/process"]  # Is already aliased in definitions as:
+        entity["Process/handles"]
+
+        entity["&Process/parent"]  # Is already aliased in definitions as:
+        entity["Process/children"]
+
         When does this return more than one value:
         ==========================================
 
@@ -351,11 +380,29 @@ class Entity(object):
 
         entity["Process/pid", "Process/command"]  # is the same as calling:
         (entity["Process/pid"], entity["Process/command"])
+
+        You can also request a multi-level path into the object:
+        ========================================================
+
+        The path separator is '->' and is used as follows:
+
+        entity["Process/handles"]["Handle/resource"]  # Is the same as:
+        entity["Process/handles->Handle/resource]
+
+        This is merely syntax sugar to make specifying rendering output easier.
         """
         # If we get called with [x, y] python will pass us the keys as a tuple
         # of (x, y). The following behaves identically to dict.
         if isinstance(key, tuple):
             return [self.get(_key, complete) for _key in key]
+
+        # If we get called with a Component/attribute->Component/attribute
+        # we treat -> as path separator and the whole key as path into the
+        # object.
+        if "->" in key:
+            # This works recursively.
+            key, rest = key.split("->", 1)
+            return self[key][rest]
 
         results = list(self.get_variants(key, complete=complete))
         if not results:
@@ -368,14 +415,25 @@ class Entity(object):
         return self.get(key)
 
     @classmethod
-    def reflect_attribute(cls, attribute):
-        """Return an instance of Field describing the attribute."""
-        component, key = attribute.split("/", 1)
+    def reflect_attribute(cls, path):
+        """Return an instance of Attribute describing the attribute."""
+        # For longer keypaths, the relevant attribute (for types, etc) is
+        # the last one.
+        attribute_name = path.split("->")[-1]
+
+        component, key = attribute_name.split("/", 1)
         component_cls = cls.reflect_component(component)
         if not component_cls:
             return
 
-        return component_cls.reflect_field(key)
+        attribute = component_cls.reflect_attribute(key)
+
+        if "->" in path:
+            # Need to modify the attribute so that attribute.path matches the
+            # one the callers was looking for.
+            return entity_component.AttributePath(attribute, path)
+
+        return attribute
 
     @classmethod
     def reflect_component(cls, component):
@@ -394,7 +452,8 @@ class Entity(object):
                 y[idx + 1]))
 
         # Entity component is merged using slightly simpler rules.
-        new_entity_component = definitions.Entity(
+        component_cls = entity_component.Component.classes["Entity"]
+        new_entity_component = component_cls(
             identity=x.Entity.identity | y.Entity.identity,
             collectors=x.Entity.collectors | y.Entity.collectors)
 
@@ -427,3 +486,25 @@ class Entity(object):
 
     def __or__(self, other):
         return self.union(other)
+
+
+class IdentityDescriptor(types.TypeDescriptor):
+    """Entity type, actually contains the Identity key."""
+
+    # Actually, it's Identity, but the user doesn't care about the difference.
+    type_name = "Identity"
+
+    def coerce(self, value):
+        if value is None:
+            return None
+
+        if isinstance(value, Entity):
+            return value.identity
+
+        if isinstance(value, identity.Identity):
+            return value
+
+        raise TypeError("%s is not an Entity." % value)
+
+    def __repr__(self):
+        return "Entity type"

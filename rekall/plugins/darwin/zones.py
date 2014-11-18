@@ -26,31 +26,6 @@ from rekall.plugins.darwin import common
 
 from rekall.entities.query import expression
 
-class DarwinListZones(common.DarwinPlugin):
-    """List all the allocation zones."""
-
-    __name = "list_zones"
-
-    def render(self, renderer):
-        renderer.table_header([
-            ("Name", "name", "30"),
-            ("Active", "active", ">10"),
-            ("Free", "free", ">10"),
-            ("Element Size", "size", ">10"),
-            ("Tracks pages", "tracks_pages", "15"),
-            ("Allows foreign pages", "allows_foreign", "15")])
-
-        for zone in sorted(
-                self.session.entities.find_by_component("AllocationZone"),
-                key=lambda e: e["AllocationZone/name"]):
-            renderer.table_row(
-                zone["AllocationZone/name"],
-                zone["AllocationZone/count_active"],
-                zone["AllocationZone/count_free"],
-                zone["AllocationZone/element_size"],
-                zone["AllocationZone/tracks_pages"],
-                zone["AllocationZone/allows_foreign"])
-
 
 class DarwinDumpZone(common.DarwinPlugin):
     """Dumps an allocation zone's contents."""

@@ -39,11 +39,6 @@ class EntityQuerySearch(visitor.QueryVisitor):
         self.lookup_tables = lookup_tables
         return list(self.run())
 
-    def visit_Sorted(self, expr):
-        results = self.visit(expr.expression)
-
-        return sorted(results, key=lambda result: result[expr.binding])
-
     def visit_ComponentLiteral(self, expr):
         return self._as_entities(
             self.lookup_tables["components"].table.get(expr.value, []))
@@ -66,10 +61,10 @@ class EntityQuerySearch(visitor.QueryVisitor):
         return entity_query.Query(expression=expr,
                                   source=self.query.source)
 
-    def _slow_solve(self, expr):
+    def _slow_solve(self, expr, seed):
         slow_matcher = matcher.QueryMatcher(self._subquery(expr))
         entities = set()
-        for entity in self.entities.itervalues():
+        for entity in seed:
             if slow_matcher.match(entity):
                 entities.add(entity)
 
@@ -88,7 +83,12 @@ class EntityQuerySearch(visitor.QueryVisitor):
     def _solve_equivalence(self, expr, binding, literal):
         literal_value = literal.value
         if isinstance(literal_value, entity_id.Identity):
-            literal_value = literal_value.first_index
+            results = set()
+            for index in literal_value.indices:
+                results |= self._solve_equivalence(
+                    expr, binding, expression.Literal(index))
+
+            return results
 
         table = self.lookup_tables.get(binding.value, None)
         if table:
@@ -109,7 +109,7 @@ class EntityQuerySearch(visitor.QueryVisitor):
 
     def visit_Equivalence(self, expr):
         if len(expr.children) != 2:
-            return self._slow_solve(expr)
+            return self._slow_solve(expr, self.entities.itervalues())
 
         x, y = expr.children
         if (isinstance(x, expression.Binding) and
@@ -119,10 +119,16 @@ class EntityQuerySearch(visitor.QueryVisitor):
               isinstance(y, expression.Binding)):
             return self._solve_equivalence(expr, y, x)
 
-        return self._slow_solve(expr)
+        return self._slow_solve(expr, self.entities.itervalues())
 
     def visit_Expression(self, expr):
-        return self._slow_solve(expr)
+        return self._slow_solve(expr, self.entities.itervalues())
+
+    def visit_Let(self, expr):
+        # Prefiltering the slow solve to just entities that actually have the
+        # relevant attribute usually shaves off about 200 ms.
+        seed = self.visit(expr.context)
+        return self._slow_solve(expr, seed)
 
 
 class EntityLookupTable(object):
