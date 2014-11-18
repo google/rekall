@@ -55,6 +55,13 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     """
     order = 60
 
+    def pml4e_entry_present(self, entry):
+        '''
+        Returns whether or not the 'P' (Present) flag is on
+        in the given entry
+        '''
+        return entry & 1
+
     def pml4e_index(self, vaddr):
         '''
         Returns the Page Map Level 4 Entry Index number from the given
@@ -106,12 +113,12 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         '''
         vaddr = long(vaddr)
         pml4e = self.get_pml4e(vaddr)
-        if not self.entry_present(pml4e):
+        if not self.pml4e_entry_present(pml4e):
             # Add support for paged out PML4E
             return None
 
         pdpte = self.get_pdpte(vaddr, pml4e)
-        if not self.entry_present(pdpte):
+        if not self.pdpte_entry_present(pdpte):
             # Add support for paged out PDPTE
             # Insert buffalo here!
             return None
@@ -120,7 +127,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             return self.get_one_gig_paddr(vaddr, pdpte)
 
         pde = self.get_pde(vaddr, pdpte)
-        if not self.entry_present(pde):
+        if not self.pde_entry_present(pde):
             # Add support for paged out PDE
             return None
 
@@ -149,7 +156,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                 continue
 
             pml4e_value = self.get_pml4e(vaddr)
-            if not self.entry_present(pml4e_value):
+            if not self.pml4e_entry_present(pml4e_value):
                 continue
 
             tmp1 = vaddr
@@ -161,7 +168,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                     continue
 
                 pdpte_value = self.get_pdpte(vaddr, pml4e_value)
-                if not self.entry_present(pdpte_value):
+                if not self.pdpte_entry_present(pdpte_value):
                     continue
 
                 if self.page_size_flag(pdpte_value):
@@ -183,7 +190,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                 continue
 
             pde_value = self.get_pde(vaddr, pdpte_value)
-            if not self.entry_present(pde_value):
+            if not self.pde_entry_present(pde_value):
                 continue
 
             if self.page_size_flag(pde_value):
@@ -209,7 +216,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     def _get_available_PTEs(self, pte_table, vaddr, start=0):
         tmp3 = vaddr
         for i, pte_value in enumerate(pte_table):
-            if not self.entry_present(pte_value):
+            if not self.pte_entry_present(pte_value):
                 continue
 
             vaddr = tmp3 | i << 12
@@ -270,7 +277,22 @@ class VTxPagedMemory(AMD64PagedMemory):
         self._ept = this_ept
         self.name = "VTxPagedMemory@%#x" % self._ept
 
-    def entry_present(self, entry):
+    def pml4e_entry_present(self, entry):
+        # A page entry being present depends only on bits 2:0 for EPT
+        # translation.
+        return entry and (entry & 0x7)
+
+    def pdpte_entry_present(self, entry):
+        # A page entry being present depends only on bits 2:0 for EPT
+        # translation.
+        return entry and (entry & 0x7)
+
+    def pde_entry_present(self, entry):
+        # A page entry being present depends only on bits 2:0 for EPT
+        # translation.
+        return entry and (entry & 0x7)
+
+    def pte_entry_present(self, entry):
         # A page entry being present depends only on bits 2:0 for EPT
         # translation.
         return entry and (entry & 0x7)

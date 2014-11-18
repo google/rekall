@@ -33,7 +33,6 @@ config.DeclareOption(
     "dtb", group="Autodetection Overrides",
     type="IntParser", help="The DTB physical address.")
 
-
 PAGE_SHIFT = 12
 PAGE_MASK = ~ 0xFFF
 
@@ -108,7 +107,14 @@ class IA32PagedMemory(addrspace.PagedReader):
         # overlay on.
         self.phys_base = self.base
 
-    def entry_present(self, entry):
+    def pde_entry_present(self, entry):
+        '''
+        Returns whether or not the 'P' (Present) flag is on
+        in the given entry
+        '''
+        return entry & 1
+
+    def pte_entry_present(self, entry):
         '''
         Returns whether or not the 'P' (Present) flag is on
         in the given entry
@@ -140,6 +146,14 @@ class IA32PagedMemory(addrspace.PagedReader):
         pde_addr = (self.dtb & 0xfffff000) | ((vaddr & 0xffc00000) >> 20)
         return self.read_long_phys(pde_addr)
 
+    def pte_paddr(self, pte):
+        '''
+        Return the physical address for the given PTE.
+        This should return:
+           (pte >> pfn_shift) << page_shift
+        '''
+        return pte
+
     def get_pte(self, vaddr, pde_value):
         '''
         Return the Page Table Entry for the given virtual address and
@@ -160,10 +174,10 @@ class IA32PagedMemory(addrspace.PagedReader):
         Bits 31:12 are from the PTE
         Bits 11:0 are from the original linear address
         '''
-        if not self.entry_present(pte_value):
+        if not self.pte_entry_present(pte_value):
             return None
 
-        return (pte_value & 0xfffff000) | (vaddr & 0xfff)
+        return (self.pte_paddr(pte_value) & 0xfffff000) | (vaddr & 0xfff)
 
     def get_four_meg_paddr(self, vaddr, pde_value):
         '''
@@ -182,16 +196,15 @@ class IA32PagedMemory(addrspace.PagedReader):
             return self._tlb.Get(vaddr)
         except KeyError:
             pde_value = self.get_pde(vaddr)
-            if not self.entry_present(pde_value):
+            if not self.pde_entry_present(pde_value):
                 return None
 
             if self.page_size_flag(pde_value):
                 return self.get_four_meg_paddr(vaddr, pde_value)
 
             pte_value = self.get_pte(vaddr, pde_value)
-            if not self.entry_present(pte_value):
+            if not self.pte_entry_present(pte_value):
                 return None
-
             res = self.get_phys_addr(vaddr, pte_value)
 
             self._tlb.Put(vaddr, res)
@@ -223,7 +236,7 @@ class IA32PagedMemory(addrspace.PagedReader):
                 continue
 
             pde_value = self.get_pde(vaddr)
-            if not self.entry_present(pde_value):
+            if not self.pde_entry_present(pde_value):
                 continue
 
             if self.page_size_flag(pde_value):
@@ -250,7 +263,7 @@ class IA32PagedMemory(addrspace.PagedReader):
                 if start > next_vaddr:
                     continue
 
-                if self.entry_present(pte_value):
+                if self.pte_entry_present(pte_value):
                     yield (vaddr,
                            self.get_phys_addr(vaddr, pte_value),
                            0x1000)
@@ -274,6 +287,13 @@ class IA32PagedMemoryPae(IA32PagedMemory):
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
     """
     order = 80
+
+    def pdpte_entry_present(self, entry):
+        '''
+        Returns whether or not the 'P' (Present) flag is on
+        in the given entry
+        '''
+        return entry & 1
 
     def pdpte_index(self, vaddr):
         '''
@@ -338,7 +358,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         Bits 51:12 are from the PTE
         Bits 11:0 are from the original linear address
         '''
-        if not self.entry_present(pte):
+        if not self.pte_entry_present(pte):
             return None
 
         return (pte & 0xffffffffff000) | (vaddr & 0xfff)
@@ -353,13 +373,13 @@ class IA32PagedMemoryPae(IA32PagedMemory):
             return self._tlb.Get(vaddr)
         except KeyError:
             pdpte = self.get_pdpte(vaddr)
-            if not self.entry_present(pdpte):
+            if not self.pdpte_entry_present(pdpte):
                 # Add support for paged out PDPTE
                 # Insert buffalo here!
                 return None
 
             pde = self.get_pde(vaddr, pdpte)
-            if not self.entry_present(pde):
+            if not self.pde_entry_present(pde):
                 # Add support for paged out PDE
                 return None
 
@@ -393,7 +413,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                 continue
 
             pdpte_value = self.get_pdpte(vaddr)
-            if not self.entry_present(pdpte_value):
+            if not self.pdpte_entry_present(pdpte_value):
                 continue
 
             tmp1 = vaddr
@@ -404,7 +424,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                     continue
 
                 pde_value = self.get_pde(vaddr, pdpte_value)
-                if not self.entry_present(pde_value):
+                if not self.pde_entry_present(pde_value):
                     continue
 
                 if self.page_size_flag(pde_value):
@@ -425,7 +445,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
 
                 tmp2 = vaddr
                 for i, pte_value in enumerate(pte_table):
-                    if self.entry_present(pte_value):
+                    if self.pte_entry_present(pte_value):
                         vaddr = tmp2 | i << 12
                         next_vaddr = tmp2 | (i+1) << 12
                         if start >= next_vaddr:
