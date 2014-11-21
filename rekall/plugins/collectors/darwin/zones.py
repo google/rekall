@@ -185,6 +185,9 @@ class DarwinZoneBufferCollector(DarwinZoneElementCollector):
                     hinted_zone = dependency.value
                     break
 
+        if not hinted_zone:
+            return
+
         for zone in zones:
             if hinted_zone and zone["AllocationZone/name"] != hinted_zone:
                 continue

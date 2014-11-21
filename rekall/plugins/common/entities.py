@@ -181,6 +181,7 @@ class EntityFind(plugin.ProfileCommand):
     sort = ()
     width = 120
     stream_results = False
+    complete_results = True
 
     query = None
 
@@ -195,10 +196,12 @@ class EntityFind(plugin.ProfileCommand):
                             help="Show which part of the query matched.")
         parser.add_argument("--width", type="int", default=None)
         parser.add_argument("--filter", type="str")
+        parser.add_argument("--complete_results", type="Boolean", default=None)
         parser.add_argument("--stream_results", type="Boolean", default=None)
 
     def __init__(self, query=None, explain=None, columns=None, sort=None,
-                 width=None, filter=None, stream_results=None, **kwargs):
+                 width=None, filter=None, stream_results=None,
+                 complete_results=None, **kwargs):
         super(EntityFind, self).__init__(**kwargs)
         if query:
             self.query = entity_query.Query(query)
@@ -219,6 +222,9 @@ class EntityFind(plugin.ProfileCommand):
 
         if stream_results is not None:
             self.stream_results = stream_results
+
+        if complete_results is not None:
+            self.complete_results = complete_results
 
         self.explain = explain
 
@@ -281,7 +287,8 @@ class EntityFind(plugin.ProfileCommand):
 
             self.session.entities.stream(self.query, _handler)
         else:
-            for entity in self.session.entities.find(self.query):
+            for entity in self.session.entities.find(
+                    self.query, complete=self.complete_results):
                 self.render_entity(renderer, entity)
 
 

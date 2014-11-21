@@ -177,7 +177,7 @@ class TupleDescriptor(TypeDescriptor):
         self.types = [TypeFactory(x) for x in tpl]
 
     def coerce(self, value):
-        return tuple(self.types[i](x) for i, x in enumerate(value))
+        return tuple(self.types[i].coerce(x) for i, x in enumerate(value))
 
     def __repr__(self):
         return "(%s)" % ", ".join(self.types)

@@ -537,8 +537,11 @@ class DatetimeTextRenderer(TextObjectRenderer):
 
 class StructTextRenderer(TextObjectRenderer):
     renders_type = "Struct"
-    
-    def render_row(self, target, style="short", **_):
+
+    def render_row(self, target, style="short", formatstring=None, **kwargs):
+        if formatstring == "[addrpad]":
+            style = "address"
+
         if style == "address":
             return Cell.FromString("0x%0.12x" % target.obj_offset)
 
@@ -551,8 +554,11 @@ class StructTextRenderer(TextObjectRenderer):
 
 class PointerTextRenderer(TextObjectRenderer):
     renders_type = "Pointer"
-    
-    def render_row(self, target, style="short", **_):
+
+    def render_row(self, target, style="short", formatstring=None, **kwargs):
+        if formatstring == "[addrpad]":
+            style = "address"
+
         if style == "address" or style == "short" and target.target == "void":
             return Cell.FromString("0x%0.12x" % target.v())
 

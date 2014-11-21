@@ -344,8 +344,8 @@ class PluginMetadataDatabase(object):
         # is an error to have multiple implementations active at the same
         # time.
         if len(results) > 1:
-            raise RuntimeError("Multiple plugin implementations for %s: %s",
-                               plugin_name, results)
+            raise RuntimeError("Multiple plugin implementations for %s: %s" % (
+                               plugin_name, results))
 
         if results:
             return results[0]

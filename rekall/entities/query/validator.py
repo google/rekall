@@ -41,6 +41,8 @@ class QueryValidator(visitor.QueryVisitor):
     - Non-existent components or attributes.
     """
 
+    COLLECTION_TYPES = frozenset(["tuple", "list"])
+
     def error(self, message, exp):
         raise ValidationError(error=message, start=exp.start, end=exp.end,
                               query=self.query.source)
@@ -89,8 +91,8 @@ class QueryValidator(visitor.QueryVisitor):
                 exp.string)
 
     def visit_Membership(self, exp):
-        if "tuple" not in self.visit(exp.set):
-            return self.error("Left hand site of 'in' must be a list.",
+        if not self.COLLECTION_TYPES & self.visit(exp.set):
+            return self.error("Left hand side of 'in' must be a collection.",
                               exp.set)
 
     def visit_Relation(self, exp):

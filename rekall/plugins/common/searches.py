@@ -51,7 +51,7 @@ class ListEvents(entities.EntityFind):
     sort=["Event/timestamp", "Event/category", "Event/action"]
 
 
-class Processes(entities.EntityFind, DarwinOnlyMixin):
+class Processes(DarwinOnlyMixin, entities.EntityFind):
     __name = "pslist"
     search = ("has component Process")
     columns = ["Process/command", "Process/pid", "Process/parent",
@@ -60,7 +60,7 @@ class Processes(entities.EntityFind, DarwinOnlyMixin):
     sort = ["Process/pid"]
 
 
-class LSOF(entities.EntityFind, DarwinOnlyMixin):
+class LSOF(DarwinOnlyMixin, entities.EntityFind):
     __name = "lsof"
     description = "Open Files"
     width = 150
@@ -86,8 +86,8 @@ class IPNetstat(entities.EntityFind):
     sort = ["OSILayer3/protocol", "OSILayer4/protocol", "OSILayer3/src_addr"]
 
 
-class SocketNetstat(entities.EntityFind):
-    __name = "sockets"
+class SocketNetstat(DarwinOnlyMixin, entities.EntityFind):
+    __name = "unix_sockets"
     description = "UNIX sockets"
     search = "Connection/protocol_family is UNIX"
     columns=["Socket/type", "Socket/address", "Socket/connected",
@@ -95,6 +95,6 @@ class SocketNetstat(entities.EntityFind):
     sort = ["Socket/address"]
 
 
-class EntityNetstat(entities.FindBatch, DarwinOnlyMixin):
+class EntityNetstat(DarwinOnlyMixin, entities.FindBatch):
     __name = "netstat"
-    batch = ["ipnetstat", "sockets"]
+    batch = ["ipnetstat", "unix_sockets"]
