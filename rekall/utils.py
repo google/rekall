@@ -427,8 +427,7 @@ class AttributeDict(dict):
 
             return object.__setattr__(self, attr, value)
         except AttributeError:
-            with self:
-                self.Set(attr, value)
+            self.Set(attr, value)
 
     def Get(self, item, default=None):
         return self.get(item, default)
@@ -804,6 +803,25 @@ def CopyFDs(in_fd, out_fd, length=2**64):
 
         out_fd.write(data)
         length -= len(data)
+
+
+def CopyAStoFD(in_as, out_fd, start=0, length=2**64, cb=lambda x: None):
+    """Copy an address space into a file-like object."""
+    blocksize = 1024 * 1024
+
+    for range_offset, _, range_length in in_as.get_available_addresses(
+            start=start):
+        range_end = range_offset + range_length
+
+        for offset in xrange(range_offset, range_end, blocksize):
+            to_read = min(blocksize, range_end - offset, length)
+            data = in_as.read(offset, to_read)
+
+            out_fd.seek(offset)
+            out_fd.write(data)
+            length -= len(data)
+
+            cb(offset)
 
 
 def issubclass(obj, cls):    # pylint: disable=redefined-builtin

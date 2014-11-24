@@ -85,8 +85,8 @@ class Capstone(Disassembler):
         return self.cs.disasm(data, int(offset))
 
     def decode(self, insn):
-        instruction = Instruction("%s %s" % (str.upper(insn.mnemonic),
-                                             insn.op_str))
+        instruction = Instruction(
+            "%s %s" % (insn.mnemonic, insn.op_str))
         hexdump = unicode(binascii.hexlify(insn.bytes))
 
         return insn.address, insn.size, instruction, hexdump

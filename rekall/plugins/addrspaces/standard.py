@@ -29,6 +29,12 @@ import struct
 import os
 
 from rekall import addrspace
+from rekall import config
+
+
+config.DeclareOption(
+    "-o", "--file_offset",
+    type="IntParser", help="A Relative offset for image file.")
 
 
 class FDAddressSpace(addrspace.BaseAddressSpace):
@@ -126,6 +132,31 @@ class FileAddressSpace(FDAddressSpace):
         fhandle = open(self.fname, self.mode)
         super(FileAddressSpace, self).__init__(
             fhandle=fhandle, session=session, **kwargs)
+
+
+class GlobalOffsetAddressSpace(addrspace.BaseAddressSpace):
+    """An address space to add a constant offset."""
+
+    __image = True
+
+    # Must come after all other address space.
+    order = 120
+
+    def __init__(self, **kwargs):
+        super(GlobalOffsetAddressSpace, self).__init__(**kwargs)
+        self.file_offset = self.session.GetParameter("file_offset")
+        self.as_assert(self.file_offset, "File offset not specified.")
+        self.as_assert(self.base.__class__ is not GlobalOffsetAddressSpace,
+                       "Can not stack on GlobalOffsetAddressSpace")
+        self.phys_base = self.base
+
+    def read(self, address, length):
+        return self.base.read(address + self.file_offset, length)
+
+    def get_available_addresses(self, start=0):
+        for vaddr, paddr, length in self.base.get_available_addresses(
+                start=start):
+            yield vaddr - self.file_offset, paddr, length
 
 
 class WriteableAddressSpaceMixIn(object):

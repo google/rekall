@@ -5,6 +5,7 @@ from rekall.plugins import addrspaces
 from rekall.plugins import common
 from rekall.plugins import core
 from rekall.plugins import darwin
+from rekall.plugins import filesystems
 from rekall.plugins import guess_profile
 from rekall.plugins import hypervisors
 from rekall.plugins import imagecopy

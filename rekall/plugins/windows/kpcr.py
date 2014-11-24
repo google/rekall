@@ -61,7 +61,7 @@ class KPCR(common.WindowsCommandPlugin):
                                ("Value", "value", "<")])
 
         renderer.table_row("Offset (V)", "%#x" % kpcr.obj_offset)
-        renderer.table_row("KdVersionBlock", kpcr.KdVersionBlock)
+        renderer.table_row("KdVersionBlock", kpcr.KdVersionBlock, style="full")
 
         renderer.table_row("IDT", "%#x" % kpcr.IDT)
         renderer.table_row("GDT", "%#x" % kpcr.GDT)

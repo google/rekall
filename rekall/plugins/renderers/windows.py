@@ -53,6 +53,18 @@ class EPROCESSDataExport(data_export.DataExportBaseObjectRenderer):
                             item.get("Cybox", {}).get("PID", ""))
 
 
+class UNICODE_STRING_Text(text.TextObjectRenderer):
+    renders_type = "_UNICODE_STRING"
+    renderers = ["TextRenderer", "TestRenderer", "WideTextRenderer"]
+
+    def render_row(self, target, **options):
+        return text.Cell.FromString(unicode(target))
+
+
+class SID_Text(UNICODE_STRING_Text):
+    renders_type = "_SID"
+
+
 class UNICODE_STRINGDataExport(data_export.DataExportBaseObjectRenderer):
     renders_type = "_UNICODE_STRING"
 

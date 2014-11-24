@@ -228,6 +228,13 @@ class Formatter(string.Formatter):
         except ValueError:
             return ""
 
+    def format_type_d(self, value, fields):
+        _ = fields
+        try:
+            return int(value)
+        except ValueError:
+            return ""
+
     def format_type_X(self, value, fields):
         _ = fields
         try:
@@ -461,6 +468,17 @@ class TextObjectRenderer(renderer.ObjectRenderer):
         super(TextObjectRenderer, self).__init__(*args, **kwargs)
         self.formatter = Formatter(session=self.session)
 
+    @property
+    def address_size(self):
+        address_size = 14
+
+        # TODO: The below will force profile autodetection. We need to do it
+        # only when the profile is already autodetected.
+        if self.session.profile.metadata("arch") == "I386":
+            address_size = 10
+
+        return address_size
+
     def render_header(self, name=None, **options):
         """This should be overloaded to return the header Cell.
 
@@ -538,12 +556,13 @@ class DatetimeTextRenderer(TextObjectRenderer):
 class StructTextRenderer(TextObjectRenderer):
     renders_type = "Struct"
 
-    def render_row(self, target, style="short", formatstring=None, **kwargs):
+    def render_row(self, target, style="short", formatstring=None, **_):
         if formatstring == "[addrpad]":
             style = "address"
 
         if style == "address":
-            return Cell.FromString("0x%0.12x" % target.obj_offset)
+            fmtstring = "%%#0%sx" % self.address_size
+            return Cell.FromString(fmtstring % target.obj_offset)
 
         if style == "short":
             return Cell.FromString(repr(target))
@@ -555,16 +574,19 @@ class StructTextRenderer(TextObjectRenderer):
 class PointerTextRenderer(TextObjectRenderer):
     renders_type = "Pointer"
 
-    def render_row(self, target, style="short", formatstring=None, **kwargs):
+    def render_row(self, target, style="short", formatstring=None, **_):
         if formatstring == "[addrpad]":
             style = "address"
 
         if style == "address" or style == "short" and target.target == "void":
-            return Cell.FromString("0x%0.12x" % target.v())
+            fmtstring = "%%#0%sx" % self.address_size
+            return Cell.FromString(fmtstring % target.v())
 
         if style == "short":
-            return Cell.FromString("(%s *) 0x%0.12x" % (target.target,
-                                                        target.v()))
+            fmtstring = "(%%s *) %%#0%sx" % self.address_size
+
+            return Cell.FromString(
+                fmtstring % (target.target, target.v()))
 
         if style == "full":
             return Cell.FromString(unicode(target))
@@ -575,7 +597,8 @@ class VoidTextRenderer(TextObjectRenderer):
 
     def render_row(self, target, style="address", **_):
         if style == "address":
-            return Cell.FromString("0x%0.12x" % target.v())
+            fmtstring = "%%#0%sx" % self.address_size
+            return Cell.FromString(fmtstring % target.v())
 
         if style in ("short", "full"):
             return Cell.FromString(repr(target))

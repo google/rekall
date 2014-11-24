@@ -181,7 +181,7 @@ class Threads(common.WinProcessFilter):
             [("_ETHREAD", "offset", "[addrpad]"),
              ("PID", "pid", ">6"),
              ("TID", "tid", ">6"),
-             ("Start Address", "start", "[addr]"),
+             ("Start Address", "start", "[addrpad]"),
              ("Process", "name", "16"),
              ("Symbol", "symbol", "")])
 
@@ -202,4 +202,5 @@ class Threads(common.WinProcessFilter):
                         task.ImageFileName,
                         self.session.address_resolver.format_address(
                             thread.Win32StartAddress,
-                            max_distance=0xffffffff))
+                            max_distance=0xffffffff),
+                    )

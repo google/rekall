@@ -120,6 +120,6 @@ class LinVadDump(core.DirectoryDumperMixin, common.LinProcessFilter):
 
 class TestLinVadDump(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="vaddump --proc_regex %(proc_name)s --dump-dir %(tempdir)s",
+        commandline="vaddump --proc_regex %(proc_name)s --dump_dir %(tempdir)s",
         proc_name="bash"
         )

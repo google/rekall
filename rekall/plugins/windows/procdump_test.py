@@ -28,14 +28,14 @@ class TestProcdump(testlib.HashChecker):
     """Test the Procdump module."""
 
     PARAMETERS = dict(
-        commandline="procdump --pid %(pid)s --dump-dir %(tempdir)s",
+        commandline="procdump --pid %(pid)s --dump_dir %(tempdir)s",
         pid=2536
         )
 
 
 class TestModDump(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="moddump --regex %(driver)s --dump-dir %(tempdir)s",
+        commandline="moddump --regex %(driver)s --dump_dir %(tempdir)s",
         driver="ntoskrnl.exe"
         )
 
@@ -44,7 +44,7 @@ class TestDLLDump(testlib.HashChecker):
     """Test the dlldump module."""
 
     PARAMETERS = dict(
-        commandline="dlldump --pid %(pid)s --dump-dir %(tempdir)s",
+        commandline="dlldump --pid %(pid)s --dump_dir %(tempdir)s",
         )
 
 

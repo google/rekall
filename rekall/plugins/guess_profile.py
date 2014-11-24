@@ -363,6 +363,11 @@ class ProfileHook(kb.ParameterHook):
         method_names = self.session.GetParameter("autodetect")
         logging.debug("Will detect profile using these Detectors: %s" %
                       ",".join(method_names))
+
+        if not method_names:
+            raise RuntimeError("No autodetection methods specified. "
+                               "Use the --autodetect parameter.")
+
         for method_name in method_names:
             method = DetectionMethod.classes_by_name[method_name](
                 session=self.session)
@@ -396,6 +401,8 @@ class ProfileHook(kb.ParameterHook):
             logging.error(
                 "No profiles match this image. Try specifying manually.")
 
+            return obj.NoneObject("No profile detected")
+
         elif best_match < threshold:
             logging.error(
                 "Best match for profile is %s with %.0f%%, which is too low " +
@@ -404,6 +411,8 @@ class ProfileHook(kb.ParameterHook):
                 best_profile.name,
                 best_match * 100,
                 threshold * 100)
+
+            return obj.NoneObject("No profile detected")
 
         else:
             logging.info(

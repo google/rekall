@@ -35,7 +35,7 @@ class DarwinOnlyMixin(object):
 
 
 class ListZones(entities.EntityFind):
-    __name = "zones"
+    name = "zones"
     search = "has component AllocationZone"
     columns = ["AllocationZone/name", "AllocationZone/count_active",
                "AllocationZone/count_free", "AllocationZone/element_size",
@@ -44,11 +44,11 @@ class ListZones(entities.EntityFind):
 
 
 class ListEvents(entities.EntityFind):
-    __name = "events"
+    name = "events"
     search = "has component Event"
-    columns=["Event/timestamp", "Event/category", "Event/actor",
-             "Event/action", "Event/target"]
-    sort=["Event/timestamp", "Event/category", "Event/action"]
+    columns = ["Event/timestamp", "Event/category", "Event/actor",
+               "Event/action", "Event/target"]
+    sort = ["Event/timestamp", "Event/category", "Event/action"]
 
 
 class Processes(DarwinOnlyMixin, entities.EntityFind):
@@ -64,7 +64,7 @@ class LSOF(DarwinOnlyMixin, entities.EntityFind):
     __name = "lsof"
     description = "Open Files"
     width = 150
-    search = ("Handle/resource matches " 
+    search = ("Handle/resource matches "
               "(has component File or has component Connection or "
               "has component MemoryObject) "
               "and Handle/process->Process/user matches "
@@ -90,8 +90,8 @@ class SocketNetstat(DarwinOnlyMixin, entities.EntityFind):
     __name = "unix_sockets"
     description = "UNIX sockets"
     search = "Connection/protocol_family is UNIX"
-    columns=["Socket/type", "Socket/address", "Socket/connected",
-             "Socket/file", "Connection/handles->Handle/process"]
+    columns = ["Socket/type", "Socket/address", "Socket/connected",
+               "Socket/file", "Connection/handles->Handle/process"]
     sort = ["Socket/address"]
 
 

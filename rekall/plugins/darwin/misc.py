@@ -30,7 +30,7 @@ class DarwinDMSG(common.DarwinPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-                ("Message", "message", "<80")])
+            ("Message", "message", "<80")])
 
         # This is a circular buffer with the write pointer at the msg_bufx
         # member.
@@ -76,9 +76,9 @@ class DarwinMount(common.DarwinPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-                ("Device", "device", "30"),
-                ("Mount Point", "mount_point", "60"),
-                ("Type", "type", "")])
+            ("Device", "device", "30"),
+            ("Mount Point", "mount_point", "60"),
+            ("Type", "type", "")])
 
         mount_list = self.profile.get_constant_object(
             "_mountlist", "mount")
@@ -95,11 +95,11 @@ class DarwinPhysicalMap(common.DarwinPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-                ("Physical Start", "phys", "[addrpad]"),
-                ("Physical End", "phys", "[addrpad]"),
-                ("Virtual", "virt", "[addrpad]"),
-                ("Pages", "pages", ">10"),
-                ("Type", "type", "")])
+            ("Physical Start", "phys", "[addrpad]"),
+            ("Physical End", "phys", "[addrpad]"),
+            ("Virtual", "virt", "[addrpad]"),
+            ("Pages", "pages", ">10"),
+            ("Type", "type", "")])
 
         boot_params = self.profile.get_constant_object(
             "_PE_state", "PE_state").bootArgs

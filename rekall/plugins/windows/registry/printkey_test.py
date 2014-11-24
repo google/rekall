@@ -21,10 +21,6 @@
 #
 
 """Tests for the printkey plugin."""
-import hashlib
-import re
-import os
-
 from rekall import testlib
 
 
@@ -51,7 +47,7 @@ class TestPrintkey(testlib.RekallBaseUnitTestCase):
 class TestRegDump(testlib.HashChecker):
     """Test dumping of registry hives."""
 
-    PARAMETERS = dict(commandline="regdump --dump-dir %(tempdir)s")
+    PARAMETERS = dict(commandline="regdump --dump_dir %(tempdir)s")
 
 
 class TestHiveDump(testlib.SimpleTestCase):

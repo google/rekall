@@ -180,9 +180,6 @@ def ParseGlobalArgs(parser, argv, user_session):
     # Register global args.
     ConfigureCommandLineParser(config.OPTIONS, parser)
 
-    for opt in DISAMBIGUATE_OPTIONS:
-        parser.add_argument("--" + opt, dest="SUPPRESS")
-
     # Parse the known args.
     known_args, _ = parser.parse_known_args(args=argv)
 
@@ -280,7 +277,6 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
     - Directly provided to the plugin in the constructor.
     - Parsed from json from the web console.
     """
-
     # This is used to allow the user to break the command line arbitrarily.
     parser.add_argument('-', dest='__dummy', action="store_true",
                         help="A do nothing arg. Useful to separate options "
@@ -301,7 +297,15 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
     for name, options in command_metadata.args.iteritems():
         kwargs = options.copy()
         name = kwargs.pop("name", None) or name
-        kwargs.pop("default", None)
+
+        # We do not pass defaults to argparse because the defaults can not mask
+        # the config file. However if defaults are specified, we assume the
+        # parameter is not required.
+        default = kwargs.pop("default", None)
+        try:
+            required = kwargs.pop("required")
+        except KeyError:
+            required = default is None
 
         group_name = kwargs.pop("group", None)
         if group_name is None and command_metadata.plugin_cls:
@@ -317,9 +321,6 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
 
         # A positional arg is allows to be specified without a flag.
         if kwargs.pop("positional", None):
-            # By default positional args are required.
-            required = kwargs.pop("required", True)
-
             positional_args.append(name)
 
             # If a position arg is optional we need to specify nargs=?
@@ -336,11 +337,11 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
         arg_type = kwargs.pop("type", None)
         if arg_type == "ArrayIntParser":
             kwargs["action"] = ArrayIntParser
-            kwargs["nargs"] = "+"
+            kwargs["nargs"] = "+" if required else "*"
 
         if arg_type == "ArrayStringParser":
             kwargs["action"] = ArrayStringParser
-            kwargs["nargs"] = "+"
+            kwargs["nargs"] = "+" if required else "*"
 
         elif arg_type == "IntParser":
             kwargs["action"] = IntParser
@@ -353,7 +354,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
 
         # Multiple entries of choices (requires a choices paramter).
         elif arg_type == "ChoiceArray":
-            kwargs["nargs"] = "+"
+            kwargs["nargs"] = "+" if required else "*"
             kwargs["action"] = ChoiceArrayParser
 
         # Skip option if not critical.
@@ -378,9 +379,6 @@ def parse_args(argv=None, user_session=None):
         epilog="When no module is provided, drops into interactive mode",
         formatter_class=RekallHelpFormatter)
 
-    # Parse the global and critical args from the command line.
-    ParseGlobalArgs(parser, argv, user_session)
-
     # The plugin name is taken from the command line, but it is not enough to
     # know which specific implementation will be used. For example there are 3
     # classes implementing the pslist plugin WinPsList, LinPsList and OSXPsList.
@@ -393,6 +391,9 @@ def parse_args(argv=None, user_session=None):
     # plugin.
     for metadata in user_session.plugins.plugin_db.MetadataByName(plugin_name):
         ConfigureCommandLineParser(metadata, parser, critical=True)
+
+    # Parse the global and critical args from the command line.
+    ParseGlobalArgs(parser, argv, user_session)
 
     # Find the specific implementation of the plugin that applies here. For
     # example, we have 3 different pslist implementations depending on the
@@ -478,7 +479,7 @@ class ArrayIntParser(IntParser):
         for value in values:
             result.extend([self.Validate(x) for x in value.split(",")])
 
-        setattr(namespace, self.dest, result)
+        setattr(namespace, self.dest, result or None)
 
 
 class ChoiceArrayParser(ArrayIntParser):

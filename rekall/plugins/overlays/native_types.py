@@ -19,6 +19,9 @@ LP64 = {
     'unsigned char' : obj.Curry(
         obj.NativeType, type_name='unsigned char', format_string='<B'),
 
+    'signed byte' : obj.Curry(
+        obj.NativeType, type_name='signed byte', format_string='<b'),
+
     # Shorts are 16 bits.
     'short' : obj.Curry(obj.NativeType, type_name='short', format_string='<h'),
     'unsigned short' : obj.Curry(
@@ -59,6 +62,9 @@ LLP64 = {
     'char' : obj.Curry(obj.NativeType, type_name='char', format_string='<c'),
     'unsigned char' : obj.Curry(
         obj.NativeType, type_name='unsigned char', format_string='<B'),
+
+    'signed byte' : obj.Curry(
+        obj.NativeType, type_name='signed byte', format_string='<b'),
 
     # Shorts are 16 bits.
     'short' : obj.Curry(obj.NativeType, type_name='short', format_string='<h'),
@@ -101,6 +107,9 @@ ILP32 = {
     'unsigned char' : obj.Curry(
         obj.NativeType, type_name='unsigned char', format_string='<B'),
 
+    'signed byte' : obj.Curry(
+        obj.NativeType, type_name='signed byte', format_string='<b'),
+
     # Shorts are 16 bits.
     'short' : obj.Curry(obj.NativeType, type_name='short', format_string='<h'),
     'unsigned short' : obj.Curry(
@@ -141,6 +150,9 @@ BE32 = {
     'char' : obj.Curry(obj.NativeType, type_name='char', format_string='>c'),
     'unsigned char' : obj.Curry(
         obj.NativeType, type_name='unsigned char', format_string='>B'),
+
+    'signed byte' : obj.Curry(
+        obj.NativeType, type_name='signed byte', format_string='<b'),
 
     # Shorts are 16 bits.
     'short' : obj.Curry(obj.NativeType, type_name='short', format_string='>h'),

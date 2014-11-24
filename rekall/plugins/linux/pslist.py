@@ -149,7 +149,7 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
 
 class TestLinMemDump(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="memdump --proc_regex bash --dump-dir %(tempdir)s"
+        commandline="memdump --proc_regex bash --dump_dir %(tempdir)s"
         )
 
 # We only care about PIDTYPE_PID here.

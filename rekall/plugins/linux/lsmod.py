@@ -219,7 +219,7 @@ class Moddump(common.LinuxPlugin):
         """Declare the command line args we need."""
         super(Moddump, cls).args(parser)
         parser.add_argument(
-            "--dump-dir", default=None, help="Dump directory.",
+            "--dump_dir", default=None, help="Dump directory.",
             required=True)
         parser.add_argument(
             "--regexp", default=None, help="Regexp on the module name.")

@@ -588,9 +588,9 @@ class RegistryPlugin(common.WindowsCommandPlugin):
         super(RegistryPlugin, cls).args(parser)
 
         parser.add_argument(
-            "-o", "--hive-offsets", default=None, type="ArrayIntParser",
+            "--hive-offsets", default=None, type="ArrayIntParser",
             help="A list of hive offsets as found by hivelist. "
-            "If not provided we call hivescan ourselves and list "
+            "If not provided we call hivelist ourselves and list "
             "the keys on all hives.")
 
         parser.add_argument("--hive_regex", default=None,

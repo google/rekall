@@ -127,8 +127,9 @@ class PacketQueues(common.LinuxPlugin):
     @classmethod
     def args(cls, parser):
         super(PacketQueues, cls).args(parser)
-        parser.add_argument("--dump-dir", default=None, help="Output directory",
-                            required=True)
+        parser.add_argument(
+            "--dump_dir", default=None, help="Output directory",
+            required=True)
 
     def __init__(self, dump_dir=None, **kwargs):
         super(PacketQueues, self).__init__(**kwargs)
@@ -176,5 +177,5 @@ class PacketQueues(common.LinuxPlugin):
 
 class TestPacketQueues(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="pkt_queues --dump-dir %(tempdir)s"
+        commandline="pkt_queues --dump_dir %(tempdir)s"
         )

@@ -19,12 +19,8 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-import re
-
 from rekall import utils
 from rekall.plugins.darwin import common
-
-from rekall.entities.query import expression
 
 
 class DarwinDumpZone(common.DarwinPlugin):

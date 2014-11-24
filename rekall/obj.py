@@ -1009,12 +1009,16 @@ class Array(BaseObject):
             start, stop, step = pos.indices(self.count)
             return [self[i] for i in xrange(start, stop, step)]
 
+        pos = int(pos)
         offset = self.target_size * pos + self.obj_offset
+        context = dict(index=pos)
+        context.update(self.obj_context)
+
         return self.obj_profile.Object(
             self.target, offset=offset, vm=self.obj_vm,
             parent=self, profile=self.obj_profile,
             name="{0}[{1}] ".format(self.obj_name, pos),
-            context=self.obj_context, **self.target_args)
+            context=context, **self.target_args)
 
     def __setitem__(self, item, value):
         if isinstance(item, int):

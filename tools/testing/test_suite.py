@@ -118,7 +118,6 @@ pid = 2536
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
-import ConfigParser
 import logging
 import json
 import subprocess
@@ -129,11 +128,13 @@ import sys
 import tempfile
 import threading
 import time
+import yaml
 import unittest
 
 from rekall import config as rekall_config
 from rekall import plugin
 from rekall import session
+from rekall import utils
 from rekall import testlib
 from rekall import threadpool
 from rekall.ui import text
@@ -244,18 +245,31 @@ exit 0
           a dict with keys being the test names, and values being config_options
           for each test.
         """
-        config = ConfigParser.SafeConfigParser()
-        config.read(self.FLAGS.config)
+        config = yaml.load(open(self.FLAGS.config).read())
 
         # Set some useful defaults - These do not get written to the file.
-        config.set(None, "tempdir", self.temp_directory)
-        config.set(None, "testdir", self.test_directory)
-        config.set(None, "executable", self.FLAGS.executable)
+        config.setdefault("DEFAULT", {})
+        defaults = config["DEFAULT"]
+        defaults.update(dict(
+            tempdir=self.temp_directory,
+            testdir=self.test_directory,
+            executable=self.FLAGS.executable))
 
         # Extra options to be used for testing.
-        config.set(None, "--renderer", "test")
+        defaults["--renderer"] = "test"
 
-        return config
+
+        for test_config in config.values():
+            # For each test config interpolate the parameter if it is a string.
+            for k, v in test_config.items():
+                merged_config = defaults.copy()
+                merged_config.update(test_config)
+
+                if isinstance(v, basestring):
+                    v = v % merged_config
+                    test_config[k] = v
+
+        return utils.AttributeDict(config)
 
     def BuildBaselineData(self, config_options, plugin_cls):
         # Operate on a copy here as we need to provide this test a unique
@@ -325,6 +339,10 @@ exit 0
 
         # Pull the profile path etc from the rekall config file.
         kwargs = rekall_config.GetConfigFile()
+
+        # Get the disabled tests.
+        disabled = config.pop("disabled", [])
+
         for x, y in config.items():
             if x.startswith("--"):
                 kwargs[x[2:]] = y
@@ -355,11 +373,15 @@ exit 0
                 continue
 
             # Automatically create a new test based on testlib.SimpleTestCase.
-            result.append(type(
-                "Test%s" % cls.__name__, (testlib.SimpleTestCase,),
-                dict(PARAMETERS=dict(commandline=cls.name))))
+            try:
+                result.append(type(
+                    "Test%s" % cls.__name__, (testlib.SimpleTestCase,),
+                    dict(PARAMETERS=dict(commandline=cls.name))))
+            except RuntimeError:
+                pass
 
-        return result
+        # Remove the disabled tests.
+        return [x for x in result if x.__name__ not in disabled]
 
     def RunTests(self):
         if not os.access(self.FLAGS.config, os.R_OK):
@@ -372,7 +394,7 @@ exit 0
 
         # Use the options in the DEFAULT section to select the plugins which
         # apply to this profile.
-        config_options = dict(config.items("DEFAULT"))
+        config_options = config.DEFAULT
         if self.FLAGS.verbose:
             config_options["--verbose"] = True
 
@@ -394,12 +416,12 @@ exit 0
             config_options = plugin_cls.PARAMETERS.copy()
 
             # Defaults section overrides the PARAMETERS attribute.
-            config_options.update(dict(config.items("DEFAULT")))
+            config_options.update(config.DEFAULT)
 
             config_options["test_class"] = plugin_cls.__name__
 
-            if config.has_section(plugin_cls.__name__):
-                config_options.update(dict(config.items(plugin_cls.__name__)))
+            if plugin_cls.__name__ in config:
+                config_options.update(config.Get(plugin_cls.__name__))
 
             # Try to get the previous baseline file.
             baseline_filename = os.path.join(

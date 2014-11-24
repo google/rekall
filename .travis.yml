@@ -4,4 +4,6 @@ install:
   - git clone https://github.com/scudette/rekall-test.git
   - python setup.py install
 
-script: python tools/testing/test_suite.py -c rekall-test/tigger/tests.config --inline
+script:
+  - python tools/testing/test_suite.py -c rekall-test/tigger/tests.config --inline
+  - python tools/testing/test_suite.py -c rekall-test/ntfs/tests.config --inline

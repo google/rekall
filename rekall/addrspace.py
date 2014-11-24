@@ -457,11 +457,113 @@ class RunBasedAddressSpace(PagedReader):
         return self.vtop(addr) is not None
 
     def get_available_addresses(self, start=0):
-        for run_start, file_address, length in self.runs:
+        for run in self.runs:
+            run_start, file_address, length = run[:3]
             if start > run_start + length:
                 continue
 
             yield run_start, file_address, length
+
+
+# TODO: Replace the RunBasedAddressSpace with this one since it is a super set.
+
+class MultiRunBasedAddressSpace(PagedReader):
+    """An address space which uses a list of runs to specify a mapping.
+
+    This essentially delegates certain address ranges to other address spaces
+    "mapped" into this address space.
+
+    The runs are tuples of this form:
+
+    (virtual_address, physical_address, length, address_space)
+
+    - Virtual Address - An address in this address space's virtual address
+      space.
+
+    - Physical Address - An address in the delegate address space.
+
+    - Length - The length of the mapped region.
+
+    - Address space - the address space that should be read for this
+      region. Note that the physical address above refers to addresses in this
+      delegate address space.
+    """
+
+    # This is a list of (memory_offset, file_offset, length) tuples.
+    runs = None
+    __abstract = True
+
+    def __init__(self, **kwargs):
+        super(MultiRunBasedAddressSpace, self).__init__(**kwargs)
+        self.runs = utils.SortedCollection(key=lambda x: x[0])
+
+    def add_run(self, virt_addr, file_address, file_len, address_space):
+        self.runs.insert((virt_addr, file_address, file_len, address_space))
+
+    def _read_chunk(self, addr, length):
+        """Read from addr as much as possible up to a length of length."""
+        try:
+            virt_addr, file_address, file_len, _as = self.runs.find_le(addr)
+            available_length = file_len - (addr - virt_addr)
+            physical_offset = addr - virt_addr + file_address
+
+            if available_length > 0:
+                return _as.read(physical_offset, min(length, available_length))
+
+        except ValueError:
+            pass
+
+        try:
+            # Addr is outside any run, we need to find the next available
+            # run and return the number of bytes we need to pad until then.
+            virt_addr, _, _, _ = self.runs.find_ge(addr)
+
+            return "\x00" * (virt_addr - addr)
+
+        except ValueError:
+            # If we get here we dont have a next valid range.
+            return "\x00" * length
+
+    def vtop(self, addr):
+        """Returns the physical address for this virtual address.
+
+        Note that this does not mean much without also knowing the address space
+        to read from. Maybe we need to change this method prototype?
+        """
+        try:
+            virt_addr, file_address, file_len, _ = self.runs.find_le(addr)
+            available_length = file_len - (addr - virt_addr)
+            physical_offset = addr - virt_addr + file_address
+
+            if available_length > 0:
+                return physical_offset
+
+        except ValueError:
+            pass
+
+    def get_available_pages(self):
+        for page_offset, _, page_count in self.runs:
+            yield page_offset, page_count
+
+    def is_valid_address(self, addr):
+        return self.vtop(addr) is not None
+
+    # FIXME: Deprecate this method in all address spaces in favor of
+    # get_mappings() below.
+    def get_available_addresses(self, start=0):
+        for run_start, file_address, length, _ in self.runs:
+            if start > run_start + length:
+                continue
+
+            yield run_start, file_address, length
+
+    def get_mappings(self, start=0):
+        """Returns the mappings."""
+        for run_start, file_address, length, _as in self.runs:
+            if start > run_start + length:
+                continue
+
+            yield run_start, file_address, length, _as
 
 
 

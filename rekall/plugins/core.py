@@ -558,7 +558,7 @@ class DirectoryDumperMixin(object):
         else:
             help += " (Required)"
 
-        parser.add_argument("-D", "--dump-dir", default=None,
+        parser.add_argument("-D", "--dump_dir", default=None,
                             required=not cls.dump_dir_optional,
                             help=help)
 
