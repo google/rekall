@@ -255,6 +255,9 @@ class InteractiveShell(plugin.PhysicalASMixin, plugin.ProfileCommand):
 
     def render(self, renderer):
         self.session.mode = "Interactive"
+        self.session.session_name = (
+            self.session.GetParameter("base_filename") or
+            self.session.session_name)
 
         # Try to launch the session using ipython or bare python.
         if not IPython012Support(self.session):

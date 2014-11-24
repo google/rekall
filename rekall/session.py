@@ -235,6 +235,8 @@ class Configuration(Cache):
         # Reset any caches.
         if self.session:
             self.session.Reset()
+            self.session.session_name = (self.Get('base_filename') or
+                                         self.session.session_name)
 
         # If a profile is not configured at this time, we need to auto-detect
         # it.
